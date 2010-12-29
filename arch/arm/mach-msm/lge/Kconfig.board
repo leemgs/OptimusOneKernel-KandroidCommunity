@@ -1,0 +1,64 @@
+config MACH_MSM7X27_THUNDERC
+	depends on ARCH_MSM7X27
+	depends on !MSM_STACKED_MEMORY
+	select MACH_LGE
+	bool "MSM7x27 THUNDER Verizone"
+	help
+	  Support for the LGE MSM7x27 THUNDER Verizone board.
+
+config MACH_MSM7X27_THUNDERG
+	depends on ARCH_MSM7X27
+	depends on !MSM_STACKED_MEMORY
+	select MACH_LGE
+	bool "MSM7x27 THUNDER Global"
+	help
+	  Support for the LGE MSM7x27 THUNDER Global board.
+
+config MACH_MSM7X27_THUNDERA
+	depends on ARCH_MSM7X27
+	depends on !MSM_STACKED_MEMORY
+	select MACH_LGE
+	bool "MSM7x27 THUNDER AT&T"
+	help
+	  Support for the LGE MSM7x27 THUNDER AT&T board.
+
+config MACH_MSM7X27_SU370
+	depends on ARCH_MSM7X27
+	depends on !MSM_STACKED_MEMORY
+	select MACH_LGE
+	bool "MSM7x27 SU370 Global"
+	help
+	  Support for the LGE MSM7x27 SU370 Global board.
+
+config MACH_MSM7X27_KU3700
+	depends on ARCH_MSM7X27
+	depends on !MSM_STACKED_MEMORY
+	select MACH_LGE
+	bool "MSM7x27 KU3700 Global"
+	help
+	  Support for the LGE MSM7x27 KU3700 Global board.
+
+config MACH_MSM7X27_LU3700
+	depends on ARCH_MSM7X27
+	depends on !MSM_STACKED_MEMORY
+	select MACH_LGE
+	bool "MSM7x27 LU3700 Global"
+	help
+	  Support for the LGE MSM7x27 LU3700 Global board.
+
+config MACH_MSM7X27_SU310
+	depends on ARCH_MSM7X27
+	depends on !MSM_STACKED_MEMORY
+	select MACH_LGE
+	bool "MSM7x27 SU310 Global"
+	help
+	  Support for the LGE MSM7x27 SU310 Global board.
+
+config MACH_MSM7X27_LU3100
+	depends on ARCH_MSM7X27
+	depends on !MSM_STACKED_MEMORY
+	select MACH_LGE
+	bool "MSM7x27 LU3100 Global"
+	help
+	  Support for the LGE MSM7x27 LU3100 Global board.
+
