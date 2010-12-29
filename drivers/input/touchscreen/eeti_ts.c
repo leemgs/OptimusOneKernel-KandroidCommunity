@@ -1,28 +1,4 @@
-/*
- * Touch Screen driver for EETI's I2C connected touch screen panels
- *   Copyright (c) 2009 Daniel Mack <daniel@caiaq.de>
- *
- * See EETI's software guide for the protocol specification:
- *   http://home.eeti.com.tw/web20/eg/guide.htm
- *
- * Based on migor_ts.c
- *   Copyright (c) 2008 Magnus Damm
- *   Copyright (c) 2007 Ujjwal Pande <ujjwal@kenati.com>
- *
- * This file is free software; you can redistribute it and/or
- * modify it under the terms of the GNU  General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This file is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  General Public License for more details.
- *
- * You should have received a copy of the GNU General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -82,7 +58,7 @@ static void eeti_ts_read(struct work_struct *work)
 		goto out;
 	}
 
-	/* drop non-report packets */
+	
 	if (!(buf[0] & 0x80))
 		goto out;
 
@@ -91,7 +67,7 @@ static void eeti_ts_read(struct work_struct *work)
 	x = buf[2] | (buf[1] << 8);
 	y = buf[4] | (buf[3] << 8);
 
-	/* fix the range to 11 bits */
+	
 	x >>= res - EETI_TS_BITDEPTH;
 	y >>= res - EETI_TS_BITDEPTH;
 
@@ -117,7 +93,7 @@ static irqreturn_t eeti_ts_isr(int irq, void *dev_id)
 {
 	struct eeti_ts_priv *priv = dev_id;
 
-	 /* postpone I2C transactions as we are atomic */
+	 
 	schedule_work(&priv->work);
 
 	return IRQ_HANDLED;
@@ -129,7 +105,7 @@ static int eeti_ts_open(struct input_dev *dev)
 
 	enable_irq(priv->irq);
 
-	/* Read the events once to arm the IRQ */
+	
 	eeti_ts_read(&priv->work);
 
 	return 0;
@@ -152,10 +128,7 @@ static int __devinit eeti_ts_probe(struct i2c_client *client,
 	unsigned int irq_flags;
 	int err = -ENOMEM;
 
-	/* In contrast to what's described in the datasheet, there seems
-	 * to be no way of probing the presence of that device using I2C
-	 * commands. So we need to blindly believe it is there, and wait
-	 * for interrupts to occur. */
+	
 
 	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
 	if (!priv) {
@@ -211,8 +184,7 @@ static int __devinit eeti_ts_probe(struct i2c_client *client,
 		goto err2;
 	}
 
-	/* Disable the irq for now. It will be enabled once the input device
-	 * is opened. */
+	
 	disable_irq(priv->irq);
 
 	device_init_wakeup(&client->dev, 0);
@@ -220,7 +192,7 @@ static int __devinit eeti_ts_probe(struct i2c_client *client,
 
 err2:
 	input_unregister_device(input);
-	input = NULL; /* so we dont try to free it below */
+	input = NULL; 
 err1:
 	input_free_device(input);
 	i2c_set_clientdata(client, NULL);

@@ -1,14 +1,4 @@
-/*
- * Wacom W8001 penabled serial touchscreen driver
- *
- * Copyright (c) 2008 Jaya Kumar
- *
- * This file is subject to the terms and conditions of the GNU General Public
- * License. See the file COPYING in the main directory of this archive for
- * more details.
- *
- * Layout based on Elo serial touchscreen driver by Vojtech Pavlik
- */
+
 
 #include <linux/errno.h>
 #include <linux/kernel.h>
@@ -48,9 +38,7 @@ struct w8001_coord {
 	u8 tilt_y;
 };
 
-/*
- * Per-touchscreen data.
- */
+
 
 struct w8001 {
 	struct input_dev *dev;
@@ -170,9 +158,7 @@ static int w8001_setup(struct w8001 *w8001)
 	return w8001_command(w8001, W8001_CMD_START, false);
 }
 
-/*
- * w8001_disconnect() is the opposite of w8001_connect()
- */
+
 
 static void w8001_disconnect(struct serio *serio)
 {
@@ -186,11 +172,7 @@ static void w8001_disconnect(struct serio *serio)
 	kfree(w8001);
 }
 
-/*
- * w8001_connect() is the routine that is called when someone adds a
- * new serio device that supports the w8001 protocol and registers it as
- * an input device.
- */
+
 
 static int w8001_connect(struct serio *serio, struct serio_driver *drv)
 {

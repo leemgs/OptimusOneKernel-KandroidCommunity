@@ -1,24 +1,4 @@
-/*
- * Touch Screen driver for Renesas MIGO-R Platform
- *
- * Copyright (c) 2008 Magnus Damm
- * Copyright (c) 2007 Ujjwal Pande <ujjwal@kenati.com>,
- *  Kenati Technologies Pvt Ltd.
- *
- * This file is free software; you can redistribute it and/or
- * modify it under the terms of the GNU  General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This file is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  General Public License for more details.
- *
- * You should have received a copy of the GNU General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/input.h>
@@ -53,14 +33,14 @@ static void migor_ts_poscheck(struct work_struct *work)
 
 	memset(buf, 0, sizeof(buf));
 
-	/* Set Index 0 */
+	
 	buf[0] = 0;
 	if (i2c_master_send(priv->client, buf, 1) != 1) {
 		dev_err(&priv->client->dev, "Unable to write i2c index\n");
 		goto out;
 	}
 
-	/* Now do Page Read */
+	
 	if (i2c_master_recv(priv->client, buf, sizeof(buf)) != sizeof(buf)) {
 		dev_err(&priv->client->dev, "Unable to read i2c page\n");
 		goto out;
@@ -72,7 +52,7 @@ static void migor_ts_poscheck(struct work_struct *work)
 
 	if (event == EVENT_PENDOWN || event == EVENT_REPEAT) {
 		input_report_key(priv->input, BTN_TOUCH, 1);
-		input_report_abs(priv->input, ABS_X, ypos); /*X-Y swap*/
+		input_report_abs(priv->input, ABS_X, ypos); 
 		input_report_abs(priv->input, ABS_Y, xpos);
 		input_sync(priv->input);
 	} else if (event == EVENT_PENUP) {
@@ -87,16 +67,7 @@ static irqreturn_t migor_ts_isr(int irq, void *dev_id)
 {
 	struct migor_ts_priv *priv = dev_id;
 
-	/* the touch screen controller chip is hooked up to the cpu
-	 * using i2c and a single interrupt line. the interrupt line
-	 * is pulled low whenever someone taps the screen. to deassert
-	 * the interrupt line we need to acknowledge the interrupt by
-	 * communicating with the controller over the slow i2c bus.
-	 *
-	 * we can't acknowledge from interrupt context since the i2c
-	 * bus controller may sleep, so we just disable the interrupt
-	 * here and handle the acknowledge using delayed work.
-	 */
+	
 
 	disable_irq_nosync(irq);
 	schedule_delayed_work(&priv->work, HZ / 20);
@@ -111,7 +82,7 @@ static int migor_ts_open(struct input_dev *dev)
 	struct i2c_client *client = priv->client;
 	int count;
 
-	/* enable controller */
+	
 	count = i2c_master_send(client, migor_ts_ena_seq,
 				sizeof(migor_ts_ena_seq));
 	if (count != sizeof(migor_ts_ena_seq)) {
@@ -129,16 +100,13 @@ static void migor_ts_close(struct input_dev *dev)
 
 	disable_irq(priv->irq);
 
-	/* cancel pending work and wait for migor_ts_poscheck() to finish */
+	
 	if (cancel_delayed_work_sync(&priv->work)) {
-		/*
-		 * if migor_ts_poscheck was canceled we need to enable IRQ
-		 * here to balance disable done in migor_ts_isr.
-		 */
+		
 		enable_irq(priv->irq);
 	}
 
-	/* disable controller */
+	
 	i2c_master_send(client, migor_ts_dis_seq, sizeof(migor_ts_dis_seq));
 
 	enable_irq(priv->irq);
@@ -203,7 +171,7 @@ static int migor_ts_probe(struct i2c_client *client,
 
  err2:
 	input_unregister_device(input);
-	input = NULL; /* so we dont try to free it below */
+	input = NULL; 
  err1:
 	input_free_device(input);
 	kfree(priv);

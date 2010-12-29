@@ -1,41 +1,4 @@
-/*
- * Copyright (C) 2008-2009 Michael Hennerich, Analog Devices Inc.
- *
- * Description:	AD7879/AD7889 based touchscreen, and GPIO driver
- *		(I2C/SPI Interface)
- *
- * Bugs:        Enter bugs at http://blackfin.uclinux.org/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see the file COPYING, or write
- * to the Free Software Foundation, Inc.,
- * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * History:
- * Copyright (c) 2005 David Brownell
- * Copyright (c) 2006 Nokia Corporation
- * Various changes: Imre Deak <imre.deak@nokia.com>
- *
- * Using code from:
- *  - corgi_ts.c
- *	Copyright (C) 2004-2005 Richard Purdie
- *  - omap_ts.[hc], ads7846.h, ts_osk.c
- *	Copyright (C) 2002 MontaVista Software
- *	Copyright (C) 2004 Texas Instruments
- *	Copyright (C) 2005 Dirk Behme
- *  - ad7877.c
- *	Copyright (C) 2006-2008 Analog Devices Inc.
- */
+
 
 #include <linux/device.h>
 #include <linux/init.h>
@@ -66,22 +29,22 @@
 #define AD7879_REG_TEMP			13
 #define AD7879_REG_REVID		14
 
-/* Control REG 1 */
+
 #define AD7879_TMR(x)			((x & 0xFF) << 0)
 #define AD7879_ACQ(x)			((x & 0x3) << 8)
-#define AD7879_MODE_NOC			(0 << 10)	/* Do not convert */
-#define AD7879_MODE_SCC			(1 << 10)	/* Single channel conversion */
-#define AD7879_MODE_SEQ0		(2 << 10)	/* Sequence 0 in Slave Mode */
-#define AD7879_MODE_SEQ1		(3 << 10)	/* Sequence 1 in Master Mode */
-#define AD7879_MODE_INT			(1 << 15)	/* PENIRQ disabled INT enabled */
+#define AD7879_MODE_NOC			(0 << 10)	
+#define AD7879_MODE_SCC			(1 << 10)	
+#define AD7879_MODE_SEQ0		(2 << 10)	
+#define AD7879_MODE_SEQ1		(3 << 10)	
+#define AD7879_MODE_INT			(1 << 15)	
 
-/* Control REG 2 */
+
 #define AD7879_FCD(x)			((x & 0x3) << 0)
 #define AD7879_RESET			(1 << 4)
 #define AD7879_MFS(x)			((x & 0x3) << 5)
 #define AD7879_AVG(x)			((x & 0x3) << 7)
-#define	AD7879_SER			(1 << 9)	/* non-differential */
-#define	AD7879_DFR			(0 << 9)	/* differential */
+#define	AD7879_SER			(1 << 9)	
+#define	AD7879_DFR			(0 << 9)	
 #define AD7879_GPIOPOL			(1 << 10)
 #define AD7879_GPIODIR			(1 << 11)
 #define AD7879_GPIO_DATA		(1 << 12)
@@ -91,7 +54,7 @@
 #define AD7879_PM_DYN			(1)
 #define AD7879_PM_FULLON		(2)
 
-/* Control REG 3 */
+
 #define AD7879_TEMPMASK_BIT		(1<<15)
 #define AD7879_AUXVBATMASK_BIT		(1<<14)
 #define AD7879_INTMODE_BIT		(1<<13)
@@ -134,7 +97,7 @@ struct ad7879 {
 	struct timer_list	timer;
 
 	struct mutex		mutex;
-	unsigned		disabled:1;	/* P: mutex */
+	unsigned		disabled:1;	
 
 #if defined(CONFIG_TOUCHSCREEN_AD7879_SPI) || defined(CONFIG_TOUCHSCREEN_AD7879_SPI_MODULE)
 	struct spi_message	msg;
@@ -172,18 +135,10 @@ static void ad7879_report(struct ad7879 *ts)
 	z1 = ts->conversion_data[AD7879_SEQ_Z1] & MAX_12BIT;
 	z2 = ts->conversion_data[AD7879_SEQ_Z2] & MAX_12BIT;
 
-	/*
-	 * The samples processed here are already preprocessed by the AD7879.
-	 * The preprocessing function consists of a median and an averaging filter.
-	 * The combination of these two techniques provides a robust solution,
-	 * discarding the spurious noise in the signal and keeping only the data of interest.
-	 * The size of both filters is programmable. (dev.platform_data, see linux/spi/ad7879.h)
-	 * Other user-programmable conversion controls include variable acquisition time,
-	 * and first conversion delay. Up to 16 averages can be taken per conversion.
-	 */
+	
 
 	if (likely(x && z1)) {
-		/* compute touch pressure resistance using equation #1 */
+		
 		Rt = (z2 - z1) * x * ts->x_plate_ohms;
 		Rt /= z1;
 		Rt = (Rt + 2047) >> 12;
@@ -199,7 +154,7 @@ static void ad7879_work(struct work_struct *work)
 {
 	struct ad7879 *ts = container_of(work, struct ad7879, work);
 
-	/* use keventd context to read the result registers */
+	
 	ad7879_collect(ts);
 	ad7879_report(ts);
 	mod_timer(&ts->timer, jiffies + TS_PEN_UP_TIMEOUT);
@@ -224,10 +179,7 @@ static irqreturn_t ad7879_irq(int irq, void *handle)
 {
 	struct ad7879 *ts = handle;
 
-	/* The repeated conversion sequencer controlled by TMR kicked off too fast.
-	 * We ignore the last and process the sample sequence currently in the queue.
-	 * It can't be older than 9.4ms
-	 */
+	
 
 	if (!work_pending(&ts->work))
 		schedule_work(&ts->work);
@@ -527,10 +479,7 @@ struct ser_req {
 	struct spi_transfer	xfer[2];
 };
 
-/*
- * ad7879_read/write are only used for initial setup and for sysfs controls.
- * The main traffic is done in ad7879_collect().
- */
+
 
 static int ad7879_read(struct spi_device *spi, u8 reg)
 {
@@ -624,7 +573,7 @@ static int __devinit ad7879_probe(struct spi_device *spi)
 	struct ad7879 *ts;
 	int error;
 
-	/* don't exceed max specified SPI CLK frequency */
+	
 	if (spi->max_speed_hz > MAX_SPI_FREQ_HZ) {
 		dev_err(&spi->dev, "SPI CLK %d Hz?\n", spi->max_speed_hz);
 		return -EINVAL;
@@ -685,9 +634,7 @@ module_exit(ad7879_exit);
 
 #elif defined(CONFIG_TOUCHSCREEN_AD7879_I2C) || defined(CONFIG_TOUCHSCREEN_AD7879_I2C_MODULE)
 
-/* All registers are word-sized.
- * AD7879 uses a high-byte first convention.
- */
+
 static int ad7879_read(struct i2c_client *client, u8 reg)
 {
 	return swab16(i2c_smbus_read_word_data(client, reg));

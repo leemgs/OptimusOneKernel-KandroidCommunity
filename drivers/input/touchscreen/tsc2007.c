@@ -1,24 +1,4 @@
-/*
- * drivers/input/touchscreen/tsc2007.c
- *
- * Copyright (c) 2008 MtekVision Co., Ltd.
- *	Kwangwoo Lee <kwlee@mtekvision.com>
- *
- * Using code from:
- *  - ads7846.c
- *	Copyright (c) 2005 David Brownell
- *	Copyright (c) 2006 Nokia Corporation
- *  - corgi_ts.c
- *	Copyright (C) 2004-2005 Richard Purdie
- *  - omap_ts.[hc], ads7846.h, ts_osk.c
- *	Copyright (C) 2002 MontaVista Software
- *	Copyright (C) 2004 Texas Instruments
- *	Copyright (C) 2005 Dirk Behme
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/slab.h>
@@ -26,9 +6,10 @@
 #include <linux/interrupt.h>
 #include <linux/i2c.h>
 #include <linux/i2c/tsc2007.h>
+#include <linux/pm.h>
 
-#define TS_POLL_DELAY			1 /* ms delay between samples */
-#define TS_POLL_PERIOD			1 /* ms delay between samples */
+#define TS_POLL_DELAY			1 
+#define TS_POLL_PERIOD			1 
 
 #define TSC2007_MEASURE_TEMP0		(0x0 << 4)
 #define TSC2007_MEASURE_AUX		(0x2 << 4)
@@ -79,6 +60,11 @@ struct tsc2007 {
 	bool			pendown;
 	int			irq;
 
+	bool			invert_x;
+	bool			invert_y;
+	bool			invert_z1;
+	bool			invert_z2;
+
 	int			(*get_pendown_state)(void);
 	void			(*clear_penirq)(void);
 };
@@ -94,10 +80,7 @@ static inline int tsc2007_xfer(struct tsc2007 *tsc, u8 cmd)
 		return data;
 	}
 
-	/* The protocol and raw data format from i2c interface:
-	 * S Addr Wr [A] Comm [A] S Addr Rd [A] [DataLow] A [DataHigh] NA P
-	 * Where DataLow has [D11-D4], DataHigh has [D3-D0 << 4 | Dummy 4bit].
-	 */
+	
 	val = swab16(data) >> 4;
 
 	dev_dbg(&tsc->client->dev, "data: 0x%x, val: 0x%x\n", data, val);
@@ -107,17 +90,29 @@ static inline int tsc2007_xfer(struct tsc2007 *tsc, u8 cmd)
 
 static void tsc2007_read_values(struct tsc2007 *tsc, struct ts_event *tc)
 {
-	/* y- still on; turn on only y+ (and ADC) */
+	
 	tc->y = tsc2007_xfer(tsc, READ_Y);
 
-	/* turn y- off, x+ on, then leave in lowpower */
+	
 	tc->x = tsc2007_xfer(tsc, READ_X);
 
-	/* turn y+ off, x- on; we'll use formula #1 */
+	
 	tc->z1 = tsc2007_xfer(tsc, READ_Z1);
 	tc->z2 = tsc2007_xfer(tsc, READ_Z2);
 
-	/* Prepare for next touch reading - power down ADC, enable PENIRQ */
+	if (tsc->invert_x == true)
+		tc->x = MAX_12BIT - tc->x;
+
+	if (tsc->invert_y == true)
+		tc->y = MAX_12BIT - tc->y;
+
+	if (tsc->invert_z1 == true)
+		tc->z1 = MAX_12BIT - tc->z1;
+
+	if (tsc->invert_z2 == true)
+		tc->z2 = MAX_12BIT - tc->z2;
+
+	
 	tsc2007_xfer(tsc, PWRDOWN);
 }
 
@@ -125,12 +120,12 @@ static u32 tsc2007_calculate_pressure(struct tsc2007 *tsc, struct ts_event *tc)
 {
 	u32 rt = 0;
 
-	/* range filtering */
+	
 	if (tc->x == MAX_12BIT)
 		tc->x = 0;
 
 	if (likely(tc->x && tc->z1)) {
-		/* compute touch pressure resistance using equation #1 */
+		
 		rt = tc->z2 - tc->z1;
 		rt *= tc->x;
 		rt *= tsc->x_plate_ohms;
@@ -159,18 +154,7 @@ static void tsc2007_work(struct work_struct *work)
 	struct ts_event tc;
 	u32 rt;
 
-	/*
-	 * NOTE: We can't rely on the pressure to determine the pen down
-	 * state, even though this controller has a pressure sensor.
-	 * The pressure value can fluctuate for quite a while after
-	 * lifting the pen and in some cases may not even settle at the
-	 * expected value.
-	 *
-	 * The only safe way to check for the pen up condition is in the
-	 * work function by reading the pen signal state (it's a GPIO
-	 * and IRQ). Unfortunately such callback is not always available,
-	 * in that case we have rely on the pressure anyway.
-	 */
+	
 	if (ts->get_pendown_state) {
 		if (unlikely(!ts->get_pendown_state())) {
 			tsc2007_send_up_event(ts);
@@ -185,11 +169,7 @@ static void tsc2007_work(struct work_struct *work)
 
 	rt = tsc2007_calculate_pressure(ts, &tc);
 	if (rt > MAX_12BIT) {
-		/*
-		 * Sample found inconsistent by debouncing or pressure is
-		 * beyond the maximum. Don't report it to user space,
-		 * repeat at least once more the measurement.
-		 */
+		
 		dev_dbg(&ts->client->dev, "ignored pressure %d\n", rt);
 		goto out;
 
@@ -215,11 +195,7 @@ static void tsc2007_work(struct work_struct *work)
 			tc.x, tc.y, rt);
 
 	} else if (!ts->get_pendown_state && ts->pendown) {
-		/*
-		 * We don't have callback to check pendown state, so we
-		 * have to assume that since pressure reported is 0 the
-		 * pen was lifted up.
-		 */
+		
 		tsc2007_send_up_event(ts);
 		ts->pendown = false;
 	}
@@ -252,11 +228,7 @@ static void tsc2007_free_irq(struct tsc2007 *ts)
 {
 	free_irq(ts->irq, ts);
 	if (cancel_delayed_work_sync(&ts->work)) {
-		/*
-		 * Work was pending, therefore we need to enable
-		 * IRQ here to balance the disable_irq() done in the
-		 * interrupt handler.
-		 */
+		
 		enable_irq(ts->irq);
 	}
 }
@@ -294,6 +266,10 @@ static int __devinit tsc2007_probe(struct i2c_client *client,
 	ts->x_plate_ohms      = pdata->x_plate_ohms;
 	ts->get_pendown_state = pdata->get_pendown_state;
 	ts->clear_penirq      = pdata->clear_penirq;
+	ts->invert_x	      = pdata->invert_x;
+	ts->invert_y	      = pdata->invert_y;
+	ts->invert_z1	      = pdata->invert_z1;
+	ts->invert_z2	      = pdata->invert_z2;
 
 	snprintf(ts->phys, sizeof(ts->phys),
 		 "%s/input0", dev_name(&client->dev));
@@ -312,14 +288,14 @@ static int __devinit tsc2007_probe(struct i2c_client *client,
 	if (pdata->init_platform_hw)
 		pdata->init_platform_hw();
 
-	err = request_irq(ts->irq, tsc2007_irq, 0,
+	err = request_irq(ts->irq, tsc2007_irq, pdata->irq_flags,
 			client->dev.driver->name, ts);
 	if (err < 0) {
 		dev_err(&client->dev, "irq %d busy?\n", ts->irq);
 		goto err_free_mem;
 	}
 
-	/* Prepare for touch readings - power down ADC and enable PENIRQ */
+	
 	err = tsc2007_xfer(ts, PWRDOWN);
 	if (err < 0)
 		goto err_free_irq;
@@ -341,6 +317,35 @@ static int __devinit tsc2007_probe(struct i2c_client *client,
 	kfree(ts);
 	return err;
 }
+
+#ifdef CONFIG_PM
+
+static int tsc2007_suspend(struct device *dev)
+{
+	struct tsc2007	*ts = dev_get_drvdata(dev);
+
+	disable_irq(ts->irq);
+
+	if (cancel_delayed_work_sync(&ts->work))
+		enable_irq(ts->irq);
+
+	return 0;
+}
+
+static int tsc2007_resume(struct device *dev)
+{
+	struct tsc2007	*ts = dev_get_drvdata(dev);
+
+	enable_irq(ts->irq);
+
+	return 0;
+}
+
+static struct dev_pm_ops tsc2007_pm_ops = {
+	.suspend	= tsc2007_suspend,
+	.resume		= tsc2007_resume,
+};
+#endif
 
 static int __devexit tsc2007_remove(struct i2c_client *client)
 {
@@ -368,7 +373,10 @@ MODULE_DEVICE_TABLE(i2c, tsc2007_idtable);
 static struct i2c_driver tsc2007_driver = {
 	.driver = {
 		.owner	= THIS_MODULE,
-		.name	= "tsc2007"
+		.name	= "tsc2007",
+#ifdef CONFIG_PM
+		.pm = &tsc2007_pm_ops,
+#endif
 	},
 	.id_table	= tsc2007_idtable,
 	.probe		= tsc2007_probe,

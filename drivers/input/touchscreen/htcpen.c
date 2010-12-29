@@ -1,12 +1,4 @@
-/*
- * HTC Shift touchscreen driver
- *
- * Copyright (C) 2008 Pau Oliva Fora <pof@eslack.org>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published
- * by the Free Software Foundation.
- */
+
 
 #include <linux/errno.h>
 #include <linux/kernel.h>
@@ -58,7 +50,7 @@ static irqreturn_t htcpen_interrupt(int irq, void *handle)
 	struct input_dev *htcpen_dev = handle;
 	unsigned short x, y, xy;
 
-	/* 0 = press; 1 = release */
+	
 	outb_p(TOUCH_INDEX, HTCPEN_PORT_INDEX);
 
 	if (inb_p(HTCPEN_PORT_DATA)) {
@@ -73,7 +65,7 @@ static irqreturn_t htcpen_interrupt(int irq, void *handle)
 		outb_p(LSB_XY_INDEX, HTCPEN_PORT_INDEX);
 		xy = inb_p(HTCPEN_PORT_DATA);
 
-		/* get high resolution value of X and Y using LSB */
+		
 		x = X_AXIS_MAX - ((x * 8) + ((xy >> 4) & 0xf));
 		y = (y * 8) + (xy & 0xf);
 		if (invert_x)

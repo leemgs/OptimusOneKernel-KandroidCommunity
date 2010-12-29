@@ -1,30 +1,8 @@
-/*
- *  Copyright (c) 2000-2001 Vojtech Pavlik
- */
 
-/*
- * Gunze AHL-51S touchscreen driver for Linux
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- *
- * Should you need to contact me, the author, you can do so either by
- * e-mail - mail your message to <vojtech@ucw.cz>, or by paper mail:
- * Vojtech Pavlik, Simunkova 1594, Prague 8, 182 00 Czech Republic
- */
+
+
+
 
 #include <linux/errno.h>
 #include <linux/kernel.h>
@@ -40,15 +18,11 @@ MODULE_AUTHOR("Vojtech Pavlik <vojtech@ucw.cz>");
 MODULE_DESCRIPTION(DRIVER_DESC);
 MODULE_LICENSE("GPL");
 
-/*
- * Definitions & global arrays.
- */
+
 
 #define	GUNZE_MAX_LENGTH	10
 
-/*
- * Per-touchscreen data.
- */
+
 
 struct gunze {
 	struct input_dev *dev;
@@ -89,9 +63,7 @@ static irqreturn_t gunze_interrupt(struct serio *serio,
 	return IRQ_HANDLED;
 }
 
-/*
- * gunze_disconnect() is the opposite of gunze_connect()
- */
+
 
 static void gunze_disconnect(struct serio *serio)
 {
@@ -105,11 +77,7 @@ static void gunze_disconnect(struct serio *serio)
 	kfree(gunze);
 }
 
-/*
- * gunze_connect() is the routine that is called when someone adds a
- * new serio device that supports Gunze protocol and registers it as
- * an input device.
- */
+
 
 static int gunze_connect(struct serio *serio, struct serio_driver *drv)
 {
@@ -159,9 +127,7 @@ static int gunze_connect(struct serio *serio, struct serio_driver *drv)
 	return err;
 }
 
-/*
- * The serio driver structure.
- */
+
 
 static struct serio_device_id gunze_serio_ids[] = {
 	{
@@ -186,9 +152,7 @@ static struct serio_driver gunze_drv = {
 	.disconnect	= gunze_disconnect,
 };
 
-/*
- * The functions for inserting/removing us as a module.
- */
+
 
 static int __init gunze_init(void)
 {

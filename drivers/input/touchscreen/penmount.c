@@ -1,17 +1,6 @@
-/*
- * Penmount serial touchscreen driver
- *
- * Copyright (c) 2006 Rick Koch <n1gp@hotmail.com>
- *
- * Based on ELO driver (drivers/input/touchscreen/elo.c)
- * Copyright (c) 2004 Vojtech Pavlik
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published
- * by the Free Software Foundation.
- */
+
+
 
 #include <linux/errno.h>
 #include <linux/kernel.h>
@@ -27,15 +16,11 @@ MODULE_AUTHOR("Rick Koch <n1gp@hotmail.com>");
 MODULE_DESCRIPTION(DRIVER_DESC);
 MODULE_LICENSE("GPL");
 
-/*
- * Definitions & global arrays.
- */
+
 
 #define	PM_MAX_LENGTH	5
 
-/*
- * Per-touchscreen data.
- */
+
 
 struct pm {
 	struct input_dev *dev;
@@ -66,9 +51,7 @@ static irqreturn_t pm_interrupt(struct serio *serio,
 	return IRQ_HANDLED;
 }
 
-/*
- * pm_disconnect() is the opposite of pm_connect()
- */
+
 
 static void pm_disconnect(struct serio *serio)
 {
@@ -82,11 +65,7 @@ static void pm_disconnect(struct serio *serio)
 	kfree(pm);
 }
 
-/*
- * pm_connect() is the routine that is called when someone adds a
- * new serio device that supports Gunze protocol and registers it as
- * an input device.
- */
+
 
 static int pm_connect(struct serio *serio, struct serio_driver *drv)
 {
@@ -137,9 +116,7 @@ static int pm_connect(struct serio *serio, struct serio_driver *drv)
 	return err;
 }
 
-/*
- * The serio driver structure.
- */
+
 
 static struct serio_device_id pm_serio_ids[] = {
 	{
@@ -164,9 +141,7 @@ static struct serio_driver pm_drv = {
 	.disconnect	= pm_disconnect,
 };
 
-/*
- * The functions for inserting/removing us as a module.
- */
+
 
 static int __init pm_init(void)
 {

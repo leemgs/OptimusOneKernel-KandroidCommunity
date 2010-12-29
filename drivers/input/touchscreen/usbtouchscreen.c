@@ -1,47 +1,6 @@
-/******************************************************************************
- * usbtouchscreen.c
- * Driver for USB Touchscreens, supporting those devices:
- *  - eGalax Touchkit
- *    includes eTurboTouch CT-410/510/700
- *  - 3M/Microtouch  EX II series
- *  - ITM
- *  - PanJit TouchSet
- *  - eTurboTouch
- *  - Gunze AHL61
- *  - DMC TSC-10/25
- *  - IRTOUCHSYSTEMS/UNITOP
- *  - IdealTEK URTC1000
- *  - General Touch
- *  - GoTop Super_Q2/GogoPen/PenPower tablets
- *  - JASTEC USB touch controller/DigiTech DTR-02U
- *
- * Copyright (C) 2004-2007 by Daniel Ritz <daniel.ritz@gmx.ch>
- * Copyright (C) by Todd E. Johnson (mtouchusb.c)
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * Driver is based on touchkitusb.c
- * - ITM parts are from itmtouch.c
- * - 3M parts are from mtouchusb.c
- * - PanJit parts are from an unmerged driver by Lanslott Gish
- * - DMC TSC 10/25 are from Holger Schurig, with ideas from an unmerged
- *   driver from Marius Vollmer
- *
- *****************************************************************************/
 
-//#define DEBUG
+
+
 
 #include <linux/kernel.h>
 #include <linux/slab.h>
@@ -65,7 +24,7 @@ static int hwcalib_xy;
 module_param(hwcalib_xy, bool, 0644);
 MODULE_PARM_DESC(hwcalib_xy, "If set hw-calibrated X/Y are used if available");
 
-/* device specifc data/functions */
+
 struct usbtouch_usb;
 struct usbtouch_device_info {
 	int min_xc, max_xc;
@@ -75,19 +34,14 @@ struct usbtouch_device_info {
 
 	void (*process_pkt) (struct usbtouch_usb *usbtouch, unsigned char *pkt, int len);
 
-	/*
-	 * used to get the packet len. possible return values:
-	 * > 0: packet len
-	 * = 0: skip one byte
-	 * < 0: -return value more bytes needed
-	 */
+	
 	int  (*get_pkt_len) (unsigned char *pkt, int len);
 
 	int  (*read_data)   (struct usbtouch_usb *usbtouch, unsigned char *pkt);
 	int  (*init)        (struct usbtouch_usb *usbtouch);
 };
 
-/* a usbtouch device */
+
 struct usbtouch_usb {
 	unsigned char *data;
 	dma_addr_t data_dma;
@@ -105,7 +59,7 @@ struct usbtouch_usb {
 };
 
 
-/* device types */
+
 enum {
 	DEVTYPE_IGNORE = -1,
 	DEVTYPE_EGALAX,
@@ -134,11 +88,11 @@ enum {
 
 static struct usb_device_id usbtouch_devices[] = {
 #ifdef CONFIG_TOUCHSCREEN_USB_EGALAX
-	/* ignore the HID capable devices, handled by usbhid */
+	
 	{USB_DEVICE_HID_CLASS(0x0eef, 0x0001), .driver_info = DEVTYPE_IGNORE},
 	{USB_DEVICE_HID_CLASS(0x0eef, 0x0002), .driver_info = DEVTYPE_IGNORE},
 
-	/* normal device IDs */
+	
 	{USB_DEVICE(0x3823, 0x0001), .driver_info = DEVTYPE_EGALAX},
 	{USB_DEVICE(0x3823, 0x0002), .driver_info = DEVTYPE_EGALAX},
 	{USB_DEVICE(0x0123, 0x0001), .driver_info = DEVTYPE_EGALAX},
@@ -205,9 +159,7 @@ static struct usb_device_id usbtouch_devices[] = {
 };
 
 
-/*****************************************************************************
- * e2i Part
- */
+
 
 #ifdef CONFIG_TOUCHSCREEN_USB_E2I
 static int e2i_init(struct usbtouch_usb *usbtouch)
@@ -238,9 +190,7 @@ static int e2i_read_data(struct usbtouch_usb *dev, unsigned char *pkt)
 #endif
 
 
-/*****************************************************************************
- * eGalax part
- */
+
 
 #ifdef CONFIG_TOUCHSCREEN_USB_EGALAX
 
@@ -282,9 +232,7 @@ static int egalax_get_pkt_len(unsigned char *buf, int len)
 #endif
 
 
-/*****************************************************************************
- * PanJit Part
- */
+
 #ifdef CONFIG_TOUCHSCREEN_USB_PANJIT
 static int panjit_read_data(struct usbtouch_usb *dev, unsigned char *pkt)
 {
@@ -297,9 +245,7 @@ static int panjit_read_data(struct usbtouch_usb *dev, unsigned char *pkt)
 #endif
 
 
-/*****************************************************************************
- * 3M/Microtouch Part
- */
+
 #ifdef CONFIG_TOUCHSCREEN_USB_3M
 
 #define MTOUCHUSB_ASYNC_REPORT          1
@@ -347,7 +293,7 @@ static int mtouch_init(struct usbtouch_usb *usbtouch)
 			return ret;
 	}
 
-	/* Default min/max xy are the raw values, override if using hw-calib */
+	
 	if (hwcalib_xy) {
 		input_set_abs_params(usbtouch->input, ABS_X, 0, 0xffff, 0, 0);
 		input_set_abs_params(usbtouch->input, ABS_Y, 0, 0xffff, 0, 0);
@@ -358,19 +304,12 @@ static int mtouch_init(struct usbtouch_usb *usbtouch)
 #endif
 
 
-/*****************************************************************************
- * ITM Part
- */
+
 #ifdef CONFIG_TOUCHSCREEN_USB_ITM
 static int itm_read_data(struct usbtouch_usb *dev, unsigned char *pkt)
 {
 	int touch;
-	/*
-	 * ITM devices report invalid x/y data if not touched.
-	 * if the screen was touched before but is not touched any more
-	 * report touch as 0 with the last valid x/y data once. then stop
-	 * reporting data until touched again.
-	 */
+	
 	dev->press = ((pkt[2] & 0x01) << 7) | (pkt[5] & 0x7F);
 
 	touch = ~pkt[7] & 0x20;
@@ -392,9 +331,7 @@ static int itm_read_data(struct usbtouch_usb *dev, unsigned char *pkt)
 #endif
 
 
-/*****************************************************************************
- * eTurboTouch part
- */
+
 #ifdef CONFIG_TOUCHSCREEN_USB_ETURBO
 #ifndef MULTI_PACKET
 #define MULTI_PACKET
@@ -403,7 +340,7 @@ static int eturbo_read_data(struct usbtouch_usb *dev, unsigned char *pkt)
 {
 	unsigned int shift;
 
-	/* packets should start with sync */
+	
 	if (!(pkt[0] & 0x80))
 		return 0;
 
@@ -426,9 +363,7 @@ static int eturbo_get_pkt_len(unsigned char *buf, int len)
 #endif
 
 
-/*****************************************************************************
- * Gunze part
- */
+
 #ifdef CONFIG_TOUCHSCREEN_USB_GUNZE
 static int gunze_read_data(struct usbtouch_usb *dev, unsigned char *pkt)
 {
@@ -443,16 +378,10 @@ static int gunze_read_data(struct usbtouch_usb *dev, unsigned char *pkt)
 }
 #endif
 
-/*****************************************************************************
- * DMC TSC-10/25 Part
- *
- * Documentation about the controller and it's protocol can be found at
- *   http://www.dmccoltd.com/files/controler/tsc10usb_pi_e.pdf
- *   http://www.dmccoltd.com/files/controler/tsc25_usb_e.pdf
- */
+
 #ifdef CONFIG_TOUCHSCREEN_USB_DMC_TSC10
 
-/* supported data rates. currently using 130 */
+
 #define TSC10_RATE_POINT	0x50
 #define TSC10_RATE_30		0x40
 #define TSC10_RATE_50		0x41
@@ -461,7 +390,7 @@ static int gunze_read_data(struct usbtouch_usb *dev, unsigned char *pkt)
 #define TSC10_RATE_130		0x44
 #define TSC10_RATE_150		0x45
 
-/* commands */
+
 #define TSC10_CMD_RESET		0x55
 #define TSC10_CMD_RATE		0x05
 #define TSC10_CMD_DATA1		0x01
@@ -475,7 +404,7 @@ static int dmc_tsc10_init(struct usbtouch_usb *usbtouch)
 	buf = kmalloc(2, GFP_KERNEL);
 	if (!buf)
 		goto err_nobuf;
-	/* reset */
+	
 	buf[0] = buf[1] = 0xFF;
 	ret = usb_control_msg(dev, usb_rcvctrlpipe (dev, 0),
 	                      TSC10_CMD_RESET,
@@ -488,7 +417,7 @@ static int dmc_tsc10_init(struct usbtouch_usb *usbtouch)
 		goto err_out;
 	}
 
-	/* set coordinate output rate */
+	
 	buf[0] = buf[1] = 0xFF;
 	ret = usb_control_msg(dev, usb_rcvctrlpipe (dev, 0),
 	                      TSC10_CMD_RATE,
@@ -501,7 +430,7 @@ static int dmc_tsc10_init(struct usbtouch_usb *usbtouch)
 		goto err_out;
 	}
 
-	/* start sending data */
+	
 	ret = usb_control_msg(dev, usb_rcvctrlpipe (dev, 0),
 	                      TSC10_CMD_DATA1,
 	                      USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
@@ -524,9 +453,7 @@ static int dmc_tsc10_read_data(struct usbtouch_usb *dev, unsigned char *pkt)
 #endif
 
 
-/*****************************************************************************
- * IRTOUCH Part
- */
+
 #ifdef CONFIG_TOUCHSCREEN_USB_IRTOUCH
 static int irtouch_read_data(struct usbtouch_usb *dev, unsigned char *pkt)
 {
@@ -539,9 +466,7 @@ static int irtouch_read_data(struct usbtouch_usb *dev, unsigned char *pkt)
 #endif
 
 
-/*****************************************************************************
- * IdealTEK URTC1000 Part
- */
+
 #ifdef CONFIG_TOUCHSCREEN_USB_IDEALTEK
 #ifndef MULTI_PACKET
 #define MULTI_PACKET
@@ -559,14 +484,14 @@ static int idealtek_read_data(struct usbtouch_usb *dev, unsigned char *pkt)
 {
 	switch (pkt[0] & 0x98) {
 	case 0x88:
-		/* touch data in IdealTEK mode */
+		
 		dev->x = (pkt[1] << 5) | (pkt[2] >> 2);
 		dev->y = (pkt[3] << 5) | (pkt[4] >> 2);
 		dev->touch = (pkt[0] & 0x40) ? 1 : 0;
 		return 1;
 
 	case 0x98:
-		/* touch data in MT emulation mode */
+		
 		dev->x = (pkt[2] << 5) | (pkt[1] >> 2);
 		dev->y = (pkt[4] << 5) | (pkt[3] >> 2);
 		dev->touch = (pkt[0] & 0x40) ? 1 : 0;
@@ -578,9 +503,7 @@ static int idealtek_read_data(struct usbtouch_usb *dev, unsigned char *pkt)
 }
 #endif
 
-/*****************************************************************************
- * General Touch Part
- */
+
 #ifdef CONFIG_TOUCHSCREEN_USB_GENERAL_TOUCH
 static int general_touch_read_data(struct usbtouch_usb *dev, unsigned char *pkt)
 {
@@ -593,9 +516,7 @@ static int general_touch_read_data(struct usbtouch_usb *dev, unsigned char *pkt)
 }
 #endif
 
-/*****************************************************************************
- * GoTop Part
- */
+
 #ifdef CONFIG_TOUCHSCREEN_USB_GOTOP
 static int gotop_read_data(struct usbtouch_usb *dev, unsigned char *pkt)
 {
@@ -607,9 +528,7 @@ static int gotop_read_data(struct usbtouch_usb *dev, unsigned char *pkt)
 }
 #endif
 
-/*****************************************************************************
- * JASTEC Part
- */
+
 #ifdef CONFIG_TOUCHSCREEN_USB_JASTEC
 static int jastec_read_data(struct usbtouch_usb *dev, unsigned char *pkt)
 {
@@ -622,9 +541,7 @@ static int jastec_read_data(struct usbtouch_usb *dev, unsigned char *pkt)
 #endif
 
 
-/*****************************************************************************
- * the different device descriptors
- */
+
 #ifdef MULTI_PACKET
 static void usbtouch_process_multi(struct usbtouch_usb *usbtouch,
 				   unsigned char *pkt, int len);
@@ -786,9 +703,7 @@ static struct usbtouch_device_info usbtouch_dev_info[] = {
 };
 
 
-/*****************************************************************************
- * Generic Part
- */
+
 static void usbtouch_process_pkt(struct usbtouch_usb *usbtouch,
                                  unsigned char *pkt, int len)
 {
@@ -819,17 +734,17 @@ static void usbtouch_process_multi(struct usbtouch_usb *usbtouch,
 	unsigned char *buffer;
 	int pkt_len, pos, buf_len, tmp;
 
-	/* process buffer */
+	
 	if (unlikely(usbtouch->buf_len)) {
-		/* try to get size */
+		
 		pkt_len = usbtouch->type->get_pkt_len(
 				usbtouch->buffer, usbtouch->buf_len);
 
-		/* drop? */
+		
 		if (unlikely(!pkt_len))
 			goto out_flush_buf;
 
-		/* need to append -pkt_len bytes before able to get size */
+		
 		if (unlikely(pkt_len < 0)) {
 			int append = -pkt_len;
 			if (unlikely(append > len))
@@ -845,7 +760,7 @@ static void usbtouch_process_multi(struct usbtouch_usb *usbtouch,
 				return;
 		}
 
-		/* append */
+		
 		tmp = pkt_len - usbtouch->buf_len;
 		if (usbtouch->buf_len + tmp >= usbtouch->type->rept_size)
 			goto out_flush_buf;
@@ -859,24 +774,24 @@ static void usbtouch_process_multi(struct usbtouch_usb *usbtouch,
 		buf_len = len;
 	}
 
-	/* loop over the received packet, process */
+	
 	pos = 0;
 	while (pos < buf_len) {
-		/* get packet len */
+		
 		pkt_len = usbtouch->type->get_pkt_len(buffer + pos,
 							buf_len - pos);
 
-		/* unknown packet: skip one byte */
+		
 		if (unlikely(!pkt_len)) {
 			pos++;
 			continue;
 		}
 
-		/* full packet: process */
+		
 		if (likely((pkt_len > 0) && (pkt_len <= buf_len - pos))) {
 			usbtouch_process_pkt(usbtouch, buffer + pos, pkt_len);
 		} else {
-			/* incomplete packet: save in buffer */
+			
 			memcpy(usbtouch->buffer, buffer + pos, buf_len - pos);
 			usbtouch->buf_len = buf_len - pos;
 			return;
@@ -898,17 +813,17 @@ static void usbtouch_irq(struct urb *urb)
 
 	switch (urb->status) {
 	case 0:
-		/* success */
+		
 		break;
 	case -ETIME:
-		/* this urb is timing out */
+		
 		dbg("%s - urb timed out - was the device unplugged?",
 		    __func__);
 		return;
 	case -ECONNRESET:
 	case -ENOENT:
 	case -ESHUTDOWN:
-		/* this urb is terminated, clean up */
+		
 		dbg("%s - urb shutting down with status: %d",
 		    __func__, urb->status);
 		return;
@@ -967,7 +882,7 @@ static int usbtouch_probe(struct usb_interface *intf,
 	struct usbtouch_device_info *type;
 	int err = -ENOMEM;
 
-	/* some devices are ignored */
+	
 	if (id->driver_info == DEVTYPE_IGNORE)
 		return -ENODEV;
 
@@ -1049,7 +964,7 @@ static int usbtouch_probe(struct usb_interface *intf,
 	usbtouch->irq->transfer_dma = usbtouch->data_dma;
 	usbtouch->irq->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
 
-	/* device specific init */
+	
 	if (type->init) {
 		err = type->init(usbtouch);
 		if (err) {

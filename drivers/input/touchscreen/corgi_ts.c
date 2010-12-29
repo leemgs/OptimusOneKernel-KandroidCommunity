@@ -1,13 +1,4 @@
-/*
- *  Touchscreen driver for Sharp SL-C7xx and SL-Cxx00 models
- *
- *  Copyright (c) 2004-2005 Richard Purdie
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- *
- */
+
 
 
 #include <linux/delay.h>
@@ -61,15 +52,15 @@ struct corgi_ts {
 #define PMNC_SET(x)	asm volatile ("mcr p14, 0, %0, C0, C1, 0" : : "r"(x))
 #endif
 
-/* ADS7846 Touch Screen Controller bit definitions */
-#define ADSCTRL_PD0		(1u << 0)	/* PD0 */
-#define ADSCTRL_PD1		(1u << 1)	/* PD1 */
-#define ADSCTRL_DFR		(1u << 2)	/* SER/DFR */
-#define ADSCTRL_MOD		(1u << 3)	/* Mode */
-#define ADSCTRL_ADR_SH	4	/* Address setting */
-#define ADSCTRL_STS		(1u << 7)	/* Start Bit */
 
-/* External Functions */
+#define ADSCTRL_PD0		(1u << 0)	
+#define ADSCTRL_PD1		(1u << 1)	
+#define ADSCTRL_DFR		(1u << 2)	
+#define ADSCTRL_MOD		(1u << 3)	
+#define ADSCTRL_ADR_SH	4	
+#define ADSCTRL_STS		(1u << 7)	
+
+
 extern unsigned int get_clk_frequency_khz(int info);
 
 static unsigned long calc_waittime(struct corgi_ts *corgi_ts)
@@ -93,9 +84,9 @@ static int sync_receive_data_send_cmd(struct corgi_ts *corgi_ts, int doRecive, i
 		if (!(pmnc & 0x01))
 			PMNC_SET(0x01);
 
-		/* polling HSync */
+		
 		corgi_ts->machinfo->wait_hsync();
-		/* get CCNT */
+		
 		CCNT(timer1);
 	}
 
@@ -104,19 +95,19 @@ static int sync_receive_data_send_cmd(struct corgi_ts *corgi_ts, int doRecive, i
 
 	if (doSend) {
 		int cmd = ADSCTRL_PD0 | ADSCTRL_PD1 | (address << ADSCTRL_ADR_SH) | ADSCTRL_STS;
-		/* dummy command */
+		
 		corgi_ssp_ads7846_put(cmd);
 		corgi_ssp_ads7846_get();
 
 		if (wait_time) {
-			/* Wait after HSync */
+			
 			CCNT(timer2);
 			if (timer2-timer1 > wait_time) {
-				/* too slow - timeout, try again */
+				
 				corgi_ts->machinfo->wait_hsync();
-				/* get CCNT */
+				
 				CCNT(timer1);
-				/* Wait after HSync */
+				
 				CCNT(timer2);
 			}
 			while (timer2 - timer1 < wait_time)
@@ -134,28 +125,28 @@ static int read_xydata(struct corgi_ts *corgi_ts)
 	unsigned int x, y, z1, z2;
 	unsigned long flags, wait_time;
 
-	/* critical section */
+	
 	local_irq_save(flags);
 	corgi_ssp_ads7846_lock();
 	wait_time = calc_waittime(corgi_ts);
 
-	/* Y-axis */
+	
 	sync_receive_data_send_cmd(corgi_ts, 0, 1, 1u, wait_time);
 
-	/* Y-axis */
+	
 	sync_receive_data_send_cmd(corgi_ts, 1, 1, 1u, wait_time);
 
-	/* X-axis */
+	
 	y = sync_receive_data_send_cmd(corgi_ts, 1, 1, 5u, wait_time);
 
-	/* Z1 */
+	
 	x = sync_receive_data_send_cmd(corgi_ts, 1, 1, 3u, wait_time);
 
-	/* Z2 */
+	
 	z1 = sync_receive_data_send_cmd(corgi_ts, 1, 1, 4u, wait_time);
 	z2 = sync_receive_data_send_cmd(corgi_ts, 1, 0, 4u, wait_time);
 
-	/* Power-Down Enable */
+	
 	corgi_ssp_ads7846_put((1u << ADSCTRL_ADR_SH) | ADSCTRL_STS);
 	corgi_ssp_ads7846_get();
 
@@ -193,7 +184,7 @@ static void new_data(struct corgi_ts *corgi_ts)
 static void ts_interrupt_main(struct corgi_ts *corgi_ts, int isTimer)
 {
 	if ((GPLR(IRQ_TO_GPIO(corgi_ts->irq_gpio)) & GPIO_bit(IRQ_TO_GPIO(corgi_ts->irq_gpio))) == 0) {
-		/* Disable Interrupt */
+		
 		set_irq_type(corgi_ts->irq_gpio, IRQ_TYPE_NONE);
 		if (read_xydata(corgi_ts)) {
 			corgi_ts->pendown = 1;
@@ -212,7 +203,7 @@ static void ts_interrupt_main(struct corgi_ts *corgi_ts, int isTimer)
 			new_data(corgi_ts);
 		}
 
-		/* Enable Falling Edge */
+		
 		set_irq_type(corgi_ts->irq_gpio, IRQ_TYPE_EDGE_FALLING);
 		corgi_ts->pendown = 0;
 	}
@@ -256,7 +247,7 @@ static int corgits_resume(struct platform_device *dev)
 	struct corgi_ts *corgi_ts = platform_get_drvdata(dev);
 
 	corgi_ssp_ads7846_putget((4u << ADSCTRL_ADR_SH) | ADSCTRL_STS);
-	/* Enable Falling Edge */
+	
 	set_irq_type(corgi_ts->irq_gpio, IRQ_TYPE_EDGE_FALLING);
 	corgi_ts->power_mode = PWR_MODE_ACTIVE;
 
@@ -310,7 +301,7 @@ static int __devinit corgits_probe(struct platform_device *pdev)
 
 	pxa_gpio_mode(IRQ_TO_GPIO(corgi_ts->irq_gpio) | GPIO_IN);
 
-	/* Initiaize ADS7846 Difference Reference mode */
+	
 	corgi_ssp_ads7846_putget((1u << ADSCTRL_ADR_SH) | ADSCTRL_STS);
 	mdelay(5);
 	corgi_ssp_ads7846_putget((3u << ADSCTRL_ADR_SH) | ADSCTRL_STS);
@@ -331,7 +322,7 @@ static int __devinit corgits_probe(struct platform_device *pdev)
 
 	corgi_ts->power_mode = PWR_MODE_ACTIVE;
 
-	/* Enable Falling Edge */
+	
 	set_irq_type(corgi_ts->irq_gpio, IRQ_TYPE_EDGE_FALLING);
 
 	return 0;

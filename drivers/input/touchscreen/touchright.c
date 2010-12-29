@@ -1,18 +1,6 @@
-/*
- * Touchright serial touchscreen driver
- *
- * Copyright (c) 2006 Rick Koch <n1gp@hotmail.com>
- *
- * Based on MicroTouch driver (drivers/input/touchscreen/mtouch.c)
- * Copyright (c) 2004 Vojtech Pavlik
- * and Dan Streetman <ddstreet@ieee.org>
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published
- * by the Free Software Foundation.
- */
+
+
 
 #include <linux/errno.h>
 #include <linux/kernel.h>
@@ -28,9 +16,7 @@ MODULE_AUTHOR("Rick Koch <n1gp@hotmail.com>");
 MODULE_DESCRIPTION(DRIVER_DESC);
 MODULE_LICENSE("GPL");
 
-/*
- * Definitions & global arrays.
- */
+
 
 #define TR_FORMAT_TOUCH_BIT	0x01
 #define TR_FORMAT_STATUS_BYTE	0x40
@@ -43,9 +29,7 @@ MODULE_LICENSE("GPL");
 #define TR_MIN_YC 0
 #define TR_MAX_YC 0x1ff
 
-/*
- * Per-touchscreen data.
- */
+
 
 struct tr {
 	struct input_dev *dev;
@@ -79,9 +63,7 @@ static irqreturn_t tr_interrupt(struct serio *serio,
 	return IRQ_HANDLED;
 }
 
-/*
- * tr_disconnect() is the opposite of tr_connect()
- */
+
 
 static void tr_disconnect(struct serio *serio)
 {
@@ -95,11 +77,7 @@ static void tr_disconnect(struct serio *serio)
 	kfree(tr);
 }
 
-/*
- * tr_connect() is the routine that is called when someone adds a
- * new serio device that supports the Touchright protocol and registers it as
- * an input device.
- */
+
 
 static int tr_connect(struct serio *serio, struct serio_driver *drv)
 {
@@ -149,9 +127,7 @@ static int tr_connect(struct serio *serio, struct serio_driver *drv)
 	return err;
 }
 
-/*
- * The serio driver structure.
- */
+
 
 static struct serio_device_id tr_serio_ids[] = {
 	{
@@ -176,9 +152,7 @@ static struct serio_driver tr_drv = {
 	.disconnect	= tr_disconnect,
 };
 
-/*
- * The functions for inserting/removing us as a module.
- */
+
 
 static int __init tr_init(void)
 {
