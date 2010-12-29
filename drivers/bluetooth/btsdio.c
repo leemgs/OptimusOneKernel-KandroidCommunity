@@ -1,26 +1,4 @@
-/*
- *
- *  Generic Bluetooth SDIO driver
- *
- *  Copyright (C) 2007  Cambridge Silicon Radio Ltd.
- *  Copyright (C) 2007  Marcel Holtmann <marcel@holtmann.org>
- *
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -40,13 +18,13 @@
 #define VERSION "0.1"
 
 static const struct sdio_device_id btsdio_table[] = {
-	/* Generic Bluetooth Type-A SDIO device */
+	
 	{ SDIO_DEVICE_CLASS(SDIO_CLASS_BT_A) },
 
-	/* Generic Bluetooth Type-B SDIO device */
+	
 	{ SDIO_DEVICE_CLASS(SDIO_CLASS_BT_B) },
 
-	{ }	/* Terminating entry */
+	{ }	
 };
 
 MODULE_DEVICE_TABLE(sdio, btsdio_table);
@@ -60,16 +38,16 @@ struct btsdio_data {
 	struct sk_buff_head txq;
 };
 
-#define REG_RDAT     0x00	/* Receiver Data */
-#define REG_TDAT     0x00	/* Transmitter Data */
-#define REG_PC_RRT   0x10	/* Read Packet Control */
-#define REG_PC_WRT   0x11	/* Write Packet Control */
-#define REG_RTC_STAT 0x12	/* Retry Control Status */
-#define REG_RTC_SET  0x12	/* Retry Control Set */
-#define REG_INTRD    0x13	/* Interrupt Indication */
-#define REG_CL_INTRD 0x13	/* Interrupt Clear */
-#define REG_EN_INTRD 0x14	/* Interrupt Enable */
-#define REG_MD_STAT  0x20	/* Bluetooth Mode Status */
+#define REG_RDAT     0x00	
+#define REG_TDAT     0x00	
+#define REG_PC_RRT   0x10	
+#define REG_PC_WRT   0x11	
+#define REG_RTC_STAT 0x12	
+#define REG_RTC_SET  0x12	
+#define REG_INTRD    0x13	
+#define REG_CL_INTRD 0x13	
+#define REG_EN_INTRD 0x14	
+#define REG_MD_STAT  0x20	
 
 static int btsdio_tx_packet(struct btsdio_data *data, struct sk_buff *skb)
 {
@@ -77,7 +55,7 @@ static int btsdio_tx_packet(struct btsdio_data *data, struct sk_buff *skb)
 
 	BT_DBG("%s", data->hdev->name);
 
-	/* Prepend Type-A header */
+	
 	skb_push(skb, 4);
 	skb->data[0] = (skb->len & 0x0000ff);
 	skb->data[1] = (skb->len & 0x00ff00) >> 8;
@@ -138,9 +116,7 @@ static int btsdio_rx_packet(struct btsdio_data *data)
 
 	skb = bt_skb_alloc(len - 4, GFP_KERNEL);
 	if (!skb) {
-		/* Out of memory. Prepare a read retry and just
-		 * return with the expectation that the next time
-		 * we're called we'll have more memory. */
+		
 		return -ENOMEM;
 	}
 

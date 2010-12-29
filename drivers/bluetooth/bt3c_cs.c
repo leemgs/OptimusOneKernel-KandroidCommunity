@@ -1,25 +1,4 @@
-/*
- *
- *  Driver for the 3Com Bluetooth PCMCIA card
- *
- *  Copyright (C) 2001-2002  Marcel Holtmann <marcel@holtmann.org>
- *                           Jose Orlando Pereira <jop@di.uminho.pt>
- *
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation;
- *
- *  Software distributed under the License is distributed on an "AS
- *  IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
- *  implied. See the License for the specific language governing
- *  rights and limitations under the License.
- *
- *  The initial developer of the original code is David A. Hinds
- *  <dahinds@users.sourceforge.net>.  Portions created by David A. Hinds
- *  are Copyright (C) 1999 David A. Hinds.  All Rights Reserved.
- *
- */
+
 
 #include <linux/module.h>
 
@@ -57,7 +36,7 @@
 
 
 
-/* ======================== Module parameters ======================== */
+
 
 
 MODULE_AUTHOR("Marcel Holtmann <marcel@holtmann.org>");
@@ -67,7 +46,7 @@ MODULE_FIRMWARE("BT3CPCC.bin");
 
 
 
-/* ======================== Local structures ======================== */
+
 
 
 typedef struct bt3c_info_t {
@@ -76,7 +55,7 @@ typedef struct bt3c_info_t {
 
 	struct hci_dev *hdev;
 
-	spinlock_t lock;		/* For serializing operations */
+	spinlock_t lock;		
 
 	struct sk_buff_head txq;
 	unsigned long tx_state;
@@ -93,12 +72,12 @@ static void bt3c_release(struct pcmcia_device *link);
 static void bt3c_detach(struct pcmcia_device *p_dev);
 
 
-/* Transmit states  */
+
 #define XMIT_SENDING  1
 #define XMIT_WAKEUP   2
 #define XMIT_WAITING  8
 
-/* Receiver states */
+
 #define RECV_WAIT_PACKET_TYPE   0
 #define RECV_WAIT_EVENT_HEADER  1
 #define RECV_WAIT_ACL_HEADER    2
@@ -107,7 +86,7 @@ static void bt3c_detach(struct pcmcia_device *p_dev);
 
 
 
-/* ======================== Special I/O functions ======================== */
+
 
 
 #define DATA_L   0
@@ -157,7 +136,7 @@ static inline unsigned short bt3c_read(unsigned int iobase, unsigned short addr)
 
 
 
-/* ======================== Interrupt handling ======================== */
+
 
 
 static int bt3c_write(unsigned int iobase, int fifo_size, __u8 *buf, int len)
@@ -166,9 +145,9 @@ static int bt3c_write(unsigned int iobase, int fifo_size, __u8 *buf, int len)
 
 	bt3c_address(iobase, 0x7080);
 
-	/* Fill FIFO with current frame */
+	
 	while (actual < len) {
-		/* Transmit next byte */
+		
 		bt3c_put(iobase, buf[actual]);
 		actual++;
 	}
@@ -203,7 +182,7 @@ static void bt3c_write_wakeup(bt3c_info_t *info)
 			break;
 		}
 
-		/* Send frame */
+		
 		len = bt3c_write(iobase, 256, skb->data, skb->len);
 
 		if (len != skb->len) {
@@ -231,14 +210,14 @@ static void bt3c_receive(bt3c_info_t *info)
 	iobase = info->p_dev->io.BasePort1;
 
 	avail = bt3c_read(iobase, 0x7006);
-	//printk("bt3c_cs: receiving %d bytes\n", avail);
+	
 
 	bt3c_address(iobase, 0x7480);
 	while (size < avail) {
 		size++;
 		info->hdev->stat.byte_rx++;
 
-		/* Allocate packet */
+		
 		if (info->rx_skb == NULL) {
 			info->rx_state = RECV_WAIT_PACKET_TYPE;
 			info->rx_count = 0;
@@ -254,7 +233,7 @@ static void bt3c_receive(bt3c_info_t *info)
 			info->rx_skb->dev = (void *) info->hdev;
 			bt_cb(info->rx_skb)->pkt_type = inb(iobase + DATA_L);
 			inb(iobase + DATA_H);
-			//printk("bt3c: PACKET_TYPE=%02x\n", bt_cb(info->rx_skb)->pkt_type);
+			
 
 			switch (bt_cb(info->rx_skb)->pkt_type) {
 
@@ -274,7 +253,7 @@ static void bt3c_receive(bt3c_info_t *info)
 				break;
 
 			default:
-				/* Unknown packet */
+				
 				BT_ERR("Unknown HCI packet with type 0x%02x received", bt_cb(info->rx_skb)->pkt_type);
 				info->hdev->stat.err_rx++;
 				clear_bit(HCI_RUNNING, &(info->hdev->flags));
@@ -366,7 +345,7 @@ static irqreturn_t bt3c_interrupt(int irq, void *dev_inst)
 			if (stat & 0x0001)
 				bt3c_receive(info);
 			if (stat & 0x0002) {
-				//BT_ERR("Ack (stat=0x%04x)", stat);
+				
 				clear_bit(XMIT_SENDING, &(info->tx_state));
 				bt3c_write_wakeup(info);
 			}
@@ -385,14 +364,14 @@ static irqreturn_t bt3c_interrupt(int irq, void *dev_inst)
 
 
 
-/* ======================== HCI interface ======================== */
+
 
 
 static int bt3c_hci_flush(struct hci_dev *hdev)
 {
 	bt3c_info_t *info = (bt3c_info_t *)(hdev->driver_data);
 
-	/* Drop TX queue */
+	
 	skb_queue_purge(&(info->txq));
 
 	return 0;
@@ -443,7 +422,7 @@ static int bt3c_hci_send_frame(struct sk_buff *skb)
 		break;
 	};
 
-	/* Prepend skb with frame type */
+	
 	memcpy(skb_push(skb, 1), &bt_cb(skb)->pkt_type, 1);
 	skb_queue_tail(&(info->txq), skb);
 
@@ -469,7 +448,7 @@ static int bt3c_hci_ioctl(struct hci_dev *hdev, unsigned int cmd, unsigned long 
 
 
 
-/* ======================== Card services HCI interaction ======================== */
+
 
 
 static int bt3c_load_firmware(bt3c_info_t *info, const unsigned char *firmware,
@@ -482,7 +461,7 @@ static int bt3c_load_firmware(bt3c_info_t *info, const unsigned char *firmware,
 
 	iobase = info->p_dev->io.BasePort1;
 
-	/* Reset */
+	
 	bt3c_io_write(iobase, 0x8040, 0x0404);
 	bt3c_io_write(iobase, 0x8040, 0x0400);
 
@@ -492,7 +471,7 @@ static int bt3c_load_firmware(bt3c_info_t *info, const unsigned char *firmware,
 
 	udelay(17);
 
-	/* Load */
+	
 	while (count) {
 		if (ptr[0] != 'S') {
 			BT_ERR("Bad address in firmware");
@@ -541,14 +520,14 @@ static int bt3c_load_firmware(bt3c_info_t *info, const unsigned char *firmware,
 
 	udelay(17);
 
-	/* Boot */
+	
 	bt3c_address(iobase, 0x3000);
 	outb(inb(iobase + CONTROL) | 0x40, iobase + CONTROL);
 
 error:
 	udelay(17);
 
-	/* Clear */
+	
 	bt3c_io_write(iobase, 0x7006, 0x0000);
 	bt3c_io_write(iobase, 0x7005, 0x0000);
 	bt3c_io_write(iobase, 0x7001, 0x0000);
@@ -571,7 +550,7 @@ static int bt3c_open(bt3c_info_t *info)
 	info->rx_count = 0;
 	info->rx_skb = NULL;
 
-	/* Initialize HCI device */
+	
 	hdev = hci_alloc_dev();
 	if (!hdev) {
 		BT_ERR("Can't allocate HCI device");
@@ -593,7 +572,7 @@ static int bt3c_open(bt3c_info_t *info)
 
 	hdev->owner = THIS_MODULE;
 
-	/* Load firmware */
+	
 	err = request_firmware(&firmware, "BT3CPCC.bin", &info->p_dev->dev);
 	if (err < 0) {
 		BT_ERR("Firmware request failed");
@@ -609,10 +588,10 @@ static int bt3c_open(bt3c_info_t *info)
 		goto error;
 	}
 
-	/* Timeout before it is safe to send the first HCI packet */
+	
 	msleep(1000);
 
-	/* Register HCI device */
+	
 	err = hci_register_dev(hdev);
 	if (err < 0) {
 		BT_ERR("Can't register HCI device");
@@ -649,7 +628,7 @@ static int bt3c_probe(struct pcmcia_device *link)
 {
 	bt3c_info_t *info;
 
-	/* Create new info device */
+	
 	info = kzalloc(sizeof(*info), GFP_KERNEL);
 	if (!info)
 		return -ENOMEM;
@@ -727,15 +706,12 @@ static int bt3c_config(struct pcmcia_device *link)
 	int i;
 	unsigned long try;
 
-	/* First pass: look for a config entry that looks normal.
-	   Two tries: without IO aliases, then with aliases */
+	
 	for (try = 0; try < 2; try++)
 		if (!pcmcia_loop_config(link, bt3c_check_config, (void *) try))
 			goto found_port;
 
-	/* Second pass: try to find an entry that isn't picky about
-	   its base address, then try to grab any standard serial port
-	   address, and finally try to get any free port. */
+	
 	if (!pcmcia_loop_config(link, bt3c_check_config_notpicky, NULL))
 		goto found_port;
 

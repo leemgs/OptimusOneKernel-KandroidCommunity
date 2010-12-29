@@ -1,25 +1,4 @@
-/*
- *
- *  Digianswer Bluetooth USB driver
- *
- *  Copyright (C) 2004-2007  Marcel Holtmann <marcel@holtmann.org>
- *
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -38,10 +17,10 @@
 #define VERSION "0.10"
 
 static struct usb_device_id bpa10x_table[] = {
-	/* Tektronix BPA 100/105 (Digianswer) */
+	
 	{ USB_DEVICE(0x08fd, 0x0002) },
 
-	{ }	/* Terminating entry */
+	{ }	
 };
 
 MODULE_DEVICE_TABLE(usb, bpa10x_table);
@@ -82,7 +61,7 @@ static int bpa10x_recv(struct hci_dev *hdev, int queue, void *buf, int count)
 		int type, len = 0;
 
 		if (!skb) {
-			/* Start of the frame */
+			
 
 			type = *((__u8 *) buf);
 			count--; buf++;
@@ -137,7 +116,7 @@ static int bpa10x_recv(struct hci_dev *hdev, int queue, void *buf, int count)
 			scb->type = type;
 			scb->expect = len;
 		} else {
-			/* Continuation */
+			
 
 			scb = (void *) skb->cb;
 			len = scb->expect;
@@ -150,7 +129,7 @@ static int bpa10x_recv(struct hci_dev *hdev, int queue, void *buf, int count)
 		scb->expect -= len;
 
 		if (scb->expect == 0) {
-			/* Complete frame */
+			
 
 			data->rx_skb[queue] = NULL;
 
@@ -370,7 +349,7 @@ static int bpa10x_send_frame(struct sk_buff *skb)
 	if (!urb)
 		return -ENOMEM;
 
-	/* Prepend skb with frame type */
+	
 	*skb_push(skb, 1) = bt_cb(skb)->pkt_type;
 
 	switch (bt_cb(skb)->pkt_type) {

@@ -1,22 +1,4 @@
-/**
- * Marvell BT-over-SDIO driver: SDIO interface related functions.
- *
- * Copyright (C) 2009, Marvell International Ltd.
- *
- * This software file (the "File") is distributed by Marvell International
- * Ltd. under the terms of the GNU General Public License Version 2, June 1991
- * (the "License").  You may use, redistribute and/or modify this File in
- * accordance with the terms and conditions of the License, a copy of which
- * is available by writing to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA or on the
- * worldwide web at http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt.
- *
- *
- * THE FILE IS DISTRIBUTED AS-IS, WITHOUT WARRANTY OF ANY KIND, AND THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE
- * ARE EXPRESSLY DISCLAIMED.  The License provides additional details about
- * this warranty disclaimer.
- **/
+
 
 #include <linux/firmware.h>
 
@@ -31,20 +13,7 @@
 
 #define VERSION "1.0"
 
-/* The btmrvl_sdio_remove() callback function is called
- * when user removes this module from kernel space or ejects
- * the card from the slot. The driver handles these 2 cases
- * differently.
- * If the user is removing the module, a MODULE_SHUTDOWN_REQ
- * command is sent to firmware and interrupt will be disabled.
- * If the card is removed, there is no need to send command
- * or disable interrupt.
- *
- * The variable 'user_rmmod' is used to distinguish these two
- * scenarios. This flag is initialized as FALSE in case the card
- * is removed, and will be set to TRUE for module removal when
- * module_exit function is called.
- */
+
 static u8 user_rmmod;
 
 static const struct btmrvl_sdio_device btmrvl_sdio_sd6888 = {
@@ -53,11 +22,11 @@ static const struct btmrvl_sdio_device btmrvl_sdio_sd6888 = {
 };
 
 static const struct sdio_device_id btmrvl_sdio_ids[] = {
-	/* Marvell SD8688 Bluetooth device */
+	
 	{ SDIO_DEVICE(SDIO_VENDOR_ID_MARVELL, 0x9105),
 			.driver_data = (unsigned long) &btmrvl_sdio_sd6888 },
 
-	{ }	/* Terminating entry */
+	{ }	
 };
 
 MODULE_DEVICE_TABLE(sdio, btmrvl_sdio_ids);
@@ -172,7 +141,7 @@ static int btmrvl_sdio_verify_fw_download(struct btmrvl_sdio_card *card,
 	u16 firmwarestat;
 	unsigned int tries;
 
-	 /* Wait for firmware to become ready */
+	 
 	for (tries = 0; tries < pollnum; tries++) {
 		if (btmrvl_sdio_read_fw_status(card, &firmwarestat) < 0)
 			continue;
@@ -227,7 +196,7 @@ static int btmrvl_sdio_download_helper(struct btmrvl_sdio_card *card)
 
 	helperbuf = (u8 *) ALIGN_ADDR(tmphlprbuf, BTSDIO_DMA_ALIGN);
 
-	/* Perform helper data transfer */
+	
 	tx_len = (FIRMWARE_TRANSFER_NBLOCK * SDIO_BLOCK_SIZE)
 			- SDIO_HEADER_LEN;
 	hlprblknow = 0;
@@ -241,14 +210,14 @@ static int btmrvl_sdio_download_helper(struct btmrvl_sdio_card *card)
 			goto done;
 		}
 
-		/* Check if there is more data? */
+		
 		if (hlprblknow >= helperlen)
 			break;
 
 		if (helperlen - hlprblknow < tx_len)
 			tx_len = helperlen - hlprblknow;
 
-		/* Little-endian */
+		
 		helperbuf[0] = ((tx_len & 0x000000ff) >> 0);
 		helperbuf[1] = ((tx_len & 0x0000ff00) >> 8);
 		helperbuf[2] = ((tx_len & 0x00ff0000) >> 16);
@@ -257,7 +226,7 @@ static int btmrvl_sdio_download_helper(struct btmrvl_sdio_card *card)
 		memcpy(&helperbuf[SDIO_HEADER_LEN], &helper[hlprblknow],
 				tx_len);
 
-		/* Now send the data */
+		
 		ret = sdio_writesb(card->func, card->ioport, helperbuf,
 				FIRMWARE_TRANSFER_NBLOCK * SDIO_BLOCK_SIZE);
 		if (ret < 0) {
@@ -327,10 +296,10 @@ static int btmrvl_sdio_download_fw_w_helper(struct btmrvl_sdio_card *card)
 
 	memset(tmpfwbuf, 0, tmpfwbufsz);
 
-	/* Ensure aligned firmware buffer */
+	
 	fwbuf = (u8 *) ALIGN_ADDR(tmpfwbuf, BTSDIO_DMA_ALIGN);
 
-	/* Perform firmware data transfer */
+	
 	offset = 0;
 	do {
 		ret = btmrvl_sdio_poll_card_status(card,
@@ -341,7 +310,7 @@ static int btmrvl_sdio_download_fw_w_helper(struct btmrvl_sdio_card *card)
 			goto done;
 		}
 
-		/* Check if there is more data ? */
+		
 		if (offset >= firmwarelen)
 			break;
 
@@ -396,12 +365,12 @@ static int btmrvl_sdio_download_fw_w_helper(struct btmrvl_sdio_card *card)
 			BT_ERR("FW CRC error indicated by the helper: "
 				"len = 0x%04X, txlen = %d", len, txlen);
 			len &= ~BIT(0);
-			/* Set txlen to 0 so as to resend from same offset */
+			
 			txlen = 0;
 		} else {
 			count = 0;
 
-			/* Last block ? */
+			
 			if (firmwarelen - offset < txlen)
 				txlen = firmwarelen - offset;
 
@@ -455,7 +424,7 @@ static int btmrvl_sdio_card_to_host(struct btmrvl_private *priv)
 		goto exit;
 	}
 
-	/* Read the length of data to be transferred */
+	
 	ret = btmrvl_sdio_read_rx_len(card, &buf_len);
 	if (ret < 0) {
 		BT_ERR("read rx_len failed");
@@ -473,7 +442,7 @@ static int btmrvl_sdio_card_to_host(struct btmrvl_private *priv)
 		goto exit;
 	}
 
-	/* Allocate buffer */
+	
 	skb = bt_skb_alloc(buf_block_len * blksz + BTSDIO_DMA_ALIGN,
 								GFP_ATOMIC);
 	if (skb == NULL) {
@@ -498,9 +467,7 @@ static int btmrvl_sdio_card_to_host(struct btmrvl_private *priv)
 		goto exit;
 	}
 
-	/* This is SDIO specific header length: byte[2][1][0], type: byte[3]
-	 * (HCI_COMMAND = 1, ACL_DATA = 2, SCO_DATA = 3, 0xFE = Vendor)
-	 */
+	
 
 	buf_len = payload[0];
 	buf_len |= (u16) payload[1] << 8;
@@ -570,11 +537,7 @@ static int btmrvl_sdio_get_int_status(struct btmrvl_private *priv, u8 * ireg)
 	}
 
 	if (sdio_ireg != 0) {
-		/*
-		 * DN_LD_HOST_INT_STATUS and/or UP_LD_HOST_INT_STATUS
-		 * Clear the interrupt status register and re-enable the
-		 * interrupt.
-		 */
+		
 		BT_DBG("sdio_ireg = 0x%x", sdio_ireg);
 
 		sdio_writeb(card->func, ~(sdio_ireg) & (DN_LD_HOST_INT_STATUS |
@@ -790,7 +753,7 @@ static int btmrvl_sdio_host_to_card(struct btmrvl_private *priv,
 	sdio_claim_host(card->func);
 
 	do {
-		/* Transfer data to card */
+		
 		ret = sdio_writesb(card->func, card->ioport, buf,
 				   buf_block_len * blksz);
 		if (ret < 0) {
@@ -903,7 +866,7 @@ static int btmrvl_sdio_probe(struct sdio_func *func,
 		goto free_card;
 	}
 
-	/* Disable the interrupts on the card */
+	
 	btmrvl_sdio_disable_host_int(card);
 
 	if (btmrvl_sdio_download_fw(card)) {
@@ -925,7 +888,7 @@ static int btmrvl_sdio_probe(struct sdio_func *func,
 
 	card->priv = priv;
 
-	/* Initialize the interface specific function pointers */
+	
 	priv->hw_host_to_card = btmrvl_sdio_host_to_card;
 	priv->hw_wakeup_firmware = btmrvl_sdio_wakeup_fw;
 
@@ -950,9 +913,7 @@ static void btmrvl_sdio_remove(struct sdio_func *func)
 	if (func) {
 		card = sdio_get_drvdata(func);
 		if (card) {
-			/* Send SHUTDOWN command & disable interrupt
-			 * if user removes the module.
-			 */
+			
 			if (user_rmmod) {
 				btmrvl_send_module_cfg_cmd(card->priv,
 							MODULE_SHUTDOWN_REQ);
@@ -980,7 +941,7 @@ static int btmrvl_sdio_init_module(void)
 		return -ENODEV;
 	}
 
-	/* Clear the flag in case user removes the card. */
+	
 	user_rmmod = 0;
 
 	return 0;
@@ -988,7 +949,7 @@ static int btmrvl_sdio_init_module(void)
 
 static void btmrvl_sdio_exit_module(void)
 {
-	/* Set the flag as user is removing this module. */
+	
 	user_rmmod = 1;
 
 	sdio_unregister_driver(&bt_mrvl_sdio);

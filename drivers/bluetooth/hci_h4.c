@@ -1,27 +1,4 @@
-/*
- *
- *  Bluetooth HCI UART driver
- *
- *  Copyright (C) 2000-2001  Qualcomm Incorporated
- *  Copyright (C) 2002-2003  Maxim Krasnyansky <maxk@qualcomm.com>
- *  Copyright (C) 2004-2005  Marcel Holtmann <marcel@holtmann.org>
- *
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- */
+
 
 #include <linux/module.h>
 
@@ -55,14 +32,14 @@ struct h4_struct {
 	struct sk_buff_head txq;
 };
 
-/* H4 receiver States */
+
 #define H4_W4_PACKET_TYPE	0
 #define H4_W4_EVENT_HDR		1
 #define H4_W4_ACL_HDR		2
 #define H4_W4_SCO_HDR		3
 #define H4_W4_DATA		4
 
-/* Initialize protocol */
+
 static int h4_open(struct hci_uart *hu)
 {
 	struct h4_struct *h4;
@@ -79,7 +56,7 @@ static int h4_open(struct hci_uart *hu)
 	return 0;
 }
 
-/* Flush protocol data */
+
 static int h4_flush(struct hci_uart *hu)
 {
 	struct h4_struct *h4 = hu->priv;
@@ -91,7 +68,7 @@ static int h4_flush(struct hci_uart *hu)
 	return 0;
 }
 
-/* Close protocol */
+
 static int h4_close(struct hci_uart *hu)
 {
 	struct h4_struct *h4 = hu->priv;
@@ -110,14 +87,14 @@ static int h4_close(struct hci_uart *hu)
 	return 0;
 }
 
-/* Enqueue frame for transmittion (padding, crc, etc) */
+
 static int h4_enqueue(struct hci_uart *hu, struct sk_buff *skb)
 {
 	struct h4_struct *h4 = hu->priv;
 
 	BT_DBG("hu %p skb %p", hu, skb);
 
-	/* Prepend skb with frame type */
+	
 	memcpy(skb_push(skb, 1), &bt_cb(skb)->pkt_type, 1);
 	skb_queue_tail(&h4->txq, skb);
 
@@ -148,7 +125,7 @@ static inline int h4_check_data_len(struct h4_struct *h4, int len)
 	return 0;
 }
 
-/* Recv data */
+
 static int h4_recv(struct hci_uart *hu, void *data, int count)
 {
 	struct h4_struct *h4 = hu->priv;
@@ -208,7 +185,7 @@ static int h4_recv(struct hci_uart *hu, void *data, int count)
 			}
 		}
 
-		/* H4_W4_PACKET_TYPE */
+		
 		switch (*ptr) {
 		case HCI_EVENT_PKT:
 			BT_DBG("Event packet");
@@ -240,7 +217,7 @@ static int h4_recv(struct hci_uart *hu, void *data, int count)
 
 		ptr++; count--;
 
-		/* Allocate packet */
+		
 		h4->rx_skb = bt_skb_alloc(HCI_MAX_FRAME_SIZE, GFP_ATOMIC);
 		if (!h4->rx_skb) {
 			BT_ERR("Can't allocate mem for new packet");

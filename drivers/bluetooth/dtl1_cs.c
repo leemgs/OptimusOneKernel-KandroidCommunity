@@ -1,24 +1,4 @@
-/*
- *
- *  A driver for Nokia Connectivity Card DTL-1 devices
- *
- *  Copyright (C) 2001-2002  Marcel Holtmann <marcel@holtmann.org>
- *
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation;
- *
- *  Software distributed under the License is distributed on an "AS
- *  IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
- *  implied. See the License for the specific language governing
- *  rights and limitations under the License.
- *
- *  The initial developer of the original code is David A. Hinds
- *  <dahinds@users.sourceforge.net>.  Portions created by David A. Hinds
- *  are Copyright (C) 1999 David A. Hinds.  All Rights Reserved.
- *
- */
+
 
 #include <linux/module.h>
 
@@ -53,7 +33,7 @@
 
 
 
-/* ======================== Module parameters ======================== */
+
 
 
 MODULE_AUTHOR("Marcel Holtmann <marcel@holtmann.org>");
@@ -62,7 +42,7 @@ MODULE_LICENSE("GPL");
 
 
 
-/* ======================== Local structures ======================== */
+
 
 
 typedef struct dtl1_info_t {
@@ -71,9 +51,9 @@ typedef struct dtl1_info_t {
 
 	struct hci_dev *hdev;
 
-	spinlock_t lock;		/* For serializing operations */
+	spinlock_t lock;		
 
-	unsigned long flowmask;		/* HCI flow mask */
+	unsigned long flowmask;		
 	int ri_latch;
 
 	struct sk_buff_head txq;
@@ -91,12 +71,12 @@ static void dtl1_release(struct pcmcia_device *link);
 static void dtl1_detach(struct pcmcia_device *p_dev);
 
 
-/* Transmit states  */
+
 #define XMIT_SENDING  1
 #define XMIT_WAKEUP   2
 #define XMIT_WAITING  8
 
-/* Receiver States */
+
 #define RECV_WAIT_NSH   0
 #define RECV_WAIT_DATA  1
 
@@ -105,26 +85,26 @@ typedef struct {
 	u8 type;
 	u8 zero;
 	u16 len;
-} __attribute__ ((packed)) nsh_t;	/* Nokia Specific Header */
+} __attribute__ ((packed)) nsh_t;	
 
-#define NSHL  4				/* Nokia Specific Header Length */
+#define NSHL  4				
 
 
 
-/* ======================== Interrupt handling ======================== */
+
 
 
 static int dtl1_write(unsigned int iobase, int fifo_size, __u8 *buf, int len)
 {
 	int actual = 0;
 
-	/* Tx FIFO should be empty */
+	
 	if (!(inb(iobase + UART_LSR) & UART_LSR_THRE))
 		return 0;
 
-	/* Fill FIFO with current frame */
+	
 	while ((fifo_size-- > 0) && (actual < len)) {
-		/* Transmit next byte */
+		
 		outb(buf[actual], iobase + UART_TX);
 		actual++;
 	}
@@ -163,7 +143,7 @@ static void dtl1_write_wakeup(dtl1_info_t *info)
 		if (!(skb = skb_dequeue(&(info->txq))))
 			break;
 
-		/* Send frame */
+		
 		len = dtl1_write(iobase, 32, skb->data, skb->len);
 
 		if (len == skb->len) {
@@ -193,7 +173,7 @@ static void dtl1_control(dtl1_info_t *info, struct sk_buff *skb)
 	}
 	printk("\n");
 
-	/* transition to active state */
+	
 	if (((info->flowmask & 0x07) == 0) && ((flowmask & 0x07) != 0)) {
 		clear_bit(XMIT_WAITING, &(info->tx_state));
 		dtl1_write_wakeup(info);
@@ -221,7 +201,7 @@ static void dtl1_receive(dtl1_info_t *info)
 	do {
 		info->hdev->stat.byte_rx++;
 
-		/* Allocate packet */
+		
 		if (info->rx_skb == NULL)
 			if (!(info->rx_skb = bt_skb_alloc(HCI_MAX_FRAME_SIZE, GFP_ATOMIC))) {
 				BT_ERR("Can't allocate mem for new packet");
@@ -245,30 +225,30 @@ static void dtl1_receive(dtl1_info_t *info)
 			case RECV_WAIT_DATA:
 				bt_cb(info->rx_skb)->pkt_type = nsh->type;
 
-				/* remove PAD byte if it exists */
+				
 				if (nsh->len & 0x0001) {
 					info->rx_skb->tail--;
 					info->rx_skb->len--;
 				}
 
-				/* remove NSH */
+				
 				skb_pull(info->rx_skb, NSHL);
 
 				switch (bt_cb(info->rx_skb)->pkt_type) {
 				case 0x80:
-					/* control data for the Nokia Card */
+					
 					dtl1_control(info, info->rx_skb);
 					break;
 				case 0x82:
 				case 0x83:
 				case 0x84:
-					/* send frame to the HCI layer */
+					
 					info->rx_skb->dev = (void *) info->hdev;
 					bt_cb(info->rx_skb)->pkt_type &= 0x0f;
 					hci_recv_frame(info->rx_skb);
 					break;
 				default:
-					/* unknown packet */
+					
 					BT_ERR("Unknown HCI packet with type 0x%02x received", bt_cb(info->rx_skb)->pkt_type);
 					kfree_skb(info->rx_skb);
 					break;
@@ -282,7 +262,7 @@ static void dtl1_receive(dtl1_info_t *info)
 
 		}
 
-		/* Make sure we don't stay here too long */
+		
 		if (boguscount++ > 32)
 			break;
 
@@ -309,7 +289,7 @@ static irqreturn_t dtl1_interrupt(int irq, void *dev_inst)
 	while (iir) {
 
 		r = IRQ_HANDLED;
-		/* Clear interrupt */
+		
 		lsr = inb(iobase + UART_LSR);
 
 		switch (iir) {
@@ -317,12 +297,12 @@ static irqreturn_t dtl1_interrupt(int irq, void *dev_inst)
 			BT_ERR("RLSI");
 			break;
 		case UART_IIR_RDI:
-			/* Receive interrupt */
+			
 			dtl1_receive(info);
 			break;
 		case UART_IIR_THRI:
 			if (lsr & UART_LSR_THRE) {
-				/* Transmitter ready for data */
+				
 				dtl1_write_wakeup(info);
 			}
 			break;
@@ -331,7 +311,7 @@ static irqreturn_t dtl1_interrupt(int irq, void *dev_inst)
 			break;
 		}
 
-		/* Make sure we don't stay here too long */
+		
 		if (boguscount++ > 100)
 			break;
 
@@ -355,7 +335,7 @@ static irqreturn_t dtl1_interrupt(int irq, void *dev_inst)
 
 
 
-/* ======================== HCI interface ======================== */
+
 
 
 static int dtl1_hci_open(struct hci_dev *hdev)
@@ -370,7 +350,7 @@ static int dtl1_hci_flush(struct hci_dev *hdev)
 {
 	dtl1_info_t *info = (dtl1_info_t *)(hdev->driver_data);
 
-	/* Drop TX queue */
+	
 	skb_queue_purge(&(info->txq));
 
 	return 0;
@@ -429,9 +409,9 @@ static int dtl1_hci_send_frame(struct sk_buff *skb)
 	skb_reserve(s, NSHL);
 	skb_copy_from_linear_data(skb, skb_put(s, skb->len), skb->len);
 	if (skb->len & 0x0001)
-		*skb_put(s, 1) = 0;	/* PAD */
+		*skb_put(s, 1) = 0;	
 
-	/* Prepend skb with Nokia frame header and queue */
+	
 	memcpy(skb_push(s, NSHL), &nsh, NSHL);
 	skb_queue_tail(&(info->txq), s);
 
@@ -455,7 +435,7 @@ static int dtl1_hci_ioctl(struct hci_dev *hdev, unsigned int cmd,  unsigned long
 
 
 
-/* ======================== Card services HCI interaction ======================== */
+
 
 
 static int dtl1_open(dtl1_info_t *info)
@@ -474,7 +454,7 @@ static int dtl1_open(dtl1_info_t *info)
 
 	set_bit(XMIT_WAITING, &(info->tx_state));
 
-	/* Initialize HCI device */
+	
 	hdev = hci_alloc_dev();
 	if (!hdev) {
 		BT_ERR("Can't allocate HCI device");
@@ -498,27 +478,27 @@ static int dtl1_open(dtl1_info_t *info)
 
 	spin_lock_irqsave(&(info->lock), flags);
 
-	/* Reset UART */
+	
 	outb(0, iobase + UART_MCR);
 
-	/* Turn off interrupts */
+	
 	outb(0, iobase + UART_IER);
 
-	/* Initialize UART */
-	outb(UART_LCR_WLEN8, iobase + UART_LCR);	/* Reset DLAB */
+	
+	outb(UART_LCR_WLEN8, iobase + UART_LCR);	
 	outb((UART_MCR_DTR | UART_MCR_RTS | UART_MCR_OUT2), iobase + UART_MCR);
 
 	info->ri_latch = inb(info->p_dev->io.BasePort1 + UART_MSR) & UART_MSR_RI;
 
-	/* Turn on interrupts */
+	
 	outb(UART_IER_RLSI | UART_IER_RDI | UART_IER_THRI, iobase + UART_IER);
 
 	spin_unlock_irqrestore(&(info->lock), flags);
 
-	/* Timeout before it is safe to send the first HCI packet */
+	
 	msleep(2000);
 
-	/* Register HCI device */
+	
 	if (hci_register_dev(hdev) < 0) {
 		BT_ERR("Can't register HCI device");
 		info->hdev = NULL;
@@ -543,10 +523,10 @@ static int dtl1_close(dtl1_info_t *info)
 
 	spin_lock_irqsave(&(info->lock), flags);
 
-	/* Reset UART */
+	
 	outb(0, iobase + UART_MCR);
 
-	/* Turn off interrupts */
+	
 	outb(0, iobase + UART_IER);
 
 	spin_unlock_irqrestore(&(info->lock), flags);
@@ -563,7 +543,7 @@ static int dtl1_probe(struct pcmcia_device *link)
 {
 	dtl1_info_t *info;
 
-	/* Create new info device */
+	
 	info = kzalloc(sizeof(*info), GFP_KERNEL);
 	if (!info)
 		return -ENOMEM;
@@ -603,7 +583,7 @@ static int dtl1_confcheck(struct pcmcia_device *p_dev,
 {
 	if ((cf->io.nwin == 1) && (cf->io.win[0].len > 8)) {
 		p_dev->io.BasePort1 = cf->io.win[0].base;
-		p_dev->io.NumPorts1 = cf->io.win[0].len;	/*yo */
+		p_dev->io.NumPorts1 = cf->io.win[0].len;	
 		p_dev->io.IOAddrLines = cf->io.flags & CISTPL_IO_LINES_MASK;
 		if (!pcmcia_request_io(p_dev, &p_dev->io))
 			return 0;
@@ -616,7 +596,7 @@ static int dtl1_config(struct pcmcia_device *link)
 	dtl1_info_t *info = link->priv;
 	int i;
 
-	/* Look for a generic full-sized window */
+	
 	link->io.NumPorts1 = 8;
 	if (pcmcia_loop_config(link, dtl1_confcheck, NULL) < 0)
 		goto failed;

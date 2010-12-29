@@ -1,23 +1,4 @@
-/*
- * Marvell Bluetooth driver: global definitions & declarations
- *
- * Copyright (C) 2009, Marvell International Ltd.
- *
- * This software file (the "File") is distributed by Marvell International
- * Ltd. under the terms of the GNU General Public License Version 2, June 1991
- * (the "License").  You may use, redistribute and/or modify this File in
- * accordance with the terms and conditions of the License, a copy of which
- * is available by writing to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA or on the
- * worldwide web at http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt.
- *
- *
- * THE FILE IS DISTRIBUTED AS-IS, WITHOUT WARRANTY OF ANY KIND, AND THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE
- * ARE EXPRESSLY DISCLAIMED.  The License provides additional details about
- * this warranty disclaimer.
- *
- */
+
 
 #include <linux/kthread.h>
 #include <linux/bitops.h>
@@ -26,9 +7,9 @@
 #define BTM_HEADER_LEN			4
 #define BTM_UPLD_SIZE			2312
 
-/* Time to wait until Host Sleep state change in millisecond */
+
 #define WAIT_UNTIL_HS_STATE_CHANGED	5000
-/* Time to wait for command response in millisecond */
+
 #define WAIT_UNTIL_CMD_RESP		5000
 
 struct btmrvl_thread {
@@ -48,7 +29,7 @@ struct btmrvl_device {
 	u8 hsmode;
 	u8 hscmd;
 
-	/* Low byte is gap, high byte is GPIO */
+	
 	u16 gpio_gap;
 
 	u8 hscfgcmd;
@@ -73,7 +54,7 @@ struct btmrvl_private {
 	int (*hw_host_to_card) (struct btmrvl_private *priv,
 				u8 *payload, u16 nb);
 	int (*hw_wakeup_firmware) (struct btmrvl_private *priv);
-	spinlock_t driver_lock;		/* spinlock used by driver */
+	spinlock_t driver_lock;		
 #ifdef CONFIG_DEBUG_FS
 	void *debugfs_data;
 #endif
@@ -81,30 +62,30 @@ struct btmrvl_private {
 
 #define MRVL_VENDOR_PKT			0xFE
 
-/* Bluetooth commands  */
+
 #define BT_CMD_AUTO_SLEEP_MODE		0x23
 #define BT_CMD_HOST_SLEEP_CONFIG	0x59
 #define BT_CMD_HOST_SLEEP_ENABLE	0x5A
 #define BT_CMD_MODULE_CFG_REQ		0x5B
 
-/* Sub-commands: Module Bringup/Shutdown Request */
+
 #define MODULE_BRINGUP_REQ		0xF1
 #define MODULE_SHUTDOWN_REQ		0xF2
 
 #define BT_EVENT_POWER_STATE		0x20
 
-/* Bluetooth Power States */
+
 #define BT_PS_ENABLE			0x02
 #define BT_PS_DISABLE			0x03
 #define BT_PS_SLEEP			0x01
 
 #define OGF				0x3F
 
-/* Host Sleep states */
+
 #define HS_ACTIVATED			0x01
 #define HS_DEACTIVATED			0x00
 
-/* Power Save modes */
+
 #define PS_SLEEP			0x01
 #define PS_AWAKE			0x00
 
@@ -115,12 +96,12 @@ struct btmrvl_cmd {
 } __attribute__ ((packed));
 
 struct btmrvl_event {
-	u8 ec;		/* event counter */
+	u8 ec;		
 	u8 length;
 	u8 data[4];
 } __attribute__ ((packed));
 
-/* Prototype of global function */
+
 
 struct btmrvl_private *btmrvl_add_card(void *card);
 int btmrvl_remove_card(struct btmrvl_private *priv);
