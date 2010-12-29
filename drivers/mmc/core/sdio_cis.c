@@ -1,17 +1,4 @@
-/*
- * linux/drivers/mmc/core/sdio_cis.c
- *
- * Author:	Nicolas Pitre
- * Created:	June 11, 2007
- * Copyright:	MontaVista Software Inc.
- *
- * Copyright 2007 Pierre Ossman
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- */
+
 
 #include <linux/kernel.h>
 
@@ -19,6 +6,8 @@
 #include <linux/mmc/card.h>
 #include <linux/mmc/sdio.h>
 #include <linux/mmc/sdio_func.h>
+
+#include <asm/mach-types.h>
 
 #include "sdio_cis.h"
 #include "sdio_ops.h"
@@ -29,8 +18,7 @@ static int cistpl_vers_1(struct mmc_card *card, struct sdio_func *func,
 	unsigned i, nr_strings;
 	char **buffer, *string;
 
-	/* Find all null-terminated (including zero length) strings in
-	   the TPLLV1_INFO field. Trailing garbage is ignored. */
+	
 	buf += 2;
 	size -= 2;
 
@@ -75,10 +63,10 @@ static int cistpl_manfid(struct mmc_card *card, struct sdio_func *func,
 {
 	unsigned int vendor, device;
 
-	/* TPLMID_MANF */
+	
 	vendor = buf[0] | (buf[1] << 8);
 
-	/* TPLMID_CARD */
+	
 	device = buf[2] | (buf[3] << 8);
 
 	if (func) {
@@ -97,9 +85,9 @@ static const unsigned char speed_val[16] =
 static const unsigned int speed_unit[8] =
 	{ 10000, 100000, 1000000, 10000000, 0, 0, 0, 0 };
 
-/* FUNCE tuples with these types get passed to SDIO drivers */
+
 static const unsigned char funce_type_whitelist[] = {
-	4 /* CISTPL_FUNCE_LAN_NODE_ID used in Broadcom cards */
+	4 
 };
 
 static int cistpl_funce_whitelisted(unsigned char type)
@@ -119,10 +107,10 @@ static int cistpl_funce_common(struct mmc_card *card,
 	if (size < 0x04 || buf[0] != 0)
 		return -EINVAL;
 
-	/* TPLFE_FN0_BLK_SIZE */
+	
 	card->cis.blksize = buf[1] | (buf[2] << 8);
 
-	/* TPLFE_MAX_TRAN_SPEED */
+	
 	card->cis.max_dtr = speed_val[(buf[3] >> 3) & 15] *
 			    speed_unit[buf[3] & 7];
 
@@ -135,20 +123,20 @@ static int cistpl_funce_func(struct sdio_func *func,
 	unsigned vsn;
 	unsigned min_size;
 
-	/* let SDIO drivers take care of whitelisted FUNCE tuples */
+	
 	if (cistpl_funce_whitelisted(buf[0]))
 		return -EILSEQ;
 
 	vsn = func->card->cccr.sdio_vsn;
-	min_size = (vsn == SDIO_SDIO_REV_1_00) ? 28 : 42;
+	min_size = (vsn == SDIO_SDIO_REV_1_00) ? 28 : 34;
 
 	if (size < min_size || buf[0] != 1)
 		return -EINVAL;
 
-	/* TPLFE_MAX_BLK_SIZE */
+	
 	func->max_blksize = buf[12] | (buf[13] << 8);
 
-	/* TPLFE_ENABLE_TIMEOUT_VAL, present in ver 1.1 and above */
+	
 	if (vsn > SDIO_SDIO_REV_1_00)
 		func->enable_timeout = (buf[28] | (buf[29] << 8)) * 10;
 	else
@@ -162,12 +150,7 @@ static int cistpl_funce(struct mmc_card *card, struct sdio_func *func,
 {
 	int ret;
 
-	/*
-	 * There should be two versions of the CISTPL_FUNCE tuple,
-	 * one for the common CIS (function 0) and a version used by
-	 * the individual function's CIS (1-7). Yet, the later has a
-	 * different length depending on the SDIO spec version.
-	 */
+	
 	if (func)
 		ret = cistpl_funce_func(func, buf, size);
 	else
@@ -193,7 +176,7 @@ struct cis_tpl {
 static const struct cis_tpl cis_tpl_list[] = {
 	{	0x15,	3,	cistpl_vers_1		},
 	{	0x20,	4,	cistpl_manfid		},
-	{	0x21,	2,	/* cistpl_funcid */	},
+	{	0x21,	2,		},
 	{	0x22,	0,	cistpl_funce		},
 };
 
@@ -203,11 +186,7 @@ static int sdio_read_cis(struct mmc_card *card, struct sdio_func *func)
 	struct sdio_func_tuple *this, **prev;
 	unsigned i, ptr = 0;
 
-	/*
-	 * Note that this works for the common CIS (function number 0) as
-	 * well as a function's CIS * since SDIO_CCCR_CIS and SDIO_FBR_CIS
-	 * have the same offset.
-	 */
+	
 	for (i = 0; i < 3; i++) {
 		unsigned char x, fn;
 
@@ -237,19 +216,24 @@ static int sdio_read_cis(struct mmc_card *card, struct sdio_func *func)
 		if (ret)
 			break;
 
-		/* 0xff means we're done */
+		
 		if (tpl_code == 0xff)
 			break;
 
-		/* null entries have no link field or data */
-		if (tpl_code == 0x00)
-			continue;
+		
+		if (tpl_code == 0x00) {
+			if (machine_is_msm8x55_svlte_surf() ||
+				machine_is_msm8x55_svlte_ffa())
+				break;
+			else
+				continue;
+		}
 
 		ret = mmc_io_rw_direct(card, 0, 0, ptr++, 0, &tpl_link);
 		if (ret)
 			break;
 
-		/* a size of 0xff also means we're done */
+		
 		if (tpl_link == 0xff)
 			break;
 
@@ -284,20 +268,16 @@ static int sdio_read_cis(struct mmc_card *card, struct sdio_func *func)
 				ret = tpl->parse(card, func,
 						 this->data, tpl_link);
 			}
-			/*
-			 * We don't need the tuple anymore if it was
-			 * successfully parsed by the SDIO core or if it is
-			 * not going to be parsed by SDIO drivers.
-			 */
+			
 			if (!ret || ret != -EILSEQ)
 				kfree(this);
 		} else {
-			/* unknown tuple */
+			
 			ret = -EILSEQ;
 		}
 
 		if (ret == -EILSEQ) {
-			/* this tuple is unknown to the core or whitelisted */
+			
 			this->next = NULL;
 			this->code = tpl_code;
 			this->size = tpl_link;
@@ -306,17 +286,14 @@ static int sdio_read_cis(struct mmc_card *card, struct sdio_func *func)
 			printk(KERN_DEBUG
 			       "%s: queuing CIS tuple 0x%02x length %u\n",
 			       mmc_hostname(card->host), tpl_code, tpl_link);
-			/* keep on analyzing tuples */
+			
 			ret = 0;
 		}
 
 		ptr += tpl_link;
 	} while (!ret);
 
-	/*
-	 * Link in all unknown tuples found in the common CIS so that
-	 * drivers don't have to go digging in two places.
-	 */
+	
 	if (func)
 		*prev = card->tuples;
 
@@ -351,16 +328,10 @@ int sdio_read_func_cis(struct sdio_func *func)
 	if (ret)
 		return ret;
 
-	/*
-	 * Since we've linked to tuples in the card structure,
-	 * we must make sure we have a reference to it.
-	 */
+	
 	get_device(&func->card->dev);
 
-	/*
-	 * Vendor/device id is optional for function CIS, so
-	 * copy it from the card structure as needed.
-	 */
+	
 	if (func->vendor == 0) {
 		func->vendor = func->card->cis.vendor;
 		func->device = func->card->cis.device;
@@ -383,10 +354,7 @@ void sdio_free_func_cis(struct sdio_func *func)
 
 	func->tuples = NULL;
 
-	/*
-	 * We have now removed the link to the tuples in the
-	 * card structure, so remove the reference.
-	 */
+	
 	put_device(&func->card->dev);
 }
 

@@ -1,15 +1,4 @@
-/*
- *  linux/drivers/mmc/core/sdio_bus.c
- *
- *  Copyright 2007 Pierre Ossman
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- *
- * SDIO function driver model
- */
+
 
 #include <linux/device.h>
 #include <linux/err.h>
@@ -20,7 +9,11 @@
 #include "sdio_cis.h"
 #include "sdio_bus.h"
 
-/* show configuration fields */
+#ifdef CONFIG_MMC_EMBEDDED_SDIO
+#include <linux/mmc/host.h>
+#endif
+
+
 #define sdio_config_attr(field, format_string)				\
 static ssize_t								\
 field##_show(struct device *dev, struct device_attribute *attr, char *buf)				\
@@ -124,8 +117,7 @@ static int sdio_bus_probe(struct device *dev)
 	if (!id)
 		return -ENODEV;
 
-	/* Set the default block size so the driver is sure it's something
-	 * sensible. */
+	
 	sdio_claim_host(func);
 	ret = sdio_set_block_size(func, 0);
 	sdio_release_host(func);
@@ -172,10 +164,7 @@ void sdio_unregister_bus(void)
 	bus_unregister(&sdio_bus_type);
 }
 
-/**
- *	sdio_register_driver - register a function driver
- *	@drv: SDIO function driver
- */
+
 int sdio_register_driver(struct sdio_driver *drv)
 {
 	drv->drv.name = drv->name;
@@ -184,10 +173,7 @@ int sdio_register_driver(struct sdio_driver *drv)
 }
 EXPORT_SYMBOL_GPL(sdio_register_driver);
 
-/**
- *	sdio_unregister_driver - unregister a function driver
- *	@drv: SDIO function driver
- */
+
 void sdio_unregister_driver(struct sdio_driver *drv)
 {
 	drv->drv.bus = &sdio_bus_type;
@@ -199,7 +185,11 @@ static void sdio_release_func(struct device *dev)
 {
 	struct sdio_func *func = dev_to_sdio_func(dev);
 
-	sdio_free_func_cis(func);
+#ifdef CONFIG_MMC_EMBEDDED_SDIO
+	
+	if (!func->card->host->embedded_sdio_data.funcs)
+#endif
+		sdio_free_func_cis(func);
 
 	if (func->info)
 		kfree(func->info);
@@ -207,9 +197,7 @@ static void sdio_release_func(struct device *dev)
 	kfree(func);
 }
 
-/*
- * Allocate and initialise a new SDIO function structure.
- */
+
 struct sdio_func *sdio_alloc_func(struct mmc_card *card)
 {
 	struct sdio_func *func;
@@ -229,9 +217,7 @@ struct sdio_func *sdio_alloc_func(struct mmc_card *card)
 	return func;
 }
 
-/*
- * Register a new SDIO function with the driver model.
- */
+
 int sdio_add_func(struct sdio_func *func)
 {
 	int ret;
@@ -245,10 +231,7 @@ int sdio_add_func(struct sdio_func *func)
 	return ret;
 }
 
-/*
- * Unregister a SDIO function with the driver model, and
- * (eventually) free it.
- */
+
 void sdio_remove_func(struct sdio_func *func)
 {
 	if (sdio_func_present(func))

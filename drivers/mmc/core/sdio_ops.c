@@ -1,13 +1,4 @@
-/*
- *  linux/drivers/mmc/sdio_ops.c
- *
- *  Copyright 2006-2007 Pierre Ossman
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- */
+
 
 #include <linux/scatterlist.h>
 
@@ -37,18 +28,13 @@ int mmc_send_io_op_cond(struct mmc_host *host, u32 ocr, u32 *rocr)
 		if (err)
 			break;
 
-		/* if we're just probing, do a single pass */
+		
 		if (ocr == 0)
 			break;
 
-		/* otherwise wait until reset completes */
+		
 		if (mmc_host_is_spi(host)) {
-			/*
-			 * Both R1_SPI_IDLE and MMC_CARD_BUSY indicate
-			 * an initialized card under SPI, but some cards
-			 * (Marvell's) only behave when looking at this
-			 * one.
-			 */
+			
 			if (cmd.resp[1] & MMC_CARD_BUSY)
 				break;
 		} else {
@@ -76,7 +62,7 @@ int mmc_io_rw_direct(struct mmc_card *card, int write, unsigned fn,
 	BUG_ON(!card);
 	BUG_ON(fn > 7);
 
-	/* sanity check */
+	
 	if (addr & ~0x1FFFF)
 		return -EINVAL;
 
@@ -95,7 +81,7 @@ int mmc_io_rw_direct(struct mmc_card *card, int write, unsigned fn,
 		return err;
 
 	if (mmc_host_is_spi(card->host)) {
-		/* host driver already reported errors */
+		
 	} else {
 		if (cmd.resp[0] & R5_ERROR)
 			return -EIO;
@@ -129,7 +115,7 @@ int mmc_io_rw_extended(struct mmc_card *card, int write, unsigned fn,
 	WARN_ON(blocks == 0);
 	WARN_ON(blksz == 0);
 
-	/* sanity check */
+	
 	if (addr & ~0x1FFFF)
 		return -EINVAL;
 
@@ -146,9 +132,9 @@ int mmc_io_rw_extended(struct mmc_card *card, int write, unsigned fn,
 	cmd.arg |= incr_addr ? 0x04000000 : 0x00000000;
 	cmd.arg |= addr << 9;
 	if (blocks == 1 && blksz <= 512)
-		cmd.arg |= (blksz == 512) ? 0 : blksz;	/* byte mode */
+		cmd.arg |= (blksz == 512) ? 0 : blksz;	
 	else
-		cmd.arg |= 0x08000000 | blocks;		/* block mode */
+		cmd.arg |= 0x08000000 | blocks;		
 	cmd.flags = MMC_RSP_SPI_R5 | MMC_RSP_R5 | MMC_CMD_ADTC;
 
 	data.blksz = blksz;
@@ -169,7 +155,7 @@ int mmc_io_rw_extended(struct mmc_card *card, int write, unsigned fn,
 		return data.error;
 
 	if (mmc_host_is_spi(card->host)) {
-		/* host driver already reported errors */
+		
 	} else {
 		if (cmd.resp[0] & R5_ERROR)
 			return -EIO;

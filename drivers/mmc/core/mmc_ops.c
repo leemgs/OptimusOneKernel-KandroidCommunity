@@ -1,13 +1,4 @@
-/*
- *  linux/drivers/mmc/core/mmc_ops.h
- *
- *  Copyright 2006-2007 Pierre Ossman
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- */
+
 
 #include <linux/types.h>
 #include <linux/scatterlist.h>
@@ -78,12 +69,7 @@ int mmc_card_sleepawake(struct mmc_host *host, int sleep)
 	if (err)
 		return err;
 
-	/*
-	 * If the host does not wait while the card signals busy, then we will
-	 * will have to wait the sleep/awake timeout.  Note, we cannot use the
-	 * SEND_STATUS command to poll the status because that command (and most
-	 * others) is invalid while the card sleeps.
-	 */
+	
 	if (!(host->caps & MMC_CAP_WAIT_WHILE_BUSY))
 		mmc_delay(DIV_ROUND_UP(card->ext_csd.sa_timeout, 10000));
 
@@ -98,15 +84,7 @@ int mmc_go_idle(struct mmc_host *host)
 	int err;
 	struct mmc_command cmd;
 
-	/*
-	 * Non-SPI hosts need to prevent chipselect going active during
-	 * GO_IDLE; that would put chips into SPI mode.  Remind them of
-	 * that in case of hardware that won't pull up DAT3/nCS otherwise.
-	 *
-	 * SPI hosts ignore ios.chip_select; it's managed according to
-	 * rules that must accomodate non-MMC slaves which this layer
-	 * won't even know about.
-	 */
+	
 	if (!mmc_host_is_spi(host)) {
 		mmc_set_chip_select(host, MMC_CS_HIGH);
 		mmc_delay(1);
@@ -150,11 +128,11 @@ int mmc_send_op_cond(struct mmc_host *host, u32 ocr, u32 *rocr)
 		if (err)
 			break;
 
-		/* if we're just probing, do a single pass */
+		
 		if (ocr == 0)
 			break;
 
-		/* otherwise wait until reset completes */
+		
 		if (mmc_host_is_spi(host)) {
 			if (!(cmd.resp[0] & R1_SPI_IDLE))
 				break;
@@ -252,9 +230,7 @@ mmc_send_cxd_data(struct mmc_card *card, struct mmc_host *host,
 	struct scatterlist sg;
 	void *data_buf;
 
-	/* dma onto stack is unsafe/nonportable, but callers to this
-	 * routine normally provide temporary on-stack buffers ...
-	 */
+	
 	data_buf = kmalloc(len, GFP_KERNEL);
 	if (data_buf == NULL)
 		return -ENOMEM;
@@ -269,11 +245,7 @@ mmc_send_cxd_data(struct mmc_card *card, struct mmc_host *host,
 	cmd.opcode = opcode;
 	cmd.arg = 0;
 
-	/* NOTE HACK:  the MMC_RSP_SPI_R1 is always correct here, but we
-	 * rely on callers to never use this with "native" calls for reading
-	 * CSD or CID.  Native versions of those commands use the R2 type,
-	 * not R1 plus a data block.
-	 */
+	
 	cmd.flags = MMC_RSP_SPI_R1 | MMC_RSP_R1 | MMC_CMD_ADTC;
 
 	data.blksz = len;
@@ -285,10 +257,7 @@ mmc_send_cxd_data(struct mmc_card *card, struct mmc_host *host,
 	sg_init_one(&sg, data_buf, len);
 
 	if (opcode == MMC_SEND_CSD || opcode == MMC_SEND_CID) {
-		/*
-		 * The spec states that CSR and CID accesses have a timeout
-		 * of 64 clock cycles.
-		 */
+		
 		data.timeout_ns = 0;
 		data.timeout_clks = 64;
 	} else
@@ -408,7 +377,8 @@ int mmc_switch(struct mmc_card *card, u8 set, u8 index, u8 value)
 	if (err)
 		return err;
 
-	/* Must check status to be sure of no errors */
+	mmc_delay(1);
+	
 	do {
 		err = mmc_send_status(card, &status);
 		if (err)
@@ -452,12 +422,140 @@ int mmc_send_status(struct mmc_card *card, u32 *status)
 	if (err)
 		return err;
 
-	/* NOTE: callers are required to understand the difference
-	 * between "native" and SPI format status words!
-	 */
+	
 	if (status)
 		*status = cmd.resp[0];
 
 	return 0;
 }
 
+static int mmc_bustest_write(struct mmc_host *host,
+				 struct mmc_card *card, int buswidth)
+{
+	struct mmc_request mrq;
+	struct mmc_command cmd;
+	struct mmc_data data;
+	struct scatterlist sg;
+	int bustest_send_pat[4] = { 0x80, 0x0, 0x5A, 0x55AA };
+	u32 *test_pat;
+	int err = 0;
+
+	test_pat = kmalloc(512, GFP_KERNEL);
+	if (test_pat == NULL)
+		return -ENOMEM;
+
+	memset(&mrq, 0, sizeof(struct mmc_request));
+	memset(&cmd, 0, sizeof(struct mmc_command));
+	memset(&data, 0, sizeof(struct mmc_data));
+
+	mrq.cmd = &cmd;
+	mrq.data = &data;
+
+	cmd.opcode = MMC_BUSTEST_W;
+	cmd.arg = 0;
+	cmd.flags = MMC_RSP_R1 | MMC_CMD_ADTC;
+
+	data.blksz = 4; 
+	data.blocks = 1;
+	data.flags = MMC_DATA_WRITE;
+	data.sg = &sg;
+	data.sg_len = 1;
+	data.timeout_ns = card->csd.tacc_ns * 10;
+	data.timeout_clks = card->csd.tacc_clks * 10;
+
+	test_pat[0] = bustest_send_pat[buswidth];
+	mmc_set_bus_width(card->host, buswidth);
+	sg_init_one(&sg, test_pat, 4);
+
+	mmc_wait_for_req(host, &mrq);
+
+	pr_debug("%s: Test Pattern sent: 0x%x\n", __func__, test_pat[0]);
+	if (cmd.error || data.error) {
+		pr_err("%s: cmd.error : %d data.error: %d\n",
+			__func__, cmd.error, data.error);
+		err = -1;
+	}
+	kfree(test_pat);
+	return err;
+}
+
+static int mmc_bustest_read(struct mmc_host *host,
+				 struct mmc_card *card, int buswidth)
+{
+	struct mmc_request mrq;
+	struct mmc_command cmd;
+	struct mmc_data data;
+	struct scatterlist sg;
+	int bustest_recv_pat[4] = { 0x40, 0x0, 0xA5, 0xAA55 };
+	u32 *test_pat;
+	int err = 0;
+
+	test_pat = kmalloc(512, GFP_KERNEL);
+	if (test_pat == NULL)
+		return -ENOMEM;
+
+	memset(test_pat, 0, 512);
+	memset(&mrq, 0, sizeof(struct mmc_request));
+	memset(&cmd, 0, sizeof(struct mmc_command));
+	memset(&data, 0, sizeof(struct mmc_data));
+
+	mrq.cmd = &cmd;
+	mrq.data = &data;
+
+	cmd.opcode = MMC_BUSTEST_R;
+	cmd.arg = 0;
+	cmd.flags = MMC_RSP_R1 | MMC_CMD_ADTC;
+
+	data.blocks = 1;
+	data.flags = MMC_DATA_READ;
+	data.sg = &sg;
+	data.sg_len = 1;
+
+	if (buswidth == MMC_BUS_WIDTH_8) {
+		data.blksz = 8;
+		sg_init_one(&sg, test_pat, 8);
+	} else if (buswidth == MMC_BUS_WIDTH_4) {
+		data.blksz = 4;
+		sg_init_one(&sg, test_pat, 4);
+	} else {
+		data.blksz = 1;
+		sg_init_one(&sg, test_pat, 1);
+	}
+
+	mmc_set_data_timeout(&data, card);
+	mmc_wait_for_req(host, &mrq);
+
+	pr_debug("%s: Test pattern received: 0x%x\n", __func__, test_pat[0]);
+	if (cmd.error || data.error) {
+		pr_err("%s: cmd.error: %d  data.error: %d\n",
+			__func__, cmd.error, data.error);
+		err = -1;
+		goto cmderr;
+	}
+
+	if (test_pat[0] == bustest_recv_pat[buswidth])
+		pr_debug("%s: Bus test pass for buswidth:%d\n",
+						 __func__, buswidth);
+	else
+		err = -1;
+cmderr:
+	kfree(test_pat);
+	return err;
+}
+
+int mmc_bustest(struct mmc_host *host, struct mmc_card *card, int buswidth)
+{
+	int rc = 0;
+
+	rc = mmc_bustest_write(host, card, buswidth);
+	if (rc) {
+		pr_err("%s Bus test write Failed for buswidth: %d\n",
+							 __func__, buswidth);
+		return rc;
+	}
+	rc = mmc_bustest_read(host, card, buswidth);
+	if (rc)
+		pr_err("%s Bus test Read failed for buswidth: %d\n",
+							 __func__, buswidth);
+	return rc;
+}

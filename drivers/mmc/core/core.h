@@ -1,19 +1,10 @@
-/*
- *  linux/drivers/mmc/core/core.h
- *
- *  Copyright (C) 2003 Russell King, All Rights Reserved.
- *  Copyright 2007 Pierre Ossman
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #ifndef _MMC_CORE_CORE_H
 #define _MMC_CORE_CORE_H
 
 #include <linux/delay.h>
 
-#define MMC_CMD_RETRIES        3
+#define MMC_CMD_RETRIES        5  
 
 struct mmc_bus_ops {
 	int (*awake)(struct mmc_host *);
@@ -56,7 +47,7 @@ int mmc_attach_sdio(struct mmc_host *host, u32 ocr);
 
 extern int use_spi_crc;
 
-/* Debugfs information for hosts and cards */
+
 void mmc_add_host_debugfs(struct mmc_host *host);
 void mmc_remove_host_debugfs(struct mmc_host *host);
 

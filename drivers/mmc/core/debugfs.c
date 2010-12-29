@@ -1,12 +1,4 @@
-/*
- * Debugfs support for hosts and cards
- *
- * Copyright (C) 2008 Atmel Corporation
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <linux/debugfs.h>
 #include <linux/fs.h>
 #include <linux/seq_file.h>
@@ -18,7 +10,7 @@
 #include "core.h"
 #include "mmc_ops.h"
 
-/* The debugfs functions are optimized away when CONFIG_DEBUG_FS isn't set. */
+
 static int mmc_ios_show(struct seq_file *s, void *data)
 {
 	static const char *vdd_str[] = {
@@ -139,11 +131,10 @@ void mmc_add_host_debugfs(struct mmc_host *host)
 
 	root = debugfs_create_dir(mmc_hostname(host), NULL);
 	if (IS_ERR(root))
-		/* Don't complain -- debugfs just isn't enabled */
+		
 		return;
 	if (!root)
-		/* Complain -- debugfs is enabled, but it failed to
-		 * create the directory. */
+		
 		goto err_root;
 
 	host->debugfs_root = root;
@@ -256,11 +247,10 @@ void mmc_add_card_debugfs(struct mmc_card *card)
 
 	root = debugfs_create_dir(mmc_card_id(card), host->debugfs_root);
 	if (IS_ERR(root))
-		/* Don't complain -- debugfs just isn't enabled */
+		
 		return;
 	if (!root)
-		/* Complain -- debugfs is enabled, but it failed to
-		 * create the directory. */
+		
 		goto err;
 
 	card->debugfs_root = root;
