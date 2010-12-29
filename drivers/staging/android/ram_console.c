@@ -1,17 +1,4 @@
-/* drivers/android/ram_console.c
- *
- * Copyright (C) 2007-2008 Google, Inc.
- *
- * This software is licensed under the terms of the GNU General Public
- * License version 2, as published by the Free Software Foundation, and
- * may be copied, distributed, and modified under those terms.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- */
+
 
 #include <linux/console.h>
 #include <linux/init.h>
@@ -33,7 +20,11 @@ struct ram_console_buffer {
 	uint8_t     data[0];
 };
 
-#define RAM_CONSOLE_SIG (0x43474244) /* DBGC */
+#define RAM_CONSOLE_SIG (0x43474244) 
+
+#define RAM_CONSOLE_PANICSIG (0x87654321)
+static int iramconsole_panicreset = 0;
+
 
 #ifdef CONFIG_ANDROID_RAM_CONSOLE_EARLY_INIT
 static char __initdata
@@ -44,6 +35,22 @@ static size_t ram_console_old_log_size;
 
 static struct ram_console_buffer *ram_console_buffer;
 static size_t ram_console_buffer_size;
+
+#if defined(CONFIG_LGE_SUPPORT_ERS) || defined(CONFIG_LGE_HANDLE_PANIC)
+
+inline struct ram_console_buffer *get_ram_console_buffer(void)
+{
+	return ram_console_buffer;
+}
+#endif
+
+
+void ram_console_setpanic(void)
+{
+	ram_console_buffer->sig = RAM_CONSOLE_PANICSIG;
+}
+
+
 #ifdef CONFIG_ANDROID_RAM_CONSOLE_ERROR_CORRECTION
 static char *ram_console_par_buffer;
 static struct rs_control *ram_console_rs_decoder;
@@ -60,7 +67,7 @@ static void ram_console_encode_rs8(uint8_t *data, size_t len, uint8_t *ecc)
 {
 	int i;
 	uint16_t par[ECC_SIZE];
-	/* Initialize the parity buffer */
+	
 	memset(par, 0, sizeof(par));
 	encode_rs8(ram_console_rs_decoder, data, len, par, 0);
 	for (i = 0; i < ECC_SIZE; i++)
@@ -142,9 +149,22 @@ ram_console_write(struct console *console, const char *s, unsigned int count)
 static struct console ram_console = {
 	.name	= "ram",
 	.write	= ram_console_write,
+#if defined (CONFIG_MACH_LGE)	
+	
+	.flags	= CON_ENABLED,
+#else	
 	.flags	= CON_PRINTBUFFER | CON_ENABLED,
+#endif
 	.index	= -1,
 };
+
+void ram_console_enable_console(int enabled)
+{
+	if (enabled)
+		ram_console.flags |= CON_ENABLED;
+	else
+		ram_console.flags &= ~CON_ENABLED;
+}
 
 static void __init
 ram_console_save_old(struct ram_console_buffer *buffer, char *dest)
@@ -203,10 +223,29 @@ ram_console_save_old(struct ram_console_buffer *buffer, char *dest)
 
 	ram_console_old_log = dest;
 	ram_console_old_log_size = old_log_size;
+
+#if 1
+    
+    if (ram_console_buffer_size == ram_console_old_log_size)
+    {
+        memcpy(ram_console_old_log,
+               &buffer->data[buffer->start], buffer->size - buffer->start);
+        memcpy(ram_console_old_log + buffer->size - buffer->start,
+               &buffer->data[0], buffer->start);
+    }
+    
+    else 
+    {
+        memcpy(ram_console_old_log,
+               &buffer->data[0], ram_console_old_log_size);
+    }
+#else
+
 	memcpy(ram_console_old_log,
 	       &buffer->data[buffer->start], buffer->size - buffer->start);
 	memcpy(ram_console_old_log + buffer->size - buffer->start,
 	       &buffer->data[0], buffer->start);
+#endif 
 #ifdef CONFIG_ANDROID_RAM_CONSOLE_ERROR_CORRECTION
 	memcpy(ram_console_old_log + old_log_size - strbuf_len,
 	       strbuf, strbuf_len);
@@ -245,9 +284,7 @@ static int __init ram_console_init(struct ram_console_buffer *buffer,
 	ram_console_par_buffer = buffer->data + ram_console_buffer_size;
 
 
-	/* first consecutive root is 0
-	 * primitive element to generate roots = 1
-	 */
+	
 	ram_console_rs_decoder = init_rs(ECC_SYMSIZE, ECC_POLY, 0, 1, ECC_SIZE);
 	if (ram_console_rs_decoder == NULL) {
 		printk(KERN_INFO "ram_console: init_rs failed\n");
@@ -271,7 +308,19 @@ static int __init ram_console_init(struct ram_console_buffer *buffer,
 	}
 #endif
 
+
+#if 1
+    if ((buffer->sig == RAM_CONSOLE_SIG)
+         || (buffer->sig == RAM_CONSOLE_PANICSIG)) {
+        iramconsole_panicreset = 0;
+        if (buffer->sig == RAM_CONSOLE_PANICSIG)
+        {
+            iramconsole_panicreset = 1;
+        }
+#else
 	if (buffer->sig == RAM_CONSOLE_SIG) {
+#endif 
+
 		if (buffer->size > ram_console_buffer_size
 		    || buffer->start > buffer->size)
 			printk(KERN_INFO "ram_console: found existing invalid "
@@ -331,7 +380,7 @@ static int ram_console_driver_probe(struct platform_device *pdev)
 		return -ENOMEM;
 	}
 
-	return ram_console_init(buffer, buffer_size, NULL/* allocate */);
+	return ram_console_init(buffer, buffer_size, NULL);
 }
 
 static struct platform_driver ram_console_driver = {
@@ -398,13 +447,28 @@ static int __init ram_console_late_init(void)
 
 	entry->proc_fops = &ram_console_file_ops;
 	entry->size = ram_console_old_log_size;
+
+    
+    
+    if (iramconsole_panicreset)
+    {
+        entry = create_proc_entry("last_panickmsg", S_IFREG | S_IRUGO, NULL);
+        if (!entry) {
+            printk(KERN_ERR "ram_console: failed to create proc entry(last_panickmsg)\n");
+            return 0;
+        }
+        entry->proc_fops = &ram_console_file_ops;
+        entry->size = ram_console_old_log_size;
+    }
+    
+
 	return 0;
 }
 
 #ifdef CONFIG_ANDROID_RAM_CONSOLE_EARLY_INIT
 console_initcall(ram_console_early_init);
 #else
-module_init(ram_console_module_init);
+postcore_initcall(ram_console_module_init);
 #endif
 late_initcall(ram_console_late_init);
 

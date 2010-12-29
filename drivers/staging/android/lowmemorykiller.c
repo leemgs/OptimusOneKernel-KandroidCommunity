@@ -1,33 +1,4 @@
-/* drivers/misc/lowmemorykiller.c
- *
- * The lowmemorykiller driver lets user-space specify a set of memory thresholds
- * where processes with a range of oom_adj values will get killed. Specify the
- * minimum oom_adj values in /sys/module/lowmemorykiller/parameters/adj and the
- * number of free pages in /sys/module/lowmemorykiller/parameters/minfree. Both
- * files take a comma separated list of numbers in ascending order.
- *
- * For example, write "0,8" to /sys/module/lowmemorykiller/parameters/adj and
- * "1024,4096" to /sys/module/lowmemorykiller/parameters/minfree to kill processes
- * with a oom_adj value of 8 or higher when the free memory drops below 4096 pages
- * and kill processes with a oom_adj value of 0 or higher when the free memory
- * drops below 1024 pages.
- *
- * The driver considers memory used for caches to be free, but if a large
- * percentage of the cached memory is locked this can be very inaccurate
- * and processes may not get killed until the normal oom killer is triggered.
- *
- * Copyright (C) 2007-2008 Google, Inc.
- *
- * This software is licensed under the terms of the GNU General Public
- * License version 2, as published by the Free Software Foundation, and
- * may be copied, distributed, and modified under those terms.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -44,10 +15,10 @@ static int lowmem_adj[6] = {
 };
 static int lowmem_adj_size = 4;
 static size_t lowmem_minfree[6] = {
-	3 * 512,	/* 6MB */
-	2 * 1024,	/* 8MB */
-	4 * 1024,	/* 16MB */
-	16 * 1024,	/* 64MB */
+	3 * 512,	
+	2 * 1024,	
+	4 * 1024,	
+	16 * 1024,	
 };
 static int lowmem_minfree_size = 4;
 
@@ -100,15 +71,17 @@ static int lowmem_shrink(int nr_to_scan, gfp_t gfp_mask)
 	read_lock(&tasklist_lock);
 	for_each_process(p) {
 		struct mm_struct *mm;
+		struct signal_struct *sig;
 		int oom_adj;
 
 		task_lock(p);
 		mm = p->mm;
-		if (!mm) {
+		sig = p->signal;
+		if (!mm || !sig) {
 			task_unlock(p);
 			continue;
 		}
-		oom_adj = mm->oom_adj;
+		oom_adj = sig->oom_adj;
 		if (oom_adj < min_adj) {
 			task_unlock(p);
 			continue;
@@ -131,6 +104,12 @@ static int lowmem_shrink(int nr_to_scan, gfp_t gfp_mask)
 			     p->pid, p->comm, oom_adj, tasksize);
 	}
 	if (selected) {
+		if (fatal_signal_pending(selected)) {
+			pr_warning("process %d is suffering a slow death\n",
+				   selected->pid);
+			read_unlock(&tasklist_lock);
+			return rem;
+		}
 		lowmem_print(1, "send sigkill to %d (%s), adj %d, size %d\n",
 			     selected->pid, selected->comm,
 			     selected_oom_adj, selected_tasksize);
