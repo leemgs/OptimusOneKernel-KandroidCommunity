@@ -1,32 +1,6 @@
-/*
- *  ricoh_mmc.c - Dummy driver to disable the Rioch MMC controller.
- *
- *  Copyright (C) 2007 Philip Langdale, All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- */
 
-/*
- * This is a conceptually ridiculous driver, but it is required by the way
- * the Ricoh multi-function chips (R5CXXX) work. These chips implement
- * the four main memory card controllers (SD, MMC, MS, xD) and one or both
- * of cardbus or firewire. It happens that they implement SD and MMC
- * support as separate controllers (and PCI functions). The linux SDHCI
- * driver supports MMC cards but the chip detects MMC cards in hardware
- * and directs them to the MMC controller - so the SDHCI driver never sees
- * them. To get around this, we must disable the useless MMC controller.
- * At that point, the SDHCI controller will start seeing them. As a bonus,
- * a detection event occurs immediately, even if the MMC card is already
- * in the reader.
- *
- * It seems to be the case that the relevant PCI registers to deactivate the
- * MMC controller live on PCI function 0, which might be the cardbus controller
- * or the firewire controller, depending on the particular chip in question. As
- * such, it makes what this driver has to do unavoidably ugly. Such is life.
- */
+
+
 
 #include <linux/pci.h>
 
@@ -39,7 +13,7 @@ static const struct pci_device_id pci_ids[] __devinitdata = {
 		.subvendor	= PCI_ANY_ID,
 		.subdevice	= PCI_ANY_ID,
 	},
-	{ /* end: all zeroes */ },
+	{  },
 };
 
 MODULE_DEVICE_TABLE(pci, pci_ids);
@@ -51,7 +25,7 @@ static int ricoh_mmc_disable(struct pci_dev *fw_dev)
 	u8 disable;
 
 	if (fw_dev->device == PCI_DEVICE_ID_RICOH_RL5C476) {
-		/* via RL5C476 */
+		
 
 		pci_read_config_byte(fw_dev, 0xB7, &disable);
 		if (disable & 0x02) {
@@ -69,7 +43,7 @@ static int ricoh_mmc_disable(struct pci_dev *fw_dev)
 		pci_write_config_byte(fw_dev, 0x8E, write_enable);
 		pci_write_config_byte(fw_dev, 0x8D, write_target);
 	} else {
-		/* via R5C832 */
+		
 
 		pci_read_config_byte(fw_dev, 0xCB, &disable);
 		if (disable & 0x02) {
@@ -98,7 +72,7 @@ static int ricoh_mmc_enable(struct pci_dev *fw_dev)
 	u8 disable;
 
 	if (fw_dev->device == PCI_DEVICE_ID_RICOH_RL5C476) {
-		/* via RL5C476 */
+		
 
 		pci_read_config_byte(fw_dev, 0x8E, &write_enable);
 		pci_write_config_byte(fw_dev, 0x8E, 0xAA);
@@ -109,7 +83,7 @@ static int ricoh_mmc_enable(struct pci_dev *fw_dev)
 		pci_write_config_byte(fw_dev, 0x8E, write_enable);
 		pci_write_config_byte(fw_dev, 0x8D, write_target);
 	} else {
-		/* via R5C832 */
+		
 
 		pci_read_config_byte(fw_dev, 0xCA, &write_enable);
 		pci_read_config_byte(fw_dev, 0xCB, &disable);
@@ -233,11 +207,7 @@ static struct pci_driver ricoh_mmc_driver = {
 	.resume_early =	ricoh_mmc_resume_early,
 };
 
-/*****************************************************************************\
- *                                                                           *
- * Driver init/exit                                                          *
- *                                                                           *
-\*****************************************************************************/
+
 
 static int __init ricoh_mmc_drv_init(void)
 {

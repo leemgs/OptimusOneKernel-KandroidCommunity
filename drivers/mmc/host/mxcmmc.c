@@ -1,21 +1,4 @@
-/*
- *  linux/drivers/mmc/host/mxcmmc.c - Freescale i.MX MMCI driver
- *
- *  This is a driver for the SDHC controller found in Freescale MX2/MX3
- *  SoCs. It is basically the same hardware as found on MX1 (imxmmc.c).
- *  Unlike the hardware found on MX1, this hardware just works and does
- *  not need all the quirks found in imxmmc.c, hence the seperate driver.
- *
- *  Copyright (C) 2008 Sascha Hauer, Pengutronix <s.hauer@pengutronix.de>
- *  Copyright (C) 2006 Pavel Pisa, PiKRON <ppisa@pikron.com>
- *
- *  derived from pxamci.c by Russell King
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -151,7 +134,7 @@ static void mxcmci_softreset(struct mxcmci_host *host)
 {
 	int i;
 
-	/* reset sequence */
+	
 	writew(STR_STP_CLK_RESET, host->base + MMC_REG_STR_STP_CLK);
 	writew(STR_STP_CLK_RESET | STR_STP_CLK_START_CLK,
 			host->base + MMC_REG_STR_STP_CLK);
@@ -217,7 +200,7 @@ static int mxcmci_setup_data(struct mxcmci_host *host, struct mmc_data *data)
 	wmb();
 
 	imx_dma_enable(host->dma);
-#endif /* HAS_DMA */
+#endif 
 	return 0;
 }
 
@@ -228,14 +211,14 @@ static int mxcmci_start_cmd(struct mxcmci_host *host, struct mmc_command *cmd,
 	host->cmd = cmd;
 
 	switch (mmc_resp_type(cmd)) {
-	case MMC_RSP_R1: /* short CRC, OPCODE */
-	case MMC_RSP_R1B:/* short CRC, OPCODE, BUSY */
+	case MMC_RSP_R1: 
+	case MMC_RSP_R1B:
 		cmdat |= CMD_DAT_CONT_RESPONSE_48BIT_CRC;
 		break;
-	case MMC_RSP_R2: /* long 136 bit + CRC */
+	case MMC_RSP_R2: 
 		cmdat |= CMD_DAT_CONT_RESPONSE_136BIT;
 		break;
-	case MMC_RSP_R3: /* short */
+	case MMC_RSP_R3: 
 		cmdat |= CMD_DAT_CONT_RESPONSE_48BIT;
 		break;
 	case MMC_RSP_NONE:
@@ -293,7 +276,7 @@ static int mxcmci_finish_data(struct mxcmci_host *host, unsigned int stat)
 			data->error = -EILSEQ;
 		} else if (stat & STATUS_CRC_WRITE_ERR) {
 			u32 err_code = (stat >> 9) & 0x3;
-			if (err_code == 2) /* No CRC response */
+			if (err_code == 2) 
 				data->error = -ETIMEDOUT;
 			else
 				data->error = -EILSEQ;
@@ -499,7 +482,7 @@ static void mxcmci_data_done(struct mxcmci_host *host, unsigned int stat)
 		mxcmci_finish_request(host, host->req);
 	}
 }
-#endif /* HAS_DMA */
+#endif 
 
 static void mxcmci_cmd_done(struct mxcmci_host *host, unsigned int stat)
 {
@@ -511,10 +494,7 @@ static void mxcmci_cmd_done(struct mxcmci_host *host, unsigned int stat)
 		return;
 	}
 
-	/* For the DMA case the DMA engine handles the data transfer
-	 * automatically. For non DMA we have to do it ourselves.
-	 * Don't do it in interrupt context though.
-	 */
+	
 	if (!mxcmci_use_dma(host) && host->data)
 		schedule_work(&host->datawork);
 
@@ -611,10 +591,7 @@ static void mxcmci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 	struct mxcmci_host *host = mmc_priv(mmc);
 #ifdef HAS_DMA
 	unsigned int blen;
-	/*
-	 * use burstlen of 64 in 4 bit mode (--> reg value  0)
-	 * use burstlen of 16 in 1 bit mode (--> reg value 16)
-	 */
+	
 	if (ios->bus_width == MMC_BUS_WIDTH_4)
 		blen = 0;
 	else
@@ -661,10 +638,7 @@ static int mxcmci_get_ro(struct mmc_host *mmc)
 
 	if (host->pdata && host->pdata->get_ro)
 		return !!host->pdata->get_ro(mmc_dev(mmc));
-	/*
-	 * Board doesn't support read only detection; let the mmc core
-	 * decide what to do.
-	 */
+	
 	return -ENOSYS;
 }
 
@@ -702,7 +676,7 @@ static int mxcmci_probe(struct platform_device *pdev)
 	mmc->ops = &mxcmci_ops;
 	mmc->caps = MMC_CAP_4_BIT_DATA;
 
-	/* MMC core transfer sizes tunable parameters */
+	
 	mmc->max_hw_segs = 64;
 	mmc->max_phys_segs = 64;
 	mmc->max_blk_size = 2048;
@@ -748,7 +722,7 @@ static int mxcmci_probe(struct platform_device *pdev)
 	mmc->f_min = clk_get_rate(host->clk) >> 16;
 	mmc->f_max = clk_get_rate(host->clk) >> 1;
 
-	/* recommended in data sheet */
+	
 	writew(0x2db4, host->base + MMC_REG_READ_TO);
 
 	writel(0, host->base + MMC_REG_INT_CNTR);
@@ -869,7 +843,7 @@ static int mxcmci_resume(struct platform_device *dev)
 #else
 #define mxcmci_suspend  NULL
 #define mxcmci_resume   NULL
-#endif /* CONFIG_PM */
+#endif 
 
 static struct platform_driver mxcmci_driver = {
 	.probe		= mxcmci_probe,

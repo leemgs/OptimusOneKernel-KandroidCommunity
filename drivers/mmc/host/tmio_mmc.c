@@ -1,30 +1,4 @@
-/*
- *  linux/drivers/mmc/tmio_mmc.c
- *
- *  Copyright (C) 2004 Ian Molton
- *  Copyright (C) 2007 Ian Molton
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * Driver for the MMC / SD / SDIO cell found in:
- *
- * TC6393XB TC6391XB TC6387XB T7L66XB ASIC3
- *
- * This driver draws mainly on scattered spec sheets, Reverse engineering
- * of the toshiba e800  SD driver and some parts of the 2.4 ASIC3 driver (4 bit
- * support). (Further 4 bit support from a later datasheet).
- *
- * TODO:
- *   Investigate using a workqueue for PIO transfers
- *   Eliminate FIXMEs
- *   SDIO support
- *   Better Power management
- *   Handle MMC errors better
- *   double buffer support
- *
- */
+
 #include <linux/module.h>
 #include <linux/irq.h>
 #include <linux/device.h>
@@ -70,7 +44,7 @@ static void tmio_mmc_clk_start(struct tmio_mmc_host *host)
 
 static void reset(struct tmio_mmc_host *host)
 {
-	/* FIXME - should we set stop clock reg here */
+	
 	sd_ctrl_write16(host, CTL_RESET_SD, 0x0000);
 	sd_ctrl_write16(host, CTL_RESET_SDIO, 0x0000);
 	msleep(10);
@@ -91,8 +65,7 @@ tmio_mmc_finish_request(struct tmio_mmc_host *host)
 	mmc_request_done(host->mmc, mrq);
 }
 
-/* These are the bitmasks the tmio chip requires to implement the MMC response
- * types. Note that R1 and R6 are the same in this scheme. */
+
 #define APP_CMD        0x0040
 #define RESP_NONE      0x0300
 #define RESP_R1        0x0400
@@ -110,7 +83,7 @@ tmio_mmc_start_command(struct tmio_mmc_host *host, struct mmc_command *cmd)
 	struct mmc_data *data = host->data;
 	int c = cmd->opcode;
 
-	/* Command 12 is handled by hardware */
+	
 	if (cmd->opcode == 12 && !cmd->arg) {
 		sd_ctrl_write16(host, CTL_STOP_INTERNAL_ACTION, 0x001);
 		return 0;
@@ -129,11 +102,7 @@ tmio_mmc_start_command(struct tmio_mmc_host *host, struct mmc_command *cmd)
 
 	host->cmd = cmd;
 
-/* FIXME - this seems to be ok comented out but the spec suggest this bit should
- *         be set when issuing app commands.
- *	if(cmd->flags & MMC_FLAG_ACMD)
- *		c |= APP_CMD;
- */
+
 	if (data) {
 		c |= DATA_PRESENT;
 		if (data->blocks > 1) {
@@ -146,18 +115,14 @@ tmio_mmc_start_command(struct tmio_mmc_host *host, struct mmc_command *cmd)
 
 	enable_mmc_irqs(host, TMIO_MASK_CMD);
 
-	/* Fire off the command */
+	
 	sd_ctrl_write32(host, CTL_ARG_REG, cmd->arg);
 	sd_ctrl_write16(host, CTL_SD_CMD, c);
 
 	return 0;
 }
 
-/* This chip always returns (at least?) as much data as you ask for.
- * I'm unsure what happens if you ask for less than a block. This should be
- * looked into to ensure that a funny length read doesnt hose the controller.
- *
- */
+
 static inline void tmio_mmc_pio_irq(struct tmio_mmc_host *host)
 {
 	struct mmc_data *data = host->data;
@@ -180,7 +145,7 @@ static inline void tmio_mmc_pio_irq(struct tmio_mmc_host *host)
 	pr_debug("count: %08x offset: %08x flags %08x\n",
 	    count, host->sg_off, data->flags);
 
-	/* Transfer the data */
+	
 	if (data->flags & MMC_DATA_READ)
 		sd_ctrl_read16_rep(host, CTL_SD_DATA_PORT, buf, count >> 1);
 	else
@@ -209,7 +174,7 @@ static inline void tmio_mmc_data_irq(struct tmio_mmc_host *host)
 	}
 	stop = data->stop;
 
-	/* FIXME - return correct transfer count on errors */
+	
 	if (!data->error)
 		data->bytes_xfered = data->blocks * data->blksz;
 	else
@@ -217,13 +182,7 @@ static inline void tmio_mmc_data_irq(struct tmio_mmc_host *host)
 
 	pr_debug("Completed data request\n");
 
-	/*FIXME - other drivers allow an optional stop command of any given type
-	 *        which we dont do, as the chip can auto generate them.
-	 *        Perhaps we can be smarter about when to use auto CMD12 and
-	 *        only issue the auto request when we know this is the desired
-	 *        stop command, allowing fallback to the stop command the
-	 *        upper layers expect. For now, we do what works.
-	 */
+	
 
 	if (data->flags & MMC_DATA_READ)
 		disable_mmc_irqs(host, TMIO_MASK_READOP);
@@ -253,10 +212,7 @@ static inline void tmio_mmc_cmd_irq(struct tmio_mmc_host *host,
 
 	host->cmd = NULL;
 
-	/* This controller is sicker than the PXA one. Not only do we need to
-	 * drop the top 8 bits of the first response word, we also need to
-	 * modify the order of the response for short response command types.
-	 */
+	
 
 	for (i = 3, addr = CTL_RESPONSE ; i >= 0 ; i--, addr += 4)
 		cmd->resp[i] = sd_ctrl_read32(host, addr);
@@ -275,10 +231,7 @@ static inline void tmio_mmc_cmd_irq(struct tmio_mmc_host *host,
 	else if (stat & TMIO_STAT_CRCFAIL && cmd->flags & MMC_RSP_CRC)
 		cmd->error = -EILSEQ;
 
-	/* If there is data to handle we enable data IRQs here, and
-	 * we will ultimatley finish the request in the data_end handler.
-	 * If theres no data or we encountered an error, finish now.
-	 */
+	
 	if (host->data && !cmd->error) {
 		if (host->data->flags & MMC_DATA_READ)
 			enable_mmc_irqs(host, TMIO_MASK_READOP);
@@ -317,37 +270,35 @@ static irqreturn_t tmio_mmc_irq(int irq, void *devid)
 	}
 
 	while (ireg) {
-		/* Card insert / remove attempts */
+		
 		if (ireg & (TMIO_STAT_CARD_INSERT | TMIO_STAT_CARD_REMOVE)) {
 			ack_mmc_irqs(host, TMIO_STAT_CARD_INSERT |
 				TMIO_STAT_CARD_REMOVE);
 			mmc_detect_change(host->mmc, 0);
 		}
 
-		/* CRC and other errors */
-/*		if (ireg & TMIO_STAT_ERR_IRQ)
- *			handled |= tmio_error_irq(host, irq, stat);
- */
+		
 
-		/* Command completion */
+
+		
 		if (ireg & TMIO_MASK_CMD) {
 			ack_mmc_irqs(host, TMIO_MASK_CMD);
 			tmio_mmc_cmd_irq(host, status);
 		}
 
-		/* Data transfer */
+		
 		if (ireg & (TMIO_STAT_RXRDY | TMIO_STAT_TXRQ)) {
 			ack_mmc_irqs(host, TMIO_STAT_RXRDY | TMIO_STAT_TXRQ);
 			tmio_mmc_pio_irq(host);
 		}
 
-		/* Data transfer completion */
+		
 		if (ireg & TMIO_STAT_DATAEND) {
 			ack_mmc_irqs(host, TMIO_STAT_DATAEND);
 			tmio_mmc_data_irq(host);
 		}
 
-		/* Check status - keep going until we've handled it all */
+		
 		status = sd_ctrl_read32(host, CTL_STATUS);
 		irq_mask = sd_ctrl_read32(host, CTL_IRQ_MASK);
 		ireg = status & TMIO_MASK_IRQ & ~irq_mask;
@@ -367,7 +318,7 @@ static int tmio_mmc_start_data(struct tmio_mmc_host *host,
 	pr_debug("setup data transfer: blocksize %08x  nr_blocks %d\n",
 	    data->blksz, data->blocks);
 
-	/* Hardware cannot perform 1 and 2 byte requests in 4 bit mode */
+	
 	if (data->blksz < 4 && host->mmc->ios.bus_width == MMC_BUS_WIDTH_4) {
 		printk(KERN_ERR "%s: %d byte block unsupported in 4 bit mode\n",
 			mmc_hostname(host->mmc), data->blksz);
@@ -377,14 +328,14 @@ static int tmio_mmc_start_data(struct tmio_mmc_host *host,
 	tmio_mmc_init_sg(host, data);
 	host->data = data;
 
-	/* Set transfer length / blocksize */
+	
 	sd_ctrl_write16(host, CTL_SD_XFER_LEN, data->blksz);
 	sd_ctrl_write16(host, CTL_XFER_BLK_COUNT, data->blocks);
 
 	return 0;
 }
 
-/* Process requests from the MMC layer */
+
 static void tmio_mmc_request(struct mmc_host *mmc, struct mmc_request *mrq)
 {
 	struct tmio_mmc_host *host = mmc_priv(mmc);
@@ -411,12 +362,7 @@ fail:
 	mmc_request_done(mmc, mrq);
 }
 
-/* Set MMC clock / power.
- * Note: This controller uses a simple divider scheme therefore it cannot
- * run a MMC card at full speed (20MHz). The max clock is 24MHz on SD, but as
- * MMC wont run that fast, it has to be clocked at 12MHz which is the next
- * slowest setting.
- */
+
 static void tmio_mmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 {
 	struct tmio_mmc_host *host = mmc_priv(mmc);
@@ -424,17 +370,17 @@ static void tmio_mmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 	if (ios->clock)
 		tmio_mmc_set_clock(host, ios->clock);
 
-	/* Power sequence - OFF -> ON -> UP */
+	
 	switch (ios->power_mode) {
-	case MMC_POWER_OFF: /* power down SD bus */
+	case MMC_POWER_OFF: 
 		sd_config_write8(host, CNF_PWR_CTL_2, 0x00);
 		tmio_mmc_clk_stop(host);
 		break;
-	case MMC_POWER_ON: /* power up SD bus */
+	case MMC_POWER_ON: 
 
 		sd_config_write8(host, CNF_PWR_CTL_2, 0x02);
 		break;
-	case MMC_POWER_UP: /* start bus clock */
+	case MMC_POWER_UP: 
 		tmio_mmc_clk_start(host);
 		break;
 	}
@@ -448,7 +394,7 @@ static void tmio_mmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 	break;
 	}
 
-	/* Let things settle. delay taken from winCE driver */
+	
 	udelay(140);
 }
 
@@ -474,7 +420,7 @@ static int tmio_mmc_suspend(struct platform_device *dev, pm_message_t state)
 
 	ret = mmc_suspend_host(mmc, state);
 
-	/* Tell MFD core it can disable us now.*/
+	
 	if (!ret && cell->disable)
 		cell->disable(dev);
 
@@ -488,14 +434,14 @@ static int tmio_mmc_resume(struct platform_device *dev)
 	struct tmio_mmc_host *host = mmc_priv(mmc);
 	int ret = 0;
 
-	/* Tell the MFD core we are ready to be enabled */
+	
 	if (cell->enable) {
 		ret = cell->enable(dev);
 		if (ret)
 			goto out;
 	}
 
-	/* Enable the MMC/SD Control registers */
+	
 	sd_config_write16(host, CNF_CMD, SDCREN);
 	sd_config_write32(host, CNF_CTL_BASE,
 		(dev->resource[0].start >> host->bus_shift) & 0xfffe);
@@ -541,7 +487,7 @@ static int __devinit tmio_mmc_probe(struct platform_device *dev)
 	host->mmc = mmc;
 	platform_set_drvdata(dev, mmc);
 
-	/* SD control register space size is 0x200, 0x400 for bus_shift=1 */
+	
 	host->bus_shift = resource_size(res_ctl) >> 10;
 
 	host->ctl = ioremap(res_ctl->start, resource_size(res_ctl));
@@ -558,25 +504,25 @@ static int __devinit tmio_mmc_probe(struct platform_device *dev)
 	mmc->f_min = mmc->f_max / 512;
 	mmc->ocr_avail = MMC_VDD_32_33 | MMC_VDD_33_34;
 
-	/* Tell the MFD core we are ready to be enabled */
+	
 	if (cell->enable) {
 		ret = cell->enable(dev);
 		if (ret)
 			goto unmap_cnf;
 	}
 
-	/* Enable the MMC/SD Control registers */
+	
 	sd_config_write16(host, CNF_CMD, SDCREN);
 	sd_config_write32(host, CNF_CTL_BASE,
 		(dev->resource[0].start >> host->bus_shift) & 0xfffe);
 
-	/* Disable SD power during suspend */
+	
 	sd_config_write8(host, CNF_PWR_CTL_3, 0x01);
 
-	/* The below is required but why? FIXME */
+	
 	sd_config_write8(host, CNF_STOP_CLK_CTL, 0x1f);
 
-	/* Power down SD bus*/
+	
 	sd_config_write8(host, CNF_PWR_CTL_2, 0x00);
 
 	tmio_mmc_clk_stop(host);
@@ -600,7 +546,7 @@ static int __devinit tmio_mmc_probe(struct platform_device *dev)
 	printk(KERN_INFO "%s at 0x%08lx irq %d\n", mmc_hostname(host->mmc),
 	       (unsigned long)host->ctl, host->irq);
 
-	/* Unmask the IRQs we want to know about */
+	
 	enable_mmc_irqs(host, TMIO_MASK_IRQ);
 
 	return 0;
@@ -633,7 +579,7 @@ static int __devexit tmio_mmc_remove(struct platform_device *dev)
 	return 0;
 }
 
-/* ------------------- device registration ----------------------- */
+
 
 static struct platform_driver tmio_mmc_driver = {
 	.driver = {

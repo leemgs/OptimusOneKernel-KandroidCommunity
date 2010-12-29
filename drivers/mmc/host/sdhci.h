@@ -1,22 +1,11 @@
-/*
- *  linux/drivers/mmc/host/sdhci.h - Secure Digital Host Controller Interface driver
- *
- *  Copyright (C) 2005-2008 Pierre Ossman, All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- */
+
 
 #include <linux/scatterlist.h>
 #include <linux/compiler.h>
 #include <linux/types.h>
 #include <linux/io.h>
 
-/*
- * Controller registers
- */
+
 
 #define SDHCI_DMA_ADDRESS	0x00
 
@@ -130,7 +119,7 @@
 
 #define SDHCI_ACMD12_ERR	0x3C
 
-/* 3E-3F reserved */
+
 
 #define SDHCI_CAPABILITIES	0x40
 #define  SDHCI_TIMEOUT_CLK_MASK	0x0000003F
@@ -149,22 +138,22 @@
 #define  SDHCI_CAN_VDD_180	0x04000000
 #define  SDHCI_CAN_64BIT	0x10000000
 
-/* 44-47 reserved for more caps */
+
 
 #define SDHCI_MAX_CURRENT	0x48
 
-/* 4C-4F reserved for more max current */
+
 
 #define SDHCI_SET_ACMD12_ERROR	0x50
 #define SDHCI_SET_INT_ERROR	0x52
 
 #define SDHCI_ADMA_ERROR	0x54
 
-/* 55-57 reserved */
+
 
 #define SDHCI_ADMA_ADDRESS	0x58
 
-/* 60-FB reserved */
+
 
 #define SDHCI_SLOT_INT_STATUS	0xFC
 
@@ -179,112 +168,112 @@
 struct sdhci_ops;
 
 struct sdhci_host {
-	/* Data set by hardware interface driver */
-	const char		*hw_name;	/* Hardware bus name */
+	
+	const char		*hw_name;	
 
-	unsigned int		quirks;		/* Deviations from spec. */
+	unsigned int		quirks;		
 
-/* Controller doesn't honor resets unless we touch the clock register */
+
 #define SDHCI_QUIRK_CLOCK_BEFORE_RESET			(1<<0)
-/* Controller has bad caps bits, but really supports DMA */
+
 #define SDHCI_QUIRK_FORCE_DMA				(1<<1)
-/* Controller doesn't like to be reset when there is no card inserted. */
+
 #define SDHCI_QUIRK_NO_CARD_NO_RESET			(1<<2)
-/* Controller doesn't like clearing the power reg before a change */
+
 #define SDHCI_QUIRK_SINGLE_POWER_WRITE			(1<<3)
-/* Controller has flaky internal state so reset it on each ios change */
+
 #define SDHCI_QUIRK_RESET_CMD_DATA_ON_IOS		(1<<4)
-/* Controller has an unusable DMA engine */
+
 #define SDHCI_QUIRK_BROKEN_DMA				(1<<5)
-/* Controller has an unusable ADMA engine */
+
 #define SDHCI_QUIRK_BROKEN_ADMA				(1<<6)
-/* Controller can only DMA from 32-bit aligned addresses */
+
 #define SDHCI_QUIRK_32BIT_DMA_ADDR			(1<<7)
-/* Controller can only DMA chunk sizes that are a multiple of 32 bits */
+
 #define SDHCI_QUIRK_32BIT_DMA_SIZE			(1<<8)
-/* Controller can only ADMA chunks that are a multiple of 32 bits */
+
 #define SDHCI_QUIRK_32BIT_ADMA_SIZE			(1<<9)
-/* Controller needs to be reset after each request to stay stable */
+
 #define SDHCI_QUIRK_RESET_AFTER_REQUEST			(1<<10)
-/* Controller needs voltage and power writes to happen separately */
+
 #define SDHCI_QUIRK_NO_SIMULT_VDD_AND_POWER		(1<<11)
-/* Controller provides an incorrect timeout value for transfers */
+
 #define SDHCI_QUIRK_BROKEN_TIMEOUT_VAL			(1<<12)
-/* Controller has an issue with buffer bits for small transfers */
+
 #define SDHCI_QUIRK_BROKEN_SMALL_PIO			(1<<13)
-/* Controller does not provide transfer-complete interrupt when not busy */
+
 #define SDHCI_QUIRK_NO_BUSY_IRQ				(1<<14)
-/* Controller has unreliable card detection */
+
 #define SDHCI_QUIRK_BROKEN_CARD_DETECTION		(1<<15)
-/* Controller reports inverted write-protect state */
+
 #define SDHCI_QUIRK_INVERTED_WRITE_PROTECT		(1<<16)
-/* Controller has nonstandard clock management */
+
 #define SDHCI_QUIRK_NONSTANDARD_CLOCK			(1<<17)
-/* Controller does not like fast PIO transfers */
+
 #define SDHCI_QUIRK_PIO_NEEDS_DELAY			(1<<18)
-/* Controller losing signal/interrupt enable states after reset */
+
 #define SDHCI_QUIRK_RESTORE_IRQS_AFTER_RESET		(1<<19)
-/* Controller has to be forced to use block size of 2048 bytes */
+
 #define SDHCI_QUIRK_FORCE_BLK_SZ_2048			(1<<20)
-/* Controller cannot do multi-block transfers */
+
 #define SDHCI_QUIRK_NO_MULTIBLOCK			(1<<21)
-/* Controller can only handle 1-bit data transfers */
+
 #define SDHCI_QUIRK_FORCE_1_BIT_DATA			(1<<22)
-/* Controller needs 10ms delay between applying power and clock */
+
 #define SDHCI_QUIRK_DELAY_AFTER_POWER			(1<<23)
-/* Controller uses SDCLK instead of TMCLK for data timeouts */
+
 #define SDHCI_QUIRK_DATA_TIMEOUT_USES_SDCLK		(1<<24)
 
-	int			irq;		/* Device IRQ */
-	void __iomem *		ioaddr;		/* Mapped address */
+	int			irq;		
+	void __iomem *		ioaddr;		
 
-	const struct sdhci_ops	*ops;		/* Low level hw interface */
+	const struct sdhci_ops	*ops;		
 
-	/* Internal data */
-	struct mmc_host		*mmc;		/* MMC structure */
-	u64			dma_mask;	/* custom DMA mask */
+	
+	struct mmc_host		*mmc;		
+	u64			dma_mask;	
 
 #if defined(CONFIG_LEDS_CLASS) || defined(CONFIG_LEDS_CLASS_MODULE)
-	struct led_classdev	led;		/* LED control */
+	struct led_classdev	led;		
 	char   led_name[32];
 #endif
 
-	spinlock_t		lock;		/* Mutex */
+	spinlock_t		lock;		
 
-	int			flags;		/* Host attributes */
-#define SDHCI_USE_SDMA		(1<<0)		/* Host is SDMA capable */
-#define SDHCI_USE_ADMA		(1<<1)		/* Host is ADMA capable */
-#define SDHCI_REQ_USE_DMA	(1<<2)		/* Use DMA for this req. */
-#define SDHCI_DEVICE_DEAD	(1<<3)		/* Device unresponsive */
+	int			flags;		
+#define SDHCI_USE_SDMA		(1<<0)		
+#define SDHCI_USE_ADMA		(1<<1)		
+#define SDHCI_REQ_USE_DMA	(1<<2)		
+#define SDHCI_DEVICE_DEAD	(1<<3)		
 
-	unsigned int		version;	/* SDHCI spec. version */
+	unsigned int		version;	
 
-	unsigned int		max_clk;	/* Max possible freq (MHz) */
-	unsigned int		timeout_clk;	/* Timeout freq (KHz) */
+	unsigned int		max_clk;	
+	unsigned int		timeout_clk;	
 
-	unsigned int		clock;		/* Current clock (MHz) */
-	u8			pwr;		/* Current voltage */
+	unsigned int		clock;		
+	u8			pwr;		
 
-	struct mmc_request	*mrq;		/* Current request */
-	struct mmc_command	*cmd;		/* Current command */
-	struct mmc_data		*data;		/* Current data request */
-	unsigned int		data_early:1;	/* Data finished before cmd */
+	struct mmc_request	*mrq;		
+	struct mmc_command	*cmd;		
+	struct mmc_data		*data;		
+	unsigned int		data_early:1;	
 
-	struct sg_mapping_iter	sg_miter;	/* SG state for PIO */
-	unsigned int		blocks;		/* remaining PIO blocks */
+	struct sg_mapping_iter	sg_miter;	
+	unsigned int		blocks;		
 
-	int			sg_count;	/* Mapped sg entries */
+	int			sg_count;	
 
-	u8			*adma_desc;	/* ADMA descriptor table */
-	u8			*align_buffer;	/* Bounce buffer */
+	u8			*adma_desc;	
+	u8			*align_buffer;	
 
-	dma_addr_t		adma_addr;	/* Mapped ADMA descr. table */
-	dma_addr_t		align_addr;	/* Mapped bounce buffer */
+	dma_addr_t		adma_addr;	
+	dma_addr_t		align_addr;	
 
-	struct tasklet_struct	card_tasklet;	/* Tasklet structures */
+	struct tasklet_struct	card_tasklet;	
 	struct tasklet_struct	finish_tasklet;
 
-	struct timer_list	timer;		/* Timer for timeouts */
+	struct timer_list	timer;		
 
 	unsigned long		private[0] ____cacheline_aligned;
 };
@@ -390,7 +379,7 @@ static inline u8 sdhci_readb(struct sdhci_host *host, int reg)
 	return readb(host->ioaddr + reg);
 }
 
-#endif /* CONFIG_MMC_SDHCI_IO_ACCESSORS */
+#endif 
 
 extern struct sdhci_host *sdhci_alloc_host(struct device *dev,
 	size_t priv_size);

@@ -1,13 +1,4 @@
-/* Definitons for use with the tmio_mmc.c
- *
- * (c) 2004 Ian Molton <spyro@f2s.com>
- * (c) 2007 Ian Molton <spyro@f2s.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/highmem.h>
 
@@ -29,7 +20,7 @@
 #define CNF_SD_LED_EN_1 0xfa
 #define CNF_SD_LED_EN_2 0xfe
 
-#define   SDCREN 0x2   /* Enable access to MMC CTL regs. (flag in COMMAND_REG)*/
+#define   SDCREN 0x2   
 
 #define CTL_SD_CMD 0x00
 #define CTL_ARG_REG 0x04
@@ -49,7 +40,7 @@
 #define CTL_CLK_AND_WAIT_CTL 0x138
 #define CTL_RESET_SDIO 0x1e0
 
-/* Definitions for values the CTRL_STATUS register can take. */
+
 #define TMIO_STAT_CMDRESPEND    0x00000001
 #define TMIO_STAT_DATAEND       0x00000004
 #define TMIO_STAT_CARD_REMOVE   0x00000008
@@ -72,8 +63,8 @@
 #define TMIO_STAT_CMD_BUSY      0x40000000
 #define TMIO_STAT_ILL_ACCESS    0x80000000
 
-/* Define some IRQ masks */
-/* This is the mask used at reset by the chip */
+
+
 #define TMIO_MASK_ALL           0x837f031d
 #define TMIO_MASK_READOP  (TMIO_STAT_RXRDY | TMIO_STAT_DATAEND | \
 		TMIO_STAT_CARD_REMOVE | TMIO_STAT_CARD_INSERT)
@@ -119,7 +110,7 @@ struct tmio_mmc_host {
 	struct mmc_host         *mmc;
 	int                     irq;
 
-	/* pio related stuff */
+	
 	struct scatterlist      *sg_ptr;
 	unsigned int            sg_len;
 	unsigned int            sg_off;

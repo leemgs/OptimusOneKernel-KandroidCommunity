@@ -1,17 +1,4 @@
-/*
- * OpenFirmware bindings for Secure Digital Host Controller Interface.
- *
- * Copyright (c) 2007 Freescale Semiconductor, Inc.
- * Copyright (c) 2009 MontaVista Software, Inc.
- *
- * Authors: Xiaobo Xie <X.Xie@freescale.com>
- *	    Anton Vorontsov <avorontsov@ru.mvista.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -34,9 +21,7 @@ struct sdhci_of_host {
 	u16 xfer_mode_shadow;
 };
 
-/*
- * Ops and quirks for the Freescale eSDHC controller.
- */
+
 
 #define ESDHC_DMA_SYSCTL	0x40c
 #define ESDHC_DMA_SNOOP		0x00000040
@@ -85,10 +70,7 @@ static void esdhc_writew(struct sdhci_host *host, u16 val, int reg)
 
 	switch (reg) {
 	case SDHCI_TRANSFER_MODE:
-		/*
-		 * Postpone this write, we must do it together with a
-		 * command write that is down below.
-		 */
+		
 		of_host->xfer_mode_shadow = val;
 		return;
 	case SDHCI_COMMAND:
@@ -96,13 +78,9 @@ static void esdhc_writew(struct sdhci_host *host, u16 val, int reg)
 			     SDHCI_TRANSFER_MODE);
 		return;
 	case SDHCI_BLOCK_SIZE:
-		/*
-		 * Two last DMA bits are reserved, and first one is used for
-		 * non-standard blksz of 4096 bytes that we don't support
-		 * yet. So clear the DMA boundary bits.
-		 */
+		
 		val &= ~SDHCI_MAKE_BLKSZ(0x7, 0);
-		/* fall through */
+		
 	}
 	clrsetbits_be32(host->ioaddr + base, 0xffff << shift, val << shift);
 }
@@ -112,7 +90,7 @@ static void esdhc_writeb(struct sdhci_host *host, u8 val, int reg)
 	int base = reg & ~0x3;
 	int shift = (reg & 0x3) * 8;
 
-	/* Prevent SDHCI core from writing reserved bits (e.g. HISPD). */
+	
 	if (reg == SDHCI_HOST_CONTROL)
 		val &= ~ESDHC_HOST_CONTROL_RES;
 
@@ -221,7 +199,7 @@ static bool __devinit sdhci_of_wp_inverted(struct device_node *np)
 	if (of_get_property(np, "sdhci,wp-inverted", NULL))
 		return true;
 
-	/* Old device trees don't have the wp-inverted property. */
+	
 	return machine_is(mpc837x_rdb) || machine_is(mpc837x_mds);
 }
 

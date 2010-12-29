@@ -1,12 +1,4 @@
-/*
- *  cb710/mmc.c
- *
- *  Copyright by Michał Mirosław, 2008-2009
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/slab.h>
@@ -15,7 +7,7 @@
 #include "cb710-mmc.h"
 
 static const u8 cb710_clock_divider_log2[8] = {
-/*	1, 2, 4, 8, 16, 32, 128, 512 */
+
 	0, 1, 2, 3,  4,  5,   7,   9
 };
 #define CB710_MAX_DIVIDER_IDX	\
@@ -34,8 +26,7 @@ static void cb710_mmc_set_clock(struct mmc_host *mmc, int hz)
 	u32 divider_idx;
 	int src_hz;
 
-	/* this is magic, unverifiable for me, unless I get
-	 * MMC card with cables connected to bus signals */
+	
 	pci_read_config_dword(pdev, 0x48, &src_freq_idx);
 	src_freq_idx = (src_freq_idx >> 16) & 0xF;
 	src_hz = cb710_src_freq_mhz[src_freq_idx] * 1000000;
@@ -59,14 +50,10 @@ static void cb710_mmc_set_clock(struct mmc_host *mmc, int hz)
 static void __cb710_mmc_enable_irq(struct cb710_slot *slot,
 	unsigned short enable, unsigned short mask)
 {
-	/* clear global IE
-	 * - it gets set later if any interrupt sources are enabled */
+	
 	mask |= CB710_MMC_IE_IRQ_ENABLE;
 
-	/* look like interrupt is fired whenever
-	 * WORD[0x0C] & WORD[0x10] != 0;
-	 * -> bit 15 port 0x0C seems to be global interrupt enable
-	 */
+	
 
 	enable = (cb710_read_port_16(slot, CB710_MMC_IRQ_ENABLE_PORT)
 		& ~mask) | enable;
@@ -84,7 +71,7 @@ static void cb710_mmc_enable_irq(struct cb710_slot *slot,
 	unsigned long flags;
 
 	spin_lock_irqsave(&reader->irq_lock, flags);
-	/* this is the only thing irq_lock protects */
+	
 	__cb710_mmc_enable_irq(slot, enable, mask);
 	spin_unlock_irqrestore(&reader->irq_lock, flags);
 }
@@ -121,7 +108,7 @@ static int cb710_check_event(struct cb710_slot *slot, u8 what)
 	status = cb710_read_port_16(slot, CB710_MMC_STATUS_PORT);
 
 	if (status & CB710_MMC_S0_FIFO_UNDERFLOW) {
-		/* it is just a guess, so log it */
+		
 		dev_dbg(cb710_slot_dev(slot),
 			"CHECK : ignoring bit 6 in status %04X\n", status);
 		cb710_write_port_8(slot, CB710_MMC_STATUS0_PORT,
@@ -138,7 +125,7 @@ static int cb710_check_event(struct cb710_slot *slot, u8 what)
 		return -EIO;
 	}
 
-	/* 'what' is a bit in MMC_STATUS1 */
+	
 	if ((status >> 8) & what) {
 		cb710_write_port_8(slot, CB710_MMC_STATUS1_PORT, what);
 		return 1;
@@ -150,7 +137,7 @@ static int cb710_check_event(struct cb710_slot *slot, u8 what)
 static int cb710_wait_for_event(struct cb710_slot *slot, u8 what)
 {
 	int err = 0;
-	unsigned limit = 2000000;	/* FIXME: real timeout */
+	unsigned limit = 2000000;	
 
 #ifdef CONFIG_CB710_DEBUG
 	u32 e, x;
@@ -182,7 +169,7 @@ static int cb710_wait_for_event(struct cb710_slot *slot, u8 what)
 
 static int cb710_wait_while_busy(struct cb710_slot *slot, uint8_t mask)
 {
-	unsigned limit = 500000;	/* FIXME: real timeout */
+	unsigned limit = 500000;	
 	int err = 0;
 
 #ifdef CONFIG_CB710_DEBUG
@@ -225,7 +212,7 @@ static void cb710_mmc_set_transfer_size(struct cb710_slot *slot,
 
 static void cb710_mmc_fifo_hack(struct cb710_slot *slot)
 {
-	/* without this, received data is prepended with 8-bytes of zeroes */
+	
 	u32 r1, r2;
 	int ok = 0;
 
@@ -273,8 +260,7 @@ static int cb710_mmc_receive(struct cb710_slot *slot, struct mmc_data *data)
 	size_t len, blocks = data->blocks;
 	int err = 0;
 
-	/* TODO: I don't know how/if the hardware handles non-16B-boundary blocks
-	 * except single 8B block */
+	
 	if (unlikely(data->blksz & 15 && (data->blocks != 1 || data->blksz != 8)))
 		return -EINVAL;
 
@@ -317,8 +303,7 @@ static int cb710_mmc_send(struct cb710_slot *slot, struct mmc_data *data)
 	size_t len, blocks = data->blocks;
 	int err = 0;
 
-	/* TODO: I don't know how/if the hardware handles multiple
-	 * non-16B-boundary blocks */
+	
 	if (unlikely(data->blocks > 1 && data->blksz & 15))
 		return -EINVAL;
 
@@ -352,15 +337,7 @@ static u16 cb710_encode_cmd_flags(struct cb710_mmc_reader *reader,
 	unsigned int flags = cmd->flags;
 	u16 cb_flags = 0;
 
-	/* Windows driver returned 0 for commands for which no response
-	 * is expected. It happened that there were only two such commands
-	 * used: MMC_GO_IDLE_STATE and MMC_GO_INACTIVE_STATE so it might
-	 * as well be a bug in that driver.
-	 *
-	 * Original driver set bit 14 for MMC/SD application
-	 * commands. There's no difference 'on the wire' and
-	 * it apparently works without it anyway.
-	 */
+	
 
 	switch (flags & MMC_CMD_MASK) {
 	case MMC_CMD_AC:	cb_flags = CB710_MMC_CMD_AC;	break;
@@ -378,14 +355,7 @@ static u16 cb710_encode_cmd_flags(struct cb710_mmc_reader *reader,
 		cb_flags |= CB710_MMC_DATA_READ;
 
 	if (flags & MMC_RSP_PRESENT) {
-		/* Windows driver set 01 at bits 4,3 except for
-		 * MMC_SET_BLOCKLEN where it set 10. Maybe the
-		 * hardware can do something special about this
-		 * command? The original driver looks buggy/incomplete
-		 * anyway so we ignore this for now.
-		 *
-		 * I assume that 00 here means no response is expected.
-		 */
+		
 		cb_flags |= CB710_MMC_RSP_PRESENT;
 
 		if (flags & MMC_RSP_136)
@@ -402,7 +372,7 @@ static void cb710_receive_response(struct cb710_slot *slot,
 {
 	unsigned rsp_opcode, wanted_opcode;
 
-	/* Looks like final byte with CRC is always stripped (same as SDHCI) */
+	
 	if (cmd->flags & MMC_RSP_136) {
 		u32 resp[4];
 
@@ -513,7 +483,7 @@ static int cb710_mmc_powerup(struct cb710_slot *slot)
 #endif
 	int err;
 
-	/* a lot of magic; see comment in cb710_mmc_set_clock() */
+	
 	dev_dbg(cb710_slot_dev(slot), "bus powerup\n");
 	cb710_dump_regs(chip, CB710_DUMP_REGS_MMC);
 	err = cb710_wait_while_busy(slot, CB710_MMC_S2_BUSY_20);
@@ -549,10 +519,7 @@ static int cb710_mmc_powerup(struct cb710_slot *slot)
 	err = cb710_wait_while_busy(slot, CB710_MMC_S2_BUSY_20);
 	if (unlikely(err))
 		return err;
-	/* This port behaves weird: quick byte reads of 0x08,0x09 return
-	 * 0xFF,0x00 after writing 0xFFFF to 0x08; it works correctly when
-	 * read/written from userspace...  What am I missing here?
-	 * (it doesn't depend on write-to-read delay) */
+	
 	cb710_write_port_16(slot, CB710_MMC_CONFIGB_PORT, 0xFFFF);
 	cb710_modify_port_8(slot, CB710_MMC_CONFIG0_PORT, 0x06, 0);
 	cb710_dump_regs(chip, CB710_DUMP_REGS_MMC);
@@ -604,7 +571,7 @@ static void cb710_mmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 		break;
 	case MMC_POWER_UP:
 	default:
-		/* ignore */;
+		;
 	}
 
 	cb710_mmc_enable_4bit_data(slot, ios->bus_width != MMC_BUS_WIDTH_1);
@@ -636,7 +603,7 @@ static int cb710_mmc_irq_handler(struct cb710_slot *slot)
 		status, irqen, config2, config1);
 
 	if (status & (CB710_MMC_S1_CARD_CHANGED << 8)) {
-		/* ack the event */
+		
 		cb710_write_port_8(slot, CB710_MMC_STATUS1_PORT,
 			CB710_MMC_S1_CARD_CHANGED);
 		if ((irqen & CB710_MMC_IE_CISTATUS_MASK)
@@ -694,7 +661,7 @@ static int cb710_mmc_resume(struct platform_device *pdev)
 	return mmc_resume_host(mmc);
 }
 
-#endif /* CONFIG_PM */
+#endif 
 
 static int __devinit cb710_mmc_init(struct platform_device *pdev)
 {
@@ -711,7 +678,7 @@ static int __devinit cb710_mmc_init(struct platform_device *pdev)
 
 	dev_set_drvdata(&pdev->dev, mmc);
 
-	/* harmless (maybe) magic */
+	
 	pci_read_config_dword(chip->pdev, 0x48, &val);
 	val = cb710_src_freq_mhz[(val >> 16) & 0xF];
 	dev_dbg(cb710_slot_dev(slot), "source frequency: %dMHz\n", val);
@@ -761,11 +728,11 @@ static int __devexit cb710_mmc_exit(struct platform_device *pdev)
 
 	mmc_remove_host(mmc);
 
-	/* IRQs should be disabled now, but let's stay on the safe side */
+	
 	cb710_mmc_enable_irq(slot, 0, ~0);
 	cb710_set_irq_handler(slot, NULL);
 
-	/* clear config ports - just in case */
+	
 	cb710_write_port_32(slot, CB710_MMC_CONFIG_PORT, 0);
 	cb710_write_port_16(slot, CB710_MMC_CONFIGB_PORT, 0);
 

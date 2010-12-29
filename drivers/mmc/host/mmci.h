@@ -1,12 +1,4 @@
-/*
- *  linux/drivers/mmc/host/mmci.h - ARM PrimeCell MMCI PL180/1 driver
- *
- *  Copyright (C) 2003 Deep Blue Solutions, Ltd, All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #define MMCIPOWER		0x000
 #define MCI_PWR_OFF		0x00
 #define MCI_PWR_UP		0x02
@@ -17,7 +9,7 @@
 #define MCI_DATA31DIREN		(1 << 5)
 #define MCI_OD			(1 << 6)
 #define MCI_ROD			(1 << 7)
-/* The ST Micro version does not have ROD */
+
 #define MCI_FBCLKEN		(1 << 7)
 #define MCI_DATA74DIREN		(1 << 8)
 
@@ -26,7 +18,7 @@
 #define MCI_CLK_PWRSAVE		(1 << 9)
 #define MCI_CLK_BYPASS		(1 << 10)
 #define MCI_WIDE_BUS		(1 << 11)
-/* HW flow control on the ST Micro version */
+
 #define MCI_FCEN		(1 << 13)
 
 #define MMCIARGUMENT		0x008
@@ -126,16 +118,14 @@
 
 #define MMCIMASK1		0x040
 #define MMCIFIFOCNT		0x048
-#define MMCIFIFO		0x080 /* to 0x0bc */
+#define MMCIFIFO		0x080 
 
 #define MCI_IRQENABLE	\
 	(MCI_CMDCRCFAILMASK|MCI_DATACRCFAILMASK|MCI_CMDTIMEOUTMASK|	\
 	MCI_DATATIMEOUTMASK|MCI_TXUNDERRUNMASK|MCI_RXOVERRUNMASK|	\
 	MCI_CMDRESPENDMASK|MCI_CMDSENTMASK|MCI_DATABLOCKENDMASK)
 
-/*
- * The size of the FIFO in bytes.
- */
+
 #define MCI_FIFOSIZE	(16*4)
 	
 #define MCI_FIFOHALFSIZE (MCI_FIFOSIZE / 2)
@@ -171,7 +161,7 @@ struct mmci_host {
 
 	unsigned int		sg_len;
 
-	/* pio stuff */
+	
 	struct scatterlist	*sg_ptr;
 	unsigned int		sg_off;
 	unsigned int		size;
@@ -180,9 +170,7 @@ struct mmci_host {
 
 static inline void mmci_init_sg(struct mmci_host *host, struct mmc_data *data)
 {
-	/*
-	 * Ideally, we want the higher levels to pass us a scatter list.
-	 */
+	
 	host->sg_len = data->sg_len;
 	host->sg_ptr = data->sg;
 	host->sg_off = 0;

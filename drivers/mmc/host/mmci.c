@@ -1,12 +1,4 @@
-/*
- *  linux/drivers/mmc/host/mmci.c - ARM PrimeCell MMCI PL180/1 driver
- *
- *  Copyright (C) 2003 Deep Blue Solutions, Ltd, All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <linux/module.h>
 #include <linux/moduleparam.h>
 #include <linux/init.h>
@@ -39,9 +31,7 @@
 
 static unsigned int fmax = 515633;
 
-/*
- * This must be called with host->lock held
- */
+
 static void mmci_set_clkreg(struct mmci_host *host, unsigned int desired)
 {
 	u32 clk = 0;
@@ -57,10 +47,10 @@ static void mmci_set_clkreg(struct mmci_host *host, unsigned int desired)
 			host->cclk = host->mclk / (2 * (clk + 1));
 		}
 		if (host->hw_designer == 0x80)
-			clk |= MCI_FCEN; /* Bug fix in ST IP block */
+			clk |= MCI_FCEN; 
 		clk |= MCI_CLK_ENABLE;
-		/* This hasn't proven to be worthwhile */
-		/* clk |= MCI_CLK_PWRSAVE; */
+		
+		
 	}
 
 	if (host->mmc->ios.bus_width == MMC_BUS_WIDTH_4)
@@ -82,10 +72,7 @@ mmci_request_end(struct mmci_host *host, struct mmc_request *mrq)
 	if (mrq->data)
 		mrq->data->bytes_xfered = host->data_xfered;
 
-	/*
-	 * Need to drop the host lock here; mmc_request_done may call
-	 * back into the driver...
-	 */
+	
 	spin_unlock(&host->lock);
 	mmc_request_done(host->mmc, mrq);
 	spin_lock(&host->lock);
@@ -131,17 +118,11 @@ static void mmci_start_data(struct mmci_host *host, struct mmc_data *data)
 		datactrl |= MCI_DPSM_DIRECTION;
 		irqmask = MCI_RXFIFOHALFFULLMASK;
 
-		/*
-		 * If we have less than a FIFOSIZE of bytes to transfer,
-		 * trigger a PIO interrupt as soon as any data is available.
-		 */
+		
 		if (host->size < MCI_FIFOSIZE)
 			irqmask |= MCI_RXDATAAVLBLMASK;
 	} else {
-		/*
-		 * We don't actually need to include "FIFO empty" here
-		 * since its implicit in "FIFO half empty".
-		 */
+		
 		irqmask = MCI_TXFIFOHALFEMPTYMASK;
 	}
 
@@ -169,7 +150,7 @@ mmci_start_command(struct mmci_host *host, struct mmc_command *cmd, u32 c)
 			c |= MCI_CPSM_LONGRSP;
 		c |= MCI_CPSM_RESPONSE;
 	}
-	if (/*interrupt*/0)
+	if (0)
 		c |= MCI_CPSM_INTERRUPT;
 
 	host->cmd = cmd;
@@ -194,10 +175,7 @@ mmci_data_irq(struct mmci_host *host, struct mmc_data *data,
 			data->error = -EIO;
 		status |= MCI_DATAEND;
 
-		/*
-		 * We hit an error condition.  Ensure that any data
-		 * partially written to a page is properly coherent.
-		 */
+		
 		if (host->sg_len && data->flags & MMC_DATA_READ)
 			flush_dcache_page(sg_page(host->sg_ptr));
 	}
@@ -296,9 +274,7 @@ static int mmci_pio_write(struct mmci_host *host, char *buffer, unsigned int rem
 	return ptr - buffer;
 }
 
-/*
- * PIO data transfer IRQ handler.
- */
+
 static irqreturn_t mmci_pio_irq(int irq, void *dev_id)
 {
 	struct mmci_host *host = dev_id;
@@ -314,19 +290,11 @@ static irqreturn_t mmci_pio_irq(int irq, void *dev_id)
 		unsigned int remain, len;
 		char *buffer;
 
-		/*
-		 * For write, we only need to test the half-empty flag
-		 * here - if the FIFO is completely empty, then by
-		 * definition it is more than half empty.
-		 *
-		 * For read, check for data available.
-		 */
+		
 		if (!(status & (MCI_TXFIFOHALFEMPTY|MCI_RXDATAAVLBL)))
 			break;
 
-		/*
-		 * Map the current scatter buffer.
-		 */
+		
 		buffer = mmci_kmap_atomic(host, &flags) + host->sg_off;
 		remain = host->sg_ptr->length - host->sg_off;
 
@@ -336,9 +304,7 @@ static irqreturn_t mmci_pio_irq(int irq, void *dev_id)
 		if (status & MCI_TXACTIVE)
 			len = mmci_pio_write(host, buffer, remain, status);
 
-		/*
-		 * Unmap the buffer.
-		 */
+		
 		mmci_kunmap_atomic(host, buffer, &flags);
 
 		host->sg_off += len;
@@ -348,10 +314,7 @@ static irqreturn_t mmci_pio_irq(int irq, void *dev_id)
 		if (remain)
 			break;
 
-		/*
-		 * If we were reading, and we have completed this
-		 * page, ensure that the data cache is coherent.
-		 */
+		
 		if (status & MCI_RXACTIVE)
 			flush_dcache_page(sg_page(host->sg_ptr));
 
@@ -361,19 +324,11 @@ static irqreturn_t mmci_pio_irq(int irq, void *dev_id)
 		status = readl(base + MMCISTATUS);
 	} while (1);
 
-	/*
-	 * If we're nearing the end of the read, switch to
-	 * "any data available" mode.
-	 */
+	
 	if (status & MCI_RXACTIVE && host->size < MCI_FIFOSIZE)
 		writel(MCI_RXDATAAVLBLMASK, base + MMCIMASK1);
 
-	/*
-	 * If we run out of data, disable the data IRQs; this
-	 * prevents a race where the FIFO becomes empty before
-	 * the chip itself has disabled the data path, and
-	 * stops us racing with our data end IRQ.
-	 */
+	
 	if (host->size == 0) {
 		writel(0, base + MMCIMASK1);
 		writel(readl(base + MMCIMASK0) | MCI_DATAENDMASK, base + MMCIMASK0);
@@ -382,9 +337,7 @@ static irqreturn_t mmci_pio_irq(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-/*
- * Handle completion of command and data transfers.
- */
+
 static irqreturn_t mmci_irq(int irq, void *dev_id)
 {
 	struct mmci_host *host = dev_id;
@@ -462,20 +415,13 @@ static void mmci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 	case MMC_POWER_UP:
 #ifdef CONFIG_REGULATOR
 		if (host->vcc)
-			/* This implicitly enables the regulator */
+			
 			mmc_regulator_set_ocr(host->vcc, ios->vdd);
 #endif
-		/*
-		 * The translate_vdd function is not used if you have
-		 * an external regulator, or your design is really weird.
-		 * Using it would mean sending in power control BOTH using
-		 * a regulator AND the 4 MMCIPWR bits. If we don't have
-		 * a regulator, we might have some other platform specific
-		 * power control behind this translate function.
-		 */
+		
 		if (!host->vcc && host->plat->translate_vdd)
 			pwr |= host->plat->translate_vdd(mmc_dev(mmc), ios->vdd);
-		/* The ST version does not have this, fall through to POWER_ON */
+		
 		if (host->hw_designer != AMBA_VENDOR_ST) {
 			pwr |= MCI_PWR_UP;
 			break;
@@ -489,10 +435,7 @@ static void mmci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 		if (host->hw_designer != AMBA_VENDOR_ST)
 			pwr |= MCI_ROD;
 		else {
-			/*
-			 * The ST Micro variant use the ROD bit for something
-			 * else and only has OD (Open Drain).
-			 */
+			
 			pwr |= MCI_OD;
 		}
 	}
@@ -558,7 +501,7 @@ static int __devinit mmci_probe(struct amba_device *dev, struct amba_id *id)
 	struct mmc_host *mmc;
 	int ret;
 
-	/* must have platform data */
+	
 	if (!plat) {
 		ret = -EINVAL;
 		goto out;
@@ -598,11 +541,7 @@ static int __devinit mmci_probe(struct amba_device *dev, struct amba_id *id)
 
 	host->plat = plat;
 	host->mclk = clk_get_rate(host->clk);
-	/*
-	 * According to the spec, mclk is max 100 MHz,
-	 * so we try to adjust the clock down to this,
-	 * (if possible).
-	 */
+	
 	if (host->mclk > 100000000) {
 		ret = clk_set_rate(host->clk, 100000000);
 		if (ret < 0)
@@ -620,7 +559,7 @@ static int __devinit mmci_probe(struct amba_device *dev, struct amba_id *id)
 	mmc->f_min = (host->mclk + 511) / 512;
 	mmc->f_max = min(host->mclk, fmax);
 #ifdef CONFIG_REGULATOR
-	/* If we're using the regulator framework, try to fetch a regulator */
+	
 	host->vcc = regulator_get(&dev->dev, "vmmc");
 	if (IS_ERR(host->vcc))
 		host->vcc = NULL;
@@ -639,37 +578,25 @@ static int __devinit mmci_probe(struct amba_device *dev, struct amba_id *id)
 		}
 	}
 #endif
-	/* Fall back to platform data if no regulator is found */
+	
 	if (host->vcc == NULL)
 		mmc->ocr_avail = plat->ocr_mask;
 	mmc->caps = plat->capabilities;
 
-	/*
-	 * We can do SGIO
-	 */
+	
 	mmc->max_hw_segs = 16;
 	mmc->max_phys_segs = NR_SG;
 
-	/*
-	 * Since we only have a 16-bit data length register, we must
-	 * ensure that we don't exceed 2^16-1 bytes in a single request.
-	 */
+	
 	mmc->max_req_size = 65535;
 
-	/*
-	 * Set the maximum segment size.  Since we aren't doing DMA
-	 * (yet) we are only limited by the data length register.
-	 */
+	
 	mmc->max_seg_size = mmc->max_req_size;
 
-	/*
-	 * Block size can be up to 2048 bytes, but must be a power of two.
-	 */
+	
 	mmc->max_blk_size = 2048;
 
-	/*
-	 * No limit on the number of blocks transferred.
-	 */
+	
 	mmc->max_blk_count = mmc->max_req_size;
 
 	spin_lock_init(&host->lock);
@@ -835,7 +762,7 @@ static struct amba_id mmci_ids[] = {
 		.id	= 0x00041181,
 		.mask	= 0x000fffff,
 	},
-	/* ST Micro variants */
+	
 	{
 		.id     = 0x00180180,
 		.mask   = 0x00ffffff,

@@ -1,15 +1,4 @@
-/*
- * OpenFirmware bindings for the MMC-over-SPI driver
- *
- * Copyright (c) MontaVista Software, Inc. 2008.
- *
- * Author: Anton Vorontsov <avorontsov@ru.mvista.com>
- *
- * This program is free software; you can redistribute  it and/or modify it
- * under  the terms of  the GNU General  Public License as published by the
- * Free Software Foundation;  either version 2 of the  License, or (at your
- * option) any later version.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -118,7 +107,7 @@ struct mmc_spi_platform_data *mmc_spi_get_pdata(struct spi_device *spi)
 	if (gpio_is_valid(oms->gpios[WP_GPIO]))
 		oms->pdata.get_ro = of_mmc_spi_get_ro;
 
-	/* We don't support interrupts yet, let's poll. */
+	
 	oms->pdata.caps |= MMC_CAP_NEEDS_POLL;
 
 	dev->platform_data = &oms->pdata;

@@ -1,16 +1,4 @@
-/* linux/drivers/mmc/host/sdhci-s3c.c
- *
- * Copyright 2008 Openmoko Inc.
- * Copyright 2008 Simtec Electronics
- *      Ben Dooks <ben@simtec.co.uk>
- *      http://armlinux.simtec.co.uk/
- *
- * SDHCI (HSMMC) support for Samsung SoC
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/delay.h>
 #include <linux/dma-mapping.h>
@@ -27,16 +15,7 @@
 
 #define MAX_BUS_CLK	(4)
 
-/**
- * struct sdhci_s3c - S3C SDHCI instance
- * @host: The SDHCI host created
- * @pdev: The platform device we where created from.
- * @ioarea: The resource created when we claimed the IO area.
- * @pdata: The platform data for this controller.
- * @cur_clk: The index of the current bus clock.
- * @clk_io: The clock for the internal bus interface.
- * @clk_bus: The clocks that are available for the SD/MMC bus clock.
- */
+
 struct sdhci_s3c {
 	struct sdhci_host	*host;
 	struct platform_device	*pdev;
@@ -53,10 +32,7 @@ static inline struct sdhci_s3c *to_s3c(struct sdhci_host *host)
 	return sdhci_priv(host);
 }
 
-/**
- * get_curclk - convert ctrl2 register to clock source number
- * @ctrl2: Control2 register value.
- */
+
 static u32 get_curclk(u32 ctrl2)
 {
 	ctrl2 &= S3C_SDHCI_CTRL2_SELBASECLK_MASK;
@@ -79,12 +55,7 @@ static void sdhci_s3c_check_sclk(struct sdhci_host *host)
 	}
 }
 
-/**
- * sdhci_s3c_get_max_clk - callback to get maximum clock frequency.
- * @host: The SDHCI host instance.
- *
- * Callback to return the maximum clock rate acheivable by the controller.
-*/
+
 static unsigned int sdhci_s3c_get_max_clk(struct sdhci_host *host)
 {
 	struct sdhci_s3c *ourhost = to_s3c(host);
@@ -92,7 +63,7 @@ static unsigned int sdhci_s3c_get_max_clk(struct sdhci_host *host)
 	unsigned int rate, max;
 	int clk;
 
-	/* note, a reset will reset the clock source */
+	
 
 	sdhci_s3c_check_sclk(host);
 
@@ -114,12 +85,7 @@ static unsigned int sdhci_s3c_get_timeout_clk(struct sdhci_host *host)
 	return sdhci_s3c_get_max_clk(host) / 1000000;
 }
 
-/**
- * sdhci_s3c_consider_clock - consider one the bus clocks for current setting
- * @ourhost: Our SDHCI instance.
- * @src: The source clock index.
- * @wanted: The clock frequency wanted.
- */
+
 static unsigned int sdhci_s3c_consider_clock(struct sdhci_s3c *ourhost,
 					     unsigned int src,
 					     unsigned int wanted)
@@ -144,14 +110,7 @@ static unsigned int sdhci_s3c_consider_clock(struct sdhci_s3c *ourhost,
 	return (wanted - (rate / div));
 }
 
-/**
- * sdhci_s3c_set_clock - callback on clock change
- * @host: The SDHCI host being changed
- * @clock: The clock rate being requested.
- *
- * When the card's clock is going to be changed, look at the new frequency
- * and find the best clock source to go with it.
-*/
+
 static void sdhci_s3c_set_clock(struct sdhci_host *host, unsigned int clock)
 {
 	struct sdhci_s3c *ourhost = to_s3c(host);
@@ -161,7 +120,7 @@ static void sdhci_s3c_set_clock(struct sdhci_host *host, unsigned int clock)
 	int src;
 	u32 ctrl;
 
-	/* don't bother if the clock is going off. */
+	
 	if (clock == 0)
 		return;
 
@@ -177,12 +136,12 @@ static void sdhci_s3c_set_clock(struct sdhci_host *host, unsigned int clock)
 		"selected source %d, clock %d, delta %d\n",
 		 best_src, clock, best);
 
-	/* select the new clock source */
+	
 
 	if (ourhost->cur_clk != best_src) {
 		struct clk *clk = ourhost->clk_bus[best_src];
 
-		/* turn clock off to card before changing clock source */
+		
 		writew(0, host->ioaddr + SDHCI_CLOCK_CONTROL);
 
 		ourhost->cur_clk = best_src;
@@ -195,7 +154,7 @@ static void sdhci_s3c_set_clock(struct sdhci_host *host, unsigned int clock)
 		writel(ctrl, host->ioaddr + S3C_SDHCI_CONTROL2);
 	}
 
-	/* reconfigure the hardware for new clock rate */
+	
 
 	{
 		struct mmc_ios ios;
@@ -261,7 +220,7 @@ static int __devinit sdhci_s3c_probe(struct platform_device *pdev)
 		goto err_io_clk;
 	}
 
-	/* enable the local io clock and keep it running for the moment. */
+	
 	clk_enable(sc->clk_io);
 
 	for (clks = 0, ptr = 0; ptr < MAX_BUS_CLK; ptr++) {
@@ -306,7 +265,7 @@ static int __devinit sdhci_s3c_probe(struct platform_device *pdev)
 		goto err_req_regs;
 	}
 
-	/* Ensure we have minimal gpio selected CMD/CLK/Detect */
+	
 	if (pdata->cfg_gpio)
 		pdata->cfg_gpio(pdev, pdata->max_width);
 
@@ -315,28 +274,23 @@ static int __devinit sdhci_s3c_probe(struct platform_device *pdev)
 	host->quirks = 0;
 	host->irq = irq;
 
-	/* Setup quirks for the controller */
+	
 
-	/* Currently with ADMA enabled we are getting some length
-	 * interrupts that are not being dealt with, do disable
-	 * ADMA until this is sorted out. */
+	
 	host->quirks |= SDHCI_QUIRK_BROKEN_ADMA;
 	host->quirks |= SDHCI_QUIRK_32BIT_ADMA_SIZE;
 
 #ifndef CONFIG_MMC_SDHCI_S3C_DMA
 
-	/* we currently see overruns on errors, so disable the SDMA
-	 * support as well. */
+	
 	host->quirks |= SDHCI_QUIRK_BROKEN_DMA;
 
-	/* PIO currently has problems with multi-block IO */
+	
 	host->quirks |= SDHCI_QUIRK_NO_MULTIBLOCK;
 
-#endif /* CONFIG_MMC_SDHCI_S3C_DMA */
+#endif 
 
-	/* It seems we do not get an DATA transfer complete on non-busy
-	 * transfers, not sure if this is a problem with this specific
-	 * SDHCI block, or a missing configuration that needs to be set. */
+	
 	host->quirks |= SDHCI_QUIRK_NO_BUSY_IRQ;
 
 	host->quirks |= (SDHCI_QUIRK_32BIT_DMA_ADDR |

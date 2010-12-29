@@ -1,17 +1,4 @@
-/*
- *  linux/drivers/mmc/host/sdhci.c - Secure Digital Host Controller Interface driver
- *
- *  Copyright (C) 2005-2008 Pierre Ossman, All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- *
- * Thanks to the following companies for their support:
- *
- *     - JMicron (hardware and technical support)
- */
+
 
 #include <linux/delay.h>
 #include <linux/highmem.h>
@@ -86,11 +73,7 @@ static void sdhci_dumpregs(struct sdhci_host *host)
 	printk(KERN_DEBUG DRIVER_NAME ": ===========================================\n");
 }
 
-/*****************************************************************************\
- *                                                                           *
- * Low level functions                                                       *
- *                                                                           *
-\*****************************************************************************/
+
 
 static void sdhci_clear_set_irqs(struct sdhci_host *host, u32 clear, u32 set)
 {
@@ -155,10 +138,10 @@ static void sdhci_reset(struct sdhci_host *host, u8 mask)
 	if (mask & SDHCI_RESET_ALL)
 		host->clock = 0;
 
-	/* Wait max 100 ms */
+	
 	timeout = 100;
 
-	/* hw clears the bit when it's done */
+	
 	while (sdhci_readb(host, SDHCI_SOFTWARE_RESET) & mask) {
 		if (timeout == 0) {
 			printk(KERN_ERR "%s: Reset 0x%x never completed.\n",
@@ -227,11 +210,7 @@ static void sdhci_led_control(struct led_classdev *led,
 }
 #endif
 
-/*****************************************************************************\
- *                                                                           *
- * Core functions                                                            *
- *                                                                           *
-\*****************************************************************************/
+
 
 static void sdhci_read_block_pio(struct sdhci_host *host)
 {
@@ -338,11 +317,7 @@ static void sdhci_transfer_pio(struct sdhci_host *host)
 	else
 		mask = SDHCI_SPACE_AVAILABLE;
 
-	/*
-	 * Some controllers (JMicron JMB38x) mess up the buffer bits
-	 * for transfers < 4 bytes. As long as it is just one block,
-	 * we can ignore the bits.
-	 */
+	
 	if ((host->quirks & SDHCI_QUIRK_BROKEN_SMALL_PIO) &&
 		(host->data->blocks == 1))
 		mask = ~0;
@@ -392,20 +367,14 @@ static int sdhci_adma_table_pre(struct sdhci_host *host,
 	char *buffer;
 	unsigned long flags;
 
-	/*
-	 * The spec does not specify endianness of descriptor table.
-	 * We currently guess that it is LE.
-	 */
+	
 
 	if (data->flags & MMC_DATA_READ)
 		direction = DMA_FROM_DEVICE;
 	else
 		direction = DMA_TO_DEVICE;
 
-	/*
-	 * The ADMA descriptor table is mapped further down as we
-	 * need to fill it with data first.
-	 */
+	
 
 	host->align_addr = dma_map_single(mmc_dev(host->mmc),
 		host->align_buffer, 128 * 4, direction);
@@ -427,13 +396,7 @@ static int sdhci_adma_table_pre(struct sdhci_host *host,
 		addr = sg_dma_address(sg);
 		len = sg_dma_len(sg);
 
-		/*
-		 * The SDHCI specification states that ADMA
-		 * addresses must be 32-bit aligned. If they
-		 * aren't, then we use a bounce buffer for
-		 * the (up to three) bytes that screw up the
-		 * alignment.
-		 */
+		
 		offset = (4 - (addr & 0x3)) & 0x3;
 		if (offset) {
 			if (data->flags & MMC_DATA_WRITE) {
@@ -454,7 +417,7 @@ static int sdhci_adma_table_pre(struct sdhci_host *host,
 			desc[2] = (offset >> 0) & 0xff;
 
 			desc[1] = 0x00;
-			desc[0] = 0x21; /* tran, valid */
+			desc[0] = 0x21; 
 
 			align += 4;
 			align_addr += 4;
@@ -476,20 +439,15 @@ static int sdhci_adma_table_pre(struct sdhci_host *host,
 		desc[2] = (len >> 0) & 0xff;
 
 		desc[1] = 0x00;
-		desc[0] = 0x21; /* tran, valid */
+		desc[0] = 0x21; 
 
 		desc += 8;
 
-		/*
-		 * If this triggers then we have a calculation bug
-		 * somewhere. :/
-		 */
+		
 		WARN_ON((desc - host->adma_desc) > (128 * 2 + 1) * 4);
 	}
 
-	/*
-	 * Add a terminating entry.
-	 */
+	
 	desc[7] = 0;
 	desc[6] = 0;
 	desc[5] = 0;
@@ -499,11 +457,9 @@ static int sdhci_adma_table_pre(struct sdhci_host *host,
 	desc[2] = 0;
 
 	desc[1] = 0x00;
-	desc[0] = 0x03; /* nop, end, valid */
+	desc[0] = 0x03; 
 
-	/*
-	 * Resync align buffer as we might have changed it.
-	 */
+	
 	if (data->flags & MMC_DATA_WRITE) {
 		dma_sync_single_for_device(mmc_dev(host->mmc),
 			host->align_addr, 128 * 4, direction);
@@ -578,32 +534,18 @@ static u8 sdhci_calc_timeout(struct sdhci_host *host, struct mmc_data *data)
 	u8 count;
 	unsigned target_timeout, current_timeout;
 
-	/*
-	 * If the host controller provides us with an incorrect timeout
-	 * value, just skip the check and use 0xE.  The hardware may take
-	 * longer to time out, but that's much better than having a too-short
-	 * timeout value.
-	 */
+	
 	if (host->quirks & SDHCI_QUIRK_BROKEN_TIMEOUT_VAL)
 		return 0xE;
 
-	/* timeout in us */
+	
 	target_timeout = data->timeout_ns / 1000 +
 		data->timeout_clks / host->clock;
 
 	if (host->quirks & SDHCI_QUIRK_DATA_TIMEOUT_USES_SDCLK)
 		host->timeout_clk = host->clock / 1000;
 
-	/*
-	 * Figure out needed cycles.
-	 * We do this in steps in order to fit inside a 32 bit int.
-	 * The first step is the minimum timeout, which will have a
-	 * minimum resolution of 6 bits:
-	 * (1) 2^13*1000 > 2^22,
-	 * (2) host->timeout_clk < 2^16
-	 *     =>
-	 *     (1) / (2) > 2^6
-	 */
+	
 	count = 0;
 	current_timeout = (1 << 13) * 1000 / host->timeout_clk;
 	while (current_timeout < target_timeout) {
@@ -644,7 +586,7 @@ static void sdhci_prepare_data(struct sdhci_host *host, struct mmc_data *data)
 	if (data == NULL)
 		return;
 
-	/* Sanity checks */
+	
 	BUG_ON(data->blksz * data->blocks > 524288);
 	BUG_ON(data->blksz > host->mmc->max_blk_size);
 	BUG_ON(data->blocks > 65535);
@@ -658,10 +600,7 @@ static void sdhci_prepare_data(struct sdhci_host *host, struct mmc_data *data)
 	if (host->flags & (SDHCI_USE_SDMA | SDHCI_USE_ADMA))
 		host->flags |= SDHCI_REQ_USE_DMA;
 
-	/*
-	 * FIXME: This doesn't account for merging when mapping the
-	 * scatterlist.
-	 */
+	
 	if (host->flags & SDHCI_REQ_USE_DMA) {
 		int broken, i;
 		struct scatterlist *sg;
@@ -688,21 +627,14 @@ static void sdhci_prepare_data(struct sdhci_host *host, struct mmc_data *data)
 		}
 	}
 
-	/*
-	 * The assumption here being that alignment is the same after
-	 * translation to device address space.
-	 */
+	
 	if (host->flags & SDHCI_REQ_USE_DMA) {
 		int broken, i;
 		struct scatterlist *sg;
 
 		broken = 0;
 		if (host->flags & SDHCI_USE_ADMA) {
-			/*
-			 * As we use 3 byte chunks to work around
-			 * alignment problems, we need to check this
-			 * quirk.
-			 */
+			
 			if (host->quirks & SDHCI_QUIRK_32BIT_ADMA_SIZE)
 				broken = 1;
 		} else {
@@ -726,10 +658,7 @@ static void sdhci_prepare_data(struct sdhci_host *host, struct mmc_data *data)
 		if (host->flags & SDHCI_USE_ADMA) {
 			ret = sdhci_adma_table_pre(host, data);
 			if (ret) {
-				/*
-				 * This only happens when someone fed
-				 * us an invalid request.
-				 */
+				
 				WARN_ON(1);
 				host->flags &= ~SDHCI_REQ_USE_DMA;
 			} else {
@@ -745,10 +674,7 @@ static void sdhci_prepare_data(struct sdhci_host *host, struct mmc_data *data)
 						DMA_FROM_DEVICE :
 						DMA_TO_DEVICE);
 			if (sg_cnt == 0) {
-				/*
-				 * This only happens when someone fed
-				 * us an invalid request.
-				 */
+				
 				WARN_ON(1);
 				host->flags &= ~SDHCI_REQ_USE_DMA;
 			} else {
@@ -759,11 +685,7 @@ static void sdhci_prepare_data(struct sdhci_host *host, struct mmc_data *data)
 		}
 	}
 
-	/*
-	 * Always adjust the DMA selection as some controllers
-	 * (e.g. JMicron) can't do PIO properly when the selection
-	 * is ADMA.
-	 */
+	
 	if (host->version >= SDHCI_SPEC_200) {
 		ctrl = sdhci_readb(host, SDHCI_HOST_CONTROL);
 		ctrl &= ~SDHCI_CTRL_DMA_MASK;
@@ -789,7 +711,7 @@ static void sdhci_prepare_data(struct sdhci_host *host, struct mmc_data *data)
 
 	sdhci_set_transfer_irqs(host);
 
-	/* We do not handle DMA boundaries, so set it to max (512 KiB) */
+	
 	sdhci_writew(host, SDHCI_MAKE_BLKSZ(7, data->blksz), SDHCI_BLOCK_SIZE);
 	sdhci_writew(host, data->blocks, SDHCI_BLOCK_COUNT);
 }
@@ -834,23 +756,14 @@ static void sdhci_finish_data(struct sdhci_host *host)
 		}
 	}
 
-	/*
-	 * The specification states that the block count register must
-	 * be updated, but it does not specify at what point in the
-	 * data flow. That makes the register entirely useless to read
-	 * back so we have to assume that nothing made it to the card
-	 * in the event of an error.
-	 */
+	
 	if (data->error)
 		data->bytes_xfered = 0;
 	else
 		data->bytes_xfered = data->blksz * data->blocks;
 
 	if (data->stop) {
-		/*
-		 * The controller needs a reset of internal state machines
-		 * upon error conditions.
-		 */
+		
 		if (data->error) {
 			sdhci_reset(host, SDHCI_RESET_CMD);
 			sdhci_reset(host, SDHCI_RESET_DATA);
@@ -869,15 +782,14 @@ static void sdhci_send_command(struct sdhci_host *host, struct mmc_command *cmd)
 
 	WARN_ON(host->cmd);
 
-	/* Wait max 10 ms */
+	
 	timeout = 10;
 
 	mask = SDHCI_CMD_INHIBIT;
 	if ((cmd->data != NULL) || (cmd->flags & MMC_RSP_BUSY))
 		mask |= SDHCI_DATA_INHIBIT;
 
-	/* We shouldn't wait for data inihibit for stop commands, even
-	   though they might use busy signaling */
+	
 	if (host->mrq->data && (cmd == host->mrq->data->stop))
 		mask &= ~SDHCI_DATA_INHIBIT;
 
@@ -939,7 +851,7 @@ static void sdhci_finish_command(struct sdhci_host *host)
 
 	if (host->cmd->flags & MMC_RSP_PRESENT) {
 		if (host->cmd->flags & MMC_RSP_136) {
-			/* CRC is stripped so we need to do some shifting. */
+			
 			for (i = 0;i < 4;i++) {
 				host->cmd->resp[i] = sdhci_readl(host,
 					SDHCI_RESPONSE + (3-i)*4) << 8;
@@ -994,7 +906,7 @@ static void sdhci_set_clock(struct sdhci_host *host, unsigned int clock)
 	clk |= SDHCI_CLOCK_INT_EN;
 	sdhci_writew(host, clk, SDHCI_CLOCK_CONTROL);
 
-	/* Wait max 20 ms */
+	
 	timeout = 20;
 	while (!((clk = sdhci_readw(host, SDHCI_CLOCK_CONTROL))
 		& SDHCI_CLOCK_INT_STABLE)) {
@@ -1049,17 +961,11 @@ static void sdhci_set_power(struct sdhci_host *host, unsigned short power)
 		return;
 	}
 
-	/*
-	 * Spec says that we should clear the power reg before setting
-	 * a new value. Some controllers don't seem to like this though.
-	 */
+	
 	if (!(host->quirks & SDHCI_QUIRK_SINGLE_POWER_WRITE))
 		sdhci_writeb(host, 0, SDHCI_POWER_CONTROL);
 
-	/*
-	 * At least the Marvell CaFe chip gets confused if we set the voltage
-	 * and set turn on power at the same time, so set the voltage first.
-	 */
+	
 	if (host->quirks & SDHCI_QUIRK_NO_SIMULT_VDD_AND_POWER)
 		sdhci_writeb(host, pwr, SDHCI_POWER_CONTROL);
 
@@ -1067,19 +973,12 @@ static void sdhci_set_power(struct sdhci_host *host, unsigned short power)
 
 	sdhci_writeb(host, pwr, SDHCI_POWER_CONTROL);
 
-	/*
-	 * Some controllers need an extra 10ms delay of 10ms before they
-	 * can apply clock after applying power
-	 */
+	
 	if (host->quirks & SDHCI_QUIRK_DELAY_AFTER_POWER)
 		mdelay(10);
 }
 
-/*****************************************************************************\
- *                                                                           *
- * MMC callbacks                                                             *
- *                                                                           *
-\*****************************************************************************/
+
 
 static void sdhci_request(struct mmc_host *mmc, struct mmc_request *mrq)
 {
@@ -1099,7 +998,7 @@ static void sdhci_request(struct mmc_host *mmc, struct mmc_request *mrq)
 
 	host->mrq = mrq;
 
-	/* If polling, assume that the card is always present. */
+	
 	if (host->quirks & SDHCI_QUIRK_BROKEN_CARD_DETECTION)
 		present = true;
 	else
@@ -1129,10 +1028,7 @@ static void sdhci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 	if (host->flags & SDHCI_DEVICE_DEAD)
 		goto out;
 
-	/*
-	 * Reset the chip on each power off.
-	 * Should clear out any weird states.
-	 */
+	
 	if (ios->power_mode == MMC_POWER_OFF) {
 		sdhci_writel(host, 0, SDHCI_SIGNAL_ENABLE);
 		sdhci_reinit(host);
@@ -1159,11 +1055,7 @@ static void sdhci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 
 	sdhci_writeb(host, ctrl, SDHCI_HOST_CONTROL);
 
-	/*
-	 * Some (ENE) controllers go apeshit on some ios operation,
-	 * signalling timeout and CRC errors even on CMD0. Resetting
-	 * it on each ios seems to solve the problem.
-	 */
+	
 	if(host->quirks & SDHCI_QUIRK_RESET_CMD_DATA_ON_IOS)
 		sdhci_reset(host, SDHCI_RESET_CMD | SDHCI_RESET_DATA);
 
@@ -1223,11 +1115,7 @@ static const struct mmc_host_ops sdhci_ops = {
 	.enable_sdio_irq = sdhci_enable_sdio_irq,
 };
 
-/*****************************************************************************\
- *                                                                           *
- * Tasklets                                                                  *
- *                                                                           *
-\*****************************************************************************/
+
 
 static void sdhci_tasklet_card(unsigned long param)
 {
@@ -1272,28 +1160,24 @@ static void sdhci_tasklet_finish(unsigned long param)
 
 	mrq = host->mrq;
 
-	/*
-	 * The controller needs a reset of internal state machines
-	 * upon error conditions.
-	 */
+	
 	if (!(host->flags & SDHCI_DEVICE_DEAD) &&
 		(mrq->cmd->error ||
 		 (mrq->data && (mrq->data->error ||
 		  (mrq->data->stop && mrq->data->stop->error))) ||
 		   (host->quirks & SDHCI_QUIRK_RESET_AFTER_REQUEST))) {
 
-		/* Some controllers need this kick or reset won't work here */
+		
 		if (host->quirks & SDHCI_QUIRK_CLOCK_BEFORE_RESET) {
 			unsigned int clock;
 
-			/* This is to force an update */
+			
 			clock = host->clock;
 			host->clock = 0;
 			sdhci_set_clock(host, clock);
 		}
 
-		/* Spec says we should do both at the same time, but Ricoh
-		   controllers do not like that. */
+		
 		sdhci_reset(host, SDHCI_RESET_CMD);
 		sdhci_reset(host, SDHCI_RESET_DATA);
 	}
@@ -1343,11 +1227,7 @@ static void sdhci_timeout_timer(unsigned long data)
 	spin_unlock_irqrestore(&host->lock, flags);
 }
 
-/*****************************************************************************\
- *                                                                           *
- * Interrupt handling                                                        *
- *                                                                           *
-\*****************************************************************************/
+
 
 static void sdhci_cmd_irq(struct sdhci_host *host, u32 intmask)
 {
@@ -1372,17 +1252,7 @@ static void sdhci_cmd_irq(struct sdhci_host *host, u32 intmask)
 		return;
 	}
 
-	/*
-	 * The host can send and interrupt when the busy state has
-	 * ended, allowing us to wait without wasting CPU cycles.
-	 * Unfortunately this is overloaded on the "data complete"
-	 * interrupt, so we need to take some care when handling
-	 * it.
-	 *
-	 * Note: The 1.0 specification is a bit ambiguous about this
-	 *       feature so there might be some problems with older
-	 *       controllers.
-	 */
+	
 	if (host->cmd->flags & MMC_RSP_BUSY) {
 		if (host->cmd->data)
 			DBG("Cannot wait for busy signal when also "
@@ -1390,8 +1260,7 @@ static void sdhci_cmd_irq(struct sdhci_host *host, u32 intmask)
 		else if (!(host->quirks & SDHCI_QUIRK_NO_BUSY_IRQ))
 			return;
 
-		/* The controller does not support the end-of-busy IRQ,
-		 * fall through and take the SDHCI_INT_RESPONSE */
+		
 	}
 
 	if (intmask & SDHCI_INT_RESPONSE)
@@ -1432,11 +1301,7 @@ static void sdhci_data_irq(struct sdhci_host *host, u32 intmask)
 	BUG_ON(intmask == 0);
 
 	if (!host->data) {
-		/*
-		 * The "data complete" interrupt is also used to
-		 * indicate that a busy state has ended. See comment
-		 * above in sdhci_cmd_irq().
-		 */
+		
 		if (host->cmd && (host->cmd->flags & MMC_RSP_BUSY)) {
 			if (intmask & SDHCI_INT_DATA_END) {
 				sdhci_finish_command(host);
@@ -1468,22 +1333,14 @@ static void sdhci_data_irq(struct sdhci_host *host, u32 intmask)
 		if (intmask & (SDHCI_INT_DATA_AVAIL | SDHCI_INT_SPACE_AVAIL))
 			sdhci_transfer_pio(host);
 
-		/*
-		 * We currently don't do anything fancy with DMA
-		 * boundaries, but as we can't disable the feature
-		 * we need to at least restart the transfer.
-		 */
+		
 		if (intmask & SDHCI_INT_DMA_END)
 			sdhci_writel(host, sdhci_readl(host, SDHCI_DMA_ADDRESS),
 				SDHCI_DMA_ADDRESS);
 
 		if (intmask & SDHCI_INT_DATA_END) {
 			if (host->cmd) {
-				/*
-				 * Data managed to finish before the
-				 * command completed. Make sure we do
-				 * things in the proper order.
-				 */
+				
 				host->data_early = 1;
 			} else {
 				sdhci_finish_data(host);
@@ -1562,20 +1419,14 @@ static irqreturn_t sdhci_irq(int irq, void *dev_id)
 out:
 	spin_unlock(&host->lock);
 
-	/*
-	 * We have to delay this as it calls back into the driver.
-	 */
+	
 	if (cardint)
 		mmc_signal_sdio_irq(host->mmc);
 
 	return result;
 }
 
-/*****************************************************************************\
- *                                                                           *
- * Suspend/resume                                                            *
- *                                                                           *
-\*****************************************************************************/
+
 
 #ifdef CONFIG_PM
 
@@ -1624,13 +1475,9 @@ int sdhci_resume_host(struct sdhci_host *host)
 
 EXPORT_SYMBOL_GPL(sdhci_resume_host);
 
-#endif /* CONFIG_PM */
+#endif 
 
-/*****************************************************************************\
- *                                                                           *
- * Device allocation/registration                                            *
- *                                                                           *
-\*****************************************************************************/
+
 
 struct sdhci_host *sdhci_alloc_host(struct device *dev,
 	size_t priv_size)
@@ -1715,11 +1562,7 @@ int sdhci_add_host(struct sdhci_host *host)
 	}
 
 	if (host->flags & SDHCI_USE_ADMA) {
-		/*
-		 * We need to allocate descriptors for all sg entries
-		 * (128) and potentially one alignment transfer for
-		 * each of those entries.
-		 */
+		
 		host->adma_desc = kmalloc((128 * 2 + 1) * 4, GFP_KERNEL);
 		host->align_buffer = kmalloc(128 * 4, GFP_KERNEL);
 		if (!host->adma_desc || !host->align_buffer) {
@@ -1732,11 +1575,7 @@ int sdhci_add_host(struct sdhci_host *host)
 		}
 	}
 
-	/*
-	 * If we use DMA, then it's up to the caller to set the DMA
-	 * mask, but PIO does not need the hw shim so we set a new
-	 * mask here in that case.
-	 */
+	
 	if (!(host->flags & (SDHCI_USE_SDMA | SDHCI_USE_ADMA))) {
 		host->dma_mask = DMA_BIT_MASK(64);
 		mmc_dev(host->mmc)->dma_mask = &host->dma_mask;
@@ -1771,9 +1610,7 @@ int sdhci_add_host(struct sdhci_host *host)
 	if (caps & SDHCI_TIMEOUT_CLK_UNIT)
 		host->timeout_clk *= 1000;
 
-	/*
-	 * Set host parameters.
-	 */
+	
 	mmc->ops = &sdhci_ops;
 	if (host->quirks & SDHCI_QUIRK_NONSTANDARD_CLOCK &&
 			host->ops->set_clock && host->ops->get_min_clock)
@@ -1808,38 +1645,25 @@ int sdhci_add_host(struct sdhci_host *host)
 
 	spin_lock_init(&host->lock);
 
-	/*
-	 * Maximum number of segments. Depends on if the hardware
-	 * can do scatter/gather or not.
-	 */
+	
 	if (host->flags & SDHCI_USE_ADMA)
 		mmc->max_hw_segs = 128;
 	else if (host->flags & SDHCI_USE_SDMA)
 		mmc->max_hw_segs = 1;
-	else /* PIO */
+	else 
 		mmc->max_hw_segs = 128;
 	mmc->max_phys_segs = 128;
 
-	/*
-	 * Maximum number of sectors in one transfer. Limited by DMA boundary
-	 * size (512KiB).
-	 */
+	
 	mmc->max_req_size = 524288;
 
-	/*
-	 * Maximum segment size. Could be one segment with the maximum number
-	 * of bytes. When doing hardware scatter/gather, each entry cannot
-	 * be larger than 64 KiB though.
-	 */
+	
 	if (host->flags & SDHCI_USE_ADMA)
 		mmc->max_seg_size = 65536;
 	else
 		mmc->max_seg_size = mmc->max_req_size;
 
-	/*
-	 * Maximum block size. This varies from controller to controller and
-	 * is specified in the capabilities register.
-	 */
+	
 	if (host->quirks & SDHCI_QUIRK_FORCE_BLK_SZ_2048) {
 		mmc->max_blk_size = 2;
 	} else {
@@ -1854,14 +1678,10 @@ int sdhci_add_host(struct sdhci_host *host)
 
 	mmc->max_blk_size = 512 << mmc->max_blk_size;
 
-	/*
-	 * Maximum block count.
-	 */
+	
 	mmc->max_blk_count = (host->quirks & SDHCI_QUIRK_NO_MULTIBLOCK) ? 1 : 65535;
 
-	/*
-	 * Init tasklets.
-	 */
+	
 	tasklet_init(&host->card_tasklet,
 		sdhci_tasklet_card, (unsigned long)host);
 	tasklet_init(&host->finish_tasklet,
@@ -1974,11 +1794,7 @@ void sdhci_free_host(struct sdhci_host *host)
 
 EXPORT_SYMBOL_GPL(sdhci_free_host);
 
-/*****************************************************************************\
- *                                                                           *
- * Driver init/exit                                                          *
- *                                                                           *
-\*****************************************************************************/
+
 
 static int __init sdhci_drv_init(void)
 {
