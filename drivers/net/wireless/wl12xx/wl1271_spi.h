@@ -1,26 +1,4 @@
-/*
- * This file is part of wl1271
- *
- * Copyright (C) 1998-2009 Texas Instruments. All rights reserved.
- * Copyright (C) 2008-2009 Nokia Corporation
- *
- * Contact: Luciano Coelho <luciano.coelho@nokia.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #ifndef __WL1271_SPI_H__
 #define __WL1271_SPI_H__
@@ -49,7 +27,7 @@
 
 #define WSPI_INIT_CMD_START         0x00
 #define WSPI_INIT_CMD_TX            0x40
-/* the extra bypass bit is sampled by the TNET as '1' */
+
 #define WSPI_INIT_CMD_BYPASS_BIT    0x80
 #define WSPI_INIT_CMD_FIXEDBUSY_LEN 0x07
 #define WSPI_INIT_CMD_EN_FIXEDBUSY  0x80
@@ -68,19 +46,19 @@
 #define HW_ACCESS_WSPI_INIT_CMD_MASK  0
 
 
-/* Raw target IO, address is not translated */
+
 void wl1271_spi_write(struct wl1271 *wl, int addr, void *buf,
 		      size_t len, bool fixed);
 void wl1271_spi_read(struct wl1271 *wl, int addr, void *buf,
 		     size_t len, bool fixed);
 
-/* Memory target IO, address is tranlated to partition 0 */
+
 void wl1271_spi_mem_read(struct wl1271 *wl, int addr, void *buf, size_t len);
 void wl1271_spi_mem_write(struct wl1271 *wl, int addr, void *buf, size_t len);
 u32 wl1271_mem_read32(struct wl1271 *wl, int addr);
 void wl1271_mem_write32(struct wl1271 *wl, int addr, u32 val);
 
-/* Registers IO */
+
 void wl1271_spi_reg_read(struct wl1271 *wl, int addr, void *buf, size_t len,
 			 bool fixed);
 void wl1271_spi_reg_write(struct wl1271 *wl, int addr, void *buf, size_t len,
@@ -88,7 +66,7 @@ void wl1271_spi_reg_write(struct wl1271 *wl, int addr, void *buf, size_t len,
 u32 wl1271_reg_read32(struct wl1271 *wl, int addr);
 void wl1271_reg_write32(struct wl1271 *wl, int addr, u32 val);
 
-/* INIT and RESET words */
+
 void wl1271_spi_reset(struct wl1271 *wl);
 void wl1271_spi_init(struct wl1271 *wl);
 int wl1271_set_partition(struct wl1271 *wl,
@@ -110,4 +88,4 @@ static inline void wl1271_write32(struct wl1271 *wl, int addr, u32 val)
 			 sizeof(wl->buffer_32), false);
 }
 
-#endif /* __WL1271_SPI_H__ */
+#endif 

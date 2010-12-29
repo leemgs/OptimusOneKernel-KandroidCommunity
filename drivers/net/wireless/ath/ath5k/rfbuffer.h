@@ -1,85 +1,33 @@
-/*
- * RF Buffer handling functions
- *
- * Copyright (c) 2009 Nick Kossifidis <mickflemm@gmail.com>
- *
- * Permission to use, copy, modify, and distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- *
- */
 
 
-/*
- * There are some special registers on the RF chip
- * that control various operation settings related mostly to
- * the analog parts (channel, gain adjustment etc).
- *
- * We don't write on those registers directly but
- * we send a data packet on the chip, using a special register,
- * that holds all the settings we need. After we 've sent the
- * data packet, we write on another special register to notify hw
- * to apply the settings. This is done so that control registers
- * can be dynamicaly programmed during operation and the settings
- * are applied faster on the hw.
- *
- * We call each data packet an "RF Bank" and all the data we write
- * (all RF Banks) "RF Buffer". This file holds initial RF Buffer
- * data for the different RF chips, and various info to match RF
- * Buffer offsets with specific RF registers so that we can access
- * them. We tweak these settings on rfregs_init function.
- *
- * Also check out reg.h and U.S. Patent 6677779 B1 (about buffer
- * registers and control registers):
- *
- * http://www.google.com/patents?id=qNURAAAAEBAJ
- */
 
 
-/*
- * Struct to hold default mode specific RF
- * register values (RF Banks)
- */
+
+
+
 struct ath5k_ini_rfbuffer {
-	u8	rfb_bank;		/* RF Bank number */
-	u16	rfb_ctrl_register;	/* RF Buffer control register */
-	u32	rfb_mode_data[5];	/* RF Buffer data for each mode */
+	u8	rfb_bank;		
+	u16	rfb_ctrl_register;	
+	u32	rfb_mode_data[5];	
 };
 
-/*
- * Struct to hold RF Buffer field
- * infos used to access certain RF
- * analog registers
- */
+
 struct ath5k_rfb_field {
-	u8	len;	/* Field length */
-	u16	pos;	/* Offset on the raw packet */
-	u8	col;	/* Column -used for shifting */
+	u8	len;	
+	u16	pos;	
+	u8	col;	
 };
 
-/*
- * RF analog register definition
- */
+
 struct ath5k_rf_reg {
-	u8			bank;	/* RF Buffer Bank number */
-	u8			index;	/* Register's index on rf_regs_idx */
-	struct ath5k_rfb_field	field;	/* RF Buffer field for this register */
+	u8			bank;	
+	u8			index;	
+	struct ath5k_rfb_field	field;	
 };
 
-/* Map RF registers to indexes
- * We do this to handle common bits and make our
- * life easier by using an index for each register
- * instead of a full rfb_field */
+
 enum ath5k_rf_regs_idx {
-	/* BANK 6 */
+	
 	AR5K_RF_OB_2GHZ = 0,
 	AR5K_RF_OB_5GHZ,
 	AR5K_RF_DB_2GHZ,
@@ -110,7 +58,7 @@ enum ath5k_rf_regs_idx {
 	AR5K_RF_PWD_166,
 	AR5K_RF_PWD_167,
 	AR5K_RF_DERBY_CHAN_SEL_MODE,
-	/* BANK 7 */
+	
 	AR5K_RF_GAIN_I,
 	AR5K_RF_PLO_SEL,
 	AR5K_RF_RFGAIN_SEL,
@@ -130,11 +78,9 @@ enum ath5k_rf_regs_idx {
 };
 
 
-/*******************\
-* RF5111 (Sombrero) *
-\*******************/
 
-/* BANK 6				len  pos col */
+
+
 #define	AR5K_RF5111_OB_2GHZ		{ 3, 119, 0 }
 #define	AR5K_RF5111_DB_2GHZ		{ 3, 122, 0 }
 
@@ -144,15 +90,15 @@ enum ath5k_rf_regs_idx {
 #define	AR5K_RF5111_PWD_XPD		{ 1, 95,  0 }
 #define	AR5K_RF5111_XPD_GAIN		{ 4, 96,  0 }
 
-/* Access to PWD registers */
+
 #define AR5K_RF5111_PWD(_n)		{ 1, (135 - _n), 3 }
 
-/* BANK 7				len  pos col */
+
 #define	AR5K_RF5111_GAIN_I		{ 6, 29,  0 }
 #define	AR5K_RF5111_PLO_SEL		{ 1, 4,   0 }
 #define	AR5K_RF5111_RFGAIN_SEL		{ 1, 36,  0 }
 #define AR5K_RF5111_RFGAIN_STEP		{ 6, 37,  0 }
-/* Only on AR5212 BaseBand and up */
+
 #define	AR5K_RF5111_WAIT_S		{ 5, 19,  0 }
 #define	AR5K_RF5111_WAIT_I		{ 5, 24,  0 }
 #define	AR5K_RF5111_MAX_TIME		{ 2, 49,  0 }
@@ -175,10 +121,10 @@ static const struct ath5k_rf_reg rf_regs_5111[] = {
 	{7, AR5K_RF_MAX_TIME,		AR5K_RF5111_MAX_TIME}
 };
 
-/* Default mode specific settings */
+
 static const struct ath5k_ini_rfbuffer rfb_5111[] = {
 	{ 0, 0x989c,
-	/*     mode a/XR  mode aTurbo    mode b     mode g    mode gTurbo */
+	
 	    { 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000 } },
 	{ 0, 0x989c,
 	    { 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000 } },
@@ -272,11 +218,9 @@ static const struct ath5k_ini_rfbuffer rfb_5111[] = {
 
 
 
-/***********************\
-* RF5112/RF2112 (Derby) *
-\***********************/
 
-/* BANK 7 (Common)			len  pos col */
+
+
 #define	AR5K_RF5112X_GAIN_I		{ 6, 14,  0 }
 #define	AR5K_RF5112X_MIXVGA_OVR		{ 1, 36,  0 }
 #define	AR5K_RF5112X_MIXGAIN_OVR	{ 2, 37,  0 }
@@ -288,9 +232,9 @@ static const struct ath5k_ini_rfbuffer rfb_5111[] = {
 #define	AR5K_RF5112X_PD_PERIOD_B	{ 4, 74,  0 }
 #define	AR5K_RF5112X_PD_PERIOD_XR	{ 4, 78,  0 }
 
-/* RFX112 (Derby 1) */
 
-/* BANK 6 				len  pos col */
+
+
 #define	AR5K_RF5112_OB_2GHZ		{ 3, 269, 0 }
 #define	AR5K_RF5112_DB_2GHZ		{ 3, 272, 0 }
 
@@ -303,7 +247,7 @@ static const struct ath5k_ini_rfbuffer rfb_5111[] = {
 #define	AR5K_RF5112_XPD_SEL		{ 1, 284, 0 }
 #define	AR5K_RF5112_XPD_GAIN		{ 2, 252, 0 }
 
-/* Access to PWD registers */
+
 #define AR5K_RF5112_PWD(_n)		{ 1, (302 - _n), 3 }
 
 static const struct ath5k_rf_reg rf_regs_5112[] = {
@@ -333,10 +277,10 @@ static const struct ath5k_rf_reg rf_regs_5112[] = {
 	{7, AR5K_RF_PD_PERIOD_XR,	AR5K_RF5112X_PD_PERIOD_XR},
 };
 
-/* Default mode specific settings */
+
 static const struct ath5k_ini_rfbuffer rfb_5112[] = {
 	{ 1, 0x98d4,
-	/*     mode a/XR  mode aTurbo    mode b     mode g    mode gTurbo */
+	
 	    { 0x00000020, 0x00000020, 0x00000020, 0x00000020, 0x00000020 } },
 	{ 2, 0x98d0,
 	    { 0x03060408, 0x03070408, 0x03060408, 0x03060408, 0x03070408 } },
@@ -446,9 +390,9 @@ static const struct ath5k_ini_rfbuffer rfb_5112[] = {
 	    { 0x00000003, 0x00000003, 0x00000003, 0x00000003, 0x00000003 } },
 };
 
-/* RFX112A (Derby 2) */
 
-/* BANK 6				len  pos col */
+
+
 #define	AR5K_RF5112A_OB_2GHZ		{ 3, 287, 0 }
 #define	AR5K_RF5112A_DB_2GHZ		{ 3, 290, 0 }
 
@@ -462,16 +406,16 @@ static const struct ath5k_ini_rfbuffer rfb_5112[] = {
 #define	AR5K_RF5112A_PDGAINLO		{ 2, 270, 0 }
 #define	AR5K_RF5112A_PDGAINHI		{ 2, 257, 0 }
 
-/* Access to PWD registers */
+
 #define AR5K_RF5112A_PWD(_n)		{ 1, (306 - _n), 3 }
 
-/* Voltage regulators */
+
 #define	AR5K_RF5112A_HIGH_VC_CP		{ 2, 90,  2 }
 #define	AR5K_RF5112A_MID_VC_CP		{ 2, 92,  2 }
 #define	AR5K_RF5112A_LOW_VC_CP		{ 2, 94,  2 }
 #define	AR5K_RF5112A_PUSH_UP		{ 1, 254,  2 }
 
-/* Power consumption */
+
 #define	AR5K_RF5112A_PAD2GND		{ 1, 281, 1 }
 #define	AR5K_RF5112A_XB2_LVL		{ 2, 1,	  3 }
 #define	AR5K_RF5112A_XB5_LVL		{ 2, 3,	  3 }
@@ -513,10 +457,10 @@ static const struct ath5k_rf_reg rf_regs_5112a[] = {
 	{7, AR5K_RF_PD_PERIOD_XR,	AR5K_RF5112X_PD_PERIOD_XR},
 };
 
-/* Default mode specific settings */
+
 static const struct ath5k_ini_rfbuffer rfb_5112a[] = {
 	{ 1, 0x98d4,
-	/*     mode a/XR  mode aTurbo    mode b     mode g    mode gTurbo */
+	
 	    { 0x00000020, 0x00000020, 0x00000020, 0x00000020, 0x00000020 } },
 	{ 2, 0x98d0,
 	    { 0x03060408, 0x03070408, 0x03060408, 0x03060408, 0x03070408 } },
@@ -632,11 +576,9 @@ static const struct ath5k_ini_rfbuffer rfb_5112a[] = {
 
 
 
-/******************\
-* RF2413 (Griffin) *
-\******************/
 
-/* BANK 6 				len  pos col */
+
+
 #define	AR5K_RF2413_OB_2GHZ		{ 3, 168, 0 }
 #define	AR5K_RF2413_DB_2GHZ		{ 3, 165, 0 }
 
@@ -645,12 +587,10 @@ static const struct ath5k_rf_reg rf_regs_2413[] = {
 	{6, AR5K_RF_DB_2GHZ,		AR5K_RF2413_DB_2GHZ},
 };
 
-/* Default mode specific settings
- * XXX: a/aTurbo ???
- */
+
 static const struct ath5k_ini_rfbuffer rfb_2413[] = {
 	{ 1, 0x98d4,
-	/*     mode a/XR  mode aTurbo    mode b     mode g    mode gTurbo */
+	
 	    { 0x00000020, 0x00000020, 0x00000020, 0x00000020, 0x00000020 } },
 	{ 2, 0x98d0,
 	    { 0x02001408, 0x02011408, 0x02001408, 0x02001408, 0x02011408 } },
@@ -720,11 +660,9 @@ static const struct ath5k_ini_rfbuffer rfb_2413[] = {
 
 
 
-/***************************\
-* RF2315/RF2316 (Cobra SoC) *
-\***************************/
 
-/* BANK 6				len  pos col */
+
+
 #define	AR5K_RF2316_OB_2GHZ		{ 3, 178, 0 }
 #define	AR5K_RF2316_DB_2GHZ		{ 3, 175, 0 }
 
@@ -733,10 +671,10 @@ static const struct ath5k_rf_reg rf_regs_2316[] = {
 	{6, AR5K_RF_DB_2GHZ,		AR5K_RF2316_DB_2GHZ},
 };
 
-/* Default mode specific settings */
+
 static const struct ath5k_ini_rfbuffer rfb_2316[] = {
 	{ 1, 0x98d4,
-	/*     mode a/XR  mode aTurbo    mode b     mode g    mode gTurbo */
+	
 	    { 0x00000020, 0x00000020, 0x00000020, 0x00000020, 0x00000020 } },
 	{ 2, 0x98d0,
 	    { 0x02001408, 0x02011408, 0x02001408, 0x02001408, 0x02011408 } },
@@ -810,11 +748,9 @@ static const struct ath5k_ini_rfbuffer rfb_2316[] = {
 
 
 
-/******************************\
-* RF5413/RF5424 (Eagle/Condor) *
-\******************************/
 
-/* BANK 6				len  pos col */
+
+
 #define	AR5K_RF5413_OB_2GHZ		{ 3, 241, 0 }
 #define	AR5K_RF5413_DB_2GHZ		{ 3, 238, 0 }
 
@@ -833,10 +769,10 @@ static const struct ath5k_rf_reg rf_regs_5413[] = {
 	{6, AR5K_RF_DERBY_CHAN_SEL_MODE, AR5K_RF5413_DERBY_CHAN_SEL_MODE},
 };
 
-/* Default mode specific settings */
+
 static const struct ath5k_ini_rfbuffer rfb_5413[] = {
 	{ 1, 0x98d4,
-	/*     mode a/XR  mode aTurbo    mode b     mode g    mode gTurbo */
+	
 	    { 0x00000020, 0x00000020, 0x00000020, 0x00000020, 0x00000020 } },
 	{ 2, 0x98d0,
 	    { 0x00000008, 0x00000008, 0x00000008, 0x00000008, 0x00000008 } },
@@ -926,12 +862,9 @@ static const struct ath5k_ini_rfbuffer rfb_5413[] = {
 
 
 
-/***************************\
-* RF2425/RF2417 (Swan/Nala) *
-* AR2317 (Spider SoC)       *
-\***************************/
 
-/* BANK 6				len  pos col */
+
+
 #define	AR5K_RF2425_OB_2GHZ		{ 3, 193, 0 }
 #define	AR5K_RF2425_DB_2GHZ		{ 3, 190, 0 }
 
@@ -940,12 +873,10 @@ static const struct ath5k_rf_reg rf_regs_2425[] = {
 	{6, AR5K_RF_DB_2GHZ,		AR5K_RF2425_DB_2GHZ},
 };
 
-/* Default mode specific settings
- * XXX: a/aTurbo ?
- */
+
 static const struct ath5k_ini_rfbuffer rfb_2425[] = {
 	{ 1, 0x98d4,
-	/*     mode a/XR  mode aTurbo    mode b     mode g    mode gTurbo */
+	
 	    { 0x00000020, 0x00000020, 0x00000020, 0x00000020, 0x00000020 } },
 	{ 2, 0x98d0,
 	    { 0x02001408, 0x02001408, 0x02001408, 0x02001408, 0x02001408 } },
@@ -1019,13 +950,10 @@ static const struct ath5k_ini_rfbuffer rfb_2425[] = {
 	    { 0x0000000e, 0x0000000e, 0x0000000e, 0x0000000e, 0x0000000e } },
 };
 
-/*
- * TODO: Handle the few differences with swan during
- * bank modification and get rid of this
- */
+
 static const struct ath5k_ini_rfbuffer rfb_2317[] = {
 	{ 1, 0x98d4,
-	/*     mode a/XR  mode aTurbo    mode b     mode g    mode gTurbo */
+	
 	    { 0x00000020, 0x00000020, 0x00000020, 0x00000020, 0x00000020 } },
 	{ 2, 0x98d0,
 	    { 0x02001408, 0x02011408, 0x02001408, 0x02001408, 0x02011408 } },
@@ -1099,14 +1027,10 @@ static const struct ath5k_ini_rfbuffer rfb_2317[] = {
 	    { 0x0000000e, 0x0000000e, 0x0000000e, 0x0000000e, 0x0000000e } },
 };
 
-/*
- * TODO: Handle the few differences with swan during
- * bank modification and get rid of this
- * XXX: a/aTurbo ?
- */
+
 static const struct ath5k_ini_rfbuffer rfb_2417[] = {
 	{ 1, 0x98d4,
-	/*     mode a/XR  mode aTurbo    mode b     mode g    mode gTurbo */
+	
 	    { 0x00000020, 0x00000020, 0x00000020, 0x00000020, 0x00000020 } },
 	{ 2, 0x98d0,
 	    { 0x02001408, 0x02001408, 0x02001408, 0x02001408, 0x02001408 } },

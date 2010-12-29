@@ -1,40 +1,4 @@
-/*
- * Atheros AR9170 driver
- *
- * Driver specific definitions
- *
- * Copyright 2008, Johannes Berg <johannes@sipsolutions.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; see the file COPYING.  If not, see
- * http://www.gnu.org/licenses/.
- *
- * This file incorporates work covered by the following copyright and
- * permission notice:
- *    Copyright (c) 2007-2008 Atheros Communications, Inc.
- *
- *    Permission to use, copy, modify, and/or distribute this software for any
- *    purpose with or without fee is hereby granted, provided that the above
- *    copyright notice and this permission notice appear in all copies.
- *
- *    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- *    WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- *    MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- *    ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- *    WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- *    ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- *    OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+
 #ifndef __AR9170_H
 #define __AR9170_H
 
@@ -44,7 +8,7 @@
 #include <net/mac80211.h>
 #ifdef CONFIG_AR9170_LEDS
 #include <linux/leds.h>
-#endif /* CONFIG_AR9170_LEDS */
+#endif 
 #include "eeprom.h"
 #include "hw.h"
 
@@ -95,7 +59,7 @@ struct ar9170_led {
 	bool registered;
 };
 
-#endif /* CONFIG_AR9170_LEDS */
+#endif 
 
 enum ar9170_device_state {
 	AR9170_UNKNOWN_STATE,
@@ -170,32 +134,32 @@ struct ar9170 {
 	void (*callback_cmd)(struct ar9170 *, u32 , void *);
 	int (*flush)(struct ar9170 *);
 
-	/* interface mode settings */
+	
 	struct ieee80211_vif *vif;
 	u8 mac_addr[ETH_ALEN];
 	u8 bssid[ETH_ALEN];
 
-	/* beaconing */
+	
 	struct sk_buff *beacon;
 	struct work_struct beacon_work;
 	bool enable_beacon;
 
-	/* cryptographic engine */
+	
 	u64 usedkeys;
 	bool rx_software_decryption;
 	bool disable_offload;
 
-	/* filter settings */
+	
 	u64 cur_mc_hash;
 	u32 cur_filter;
 	unsigned int filter_state;
 	bool sniffer_enabled;
 
-	/* PHY */
+	
 	struct ieee80211_channel *channel;
 	int noise[4];
 
-	/* power calibration data */
+	
 	u8 power_5G_leg[4];
 	u8 power_2G_cck[4];
 	u8 power_2G_ofdm[4];
@@ -207,9 +171,9 @@ struct ar9170 {
 #ifdef CONFIG_AR9170_LEDS
 	struct delayed_work led_work;
 	struct ar9170_led leds[AR9170_NUM_LEDS];
-#endif /* CONFIG_AR9170_LEDS */
+#endif 
 
-	/* qos queue settings */
+	
 	spinlock_t tx_stats_lock;
 	struct ieee80211_tx_queue_stats tx_stats[5];
 	struct ieee80211_tx_queue_params edcf[5];
@@ -217,28 +181,28 @@ struct ar9170 {
 	spinlock_t cmdlock;
 	__le32 cmdbuf[PAYLOAD_MAX + 1];
 
-	/* MAC statistics */
+	
 	struct ieee80211_low_level_stats stats;
 
-	/* EEPROM */
+	
 	struct ar9170_eeprom eeprom;
 
-	/* tx queues - as seen by hw - */
+	
 	struct sk_buff_head tx_pending[__AR9170_NUM_TXQ];
 	struct sk_buff_head tx_status[__AR9170_NUM_TXQ];
 	struct delayed_work tx_janitor;
-	/* tx ampdu */
+	
 	struct sk_buff_head tx_status_ampdu;
 	spinlock_t tx_ampdu_list_lock;
 	struct list_head tx_ampdu_list;
 	unsigned int tx_ampdu_pending;
 
-	/* rxstream mpdu merge */
+	
 	struct ar9170_rxstream_mpdu_merge rx_mpdu;
 	struct sk_buff *rx_failover;
 	int rx_failover_missing;
 
-	/* (cached) HW A-MPDU settings */
+	
 	u8 global_ampdu_density;
 	u8 global_ampdu_factor;
 };
@@ -260,7 +224,7 @@ struct ar9170_tx_info {
 #define IS_STARTED(a)		(((struct ar9170 *)a)->state >= AR9170_STARTED)
 #define IS_ACCEPTING_CMD(a)	(((struct ar9170 *)a)->state >= AR9170_IDLE)
 
-/* exported interface */
+
 void *ar9170_alloc(size_t priv_size);
 int ar9170_register(struct ar9170 *ar, struct device *pdev);
 void ar9170_rx(struct ar9170 *ar, struct sk_buff *skb);
@@ -269,7 +233,7 @@ void ar9170_tx_callback(struct ar9170 *ar, struct sk_buff *skb);
 void ar9170_handle_command_response(struct ar9170 *ar, void *buf, u32 len);
 int ar9170_nag_limiter(struct ar9170 *ar);
 
-/* MAC */
+
 int ar9170_op_tx(struct ieee80211_hw *hw, struct sk_buff *skb);
 int ar9170_init_mac(struct ar9170 *ar);
 int ar9170_set_qos(struct ar9170 *ar);
@@ -287,18 +251,18 @@ int ar9170_upload_key(struct ar9170 *ar, u8 id, const u8 *mac, u8 ktype,
 		      u8 keyidx, u8 *keydata, int keylen);
 int ar9170_disable_key(struct ar9170 *ar, u8 id);
 
-/* LEDs */
+
 #ifdef CONFIG_AR9170_LEDS
 int ar9170_register_leds(struct ar9170 *ar);
 void ar9170_unregister_leds(struct ar9170 *ar);
-#endif /* CONFIG_AR9170_LEDS */
+#endif 
 int ar9170_init_leds(struct ar9170 *ar);
 int ar9170_set_leds_state(struct ar9170 *ar, u32 led_state);
 
-/* PHY / RF */
+
 int ar9170_init_phy(struct ar9170 *ar, enum ieee80211_band band);
 int ar9170_init_rf(struct ar9170 *ar);
 int ar9170_set_channel(struct ar9170 *ar, struct ieee80211_channel *channel,
 		       enum ar9170_rf_init_mode rfi, enum ar9170_bw bw);
 
-#endif /* __AR9170_H */
+#endif 

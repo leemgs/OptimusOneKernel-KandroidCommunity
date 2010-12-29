@@ -1,7 +1,4 @@
-/**
-  * This header file contains data structures and
-  * function declarations of 802.11d
-  */
+
 #ifndef _LBS_11D_
 #define _LBS_11D_
 
@@ -10,8 +7,7 @@
 
 #define UNIVERSAL_REGION_CODE			0xff
 
-/** (Beaconsize(256)-5(IEId,len,contrystr(3))/3(FirstChan,NoOfChan,MaxPwr)
- */
+
 #define MRVDRV_MAX_SUBBAND_802_11D		83
 
 #define COUNTRY_CODE_LEN			3
@@ -19,7 +15,7 @@
 
 struct cmd_ds_command;
 
-/** Data structure for Country IE*/
+
 struct ieee_subbandset {
 	u8 firstchan;
 	u8 nrchan;
@@ -52,11 +48,11 @@ struct cmd_ds_802_11d_domain_info {
 	struct mrvl_ie_domain_param_set domain;
 } __attribute__ ((packed));
 
-/** domain regulatory information */
+
 struct lbs_802_11d_domain_reg {
-	/** country Code*/
+	
 	u8 countrycode[COUNTRY_CODE_LEN];
-	/** No. of subband*/
+	
 	u8 nr_subband;
 	struct ieee_subbandset subband[MRVDRV_MAX_SUBBAND_802_11D];
 };

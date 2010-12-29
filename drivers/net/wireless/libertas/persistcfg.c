@@ -34,9 +34,7 @@ static int mesh_get_default_parameters(struct device *dev,
 	return 0;
 }
 
-/**
- * @brief Get function for sysfs attribute bootflag
- */
+
 static ssize_t bootflag_get(struct device *dev,
 			    struct device_attribute *attr, char *buf)
 {
@@ -51,9 +49,7 @@ static ssize_t bootflag_get(struct device *dev,
 	return snprintf(buf, 12, "%d\n", le32_to_cpu(defs.bootflag));
 }
 
-/**
- * @brief Set function for sysfs attribute bootflag
- */
+
 static ssize_t bootflag_set(struct device *dev, struct device_attribute *attr,
 			    const char *buf, size_t count)
 {
@@ -77,9 +73,7 @@ static ssize_t bootflag_set(struct device *dev, struct device_attribute *attr,
 	return strlen(buf);
 }
 
-/**
- * @brief Get function for sysfs attribute boottime
- */
+
 static ssize_t boottime_get(struct device *dev,
 			    struct device_attribute *attr, char *buf)
 {
@@ -94,9 +88,7 @@ static ssize_t boottime_get(struct device *dev,
 	return snprintf(buf, 12, "%d\n", defs.boottime);
 }
 
-/**
- * @brief Set function for sysfs attribute boottime
- */
+
 static ssize_t boottime_set(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count)
 {
@@ -110,14 +102,7 @@ static ssize_t boottime_set(struct device *dev,
 	if ((ret != 1) || (datum > 255))
 		return -EINVAL;
 
-	/* A too small boot time will result in the device booting into
-	 * standalone (no-host) mode before the host can take control of it,
-	 * so the change will be hard to revert.  This may be a desired
-	 * feature (e.g to configure a very fast boot time for devices that
-	 * will not be attached to a host), but dangerous.  So I'm enforcing a
-	 * lower limit of 20 seconds:  remove and recompile the driver if this
-	 * does not work for you.
-	 */
+	
 	datum = (datum < 20) ? 20 : datum;
 	cmd.data[0] = datum;
 	cmd.length = cpu_to_le16(sizeof(uint8_t));
@@ -129,9 +114,7 @@ static ssize_t boottime_set(struct device *dev,
 	return strlen(buf);
 }
 
-/**
- * @brief Get function for sysfs attribute channel
- */
+
 static ssize_t channel_get(struct device *dev,
 			   struct device_attribute *attr, char *buf)
 {
@@ -146,9 +129,7 @@ static ssize_t channel_get(struct device *dev,
 	return snprintf(buf, 12, "%d\n", le16_to_cpu(defs.channel));
 }
 
-/**
- * @brief Set function for sysfs attribute channel
- */
+
 static ssize_t channel_set(struct device *dev, struct device_attribute *attr,
 			   const char *buf, size_t count)
 {
@@ -172,9 +153,7 @@ static ssize_t channel_set(struct device *dev, struct device_attribute *attr,
 	return strlen(buf);
 }
 
-/**
- * @brief Get function for sysfs attribute mesh_id
- */
+
 static ssize_t mesh_id_get(struct device *dev, struct device_attribute *attr,
 			   char *buf)
 {
@@ -192,7 +171,7 @@ static ssize_t mesh_id_get(struct device *dev, struct device_attribute *attr,
 		defs.meshie.val.mesh_id_len = IW_ESSID_MAX_SIZE;
 	}
 
-	/* SSID not null terminated: reserve room for \0 + \n */
+	
 	maxlen = defs.meshie.val.mesh_id_len + 2;
 	maxlen = (PAGE_SIZE > maxlen) ? maxlen : PAGE_SIZE;
 
@@ -201,9 +180,7 @@ static ssize_t mesh_id_get(struct device *dev, struct device_attribute *attr,
 	return snprintf(buf, maxlen, "%s\n", defs.meshie.val.mesh_id);
 }
 
-/**
- * @brief Set function for sysfs attribute mesh_id
- */
+
 static ssize_t mesh_id_set(struct device *dev, struct device_attribute *attr,
 			   const char *buf, size_t count)
 {
@@ -220,19 +197,19 @@ static ssize_t mesh_id_set(struct device *dev, struct device_attribute *attr,
 	memset(&cmd, 0, sizeof(struct cmd_ds_mesh_config));
 	ie = (struct mrvl_meshie *) &cmd.data[0];
 
-	/* fetch all other Information Element parameters */
+	
 	ret = mesh_get_default_parameters(dev, &defs);
 
 	cmd.length = cpu_to_le16(sizeof(struct mrvl_meshie));
 
-	/* transfer IE elements */
+	
 	memcpy(ie, &defs.meshie, sizeof(struct mrvl_meshie));
 
 	len = count - 1;
 	memcpy(ie->val.mesh_id, buf, len);
-	/* SSID len */
+	
 	ie->val.mesh_id_len = len;
-	/* IE len */
+	
 	ie->len = sizeof(struct mrvl_meshie_val) - IW_ESSID_MAX_SIZE + len;
 
 	ret = lbs_mesh_config_send(priv, &cmd, CMD_ACT_MESH_CONFIG_SET,
@@ -243,9 +220,7 @@ static ssize_t mesh_id_set(struct device *dev, struct device_attribute *attr,
 	return strlen(buf);
 }
 
-/**
- * @brief Get function for sysfs attribute protocol_id
- */
+
 static ssize_t protocol_id_get(struct device *dev,
 			       struct device_attribute *attr, char *buf)
 {
@@ -260,9 +235,7 @@ static ssize_t protocol_id_get(struct device *dev,
 	return snprintf(buf, 5, "%d\n", defs.meshie.val.active_protocol_id);
 }
 
-/**
- * @brief Set function for sysfs attribute protocol_id
- */
+
 static ssize_t protocol_id_set(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count)
 {
@@ -278,15 +251,15 @@ static ssize_t protocol_id_set(struct device *dev,
 	if ((ret != 1) || (datum > 255))
 		return -EINVAL;
 
-	/* fetch all other Information Element parameters */
+	
 	ret = mesh_get_default_parameters(dev, &defs);
 
 	cmd.length = cpu_to_le16(sizeof(struct mrvl_meshie));
 
-	/* transfer IE elements */
+	
 	ie = (struct mrvl_meshie *) &cmd.data[0];
 	memcpy(ie, &defs.meshie, sizeof(struct mrvl_meshie));
-	/* update protocol id */
+	
 	ie->val.active_protocol_id = datum;
 
 	ret = lbs_mesh_config_send(priv, &cmd, CMD_ACT_MESH_CONFIG_SET,
@@ -297,9 +270,7 @@ static ssize_t protocol_id_set(struct device *dev,
 	return strlen(buf);
 }
 
-/**
- * @brief Get function for sysfs attribute metric_id
- */
+
 static ssize_t metric_id_get(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
@@ -314,9 +285,7 @@ static ssize_t metric_id_get(struct device *dev,
 	return snprintf(buf, 5, "%d\n", defs.meshie.val.active_metric_id);
 }
 
-/**
- * @brief Set function for sysfs attribute metric_id
- */
+
 static ssize_t metric_id_set(struct device *dev, struct device_attribute *attr,
 			     const char *buf, size_t count)
 {
@@ -332,15 +301,15 @@ static ssize_t metric_id_set(struct device *dev, struct device_attribute *attr,
 	if ((ret != 1) || (datum > 255))
 		return -EINVAL;
 
-	/* fetch all other Information Element parameters */
+	
 	ret = mesh_get_default_parameters(dev, &defs);
 
 	cmd.length = cpu_to_le16(sizeof(struct mrvl_meshie));
 
-	/* transfer IE elements */
+	
 	ie = (struct mrvl_meshie *) &cmd.data[0];
 	memcpy(ie, &defs.meshie, sizeof(struct mrvl_meshie));
-	/* update metric id */
+	
 	ie->val.active_metric_id = datum;
 
 	ret = lbs_mesh_config_send(priv, &cmd, CMD_ACT_MESH_CONFIG_SET,
@@ -351,9 +320,7 @@ static ssize_t metric_id_set(struct device *dev, struct device_attribute *attr,
 	return strlen(buf);
 }
 
-/**
- * @brief Get function for sysfs attribute capability
- */
+
 static ssize_t capability_get(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
@@ -368,9 +335,7 @@ static ssize_t capability_get(struct device *dev,
 	return snprintf(buf, 5, "%d\n", defs.meshie.val.mesh_capability);
 }
 
-/**
- * @brief Set function for sysfs attribute capability
- */
+
 static ssize_t capability_set(struct device *dev, struct device_attribute *attr,
 			      const char *buf, size_t count)
 {
@@ -386,15 +351,15 @@ static ssize_t capability_set(struct device *dev, struct device_attribute *attr,
 	if ((ret != 1) || (datum > 255))
 		return -EINVAL;
 
-	/* fetch all other Information Element parameters */
+	
 	ret = mesh_get_default_parameters(dev, &defs);
 
 	cmd.length = cpu_to_le16(sizeof(struct mrvl_meshie));
 
-	/* transfer IE elements */
+	
 	ie = (struct mrvl_meshie *) &cmd.data[0];
 	memcpy(ie, &defs.meshie, sizeof(struct mrvl_meshie));
-	/* update value */
+	
 	ie->val.mesh_capability = datum;
 
 	ret = lbs_mesh_config_send(priv, &cmd, CMD_ACT_MESH_CONFIG_SET,

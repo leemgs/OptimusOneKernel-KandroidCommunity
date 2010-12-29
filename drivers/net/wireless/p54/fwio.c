@@ -1,20 +1,4 @@
-/*
- * Firmware I/O code for mac80211 Prism54 drivers
- *
- * Copyright (c) 2006, Michael Wu <flamingice@sourmilk.net>
- * Copyright (c) 2007-2009, Christian Lamparter <chunkeey@web.de>
- * Copyright 2008, Johannes Berg <johannes@sipsolutions.net>
- *
- * Based on:
- * - the islsm (softmac prism54) driver, which is:
- *   Copyright 2004-2006 Jean-Baptiste Note <jbnote@gmail.com>, et al.
- * - stlc45xx driver
- *   Copyright (C) 2008 Nokia Corporation and/or its subsidiary(-ies).
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/firmware.h>
@@ -75,7 +59,7 @@ int p54_parse_firmware(struct ieee80211_hw *dev, const struct firmware *fw)
 			}
 			break;
 		case BR_CODE_COMPONENT_VERSION:
-			/* 24 bytes should be enough for all firmwares */
+			
 			if (strnlen((unsigned char *) bootrec->data, 24) < 24)
 				fw_version = (unsigned char *) bootrec->data;
 			break;
@@ -83,7 +67,7 @@ int p54_parse_firmware(struct ieee80211_hw *dev, const struct firmware *fw)
 			struct bootrec_desc *desc =
 				(struct bootrec_desc *)bootrec->data;
 			priv->rx_start = le32_to_cpu(desc->rx_start);
-			/* FIXME add sanity checking */
+			
 			priv->rx_end = le32_to_cpu(desc->rx_end) - 0x3500;
 			priv->headroom = desc->headroom;
 			priv->tailroom = desc->tailroom;
@@ -94,9 +78,9 @@ int p54_parse_firmware(struct ieee80211_hw *dev, const struct firmware *fw)
 			else
 				priv->rx_mtu = (size_t)
 					0x620 - priv->tx_hdr_len;
-			maxlen = priv->tx_hdr_len + /* USB devices */
+			maxlen = priv->tx_hdr_len + 
 				 sizeof(struct p54_rx_data) +
-				 4 + /* rx alignment */
+				 4 + 
 				 IEEE80211_MAX_FRAG_THRESHOLD;
 			if (priv->rx_mtu > maxlen && PAGE_SIZE == 4096) {
 				printk(KERN_INFO "p54: rx_mtu reduced from %d "
@@ -135,7 +119,7 @@ int p54_parse_firmware(struct ieee80211_hw *dev, const struct firmware *fw)
 			wiphy_name(priv->hw->wiphy));
 
 	if (priv->fw_var >= 0x300) {
-		/* Firmware supports QoS, use it! */
+		
 
 		if (priv->fw_var >= 0x500) {
 			priv->tx_stats[P54_QUEUE_AC_VO].limit = 16;
@@ -160,16 +144,7 @@ int p54_parse_firmware(struct ieee80211_hw *dev, const struct firmware *fw)
 		"YES" : "no");
 
 	if (priv->rx_keycache_size) {
-		/*
-		 * NOTE:
-		 *
-		 * The firmware provides at most 255 (0 - 254) slots
-		 * for keys which are then used to offload decryption.
-		 * As a result the 255 entry (aka 0xff) can be used
-		 * safely by the driver to mark keys that didn't fit
-		 * into the full cache. This trick saves us from
-		 * keeping a extra list for uploaded keys.
-		 */
+		
 
 		priv->used_rxkeys = kzalloc(BITS_TO_LONGS(
 			priv->rx_keycache_size), GFP_KERNEL);
@@ -340,10 +315,7 @@ int p54_setup_mac(struct p54_common *priv)
 			break;
 		}
 
-		/*
-		 * "TRANSPARENT and PROMISCUOUS are mutually exclusive"
-		 * STSW45X0C LMAC API - page 12
-		 */
+		
 		if (((priv->filter_flags & FIF_PROMISC_IN_BSS) ||
 		     (priv->filter_flags & FIF_OTHER_BSS)) &&
 		    (mode != P54_FILTER_TYPE_PROMISCUOUS))
@@ -355,7 +327,7 @@ int p54_setup_mac(struct p54_common *priv)
 	setup->mac_mode = cpu_to_le16(mode);
 	memcpy(setup->mac_addr, priv->mac_addr, ETH_ALEN);
 	memcpy(setup->bssid, priv->bssid, ETH_ALEN);
-	setup->rx_antenna = 2 & priv->rx_diversity_mask; /* automatic */
+	setup->rx_antenna = 2 & priv->rx_diversity_mask; 
 	setup->rx_align = 0;
 	if (priv->fw_var < 0x500) {
 		setup->v1.basic_rate_mask = cpu_to_le32(priv->basic_rate_mask);
@@ -502,7 +474,7 @@ int p54_scan(struct p54_common *priv, u16 mode, u16 dwell)
 	rssi->mul = cpu_to_le16(priv->rssical_db[band].mul);
 	rssi->add = cpu_to_le16(priv->rssical_db[band].add);
 	if (priv->rxhw == PDR_SYNTH_FRONTEND_LONGBOW) {
-		/* Longbow frontend needs ever more */
+		
 		rssi = (void *) skb_put(skb, sizeof(*rssi));
 		rssi->mul = cpu_to_le16(priv->rssical_db[band].longbow_unkn);
 		rssi->add = cpu_to_le16(priv->rssical_db[band].longbow_unk2);
@@ -569,7 +541,7 @@ int p54_set_edcf(struct p54_common *priv)
 		edcf->sifs = 0x0a;
 		edcf->eofpad = 0x06;
 	}
-	/* (see prism54/isl_oid.h for further details) */
+	
 	edcf->frameburst = cpu_to_le16(0);
 	edcf->round_trip_delay = cpu_to_le16(0);
 	edcf->flags = 0;
@@ -697,16 +669,7 @@ int p54_fetch_statistics(struct p54_common *priv)
 	if (!skb)
 		return -ENOMEM;
 
-	/*
-	 * The statistic feedback causes some extra headaches here, if it
-	 * is not to crash/corrupt the firmware data structures.
-	 *
-	 * Unlike all other Control Get OIDs we can not use helpers like
-	 * skb_put to reserve the space for the data we're requesting.
-	 * Instead the extra frame length -which will hold the results later-
-	 * will only be told to the p54_assign_address, so that following
-	 * frames won't be placed into the  allegedly empty area.
-	 */
+	
 	txinfo = IEEE80211_SKB_CB(skb);
 	p54info = (void *) txinfo->rate_driver_data;
 	p54info->extra_len = sizeof(struct p54_statistics);

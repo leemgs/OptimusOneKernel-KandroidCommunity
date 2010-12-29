@@ -1,40 +1,4 @@
-/*
- * Atheros AR9170 driver
- *
- * Hardware-specific definitions
- *
- * Copyright 2008, Johannes Berg <johannes@sipsolutions.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; see the file COPYING.  If not, see
- * http://www.gnu.org/licenses/.
- *
- * This file incorporates work covered by the following copyright and
- * permission notice:
- *    Copyright (c) 2007-2008 Atheros Communications, Inc.
- *
- *    Permission to use, copy, modify, and/or distribute this software for any
- *    purpose with or without fee is hereby granted, provided that the above
- *    copyright notice and this permission notice appear in all copies.
- *
- *    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- *    WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- *    MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- *    ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- *    WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- *    ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- *    OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+
 #ifndef __AR9170_HW_H
 #define __AR9170_HW_H
 
@@ -71,7 +35,7 @@ enum ar9170_cmd {
 	AR9170_CMD_MEM_WREEPROM	= 0xBB,
 };
 
-/* endpoints */
+
 #define AR9170_EP_TX				1
 #define AR9170_EP_RX				2
 #define AR9170_EP_IRQ				3
@@ -237,7 +201,7 @@ enum ar9170_cmd {
 #define		AR9170_PWR_CLK_DAC_160_INV_DLY	0x70
 
 
-/* put beacon here in memory */
+
 #define AR9170_BEACON_BUFFER_ADDRESS		0x117900
 
 
@@ -248,17 +212,17 @@ struct ar9170_tx_control {
 	u8 frame_data[0];
 } __packed;
 
-/* these are either-or */
+
 #define AR9170_TX_MAC_PROT_RTS			0x0001
 #define AR9170_TX_MAC_PROT_CTS			0x0002
 
 #define AR9170_TX_MAC_NO_ACK			0x0004
-/* if unset, MAC will only do SIFS space before frame */
+
 #define AR9170_TX_MAC_BACKOFF			0x0008
 #define AR9170_TX_MAC_BURST			0x0010
 #define AR9170_TX_MAC_AGGR			0x0020
 
-/* encryption is a two-bit field */
+
 #define AR9170_TX_MAC_ENCR_NONE			0x0000
 #define AR9170_TX_MAC_ENCR_RC4			0x0040
 #define AR9170_TX_MAC_ENCR_CENC			0x0080
@@ -275,12 +239,12 @@ struct ar9170_tx_control {
 #define AR9170_TX_MAC_IMM_AMPDU			0x4000
 #define AR9170_TX_MAC_RATE_PROBE		0x8000
 
-/* either-or */
+
 #define AR9170_TX_PHY_MOD_CCK			0x00000000
 #define AR9170_TX_PHY_MOD_OFDM			0x00000001
 #define AR9170_TX_PHY_MOD_HT			0x00000002
 
-/* depends on modulation */
+
 #define AR9170_TX_PHY_SHORT_PREAMBLE		0x00000004
 #define AR9170_TX_PHY_GREENFIELD		0x00000004
 
@@ -296,14 +260,14 @@ struct ar9170_tx_control {
 #define AR9170_TX_PHY_TX_PWR_SHIFT		9
 #define AR9170_TX_PHY_TX_PWR_MASK		(0x3f << AR9170_TX_PHY_TX_PWR_SHIFT)
 
-/* not part of the hw-spec */
+
 #define AR9170_TX_PHY_QOS_SHIFT			25
 #define AR9170_TX_PHY_QOS_MASK			(3 << AR9170_TX_PHY_QOS_SHIFT)
 
 #define AR9170_TX_PHY_TXCHAIN_SHIFT		15
 #define AR9170_TX_PHY_TXCHAIN_MASK		(7 << AR9170_TX_PHY_TXCHAIN_SHIFT)
 #define AR9170_TX_PHY_TXCHAIN_1			1
-/* use for cck, ofdm 6/9/12/18/24 and HT if capable */
+
 #define AR9170_TX_PHY_TXCHAIN_2			5
 
 #define AR9170_TX_PHY_MCS_SHIFT			18
@@ -357,7 +321,7 @@ static inline u8 ar9170_get_decrypt_type(struct ar9170_rx_macstatus *t)
 #define AR9170_RX_STATUS_MODULATION_HT		0x02
 #define AR9170_RX_STATUS_MODULATION_DUPOFDM	0x03
 
-/* depends on modulation */
+
 #define AR9170_RX_STATUS_SHORT_PREAMBLE		0x08
 #define AR9170_RX_STATUS_GREENFIELD		0x08
 
@@ -403,12 +367,12 @@ struct ar9170_cmd_response {
 	};
 } __packed;
 
-/* QoS */
 
-/* mac80211 queue to HW/FW map */
+
+
 static const u8 ar9170_qos_hwmap[4] = { 3, 2, 0, 1 };
 
-/* HW/FW queue to mac80211 map */
+
 static const u8 ar9170_qos_mac80211map[4] = { 2, 3, 1, 0 };
 
 enum ar9170_txq {
@@ -423,4 +387,4 @@ enum ar9170_txq {
 #define AR9170_TXQ_DEPTH	32
 #define AR9170_TX_MAX_PENDING	128
 
-#endif /* __AR9170_HW_H */
+#endif 

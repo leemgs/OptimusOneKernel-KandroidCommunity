@@ -1,17 +1,5 @@
 
-/*
- * Linux device driver for PCI based Prism54
- *
- * Copyright (c) 2006, Michael Wu <flamingice@sourmilk.net>
- * Copyright (c) 2008, Christian Lamparter <chunkeey@web.de>
- *
- * Based on the islsm (softmac prism54) driver, which is:
- * Copyright 2004-2006 Jean-Baptiste Note <jean-baptiste.note@m4x.org>, et al.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/pci.h>
@@ -32,13 +20,13 @@ MODULE_ALIAS("prism54pci");
 MODULE_FIRMWARE("isl3886pci");
 
 static struct pci_device_id p54p_table[] __devinitdata = {
-	/* Intersil PRISM Duette/Prism GT Wireless LAN adapter */
+	
 	{ PCI_DEVICE(0x1260, 0x3890) },
-	/* 3COM 3CRWE154G72 Wireless LAN adapter */
+	
 	{ PCI_DEVICE(0x10b7, 0x6001) },
-	/* Intersil PRISM Indigo Wireless LAN adapter */
+	
 	{ PCI_DEVICE(0x1260, 0x3877) },
-	/* Intersil PRISM Javelin/Xbow Wireless LAN adapter */
+	
 	{ PCI_DEVICE(0x1260, 0x3886) },
 	{ },
 };
@@ -73,7 +61,7 @@ static int p54p_upload_firmware(struct ieee80211_hw *dev)
 	P54P_WRITE(ctrl_stat, reg);
 	wmb();
 
-	/* wait for the firmware to reset properly */
+	
 	mdelay(10);
 
 	err = p54_parse_firmware(dev, priv->firmware);
@@ -123,7 +111,7 @@ static int p54p_upload_firmware(struct ieee80211_hw *dev)
 	wmb();
 	udelay(10);
 
-	/* wait for the firmware to boot properly */
+	
 	mdelay(100);
 
 	return 0;
@@ -158,7 +146,7 @@ static void p54p_refill_rx_ring(struct ieee80211_hw *dev,
 						 priv->common.rx_mtu + 32,
 						 PCI_DMA_FROMDEVICE);
 			desc->host_addr = cpu_to_le32(mapping);
-			desc->device_addr = 0;	// FIXME: necessary?
+			desc->device_addr = 0;	
 			desc->len = cpu_to_le16(priv->common.rx_mtu + 32);
 			desc->flags = 0;
 			rx_buf[i] = skb;
@@ -218,7 +206,7 @@ static void p54p_check_rx_ring(struct ieee80211_hw *dev, u32 *index,
 	p54p_refill_rx_ring(dev, ring_index, ring, ring_limit, rx_buf);
 }
 
-/* caller must hold priv->lock */
+
 static void p54p_check_tx_ring(struct ieee80211_hw *dev, u32 *index,
 	int ring_index, struct p54p_desc *ring, u32 ring_limit,
 	void **tx_buf)
@@ -632,7 +620,7 @@ static int p54p_resume(struct pci_dev *pdev)
 
 	return 0;
 }
-#endif /* CONFIG_PM */
+#endif 
 
 static struct pci_driver p54p_driver = {
 	.name		= "p54pci",
@@ -642,7 +630,7 @@ static struct pci_driver p54p_driver = {
 #ifdef CONFIG_PM
 	.suspend	= p54p_suspend,
 	.resume		= p54p_resume,
-#endif /* CONFIG_PM */
+#endif 
 };
 
 static int __init p54p_init(void)

@@ -1,16 +1,5 @@
 
-/*
- * Linux device driver for USB based Prism54
- *
- * Copyright (c) 2006, Michael Wu <flamingice@sourmilk.net>
- *
- * Based on the islsm (softmac prism54) driver, which is:
- * Copyright 2004-2006 Jean-Baptiste Note <jbnote@gmail.com>, et al.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/usb.h>
@@ -33,51 +22,51 @@ MODULE_FIRMWARE("isl3886usb");
 MODULE_FIRMWARE("isl3887usb");
 
 static struct usb_device_id p54u_table[] __devinitdata = {
-	/* Version 1 devices (pci chip + net2280) */
-	{USB_DEVICE(0x0506, 0x0a11)},	/* 3COM 3CRWE254G72 */
-	{USB_DEVICE(0x0707, 0xee06)},	/* SMC 2862W-G */
-	{USB_DEVICE(0x083a, 0x4501)},	/* Accton 802.11g WN4501 USB */
-	{USB_DEVICE(0x083a, 0x4502)},	/* Siemens Gigaset USB Adapter */
-	{USB_DEVICE(0x083a, 0x5501)},	/* Phillips CPWUA054 */
-	{USB_DEVICE(0x0846, 0x4200)},	/* Netgear WG121 */
-	{USB_DEVICE(0x0846, 0x4210)},	/* Netgear WG121 the second ? */
-	{USB_DEVICE(0x0846, 0x4220)},	/* Netgear WG111 */
-	{USB_DEVICE(0x09aa, 0x1000)},	/* Spinnaker Proto board */
-	{USB_DEVICE(0x0cde, 0x0006)},	/* Medion 40900, Roper Europe */
-	{USB_DEVICE(0x124a, 0x4023)},	/* Shuttle PN15, Airvast WM168g, IOGear GWU513 */
-	{USB_DEVICE(0x1915, 0x2234)},	/* Linksys WUSB54G OEM */
-	{USB_DEVICE(0x1915, 0x2235)},	/* Linksys WUSB54G Portable OEM */
-	{USB_DEVICE(0x2001, 0x3701)},	/* DLink DWL-G120 Spinnaker */
-	{USB_DEVICE(0x2001, 0x3703)},	/* DLink DWL-G122 */
-	{USB_DEVICE(0x5041, 0x2234)},	/* Linksys WUSB54G */
-	{USB_DEVICE(0x5041, 0x2235)},	/* Linksys WUSB54G Portable */
+	
+	{USB_DEVICE(0x0506, 0x0a11)},	
+	{USB_DEVICE(0x0707, 0xee06)},	
+	{USB_DEVICE(0x083a, 0x4501)},	
+	{USB_DEVICE(0x083a, 0x4502)},	
+	{USB_DEVICE(0x083a, 0x5501)},	
+	{USB_DEVICE(0x0846, 0x4200)},	
+	{USB_DEVICE(0x0846, 0x4210)},	
+	{USB_DEVICE(0x0846, 0x4220)},	
+	{USB_DEVICE(0x09aa, 0x1000)},	
+	{USB_DEVICE(0x0cde, 0x0006)},	
+	{USB_DEVICE(0x124a, 0x4023)},	
+	{USB_DEVICE(0x1915, 0x2234)},	
+	{USB_DEVICE(0x1915, 0x2235)},	
+	{USB_DEVICE(0x2001, 0x3701)},	
+	{USB_DEVICE(0x2001, 0x3703)},	
+	{USB_DEVICE(0x5041, 0x2234)},	
+	{USB_DEVICE(0x5041, 0x2235)},	
 
-	/* Version 2 devices (3887) */
-	{USB_DEVICE(0x0471, 0x1230)},   /* Philips CPWUA054/00 */
-	{USB_DEVICE(0x050d, 0x7050)},	/* Belkin F5D7050 ver 1000 */
-	{USB_DEVICE(0x0572, 0x2000)},	/* Cohiba Proto board */
-	{USB_DEVICE(0x0572, 0x2002)},	/* Cohiba Proto board */
-	{USB_DEVICE(0x06b9, 0x0121)},	/* Thomson SpeedTouch 121g */
-	{USB_DEVICE(0x0707, 0xee13)},   /* SMC 2862W-G version 2 */
-	{USB_DEVICE(0x083a, 0x4521)},   /* Siemens Gigaset USB Adapter 54 version 2 */
-	{USB_DEVICE(0x0846, 0x4240)},	/* Netgear WG111 (v2) */
-	{USB_DEVICE(0x0915, 0x2000)},	/* Cohiba Proto board */
-	{USB_DEVICE(0x0915, 0x2002)},	/* Cohiba Proto board */
-	{USB_DEVICE(0x0baf, 0x0118)},   /* U.S. Robotics U5 802.11g Adapter*/
-	{USB_DEVICE(0x0bf8, 0x1009)},   /* FUJITSU E-5400 USB D1700*/
-	{USB_DEVICE(0x0cde, 0x0006)},   /* Medion MD40900 */
-	{USB_DEVICE(0x0cde, 0x0008)},	/* Sagem XG703A */
-	{USB_DEVICE(0x0cde, 0x0015)},	/* Zcomax XG-705A */
-	{USB_DEVICE(0x0d8e, 0x3762)},	/* DLink DWL-G120 Cohiba */
-	{USB_DEVICE(0x124a, 0x4025)},	/* IOGear GWU513 (GW3887IK chip) */
-	{USB_DEVICE(0x1260, 0xee22)},	/* SMC 2862W-G version 2 */
-	{USB_DEVICE(0x13b1, 0x000a)},	/* Linksys WUSB54G ver 2 */
-	{USB_DEVICE(0x13B1, 0x000C)},	/* Linksys WUSB54AG */
-	{USB_DEVICE(0x1413, 0x5400)},   /* Telsey 802.11g USB2.0 Adapter */
-	{USB_DEVICE(0x1435, 0x0427)},	/* Inventel UR054G */
-	{USB_DEVICE(0x2001, 0x3704)},	/* DLink DWL-G122 rev A2 */
-	{USB_DEVICE(0x413c, 0x8102)},	/* Spinnaker DUT */
-	{USB_DEVICE(0x413c, 0x8104)},	/* Cohiba Proto board */
+	
+	{USB_DEVICE(0x0471, 0x1230)},   
+	{USB_DEVICE(0x050d, 0x7050)},	
+	{USB_DEVICE(0x0572, 0x2000)},	
+	{USB_DEVICE(0x0572, 0x2002)},	
+	{USB_DEVICE(0x06b9, 0x0121)},	
+	{USB_DEVICE(0x0707, 0xee13)},   
+	{USB_DEVICE(0x083a, 0x4521)},   
+	{USB_DEVICE(0x0846, 0x4240)},	
+	{USB_DEVICE(0x0915, 0x2000)},	
+	{USB_DEVICE(0x0915, 0x2002)},	
+	{USB_DEVICE(0x0baf, 0x0118)},   
+	{USB_DEVICE(0x0bf8, 0x1009)},   
+	{USB_DEVICE(0x0cde, 0x0006)},   
+	{USB_DEVICE(0x0cde, 0x0008)},	
+	{USB_DEVICE(0x0cde, 0x0015)},	
+	{USB_DEVICE(0x0d8e, 0x3762)},	
+	{USB_DEVICE(0x124a, 0x4025)},	
+	{USB_DEVICE(0x1260, 0xee22)},	
+	{USB_DEVICE(0x13b1, 0x000a)},	
+	{USB_DEVICE(0x13B1, 0x000C)},	
+	{USB_DEVICE(0x1413, 0x5400)},   
+	{USB_DEVICE(0x1435, 0x0427)},	
+	{USB_DEVICE(0x2001, 0x3704)},	
+	{USB_DEVICE(0x413c, 0x8102)},	
+	{USB_DEVICE(0x413c, 0x8104)},	
 	{}
 };
 
@@ -132,7 +121,7 @@ static void p54u_rx_cb(struct urb *urb)
 	if (p54_rx(dev, skb)) {
 		skb = dev_alloc_skb(priv->common.rx_mtu + 32);
 		if (unlikely(!skb)) {
-			/* TODO check rx queue length and refill *somewhere* */
+			
 			return;
 		}
 
@@ -301,11 +290,7 @@ static void p54u_tx_net2280(struct ieee80211_hw *dev, struct sk_buff *skb)
 		usb_sndbulkpipe(priv->udev, P54U_PIPE_DEV), reg, sizeof(*reg),
 		p54u_tx_dummy_cb, dev);
 
-	/*
-	 * URB_FREE_BUFFER triggers a code path in the USB subsystem that will
-	 * free what is inside the transfer_buffer after the last reference to
-	 * the int_urb is dropped.
-	 */
+	
 	int_urb->transfer_flags |= URB_FREE_BUFFER | URB_ZERO_PACKET;
 	reg = NULL;
 
@@ -609,7 +594,7 @@ static int p54u_upload_firmware_net2280(struct ieee80211_hw *dev)
 			goto fail;\
 	} while (0)
 
-	/* power down net2280 bridge */
+	
 	P54U_READ(NET2280_BRG_U32, NET2280_GPIOCTL);
 	reg |= cpu_to_le32(P54U_BRG_POWER_DOWN);
 	reg &= cpu_to_le32(~P54U_BRG_POWER_UP);
@@ -617,7 +602,7 @@ static int p54u_upload_firmware_net2280(struct ieee80211_hw *dev)
 
 	mdelay(100);
 
-	/* power up bridge */
+	
 	reg |= cpu_to_le32(P54U_BRG_POWER_UP);
 	reg &= cpu_to_le32(~P54U_BRG_POWER_DOWN);
 	P54U_WRITE(NET2280_BRG_U32, NET2280_GPIOCTL, reg);
@@ -642,7 +627,7 @@ static int p54u_upload_firmware_net2280(struct ieee80211_hw *dev)
 	reg |= cpu_to_le32(PCI_STATUS_REC_MASTER_ABORT);
 	P54U_WRITE(NET2280_BRG_CFG_U16, PCI_STATUS, reg);
 
-	// TODO: we really need this?
+	
 	P54U_READ(NET2280_BRG_U32, NET2280_RELNUM);
 
 	P54U_WRITE(NET2280_BRG_U32, NET2280_EPA_RSP,
@@ -653,13 +638,13 @@ static int p54u_upload_firmware_net2280(struct ieee80211_hw *dev)
 	P54U_WRITE(NET2280_BRG_CFG_U32, PCI_BASE_ADDRESS_2,
 		   cpu_to_le32(NET2280_BASE2));
 
-	/* finally done setting up the bridge */
+	
 
 	P54U_WRITE(NET2280_DEV_CFG_U16, 0x10000 | PCI_COMMAND,
 		   cpu_to_le32(PCI_COMMAND_MEMORY |
 			       PCI_COMMAND_MASTER));
 
-	P54U_WRITE(NET2280_DEV_CFG_U16, 0x10000 | 0x40 /* TRDY timeout */, 0);
+	P54U_WRITE(NET2280_DEV_CFG_U16, 0x10000 | 0x40 , 0);
 	P54U_WRITE(NET2280_DEV_CFG_U32, 0x10000 | PCI_BASE_ADDRESS_0,
 		   cpu_to_le32(P54U_DEV_BASE));
 
@@ -667,7 +652,7 @@ static int p54u_upload_firmware_net2280(struct ieee80211_hw *dev)
 	P54U_WRITE(NET2280_BRG_U32, NET2280_IRQSTAT1,
 		   cpu_to_le32(NET2280_PCI_INTA_INTERRUPT));
 
-	/* do romboot */
+	
 	P54U_WRITE(NET2280_DEV_U32, &devreg->int_enable, 0);
 
 	P54U_READ(NET2280_DEV_U32, &devreg->ctrl_stat);
@@ -691,7 +676,7 @@ static int p54u_upload_firmware_net2280(struct ieee80211_hw *dev)
 	P54U_READ(NET2280_DEV_U32, &devreg->int_ident);
 	P54U_WRITE(NET2280_DEV_U32, &devreg->int_ack, reg);
 
-	/* finally, we can upload firmware now! */
+	
 	remains = priv->fw->size;
 	data = priv->fw->data;
 	offset = ISL38XX_DEV_FIRMWARE_ADDR;
@@ -749,7 +734,7 @@ static int p54u_upload_firmware_net2280(struct ieee80211_hw *dev)
 		offset += block_len;
 	}
 
-	/* do ramboot */
+	
 	P54U_READ(NET2280_DEV_U32, &devreg->ctrl_stat);
 	reg &= cpu_to_le32(~ISL38XX_CTRL_STAT_RESET);
 	reg &= cpu_to_le32(~ISL38XX_CTRL_STAT_CLKRUN);
@@ -769,7 +754,7 @@ static int p54u_upload_firmware_net2280(struct ieee80211_hw *dev)
 	P54U_READ(NET2280_DEV_U32, &devreg->int_ident);
 	P54U_WRITE(NET2280_DEV_U32, &devreg->int_ack, reg);
 
-	/* start up the firmware */
+	
 	P54U_WRITE(NET2280_DEV_U32, &devreg->int_enable,
 		   cpu_to_le32(ISL38XX_INT_IDENT_INIT));
 
@@ -867,9 +852,7 @@ static int p54u_open(struct ieee80211_hw *dev)
 
 static void p54u_stop(struct ieee80211_hw *dev)
 {
-	/* TODO: figure out how to reliably stop the 3887 and net2280 so
-	   the hardware is still usable next time we want to start it.
-	   until then, we just stop listening to the hardware.. */
+	
 	p54u_free_urbs(dev);
 	return;
 }
@@ -902,8 +885,8 @@ static int __devinit p54u_probe(struct usb_interface *intf,
 
 	usb_get_dev(udev);
 
-	/* really lazy and simple way of figuring out if we're a 3887 */
-	/* TODO: should just stick the identification in the device table */
+	
+	
 	i = intf->altsetting->desc.bNumEndpoints;
 	recognized_pipes = 0;
 	while (i--) {
@@ -924,7 +907,7 @@ static int __devinit p54u_probe(struct usb_interface *intf,
 	priv->common.stop = p54u_stop;
 	if (recognized_pipes < P54U_PIPE_NUMBER) {
 #ifdef CONFIG_PM
-		/* ISL3887 needs a full reset on resume */
+		
 		udev->reset_resume = 1;
 		err = p54u_device_reset(dev);
 #endif
@@ -1023,7 +1006,7 @@ static int p54u_post_reset(struct usb_interface *intf)
 	if (err)
 		return err;
 
-	/* reinitialize old device state */
+	
 	priv = dev->priv;
 	if (priv->common.mode != NL80211_IFTYPE_UNSPECIFIED)
 		ieee80211_restart_hw(dev);
@@ -1038,7 +1021,7 @@ static int p54u_suspend(struct usb_interface *intf, pm_message_t message)
 	return p54u_pre_reset(intf);
 }
 
-#endif /* CONFIG_PM */
+#endif 
 
 static struct usb_driver p54u_driver = {
 	.name	= "p54usb",
@@ -1051,7 +1034,7 @@ static struct usb_driver p54u_driver = {
 	.suspend = p54u_suspend,
 	.resume = p54u_resume,
 	.reset_resume = p54u_resume,
-#endif /* CONFIG_PM */
+#endif 
 	.soft_unbind = 1,
 };
 

@@ -1,25 +1,4 @@
-/*
- * This file is part of wl1271
- *
- * Copyright (C) 2009 Nokia Corporation
- *
- * Contact: Luciano Coelho <luciano.coelho@nokia.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/platform_device.h>
@@ -34,14 +13,7 @@
 #include "wl12xx_80211.h"
 #include "wl1271_cmd.h"
 
-/*
- * send command to firmware
- *
- * @wl: wl struct
- * @id: command id
- * @buf: buffer containing the command, must work with dma
- * @len: length of the buffer
- */
+
 int wl1271_cmd_send(struct wl1271 *wl, u16 id, void *buf, size_t len)
 {
 	struct wl1271_cmd_header *cmd;
@@ -93,7 +65,7 @@ int wl1271_cmd_cal_channel_tune(struct wl1271 *wl)
 	cmd->test.id = TEST_CMD_CHANNEL_TUNE;
 
 	cmd->band = WL1271_CHANNEL_TUNE_BAND_2_4;
-	/* set up any channel, 7 is in the middle of the range */
+	
 	cmd->channel = 7;
 
 	ret = wl1271_cmd_test(wl, cmd, sizeof(*cmd), 0);
@@ -115,7 +87,7 @@ int wl1271_cmd_cal_update_ref_point(struct wl1271 *wl)
 
 	cmd->test.id = TEST_CMD_UPDATE_PD_REFERENCE_POINT;
 
-	/* FIXME: still waiting for the correct values */
+	
 	cmd->ref_power    = 0;
 	cmd->ref_detector = 0;
 
@@ -152,10 +124,7 @@ int wl1271_cmd_cal_p2g(struct wl1271 *wl)
 
 int wl1271_cmd_cal(struct wl1271 *wl)
 {
-	/*
-	 * FIXME: we must make sure that we're not sleeping when calibration
-	 * is done
-	 */
+	
 	int ret;
 
 	wl1271_notice("performing tx calibration");
@@ -184,7 +153,7 @@ int wl1271_cmd_join(struct wl1271 *wl, u8 bss_type, u8 dtim_interval,
 	int ret, i;
 	u8 *bssid;
 
-	/* FIXME: remove when we get calibration from the factory */
+	
 	if (do_cal) {
 		ret = wl1271_cmd_cal(wl);
 		if (ret < 0)
@@ -202,7 +171,7 @@ int wl1271_cmd_join(struct wl1271 *wl, u8 bss_type, u8 dtim_interval,
 
 	wl1271_debug(DEBUG_CMD, "cmd join");
 
-	/* Reverse order BSSID */
+	
 	bssid = (u8 *) &join->bssid_lsb;
 	for (i = 0; i < ETH_ALEN; i++)
 		bssid[i] = wl->bssid[ETH_ALEN - i - 1];
@@ -221,7 +190,7 @@ int wl1271_cmd_join(struct wl1271 *wl, u8 bss_type, u8 dtim_interval,
 	memcpy(join->ssid, wl->ssid, wl->ssid_len);
 	join->ctrl = WL1271_JOIN_CMD_CTRL_TX_FLUSH;
 
-	/* increment the session counter */
+	
 	wl->session_counter++;
 	if (wl->session_counter >= SESSION_COUNTER_MAX)
 		wl->session_counter = 0;
@@ -237,10 +206,7 @@ int wl1271_cmd_join(struct wl1271 *wl, u8 bss_type, u8 dtim_interval,
 
 	timeout = msecs_to_jiffies(JOIN_TIMEOUT);
 
-	/*
-	 * ugly hack: we should wait for JOIN_EVENT_COMPLETE_ID but to
-	 * simplify locking we just sleep instead, for now
-	 */
+	
 	if (wait)
 		msleep(10);
 
@@ -251,14 +217,7 @@ out:
 	return ret;
 }
 
-/**
- * send test command to firmware
- *
- * @wl: wl struct
- * @buf: buffer containing the command, with all headers, must work with dma
- * @len: length of the buffer
- * @answer: is answer needed
- */
+
 int wl1271_cmd_test(struct wl1271 *wl, void *buf, size_t buf_len, u8 answer)
 {
 	int ret;
@@ -275,11 +234,7 @@ int wl1271_cmd_test(struct wl1271 *wl, void *buf, size_t buf_len, u8 answer)
 	if (answer) {
 		struct wl1271_command *cmd_answer;
 
-		/*
-		 * The test command got in, we can read the answer.
-		 * The answer would be a wl1271_command, where the
-		 * parameter array contains the actual answer.
-		 */
+		
 		wl1271_spi_mem_read(wl, wl->cmd_box_addr, buf, buf_len);
 
 		cmd_answer = buf;
@@ -292,14 +247,7 @@ int wl1271_cmd_test(struct wl1271 *wl, void *buf, size_t buf_len, u8 answer)
 	return 0;
 }
 
-/**
- * read acx from firmware
- *
- * @wl: wl struct
- * @id: acx id
- * @buf: buffer for the response, including all headers, must work with dma
- * @len: lenght of buf
- */
+
 int wl1271_cmd_interrogate(struct wl1271 *wl, u16 id, void *buf, size_t len)
 {
 	struct acx_header *acx = buf;
@@ -309,7 +257,7 @@ int wl1271_cmd_interrogate(struct wl1271 *wl, u16 id, void *buf, size_t len)
 
 	acx->id = id;
 
-	/* payload length, does not include any headers */
+	
 	acx->len = len - sizeof(*acx);
 
 	ret = wl1271_cmd_send(wl, CMD_INTERROGATE, acx, sizeof(*acx));
@@ -318,7 +266,7 @@ int wl1271_cmd_interrogate(struct wl1271 *wl, u16 id, void *buf, size_t len)
 		goto out;
 	}
 
-	/* the interrogate command got in, we can read the answer */
+	
 	wl1271_spi_mem_read(wl, wl->cmd_box_addr, buf, len);
 
 	acx = buf;
@@ -330,14 +278,7 @@ out:
 	return ret;
 }
 
-/**
- * write acx value to firmware
- *
- * @wl: wl struct
- * @id: acx id
- * @buf: buffer containing acx, including all headers, must work with dma
- * @len: length of buf
- */
+
 int wl1271_cmd_configure(struct wl1271 *wl, u16 id, void *buf, size_t len)
 {
 	struct acx_header *acx = buf;
@@ -347,7 +288,7 @@ int wl1271_cmd_configure(struct wl1271 *wl, u16 id, void *buf, size_t len)
 
 	acx->id = id;
 
-	/* payload length, does not include any headers */
+	
 	acx->len = len - sizeof(*acx);
 
 	ret = wl1271_cmd_send(wl, CMD_CONFIGURE, acx, len);
@@ -413,7 +354,7 @@ int wl1271_cmd_ps_mode(struct wl1271 *wl, u8 ps_mode)
 	struct wl1271_cmd_ps_params *ps_params = NULL;
 	int ret = 0;
 
-	/* FIXME: this should be in ps.c */
+	
 	ret = wl1271_acx_wake_up_conditions(wl, WAKE_UP_EVENT_DTIM_BITMAP,
 					    wl->listen_int);
 	if (ret < 0) {
@@ -433,7 +374,7 @@ int wl1271_cmd_ps_mode(struct wl1271 *wl, u8 ps_mode)
 	ps_params->send_null_data = 1;
 	ps_params->retries = 5;
 	ps_params->hang_over_period = 128;
-	ps_params->null_data_rate = 1; /* 1 Mbps */
+	ps_params->null_data_rate = 1; 
 
 	ret = wl1271_cmd_send(wl, CMD_SET_PS_MODE, ps_params,
 			      sizeof(*ps_params));
@@ -473,7 +414,7 @@ int wl1271_cmd_read_memory(struct wl1271 *wl, u32 addr, void *answer,
 		goto out;
 	}
 
-	/* the read command got in, we can now read the answer */
+	
 	wl1271_spi_mem_read(wl, wl->cmd_box_addr, cmd, sizeof(*cmd));
 
 	if (cmd->header.status != CMD_STATUS_SUCCESS)
@@ -549,7 +490,7 @@ int wl1271_cmd_scan(struct wl1271 *wl, u8 *ssid, size_t len,
 		goto out;
 	}
 
-	/* disable the timeout */
+	
 	trigger->timeout = 0;
 
 	ret = wl1271_cmd_send(wl, CMD_TRIGGER_SCAN_TO, trigger,
@@ -701,8 +642,8 @@ int wl1271_cmd_build_probe_req(struct wl1271 *wl, u8 *ssid, size_t ssid_len)
 	memcpy(template.header.sa, wl->mac_addr, ETH_ALEN);
 	template.header.frame_ctl = cpu_to_le16(IEEE80211_STYPE_PROBE_REQ);
 
-	/* IEs */
-	/* SSID */
+	
+	
 	template.ssid.header.id = WLAN_EID_SSID;
 	template.ssid.header.len = ssid_len;
 	if (ssid_len && ssid)
@@ -710,14 +651,14 @@ int wl1271_cmd_build_probe_req(struct wl1271 *wl, u8 *ssid, size_t ssid_len)
 	size += sizeof(struct wl12xx_ie_header) + ssid_len;
 	ptr += size;
 
-	/* Basic Rates */
+	
 	rates = (struct wl12xx_ie_rates *)ptr;
 	rates->header.id = WLAN_EID_SUPP_RATES;
 	rates->header.len = wl1271_build_basic_rates(rates->rates);
 	size += sizeof(struct wl12xx_ie_header) + rates->header.len;
 	ptr += sizeof(struct wl12xx_ie_header) + rates->header.len;
 
-	/* Extended rates */
+	
 	rates = (struct wl12xx_ie_rates *)ptr;
 	rates->header.id = WLAN_EID_EXT_SUPP_RATES;
 	rates->header.len = wl1271_build_extended_rates(rates->rates);
@@ -777,19 +718,14 @@ int wl1271_cmd_set_key(struct wl1271 *wl, u16 action, u8 id, u8 key_type,
 	cmd->key_size = key_size;
 	cmd->key_type = key_type;
 
-	/* we have only one SSID profile */
+	
 	cmd->ssid_profile = 0;
 
 	cmd->id = id;
 
-	/* FIXME: this is from wl1251, needs to be checked */
+	
 	if (key_type == KEY_TKIP) {
-		/*
-		 * We get the key in the following form:
-		 * TKIP (16 bytes) - TX MIC (8 bytes) - RX MIC (8 bytes)
-		 * but the target is expecting:
-		 * TKIP - RX MIC - TX MIC
-		 */
+		
 		memcpy(cmd->key, key, 16);
 		memcpy(cmd->key + 16, key + 24, 8);
 		memcpy(cmd->key + 24, key + 16, 8);

@@ -1,18 +1,4 @@
-/*
- * Copyright (c) 2008-2009 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+
 
 #ifndef PHY_H
 #define PHY_H
@@ -415,7 +401,7 @@ bool ath9k_hw_init_rf(struct ath_hw *ah,
 #define AR_PHY_CCK_DETECT                           0xA208
 #define AR_PHY_CCK_DETECT_WEAK_SIG_THR_CCK          0x0000003F
 #define AR_PHY_CCK_DETECT_WEAK_SIG_THR_CCK_S        0
-/* [12:6] settling time for antenna switch */
+
 #define AR_PHY_CCK_DETECT_ANT_SWITCH_TIME           0x00001FC0
 #define AR_PHY_CCK_DETECT_ANT_SWITCH_TIME_S         6
 #define AR_PHY_CCK_DETECT_BB_ENABLE_ANT_FAST_DIV    0x2000
@@ -543,7 +529,7 @@ bool ath9k_hw_init_rf(struct ath_hw *ah,
 #define AR_PHY_TPCRG5_PD_GAIN_BOUNDARY_4    0x0FC00000
 #define AR_PHY_TPCRG5_PD_GAIN_BOUNDARY_4_S  22
 
-/* Carrier leak calibration control, do it after AGC calibration */
+
 #define AR_PHY_CL_CAL_CTL       0xA358
 #define AR_PHY_CL_CAL_ENABLE    0x00000002
 #define AR_PHY_PARALLEL_CAL_ENABLE    0x00000001

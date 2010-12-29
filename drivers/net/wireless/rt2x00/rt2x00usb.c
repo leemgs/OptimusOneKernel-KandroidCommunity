@@ -1,27 +1,6 @@
-/*
-	Copyright (C) 2004 - 2009 rt2x00 SourceForge Project
-	<http://rt2x00.serialmonkey.com>
 
-	This program is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-	GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program; if not, write to the
-	Free Software Foundation, Inc.,
-	59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
-
-/*
-	Module: rt2x00usb
-	Abstract: rt2x00 generic usb device routines.
- */
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -31,9 +10,7 @@
 #include "rt2x00.h"
 #include "rt2x00usb.h"
 
-/*
- * Interfacing with the HW.
- */
+
 int rt2x00usb_vendor_request(struct rt2x00_dev *rt2x00dev,
 			     const u8 request, const u8 requesttype,
 			     const u16 offset, const u16 value,
@@ -57,11 +34,7 @@ int rt2x00usb_vendor_request(struct rt2x00_dev *rt2x00dev,
 		if (status >= 0)
 			return 0;
 
-		/*
-		 * Check for errors
-		 * -ENODEV: Device has disappeared, no point continuing.
-		 * All other errors: Try again.
-		 */
+		
 		else if (status == -ENODEV) {
 			clear_bit(DEVICE_STATE_PRESENT, &rt2x00dev->flags);
 			break;
@@ -85,9 +58,7 @@ int rt2x00usb_vendor_req_buff_lock(struct rt2x00_dev *rt2x00dev,
 
 	BUG_ON(!mutex_is_locked(&rt2x00dev->csr_mutex));
 
-	/*
-	 * Check for Cache availability.
-	 */
+	
 	if (unlikely(!rt2x00dev->csr.cache || buffer_length > CSR_CACHE_SIZE)) {
 		ERROR(rt2x00dev, "CSR cache not available.\n");
 		return -ENOMEM;
@@ -183,9 +154,7 @@ int rt2x00usb_regbusy_read(struct rt2x00_dev *rt2x00dev,
 }
 EXPORT_SYMBOL_GPL(rt2x00usb_regbusy_read);
 
-/*
- * TX data handlers.
- */
+
 static void rt2x00usb_interrupt_txdone(struct urb *urb)
 {
 	struct queue_entry *entry = (struct queue_entry *)urb->context;
@@ -196,15 +165,7 @@ static void rt2x00usb_interrupt_txdone(struct urb *urb)
 	    !test_bit(ENTRY_OWNER_DEVICE_DATA, &entry->flags))
 		return;
 
-	/*
-	 * Obtain the status about this packet.
-	 * Note that when the status is 0 it does not mean the
-	 * frame was send out correctly. It only means the frame
-	 * was succesfully pushed to the hardware, we have no
-	 * way to determine the transmission status right now.
-	 * (Only indirectly by looking at the failed TX counters
-	 * in the register).
-	 */
+	
 	txdesc.flags = 0;
 	if (!urb->status)
 		__set_bit(TXDONE_UNKNOWN, &txdesc.flags);
@@ -223,24 +184,16 @@ int rt2x00usb_write_tx_data(struct queue_entry *entry)
 	struct skb_frame_desc *skbdesc;
 	u32 length;
 
-	/*
-	 * Add the descriptor in front of the skb.
-	 */
+	
 	skb_push(entry->skb, entry->queue->desc_size);
 	memset(entry->skb->data, 0, entry->queue->desc_size);
 
-	/*
-	 * Fill in skb descriptor
-	 */
+	
 	skbdesc = get_skb_frame_desc(entry->skb);
 	skbdesc->desc = entry->skb->data;
 	skbdesc->desc_len = entry->queue->desc_size;
 
-	/*
-	 * USB devices cannot blindly pass the skb->len as the
-	 * length of the data to usb_fill_bulk_urb. Pass the skb
-	 * to the driver to determine what the length should be.
-	 */
+	
 	length = rt2x00dev->ops->lib->get_tx_data_len(entry);
 
 	usb_fill_bulk_urb(entry_priv->urb, usb_dev,
@@ -248,10 +201,7 @@ int rt2x00usb_write_tx_data(struct queue_entry *entry)
 			  entry->skb->data, length,
 			  rt2x00usb_interrupt_txdone, entry);
 
-	/*
-	 * Make sure the skb->data pointer points to the frame, not the
-	 * descriptor.
-	 */
+	
 	skb_pull(entry->skb, entry->queue->desc_size);
 
 	return 0;
@@ -275,21 +225,13 @@ void rt2x00usb_kick_tx_queue(struct rt2x00_dev *rt2x00dev,
 	unsigned int index_done;
 	unsigned int i;
 
-	/*
-	 * Only protect the range we are going to loop over,
-	 * if during our loop a extra entry is set to pending
-	 * it should not be kicked during this run, since it
-	 * is part of another TX operation.
-	 */
+	
 	spin_lock_irqsave(&queue->lock, irqflags);
 	index = queue->index[Q_INDEX];
 	index_done = queue->index[Q_INDEX_DONE];
 	spin_unlock_irqrestore(&queue->lock, irqflags);
 
-	/*
-	 * Start from the TX done pointer, this guarentees that we will
-	 * send out all frames in the correct order.
-	 */
+	
 	if (index_done < index) {
 		for (i = index_done; i < index; i++)
 			rt2x00usb_kick_tx_entry(&queue->entries[i]);
@@ -312,24 +254,17 @@ void rt2x00usb_kill_tx_queue(struct rt2x00_dev *rt2x00dev,
 	unsigned int i;
 	bool kill_guard;
 
-	/*
-	 * When killing the beacon queue, we must also kill
-	 * the beacon guard byte.
-	 */
+	
 	kill_guard =
 	    (qid == QID_BEACON) &&
 	    (test_bit(DRIVER_REQUIRE_BEACON_GUARD, &rt2x00dev->flags));
 
-	/*
-	 * Cancel all entries.
-	 */
+	
 	for (i = 0; i < queue->limit; i++) {
 		entry_priv = queue->entries[i].priv_data;
 		usb_kill_urb(entry_priv->urb);
 
-		/*
-		 * Kill guardian urb (if required by driver).
-		 */
+		
 		if (kill_guard) {
 			bcn_priv = queue->entries[i].priv_data;
 			usb_kill_urb(bcn_priv->guardian_urb);
@@ -338,9 +273,7 @@ void rt2x00usb_kill_tx_queue(struct rt2x00_dev *rt2x00dev,
 }
 EXPORT_SYMBOL_GPL(rt2x00usb_kill_tx_queue);
 
-/*
- * RX data handlers.
- */
+
 static void rt2x00usb_interrupt_rxdone(struct urb *urb)
 {
 	struct queue_entry *entry = (struct queue_entry *)urb->context;
@@ -352,48 +285,33 @@ static void rt2x00usb_interrupt_rxdone(struct urb *urb)
 	    !test_bit(ENTRY_OWNER_DEVICE_DATA, &entry->flags))
 		return;
 
-	/*
-	 * Check if the received data is simply too small
-	 * to be actually valid, or if the urb is signaling
-	 * a problem.
-	 */
+	
 	if (urb->actual_length < entry->queue->desc_size || urb->status) {
 		set_bit(ENTRY_OWNER_DEVICE_DATA, &entry->flags);
 		usb_submit_urb(urb, GFP_ATOMIC);
 		return;
 	}
 
-	/*
-	 * Fill in desc fields of the skb descriptor
-	 */
+	
 	skbdesc->desc = rxd;
 	skbdesc->desc_len = entry->queue->desc_size;
 
-	/*
-	 * Send the frame to rt2x00lib for further processing.
-	 */
+	
 	rt2x00lib_rxdone(rt2x00dev, entry);
 }
 
-/*
- * Radio handlers
- */
+
 void rt2x00usb_disable_radio(struct rt2x00_dev *rt2x00dev)
 {
 	rt2x00usb_vendor_request_sw(rt2x00dev, USB_RX_CONTROL, 0, 0,
 				    REGISTER_TIMEOUT);
 
-	/*
-	 * The USB version of kill_tx_queue also works
-	 * on the RX queue.
-	 */
+	
 	rt2x00dev->ops->lib->kill_tx_queue(rt2x00dev, QID_RX);
 }
 EXPORT_SYMBOL_GPL(rt2x00usb_disable_radio);
 
-/*
- * Device initialization handlers.
- */
+
 void rt2x00usb_clear_entry(struct queue_entry *entry)
 {
 	struct usb_device *usb_dev =
@@ -444,12 +362,7 @@ static int rt2x00usb_find_endpoints(struct rt2x00_dev *rt2x00dev)
 	struct usb_endpoint_descriptor *tx_ep_desc = NULL;
 	unsigned int i;
 
-	/*
-	 * Walk through all available endpoints to search for "bulk in"
-	 * and "bulk out" endpoints. When we find such endpoints collect
-	 * the information we need from the descriptor and assign it
-	 * to the queue.
-	 */
+	
 	for (i = 0; i < intf_desc->desc.bNumEndpoints; i++) {
 		ep_desc = &intf_desc->endpoint[i].desc;
 
@@ -464,19 +377,13 @@ static int rt2x00usb_find_endpoints(struct rt2x00_dev *rt2x00dev)
 		}
 	}
 
-	/*
-	 * At least 1 endpoint for RX and 1 endpoint for TX must be available.
-	 */
+	
 	if (!rt2x00dev->rx->usb_endpoint || !rt2x00dev->tx->usb_endpoint) {
 		ERROR(rt2x00dev, "Bulk-in/Bulk-out endpoints not found\n");
 		return -EPIPE;
 	}
 
-	/*
-	 * It might be possible not all queues have a dedicated endpoint.
-	 * Loop through all TX queues and copy the endpoint information
-	 * which we have gathered from already assigned endpoints.
-	 */
+	
 	txall_queue_for_each(rt2x00dev, queue) {
 		if (!queue->usb_endpoint)
 			rt2x00usb_assign_endpoint(queue, tx_ep_desc);
@@ -499,11 +406,7 @@ static int rt2x00usb_alloc_urb(struct rt2x00_dev *rt2x00dev,
 			return -ENOMEM;
 	}
 
-	/*
-	 * If this is not the beacon queue or
-	 * no guardian byte was required for the beacon,
-	 * then we are done.
-	 */
+	
 	if (rt2x00dev->bcn != queue ||
 	    !test_bit(DRIVER_REQUIRE_BEACON_GUARD, &rt2x00dev->flags))
 		return 0;
@@ -534,11 +437,7 @@ static void rt2x00usb_free_urb(struct rt2x00_dev *rt2x00dev,
 		usb_free_urb(entry_priv->urb);
 	}
 
-	/*
-	 * If this is not the beacon queue or
-	 * no guardian byte was required for the beacon,
-	 * then we are done.
-	 */
+	
 	if (rt2x00dev->bcn != queue ||
 	    !test_bit(DRIVER_REQUIRE_BEACON_GUARD, &rt2x00dev->flags))
 		return;
@@ -555,16 +454,12 @@ int rt2x00usb_initialize(struct rt2x00_dev *rt2x00dev)
 	struct data_queue *queue;
 	int status;
 
-	/*
-	 * Find endpoints for each queue
-	 */
+	
 	status = rt2x00usb_find_endpoints(rt2x00dev);
 	if (status)
 		goto exit;
 
-	/*
-	 * Allocate DMA
-	 */
+	
 	queue_for_each(rt2x00dev, queue) {
 		status = rt2x00usb_alloc_urb(rt2x00dev, queue);
 		if (status)
@@ -589,9 +484,7 @@ void rt2x00usb_uninitialize(struct rt2x00_dev *rt2x00dev)
 }
 EXPORT_SYMBOL_GPL(rt2x00usb_uninitialize);
 
-/*
- * USB driver handlers.
- */
+
 static void rt2x00usb_free_reg(struct rt2x00_dev *rt2x00dev)
 {
 	kfree(rt2x00dev->rf);
@@ -683,16 +576,12 @@ void rt2x00usb_disconnect(struct usb_interface *usb_intf)
 	struct ieee80211_hw *hw = usb_get_intfdata(usb_intf);
 	struct rt2x00_dev *rt2x00dev = hw->priv;
 
-	/*
-	 * Free all allocated data.
-	 */
+	
 	rt2x00lib_remove_dev(rt2x00dev);
 	rt2x00usb_free_reg(rt2x00dev);
 	ieee80211_free_hw(hw);
 
-	/*
-	 * Free the USB device data.
-	 */
+	
 	usb_set_intfdata(usb_intf, NULL);
 	usb_put_dev(interface_to_usbdev(usb_intf));
 }
@@ -709,9 +598,7 @@ int rt2x00usb_suspend(struct usb_interface *usb_intf, pm_message_t state)
 	if (retval)
 		return retval;
 
-	/*
-	 * Decrease usbdev refcount.
-	 */
+	
 	usb_put_dev(interface_to_usbdev(usb_intf));
 
 	return 0;
@@ -728,11 +615,9 @@ int rt2x00usb_resume(struct usb_interface *usb_intf)
 	return rt2x00lib_resume(rt2x00dev);
 }
 EXPORT_SYMBOL_GPL(rt2x00usb_resume);
-#endif /* CONFIG_PM */
+#endif 
 
-/*
- * rt2x00usb module information.
- */
+
 MODULE_AUTHOR(DRV_PROJECT);
 MODULE_VERSION(DRV_VERSION);
 MODULE_DESCRIPTION("rt2x00 usb library");

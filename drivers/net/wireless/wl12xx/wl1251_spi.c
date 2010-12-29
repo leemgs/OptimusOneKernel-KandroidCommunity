@@ -1,25 +1,4 @@
-/*
- * This file is part of wl1251
- *
- * Copyright (C) 2008 Nokia Corporation
- *
- * Contact: Kalle Valo <kalle.valo@nokia.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #include <linux/irq.h>
 #include <linux/module.h>
@@ -91,10 +70,7 @@ static void wl1251_spi_wake(struct wl1251 *wl)
 	memset(&t, 0, sizeof(t));
 	spi_message_init(&m);
 
-	/*
-	 * Set WSPI_INIT_COMMAND
-	 * the data is being send from the MSB to LSB
-	 */
+	
 	cmd[2] = 0xff;
 	cmd[3] = 0xff;
 	cmd[1] = WSPI_INIT_CMD_START | WSPI_INIT_CMD_TX;
@@ -158,7 +134,7 @@ static void wl1251_spi_read(struct wl1251 *wl, int addr, void *buf,
 	t[0].len = 4;
 	spi_message_add_tail(&t[0], &m);
 
-	/* Busy and non busy words read */
+	
 	t[1].rx_buf = busy_buf;
 	t[1].len = WL1251_BUSY_WORD_LEN;
 	spi_message_add_tail(&t[1], &m);
@@ -169,7 +145,7 @@ static void wl1251_spi_read(struct wl1251 *wl, int addr, void *buf,
 
 	spi_sync(wl_to_spi(wl), &m);
 
-	/* FIXME: check busy words */
+	
 
 	wl1251_dump(DEBUG_SPI, "spi_read cmd -> ", cmd, sizeof(*cmd));
 	wl1251_dump(DEBUG_SPI, "spi_read buf <- ", buf, len);
@@ -248,8 +224,7 @@ static int __devinit wl1251_spi_probe(struct spi_device *spi)
 	wl->if_priv = spi;
 	wl->if_ops = &wl1251_spi_ops;
 
-	/* This is the only SPI value that we need to set here, the rest
-	 * comes from the board-peripherals file */
+	
 	spi->bits_per_word = 32;
 
 	ret = spi_setup(spi);

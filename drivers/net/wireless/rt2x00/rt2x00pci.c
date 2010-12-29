@@ -1,27 +1,6 @@
-/*
-	Copyright (C) 2004 - 2009 rt2x00 SourceForge Project
-	<http://rt2x00.serialmonkey.com>
 
-	This program is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-	GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program; if not, write to the
-	Free Software Foundation, Inc.,
-	59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
-
-/*
-	Module: rt2x00pci
-	Abstract: rt2x00 generic pci device routines.
- */
 
 #include <linux/dma-mapping.h>
 #include <linux/kernel.h>
@@ -31,9 +10,7 @@
 #include "rt2x00.h"
 #include "rt2x00pci.h"
 
-/*
- * Register access.
- */
+
 int rt2x00pci_regbusy_read(struct rt2x00_dev *rt2x00dev,
 			   const unsigned int offset,
 			   const struct rt2x00_field32 field,
@@ -56,20 +33,14 @@ int rt2x00pci_regbusy_read(struct rt2x00_dev *rt2x00dev,
 }
 EXPORT_SYMBOL_GPL(rt2x00pci_regbusy_read);
 
-/*
- * TX data handlers.
- */
+
 int rt2x00pci_write_tx_data(struct queue_entry *entry)
 {
 	struct rt2x00_dev *rt2x00dev = entry->queue->rt2x00dev;
 	struct queue_entry_priv_pci *entry_priv = entry->priv_data;
 	struct skb_frame_desc *skbdesc;
 
-	/*
-	 * This should not happen, we already checked the entry
-	 * was ours. When the hardware disagrees there has been
-	 * a queue corruption!
-	 */
+	
 	if (unlikely(rt2x00dev->ops->lib->get_entry_state(entry))) {
 		ERROR(rt2x00dev,
 		      "Corrupt queue %d, accessing entry which is not ours.\n"
@@ -78,9 +49,7 @@ int rt2x00pci_write_tx_data(struct queue_entry *entry)
 		return -EINVAL;
 	}
 
-	/*
-	 * Fill in skb descriptor
-	 */
+	
 	skbdesc = get_skb_frame_desc(entry->skb);
 	skbdesc->desc = entry_priv->desc;
 	skbdesc->desc_len = entry->queue->desc_size;
@@ -89,9 +58,7 @@ int rt2x00pci_write_tx_data(struct queue_entry *entry)
 }
 EXPORT_SYMBOL_GPL(rt2x00pci_write_tx_data);
 
-/*
- * TX/RX data handlers.
- */
+
 void rt2x00pci_rxdone(struct rt2x00_dev *rt2x00dev)
 {
 	struct data_queue *queue = rt2x00dev->rx;
@@ -106,24 +73,18 @@ void rt2x00pci_rxdone(struct rt2x00_dev *rt2x00dev)
 		if (rt2x00dev->ops->lib->get_entry_state(entry))
 			break;
 
-		/*
-		 * Fill in desc fields of the skb descriptor
-		 */
+		
 		skbdesc = get_skb_frame_desc(entry->skb);
 		skbdesc->desc = entry_priv->desc;
 		skbdesc->desc_len = entry->queue->desc_size;
 
-		/*
-		 * Send the frame to rt2x00lib for further processing.
-		 */
+		
 		rt2x00lib_rxdone(rt2x00dev, entry);
 	}
 }
 EXPORT_SYMBOL_GPL(rt2x00pci_rxdone);
 
-/*
- * Device initialization handlers.
- */
+
 static int rt2x00pci_alloc_queue_dma(struct rt2x00_dev *rt2x00dev,
 				     struct data_queue *queue)
 {
@@ -132,9 +93,7 @@ static int rt2x00pci_alloc_queue_dma(struct rt2x00_dev *rt2x00dev,
 	dma_addr_t dma;
 	unsigned int i;
 
-	/*
-	 * Allocate DMA memory for descriptor and buffer.
-	 */
+	
 	addr = dma_alloc_coherent(rt2x00dev->dev,
 				  queue->limit * queue->desc_size,
 				  &dma, GFP_KERNEL | GFP_DMA);
@@ -143,9 +102,7 @@ static int rt2x00pci_alloc_queue_dma(struct rt2x00_dev *rt2x00dev,
 
 	memset(addr, 0, queue->limit * queue->desc_size);
 
-	/*
-	 * Initialize all queue entries to contain valid addresses.
-	 */
+	
 	for (i = 0; i < queue->limit; i++) {
 		entry_priv = queue->entries[i].priv_data;
 		entry_priv->desc = addr + i * queue->desc_size;
@@ -173,18 +130,14 @@ int rt2x00pci_initialize(struct rt2x00_dev *rt2x00dev)
 	struct data_queue *queue;
 	int status;
 
-	/*
-	 * Allocate DMA
-	 */
+	
 	queue_for_each(rt2x00dev, queue) {
 		status = rt2x00pci_alloc_queue_dma(rt2x00dev, queue);
 		if (status)
 			goto exit;
 	}
 
-	/*
-	 * Register interrupt handler.
-	 */
+	
 	status = request_irq(rt2x00dev->irq, rt2x00dev->ops->lib->irq_handler,
 			     IRQF_SHARED, rt2x00dev->name, rt2x00dev);
 	if (status) {
@@ -207,22 +160,16 @@ void rt2x00pci_uninitialize(struct rt2x00_dev *rt2x00dev)
 {
 	struct data_queue *queue;
 
-	/*
-	 * Free irq line.
-	 */
+	
 	free_irq(to_pci_dev(rt2x00dev->dev)->irq, rt2x00dev);
 
-	/*
-	 * Free DMA
-	 */
+	
 	queue_for_each(rt2x00dev, queue)
 		rt2x00pci_free_queue_dma(rt2x00dev, queue);
 }
 EXPORT_SYMBOL_GPL(rt2x00pci_uninitialize);
 
-/*
- * PCI driver handlers.
- */
+
 static void rt2x00pci_free_reg(struct rt2x00_dev *rt2x00dev)
 {
 	kfree(rt2x00dev->rf);
@@ -310,9 +257,7 @@ int rt2x00pci_probe(struct pci_dev *pci_dev, const struct pci_device_id *id)
 	rt2x00dev->irq = pci_dev->irq;
 	rt2x00dev->name = pci_name(pci_dev);
 
-	/*
-	 * Determine RT chipset by reading PCI header.
-	 */
+	
 	pci_read_config_word(pci_dev, PCI_DEVICE_ID, &chip);
 	rt2x00_set_chip_rt(rt2x00dev, chip);
 
@@ -350,16 +295,12 @@ void rt2x00pci_remove(struct pci_dev *pci_dev)
 	struct ieee80211_hw *hw = pci_get_drvdata(pci_dev);
 	struct rt2x00_dev *rt2x00dev = hw->priv;
 
-	/*
-	 * Free all allocated data.
-	 */
+	
 	rt2x00lib_remove_dev(rt2x00dev);
 	rt2x00pci_free_reg(rt2x00dev);
 	ieee80211_free_hw(hw);
 
-	/*
-	 * Free the PCI device data.
-	 */
+	
 	pci_set_drvdata(pci_dev, NULL);
 	pci_disable_device(pci_dev);
 	pci_release_regions(pci_dev);
@@ -398,11 +339,9 @@ int rt2x00pci_resume(struct pci_dev *pci_dev)
 	return rt2x00lib_resume(rt2x00dev);
 }
 EXPORT_SYMBOL_GPL(rt2x00pci_resume);
-#endif /* CONFIG_PM */
+#endif 
 
-/*
- * rt2x00pci module information.
- */
+
 MODULE_AUTHOR(DRV_PROJECT);
 MODULE_VERSION(DRV_VERSION);
 MODULE_DESCRIPTION("rt2x00 pci library");

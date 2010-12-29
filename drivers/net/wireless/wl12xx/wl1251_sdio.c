@@ -1,24 +1,4 @@
-/*
- * wl12xx SDIO routines
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- * Copyright (C) 2005 Texas Instruments Incorporated
- * Copyright (C) 2008 Google Inc
- * Copyright (C) 2009 Bob Copeland (me@bobcopeland.com)
- */
+
 #include <linux/module.h>
 #include <linux/crc7.h>
 #include <linux/mod_devicetable.h>
@@ -54,7 +34,7 @@ static void wl1251_sdio_interrupt(struct sdio_func *func)
 
 	wl1251_debug(DEBUG_IRQ, "IRQ");
 
-	/* FIXME should be synchronous for sdio */
+	
 	ieee80211_queue_work(wl->hw, &wl->irq_work);
 }
 

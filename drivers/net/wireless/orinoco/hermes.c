@@ -1,42 +1,4 @@
-/* hermes.c
- *
- * Driver core for the "Hermes" wireless MAC controller, as used in
- * the Lucent Orinoco and Cabletron RoamAbout cards. It should also
- * work on the hfa3841 and hfa3842 MAC controller chips used in the
- * Prism II chipsets.
- *
- * This is not a complete driver, just low-level access routines for
- * the MAC controller itself.
- *
- * Based on the prism2 driver from Absolute Value Systems' linux-wlan
- * project, the Linux wvlan_cs driver, Lucent's HCF-Light
- * (wvlan_hcf.c) library, and the NetBSD wireless driver (in no
- * particular order).
- *
- * Copyright (C) 2000, David Gibson, Linuxcare Australia.
- * (C) Copyright David Gibson, IBM Corp. 2001-2003.
- *
- * The contents of this file are subject to the Mozilla Public License
- * Version 1.1 (the "License"); you may not use this file except in
- * compliance with the License. You may obtain a copy of the License
- * at http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
- * the License for the specific language governing rights and
- * limitations under the License.
- *
- * Alternatively, the contents of this file may be used under the
- * terms of the GNU General Public License version 2 (the "GPL"), in
- * which case the provisions of the GPL are applicable instead of the
- * above.  If you wish to allow the use of your version of this file
- * only under the terms of the GPL and not to allow others to use your
- * version of this file under the MPL, indicate your decision by
- * deleting the provisions above and replace them with the notice and
- * other provisions required by the GPL.  If you do not delete the
- * provisions above, a recipient may use your version of this file
- * under either the MPL or the GPL.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -45,15 +7,13 @@
 
 #include "hermes.h"
 
-/* These are maximum timeouts. Most often, card wil react much faster */
-#define CMD_BUSY_TIMEOUT (100) /* In iterations of ~1us */
-#define CMD_INIT_TIMEOUT (50000) /* in iterations of ~10us */
-#define CMD_COMPL_TIMEOUT (20000) /* in iterations of ~10us */
-#define ALLOC_COMPL_TIMEOUT (1000) /* in iterations of ~10us */
 
-/*
- * Debugging helpers
- */
+#define CMD_BUSY_TIMEOUT (100) 
+#define CMD_INIT_TIMEOUT (50000) 
+#define CMD_COMPL_TIMEOUT (20000) 
+#define ALLOC_COMPL_TIMEOUT (1000) 
+
+
 
 #define DMSG(stuff...) do {printk(KERN_DEBUG "hermes @ %p: " , hw->iobase); \
 			printk(stuff); } while (0)
@@ -64,31 +24,23 @@
 
 #define DEBUG(lvl, stuff...) if ((lvl) <= HERMES_DEBUG) DMSG(stuff)
 
-#else /* ! HERMES_DEBUG */
+#else 
 
 #define DEBUG(lvl, stuff...) do { } while (0)
 
-#endif /* ! HERMES_DEBUG */
+#endif 
 
 
-/*
- * Internal functions
- */
 
-/* Issue a command to the chip. Waiting for it to complete is the caller's
-   problem.
 
-   Returns -EBUSY if the command register is busy, 0 on success.
 
-   Callable from any context.
-*/
 static int hermes_issue_cmd(hermes_t *hw, u16 cmd, u16 param0,
 			    u16 param1, u16 param2)
 {
 	int k = CMD_BUSY_TIMEOUT;
 	u16 reg;
 
-	/* First wait for the command register to unbusy */
+	
 	reg = hermes_read_regn(hw, CMD);
 	while ((reg & HERMES_CMD_BUSY) && k) {
 		k--;
@@ -106,11 +58,9 @@ static int hermes_issue_cmd(hermes_t *hw, u16 cmd, u16 param0,
 	return 0;
 }
 
-/*
- * Function definitions
- */
 
-/* For doing cmds that wipe the magic constant in SWSUPPORT0 */
+
+
 int hermes_doicmd_wait(hermes_t *hw, u16 cmd,
 		       u16 parm0, u16 parm1, u16 parm2,
 		       struct hermes_response *resp)
@@ -179,22 +129,16 @@ int hermes_init(hermes_t *hw)
 	int err = 0;
 	int k;
 
-	/* We don't want to be interrupted while resetting the chipset */
+	
 	hw->inten = 0x0;
 	hermes_write_regn(hw, INTEN, 0);
 	hermes_write_regn(hw, EVACK, 0xffff);
 
-	/* Normally it's a "can't happen" for the command register to
-	   be busy when we go to issue a command because we are
-	   serializing all commands.  However we want to have some
-	   chance of resetting the card even if it gets into a stupid
-	   state, so we actually wait to see if the command register
-	   will unbusy itself here. */
+	
 	k = CMD_BUSY_TIMEOUT;
 	reg = hermes_read_regn(hw, CMD);
 	while (k && (reg & HERMES_CMD_BUSY)) {
-		if (reg == 0xffff) /* Special case - the card has probably been
-				      removed, so don't wait for the timeout */
+		if (reg == 0xffff) 
 			return -ENODEV;
 
 		k--;
@@ -202,32 +146,20 @@ int hermes_init(hermes_t *hw)
 		reg = hermes_read_regn(hw, CMD);
 	}
 
-	/* No need to explicitly handle the timeout - if we've timed
-	   out hermes_issue_cmd() will probably return -EBUSY below */
+	
 
-	/* According to the documentation, EVSTAT may contain
-	   obsolete event occurrence information.  We have to acknowledge
-	   it by writing EVACK. */
+	
 	reg = hermes_read_regn(hw, EVSTAT);
 	hermes_write_regn(hw, EVACK, reg);
 
-	/* We don't use hermes_docmd_wait here, because the reset wipes
-	   the magic constant in SWSUPPORT0 away, and it gets confused */
+	
 	err = hermes_doicmd_wait(hw, HERMES_CMD_INIT, 0, 0, 0, NULL);
 
 	return err;
 }
 EXPORT_SYMBOL(hermes_init);
 
-/* Issue a command to the chip, and (busy!) wait for it to
- * complete.
- *
- * Returns:
- *     < 0 on internal error
- *       0 on success
- *     > 0 on error returned by the firmware
- *
- * Callable from any context, but locking is your problem. */
+
 int hermes_docmd_wait(hermes_t *hw, u16 cmd, u16 parm0,
 		      struct hermes_response *resp)
 {
@@ -335,15 +267,7 @@ int hermes_allocate(hermes_t *hw, u16 size, u16 *fid)
 }
 EXPORT_SYMBOL(hermes_allocate);
 
-/* Set up a BAP to read a particular chunk of data from card's internal buffer.
- *
- * Returns:
- *     < 0 on internal failure (errno)
- *       0 on success
- *     > 0 on error
- * from firmware
- *
- * Callable from any context */
+
 static int hermes_bap_seek(hermes_t *hw, int bap, u16 id, u16 offset)
 {
 	int sreg = bap ? HERMES_SELECT1 : HERMES_SELECT0;
@@ -351,7 +275,7 @@ static int hermes_bap_seek(hermes_t *hw, int bap, u16 id, u16 offset)
 	int k;
 	u16 reg;
 
-	/* Paranoia.. */
+	
 	if ((offset > HERMES_BAP_OFFSET_MAX) || (offset % 2))
 		return -EINVAL;
 
@@ -366,11 +290,11 @@ static int hermes_bap_seek(hermes_t *hw, int bap, u16 id, u16 offset)
 	if (reg & HERMES_OFFSET_BUSY)
 		return -ETIMEDOUT;
 
-	/* Now we actually set up the transfer */
+	
 	hermes_write_reg(hw, sreg, id);
 	hermes_write_reg(hw, oreg, offset);
 
-	/* Wait for the BAP to be ready */
+	
 	k = HERMES_BAP_BUSY_TIMEOUT;
 	reg = hermes_read_reg(hw, oreg);
 	while ((reg & (HERMES_OFFSET_BUSY | HERMES_OFFSET_ERR)) && k) {
@@ -388,21 +312,13 @@ static int hermes_bap_seek(hermes_t *hw, int bap, u16 id, u16 offset)
 		if (reg & HERMES_OFFSET_BUSY)
 			return -ETIMEDOUT;
 
-		return -EIO;		/* error or wrong offset */
+		return -EIO;		
 	}
 
 	return 0;
 }
 
-/* Read a block of data from the chip's buffer, via the
- * BAP. Synchronization/serialization is the caller's problem.  len
- * must be even.
- *
- * Returns:
- *     < 0 on internal failure (errno)
- *       0 on success
- *     > 0 on error from firmware
- */
+
 int hermes_bap_pread(hermes_t *hw, int bap, void *buf, int len,
 		     u16 id, u16 offset)
 {
@@ -416,7 +332,7 @@ int hermes_bap_pread(hermes_t *hw, int bap, void *buf, int len,
 	if (err)
 		goto out;
 
-	/* Actually do the transfer */
+	
 	hermes_read_words(hw, dreg, buf, len/2);
 
  out:
@@ -424,14 +340,7 @@ int hermes_bap_pread(hermes_t *hw, int bap, void *buf, int len,
 }
 EXPORT_SYMBOL(hermes_bap_pread);
 
-/* Write a block of data to the chip's buffer, via the
- * BAP. Synchronization/serialization is the caller's problem.
- *
- * Returns:
- *     < 0 on internal failure (errno)
- *       0 on success
- *     > 0 on error from firmware
- */
+
 int hermes_bap_pwrite(hermes_t *hw, int bap, const void *buf, int len,
 		      u16 id, u16 offset)
 {
@@ -445,7 +354,7 @@ int hermes_bap_pwrite(hermes_t *hw, int bap, const void *buf, int len,
 	if (err)
 		goto out;
 
-	/* Actually do the transfer */
+	
 	hermes_write_bytes(hw, dreg, buf, len);
 
  out:
@@ -453,14 +362,7 @@ int hermes_bap_pwrite(hermes_t *hw, int bap, const void *buf, int len,
 }
 EXPORT_SYMBOL(hermes_bap_pwrite);
 
-/* Read a Length-Type-Value record from the card.
- *
- * If length is NULL, we ignore the length read from the card, and
- * read the entire buffer regardless. This is useful because some of
- * the configuration records appear to have incorrect lengths in
- * practice.
- *
- * Callable from user or bh context.  */
+
 int hermes_read_ltv(hermes_t *hw, int bap, u16 rid, unsigned bufsize,
 		    u16 *length, void *buf)
 {

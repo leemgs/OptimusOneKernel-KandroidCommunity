@@ -1,25 +1,4 @@
-/*
- * This file is part of wl1271
- *
- * Copyright (C) 2009 Nokia Corporation
- *
- * Contact: Luciano Coelho <luciano.coelho@nokia.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -50,14 +29,13 @@ static int wl1271_tx_allocate(struct wl1271 *wl, struct sk_buff *skb, u32 extra)
 	u32 total_blocks, excluded;
 	int id, ret = -EBUSY;
 
-	/* allocate free identifier for the packet */
+	
 	id = wl1271_tx_id(wl, skb);
 	if (id < 0)
 		return id;
 
-	/* approximate the number of blocks required for this packet
-	   in the firmware */
-	/* FIXME: try to figure out what is done here and make it cleaner */
+	
+	
 	total_blocks = (skb->len) >> TX_HW_BLOCK_SHIFT_DIV;
 	excluded = (total_blocks << 2) + (skb->len & 0xff) + 34;
 	total_blocks += (excluded > 252) ? 2 : 1;
@@ -92,23 +70,22 @@ static int wl1271_tx_fill_hdr(struct wl1271 *wl, struct sk_buff *skb,
 
 	desc = (struct wl1271_tx_hw_descr *) skb->data;
 
-	/* configure packet life time */
+	
 	desc->start_time = jiffies_to_usecs(jiffies) - wl->time_offset;
 	desc->life_time = TX_HW_MGMT_PKT_LIFETIME_TU;
 
-	/* configure the tx attributes */
+	
 	desc->tx_attr = wl->session_counter << TX_HW_ATTR_OFST_SESSION_COUNTER;
-	/* FIXME: do we know the packet priority? can we identify mgmt
-	   packets, and use max prio for them at least? */
+	
 	desc->tid = 0;
 	desc->aid = TX_HW_DEFAULT_AID;
 	desc->reserved = 0;
 
-	/* align the length (and store in terms of words) */
+	
 	pad = WL1271_TX_ALIGN(skb->len);
 	desc->length = pad >> 2;
 
-	/* calculate number of padding bytes */
+	
 	pad = pad - skb->len;
 	desc->tx_attr |= pad << TX_HW_ATTR_OFST_LAST_WORD_PAD;
 
@@ -123,19 +100,16 @@ static int wl1271_tx_send_packet(struct wl1271 *wl, struct sk_buff *skb,
 	struct wl1271_tx_hw_descr *desc;
 	int len;
 
-	/* FIXME: This is a workaround for getting non-aligned packets.
-	   This happens at least with EAPOL packets from the user space.
-	   Our DMA requires packets to be aligned on a 4-byte boundary.
-	*/
+	
 	if (unlikely((long)skb->data & 0x03)) {
 		int offset = (4 - (long)skb->data) & 0x03;
 		wl1271_debug(DEBUG_TX, "skb offset %d", offset);
 
-		/* check whether the current skb can be used */
+		
 		if (!skb_cloned(skb) && (skb_tailroom(skb) >= offset)) {
 			unsigned char *src = skb->data;
 
-			/* align the buffer on a 4-byte boundary */
+			
 			skb_reserve(skb, offset);
 			memmove(skb->data, src, skb->len);
 		} else {
@@ -146,10 +120,10 @@ static int wl1271_tx_send_packet(struct wl1271 *wl, struct sk_buff *skb,
 
 	len = WL1271_TX_ALIGN(skb->len);
 
-	/* perform a fixed address block write with the packet */
+	
 	wl1271_spi_reg_write(wl, WL1271_SLV_MEM_DATA, skb->data, len, true);
 
-	/* write packet new counter into the write access register */
+	
 	wl->tx_packets_count++;
 	wl1271_reg_write32(wl, WL1271_HOST_WR_ACCESS, wl->tx_packets_count);
 
@@ -160,7 +134,7 @@ static int wl1271_tx_send_packet(struct wl1271 *wl, struct sk_buff *skb,
 	return 0;
 }
 
-/* caller must hold wl->mutex */
+
 static int wl1271_tx_frame(struct wl1271 *wl, struct sk_buff *skb)
 {
 	struct ieee80211_tx_info *info;
@@ -180,7 +154,7 @@ static int wl1271_tx_frame(struct wl1271 *wl, struct sk_buff *skb)
 	if (info->control.hw_key) {
 		idx = info->control.hw_key->hw_key_idx;
 
-		/* FIXME: do we have to do this if we're not using WEP? */
+		
 		if (unlikely(wl->default_key != idx)) {
 			ret = wl1271_cmd_set_default_wep_key(wl, idx);
 			if (ret < 0)
@@ -225,7 +199,7 @@ void wl1271_tx_work(struct work_struct *work)
 
 		ret = wl1271_tx_frame(wl, skb);
 		if (ret == -EBUSY) {
-			/* firmware buffer is full, stop queues */
+			
 			wl1271_debug(DEBUG_TX, "tx_work: fw buffer full, "
 				     "stop queues");
 			ieee80211_stop_queues(wl->hw);
@@ -236,7 +210,7 @@ void wl1271_tx_work(struct work_struct *work)
 			dev_kfree_skb(skb);
 			goto out;
 		} else if (wl->tx_queue_stopped) {
-			/* firmware buffer has space, restart queues */
+			
 			wl1271_debug(DEBUG_TX,
 				     "complete_packet: waking queues");
 			ieee80211_wake_queues(wl->hw);
@@ -260,7 +234,7 @@ static void wl1271_tx_complete_packet(struct wl1271 *wl,
 	u32 header_len;
 	int id = result->id;
 
-	/* check for id legality */
+	
 	if (id >= TX_HW_RESULT_QUEUE_LEN || wl->tx_frames[id] == NULL) {
 		wl1271_warning("TX result illegal id: %d", id);
 		return;
@@ -269,22 +243,22 @@ static void wl1271_tx_complete_packet(struct wl1271 *wl,
 	skb = wl->tx_frames[id];
 	info = IEEE80211_SKB_CB(skb);
 
-	/* update packet status */
+	
 	if (!(info->flags & IEEE80211_TX_CTL_NO_ACK)) {
 		if (result->status == TX_SUCCESS)
 			info->flags |= IEEE80211_TX_STAT_ACK;
 		if (result->status & TX_RETRY_EXCEEDED) {
-			/* FIXME */
-			/* info->status.excessive_retries = 1; */
+			
+			
 			wl->stats.excessive_retries++;
 		}
 	}
 
-	/* FIXME */
-	/* info->status.retry_count = result->ack_failures; */
+	
+	
 	wl->stats.retry_count += result->ack_failures;
 
-	/* get header len */
+	
 	if (info->control.hw_key &&
 	    info->control.hw_key->alg == ALG_TKIP)
 		header_len = WL1271_TKIP_IV_SPACE +
@@ -297,15 +271,15 @@ static void wl1271_tx_complete_packet(struct wl1271 *wl,
 		     result->id, skb, result->ack_failures,
 		     result->rate_class_index, result->status);
 
-	/* remove private header from packet */
+	
 	skb_pull(skb, header_len);
 
-	/* return the packet to the stack */
+	
 	ieee80211_tx_status(wl->hw, skb);
 	wl->tx_frames[result->id] = NULL;
 }
 
-/* Called upon reception of a TX complete interrupt */
+
 void wl1271_tx_complete(struct wl1271 *wl, u32 count)
 {
 	struct wl1271_acx_mem_map *memmap =
@@ -314,44 +288,44 @@ void wl1271_tx_complete(struct wl1271 *wl, u32 count)
 
 	wl1271_debug(DEBUG_TX, "tx_complete received, packets: %d", count);
 
-	/* read the tx results from the chipset */
+	
 	wl1271_spi_mem_read(wl, memmap->tx_result,
 			    wl->tx_res_if, sizeof(*wl->tx_res_if));
 
-	/* verify that the result buffer is not getting overrun */
+	
 	if (count > TX_HW_RESULT_QUEUE_LEN) {
 		wl1271_warning("TX result overflow from chipset: %d", count);
 		count = TX_HW_RESULT_QUEUE_LEN;
 	}
 
-	/* process the results */
+	
 	for (i = 0; i < count; i++) {
 		struct wl1271_tx_hw_res_descr *result;
 		u8 offset = wl->tx_results_count & TX_HW_RESULT_QUEUE_LEN_MASK;
 
-		/* process the packet */
+		
 		result =  &(wl->tx_res_if->tx_results_queue[offset]);
 		wl1271_tx_complete_packet(wl, result);
 
 		wl->tx_results_count++;
 	}
 
-	/* write host counter to chipset (to ack) */
+	
 	wl1271_mem_write32(wl, memmap->tx_result +
 			   offsetof(struct wl1271_tx_hw_res_if,
 				    tx_result_host_counter),
 			   wl->tx_res_if->tx_result_fw_counter);
 }
 
-/* caller must hold wl->mutex */
+
 void wl1271_tx_flush(struct wl1271 *wl)
 {
 	int i;
 	struct sk_buff *skb;
 	struct ieee80211_tx_info *info;
 
-	/* TX failure */
-/* 	control->flags = 0; FIXME */
+	
+
 
 	while ((skb = skb_dequeue(&wl->tx_queue))) {
 		info = IEEE80211_SKB_CB(skb);

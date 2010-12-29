@@ -1,7 +1,4 @@
-/**
-  * This file contains the handling of command.
-  * It prepares command and sends it to firmware when it is ready.
-  */
+
 
 #include <net/iw_handler.h>
 #include <net/lib80211.h>
@@ -19,16 +16,7 @@
 static struct cmd_ctrl_node *lbs_get_cmd_ctrl_node(struct lbs_private *priv);
 
 
-/**
- *  @brief Simple callback that copies response back into command
- *
- *  @param priv    	A pointer to struct lbs_private structure
- *  @param extra  	A pointer to the original command structure for which
- *                      'resp' is a response
- *  @param resp         A pointer to the command response
- *
- *  @return 	   	0 on success, error on failure
- */
+
 int lbs_cmd_copyback(struct lbs_private *priv, unsigned long extra,
 		     struct cmd_header *resp)
 {
@@ -41,17 +29,7 @@ int lbs_cmd_copyback(struct lbs_private *priv, unsigned long extra,
 }
 EXPORT_SYMBOL_GPL(lbs_cmd_copyback);
 
-/**
- *  @brief Simple callback that ignores the result. Use this if
- *  you just want to send a command to the hardware, but don't
- *  care for the result.
- *
- *  @param priv         ignored
- *  @param extra        ignored
- *  @param resp         ignored
- *
- *  @return 	   	0 for success
- */
+
 static int lbs_cmd_async_callback(struct lbs_private *priv, unsigned long extra,
 		     struct cmd_header *resp)
 {
@@ -59,12 +37,7 @@ static int lbs_cmd_async_callback(struct lbs_private *priv, unsigned long extra,
 }
 
 
-/**
- *  @brief Checks whether a command is allowed in Power Save mode
- *
- *  @param command the command ID
- *  @return 	   1 if allowed, 0 if not allowed
- */
+
 static u8 is_command_allowed_in_ps(u16 cmd)
 {
 	switch (cmd) {
@@ -76,13 +49,7 @@ static u8 is_command_allowed_in_ps(u16 cmd)
 	return 0;
 }
 
-/**
- *  @brief Updates the hardware details like MAC address and regulatory region
- *
- *  @param priv    	A pointer to struct lbs_private structure
- *
- *  @return 	   	0 on success, error on failure
- */
+
 int lbs_update_hw_spec(struct lbs_private *priv)
 {
 	struct cmd_ds_get_hw_spec cmd;
@@ -100,16 +67,12 @@ int lbs_update_hw_spec(struct lbs_private *priv)
 
 	priv->fwcapinfo = le32_to_cpu(cmd.fwcapinfo);
 
-	/* The firmware release is in an interesting format: the patch
-	 * level is in the most significant nibble ... so fix that: */
+	
 	priv->fwrelease = le32_to_cpu(cmd.fwrelease);
 	priv->fwrelease = (priv->fwrelease << 8) |
 		(priv->fwrelease >> 24 & 0xff);
 
-	/* Some firmware capabilities:
-	 * CF card    firmware 5.0.16p0:   cap 0x00000303
-	 * USB dongle firmware 5.110.17p2: cap 0x00000303
-	 */
+	
 	lbs_pr_info("%pM, fw %u.%u.%up%u, cap 0x%08x\n",
 		cmd.permanentaddr,
 		priv->fwrelease >> 24 & 0xff,
@@ -120,11 +83,11 @@ int lbs_update_hw_spec(struct lbs_private *priv)
 	lbs_deb_cmd("GET_HW_SPEC: hardware interface 0x%x, hardware spec 0x%04x\n",
 		    cmd.hwifversion, cmd.version);
 
-	/* Determine mesh_fw_ver from fwrelease and fwcapinfo */
-	/* 5.0.16p0 9.0.0.p0 is known to NOT support any mesh */
-	/* 5.110.22 have mesh command with 0xa3 command id */
-	/* 10.0.0.p0 FW brings in mesh config command with different id */
-	/* Check FW version MSB and initialize mesh_fw_ver */
+	
+	
+	
+	
+	
 	if (MRVL_FW_MAJOR_REV(priv->fwrelease) == MRVL_FW_V5)
 		priv->mesh_fw_ver = MESH_FW_OLD;
 	else if ((MRVL_FW_MAJOR_REV(priv->fwrelease) >= MRVL_FW_V10) &&
@@ -133,25 +96,19 @@ int lbs_update_hw_spec(struct lbs_private *priv)
 	else
 		priv->mesh_fw_ver = MESH_NONE;
 
-	/* Clamp region code to 8-bit since FW spec indicates that it should
-	 * only ever be 8-bit, even though the field size is 16-bit.  Some firmware
-	 * returns non-zero high 8 bits here.
-	 *
-	 * Firmware version 4.0.102 used in CF8381 has region code shifted.  We
-	 * need to check for this problem and handle it properly.
-	 */
+	
 	if (MRVL_FW_MAJOR_REV(priv->fwrelease) == MRVL_FW_V4)
 		priv->regioncode = (le16_to_cpu(cmd.regioncode) >> 8) & 0xFF;
 	else
 		priv->regioncode = le16_to_cpu(cmd.regioncode) & 0xFF;
 
 	for (i = 0; i < MRVDRV_MAX_REGION_CODE; i++) {
-		/* use the region code to search for the index */
+		
 		if (priv->regioncode == lbs_region_code_to_index[i])
 			break;
 	}
 
-	/* if it's unidentified region code, use the default (USA) */
+	
 	if (i >= MRVDRV_MAX_REGION_CODE) {
 		priv->regioncode = 0x10;
 		lbs_pr_info("unidentified region code; using the default (USA)\n");
@@ -337,11 +294,11 @@ int lbs_cmd_802_11_set_wep(struct lbs_private *priv, uint16_t cmd_action,
 	if (cmd_action == CMD_ACT_ADD) {
 		int i;
 
-		/* default tx key index */
+		
 		cmd.keyindex = cpu_to_le16(assoc->wep_tx_keyidx &
 					   CMD_WEP_KEY_INDEX_MASK);
 
-		/* Copy key types and material to host command structure */
+		
 		for (i = 0; i < 4; i++) {
 			struct enc_key *pkey = &assoc->wep_keys[i];
 
@@ -367,9 +324,9 @@ int lbs_cmd_802_11_set_wep(struct lbs_private *priv, uint16_t cmd_action,
 			}
 		}
 	} else if (cmd_action == CMD_ACT_REMOVE) {
-		/* ACT_REMOVE clears _all_ WEP keys */
+		
 
-		/* default tx key index */
+		
 		cmd.keyindex = cpu_to_le16(priv->wep_tx_keyidx &
 					   CMD_WEP_KEY_INDEX_MASK);
 		lbs_deb_cmd("SET_WEP: remove key %d\n", priv->wep_tx_keyidx);
@@ -427,7 +384,7 @@ static void set_one_wpa_key(struct MrvlIEtype_keyParamSet *keyparam,
 	keyparam->keylen = cpu_to_le16(key->len);
 	memcpy(keyparam->key, key->key, key->len);
 
-	/* Length field doesn't include the {type,length} header */
+	
 	keyparam->length = cpu_to_le16(sizeof(*keyparam) - 4);
 	lbs_deb_leave(LBS_DEB_CMD);
 }
@@ -461,12 +418,12 @@ int lbs_cmd_802_11_key_material(struct lbs_private *priv, uint16_t cmd_action,
 			index++;
 		}
 
-		/* The common header and as many keys as we included */
+		
 		cmd.hdr.size = cpu_to_le16(offsetof(typeof(cmd),
 						    keyParamSet[index]));
 	}
 	ret = lbs_cmd_with_response(priv, CMD_802_11_KEY_MATERIAL, &cmd);
-	/* Copy the returned key to driver private data */
+	
 	if (!ret && cmd_action == CMD_ACT_GET) {
 		void *buf_ptr = cmd.keyParamSet;
 		void *resp_end = &(&cmd)[1];
@@ -483,7 +440,7 @@ int lbs_cmd_802_11_key_material(struct lbs_private *priv, uint16_t cmd_action,
 			end = (void *)keyparam + sizeof(keyparam->type)
 				+ sizeof(keyparam->length) + param_set_len;
 
-			/* Make sure we don't access past the end of the IEs */
+			
 			if (end > resp_end)
 				break;
 
@@ -494,7 +451,7 @@ int lbs_cmd_802_11_key_material(struct lbs_private *priv, uint16_t cmd_action,
 			else
 				break;
 
-			/* Copy returned key into driver */
+			
 			memset(key, 0, sizeof(struct enc_key));
 			if (key_len > sizeof(key->key))
 				break;
@@ -511,15 +468,7 @@ int lbs_cmd_802_11_key_material(struct lbs_private *priv, uint16_t cmd_action,
 	return ret;
 }
 
-/**
- *  @brief Set an SNMP MIB value
- *
- *  @param priv    	A pointer to struct lbs_private structure
- *  @param oid  	The OID to set in the firmware
- *  @param val  	Value to set the OID to
- *
- *  @return 	   	0 on success, error on failure
- */
+
 int lbs_set_snmp_mib(struct lbs_private *priv, u32 oid, u16 val)
 {
 	struct cmd_ds_802_11_snmp_mib cmd;
@@ -561,15 +510,7 @@ out:
 	return ret;
 }
 
-/**
- *  @brief Get an SNMP MIB value
- *
- *  @param priv    	A pointer to struct lbs_private structure
- *  @param oid  	The OID to retrieve from the firmware
- *  @param out_val  	Location for the returned value
- *
- *  @return 	   	0 on success, error on failure
- */
+
 int lbs_get_snmp_mib(struct lbs_private *priv, u32 oid, u16 *out_val)
 {
 	struct cmd_ds_802_11_snmp_mib cmd;
@@ -610,16 +551,7 @@ out:
 	return ret;
 }
 
-/**
- *  @brief Get the min, max, and current TX power
- *
- *  @param priv    	A pointer to struct lbs_private structure
- *  @param curlevel  	Current power level in dBm
- *  @param minlevel  	Minimum supported power level in dBm (optional)
- *  @param maxlevel  	Maximum supported power level in dBm (optional)
- *
- *  @return 	   	0 on success, error on failure
- */
+
 int lbs_get_tx_power(struct lbs_private *priv, s16 *curlevel, s16 *minlevel,
 		     s16 *maxlevel)
 {
@@ -645,14 +577,7 @@ int lbs_get_tx_power(struct lbs_private *priv, s16 *curlevel, s16 *minlevel,
 	return ret;
 }
 
-/**
- *  @brief Set the TX power
- *
- *  @param priv    	A pointer to struct lbs_private structure
- *  @param dbm  	The desired power level in dBm
- *
- *  @return 	   	0 on success, error on failure
- */
+
 int lbs_set_tx_power(struct lbs_private *priv, s16 dbm)
 {
 	struct cmd_ds_802_11_rf_tx_power cmd;
@@ -694,22 +619,7 @@ static int lbs_cmd_802_11_monitor_mode(struct cmd_ds_command *cmd,
 
 static __le16 lbs_rate_to_fw_bitmap(int rate, int lower_rates_ok)
 {
-/*		Bit  	Rate
-*		15:13 Reserved
-*		12    54 Mbps
-*		11    48 Mbps
-*		10    36 Mbps
-*		9     24 Mbps
-*		8     18 Mbps
-*		7     12 Mbps
-*		6     9 Mbps
-*		5     6 Mbps
-*		4     Reserved
-*		3     11 Mbps
-*		2     5.5 Mbps
-*		1     2 Mbps
-*		0     1 Mbps
-**/
+
 
 	uint16_t ratemask;
 	int i = lbs_data_rate_to_fw_index(rate);
@@ -747,14 +657,7 @@ int lbs_cmd_802_11_rate_adapt_rateset(struct lbs_private *priv,
 }
 EXPORT_SYMBOL_GPL(lbs_cmd_802_11_rate_adapt_rateset);
 
-/**
- *  @brief Set the data rate
- *
- *  @param priv    	A pointer to struct lbs_private structure
- *  @param rate  	The desired data rate, or 0 to clear a locked rate
- *
- *  @return 	   	0 on success, error on failure
- */
+
 int lbs_set_data_rate(struct lbs_private *priv, u8 rate)
 {
 	struct cmd_ds_802_11_data_rate cmd;
@@ -786,9 +689,7 @@ int lbs_set_data_rate(struct lbs_private *priv, u8 rate)
 
 	lbs_deb_hex(LBS_DEB_CMD, "DATA_RATE_RESP", (u8 *) &cmd, sizeof (cmd));
 
-	/* FIXME: get actual rates FW can do if this command actually returns
-	 * all data rates supported.
-	 */
+	
 	priv->cur_rate = lbs_fw_index_to_data_rate(cmd.rates[0]);
 	lbs_deb_cmd("DATA_RATE: current rate is 0x%02x\n", priv->cur_rate);
 
@@ -797,13 +698,7 @@ out:
 	return ret;
 }
 
-/**
- *  @brief Get the radio channel
- *
- *  @param priv    	A pointer to struct lbs_private structure
- *
- *  @return 	   	The channel on success, error on failure
- */
+
 int lbs_get_channel(struct lbs_private *priv)
 {
 	struct cmd_ds_802_11_rf_channel cmd;
@@ -831,7 +726,7 @@ int lbs_update_channel(struct lbs_private *priv)
 {
 	int ret;
 
-	/* the channel in f/w could be out of sync; get the current channel */
+	
 	lbs_deb_enter(LBS_DEB_ASSOC);
 
 	ret = lbs_get_channel(priv);
@@ -843,14 +738,7 @@ int lbs_update_channel(struct lbs_private *priv)
 	return ret;
 }
 
-/**
- *  @brief Set the radio channel
- *
- *  @param priv    	A pointer to struct lbs_private structure
- *  @param channel  	The desired channel, or 0 to clear a locked channel
- *
- *  @return 	   	0 on success, error on failure
- */
+
 int lbs_set_channel(struct lbs_private *priv, u8 channel)
 {
 	struct cmd_ds_802_11_rf_channel cmd;
@@ -888,7 +776,7 @@ static int lbs_cmd_802_11_rssi(struct lbs_private *priv,
 	cmd->size = cpu_to_le16(sizeof(struct cmd_ds_802_11_rssi) + S_DS_GEN);
 	cmd->params.rssi.N = cpu_to_le16(DEFAULT_BCN_AVG_FACTOR);
 
-	/* reset Beacon SNR/NF/RSSI values */
+	
 	priv->SNR[TYPE_BEACON][TYPE_NOAVG] = 0;
 	priv->SNR[TYPE_BEACON][TYPE_AVG] = 0;
 	priv->NF[TYPE_BEACON][TYPE_NOAVG] = 0;
@@ -1060,10 +948,7 @@ static int __lbs_mesh_config_send(struct lbs_private *priv,
 
 	lbs_deb_enter(LBS_DEB_CMD);
 
-	/*
-	 * Command id is 0xac for v10 FW along with mesh interface
-	 * id in bits 14-13-12.
-	 */
+	
 	if (priv->mesh_fw_ver == MESH_FW_NEW)
 		command = CMD_MESH_CONFIG |
 			  (MESH_IFACE_ID << MESH_IFACE_BIT_OFFSET);
@@ -1094,11 +979,7 @@ int lbs_mesh_config_send(struct lbs_private *priv,
 	return ret;
 }
 
-/* This function is the CMD_MESH_CONFIG legacy function.  It only handles the
- * START and STOP actions.  The extended actions supported by CMD_MESH_CONFIG
- * are all handled by preparing a struct cmd_ds_mesh_config and passing it to
- * lbs_mesh_config_send.
- */
+
 int lbs_mesh_config(struct lbs_private *priv, uint16_t action, uint16_t chan)
 {
 	struct cmd_ds_mesh_config cmd;
@@ -1178,7 +1059,7 @@ static void lbs_queue_cmd(struct lbs_private *priv,
 	}
 	cmdnode->result = 0;
 
-	/* Exit_PS command needs to be queued in the header always. */
+	
 	if (le16_to_cpu(cmdnode->cmdbuf->command) == CMD_802_11_PS_MODE) {
 		struct cmd_ds_802_11_ps_mode *psm = (void *) &cmdnode->cmdbuf[1];
 
@@ -1226,7 +1107,7 @@ static void lbs_submit_command(struct lbs_private *priv,
 	cmdsize = le16_to_cpu(cmd->size);
 	command = le16_to_cpu(cmd->command);
 
-	/* These commands take longer */
+	
 	if (command == CMD_802_11_SCAN || command == CMD_802_11_ASSOCIATE)
 		timeo = 5 * HZ;
 
@@ -1238,21 +1119,17 @@ static void lbs_submit_command(struct lbs_private *priv,
 
 	if (ret) {
 		lbs_pr_info("DNLD_CMD: hw_host_to_card failed: %d\n", ret);
-		/* Let the timer kick in and retry, and potentially reset
-		   the whole thing if the condition persists */
+		
 		timeo = HZ/4;
 	}
 
-	/* Setup the timer after transmit command */
+	
 	mod_timer(&priv->command_timer, jiffies + timeo);
 
 	lbs_deb_leave(LBS_DEB_HOST);
 }
 
-/**
- *  This function inserts command node to cmdfreeq
- *  after cleans it. Requires priv->driver_lock held.
- */
+
 static void __lbs_cleanup_and_insert_cmd(struct lbs_private *priv,
 					 struct cmd_ctrl_node *cmdnode)
 {
@@ -1306,13 +1183,13 @@ int lbs_set_radio(struct lbs_private *priv, u8 preamble, u8 radio_on)
 	cmd.hdr.size = cpu_to_le16(sizeof(cmd));
 	cmd.action = cpu_to_le16(CMD_ACT_SET);
 
-	/* Only v8 and below support setting the preamble */
+	
 	if (priv->fwrelease < 0x09000000) {
 		switch (preamble) {
 		case RADIO_PREAMBLE_SHORT:
 			if (!(priv->capability & WLAN_CAPABILITY_SHORT_PREAMBLE))
 				goto out;
-			/* Fall through */
+			
 		case RADIO_PREAMBLE_AUTO:
 		case RADIO_PREAMBLE_LONG:
 			cmd.control = cpu_to_le16(preamble);
@@ -1356,17 +1233,7 @@ void lbs_set_mac_control(struct lbs_private *priv)
 	lbs_deb_leave(LBS_DEB_CMD);
 }
 
-/**
- *  @brief This function prepare the command before send to firmware.
- *
- *  @param priv		A pointer to struct lbs_private structure
- *  @param cmd_no	command number
- *  @param cmd_action	command action: GET or SET
- *  @param wait_option	wait option: wait response or not
- *  @param cmd_oid	cmd oid: treated as sub command
- *  @param pdata_buf	A pointer to informaion buffer
- *  @return 		0 or -1
- */
+
 int lbs_prepare_and_send_command(struct lbs_private *priv,
 			  u16 cmd_no,
 			  u16 cmd_action,
@@ -1396,7 +1263,7 @@ int lbs_prepare_and_send_command(struct lbs_private *priv,
 	if (cmdnode == NULL) {
 		lbs_deb_host("PREP_CMD: cmdnode is NULL\n");
 
-		/* Wake up main thread to execute next command */
+		
 		wake_up_interruptible(&priv->waitq);
 		ret = -1;
 		goto done;
@@ -1409,7 +1276,7 @@ int lbs_prepare_and_send_command(struct lbs_private *priv,
 
 	lbs_deb_host("PREP_CMD: command 0x%04x\n", cmd_no);
 
-	/* Set sequence number, command and INT option */
+	
 	priv->seqnum++;
 	cmdptr->seqnum = cpu_to_le16(priv->seqnum);
 
@@ -1512,7 +1379,7 @@ int lbs_prepare_and_send_command(struct lbs_private *priv,
 		break;
 	}
 
-	/* return error, since the command preparation failed */
+	
 	if (ret != 0) {
 		lbs_deb_host("PREP_CMD: command preparation failed\n");
 		lbs_cleanup_and_insert_cmd(priv, cmdnode);
@@ -1546,13 +1413,7 @@ done:
 	return ret;
 }
 
-/**
- *  @brief This function allocates the command buffer and link
- *  it to command free queue.
- *
- *  @param priv		A pointer to struct lbs_private structure
- *  @return 		0 or -1
- */
+
 int lbs_allocate_cmd_buffer(struct lbs_private *priv)
 {
 	int ret = 0;
@@ -1562,7 +1423,7 @@ int lbs_allocate_cmd_buffer(struct lbs_private *priv)
 
 	lbs_deb_enter(LBS_DEB_HOST);
 
-	/* Allocate and initialize the command array */
+	
 	bufsize = sizeof(struct cmd_ctrl_node) * LBS_NUM_CMD_BUFFERS;
 	if (!(cmdarray = kzalloc(bufsize, GFP_KERNEL))) {
 		lbs_deb_host("ALLOC_CMD_BUF: tempcmd_array is NULL\n");
@@ -1571,7 +1432,7 @@ int lbs_allocate_cmd_buffer(struct lbs_private *priv)
 	}
 	priv->cmd_array = cmdarray;
 
-	/* Allocate and initialize each command buffer in the command array */
+	
 	for (i = 0; i < LBS_NUM_CMD_BUFFERS; i++) {
 		cmdarray[i].cmdbuf = kzalloc(LBS_CMD_BUFFER_SIZE, GFP_KERNEL);
 		if (!cmdarray[i].cmdbuf) {
@@ -1592,12 +1453,7 @@ done:
 	return ret;
 }
 
-/**
- *  @brief This function frees the command buffer.
- *
- *  @param priv		A pointer to struct lbs_private structure
- *  @return 		0 or -1
- */
+
 int lbs_free_cmd_buffer(struct lbs_private *priv)
 {
 	struct cmd_ctrl_node *cmdarray;
@@ -1605,7 +1461,7 @@ int lbs_free_cmd_buffer(struct lbs_private *priv)
 
 	lbs_deb_enter(LBS_DEB_HOST);
 
-	/* need to check if cmd array is allocated or not */
+	
 	if (priv->cmd_array == NULL) {
 		lbs_deb_host("FREE_CMD_BUF: cmd_array is NULL\n");
 		goto done;
@@ -1613,7 +1469,7 @@ int lbs_free_cmd_buffer(struct lbs_private *priv)
 
 	cmdarray = priv->cmd_array;
 
-	/* Release shared memory buffers */
+	
 	for (i = 0; i < LBS_NUM_CMD_BUFFERS; i++) {
 		if (cmdarray[i].cmdbuf) {
 			kfree(cmdarray[i].cmdbuf);
@@ -1621,7 +1477,7 @@ int lbs_free_cmd_buffer(struct lbs_private *priv)
 		}
 	}
 
-	/* Release cmd_ctrl_node */
+	
 	if (priv->cmd_array) {
 		kfree(priv->cmd_array);
 		priv->cmd_array = NULL;
@@ -1632,13 +1488,7 @@ done:
 	return 0;
 }
 
-/**
- *  @brief This function gets a free command node if available in
- *  command free queue.
- *
- *  @param priv		A pointer to struct lbs_private structure
- *  @return cmd_ctrl_node A pointer to cmd_ctrl_node structure or NULL
- */
+
 static struct cmd_ctrl_node *lbs_get_cmd_ctrl_node(struct lbs_private *priv)
 {
 	struct cmd_ctrl_node *tempnode;
@@ -1666,14 +1516,7 @@ static struct cmd_ctrl_node *lbs_get_cmd_ctrl_node(struct lbs_private *priv)
 	return tempnode;
 }
 
-/**
- *  @brief This function executes next command in command
- *  pending queue. It will put firmware back to PS mode
- *  if applicable.
- *
- *  @param priv     A pointer to struct lbs_private structure
- *  @return 	   0 or -1
- */
+
 int lbs_execute_next_command(struct lbs_private *priv)
 {
 	struct cmd_ctrl_node *cmdnode = NULL;
@@ -1681,9 +1524,7 @@ int lbs_execute_next_command(struct lbs_private *priv)
 	unsigned long flags;
 	int ret = 0;
 
-	/* Debug group is LBS_DEB_THREAD and not LBS_DEB_HOST, because the
-	 * only caller to us is lbs_thread() and we get even when a
-	 * data packet is received */
+	
 	lbs_deb_enter(LBS_DEB_THREAD);
 
 	spin_lock_irqsave(&priv->driver_lock, flags);
@@ -1719,25 +1560,13 @@ int lbs_execute_next_command(struct lbs_private *priv)
 				     "0x%04x in psstate %d\n",
 				     le16_to_cpu(cmd->command), priv->psstate);
 		} else if (priv->psstate != PS_STATE_FULL_POWER) {
-			/*
-			 * 1. Non-PS command:
-			 * Queue it. set needtowakeup to TRUE if current state
-			 * is SLEEP, otherwise call lbs_ps_wakeup to send Exit_PS.
-			 * 2. PS command but not Exit_PS:
-			 * Ignore it.
-			 * 3. PS command Exit_PS:
-			 * Set needtowakeup to TRUE if current state is SLEEP,
-			 * otherwise send this command down to firmware
-			 * immediately.
-			 */
+			
 			if (cmd->command != cpu_to_le16(CMD_802_11_PS_MODE)) {
-				/*  Prepare to send Exit PS,
-				 *  this non PS command will be sent later */
+				
 				if ((priv->psstate == PS_STATE_SLEEP)
 				    || (priv->psstate == PS_STATE_PRE_SLEEP)
 				    ) {
-					/* w/ new scheme, it will not reach here.
-					   since it is blocked in main_thread. */
+					
 					priv->needtowakeup = 1;
 				} else
 					lbs_ps_wakeup(priv, 0);
@@ -1745,10 +1574,7 @@ int lbs_execute_next_command(struct lbs_private *priv)
 				ret = 0;
 				goto done;
 			} else {
-				/*
-				 * PS command. Ignore it if it is not Exit_PS.
-				 * otherwise send it down immediately.
-				 */
+				
 				struct cmd_ds_802_11_ps_mode *psm = (void *)&cmd[1];
 
 				lbs_deb_host(
@@ -1790,17 +1616,14 @@ int lbs_execute_next_command(struct lbs_private *priv)
 			    le16_to_cpu(cmd->command));
 		lbs_submit_command(priv, cmdnode);
 	} else {
-		/*
-		 * check if in power save mode, if yes, put the device back
-		 * to PS mode
-		 */
+		
 		if ((priv->psmode != LBS802_11POWERMODECAM) &&
 		    (priv->psstate == PS_STATE_FULL_POWER) &&
 		    ((priv->connect_status == LBS_CONNECTED) ||
 		    (priv->mesh_connect_status == LBS_CONNECTED))) {
 			if (priv->secinfo.WPAenabled ||
 			    priv->secinfo.WPA2enabled) {
-				/* check for valid WPA group keys */
+				
 				if (priv->wpa_mcast_key.len ||
 				    priv->wpa_unicast_key.len) {
 					lbs_deb_host(
@@ -1837,7 +1660,7 @@ void lbs_send_iwevcustom_event(struct lbs_private *priv, s8 *str)
 
 	iwrq.data.length = strlen(buf) + 1 + IW_EV_LCP_LEN;
 
-	/* Send Event to upper layer */
+	
 	lbs_deb_wext("event indication string %s\n", (char *)buf);
 	lbs_deb_wext("event indication length %d\n", iwrq.data.length);
 	lbs_deb_wext("sending wireless event IWEVCUSTOM for %s\n", str);
@@ -1865,10 +1688,10 @@ static void lbs_send_confirmsleep(struct lbs_private *priv)
 
 	spin_lock_irqsave(&priv->driver_lock, flags);
 
-	/* We don't get a response on the sleep-confirmation */
+	
 	priv->dnld_sent = DNLD_RES_RECEIVED;
 
-	/* If nothing to do, go back to sleep (?) */
+	
 	if (!__kfifo_len(priv->event_fifo) && !priv->resp_len[priv->resp_idx])
 		priv->psstate = PS_STATE_SLEEP;
 
@@ -1882,10 +1705,7 @@ void lbs_ps_sleep(struct lbs_private *priv, int wait_option)
 {
 	lbs_deb_enter(LBS_DEB_HOST);
 
-	/*
-	 * PS is currently supported only in Infrastructure mode
-	 * Remove this check if it is to be supported in IBSS mode also
-	 */
+	
 
 	lbs_prepare_and_send_command(priv, CMD_802_11_PS_MODE,
 			      CMD_SUBCMD_ENTER_PS, wait_option, 0, NULL);
@@ -1893,13 +1713,7 @@ void lbs_ps_sleep(struct lbs_private *priv, int wait_option)
 	lbs_deb_leave(LBS_DEB_HOST);
 }
 
-/**
- *  @brief This function sends Exit_PS command to firmware.
- *
- *  @param priv    	A pointer to struct lbs_private structure
- *  @param wait_option	wait response or not
- *  @return 	   	n/a
- */
+
 void lbs_ps_wakeup(struct lbs_private *priv, int wait_option)
 {
 	__le32 Localpsmode;
@@ -1915,14 +1729,7 @@ void lbs_ps_wakeup(struct lbs_private *priv, int wait_option)
 	lbs_deb_leave(LBS_DEB_HOST);
 }
 
-/**
- *  @brief This function checks condition and prepares to
- *  send sleep confirm command to firmware if ok.
- *
- *  @param priv    	A pointer to struct lbs_private structure
- *  @param psmode  	Power Saving mode
- *  @return 	   	n/a
- */
+
 void lbs_ps_confirm_sleep(struct lbs_private *priv)
 {
 	unsigned long flags =0;
@@ -1936,13 +1743,13 @@ void lbs_ps_confirm_sleep(struct lbs_private *priv)
 		lbs_deb_host("dnld_sent was set\n");
 	}
 
-	/* In-progress command? */
+	
 	if (priv->cur_cmd) {
 		allowed = 0;
 		lbs_deb_host("cur_cmd was set\n");
 	}
 
-	/* Pending events or command responses? */
+	
 	if (__kfifo_len(priv->event_fifo) || priv->resp_len[priv->resp_idx]) {
 		allowed = 0;
 		lbs_deb_host("pending events or command responses\n");
@@ -1960,18 +1767,7 @@ void lbs_ps_confirm_sleep(struct lbs_private *priv)
 }
 
 
-/**
- * @brief Configures the transmission power control functionality.
- *
- * @param priv		A pointer to struct lbs_private structure
- * @param enable	Transmission power control enable
- * @param p0		Power level when link quality is good (dBm).
- * @param p1		Power level when link quality is fair (dBm).
- * @param p2		Power level when link quality is poor (dBm).
- * @param usesnr	Use Signal to Noise Ratio in TPC
- *
- * @return 0 on success
- */
+
 int lbs_set_tpc_cfg(struct lbs_private *priv, int enable, int8_t p0, int8_t p1,
 		int8_t p2, int usesnr)
 {
@@ -1992,17 +1788,7 @@ int lbs_set_tpc_cfg(struct lbs_private *priv, int enable, int8_t p0, int8_t p1,
 	return ret;
 }
 
-/**
- * @brief Configures the power adaptation settings.
- *
- * @param priv		A pointer to struct lbs_private structure
- * @param enable	Power adaptation enable
- * @param p0		Power level for 1, 2, 5.5 and 11 Mbps (dBm).
- * @param p1		Power level for 6, 9, 12, 18, 22, 24 and 36 Mbps (dBm).
- * @param p2		Power level for 48 and 54 Mbps (dBm).
- *
- * @return 0 on Success
- */
+
 
 int lbs_set_power_adapt_cfg(struct lbs_private *priv, int enable, int8_t p0,
 		int8_t p1, int8_t p2)
@@ -2043,7 +1829,7 @@ static struct cmd_ctrl_node *__lbs_cmd_async(struct lbs_private *priv,
 	if (cmdnode == NULL) {
 		lbs_deb_host("PREP_CMD: cmdnode is NULL\n");
 
-		/* Wake up main thread to execute next command */
+		
 		wake_up_interruptible(&priv->waitq);
 		cmdnode = ERR_PTR(-ENOBUFS);
 		goto done;
@@ -2052,10 +1838,10 @@ static struct cmd_ctrl_node *__lbs_cmd_async(struct lbs_private *priv,
 	cmdnode->callback = callback;
 	cmdnode->callback_arg = callback_arg;
 
-	/* Copy the incoming command to the buffer */
+	
 	memcpy(cmdnode->cmdbuf, in_cmd, in_cmd_size);
 
-	/* Set sequence number, clean result, move to buffer */
+	
 	priv->seqnum++;
 	cmdnode->cmdbuf->command = cpu_to_le16(command);
 	cmdnode->cmdbuf->size    = cpu_to_le16(in_cmd_size);

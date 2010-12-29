@@ -1,22 +1,4 @@
-/* ZD1211 USB-WLAN driver for Linux
- *
- * Copyright (C) 2005-2007 Ulrich Kunitz <kune@deine-taler.de>
- * Copyright (C) 2006-2007 Daniel Drake <dsd@gentoo.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- */
+
 
 #ifndef _ZD_DEF_H
 #define _ZD_DEF_H
@@ -40,7 +22,7 @@ typedef u16 __nocast zd_addr_t;
 #else
 #  define dev_dbg_f(dev, fmt, args...) do { (void)(dev); } while (0)
 #  define dev_dbg_f_limit(dev, fmt, args...) do { (void)(dev); } while (0)
-#endif /* DEBUG */
+#endif 
 
 #ifdef DEBUG
 #  define ZD_ASSERT(x) \
@@ -61,4 +43,4 @@ do { \
 #  define ZD_MEMCLEAR(pointer, size) do { } while (0)
 #endif
 
-#endif /* _ZD_DEF_H */
+#endif 

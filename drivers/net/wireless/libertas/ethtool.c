@@ -34,9 +34,7 @@ static void lbs_ethtool_get_drvinfo(struct net_device *dev,
 	strcpy(info->version, lbs_driver_version);
 }
 
-/* All 8388 parts have 16KiB EEPROM size at the time of writing.
- * In case that changes this needs fixing.
- */
+
 #define LBS_EEPROM_LEN 16384
 
 static int lbs_ethtool_get_eeprom_len(struct net_device *dev)
@@ -82,7 +80,7 @@ static void lbs_ethtool_get_stats(struct net_device *dev,
 
 	lbs_deb_enter(LBS_DEB_ETHTOOL);
 
-	/* Get Mesh Statistics */
+	
 	ret = lbs_mesh_access(priv, CMD_ACT_MESH_GET_STATS, &mesh_access);
 
 	if (ret) {
@@ -146,7 +144,7 @@ static void lbs_ethtool_get_wol(struct net_device *dev,
 	struct lbs_private *priv = dev->ml_priv;
 
 	if (priv->wol_criteria == 0xffffffff) {
-		/* Interface driver didn't configure wake */
+		
 		wol->supported = wol->wolopts = 0;
 		return;
 	}

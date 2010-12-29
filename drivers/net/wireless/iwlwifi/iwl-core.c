@@ -1,30 +1,4 @@
-/******************************************************************************
- *
- * GPL LICENSE SUMMARY
- *
- * Copyright(c) 2008 - 2009 Intel Corporation. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of version 2 of the GNU General Public License as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110,
- * USA
- *
- * The full GNU General Public License is included in this distribution
- * in the file called LICENSE.GPL.
- *
- * Contact Information:
- *  Intel Linux Wireless <ilw@linux.intel.com>
- * Intel Corporation, 5200 N.E. Elam Young Parkway, Hillsboro, OR 97124-6497
- *****************************************************************************/
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -33,7 +7,7 @@
 #include <net/mac80211.h>
 
 #include "iwl-eeprom.h"
-#include "iwl-dev.h" /* FIXME: remove */
+#include "iwl-dev.h" 
 #include "iwl-debug.h"
 #include "iwl-core.h"
 #include "iwl-io.h"
@@ -65,35 +39,26 @@ EXPORT_SYMBOL(iwl_debug_level);
 
 static irqreturn_t iwl_isr(int irq, void *data);
 
-/*
- * Parameter order:
- *   rate, ht rate, prev rate, next rate, prev tgg rate, next tgg rate
- *
- * If there isn't a valid next or previous rate then INV is used which
- * maps to IWL_RATE_INVALID
- *
- */
+
 const struct iwl_rate_info iwl_rates[IWL_RATE_COUNT] = {
-	IWL_DECLARE_RATE_INFO(1, INV, INV, 2, INV, 2, INV, 2),    /*  1mbps */
-	IWL_DECLARE_RATE_INFO(2, INV, 1, 5, 1, 5, 1, 5),          /*  2mbps */
-	IWL_DECLARE_RATE_INFO(5, INV, 2, 6, 2, 11, 2, 11),        /*5.5mbps */
-	IWL_DECLARE_RATE_INFO(11, INV, 9, 12, 9, 12, 5, 18),      /* 11mbps */
-	IWL_DECLARE_RATE_INFO(6, 6, 5, 9, 5, 11, 5, 11),        /*  6mbps */
-	IWL_DECLARE_RATE_INFO(9, 6, 6, 11, 6, 11, 5, 11),       /*  9mbps */
-	IWL_DECLARE_RATE_INFO(12, 12, 11, 18, 11, 18, 11, 18),   /* 12mbps */
-	IWL_DECLARE_RATE_INFO(18, 18, 12, 24, 12, 24, 11, 24),   /* 18mbps */
-	IWL_DECLARE_RATE_INFO(24, 24, 18, 36, 18, 36, 18, 36),   /* 24mbps */
-	IWL_DECLARE_RATE_INFO(36, 36, 24, 48, 24, 48, 24, 48),   /* 36mbps */
-	IWL_DECLARE_RATE_INFO(48, 48, 36, 54, 36, 54, 36, 54),   /* 48mbps */
-	IWL_DECLARE_RATE_INFO(54, 54, 48, INV, 48, INV, 48, INV),/* 54mbps */
-	IWL_DECLARE_RATE_INFO(60, 60, 48, INV, 48, INV, 48, INV),/* 60mbps */
-	/* FIXME:RS:          ^^    should be INV (legacy) */
+	IWL_DECLARE_RATE_INFO(1, INV, INV, 2, INV, 2, INV, 2),    
+	IWL_DECLARE_RATE_INFO(2, INV, 1, 5, 1, 5, 1, 5),          
+	IWL_DECLARE_RATE_INFO(5, INV, 2, 6, 2, 11, 2, 11),        
+	IWL_DECLARE_RATE_INFO(11, INV, 9, 12, 9, 12, 5, 18),      
+	IWL_DECLARE_RATE_INFO(6, 6, 5, 9, 5, 11, 5, 11),        
+	IWL_DECLARE_RATE_INFO(9, 6, 6, 11, 6, 11, 5, 11),       
+	IWL_DECLARE_RATE_INFO(12, 12, 11, 18, 11, 18, 11, 18),   
+	IWL_DECLARE_RATE_INFO(18, 18, 12, 24, 12, 24, 11, 24),   
+	IWL_DECLARE_RATE_INFO(24, 24, 18, 36, 18, 36, 18, 36),   
+	IWL_DECLARE_RATE_INFO(36, 36, 24, 48, 24, 48, 24, 48),   
+	IWL_DECLARE_RATE_INFO(48, 48, 36, 54, 36, 54, 36, 54),   
+	IWL_DECLARE_RATE_INFO(54, 54, 48, INV, 48, INV, 48, INV),
+	IWL_DECLARE_RATE_INFO(60, 60, 48, INV, 48, INV, 48, INV),
+	
 };
 EXPORT_SYMBOL(iwl_rates);
 
-/**
- * translate ucode response to mac80211 tx status control values
- */
+
 void iwl_hwrate_to_tx_control(struct iwl_priv *priv, u32 rate_n_flags,
 				  struct ieee80211_tx_info *info)
 {
@@ -119,7 +84,7 @@ int iwl_hwrate_to_plcp_idx(u32 rate_n_flags)
 {
 	int idx = 0;
 
-	/* HT rate format */
+	
 	if (rate_n_flags & RATE_MCS_HT_MSK) {
 		idx = (rate_n_flags & 0xff);
 
@@ -129,13 +94,13 @@ int iwl_hwrate_to_plcp_idx(u32 rate_n_flags)
 			idx = idx - IWL_RATE_MIMO2_6M_PLCP;
 
 		idx += IWL_FIRST_OFDM_RATE;
-		/* skip 9M not supported in ht*/
+		
 		if (idx >= IWL_RATE_9M_INDEX)
 			idx += 1;
 		if ((idx >= IWL_FIRST_OFDM_RATE) && (idx <= IWL_LAST_OFDM_RATE))
 			return idx;
 
-	/* legacy rate format, search for match in table */
+	
 	} else {
 		for (idx = 0; idx < ARRAY_SIZE(iwl_rates); idx++)
 			if (iwl_rates[idx].plcp == (rate_n_flags & 0xFF))
@@ -151,11 +116,11 @@ int iwl_hwrate_to_mac80211_idx(u32 rate_n_flags, enum ieee80211_band band)
 	int idx = 0;
 	int band_offset = 0;
 
-	/* HT rate format: mac80211 wants an MCS number, which is just LSB */
+	
 	if (rate_n_flags & RATE_MCS_HT_MSK) {
 		idx = (rate_n_flags & 0xff);
 		return idx;
-	/* Legacy rate format, search for match in table */
+	
 	} else {
 		if (band == IEEE80211_BAND_5GHZ)
 			band_offset = IWL_FIRST_OFDM_RATE;
@@ -183,14 +148,13 @@ const u8 iwl_bcast_addr[ETH_ALEN] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 EXPORT_SYMBOL(iwl_bcast_addr);
 
 
-/* This function both allocates and initializes hw and priv. */
+
 struct ieee80211_hw *iwl_alloc_all(struct iwl_cfg *cfg,
 		struct ieee80211_ops *hw_ops)
 {
 	struct iwl_priv *priv;
 
-	/* mac80211 allocates memory for this device instance, including
-	 *   space for this driver's private structure */
+	
 	struct ieee80211_hw *hw =
 		ieee80211_alloc_hw(sizeof(struct iwl_priv), hw_ops);
 	if (hw == NULL) {
@@ -221,7 +185,7 @@ int iwl_hw_nic_init(struct iwl_priv *priv)
 	struct iwl_rx_queue *rxq = &priv->rxq;
 	int ret;
 
-	/* nic_init */
+	
 	spin_lock_irqsave(&priv->lock, flags);
 	priv->cfg->ops->lib->apm_ops.init(priv);
 	iwl_write32(priv, CSR_INT_COALESCING, 512 / 32);
@@ -231,7 +195,7 @@ int iwl_hw_nic_init(struct iwl_priv *priv)
 
 	priv->cfg->ops->lib->apm_ops.config(priv);
 
-	/* Allocate the RX queue, or reset if it is already allocated */
+	
 	if (!rxq->bd) {
 		ret = iwl_rx_queue_alloc(priv);
 		if (ret) {
@@ -252,7 +216,7 @@ int iwl_hw_nic_init(struct iwl_priv *priv)
 
 	spin_unlock_irqrestore(&priv->lock, flags);
 
-	/* Allocate and init all Tx and Command queues */
+	
 	ret = iwl_txq_ctx_reset(priv);
 	if (ret)
 		return ret;
@@ -263,9 +227,7 @@ int iwl_hw_nic_init(struct iwl_priv *priv)
 }
 EXPORT_SYMBOL(iwl_hw_nic_init);
 
-/*
- * QoS  support
-*/
+
 void iwl_activate_qos(struct iwl_priv *priv, u8 force)
 {
 	if (test_bit(STATUS_EXIT_PENDING, &priv->status))
@@ -296,14 +258,7 @@ void iwl_activate_qos(struct iwl_priv *priv, u8 force)
 }
 EXPORT_SYMBOL(iwl_activate_qos);
 
-/*
- * AC        CWmin         CW max      AIFSN      TXOP Limit    TXOP Limit
- *                                              (802.11b)      (802.11a/g)
- * AC_BK      15            1023        7           0               0
- * AC_BE      15            1023        3           0               0
- * AC_VI       7              15        2          6.016ms       3.008ms
- * AC_VO       3               7        2          3.264ms       1.504ms
- */
+
 void iwl_reset_qos(struct iwl_priv *priv)
 {
 	u16 cw_min = 15;
@@ -314,16 +269,14 @@ void iwl_reset_qos(struct iwl_priv *priv)
 	int i;
 
 	spin_lock_irqsave(&priv->lock, flags);
-	/* QoS always active in AP and ADHOC mode
-	 * In STA mode wait for association
-	 */
+	
 	if (priv->iw_mode == NL80211_IFTYPE_ADHOC ||
 	    priv->iw_mode == NL80211_IFTYPE_AP)
 		priv->qos_data.qos_active = 1;
 	else
 		priv->qos_data.qos_active = 0;
 
-	/* check for legacy mode */
+	
 	if ((priv->iw_mode == NL80211_IFTYPE_ADHOC &&
 	    (priv->active_rate & IWL_OFDM_RATES_MASK) == 0) ||
 	    (priv->iw_mode == NL80211_IFTYPE_STATION &&
@@ -335,7 +288,7 @@ void iwl_reset_qos(struct iwl_priv *priv)
 	if (priv->qos_data.qos_active)
 		aifs = 3;
 
-	/* AC_BE */
+	
 	priv->qos_data.def_qos_parm.ac[0].cw_min = cpu_to_le16(cw_min);
 	priv->qos_data.def_qos_parm.ac[0].cw_max = cpu_to_le16(cw_max);
 	priv->qos_data.def_qos_parm.ac[0].aifsn = aifs;
@@ -343,7 +296,7 @@ void iwl_reset_qos(struct iwl_priv *priv)
 	priv->qos_data.def_qos_parm.ac[0].reserved1 = 0;
 
 	if (priv->qos_data.qos_active) {
-		/* AC_BK */
+		
 		i = 1;
 		priv->qos_data.def_qos_parm.ac[i].cw_min = cpu_to_le16(cw_min);
 		priv->qos_data.def_qos_parm.ac[i].cw_max = cpu_to_le16(cw_max);
@@ -351,7 +304,7 @@ void iwl_reset_qos(struct iwl_priv *priv)
 		priv->qos_data.def_qos_parm.ac[i].edca_txop = 0;
 		priv->qos_data.def_qos_parm.ac[i].reserved1 = 0;
 
-		/* AC_VI */
+		
 		i = 2;
 		priv->qos_data.def_qos_parm.ac[i].cw_min =
 			cpu_to_le16((cw_min + 1) / 2 - 1);
@@ -366,7 +319,7 @@ void iwl_reset_qos(struct iwl_priv *priv)
 				cpu_to_le16(3008);
 		priv->qos_data.def_qos_parm.ac[i].reserved1 = 0;
 
-		/* AC_VO */
+		
 		i = 3;
 		priv->qos_data.def_qos_parm.ac[i].cw_min =
 			cpu_to_le16((cw_min + 1) / 4 - 1);
@@ -397,8 +350,8 @@ void iwl_reset_qos(struct iwl_priv *priv)
 }
 EXPORT_SYMBOL(iwl_reset_qos);
 
-#define MAX_BIT_RATE_40_MHZ 150 /* Mbps */
-#define MAX_BIT_RATE_20_MHZ 72 /* Mbps */
+#define MAX_BIT_RATE_40_MHZ 150 
+#define MAX_BIT_RATE_20_MHZ 72 
 static void iwlcore_init_ht_hw_capab(const struct iwl_priv *priv,
 			      struct ieee80211_sta_ht_cap *ht_info,
 			      enum ieee80211_band band)
@@ -438,12 +391,12 @@ static void iwlcore_init_ht_hw_capab(const struct iwl_priv *priv,
 	if (rx_chains_num >= 3)
 		ht_info->mcs.rx_mask[2] = 0xFF;
 
-	/* Highest supported Rx data rate */
+	
 	max_bit_rate *= rx_chains_num;
 	WARN_ON(max_bit_rate & ~IEEE80211_HT_MCS_RX_HIGHEST_MASK);
 	ht_info->mcs.rx_highest = cpu_to_le16(max_bit_rate);
 
-	/* Tx MCS capabilities */
+	
 	ht_info->mcs.tx_params = IEEE80211_HT_MCS_TX_DEFINED;
 	if (tx_chains_num != rx_chains_num) {
 		ht_info->mcs.tx_params |= IEEE80211_HT_MCS_TX_RX_DIFF;
@@ -459,13 +412,11 @@ static void iwlcore_init_hw_rates(struct iwl_priv *priv,
 
 	for (i = 0; i < IWL_RATE_COUNT_LEGACY; i++) {
 		rates[i].bitrate = iwl_rates[i].ieee * 5;
-		rates[i].hw_value = i; /* Rate scaling will work on indexes */
+		rates[i].hw_value = i; 
 		rates[i].hw_value_short = i;
 		rates[i].flags = 0;
 		if ((i >= IWL_FIRST_CCK_RATE) && (i <= IWL_LAST_CCK_RATE)) {
-			/*
-			 * If CCK != 1M then set short preamble rate flag.
-			 */
+			
 			rates[i].flags |=
 				(iwl_rates[i].plcp == IWL_RATE_1M_PLCP) ?
 					0 : IEEE80211_RATE_SHORT_PREAMBLE;
@@ -474,9 +425,7 @@ static void iwlcore_init_hw_rates(struct iwl_priv *priv,
 }
 
 
-/**
- * iwlcore_init_geos - Initialize mac80211's geo/channel info based from eeprom
- */
+
 int iwlcore_init_geos(struct iwl_priv *priv)
 {
 	struct iwl_channel_info *ch;
@@ -505,10 +454,10 @@ int iwlcore_init_geos(struct iwl_priv *priv)
 		return -ENOMEM;
 	}
 
-	/* 5.2GHz channels start after the 2.4GHz channels */
+	
 	sband = &priv->bands[IEEE80211_BAND_5GHZ];
 	sband->channels = &channels[ARRAY_SIZE(iwl_eeprom_band_1)];
-	/* just OFDM */
+	
 	sband->bitrates = &rates[IWL_FIRST_OFDM_RATE];
 	sband->n_bitrates = IWL_RATE_COUNT_LEGACY - IWL_FIRST_OFDM_RATE;
 
@@ -518,7 +467,7 @@ int iwlcore_init_geos(struct iwl_priv *priv)
 
 	sband = &priv->bands[IEEE80211_BAND_2GHZ];
 	sband->channels = channels;
-	/* OFDM & CCK */
+	
 	sband->bitrates = rates;
 	sband->n_bitrates = IWL_RATE_COUNT_LEGACY;
 
@@ -532,7 +481,7 @@ int iwlcore_init_geos(struct iwl_priv *priv)
 	for (i = 0;  i < priv->channel_count; i++) {
 		ch = &priv->channel_info[i];
 
-		/* FIXME: might be removed if scan is OK */
+		
 		if (!is_channel_valid(ch))
 			continue;
 
@@ -594,9 +543,7 @@ int iwlcore_init_geos(struct iwl_priv *priv)
 }
 EXPORT_SYMBOL(iwlcore_init_geos);
 
-/*
- * iwlcore_free_geos - undo allocations in iwlcore_init_geos
- */
+
 void iwlcore_free_geos(struct iwl_priv *priv)
 {
 	kfree(priv->ieee_channels);
@@ -641,9 +588,7 @@ u8 iwl_is_ht40_tx_allowed(struct iwl_priv *priv,
 	    (iwl_ht_conf->supported_chan_width != IWL_CHANNEL_WIDTH_40MHZ))
 		return 0;
 
-	/* We do not check for IEEE80211_HT_CAP_SUP_WIDTH_20_40
-	 * the bit will not set if it is pure 40MHz case
-	 */
+	
 	if (sta_ht_inf) {
 		if (!sta_ht_inf->ht_supported)
 			return 0;
@@ -692,8 +637,7 @@ void iwl_setup_rxon_timing(struct iwl_priv *priv)
 	} else {
 		beacon_int = priv->vif->bss_conf.beacon_int;
 
-		/* TODO: we need to get atim_window from upper stack
-		 * for now we set to 0 */
+		
 		priv->rxon_timing.atim_window = 0;
 	}
 
@@ -701,7 +645,7 @@ void iwl_setup_rxon_timing(struct iwl_priv *priv)
 				priv->hw_params.max_beacon_itrvl * 1024);
 	priv->rxon_timing.beacon_interval = cpu_to_le16(beacon_int);
 
-	tsf = priv->timestamp; /* tsf is modifed by do_div: copy it */
+	tsf = priv->timestamp; 
 	interval_tm = beacon_int * 1024;
 	rem = do_div(tsf, interval_tm);
 	priv->rxon_timing.beacon_init_val = cpu_to_le32(interval_tm - rem);
@@ -727,13 +671,7 @@ void iwl_set_rxon_hwcrypto(struct iwl_priv *priv, int hw_decrypt)
 }
 EXPORT_SYMBOL(iwl_set_rxon_hwcrypto);
 
-/**
- * iwl_check_rxon_cmd - validate RXON structure is valid
- *
- * NOTE:  This is really only useful during development and can eventually
- * be #ifdef'd out once the driver is stable and folks aren't actively
- * making changes
- */
+
 int iwl_check_rxon_cmd(struct iwl_priv *priv)
 {
 	int error = 0;
@@ -762,7 +700,7 @@ int iwl_check_rxon_cmd(struct iwl_priv *priv)
 	if (error)
 		IWL_WARN(priv, "check mac addr %d | %d\n", counter++, error);
 
-	/* make sure basic rates 6Mbps and 1Mbps are supported */
+	
 	error |= (((rxon->ofdm_basic_rates & IWL_RATE_6M_MASK) == 0) &&
 		  ((rxon->cck_basic_rates & IWL_RATE_1M_MASK) == 0));
 	if (error)
@@ -802,18 +740,11 @@ int iwl_check_rxon_cmd(struct iwl_priv *priv)
 }
 EXPORT_SYMBOL(iwl_check_rxon_cmd);
 
-/**
- * iwl_full_rxon_required - check if full RXON (vs RXON_ASSOC) cmd is needed
- * @priv: staging_rxon is compared to active_rxon
- *
- * If the RXON structure is changing enough to require a new tune,
- * or is clearing the RXON_FILTER_ASSOC_MSK, then return 1 to indicate that
- * a new tune (full RXON command, rather than RXON_ASSOC cmd) is required.
- */
+
 int iwl_full_rxon_required(struct iwl_priv *priv)
 {
 
-	/* These items are only settable from the full RXON command */
+	
 	if (!(iwl_is_associated(priv)) ||
 	    compare_ether_addr(priv->staging_rxon.bssid_addr,
 			       priv->active_rxon.bssid_addr) ||
@@ -834,16 +765,14 @@ int iwl_full_rxon_required(struct iwl_priv *priv)
 	    (priv->staging_rxon.assoc_id != priv->active_rxon.assoc_id))
 		return 1;
 
-	/* flags, filter_flags, ofdm_basic_rates, and cck_basic_rates can
-	 * be updated with the RXON_ASSOC command -- however only some
-	 * flag transitions are allowed using RXON_ASSOC */
+	
 
-	/* Check if we are not switching bands */
+	
 	if ((priv->staging_rxon.flags & RXON_FLG_BAND_24G_MSK) !=
 	    (priv->active_rxon.flags & RXON_FLG_BAND_24G_MSK))
 		return 1;
 
-	/* Check if we are switching association toggle */
+	
 	if ((priv->staging_rxon.filter_flags & RXON_FILTER_ASSOC_MSK) !=
 		(priv->active_rxon.filter_flags & RXON_FILTER_ASSOC_MSK))
 		return 1;
@@ -857,20 +786,20 @@ u8 iwl_rate_get_lowest_plcp(struct iwl_priv *priv)
 	int i;
 	int rate_mask;
 
-	/* Set rate mask*/
+	
 	if (priv->staging_rxon.flags & RXON_FLG_BAND_24G_MSK)
 		rate_mask = priv->active_rate_basic & IWL_CCK_RATES_MASK;
 	else
 		rate_mask = priv->active_rate_basic & IWL_OFDM_RATES_MASK;
 
-	/* Find lowest valid rate */
+	
 	for (i = IWL_RATE_1M_INDEX; i != IWL_RATE_INVALID;
 					i = iwl_rates[i].next_ieee) {
 		if (rate_mask & (1 << i))
 			return iwl_rates[i].plcp;
 	}
 
-	/* No valid rate was found. Assign the lowest one */
+	
 	if (priv->staging_rxon.flags & RXON_FLG_BAND_24G_MSK)
 		return IWL_RATE_1M_PLCP;
 	else
@@ -890,21 +819,18 @@ void iwl_set_rxon_ht(struct iwl_priv *priv, struct iwl_ht_info *ht_info)
 		return;
 	}
 
-	/* FIXME: if the definition of ht_protection changed, the "translation"
-	 * will be needed for rxon->flags
-	 */
+	
 	rxon->flags |= cpu_to_le32(ht_info->ht_protection << RXON_FLG_HT_OPERATING_MODE_POS);
 
-	/* Set up channel bandwidth:
-	 * 20 MHz only, 20/40 mixed or pure 40 if ht40 ok */
-	/* clear the HT channel mode before set the mode */
+	
+	
 	rxon->flags &= ~(RXON_FLG_CHANNEL_MODE_MSK |
 			 RXON_FLG_CTRL_CHANNEL_LOC_HI_MSK);
 	if (iwl_is_ht40_tx_allowed(priv, NULL)) {
-		/* pure ht40 */
+		
 		if (ht_info->ht_protection == IEEE80211_HT_OP_MODE_PROTECTION_20MHZ) {
 			rxon->flags |= RXON_FLG_CHANNEL_MODE_PURE_40;
-			/* Note: control channel is opposite of extension channel */
+			
 			switch (ht_info->extension_chan_offset) {
 			case IEEE80211_HT_PARAM_CHA_SEC_ABOVE:
 				rxon->flags &= ~RXON_FLG_CTRL_CHANNEL_LOC_HI_MSK;
@@ -914,7 +840,7 @@ void iwl_set_rxon_ht(struct iwl_priv *priv, struct iwl_ht_info *ht_info)
 				break;
 			}
 		} else {
-			/* Note: control channel is opposite of extension channel */
+			
 			switch (ht_info->extension_chan_offset) {
 			case IEEE80211_HT_PARAM_CHA_SEC_ABOVE:
 				rxon->flags &= ~(RXON_FLG_CTRL_CHANNEL_LOC_HI_MSK);
@@ -926,7 +852,7 @@ void iwl_set_rxon_ht(struct iwl_priv *priv, struct iwl_ht_info *ht_info)
 				break;
 			case IEEE80211_HT_PARAM_CHA_SEC_NONE:
 			default:
-				/* channel location only valid if in Mixed mode */
+				
 				IWL_ERR(priv, "invalid extension channel offset\n");
 				break;
 			}
@@ -955,17 +881,13 @@ EXPORT_SYMBOL(iwl_set_rxon_ht);
 #define IWL_NUM_IDLE_CHAINS_DUAL	2
 #define IWL_NUM_IDLE_CHAINS_SINGLE	1
 
-/* Determine how many receiver/antenna chains to use.
- * More provides better reception via diversity.  Fewer saves power.
- * MIMO (dual stream) requires at least 2, but works better with 3.
- * This does not determine *which* chains to use, just how many.
- */
+
 static int iwl_get_active_rx_chain_count(struct iwl_priv *priv)
 {
 	bool is_single = is_single_rx_stream(priv);
 	bool is_cam = !test_bit(STATUS_POWER_PMI, &priv->status);
 
-	/* # of Rx chains to use when expecting MIMO. */
+	
 	if (is_single || (!is_cam && (priv->current_ht_config.sm_ps ==
 						 WLAN_HT_CAP_SM_PS_STATIC)))
 		return IWL_NUM_RX_CHAINS_SINGLE;
@@ -977,7 +899,7 @@ static int iwl_get_idle_rx_chain_count(struct iwl_priv *priv, int active_cnt)
 {
 	int idle_cnt;
 	bool is_cam = !test_bit(STATUS_POWER_PMI, &priv->status);
-	/* # Rx chains when idling and maybe trying to save power */
+	
 	switch (priv->current_ht_config.sm_ps) {
 	case WLAN_HT_CAP_SM_PS_STATIC:
 	case WLAN_HT_CAP_SM_PS_DYNAMIC:
@@ -998,7 +920,7 @@ static int iwl_get_idle_rx_chain_count(struct iwl_priv *priv, int active_cnt)
 	return idle_cnt;
 }
 
-/* up to 4 chains */
+
 static u8 iwl_count_chain_bitmap(u32 chain_bitmap)
 {
 	u8 res;
@@ -1009,25 +931,14 @@ static u8 iwl_count_chain_bitmap(u32 chain_bitmap)
 	return res;
 }
 
-/**
- * iwl_is_monitor_mode - Determine if interface in monitor mode
- *
- * priv->iw_mode is set in add_interface, but add_interface is
- * never called for monitor mode. The only way mac80211 informs us about
- * monitor mode is through configuring filters (call to configure_filter).
- */
+
 bool iwl_is_monitor_mode(struct iwl_priv *priv)
 {
 	return !!(priv->staging_rxon.filter_flags & RXON_FILTER_PROMISC_MSK);
 }
 EXPORT_SYMBOL(iwl_is_monitor_mode);
 
-/**
- * iwl_set_rxon_chain - Set up Rx chain usage in "staging" RXON image
- *
- * Selects how many and which Rx receivers/antennas/chains to use.
- * This should not be used for scan command ... it puts data in wrong place.
- */
+
 void iwl_set_rxon_chain(struct iwl_priv *priv)
 {
 	bool is_single = is_single_rx_stream(priv);
@@ -1036,10 +947,7 @@ void iwl_set_rxon_chain(struct iwl_priv *priv)
 	u32 active_chains;
 	u16 rx_chain;
 
-	/* Tell uCode which antennas are actually connected.
-	 * Before first association, we assume all antennas are connected.
-	 * Just after first association, iwl_chain_noise_calibration()
-	 *    checks which antennas actually *are* connected. */
+	
 	 if (priv->chain_noise_data.active_chains)
 		active_chains = priv->chain_noise_data.active_chains;
 	else
@@ -1047,14 +955,12 @@ void iwl_set_rxon_chain(struct iwl_priv *priv)
 
 	rx_chain = active_chains << RXON_RX_CHAIN_VALID_POS;
 
-	/* How many receivers should we use? */
+	
 	active_rx_cnt = iwl_get_active_rx_chain_count(priv);
 	idle_rx_cnt = iwl_get_idle_rx_chain_count(priv, active_rx_cnt);
 
 
-	/* correct rx chain count according hw settings
-	 * and chain noise calibration
-	 */
+	
 	valid_rx_cnt = iwl_count_chain_bitmap(active_chains);
 	if (valid_rx_cnt < active_rx_cnt)
 		active_rx_cnt = valid_rx_cnt;
@@ -1065,10 +971,8 @@ void iwl_set_rxon_chain(struct iwl_priv *priv)
 	rx_chain |= active_rx_cnt << RXON_RX_CHAIN_MIMO_CNT_POS;
 	rx_chain |= idle_rx_cnt  << RXON_RX_CHAIN_CNT_POS;
 
-	/* copied from 'iwl_bg_request_scan()' */
-	/* Force use of chains B and C (0x6) for Rx for 4965
-	 * Avoid A (0x1) because of its off-channel reception on A-band.
-	 * MIMO is not used here, but value is required */
+	
+	
 	if (iwl_is_monitor_mode(priv) &&
 	    !(priv->staging_rxon.flags & RXON_FLG_BAND_24G_MSK) &&
 	    ((priv->hw_rev & CSR_HW_REV_TYPE_MSK) == CSR_HW_REV_TYPE_4965)) {
@@ -1094,16 +998,7 @@ void iwl_set_rxon_chain(struct iwl_priv *priv)
 }
 EXPORT_SYMBOL(iwl_set_rxon_chain);
 
-/**
- * iwl_set_rxon_channel - Set the phymode and channel values in staging RXON
- * @phymode: MODE_IEEE80211A sets to 5.2GHz; all else set to 2.4GHz
- * @channel: Any channel valid for the requested phymode
 
- * In addition to setting the staging RXON, priv->phymode is also set.
- *
- * NOTE:  Does not commit to the hardware; it sets appropriate bit fields
- * in the staging RXON flag structure based on the phymode
- */
 int iwl_set_rxon_channel(struct iwl_priv *priv, struct ieee80211_channel *ch)
 {
 	enum ieee80211_band band = ch->band;
@@ -1142,7 +1037,7 @@ void iwl_set_flags_for_band(struct iwl_priv *priv,
 		      | RXON_FLG_CCK_MSK);
 		priv->staging_rxon.flags |= RXON_FLG_SHORT_SLOT_MSK;
 	} else {
-		/* Copied from iwl_post_associate() */
+		
 		if (priv->assoc_capability & WLAN_CAPABILITY_SHORT_SLOT_TIME)
 			priv->staging_rxon.flags |= RXON_FLG_SHORT_SLOT_MSK;
 		else
@@ -1157,9 +1052,7 @@ void iwl_set_flags_for_band(struct iwl_priv *priv,
 	}
 }
 
-/*
- * initialize rxon structure with default values from eeprom
- */
+
 void iwl_connection_init_rx_config(struct iwl_priv *priv, int mode)
 {
 	const struct iwl_channel_info *ch_info;
@@ -1189,8 +1082,7 @@ void iwl_connection_init_rx_config(struct iwl_priv *priv, int mode)
 	}
 
 #if 0
-	/* TODO:  Figure out when short_preamble would be set and cache from
-	 * that */
+	
 	if (!hw_to_local(priv->hw)->short_preamble)
 		priv->staging_rxon.flags &= ~RXON_FLG_SHORT_PREAMBLE_MSK;
 	else
@@ -1203,10 +1095,7 @@ void iwl_connection_init_rx_config(struct iwl_priv *priv, int mode)
 	if (!ch_info)
 		ch_info = &priv->channel_info[0];
 
-	/*
-	 * in some case A channels are all non IBSS
-	 * in this case force B/G channel
-	 */
+	
 	if ((priv->iw_mode == NL80211_IFTYPE_ADHOC) &&
 	    !(is_channel_ibss(ch_info)))
 		ch_info = &priv->channel_info[0];
@@ -1221,7 +1110,7 @@ void iwl_connection_init_rx_config(struct iwl_priv *priv, int mode)
 	priv->staging_rxon.cck_basic_rates =
 	    (IWL_CCK_RATES_MASK >> IWL_FIRST_CCK_RATE) & 0xF;
 
-	/* clear both MIX and PURE40 mode flag */
+	
 	priv->staging_rxon.flags &= ~(RXON_FLG_CHANNEL_MODE_MIXED |
 					RXON_FLG_CHANNEL_MODE_PURE_40);
 	memcpy(priv->staging_rxon.node_addr, priv->mac_addr, ETH_ALEN);
@@ -1256,11 +1145,7 @@ static void iwl_set_rate(struct iwl_priv *priv)
 	IWL_DEBUG_RATE(priv, "Set active_rate = %0x, active_rate_basic = %0x\n",
 		       priv->active_rate, priv->active_rate_basic);
 
-	/*
-	 * If a basic rate is configured, then use it (adding IWL_RATE_1M_MASK)
-	 * otherwise set it to the default of all CCK rates and 6, 12, 24 for
-	 * OFDM
-	 */
+	
 	if (priv->active_rate_basic & IWL_CCK_BASIC_RATES_MASK)
 		priv->staging_rxon.cck_basic_rates =
 		    ((priv->active_rate_basic &
@@ -1311,15 +1196,13 @@ static void iwl_print_rx_config_cmd(struct iwl_priv *priv)
 	IWL_DEBUG_RADIO(priv, "u16 assoc_id: 0x%x\n", le16_to_cpu(rxon->assoc_id));
 }
 #endif
-/**
- * iwl_irq_handle_error - called for HW or SW error interrupt from card
- */
+
 void iwl_irq_handle_error(struct iwl_priv *priv)
 {
-	/* Set the FW error flag -- cleared on iwl_down */
+	
 	set_bit(STATUS_FW_ERROR, &priv->status);
 
-	/* Cancel currently queued command. */
+	
 	clear_bit(STATUS_HCMD_ACTIVE, &priv->status);
 
 #ifdef CONFIG_IWLWIFI_DEBUG
@@ -1332,8 +1215,7 @@ void iwl_irq_handle_error(struct iwl_priv *priv)
 
 	wake_up_interruptible(&priv->wait_command_queue);
 
-	/* Keep the restart process from trying to send host
-	 * commands by clearing the INIT status bit */
+	
 	clear_bit(STATUS_READY, &priv->status);
 
 	if (!test_bit(STATUS_EXIT_PENDING, &priv->status)) {
@@ -1382,11 +1264,7 @@ void iwl_configure_filter(struct ieee80211_hw *hw,
 			*filter_flags &= ~RXON_FILTER_BCON_AWARE_MSK;
 	}
 
-	/* We avoid iwl_commit_rxon here to commit the new filter flags
-	 * since mac80211 will call ieee80211_hw_config immediately.
-	 * (mc_list is not supported at this time). Otherwise, we need to
-	 * queue a background iwl_commit_rxon work.
-	 */
+	
 
 	*total_flags &= FIF_OTHER_BSS | FIF_ALLMULTI | FIF_PROMISC_IN_BSS |
 			FIF_BCN_PRBRESP_PROMISC | FIF_CONTROL;
@@ -1399,7 +1277,7 @@ int iwl_setup_mac(struct iwl_priv *priv)
 	struct ieee80211_hw *hw = priv->hw;
 	hw->rate_control_algorithm = "iwl-agn-rs";
 
-	/* Tell mac80211 our characteristics */
+	
 	hw->flags = IEEE80211_HW_SIGNAL_DBM |
 		    IEEE80211_HW_NOISE_DBM |
 		    IEEE80211_HW_AMPDU_AGGREGATION |
@@ -1415,20 +1293,17 @@ int iwl_setup_mac(struct iwl_priv *priv)
 
 	hw->wiphy->custom_regulatory = true;
 
-	/* Firmware does not support this */
+	
 	hw->wiphy->disable_beacon_hints = true;
 
-	/*
-	 * For now, disable PS by default because it affects
-	 * RX performance significantly.
-	 */
+	
 	hw->wiphy->ps_default = false;
 
 	hw->wiphy->max_scan_ssids = PROBE_OPTION_MAX;
-	/* we create the 802.11 header and a zero-length SSID element */
+	
 	hw->wiphy->max_scan_ie_len = IWL_MAX_PROBE_REQUEST - 24 - 2;
 
-	/* Default value; 4 EDCA QOS priorities */
+	
 	hw->queues = 4;
 
 	hw->max_listen_interval = IWL_CONN_MAX_LISTEN_INTERVAL;
@@ -1466,7 +1341,7 @@ int iwl_set_hw_params(struct iwl_priv *priv)
 	if (priv->cfg->mod_params->disable_11n)
 		priv->cfg->sku &= ~IWL_SKU_N;
 
-	/* Device-specific setup */
+	
 	return priv->cfg->ops->lib->set_hw_params(priv);
 }
 EXPORT_SYMBOL(iwl_set_hw_params);
@@ -1485,7 +1360,7 @@ int iwl_init_drv(struct iwl_priv *priv)
 
 	mutex_init(&priv->mutex);
 
-	/* Clear the driver's (not device's) station table */
+	
 	iwl_clear_stations_table(priv);
 
 	priv->data_retry_limit = -1;
@@ -1497,7 +1372,7 @@ int iwl_init_drv(struct iwl_priv *priv)
 
 	priv->current_ht_config.sm_ps = WLAN_HT_CAP_SM_PS_DISABLED;
 
-	/* Choose which receivers/antennas to use */
+	
 	if (priv->cfg->ops->hcmd->set_rxon_chain)
 		priv->cfg->ops->hcmd->set_rxon_chain(priv);
 
@@ -1509,9 +1384,7 @@ int iwl_init_drv(struct iwl_priv *priv)
 	priv->qos_data.qos_cap.val = 0;
 
 	priv->rates_mask = IWL_RATES_MASK;
-	/* Set the tx_power_user_lmt to the lowest power level
-	 * this value will get overwritten by channel max power avg
-	 * from eeprom */
+	
 	priv->tx_power_user_lmt = IWL_TX_POWER_TARGET_POWER_MIN;
 
 	ret = iwl_init_channel_map(priv);
@@ -1558,27 +1431,19 @@ int iwl_set_tx_power(struct iwl_priv *priv, s8 tx_power, bool force)
 	if (priv->tx_power_user_lmt != tx_power)
 		force = true;
 
-	/* if nic is not up don't send command */
+	
 	if (iwl_is_ready_rf(priv)) {
 		priv->tx_power_user_lmt = tx_power;
 		if (force && priv->cfg->ops->lib->send_tx_power)
 			ret = priv->cfg->ops->lib->send_tx_power(priv);
 		else if (!priv->cfg->ops->lib->send_tx_power)
 			ret = -EOPNOTSUPP;
-		/*
-		 * if fail to set tx_power, restore the orig. tx power
-		 */
+		
 		if (ret)
 			priv->tx_power_user_lmt = prev_tx_power;
 	}
 
-	/*
-	 * Even this is an async host command, the command
-	 * will always report success from uCode
-	 * So once driver can placing the command into the queue
-	 * successfully, driver can use priv->tx_power_user_lmt
-	 * to reflect the current tx power
-	 */
+	
 	return ret;
 }
 EXPORT_SYMBOL(iwl_set_tx_power);
@@ -1594,7 +1459,7 @@ EXPORT_SYMBOL(iwl_uninit_drv);
 
 #define ICT_COUNT (PAGE_SIZE/sizeof(u32))
 
-/* Free dram table */
+
 void iwl_free_isr_ict(struct iwl_priv *priv)
 {
 	if (priv->ict_tbl_vir) {
@@ -1607,22 +1472,20 @@ void iwl_free_isr_ict(struct iwl_priv *priv)
 EXPORT_SYMBOL(iwl_free_isr_ict);
 
 
-/* allocate dram shared table it is a PAGE_SIZE aligned
- * also reset all data related to ICT table interrupt.
- */
+
 int iwl_alloc_isr_ict(struct iwl_priv *priv)
 {
 
 	if (priv->cfg->use_isr_legacy)
 		return 0;
-	/* allocate shrared data table */
+	
 	priv->ict_tbl_vir = pci_alloc_consistent(priv->pci_dev, (sizeof(u32) *
 						  ICT_COUNT) + PAGE_SIZE,
 						  &priv->ict_tbl_dma);
 	if (!priv->ict_tbl_vir)
 		return -ENOMEM;
 
-	/* align table to PAGE_SIZE boundry */
+	
 	priv->aligned_ict_tbl_dma = ALIGN(priv->ict_tbl_dma, PAGE_SIZE);
 
 	IWL_DEBUG_ISR(priv, "ict dma addr %Lx dma aligned %Lx diff %d\n",
@@ -1637,19 +1500,17 @@ int iwl_alloc_isr_ict(struct iwl_priv *priv)
 			     priv->ict_tbl, priv->ict_tbl_vir,
 			(int)(priv->aligned_ict_tbl_dma - priv->ict_tbl_dma));
 
-	/* reset table and index to all 0 */
+	
 	memset(priv->ict_tbl_vir,0, (sizeof(u32) * ICT_COUNT) + PAGE_SIZE);
 	priv->ict_index = 0;
 
-	/* add periodic RX interrupt */
+	
 	priv->inta_mask |= CSR_INT_BIT_RX_PERIODIC;
 	return 0;
 }
 EXPORT_SYMBOL(iwl_alloc_isr_ict);
 
-/* Device is going up inform it about using ICT interrupt table,
- * also we need to tell the driver to start using ICT interrupt.
- */
+
 int iwl_reset_ict(struct iwl_priv *priv)
 {
 	u32 val;
@@ -1683,7 +1544,7 @@ int iwl_reset_ict(struct iwl_priv *priv)
 }
 EXPORT_SYMBOL(iwl_reset_ict);
 
-/* Device is going down disable ict interrupt usage */
+
 void iwl_disable_ict(struct iwl_priv *priv)
 {
 	unsigned long flags;
@@ -1694,14 +1555,7 @@ void iwl_disable_ict(struct iwl_priv *priv)
 }
 EXPORT_SYMBOL(iwl_disable_ict);
 
-/* interrupt handler using ict table, with this interrupt driver will
- * stop using INTA register to get device's interrupt, reading this register
- * is expensive, device will write interrupts in ICT dram table, increment
- * index then will fire interrupt to driver, driver will OR all ICT table
- * entries from current index up to table entry with 0 value. the result is
- * the interrupt we need to service, driver will set the entries back to 0 and
- * set index.
- */
+
 irqreturn_t iwl_isr_ict(int irq, void *data)
 {
 	struct iwl_priv *priv = data;
@@ -1711,32 +1565,24 @@ irqreturn_t iwl_isr_ict(int irq, void *data)
 	if (!priv)
 		return IRQ_NONE;
 
-	/* dram interrupt table not set yet,
-	 * use legacy interrupt.
-	 */
+	
 	if (!priv->use_ict)
 		return iwl_isr(irq, data);
 
 	spin_lock(&priv->lock);
 
-	/* Disable (but don't clear!) interrupts here to avoid
-	 * back-to-back ISRs and sporadic interrupts from our NIC.
-	 * If we have something to service, the tasklet will re-enable ints.
-	 * If we *don't* have something, we'll re-enable before leaving here.
-	 */
-	inta_mask = iwl_read32(priv, CSR_INT_MASK);  /* just for debug */
+	
+	inta_mask = iwl_read32(priv, CSR_INT_MASK);  
 	iwl_write32(priv, CSR_INT_MASK, 0x00000000);
 
 
-	/* Ignore interrupt if there's nothing in NIC to service.
-	 * This may be due to IRQ shared with another device,
-	 * or due to sporadic interrupts thrown from our NIC. */
+	
 	if (!priv->ict_tbl[priv->ict_index]) {
 		IWL_DEBUG_ISR(priv, "Ignore interrupt, inta == 0\n");
 		goto none;
 	}
 
-	/* read all entries that not 0 start with ict_index */
+	
 	while (priv->ict_tbl[priv->ict_index]) {
 
 		val |= le32_to_cpu(priv->ict_tbl[priv->ict_index]);
@@ -1749,7 +1595,7 @@ irqreturn_t iwl_isr_ict(int irq, void *data)
 
 	}
 
-	/* We should not get this value, just ignore it. */
+	
 	if (val == 0xffffffff)
 		val = 0;
 
@@ -1760,14 +1606,11 @@ irqreturn_t iwl_isr_ict(int irq, void *data)
 	inta &= priv->inta_mask;
 	priv->inta |= inta;
 
-	/* iwl_irq_tasklet() will service interrupts and re-enable them */
+	
 	if (likely(inta))
 		tasklet_schedule(&priv->irq_tasklet);
 	else if (test_bit(STATUS_INT_ENABLED, &priv->status) && !priv->inta) {
-		/* Allow interrupt if was disabled by this handler and
-		 * no tasklet was schedules, We should not enable interrupt,
-		 * tasklet will enable it.
-		 */
+		
 		iwl_enable_interrupts(priv);
 	}
 
@@ -1775,9 +1618,7 @@ irqreturn_t iwl_isr_ict(int irq, void *data)
 	return IRQ_HANDLED;
 
  none:
-	/* re-enable interrupts here since we don't have anything to service.
-	 * only Re-enable if disabled by irq.
-	 */
+	
 	if (test_bit(STATUS_INT_ENABLED, &priv->status) && !priv->inta)
 		iwl_enable_interrupts(priv);
 
@@ -1799,27 +1640,21 @@ static irqreturn_t iwl_isr(int irq, void *data)
 
 	spin_lock(&priv->lock);
 
-	/* Disable (but don't clear!) interrupts here to avoid
-	 *    back-to-back ISRs and sporadic interrupts from our NIC.
-	 * If we have something to service, the tasklet will re-enable ints.
-	 * If we *don't* have something, we'll re-enable before leaving here. */
-	inta_mask = iwl_read32(priv, CSR_INT_MASK);  /* just for debug */
+	
+	inta_mask = iwl_read32(priv, CSR_INT_MASK);  
 	iwl_write32(priv, CSR_INT_MASK, 0x00000000);
 
-	/* Discover which interrupts are active/pending */
+	
 	inta = iwl_read32(priv, CSR_INT);
 
-	/* Ignore interrupt if there's nothing in NIC to service.
-	 * This may be due to IRQ shared with another device,
-	 * or due to sporadic interrupts thrown from our NIC. */
+	
 	if (!inta) {
 		IWL_DEBUG_ISR(priv, "Ignore interrupt, inta == 0\n");
 		goto none;
 	}
 
 	if ((inta == 0xFFFFFFFF) || ((inta & 0xFFFFFFF0) == 0xa5a5a5a0)) {
-		/* Hardware disappeared. It might have already raised
-		 * an interrupt */
+		
 		IWL_WARN(priv, "HARDWARE GONE?? INTA == 0x%08x\n", inta);
 		goto unplugged;
 	}
@@ -1833,7 +1668,7 @@ static irqreturn_t iwl_isr(int irq, void *data)
 #endif
 
 	priv->inta |= inta;
-	/* iwl_irq_tasklet() will service interrupts and re-enable them */
+	
 	if (likely(inta))
 		tasklet_schedule(&priv->irq_tasklet);
 	else if (test_bit(STATUS_INT_ENABLED, &priv->status) && !priv->inta)
@@ -1844,8 +1679,8 @@ static irqreturn_t iwl_isr(int irq, void *data)
 	return IRQ_HANDLED;
 
  none:
-	/* re-enable interrupts here since we don't have anything to service. */
-	/* only Re-enable if diabled by irq  and no schedules tasklet. */
+	
+	
 	if (test_bit(STATUS_INT_ENABLED, &priv->status) && !priv->inta)
 		iwl_enable_interrupts(priv);
 
@@ -1863,28 +1698,22 @@ irqreturn_t iwl_isr_legacy(int irq, void *data)
 
 	spin_lock(&priv->lock);
 
-	/* Disable (but don't clear!) interrupts here to avoid
-	 *    back-to-back ISRs and sporadic interrupts from our NIC.
-	 * If we have something to service, the tasklet will re-enable ints.
-	 * If we *don't* have something, we'll re-enable before leaving here. */
-	inta_mask = iwl_read32(priv, CSR_INT_MASK);  /* just for debug */
+	
+	inta_mask = iwl_read32(priv, CSR_INT_MASK);  
 	iwl_write32(priv, CSR_INT_MASK, 0x00000000);
 
-	/* Discover which interrupts are active/pending */
+	
 	inta = iwl_read32(priv, CSR_INT);
 	inta_fh = iwl_read32(priv, CSR_FH_INT_STATUS);
 
-	/* Ignore interrupt if there's nothing in NIC to service.
-	 * This may be due to IRQ shared with another device,
-	 * or due to sporadic interrupts thrown from our NIC. */
+	
 	if (!inta && !inta_fh) {
 		IWL_DEBUG_ISR(priv, "Ignore interrupt, inta == 0, inta_fh == 0\n");
 		goto none;
 	}
 
 	if ((inta == 0xFFFFFFFF) || ((inta & 0xFFFFFFF0) == 0xa5a5a5a0)) {
-		/* Hardware disappeared. It might have already raised
-		 * an interrupt */
+		
 		IWL_WARN(priv, "HARDWARE GONE?? INTA == 0x%08x\n", inta);
 		goto unplugged;
 	}
@@ -1894,7 +1723,7 @@ irqreturn_t iwl_isr_legacy(int irq, void *data)
 
 	inta &= ~CSR_INT_BIT_SCD;
 
-	/* iwl_irq_tasklet() will service interrupts and re-enable them */
+	
 	if (likely(inta || inta_fh))
 		tasklet_schedule(&priv->irq_tasklet);
 
@@ -1903,8 +1732,8 @@ irqreturn_t iwl_isr_legacy(int irq, void *data)
 	return IRQ_HANDLED;
 
  none:
-	/* re-enable interrupts here since we don't have anything to service. */
-	/* only Re-enable if diabled by irq */
+	
+	
 	if (test_bit(STATUS_INT_ENABLED, &priv->status))
 		iwl_enable_interrupts(priv);
 	spin_unlock(&priv->lock);
@@ -1940,11 +1769,7 @@ int iwl_send_statistics_request(struct iwl_priv *priv, u8 flags)
 }
 EXPORT_SYMBOL(iwl_send_statistics_request);
 
-/**
- * iwl_verify_inst_sparse - verify runtime uCode image in card vs. host,
- *   using sample data 100 bytes apart.  If these sample points are good,
- *   it's a pretty good bet that everything between them is good, too.
- */
+
 static int iwlcore_verify_inst_sparse(struct iwl_priv *priv, __le32 *image, u32 len)
 {
 	u32 val;
@@ -1955,9 +1780,8 @@ static int iwlcore_verify_inst_sparse(struct iwl_priv *priv, __le32 *image, u32 
 	IWL_DEBUG_INFO(priv, "ucode inst image size is %u\n", len);
 
 	for (i = 0; i < len; i += 100, image += 100/sizeof(u32)) {
-		/* read data comes through single port, auto-incr addr */
-		/* NOTE: Use the debugless read so we don't flood kernel log
-		 * if IWL_DL_IO is set */
+		
+		
 		iwl_write_direct32(priv, HBUS_TARG_MEM_RADDR,
 			i + IWL49_RTC_INST_LOWER_BOUND);
 		val = _iwl_read_direct32(priv, HBUS_TARG_MEM_RDAT);
@@ -1972,10 +1796,7 @@ static int iwlcore_verify_inst_sparse(struct iwl_priv *priv, __le32 *image, u32 
 	return ret;
 }
 
-/**
- * iwlcore_verify_inst_full - verify runtime uCode image in card vs. host,
- *     looking at all data.
- */
+
 static int iwl_verify_inst_full(struct iwl_priv *priv, __le32 *image,
 				 u32 len)
 {
@@ -1991,9 +1812,8 @@ static int iwl_verify_inst_full(struct iwl_priv *priv, __le32 *image,
 
 	errcnt = 0;
 	for (; len > 0; len -= sizeof(u32), image++) {
-		/* read data comes through single port, auto-incr addr */
-		/* NOTE: Use the debugless read so we don't flood kernel log
-		 * if IWL_DL_IO is set */
+		
+		
 		val = _iwl_read_direct32(priv, HBUS_TARG_MEM_RDAT);
 		if (val != le32_to_cpu(*image)) {
 			IWL_ERR(priv, "uCode INST section is invalid at "
@@ -2013,17 +1833,14 @@ static int iwl_verify_inst_full(struct iwl_priv *priv, __le32 *image,
 	return ret;
 }
 
-/**
- * iwl_verify_ucode - determine which instruction image is in SRAM,
- *    and verify its contents
- */
+
 int iwl_verify_ucode(struct iwl_priv *priv)
 {
 	__le32 *image;
 	u32 len;
 	int ret;
 
-	/* Try bootstrap */
+	
 	image = (__le32 *)priv->ucode_boot.v_addr;
 	len = priv->ucode_boot.len;
 	ret = iwlcore_verify_inst_sparse(priv, image, len);
@@ -2032,7 +1849,7 @@ int iwl_verify_ucode(struct iwl_priv *priv)
 		return 0;
 	}
 
-	/* Try initialize */
+	
 	image = (__le32 *)priv->ucode_init.v_addr;
 	len = priv->ucode_init.len;
 	ret = iwlcore_verify_inst_sparse(priv, image, len);
@@ -2041,7 +1858,7 @@ int iwl_verify_ucode(struct iwl_priv *priv)
 		return 0;
 	}
 
-	/* Try runtime/protocol */
+	
 	image = (__le32 *)priv->ucode_code.v_addr;
 	len = priv->ucode_code.len;
 	ret = iwlcore_verify_inst_sparse(priv, image, len);
@@ -2052,9 +1869,7 @@ int iwl_verify_ucode(struct iwl_priv *priv)
 
 	IWL_ERR(priv, "NO VALID UCODE IMAGE IN INSTRUCTION SRAM!!\n");
 
-	/* Since nothing seems to match, show first several data entries in
-	 * instruction SRAM, so maybe visual inspection will give a clue.
-	 * Selection of bootstrap image (vs. other images) is arbitrary. */
+	
 	image = (__le32 *)priv->ucode_boot.v_addr;
 	len = priv->ucode_boot.len;
 	ret = iwl_verify_inst_full(priv, image, len);
@@ -2117,16 +1932,7 @@ void iwl_rf_kill_ct_config(struct iwl_priv *priv)
 EXPORT_SYMBOL(iwl_rf_kill_ct_config);
 
 
-/*
- * CARD_STATE_CMD
- *
- * Use: Sets the device's internal card state to enable, disable, or halt
- *
- * When in the 'enable' state the card operates as normal.
- * When in the 'disable' state, the card enters into a low power mode.
- * When in the 'halt' state, the card is shut down and must be fully
- * restarted to come back on.
- */
+
 int iwl_send_card_state(struct iwl_priv *priv, u32 flags, u8 meta_flag)
 {
 	struct iwl_host_cmd cmd = {
@@ -2240,11 +2046,7 @@ static void iwl_ht_conf(struct iwl_priv *priv,
 		return;
 
 
-	/*
-	 * It is totally wrong to base global information on something
-	 * that is valid only when associated, alas, this driver works
-	 * that way and I don't know how to fix it.
-	 */
+	
 
 	rcu_read_lock();
 	sta = ieee80211_find_sta(priv->hw, priv->bssid);
@@ -2292,17 +2094,13 @@ void iwl_bss_info_changed(struct ieee80211_hw *hw,
 
 	if (changes & BSS_CHANGED_BEACON_INT) {
 		priv->beacon_int = bss_conf->beacon_int;
-		/* TODO: in AP mode, do something to make this take effect */
+		
 	}
 
 	if (changes & BSS_CHANGED_BSSID) {
 		IWL_DEBUG_MAC80211(priv, "BSSID %pM\n", bss_conf->bssid);
 
-		/*
-		 * If there is currently a HW scan going on in the
-		 * background then we need to cancel it else the RXON
-		 * below/in post_associate will fail.
-		 */
+		
 		if (iwl_scan_cancel_timeout(priv, 100)) {
 			IWL_WARN(priv, "Aborted scan still in progress after 100ms\n");
 			IWL_DEBUG_MAC80211(priv, "leaving - scan abort failed.\n");
@@ -2310,13 +2108,13 @@ void iwl_bss_info_changed(struct ieee80211_hw *hw,
 			return;
 		}
 
-		/* mac80211 only sets assoc when in STATION mode */
+		
 		if (priv->iw_mode == NL80211_IFTYPE_ADHOC ||
 		    bss_conf->assoc) {
 			memcpy(priv->staging_rxon.bssid_addr,
 			       bss_conf->bssid, ETH_ALEN);
 
-			/* currently needed in a few places */
+			
 			memcpy(priv->bssid, bss_conf->bssid, ETH_ALEN);
 		} else {
 			priv->staging_rxon.filter_flags &=
@@ -2325,11 +2123,7 @@ void iwl_bss_info_changed(struct ieee80211_hw *hw,
 
 	}
 
-	/*
-	 * This needs to be after setting the BSSID in case
-	 * mac80211 decides to do both changes at once because
-	 * it will invoke post_associate.
-	 */
+	
 	if (priv->iw_mode == NL80211_IFTYPE_ADHOC &&
 	    changes & BSS_CHANGED_BEACON) {
 		struct sk_buff *beacon = ieee80211_beacon_get(hw, vif);
@@ -2356,20 +2150,7 @@ void iwl_bss_info_changed(struct ieee80211_hw *hw,
 	}
 
 	if (changes & BSS_CHANGED_BASIC_RATES) {
-		/* XXX use this information
-		 *
-		 * To do that, remove code from iwl_set_rate() and put something
-		 * like this here:
-		 *
-		if (A-band)
-			priv->staging_rxon.ofdm_basic_rates =
-				bss_conf->basic_rates;
-		else
-			priv->staging_rxon.ofdm_basic_rates =
-				bss_conf->basic_rates >> 4;
-			priv->staging_rxon.cck_basic_rates =
-				bss_conf->basic_rates & 0xF;
-		 */
+		
 	}
 
 	if (changes & BSS_CHANGED_HT) {
@@ -2387,12 +2168,7 @@ void iwl_bss_info_changed(struct ieee80211_hw *hw,
 			priv->timestamp = bss_conf->timestamp;
 			priv->assoc_capability = bss_conf->assoc_capability;
 
-			/*
-			 * We have just associated, don't start scan too early
-			 * leave time for EAPOL exchange to complete.
-			 *
-			 * XXX: do this in mac80211
-			 */
+			
 			priv->next_scan_jiffies = jiffies +
 					IWL_DELAY_NEXT_SCAN_AFTER_ASSOC;
 			if (!iwl_is_rfkill(priv))
@@ -2407,7 +2183,7 @@ void iwl_bss_info_changed(struct ieee80211_hw *hw,
 				   changes);
 		ret = iwl_send_rxon_assoc(priv);
 		if (!ret) {
-			/* Sync active_rxon with latest change. */
+			
 			memcpy((void *)&priv->active_rxon,
 				&priv->staging_rxon,
 				sizeof(struct iwl_rxon_cmd));
@@ -2486,7 +2262,7 @@ int iwl_set_mode(struct iwl_priv *priv, int mode)
 
 	iwl_clear_stations_table(priv);
 
-	/* dont commit rxon if rf-kill is on*/
+	
 	if (!iwl_is_ready_rf(priv))
 		return -EAGAIN;
 
@@ -2523,7 +2299,7 @@ int iwl_mac_add_interface(struct ieee80211_hw *hw,
 	}
 
 	if (iwl_set_mode(priv, conf->type) == -EAGAIN)
-		/* we are not ready, will run again when ready */
+		
 		set_bit(STATUS_MODE_PENDING, &priv->status);
 
 	mutex_unlock(&priv->mutex);
@@ -2558,13 +2334,7 @@ void iwl_mac_remove_interface(struct ieee80211_hw *hw,
 }
 EXPORT_SYMBOL(iwl_mac_remove_interface);
 
-/**
- * iwl_mac_config - mac80211 config callback
- *
- * We ignore conf->flags & IEEE80211_CONF_SHORT_SLOT_TIME since it seems to
- * be set inappropriately and the driver currently sets the hardware up to
- * use it whenever needed.
- */
+
 int iwl_mac_config(struct ieee80211_hw *hw, u32 changed)
 {
 	struct iwl_priv *priv = hw->priv;
@@ -2588,9 +2358,7 @@ int iwl_mac_config(struct ieee80211_hw *hw, u32 changed)
 	}
 
 
-	/* during scanning mac80211 will delay channel setting until
-	 * scan finish with changed = 0
-	 */
+	
 	if (!changed || (changed & IEEE80211_CONF_CHANGE_CHANNEL)) {
 		if (scan_active)
 			goto set_ch_out;
@@ -2614,7 +2382,7 @@ int iwl_mac_config(struct ieee80211_hw *hw, u32 changed)
 
 		spin_lock_irqsave(&priv->lock, flags);
 
-		/* Configure HT40 channels */
+		
 		ht_conf->is_ht = conf_is_ht(conf);
 		if (ht_conf->is_ht) {
 			if (conf_is_ht40_minus(conf)) {
@@ -2635,13 +2403,10 @@ int iwl_mac_config(struct ieee80211_hw *hw, u32 changed)
 			}
 		} else
 			ht_conf->supported_chan_width = IWL_CHANNEL_WIDTH_20MHZ;
-		/* Default to no protection. Protection mode will later be set
-		 * from BSS config in iwl_ht_conf */
+		
 		ht_conf->ht_protection = IEEE80211_HT_OP_MODE_PROTECTION_NONE;
 
-		/* if we are switching from ht to 2.4 clear flags
-		 * from any ht related info since 2.4 does not
-		 * support ht */
+		
 		if ((le16_to_cpu(priv->staging_rxon.channel) != ch))
 			priv->staging_rxon.flags = 0;
 
@@ -2651,9 +2416,7 @@ int iwl_mac_config(struct ieee80211_hw *hw, u32 changed)
 		iwl_set_flags_for_band(priv, conf->channel->band);
 		spin_unlock_irqrestore(&priv->lock, flags);
  set_ch_out:
-		/* The list of supported rates and rate mask can be different
-		 * for each band; since the band may have changed, reset
-		 * the rate mask to what mac80211 lists */
+		
 		iwl_set_rate(priv);
 	}
 
@@ -2670,7 +2433,7 @@ int iwl_mac_config(struct ieee80211_hw *hw, u32 changed)
 		iwl_set_tx_power(priv, conf->power_level, false);
 	}
 
-	/* call to ensure that 4965 rx_chain is set properly in monitor mode */
+	
 	if (priv->cfg->ops->hcmd->set_rxon_chain)
 		priv->cfg->ops->hcmd->set_rxon_chain(priv);
 
@@ -2751,7 +2514,7 @@ void iwl_mac_reset_tsf(struct ieee80211_hw *hw)
 	priv->assoc_capability = 0;
 	priv->assoc_station_added = 0;
 
-	/* new association get rid of ibss beacon skb */
+	
 	if (priv->ibss_beacon)
 		dev_kfree_skb(priv->ibss_beacon);
 
@@ -2770,9 +2533,7 @@ void iwl_mac_reset_tsf(struct ieee80211_hw *hw)
 		return;
 	}
 
-	/* we are restarting association process
-	 * clear RXON_FILTER_ASSOC_MSK bit
-	 */
+	
 	if (priv->iw_mode != NL80211_IFTYPE_AP) {
 		iwl_scan_cancel_timeout(priv, 100);
 		priv->staging_rxon.filter_flags &= ~RXON_FILTER_ASSOC_MSK;
@@ -2941,16 +2702,7 @@ void iwl_clear_rx_stats(struct iwl_priv *priv)
 	memset(&priv->rx_stats, 0, sizeof(struct traffic_stats));
 }
 
-/*
- * if CONFIG_IWLWIFI_DEBUGFS defined, iwl_update_stats function will
- * record all the MGMT, CTRL and DATA pkt for both TX and Rx pass.
- * Use debugFs to display the rx/rx_statistics
- * if CONFIG_IWLWIFI_DEBUGFS not being defined, then no MGMT and CTRL
- * information will be recorded, but DATA pkt still will be recorded
- * for the reason of iwl_led.c need to control the led blinking based on
- * number of tx and rx data.
- *
- */
+
 void iwl_update_stats(struct iwl_priv *priv, bool is_tx, __le16 fc, u16 len)
 {
 	struct traffic_stats	*stats;
@@ -3027,7 +2779,7 @@ void iwl_update_stats(struct iwl_priv *priv, bool is_tx, __le16 fc, u16 len)
 			break;
 		}
 	} else {
-		/* data */
+		
 		stats->data_cnt++;
 		stats->data_bytes += len;
 	}
@@ -3041,13 +2793,7 @@ int iwl_pci_suspend(struct pci_dev *pdev, pm_message_t state)
 {
 	struct iwl_priv *priv = pci_get_drvdata(pdev);
 
-	/*
-	 * This function is called when system goes into suspend state
-	 * mac80211 will call iwl_mac_stop() from the mac80211 suspend function
-	 * first but since iwl_mac_stop() has no knowledge of who the caller is,
-	 * it will not call apm_ops.stop() to stop the DMA operation.
-	 * Calling apm_ops.stop here to make sure we stop the DMA.
-	 */
+	
 	priv->cfg->ops->lib->apm_ops.stop(priv);
 
 	pci_save_state(pdev);
@@ -3074,4 +2820,4 @@ int iwl_pci_resume(struct pci_dev *pdev)
 }
 EXPORT_SYMBOL(iwl_pci_resume);
 
-#endif /* CONFIG_PM */
+#endif 

@@ -1,17 +1,6 @@
-/*
- * mac80211_hwsim - software simulator of 802.11 radio(s) for mac80211
- * Copyright (c) 2008, Jouni Malinen <j@w1.fi>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
 
-/*
- * TODO:
- * - IBSS mode simulation (Beacon transmission with competition for "air time")
- * - RX filtering based on filter configuration (data->rx_filter)
- */
+
+
 
 #include <linux/list.h>
 #include <linux/spinlock.h>
@@ -32,63 +21,7 @@ static int radios = 2;
 module_param(radios, int, 0444);
 MODULE_PARM_DESC(radios, "Number of simulated radios");
 
-/**
- * enum hwsim_regtest - the type of regulatory tests we offer
- *
- * These are the different values you can use for the regtest
- * module parameter. This is useful to help test world roaming
- * and the driver regulatory_hint() call and combinations of these.
- * If you want to do specific alpha2 regulatory domain tests simply
- * use the userspace regulatory request as that will be respected as
- * well without the need of this module parameter. This is designed
- * only for testing the driver regulatory request, world roaming
- * and all possible combinations.
- *
- * @HWSIM_REGTEST_DISABLED: No regulatory tests are performed,
- * 	this is the default value.
- * @HWSIM_REGTEST_DRIVER_REG_FOLLOW: Used for testing the driver regulatory
- *	hint, only one driver regulatory hint will be sent as such the
- * 	secondary radios are expected to follow.
- * @HWSIM_REGTEST_DRIVER_REG_ALL: Used for testing the driver regulatory
- * 	request with all radios reporting the same regulatory domain.
- * @HWSIM_REGTEST_DIFF_COUNTRY: Used for testing the drivers calling
- * 	different regulatory domains requests. Expected behaviour is for
- * 	an intersection to occur but each device will still use their
- * 	respective regulatory requested domains. Subsequent radios will
- * 	use the resulting intersection.
- * @HWSIM_REGTEST_WORLD_ROAM: Used for testing the world roaming. We acomplish
- *	this by using a custom beacon-capable regulatory domain for the first
- *	radio. All other device world roam.
- * @HWSIM_REGTEST_CUSTOM_WORLD: Used for testing the custom world regulatory
- * 	domain requests. All radios will adhere to this custom world regulatory
- * 	domain.
- * @HWSIM_REGTEST_CUSTOM_WORLD_2: Used for testing 2 custom world regulatory
- * 	domain requests. The first radio will adhere to the first custom world
- * 	regulatory domain, the second one to the second custom world regulatory
- * 	domain. All other devices will world roam.
- * @HWSIM_REGTEST_STRICT_FOLLOW_: Used for testing strict regulatory domain
- *	settings, only the first radio will send a regulatory domain request
- *	and use strict settings. The rest of the radios are expected to follow.
- * @HWSIM_REGTEST_STRICT_ALL: Used for testing strict regulatory domain
- *	settings. All radios will adhere to this.
- * @HWSIM_REGTEST_STRICT_AND_DRIVER_REG: Used for testing strict regulatory
- *	domain settings, combined with secondary driver regulatory domain
- *	settings. The first radio will get a strict regulatory domain setting
- *	using the first driver regulatory request and the second radio will use
- *	non-strict settings using the second driver regulatory request. All
- *	other devices should follow the intersection created between the
- *	first two.
- * @HWSIM_REGTEST_ALL: Used for testing every possible mix. You will need
- * 	at least 6 radios for a complete test. We will test in this order:
- * 	1 - driver custom world regulatory domain
- * 	2 - second custom world regulatory domain
- * 	3 - first driver regulatory domain request
- * 	4 - second driver regulatory domain request
- * 	5 - strict regulatory domain settings using the third driver regulatory
- * 	    domain request
- * 	6 and on - should follow the intersection of the 3rd, 4rth and 5th radio
- * 	           regulatory requests.
- */
+
 enum hwsim_regtest {
 	HWSIM_REGTEST_DISABLED = 0,
 	HWSIM_REGTEST_DRIVER_REG_FOLLOW = 1,
@@ -103,7 +36,7 @@ enum hwsim_regtest {
 	HWSIM_REGTEST_ALL = 10,
 };
 
-/* Set to one of the HWSIM_REGTEST_* values above */
+
 static int regtest = HWSIM_REGTEST_DISABLED;
 module_param(regtest, int, 0444);
 MODULE_PARM_DESC(regtest, "The type of regulatory test we want to run");
@@ -191,7 +124,7 @@ static inline void hwsim_clear_sta_magic(struct ieee80211_sta *sta)
 
 static struct class *hwsim_class;
 
-static struct net_device *hwsim_mon; /* global monitor netdev */
+static struct net_device *hwsim_mon; 
 
 #define CHAN2G(_freq)  { \
 	.band = IEEE80211_BAND_2GHZ, \
@@ -208,50 +141,50 @@ static struct net_device *hwsim_mon; /* global monitor netdev */
 }
 
 static const struct ieee80211_channel hwsim_channels_2ghz[] = {
-	CHAN2G(2412), /* Channel 1 */
-	CHAN2G(2417), /* Channel 2 */
-	CHAN2G(2422), /* Channel 3 */
-	CHAN2G(2427), /* Channel 4 */
-	CHAN2G(2432), /* Channel 5 */
-	CHAN2G(2437), /* Channel 6 */
-	CHAN2G(2442), /* Channel 7 */
-	CHAN2G(2447), /* Channel 8 */
-	CHAN2G(2452), /* Channel 9 */
-	CHAN2G(2457), /* Channel 10 */
-	CHAN2G(2462), /* Channel 11 */
-	CHAN2G(2467), /* Channel 12 */
-	CHAN2G(2472), /* Channel 13 */
-	CHAN2G(2484), /* Channel 14 */
+	CHAN2G(2412), 
+	CHAN2G(2417), 
+	CHAN2G(2422), 
+	CHAN2G(2427), 
+	CHAN2G(2432), 
+	CHAN2G(2437), 
+	CHAN2G(2442), 
+	CHAN2G(2447), 
+	CHAN2G(2452), 
+	CHAN2G(2457), 
+	CHAN2G(2462), 
+	CHAN2G(2467), 
+	CHAN2G(2472), 
+	CHAN2G(2484), 
 };
 
 static const struct ieee80211_channel hwsim_channels_5ghz[] = {
-	CHAN5G(5180), /* Channel 36 */
-	CHAN5G(5200), /* Channel 40 */
-	CHAN5G(5220), /* Channel 44 */
-	CHAN5G(5240), /* Channel 48 */
+	CHAN5G(5180), 
+	CHAN5G(5200), 
+	CHAN5G(5220), 
+	CHAN5G(5240), 
 
-	CHAN5G(5260), /* Channel 52 */
-	CHAN5G(5280), /* Channel 56 */
-	CHAN5G(5300), /* Channel 60 */
-	CHAN5G(5320), /* Channel 64 */
+	CHAN5G(5260), 
+	CHAN5G(5280), 
+	CHAN5G(5300), 
+	CHAN5G(5320), 
 
-	CHAN5G(5500), /* Channel 100 */
-	CHAN5G(5520), /* Channel 104 */
-	CHAN5G(5540), /* Channel 108 */
-	CHAN5G(5560), /* Channel 112 */
-	CHAN5G(5580), /* Channel 116 */
-	CHAN5G(5600), /* Channel 120 */
-	CHAN5G(5620), /* Channel 124 */
-	CHAN5G(5640), /* Channel 128 */
-	CHAN5G(5660), /* Channel 132 */
-	CHAN5G(5680), /* Channel 136 */
-	CHAN5G(5700), /* Channel 140 */
+	CHAN5G(5500), 
+	CHAN5G(5520), 
+	CHAN5G(5540), 
+	CHAN5G(5560), 
+	CHAN5G(5580), 
+	CHAN5G(5600), 
+	CHAN5G(5620), 
+	CHAN5G(5640), 
+	CHAN5G(5660), 
+	CHAN5G(5680), 
+	CHAN5G(5700), 
 
-	CHAN5G(5745), /* Channel 149 */
-	CHAN5G(5765), /* Channel 153 */
-	CHAN5G(5785), /* Channel 157 */
-	CHAN5G(5805), /* Channel 161 */
-	CHAN5G(5825), /* Channel 165 */
+	CHAN5G(5745), 
+	CHAN5G(5765), 
+	CHAN5G(5785), 
+	CHAN5G(5805), 
+	CHAN5G(5825), 
 };
 
 static const struct ieee80211_rate hwsim_rates[] = {
@@ -282,7 +215,7 @@ struct mac80211_hwsim_data {
 	struct ieee80211_rate rates[ARRAY_SIZE(hwsim_rates)];
 
 	struct ieee80211_channel *channel;
-	unsigned long beacon_int; /* in jiffies unit */
+	unsigned long beacon_int; 
 	unsigned int rx_filter;
 	int started;
 	struct timer_list beacon_timer;
@@ -293,11 +226,7 @@ struct mac80211_hwsim_data {
 	struct dentry *debugfs;
 	struct dentry *debugfs_ps;
 
-	/*
-	 * Only radios in the same group can communicate together (the
-	 * channel has to match too). Each bit represents a group. A
-	 * radio can be in more then one group.
-	 */
+	
 	u64 group;
 	struct dentry *debugfs_group;
 };
@@ -315,7 +244,7 @@ struct hwsim_radiotap_hdr {
 static netdev_tx_t hwsim_mon_xmit(struct sk_buff *skb,
 					struct net_device *dev)
 {
-	/* TODO: allow packet injection */
+	
 	dev_kfree_skb(skb);
 	return NETDEV_TX_OK;
 }
@@ -374,12 +303,10 @@ static bool hwsim_ps_rx_ok(struct mac80211_hwsim_data *data,
 	case PS_ENABLED:
 		return false;
 	case PS_AUTO_POLL:
-		/* TODO: accept (some) Beacons by default and other frames only
-		 * if pending PS-Poll has been sent */
+		
 		return true;
 	case PS_MANUAL_POLL:
-		/* Allow unicast frames to own address if there is a pending
-		 * PS-Poll */
+		
 		if (data->ps_poll_pending &&
 		    memcmp(data->hw->wiphy->perm_addr, skb->data + 4,
 			   ETH_ALEN) == 0) {
@@ -403,24 +330,24 @@ static bool mac80211_hwsim_tx_frame(struct ieee80211_hw *hw,
 	struct ieee80211_rx_status rx_status;
 
 	memset(&rx_status, 0, sizeof(rx_status));
-	/* TODO: set mactime */
+	
 	rx_status.freq = data->channel->center_freq;
 	rx_status.band = data->channel->band;
 	rx_status.rate_idx = info->control.rates[0].idx;
-	/* TODO: simulate real signal strength (and optional packet loss) */
+	
 	rx_status.signal = -50;
 
 	if (data->ps != PS_DISABLED)
 		hdr->frame_control |= cpu_to_le16(IEEE80211_FCTL_PM);
 
-	/* release the skb's source info */
+	
 	skb_orphan(skb);
 	skb_dst_drop(skb);
 	skb->mark = 0;
 	secpath_reset(skb);
 	nf_reset(skb);
 
-	/* Copy skb to all enabled radios that are on the current frequency */
+	
 	spin_lock(&hwsim_radio_lock);
 	list_for_each_entry(data2, &hwsim_radios, list) {
 		struct sk_buff *nskb;
@@ -458,7 +385,7 @@ static int mac80211_hwsim_tx(struct ieee80211_hw *hw, struct sk_buff *skb)
 	mac80211_hwsim_monitor_rx(hw, skb);
 
 	if (skb->len < 10) {
-		/* Should not happen; just a sanity check for addr1 use */
+		
 		dev_kfree_skb(skb);
 		return NETDEV_TX_OK;
 	}
@@ -679,7 +606,7 @@ static void mac80211_hwsim_sta_notify(struct ieee80211_hw *hw,
 		break;
 	case STA_NOTIFY_SLEEP:
 	case STA_NOTIFY_AWAKE:
-		/* TODO: make good use of these flags */
+		
 		break;
 	}
 }
@@ -704,18 +631,15 @@ static int mac80211_hwsim_conf_tx(
 }
 
 #ifdef CONFIG_NL80211_TESTMODE
-/*
- * This section contains example code for using netlink
- * attributes with the testmode command in nl80211.
- */
 
-/* These enums need to be kept in sync with userspace */
+
+
 enum hwsim_testmode_attr {
 	__HWSIM_TM_ATTR_INVALID	= 0,
 	HWSIM_TM_ATTR_CMD	= 1,
 	HWSIM_TM_ATTR_PS	= 2,
 
-	/* keep last */
+	
 	__HWSIM_TM_ATTR_AFTER_LAST,
 	HWSIM_TM_ATTR_MAX	= __HWSIM_TM_ATTR_AFTER_LAST - 1
 };
@@ -1028,7 +952,7 @@ static int __init init_mac80211_hwsim(void)
 		hw->flags = IEEE80211_HW_MFP_CAPABLE |
 			    IEEE80211_HW_SIGNAL_DBM;
 
-		/* ask mac80211 to reserve space for magic */
+		
 		hw->vif_data_size = sizeof(struct hwsim_vif_priv);
 		hw->sta_data_size = sizeof(struct hwsim_sta_priv);
 
@@ -1073,19 +997,16 @@ static int __init init_mac80211_hwsim(void)
 
 			hw->wiphy->bands[band] = sband;
 		}
-		/* By default all radios are belonging to the first group */
+		
 		data->group = 1;
 
-		/* Work to be done prior to ieee80211_register_hw() */
+		
 		switch (regtest) {
 		case HWSIM_REGTEST_DISABLED:
 		case HWSIM_REGTEST_DRIVER_REG_FOLLOW:
 		case HWSIM_REGTEST_DRIVER_REG_ALL:
 		case HWSIM_REGTEST_DIFF_COUNTRY:
-			/*
-			 * Nothing to be done for driver regulatory domain
-			 * hints prior to ieee80211_register_hw()
-			 */
+			
 			break;
 		case HWSIM_REGTEST_WORLD_ROAM:
 			if (i == 0) {
@@ -1134,7 +1055,7 @@ static int __init init_mac80211_hwsim(void)
 			break;
 		}
 
-		/* give the regulatory workqueue a chance to run */
+		
 		if (regtest)
 			schedule_timeout_interruptible(1);
 		err = ieee80211_register_hw(hw);
@@ -1144,7 +1065,7 @@ static int __init init_mac80211_hwsim(void)
 			goto failed_hw;
 		}
 
-		/* Work to be done after to ieee80211_register_hw() */
+		
 		switch (regtest) {
 		case HWSIM_REGTEST_WORLD_ROAM:
 		case HWSIM_REGTEST_DISABLED:
@@ -1163,10 +1084,7 @@ static int __init init_mac80211_hwsim(void)
 			break;
 		case HWSIM_REGTEST_CUSTOM_WORLD:
 		case HWSIM_REGTEST_CUSTOM_WORLD_2:
-			/*
-			 * Nothing to be done for custom world regulatory
-			 * domains after to ieee80211_register_hw
-			 */
+			
 			break;
 		case HWSIM_REGTEST_STRICT_FOLLOW:
 			if (i == 0)

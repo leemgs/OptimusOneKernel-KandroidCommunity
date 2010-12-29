@@ -4,8 +4,7 @@
 
 #ifdef CONFIG_PROC_FS
 
-/* void enableReceive(struct net_device* dev);
-*/
+
 
 
 
@@ -193,7 +192,7 @@ static void arlan_print_diagnostic_info(struct net_device *dev)
 	struct arlan_private *priv = netdev_priv(dev);
 	volatile struct arlan_shmem __iomem *arlan = priv->card;
 
-	//  ARLAN_DEBUG_ENTRY("arlan_print_diagnostic_info");
+	
 
 	if (READSHMB(arlan->configuredStatusFlag) == 0)
 		printk("Arlan: Card NOT configured\n");
@@ -243,18 +242,18 @@ static void arlan_print_diagnostic_info(struct net_device *dev)
 	}
 	printk("\n");
 
-//   ARLAN_DEBUG_EXIT("arlan_print_diagnostic_info");
+
 
 }
 
 
-/******************************		TEST 	MEMORY	**************/
+
 
 static int arlan_hw_test_memory(struct net_device *dev)
 {
 	u_char *ptr;
 	int i;
-	int memlen = sizeof(struct arlan_shmem) - 0xF;	/* avoid control register */
+	int memlen = sizeof(struct arlan_shmem) - 0xF;	
 	volatile char *arlan_mem = (char *) (dev->mem_start);
 	struct arlan_private *priv = netdev_priv(dev);
 	volatile struct arlan_shmem __iomem *arlan = priv->card;
@@ -262,10 +261,10 @@ static int arlan_hw_test_memory(struct net_device *dev)
 
 	ptr = NULL;
 
-	/* hold card in reset state */
+	
 	setHardwareReset(dev);
 
-	/* test memory */
+	
 	pattern = 0;
 	for (i = 0; i < memlen; i++)
 		WRITESHM(arlan_mem[i], ((u_char) pattern++), u_char);
@@ -298,19 +297,19 @@ static int arlan_hw_test_memory(struct net_device *dev)
 		}
 	}
 
-	/* zero memory */
+	
 	for (i = 0; i < memlen; i++)
 		WRITESHM(arlan_mem[i], 0x00, char);
 
 	IFDEBUG(1) printk(KERN_INFO "Arlan: memory tests ok\n");
 
-	/* set reset flag and then release reset */
+	
 	WRITESHM(arlan->resetFlag, 0xff, u_char);
 
 	clearChannelAttention(dev);
 	clearHardwareReset(dev);
 
-	/* wait for reset flag to become zero, we'll wait for two seconds */
+	
 	if (arlan_command(dev, ARLAN_COMMAND_LONG_WAIT_NOW))
 	{
 		printk(KERN_ERR "%s arlan: failed to come back from memory test\n", dev->name);
@@ -325,7 +324,7 @@ static int arlan_setup_card_by_book(struct net_device *dev)
 	struct arlan_private *priv = netdev_priv(dev);
 	volatile struct arlan_shmem __iomem *arlan = priv->card;
 
-//	ARLAN_DEBUG_ENTRY("arlan_setup_card");
+
 
 	READSHM(configuredStatusFlag, arlan->configuredStatusFlag, u_char);
 
@@ -342,19 +341,19 @@ static int arlan_setup_card_by_book(struct net_device *dev)
 	DEBUGSHM(4, "arlan configuredStatus = %d \n", arlan->configuredStatusFlag, u_char);
 	DEBUGSHM(4, "arlan driver diagnostic: 0x%2x\n", arlan->diagnosticInfo, u_char);
 
-	/* issue nop command - no interrupt */
+	
 	arlan_command(dev, ARLAN_COMMAND_NOOP);
 	if (arlan_command(dev, ARLAN_COMMAND_WAIT_NOW) != 0)
 		return -1;
 
 	IFDEBUG(50) printk("1st Noop successfully executed !!\n");
 
-	/* try to turn on the arlan interrupts */
+	
 	clearClearInterrupt(dev);
 	setClearInterrupt(dev);
 	setInterruptEnable(dev);
 
-	/* issue nop command - with interrupt */
+	
 
 	arlan_command(dev, ARLAN_COMMAND_NOOPINT);
 	if (arlan_command(dev, ARLAN_COMMAND_WAIT_NOW) != 0)
@@ -391,9 +390,9 @@ static int arlan_setup_card_by_book(struct net_device *dev)
 	printk(KERN_NOTICE "%s: arlan driver version %s loaded\n",
 	       dev->name, arlan_version);
 
-//	ARLAN_DEBUG_EXIT("arlan_setup_card");
 
-	return 0;		/* no errors */
+
+	return 0;		
 }
 #endif
 
@@ -447,7 +446,7 @@ static int arlan_sysctl_info(ctl_table * ctl, int write,
 	memcpy_fromio(priva->conf, priva->card, sizeof(struct arlan_shmem));
 
 	pos = sprintf(arlan_drive_info, "Arlan  info \n");
-	/* Header Signature */
+	
 	SARLSTR(textRegion, 48);
 	SARLUC(resetFlag);
 	pos += sprintf(arlan_drive_info + pos, "diagnosticInfo\t=\t%s \n", arlan_diagnostic_info_string(dev));
@@ -464,7 +463,7 @@ static int arlan_sysctl_info(ctl_table * ctl, int write,
 	SARLUC(defaultChannelSet);
 	SARLUCN(_2, 47);
 
-	/* Control/Status Block - 0x0080 */
+	
 	SARLUC(interruptInProgress);
 	SARLUC(cntrlRegImage);
 
@@ -472,7 +471,7 @@ static int arlan_sysctl_info(ctl_table * ctl, int write,
 	SARLUC(commandByte);
 	SARLUCN(commandParameter, 15);
 
-	/* Receive Status - 0x00a0 */
+	
 	SARLUC(rxStatus);
 	SARLUC(rxFrmType);
 	SARLUS(rxOffset);
@@ -483,7 +482,7 @@ static int arlan_sysctl_info(ctl_table * ctl, int write,
 	SARLUC(scrambled);
 	SARLUCN(_4, 1);
 
-	/* Transmit Status - 0x00b0 */
+	
 	SARLUC(txStatus);
 	SARLUC(txAckQuality);
 	SARLUC(numRetries);
@@ -500,15 +499,15 @@ static int arlan_sysctl_info(ctl_table * ctl, int write,
 	SARLUC(assignedLocaltalkAddress);
 	SARLUCN(_7, 27);
 
-	/* System Parameter Block */
+	
 
-	/* - Driver Parameters (Novell Specific) */
+	
 
 	SARLUS(txTimeout);
 	SARLUS(transportTime);
 	SARLUCN(_8, 4);
 
-	/* - Configuration Parameters */
+	
 	SARLUC(irqLevel);
 	SARLUC(spreadingCode);
 	SARLUC(channelSet);
@@ -539,7 +538,7 @@ static int arlan_sysctl_info(ctl_table * ctl, int write,
 	SARLUS(specRouterTimeout);
 	SARLUCN(_13, 5);
 
-	/* Scrambled Area */
+	
 	SARLUIA(SID);
 	SARLUCN(encryptionKey, 12);
 	SARLUIA(_14);
@@ -564,9 +563,8 @@ static int arlan_sysctl_info(ctl_table * ctl, int write,
 	SARLUC(channel4);
 	SARLUCN(SSCode, 59);
 
-/*      SARLUCN( _16, 0x140);
- */
-	/* Statistics Block - 0x0300 */
+
+	
 	SARLUC(hostcpuLock);
 	SARLUC(lancpuLock);
 	SARLUCN(resetTime, 18);
@@ -579,7 +577,7 @@ static int arlan_sysctl_info(ctl_table * ctl, int write,
 	SARLUS(maxNumReTransmitDatagram);
 	SARLUS(maxNumReTransmitFrames);
 	SARLUS(maxNumConsecutiveDuplicateFrames);
-	/* misaligned here so we have to go to characters */
+	
 	SARLUIA(numBytesTransmitted);
 	SARLUIA(numBytesReceived);
 	SARLUIA(numCRCErrors);
@@ -603,12 +601,7 @@ static int arlan_sysctl_info(ctl_table * ctl, int write,
 	SARLUC(dumpVal);
 	SARLUC(wireTest);
 	
-	/* next 4 seems too long for procfs, over single page ?
-	SARLUCN( _17, 0x86);
-	SARLUCN( txBuffer, 0x800);
-	SARLUCN( rxBuffer,  0x800); 
-	SARLUCN( _18, 0x0bff);
-	 */
+	
 
 	pos += sprintf(arlan_drive_info + pos, "rxRing\t=\t0x");
 	for (i = 0; i < 0x50; i++)
@@ -761,7 +754,7 @@ final:
 }
 
 
-#endif				/* #ifdef ARLAN_PROC_SHM_DUMP */
+#endif				
 
 
 static char conf_reset_result[200];
@@ -815,7 +808,7 @@ static int arlan_sysctl_reset(ctl_table * ctl, int write,
 }
 
 
-/* Place files in /proc/sys/dev/arlan */
+
 #define CTBLN(num,card,nam) \
         { .ctl_name = num,\
           .procname = #nam,\
@@ -1204,7 +1197,7 @@ static ctl_table arlan_table[MAX_ARLANS + 1] =
 #endif
 
 
-// static int mmtu = 1234;
+
 
 static ctl_table arlan_root_table[] =
 {
@@ -1218,12 +1211,12 @@ static ctl_table arlan_root_table[] =
 	{ .ctl_name = 0 }
 };
 
-/* Make sure that /proc/sys/dev is there */
-//static ctl_table arlan_device_root_table[] =
-//{
-//	{CTL_DEV, "dev", NULL, 0, 0555, arlan_root_table},
-//	{0}
-//};
+
+
+
+
+
+
 
 
 static struct ctl_table_header *arlan_device_sysctl_header;

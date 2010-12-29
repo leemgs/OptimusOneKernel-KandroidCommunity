@@ -1,25 +1,4 @@
-/*
- * This file is part of wl1271
- *
- * Copyright (C) 2008-2009 Nokia Corporation
- *
- * Contact: Luciano Coelho <luciano.coelho@nokia.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/platform_device.h>
@@ -83,10 +62,7 @@ void wl1271_spi_init(struct wl1271 *wl)
 	memset(&t, 0, sizeof(t));
 	spi_message_init(&m);
 
-	/*
-	 * Set WSPI_INIT_COMMAND
-	 * the data is being send from the MSB to LSB
-	 */
+	
 	cmd[2] = 0xff;
 	cmd[3] = 0xff;
 	cmd[1] = WSPI_INIT_CMD_START | WSPI_INIT_CMD_TX;
@@ -121,39 +97,7 @@ void wl1271_spi_init(struct wl1271 *wl)
 	wl1271_dump(DEBUG_SPI, "spi init -> ", cmd, WSPI_INIT_CMD_LEN);
 }
 
-/* Set the SPI partitions to access the chip addresses
- *
- * There are two VIRTUAL (SPI) partitions (the memory partition and the
- * registers partition), which are mapped to two different areas of the
- * PHYSICAL (hardware) memory.  This function also makes other checks to
- * ensure that the partitions are not overlapping.  In the diagram below, the
- * memory partition comes before the register partition, but the opposite is
- * also supported.
- *
- *                               PHYSICAL address
- *                                     space
- *
- *                                    |    |
- *                                 ...+----+--> mem_start
- *          VIRTUAL address     ...   |    |
- *               space       ...      |    | [PART_0]
- *                        ...         |    |
- * 0x00000000 <--+----+...         ...+----+--> mem_start + mem_size
- *               |    |         ...   |    |
- *               |MEM |      ...      |    |
- *               |    |   ...         |    |
- *  part_size <--+----+...            |    | {unused area)
- *               |    |   ...         |    |
- *               |REG |      ...      |    |
- *  part_size    |    |         ...   |    |
- *      +     <--+----+...         ...+----+--> reg_start
- *  reg_size              ...         |    |
- *                           ...      |    | [PART_1]
- *                              ...   |    |
- *                                 ...+----+--> reg_start + reg_size
- *                                    |    |
- *
- */
+
 int wl1271_set_partition(struct wl1271 *wl,
 			  u32 mem_start, u32 mem_size,
 			  u32 reg_start, u32 reg_size)
@@ -186,8 +130,7 @@ int wl1271_set_partition(struct wl1271 *wl,
 	wl1271_debug(DEBUG_SPI, "reg_start %08X reg_size %08X",
 		     reg_start, reg_size);
 
-	/* Make sure that the two partitions together don't exceed the
-	 * address range */
+	
 	if ((mem_size + reg_size) > HW_ACCESS_MEMORY_MAX_RANGE) {
 		wl1271_debug(DEBUG_SPI, "Total size exceeds maximum virtual"
 			     " address range.  Truncating partition[0].");
@@ -200,8 +143,7 @@ int wl1271_set_partition(struct wl1271 *wl,
 
 	if ((mem_start < reg_start) &&
 	    ((mem_start + mem_size) > reg_start)) {
-		/* Guarantee that the memory partition doesn't overlap the
-		 * registers partition */
+		
 		wl1271_debug(DEBUG_SPI, "End of partition[0] is "
 			     "overlapping partition[1].  Adjusted.");
 		mem_size = reg_start - mem_start;
@@ -211,8 +153,7 @@ int wl1271_set_partition(struct wl1271 *wl,
 			     reg_start, reg_size);
 	} else if ((reg_start < mem_start) &&
 		   ((reg_start + reg_size) > mem_start)) {
-		/* Guarantee that the register partition doesn't overlap the
-		 * memory partition */
+		
 		wl1271_debug(DEBUG_SPI, "End of partition[1] is"
 			     " overlapping partition[0].  Adjusted.");
 		reg_size = mem_start - reg_start;
@@ -270,7 +211,7 @@ void wl1271_spi_read(struct wl1271 *wl, int addr, void *buf,
 	t[0].len = 4;
 	spi_message_add_tail(&t[0], &m);
 
-	/* Busy and non busy words read */
+	
 	t[1].rx_buf = busy_buf;
 	t[1].len = WL1271_BUSY_WORD_LEN;
 	spi_message_add_tail(&t[1], &m);
@@ -281,7 +222,7 @@ void wl1271_spi_read(struct wl1271 *wl, int addr, void *buf,
 
 	spi_sync(wl->spi, &m);
 
-	/* FIXME: check busy words */
+	
 
 	wl1271_dump(DEBUG_SPI, "spi_read cmd -> ", cmd, sizeof(*cmd));
 	wl1271_dump(DEBUG_SPI, "spi_read buf <- ", buf, len);

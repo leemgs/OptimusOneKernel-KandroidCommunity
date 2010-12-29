@@ -1,36 +1,22 @@
-/*
- * Copyright (c) 2008-2009 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+
 
 #include <linux/nl80211.h>
 #include <linux/pci.h>
 #include "ath9k.h"
 
 static struct pci_device_id ath_pci_id_table[] __devinitdata = {
-	{ PCI_VDEVICE(ATHEROS, 0x0023) }, /* PCI   */
-	{ PCI_VDEVICE(ATHEROS, 0x0024) }, /* PCI-E */
-	{ PCI_VDEVICE(ATHEROS, 0x0027) }, /* PCI   */
-	{ PCI_VDEVICE(ATHEROS, 0x0029) }, /* PCI   */
-	{ PCI_VDEVICE(ATHEROS, 0x002A) }, /* PCI-E */
-	{ PCI_VDEVICE(ATHEROS, 0x002B) }, /* PCI-E */
-	{ PCI_VDEVICE(ATHEROS, 0x002D) }, /* PCI   */
-	{ PCI_VDEVICE(ATHEROS, 0x002E) }, /* PCI-E */
+	{ PCI_VDEVICE(ATHEROS, 0x0023) }, 
+	{ PCI_VDEVICE(ATHEROS, 0x0024) }, 
+	{ PCI_VDEVICE(ATHEROS, 0x0027) }, 
+	{ PCI_VDEVICE(ATHEROS, 0x0029) }, 
+	{ PCI_VDEVICE(ATHEROS, 0x002A) }, 
+	{ PCI_VDEVICE(ATHEROS, 0x002B) }, 
+	{ PCI_VDEVICE(ATHEROS, 0x002D) }, 
+	{ PCI_VDEVICE(ATHEROS, 0x002E) }, 
 	{ 0 }
 };
 
-/* return bus cachesize in 4B word units */
+
 static void ath_pci_read_cachesize(struct ath_softc *sc, int *csz)
 {
 	u8 u8tmp;
@@ -38,14 +24,10 @@ static void ath_pci_read_cachesize(struct ath_softc *sc, int *csz)
 	pci_read_config_byte(to_pci_dev(sc->dev), PCI_CACHE_LINE_SIZE, &u8tmp);
 	*csz = (int)u8tmp;
 
-	/*
-	 * This check was put in to avoid "unplesant" consequences if
-	 * the bootrom has not fully initialized all PCI devices.
-	 * Sometimes the cache line size register is not set
-	 */
+	
 
 	if (*csz == 0)
-		*csz = DEFAULT_CACHELINE >> 2;   /* Use the default size */
+		*csz = DEFAULT_CACHELINE >> 2;   
 }
 
 static void ath_pci_cleanup(struct ath_softc *sc)
@@ -111,35 +93,19 @@ static int ath_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 		goto bad;
 	}
 
-	/*
-	 * Cache line size is used to size and align various
-	 * structures used to communicate with the hardware.
-	 */
+	
 	pci_read_config_byte(pdev, PCI_CACHE_LINE_SIZE, &csz);
 	if (csz == 0) {
-		/*
-		 * Linux 2.4.18 (at least) writes the cache line size
-		 * register as a 16-bit wide register which is wrong.
-		 * We must have this setup properly for rx buffer
-		 * DMA to work so force a reasonable value here if it
-		 * comes up zero.
-		 */
+		
 		csz = L1_CACHE_BYTES / sizeof(u32);
 		pci_write_config_byte(pdev, PCI_CACHE_LINE_SIZE, csz);
 	}
-	/*
-	 * The default setting of latency timer yields poor results,
-	 * set it to the value used by other systems. It may be worth
-	 * tweaking this setting more.
-	 */
+	
 	pci_write_config_byte(pdev, PCI_LATENCY_TIMER, 0xa8);
 
 	pci_set_master(pdev);
 
-	/*
-	 * Disable the RETRY_TIMEOUT register (0x41) to keep
-	 * PCI Tx retries from interfering with C3 CPU state.
-	 */
+	
 	pci_read_config_dword(pdev, 0x40, &val);
 	if ((val & 0x0000ff00) != 0)
 		pci_write_config_dword(pdev, 0x40, val & 0xffff00ff);
@@ -186,7 +152,7 @@ static int ath_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 		goto bad3;
 	}
 
-	/* setup interrupt service routine */
+	
 
 	ret = request_irq(pdev->irq, ath_isr, IRQF_SHARED, "ath9k", sc);
 	if (ret) {
@@ -261,16 +227,12 @@ static int ath_pci_resume(struct pci_dev *pdev)
 	if (err)
 		return err;
 
-	/*
-	 * Suspend/Resume resets the PCI configuration space, so we have to
-	 * re-disable the RETRY_TIMEOUT register (0x41) to keep
-	 * PCI Tx retries from interfering with C3 CPU state
-	 */
+	
 	pci_read_config_dword(pdev, 0x40, &val);
 	if ((val & 0x0000ff00) != 0)
 		pci_write_config_dword(pdev, 0x40, val & 0xffff00ff);
 
-	/* Enable LED */
+	
 	ath9k_hw_cfg_output(sc->sc_ah, sc->sc_ah->led_pin,
 			    AR_GPIO_OUTPUT_MUX_AS_OUTPUT);
 	ath9k_hw_set_gpio(sc->sc_ah, sc->sc_ah->led_pin, 1);
@@ -278,7 +240,7 @@ static int ath_pci_resume(struct pci_dev *pdev)
 	return 0;
 }
 
-#endif /* CONFIG_PM */
+#endif 
 
 MODULE_DEVICE_TABLE(pci, ath_pci_id_table);
 
@@ -290,7 +252,7 @@ static struct pci_driver ath_pci_driver = {
 #ifdef CONFIG_PM
 	.suspend    = ath_pci_suspend,
 	.resume     = ath_pci_resume,
-#endif /* CONFIG_PM */
+#endif 
 };
 
 int ath_pci_init(void)

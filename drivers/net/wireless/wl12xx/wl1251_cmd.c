@@ -9,14 +9,7 @@
 #include "wl1251_ps.h"
 #include "wl1251_acx.h"
 
-/**
- * send command to firmware
- *
- * @wl: wl struct
- * @id: command id
- * @buf: buffer containing the command, must work with dma
- * @len: length of the buffer
- */
+
 int wl1251_cmd_send(struct wl1251 *wl, u16 id, void *buf, size_t len)
 {
 	struct wl1251_cmd_header *cmd;
@@ -56,14 +49,7 @@ out:
 	return ret;
 }
 
-/**
- * send test command to firmware
- *
- * @wl: wl struct
- * @buf: buffer containing the command, with all headers, must work with dma
- * @len: length of the buffer
- * @answer: is answer needed
- */
+
 int wl1251_cmd_test(struct wl1251 *wl, void *buf, size_t buf_len, u8 answer)
 {
 	int ret;
@@ -80,11 +66,7 @@ int wl1251_cmd_test(struct wl1251 *wl, void *buf, size_t buf_len, u8 answer)
 	if (answer) {
 		struct wl1251_command *cmd_answer;
 
-		/*
-		 * The test command got in, we can read the answer.
-		 * The answer would be a wl1251_command, where the
-		 * parameter array contains the actual answer.
-		 */
+		
 		wl1251_mem_read(wl, wl->cmd_box_addr, buf, buf_len);
 
 		cmd_answer = buf;
@@ -97,14 +79,7 @@ int wl1251_cmd_test(struct wl1251 *wl, void *buf, size_t buf_len, u8 answer)
 	return 0;
 }
 
-/**
- * read acx from firmware
- *
- * @wl: wl struct
- * @id: acx id
- * @buf: buffer for the response, including all headers, must work with dma
- * @len: lenght of buf
- */
+
 int wl1251_cmd_interrogate(struct wl1251 *wl, u16 id, void *buf, size_t len)
 {
 	struct acx_header *acx = buf;
@@ -114,7 +89,7 @@ int wl1251_cmd_interrogate(struct wl1251 *wl, u16 id, void *buf, size_t len)
 
 	acx->id = id;
 
-	/* payload length, does not include any headers */
+	
 	acx->len = len - sizeof(*acx);
 
 	ret = wl1251_cmd_send(wl, CMD_INTERROGATE, acx, sizeof(*acx));
@@ -123,7 +98,7 @@ int wl1251_cmd_interrogate(struct wl1251 *wl, u16 id, void *buf, size_t len)
 		goto out;
 	}
 
-	/* the interrogate command got in, we can read the answer */
+	
 	wl1251_mem_read(wl, wl->cmd_box_addr, buf, len);
 
 	acx = buf;
@@ -135,14 +110,7 @@ out:
 	return ret;
 }
 
-/**
- * write acx value to firmware
- *
- * @wl: wl struct
- * @id: acx id
- * @buf: buffer containing acx, including all headers, must work with dma
- * @len: length of buf
- */
+
 int wl1251_cmd_configure(struct wl1251 *wl, u16 id, void *buf, size_t len)
 {
 	struct acx_header *acx = buf;
@@ -152,7 +120,7 @@ int wl1251_cmd_configure(struct wl1251 *wl, u16 id, void *buf, size_t len)
 
 	acx->id = id;
 
-	/* payload length, does not include any headers */
+	
 	acx->len = len - sizeof(*acx);
 
 	ret = wl1251_cmd_send(wl, CMD_CONFIGURE, acx, len);
@@ -178,7 +146,7 @@ int wl1251_cmd_vbm(struct wl1251 *wl, u8 identity,
 		goto out;
 	}
 
-	/* Count and period will be filled by the target */
+	
 	vbm->tim.bitmap_ctrl = bitmap_control;
 	if (bitmap_len > PARTIAL_VBM_MAX) {
 		wl1251_warning("cmd vbm len is %d B, truncating to %d",
@@ -268,7 +236,7 @@ int wl1251_cmd_join(struct wl1251 *wl, u8 bss_type, u8 channel,
 		     bss_type == BSS_TYPE_IBSS ? " ibss" : "",
 		     channel, beacon_interval, dtim_interval);
 
-	/* Reverse order BSSID */
+	
 	bssid = (u8 *) &join->bssid_lsb;
 	for (i = 0; i < ETH_ALEN; i++)
 		bssid[i] = wl->bssid[ETH_ALEN - i - 1];
@@ -276,12 +244,7 @@ int wl1251_cmd_join(struct wl1251 *wl, u8 bss_type, u8 channel,
 	join->rx_config_options = wl->rx_config;
 	join->rx_filter_options = wl->rx_filter;
 
-	/*
-	 * FIXME: disable temporarily all filters because after commit
-	 * 9cef8737 "mac80211: fix managed mode BSSID handling" broke
-	 * association. The filter logic needs to be implemented properly
-	 * and once that is done, this hack can be removed.
-	 */
+	
 	join->rx_config_options = 0;
 	join->rx_filter_options = WL1251_DEFAULT_RX_FILTER;
 
@@ -322,7 +285,7 @@ int wl1251_cmd_ps_mode(struct wl1251 *wl, u8 ps_mode)
 	ps_params->send_null_data = 1;
 	ps_params->retries = 5;
 	ps_params->hang_over_period = 128;
-	ps_params->null_data_rate = 1; /* 1 Mbps */
+	ps_params->null_data_rate = 1; 
 
 	ret = wl1251_cmd_send(wl, CMD_SET_PS_MODE, ps_params,
 			      sizeof(*ps_params));
@@ -362,7 +325,7 @@ int wl1251_cmd_read_memory(struct wl1251 *wl, u32 addr, void *answer,
 		goto out;
 	}
 
-	/* the read command got in, we can now read the answer */
+	
 	wl1251_mem_read(wl, wl->cmd_box_addr, cmd, sizeof(*cmd));
 
 	if (cmd->header.status != CMD_STATUS_SUCCESS)

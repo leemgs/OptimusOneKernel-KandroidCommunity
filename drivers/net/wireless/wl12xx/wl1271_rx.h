@@ -1,26 +1,4 @@
-/*
- * This file is part of wl1271
- *
- * Copyright (C) 1998-2009 Texas Instruments. All rights reserved.
- * Copyright (C) 2008-2009 Nokia Corporation
- *
- * Contact: Luciano Coelho <luciano.coelho@nokia.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #ifndef __WL1271_RX_H__
 #define __WL1271_RX_H__
@@ -59,15 +37,7 @@
 #define	RX_DESC_MIC_FAIL	  0x2000
 #define	RX_DESC_DECRYPT_FAIL	  0x4000
 
-/*
- * RX Descriptor flags:
- *
- * Bits 0-1 - band
- * Bit  2   - STBC
- * Bit  3   - A-MPDU
- * Bit  4   - HT
- * Bits 5-7 - encryption
- */
+
 #define WL1271_RX_DESC_BAND_MASK    0x03
 #define WL1271_RX_DESC_ENCRYPT_MASK 0xE0
 
@@ -84,12 +54,7 @@
 #define WL1271_RX_DESC_ENCRYPT_AES  0x60
 #define WL1271_RX_DESC_ENCRYPT_GEM  0x80
 
-/*
- * RX Descriptor status
- *
- * Bits 0-2 - status
- * Bits 3-7 - reserved
- */
+
 #define WL1271_RX_DESC_STATUS_MASK      0x07
 
 #define WL1271_RX_DESC_SUCCESS          0x00

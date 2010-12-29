@@ -1,20 +1,4 @@
-/*
- *  Copyright (C) 2003 Aurelien Alleaume <slts@free.fr>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- */
+
 
 #if !defined(_OID_MGT_H)
 #define _OID_MGT_H
@@ -28,7 +12,7 @@ int mgt_init(islpci_private *);
 
 void mgt_clean(islpci_private *);
 
-/* I don't know where to put these 2 */
+
 extern const int frequency_list_a[];
 int channel_of_freq(int);
 
@@ -55,5 +39,5 @@ enum oid_num_t mgt_oidtonum(u32 oid);
 
 int mgt_response_to_str(enum oid_num_t, union oid_res_t *, char *);
 
-#endif				/* !defined(_OID_MGT_H) */
-/* EOF */
+#endif				
+

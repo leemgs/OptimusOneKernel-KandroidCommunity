@@ -1,28 +1,4 @@
-/******************************************************************************
- *
- * Copyright(c) 2005 - 2009 Intel Corporation. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of version 2 of the GNU General Public License as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
- *
- * The full GNU General Public License is included in this distribution in the
- * file called LICENSE.
- *
- * Contact Information:
- *  Intel Linux Wireless <ilw@linux.intel.com>
- * Intel Corporation, 5200 N.E. Elam Young Parkway, Hillsboro, OR 97124-6497
- *
- *****************************************************************************/
+
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/skbuff.h>
@@ -45,13 +21,13 @@
 #define IWL_NUMBER_TRY      1
 #define IWL_HT_NUMBER_TRY   3
 
-#define IWL_RATE_MAX_WINDOW		62	/* # tx in history window */
-#define IWL_RATE_MIN_FAILURE_TH		6	/* min failures to calc tpt */
-#define IWL_RATE_MIN_SUCCESS_TH		8	/* min successes to calc tpt */
+#define IWL_RATE_MAX_WINDOW		62	
+#define IWL_RATE_MIN_FAILURE_TH		6	
+#define IWL_RATE_MIN_SUCCESS_TH		8	
 
-/* max allowed rate miss before sync LQ cmd */
+
 #define IWL_MISSED_RATE_MAX		15
-/* max time to accum history 2 seconds */
+
 #define IWL_RATE_SCALE_FLUSH_INTVL   (3*HZ)
 
 static u8 rs_ht_to_legacy[] = {
@@ -65,97 +41,83 @@ static u8 rs_ht_to_legacy[] = {
 };
 
 static const u8 ant_toggle_lookup[] = {
-	/*ANT_NONE -> */ ANT_NONE,
-	/*ANT_A    -> */ ANT_B,
-	/*ANT_B    -> */ ANT_C,
-	/*ANT_AB   -> */ ANT_BC,
-	/*ANT_C    -> */ ANT_A,
-	/*ANT_AC   -> */ ANT_AB,
-	/*ANT_BC   -> */ ANT_AC,
-	/*ANT_ABC  -> */ ANT_ABC,
+	 ANT_NONE,
+	 ANT_B,
+	 ANT_C,
+	 ANT_BC,
+	 ANT_A,
+	 ANT_AB,
+	 ANT_AC,
+	 ANT_ABC,
 };
 
-/**
- * struct iwl_rate_scale_data -- tx success history for one rate
- */
+
 struct iwl_rate_scale_data {
-	u64 data;		/* bitmap of successful frames */
-	s32 success_counter;	/* number of frames successful */
-	s32 success_ratio;	/* per-cent * 128  */
-	s32 counter;		/* number of frames attempted */
-	s32 average_tpt;	/* success ratio * expected throughput */
+	u64 data;		
+	s32 success_counter;	
+	s32 success_ratio;	
+	s32 counter;		
+	s32 average_tpt;	
 	unsigned long stamp;
 };
 
-/**
- * struct iwl_scale_tbl_info -- tx params and success history for all rates
- *
- * There are two of these in struct iwl_lq_sta,
- * one for "active", and one for "search".
- */
+
 struct iwl_scale_tbl_info {
 	enum iwl_table_type lq_type;
 	u8 ant_type;
-	u8 is_SGI;	/* 1 = short guard interval */
-	u8 is_ht40;	/* 1 = 40 MHz channel width */
-	u8 is_dup;	/* 1 = duplicated data streams */
-	u8 action;	/* change modulation; IWL_[LEGACY/SISO/MIMO]_SWITCH_* */
-	u8 max_search;	/* maximun number of tables we can search */
-	s32 *expected_tpt;	/* throughput metrics; expected_tpt_G, etc. */
-	u32 current_rate;  /* rate_n_flags, uCode API format */
-	struct iwl_rate_scale_data win[IWL_RATE_COUNT]; /* rate histories */
+	u8 is_SGI;	
+	u8 is_ht40;	
+	u8 is_dup;	
+	u8 action;	
+	u8 max_search;	
+	s32 *expected_tpt;	
+	u32 current_rate;  
+	struct iwl_rate_scale_data win[IWL_RATE_COUNT]; 
 };
 
 struct iwl_traffic_load {
-	unsigned long time_stamp;	/* age of the oldest statistics */
-	u32 packet_count[TID_QUEUE_MAX_SIZE];   /* packet count in this time
-						 * slice */
-	u32 total;			/* total num of packets during the
-					 * last TID_MAX_TIME_DIFF */
-	u8 queue_count;			/* number of queues that has
-					 * been used since the last cleanup */
-	u8 head;			/* start of the circular buffer */
+	unsigned long time_stamp;	
+	u32 packet_count[TID_QUEUE_MAX_SIZE];   
+	u32 total;			
+	u8 queue_count;			
+	u8 head;			
 };
 
-/**
- * struct iwl_lq_sta -- driver's rate scaling private structure
- *
- * Pointer to this gets passed back and forth between driver and mac80211.
- */
+
 struct iwl_lq_sta {
-	u8 active_tbl;		/* index of active table, range 0-1 */
-	u8 enable_counter;	/* indicates HT mode */
-	u8 stay_in_tbl;		/* 1: disallow, 0: allow search for new mode */
-	u8 search_better_tbl;	/* 1: currently trying alternate mode */
+	u8 active_tbl;		
+	u8 enable_counter;	
+	u8 stay_in_tbl;		
+	u8 search_better_tbl;	
 	s32 last_tpt;
 
-	/* The following determine when to search for a new mode */
+	
 	u32 table_count_limit;
-	u32 max_failure_limit;	/* # failed frames before new search */
-	u32 max_success_limit;	/* # successful frames before new search */
+	u32 max_failure_limit;	
+	u32 max_success_limit;	
 	u32 table_count;
-	u32 total_failed;	/* total failed frames, any/all rates */
-	u32 total_success;	/* total successful frames, any/all rates */
-	u64 flush_timer;	/* time staying in mode before new search */
+	u32 total_failed;	
+	u32 total_success;	
+	u64 flush_timer;	
 
-	u8 action_counter;	/* # mode-switch actions tried */
+	u8 action_counter;	
 	u8 is_green;
 	u8 is_dup;
 	enum ieee80211_band band;
 	u8 ibss_sta_added;
 
-	/* The following are bitmaps of rates; IWL_RATE_6M_MASK, etc. */
+	
 	u32 supp_rates;
 	u16 active_legacy_rate;
 	u16 active_siso_rate;
 	u16 active_mimo2_rate;
 	u16 active_mimo3_rate;
 	u16 active_rate_basic;
-	s8 max_rate_idx;     /* Max rate set by user */
+	s8 max_rate_idx;     
 	u8 missed_rate_counter;
 
 	struct iwl_link_quality_cmd lq;
-	struct iwl_scale_tbl_info lq_info[LQ_SIZE]; /* "active", "search" */
+	struct iwl_scale_tbl_info lq_info[LQ_SIZE]; 
 	struct iwl_traffic_load load[TID_MAX_LOAD_COUNT];
 	u8 tx_agg_tid_en;
 #ifdef CONFIG_MAC80211_DEBUGFS
@@ -167,9 +129,9 @@ struct iwl_lq_sta {
 #endif
 	struct iwl_priv *drv;
 
-	/* used to be in sta_info */
+	
 	int last_txrate_idx;
-	/* last tx rate_n_flags */
+	
 	u32 last_rate_n_flags;
 };
 
@@ -190,11 +152,7 @@ static void rs_dbgfs_set_mcs(struct iwl_lq_sta *lq_sta,
 {}
 #endif
 
-/*
- * Expected throughput metrics for following rates:
- * 1, 2, 5.5, 11, 6, 9, 12, 18, 24, 36, 48, 54, 60 MBits
- * "G" is the only table that supports CCK (the first 4 rates).
- */
+
 
 static s32 expected_tpt_A[IWL_RATE_COUNT] = {
 	0, 0, 0, 0, 40, 57, 72, 98, 121, 154, 177, 186, 186
@@ -236,7 +194,7 @@ static s32 expected_tpt_mimo2_40MHzSGI[IWL_RATE_COUNT] = {
 	0, 0, 0, 0, 131, 131, 191, 222, 242, 270, 284, 289, 293
 };
 
-/* Expected throughput metric MIMO3 */
+
 static s32 expected_tpt_mimo3_20MHz[IWL_RATE_COUNT] = {
 	0, 0, 0, 0, 99, 99, 153, 186, 208, 239, 256, 263, 268
 };
@@ -253,7 +211,7 @@ static s32 expected_tpt_mimo3_40MHzSGI[IWL_RATE_COUNT] = {
 	0, 0, 0, 0, 160, 160, 219, 245, 261, 284, 294, 297, 300
 };
 
-/* mbps, mcs */
+
 const static struct iwl_rate_mcs_info iwl_rate_mcs[IWL_RATE_COUNT] = {
   {"1", ""},
   {"2", ""},
@@ -292,13 +250,10 @@ static inline u8 rs_is_valid_ant(u8 valid_antenna, u8 ant_type)
 	return (ant_type & valid_antenna) == ant_type;
 }
 
-/*
- *	removes the old data from the statistics. All data that is older than
- *	TID_MAX_TIME_DIFF, will be deleted.
- */
+
 static void rs_tl_rm_old_stats(struct iwl_traffic_load *tl, u32 curr_time)
 {
-	/* The oldest age we want to keep */
+	
 	u32 oldest_time = curr_time - TID_MAX_TIME_DIFF;
 
 	while (tl->queue_count &&
@@ -313,10 +268,7 @@ static void rs_tl_rm_old_stats(struct iwl_traffic_load *tl, u32 curr_time)
 	}
 }
 
-/*
- *	increment traffic load value for tid and also remove
- *	any old values if passed the certain time period
- */
+
 static u8 rs_tl_add_packet(struct iwl_lq_sta *lq_data,
 			   struct ieee80211_hdr *hdr)
 {
@@ -339,7 +291,7 @@ static u8 rs_tl_add_packet(struct iwl_lq_sta *lq_data,
 
 	curr_time -= curr_time % TID_ROUND_VALUE;
 
-	/* Happens only for the first packet. Initialize the data */
+	
 	if (!(tl->queue_count)) {
 		tl->total = 1;
 		tl->time_stamp = curr_time;
@@ -352,8 +304,8 @@ static u8 rs_tl_add_packet(struct iwl_lq_sta *lq_data,
 	time_diff = TIME_WRAP_AROUND(tl->time_stamp, curr_time);
 	index = time_diff / TID_QUEUE_CELL_SPACING;
 
-	/* The history is too long: remove data that is older than */
-	/* TID_MAX_TIME_DIFF */
+	
+	
 	if (index >= TID_QUEUE_MAX_SIZE)
 		rs_tl_rm_old_stats(tl, curr_time);
 
@@ -367,9 +319,7 @@ static u8 rs_tl_add_packet(struct iwl_lq_sta *lq_data,
 	return tid;
 }
 
-/*
-	get the traffic load value for tid
-*/
+
 static u32 rs_tl_get_load(struct iwl_lq_sta *lq_data, u8 tid)
 {
 	u32 curr_time = jiffies_to_msecs(jiffies);
@@ -390,8 +340,8 @@ static u32 rs_tl_get_load(struct iwl_lq_sta *lq_data, u8 tid)
 	time_diff = TIME_WRAP_AROUND(tl->time_stamp, curr_time);
 	index = time_diff / TID_QUEUE_CELL_SPACING;
 
-	/* The history is too long: remove data that is older than */
-	/* TID_MAX_TIME_DIFF */
+	
+	
 	if (index >= TID_QUEUE_MAX_SIZE)
 		rs_tl_rm_old_stats(tl, curr_time);
 
@@ -419,10 +369,7 @@ static void rs_tl_turn_on_agg(struct iwl_priv *priv, u8 tid,
 		for (tid = 0; tid < TID_MAX_LOAD_COUNT; tid++)
 			rs_tl_turn_on_agg_for_tid(priv, lq_data, tid, sta);
 	if (priv->cfg->use_rts_for_ht) {
-		/*
-		 * switch to RTS/CTS if it is the prefer protection method
-		 * for HT traffic
-		 */
+		
 		IWL_DEBUG_HT(priv, "use RTS/CTS protection for HT\n");
 		priv->staging_rxon.flags &= ~RXON_FLG_SELF_CTS_EN;
 		iwlcore_commit_rxon(priv);
@@ -436,13 +383,7 @@ static inline int get_num_of_ant_from_rate(u32 rate_n_flags)
 	       !!(rate_n_flags & RATE_MCS_ANT_C_MSK);
 }
 
-/**
- * rs_collect_tx_data - Update the success/failure sliding window
- *
- * We keep a sliding window of the last 62 packets transmitted
- * at this rate.  window->data contains the bitmask of successful
- * packets.
- */
+
 static int rs_collect_tx_data(struct iwl_rate_scale_data *windows,
 			      int scale_index, s32 tpt, int retries,
 			      int successes)
@@ -454,21 +395,14 @@ static int rs_collect_tx_data(struct iwl_rate_scale_data *windows,
 	if (scale_index < 0 || scale_index >= IWL_RATE_COUNT)
 		return -EINVAL;
 
-	/* Select data for current tx bit rate */
+	
 	window = &(windows[scale_index]);
 
-	/*
-	 * Keep track of only the latest 62 tx frame attempts in this rate's
-	 * history window; anything older isn't really relevant any more.
-	 * If we have filled up the sliding window, drop the oldest attempt;
-	 * if the oldest attempt (highest bit in bitmap) shows "success",
-	 * subtract "1" from the success counter (this is the main reason
-	 * we keep these bitmaps!).
-	 */
+	
 	while (retries > 0) {
 		if (window->counter >= IWL_RATE_MAX_WINDOW) {
 
-			/* remove earliest */
+			
 			window->counter = IWL_RATE_MAX_WINDOW - 1;
 
 			if (window->data & mask) {
@@ -477,12 +411,10 @@ static int rs_collect_tx_data(struct iwl_rate_scale_data *windows,
 			}
 		}
 
-		/* Increment frames-attempted counter */
+		
 		window->counter++;
 
-		/* Shift bitmap by one frame (throw away oldest history),
-		 * OR in "1", and increment "success" if this
-		 * frame was successful. */
+		
 		window->data <<= 1;
 		if (successes > 0) {
 			window->success_counter++;
@@ -493,7 +425,7 @@ static int rs_collect_tx_data(struct iwl_rate_scale_data *windows,
 		retries--;
 	}
 
-	/* Calculate current success ratio, avoid divide-by-0! */
+	
 	if (window->counter > 0)
 		window->success_ratio = 128 * (100 * window->success_counter)
 					/ window->counter;
@@ -502,23 +434,21 @@ static int rs_collect_tx_data(struct iwl_rate_scale_data *windows,
 
 	fail_count = window->counter - window->success_counter;
 
-	/* Calculate average throughput, if we have enough history. */
+	
 	if ((fail_count >= IWL_RATE_MIN_FAILURE_TH) ||
 	    (window->success_counter >= IWL_RATE_MIN_SUCCESS_TH))
 		window->average_tpt = (window->success_ratio * tpt + 64) / 128;
 	else
 		window->average_tpt = IWL_INVALID_VALUE;
 
-	/* Tag this window as having been updated */
+	
 	window->stamp = jiffies;
 
 	return 0;
 }
 
-/*
- * Fill uCode API rate_n_flags field, based on "search" or "active" table.
- */
-/* FIXME:RS:remove this function and put the flags statically in the table */
+
+
 static u32 rate_n_flags_from_tbl(struct iwl_priv *priv,
 				 struct iwl_scale_tbl_info *tbl,
 				 int index, u8 use_green)
@@ -571,10 +501,7 @@ static u32 rate_n_flags_from_tbl(struct iwl_priv *priv,
 	return rate_n_flags;
 }
 
-/*
- * Interpret uCode API's rate_n_flags format,
- * fill "search" or "active" tx mode table.
- */
+
 static int rs_get_tbl_info_from_mcs(const u32 rate_n_flags,
 				    enum ieee80211_band band,
 				    struct iwl_scale_tbl_info *tbl,
@@ -590,14 +517,14 @@ static int rs_get_tbl_info_from_mcs(const u32 rate_n_flags,
 		*rate_idx = -1;
 		return -EINVAL;
 	}
-	tbl->is_SGI = 0;	/* default legacy setup */
+	tbl->is_SGI = 0;	
 	tbl->is_ht40 = 0;
 	tbl->is_dup = 0;
 	tbl->ant_type = (ant_msk >> RATE_MCS_ANT_POS);
 	tbl->lq_type = LQ_NONE;
 	tbl->max_search = IWL_MAX_SEARCH;
 
-	/* legacy rate format */
+	
 	if (!(rate_n_flags & RATE_MCS_HT_MSK)) {
 		if (num_of_ant == 1) {
 			if (band == IEEE80211_BAND_5GHZ)
@@ -605,7 +532,7 @@ static int rs_get_tbl_info_from_mcs(const u32 rate_n_flags,
 			else
 				tbl->lq_type = LQ_G;
 		}
-	/* HT rate format */
+	
 	} else {
 		if (rate_n_flags & RATE_MCS_SGI_MSK)
 			tbl->is_SGI = 1;
@@ -619,15 +546,15 @@ static int rs_get_tbl_info_from_mcs(const u32 rate_n_flags,
 
 		mcs = rs_extract_rate(rate_n_flags);
 
-		/* SISO */
+		
 		if (mcs <= IWL_RATE_SISO_60M_PLCP) {
 			if (num_of_ant == 1)
-				tbl->lq_type = LQ_SISO; /*else NONE*/
-		/* MIMO2 */
+				tbl->lq_type = LQ_SISO; 
+		
 		} else if (mcs <= IWL_RATE_MIMO2_60M_PLCP) {
 			if (num_of_ant == 2)
 				tbl->lq_type = LQ_MIMO2;
-		/* MIMO3 */
+		
 		} else {
 			if (num_of_ant == 3) {
 				tbl->max_search = IWL_MAX_11N_MIMO3_SEARCH;
@@ -638,8 +565,8 @@ static int rs_get_tbl_info_from_mcs(const u32 rate_n_flags,
 	return 0;
 }
 
-/* switch to another antenna/antennas and return 1 */
-/* if no other valid antenna found, return 0 */
+
+
 static int rs_toggle_antenna(u32 valid_ant, u32 *rate_n_flags,
 			     struct iwl_scale_tbl_info *tbl)
 {
@@ -666,10 +593,7 @@ static int rs_toggle_antenna(u32 valid_ant, u32 *rate_n_flags,
 	return 1;
 }
 
-/**
- * Green-field mode is valid if the station supports it and
- * there are no non-GF stations present in the BSS.
- */
+
 static inline u8 rs_use_green(struct ieee80211_sta *sta,
 			      struct iwl_ht_info *ht_conf)
 {
@@ -677,13 +601,7 @@ static inline u8 rs_use_green(struct ieee80211_sta *sta,
 		!(ht_conf->non_GF_STA_present);
 }
 
-/**
- * rs_get_supported_rates - get the available rates
- *
- * if management frame or broadcast frame only return
- * basic available rates.
- *
- */
+
 static u16 rs_get_supported_rates(struct iwl_lq_sta *lq_sta,
 				  struct ieee80211_hdr *hdr,
 				  enum iwl_table_type rate_type)
@@ -710,13 +628,12 @@ static u16 rs_get_adjacent_rate(struct iwl_priv *priv, u8 index, u16 rate_mask,
 	u8 high = IWL_RATE_INVALID;
 	u8 low = IWL_RATE_INVALID;
 
-	/* 802.11A or ht walks to the next literal adjacent rate in
-	 * the rate table */
+	
 	if (is_a_band(rate_type) || !is_legacy(rate_type)) {
 		int i;
 		u32 mask;
 
-		/* Find the previous rate that is in the rate mask */
+		
 		i = index - 1;
 		for (mask = (1 << i); i >= 0; i--, mask >>= 1) {
 			if (rate_mask & mask) {
@@ -725,7 +642,7 @@ static u16 rs_get_adjacent_rate(struct iwl_priv *priv, u8 index, u16 rate_mask,
 			}
 		}
 
-		/* Find the next rate that is in the rate mask */
+		
 		i = index + 1;
 		for (mask = (1 << i); i < IWL_RATE_COUNT; i++, mask <<= 1) {
 			if (rate_mask & mask) {
@@ -771,9 +688,7 @@ static u32 rs_get_lower_rate(struct iwl_lq_sta *lq_sta,
 	u8 is_green = lq_sta->is_green;
 	struct iwl_priv *priv = lq_sta->drv;
 
-	/* check if we need to switch from HT to legacy rates.
-	 * assumption is that mandatory rates (1Mbps or 6Mbps)
-	 * are always supported (spec demand) */
+	
 	if (!is_legacy(tbl->lq_type) && (!ht_possible || !scale_index)) {
 		switch_to_legacy = 1;
 		scale_index = rs_ht_to_legacy[scale_index];
@@ -793,9 +708,9 @@ static u32 rs_get_lower_rate(struct iwl_lq_sta *lq_sta,
 
 	rate_mask = rs_get_supported_rates(lq_sta, NULL, tbl->lq_type);
 
-	/* Mask with station rate restriction */
+	
 	if (is_legacy(tbl->lq_type)) {
-		/* supp_rates has no CCK bits in A mode */
+		
 		if (lq_sta->band == IEEE80211_BAND_5GHZ)
 			rate_mask  = (u16)(rate_mask &
 			   (lq_sta->supp_rates << IWL_FIRST_OFDM_RATE));
@@ -803,7 +718,7 @@ static u32 rs_get_lower_rate(struct iwl_lq_sta *lq_sta,
 			rate_mask = (u16)(rate_mask & lq_sta->supp_rates);
 	}
 
-	/* If we switched from HT to legacy, check current rate */
+	
 	if (switch_to_legacy && (rate_mask & (1 << scale_index))) {
 		low = scale_index;
 		goto out;
@@ -820,9 +735,7 @@ out:
 	return rate_n_flags_from_tbl(lq_sta->drv, tbl, low, is_green);
 }
 
-/*
- * mac80211 sends us Tx status
- */
+
 static void rs_tx_status(void *priv_r, struct ieee80211_supported_band *sband,
 			 struct ieee80211_sta *sta, void *priv_sta,
 			 struct sk_buff *skb)
@@ -850,7 +763,7 @@ static void rs_tx_status(void *priv_r, struct ieee80211_supported_band *sband,
 	    info->flags & IEEE80211_TX_CTL_NO_ACK)
 		return;
 
-	/* This packet was aggregated but doesn't carry rate scale info */
+	
 	if ((info->flags & IEEE80211_TX_CTL_AMPDU) &&
 	    !(info->flags & IEEE80211_TX_STAT_AMPDU))
 		return;
@@ -875,29 +788,19 @@ static void rs_tx_status(void *priv_r, struct ieee80211_supported_band *sband,
 	window = (struct iwl_rate_scale_data *)&(curr_tbl->win[0]);
 	search_win = (struct iwl_rate_scale_data *)&(search_tbl->win[0]);
 
-	/*
-	 * Ignore this Tx frame response if its initial rate doesn't match
-	 * that of latest Link Quality command.  There may be stragglers
-	 * from a previous Link Quality command, but we're no longer interested
-	 * in those; they're either from the "active" mode while we're trying
-	 * to check "search" mode, or a prior "search" mode after we've moved
-	 * to a new "search" mode (which might become the new "active" mode).
-	 */
+	
 	tx_rate = le32_to_cpu(table->rs_table[0].rate_n_flags);
 	rs_get_tbl_info_from_mcs(tx_rate, priv->band, &tbl_type, &rs_index);
 	if (priv->band == IEEE80211_BAND_5GHZ)
 		rs_index -= IWL_FIRST_OFDM_RATE;
 	mac_flags = info->status.rates[0].flags;
 	mac_index = info->status.rates[0].idx;
-	/* For HT packets, map MCS to PLCP */
+	
 	if (mac_flags & IEEE80211_TX_RC_MCS) {
-		mac_index &= RATE_MCS_CODE_MSK;	/* Remove # of streams */
+		mac_index &= RATE_MCS_CODE_MSK;	
 		if (mac_index >= (IWL_RATE_9M_INDEX - IWL_FIRST_OFDM_RATE))
 			mac_index++;
-		/*
-		 * mac80211 HT index is always zero-indexed; we need to move
-		 * HT OFDM rates after CCK rates in 2.4 GHz band
-		 */
+		
 		if (priv->band == IEEE80211_BAND_2GHZ)
 			mac_index += IWL_FIRST_OFDM_RATE;
 	}
@@ -911,9 +814,7 @@ static void rs_tx_status(void *priv_r, struct ieee80211_supported_band *sband,
 	    (!!(tx_rate & RATE_MCS_GF_MSK) != !!(mac_flags & IEEE80211_TX_RC_GREEN_FIELD)) ||
 	    (rs_index != mac_index)) {
 		IWL_DEBUG_RATE(priv, "initial rate %d does not match %d (0x%x)\n", mac_index, rs_index, tx_rate);
-		/* the last LQ command could failed so the LQ in ucode not
-		 * the same in driver sync up
-		 */
+		
 		lq_sta->missed_rate_counter++;
 		if (lq_sta->missed_rate_counter > IWL_MISSED_RATE_MAX) {
 			lq_sta->missed_rate_counter = 0;
@@ -923,16 +824,14 @@ static void rs_tx_status(void *priv_r, struct ieee80211_supported_band *sband,
 	}
 
 	lq_sta->missed_rate_counter = 0;
-	/* Update frame history window with "failure" for each Tx retry. */
+	
 	while (retries) {
-		/* Look up the rate and other info used for each tx attempt.
-		 * Each tx attempt steps one entry deeper in the rate table. */
+		
 		tx_rate = le32_to_cpu(table->rs_table[index].rate_n_flags);
 		rs_get_tbl_info_from_mcs(tx_rate, priv->band,
 					  &tbl_type, &rs_index);
 
-		/* If type matches "search" table,
-		 * add failure to "search" history */
+		
 		if ((tbl_type.lq_type == search_tbl->lq_type) &&
 		    (tbl_type.ant_type == search_tbl->ant_type) &&
 		    (tbl_type.is_SGI == search_tbl->is_SGI)) {
@@ -942,8 +841,7 @@ static void rs_tx_status(void *priv_r, struct ieee80211_supported_band *sband,
 				tpt = 0;
 			rs_collect_tx_data(search_win, rs_index, tpt, 1, 0);
 
-		/* Else if type matches "current/active" table,
-		 * add failure to "current/active" history */
+		
 		} else if ((tbl_type.lq_type == curr_tbl->lq_type) &&
 			   (tbl_type.ant_type == curr_tbl->ant_type) &&
 			   (tbl_type.is_SGI == curr_tbl->is_SGI)) {
@@ -954,8 +852,7 @@ static void rs_tx_status(void *priv_r, struct ieee80211_supported_band *sband,
 			rs_collect_tx_data(window, rs_index, tpt, 1, 0);
 		}
 
-		/* If not searching for a new mode, increment failed counter
-		 * ... this helps determine when to start searching again */
+		
 		if (lq_sta->stay_in_tbl)
 			lq_sta->total_failed++;
 		--retries;
@@ -963,20 +860,15 @@ static void rs_tx_status(void *priv_r, struct ieee80211_supported_band *sband,
 
 	}
 
-	/*
-	 * Find (by rate) the history window to update with final Tx attempt;
-	 * if Tx was successful first try, use original rate,
-	 * else look up the rate that was, finally, successful.
-	 */
+	
 	tx_rate = le32_to_cpu(table->rs_table[index].rate_n_flags);
 	lq_sta->last_rate_n_flags = tx_rate;
 	rs_get_tbl_info_from_mcs(tx_rate, priv->band, &tbl_type, &rs_index);
 
-	/* Update frame history window with "success" if Tx got ACKed ... */
+	
 	status = !!(info->flags & IEEE80211_TX_STAT_ACK);
 
-	/* If type matches "search" table,
-	 * add final tx status to "search" history */
+	
 	if ((tbl_type.lq_type == search_tbl->lq_type) &&
 	    (tbl_type.ant_type == search_tbl->ant_type) &&
 	    (tbl_type.is_SGI == search_tbl->is_SGI)) {
@@ -991,8 +883,7 @@ static void rs_tx_status(void *priv_r, struct ieee80211_supported_band *sband,
 		else
 			rs_collect_tx_data(search_win, rs_index, tpt,
 					   1, status);
-	/* Else if type matches "current/active" table,
-	 * add final tx status to "current/active" history */
+	
 	} else if ((tbl_type.lq_type == curr_tbl->lq_type) &&
 		   (tbl_type.ant_type == curr_tbl->ant_type) &&
 		   (tbl_type.is_SGI == curr_tbl->is_SGI)) {
@@ -1009,8 +900,7 @@ static void rs_tx_status(void *priv_r, struct ieee80211_supported_band *sband,
 					   1, status);
 	}
 
-	/* If not searching for new mode, increment success/failed counter
-	 * ... these help determine when to start searching again */
+	
 	if (lq_sta->stay_in_tbl) {
 		if (info->flags & IEEE80211_TX_STAT_AMPDU) {
 			lq_sta->total_success += info->status.ampdu_ack_map;
@@ -1024,26 +914,19 @@ static void rs_tx_status(void *priv_r, struct ieee80211_supported_band *sband,
 		}
 	}
 
-	/* See if there's a better rate or modulation mode to try. */
+	
 	if (sta && sta->supp_rates[sband->band])
 		rs_rate_scale_perform(priv, skb, sta, lq_sta);
 out:
 	return;
 }
 
-/*
- * Begin a period of staying with a selected modulation mode.
- * Set "stay_in_tbl" flag to prevent any mode switches.
- * Set frame tx success limits according to legacy vs. high-throughput,
- * and reset overall (spanning all rates) tx success history statistics.
- * These control how long we stay using same modulation mode before
- * searching for a new mode.
- */
+
 static void rs_set_stay_in_table(struct iwl_priv *priv, u8 is_legacy,
 				 struct iwl_lq_sta *lq_sta)
 {
 	IWL_DEBUG_RATE(priv, "we are staying in the same table\n");
-	lq_sta->stay_in_tbl = 1;	/* only place this gets set */
+	lq_sta->stay_in_tbl = 1;	
 	if (is_legacy) {
 		lq_sta->table_count_limit = IWL_LEGACY_TABLE_COUNT;
 		lq_sta->max_failure_limit = IWL_LEGACY_FAILURE_LIMIT;
@@ -1060,9 +943,7 @@ static void rs_set_stay_in_table(struct iwl_priv *priv, u8 is_legacy,
 	lq_sta->action_counter = 0;
 }
 
-/*
- * Find correct throughput table for given mode of modulation
- */
+
 static void rs_set_expected_tpt_table(struct iwl_lq_sta *lq_sta,
 				      struct iwl_scale_tbl_info *tbl)
 {
@@ -1105,30 +986,19 @@ static void rs_set_expected_tpt_table(struct iwl_lq_sta *lq_sta,
 		tbl->expected_tpt = expected_tpt_G;
 }
 
-/*
- * Find starting rate for new "search" high-throughput mode of modulation.
- * Goal is to find lowest expected rate (under perfect conditions) that is
- * above the current measured throughput of "active" mode, to give new mode
- * a fair chance to prove itself without too many challenges.
- *
- * This gets called when transitioning to more aggressive modulation
- * (i.e. legacy to SISO or MIMO, or SISO to MIMO), as well as less aggressive
- * (i.e. MIMO to SISO).  When moving to MIMO, bit rate will typically need
- * to decrease to match "active" throughput.  When moving from MIMO to SISO,
- * bit rate will typically need to increase, but not if performance was bad.
- */
+
 static s32 rs_get_best_rate(struct iwl_priv *priv,
 			    struct iwl_lq_sta *lq_sta,
-			    struct iwl_scale_tbl_info *tbl,	/* "search" */
+			    struct iwl_scale_tbl_info *tbl,	
 			    u16 rate_mask, s8 index)
 {
-	/* "active" values */
+	
 	struct iwl_scale_tbl_info *active_tbl =
 	    &(lq_sta->lq_info[lq_sta->active_tbl]);
 	s32 active_sr = active_tbl->win[index].success_ratio;
 	s32 active_tpt = active_tbl->expected_tpt[index];
 
-	/* expected "search" throughput */
+	
 	s32 *tpt_tbl = tbl->expected_tpt;
 
 	s32 new_rate, high, low, start_hi;
@@ -1144,21 +1014,7 @@ static s32 rs_get_best_rate(struct iwl_priv *priv,
 		low = high_low & 0xff;
 		high = (high_low >> 8) & 0xff;
 
-		/*
-		 * Lower the "search" bit rate, to give new "search" mode
-		 * approximately the same throughput as "active" if:
-		 *
-		 * 1) "Active" mode has been working modestly well (but not
-		 *    great), and expected "search" throughput (under perfect
-		 *    conditions) at candidate rate is above the actual
-		 *    measured "active" throughput (but less than expected
-		 *    "active" throughput under perfect conditions).
-		 * OR
-		 * 2) "Active" mode has been working perfectly or very well
-		 *    and expected "search" throughput (under perfect
-		 *    conditions) at candidate rate is above expected
-		 *    "active" throughput (under perfect conditions).
-		 */
+		
 		if ((((100 * tpt_tbl[rate]) > lq_sta->last_tpt) &&
 		     ((active_sr > IWL_RATE_DECREASE_TH) &&
 		      (active_sr <= IWL_RATE_HIGH_TH) &&
@@ -1166,9 +1022,7 @@ static s32 rs_get_best_rate(struct iwl_priv *priv,
 		    ((active_sr >= IWL_RATE_SCALE_SWITCH) &&
 		     (tpt_tbl[rate] > active_tpt))) {
 
-			/* (2nd or later pass)
-			 * If we've already tried to raise the rate, and are
-			 * now trying to lower it, use the higher rate. */
+			
 			if (start_hi != IWL_RATE_INVALID) {
 				new_rate = start_hi;
 				break;
@@ -1176,28 +1030,26 @@ static s32 rs_get_best_rate(struct iwl_priv *priv,
 
 			new_rate = rate;
 
-			/* Loop again with lower rate */
+			
 			if (low != IWL_RATE_INVALID)
 				rate = low;
 
-			/* Lower rate not available, use the original */
+			
 			else
 				break;
 
-		/* Else try to raise the "search" rate to match "active" */
+		
 		} else {
-			/* (2nd or later pass)
-			 * If we've already tried to lower the rate, and are
-			 * now trying to raise it, use the lower rate. */
+			
 			if (new_rate != IWL_RATE_INVALID)
 				break;
 
-			/* Loop again with higher rate */
+			
 			else if (high != IWL_RATE_INVALID) {
 				start_hi = high;
 				rate = high;
 
-			/* Higher rate not available, use the original */
+			
 			} else {
 				new_rate = rate;
 				break;
@@ -1208,9 +1060,7 @@ static s32 rs_get_best_rate(struct iwl_priv *priv,
 	return new_rate;
 }
 
-/*
- * Set up search table for MIMO2
- */
+
 static int rs_switch_to_mimo2(struct iwl_priv *priv,
 			     struct iwl_lq_sta *lq_sta,
 			     struct ieee80211_conf *conf,
@@ -1228,7 +1078,7 @@ static int rs_switch_to_mimo2(struct iwl_priv *priv,
 						== WLAN_HT_CAP_SM_PS_STATIC)
 		return -1;
 
-	/* Need both Tx chains/antennas to support MIMO */
+	
 	if (priv->hw_params.tx_chains_num < 2)
 		return -1;
 
@@ -1262,9 +1112,7 @@ static int rs_switch_to_mimo2(struct iwl_priv *priv,
 	return 0;
 }
 
-/*
- * Set up search table for MIMO3
- */
+
 static int rs_switch_to_mimo3(struct iwl_priv *priv,
 			     struct iwl_lq_sta *lq_sta,
 			     struct ieee80211_conf *conf,
@@ -1282,7 +1130,7 @@ static int rs_switch_to_mimo3(struct iwl_priv *priv,
 						== WLAN_HT_CAP_SM_PS_STATIC)
 		return -1;
 
-	/* Need both Tx chains/antennas to support MIMO */
+	
 	if (priv->hw_params.tx_chains_num < 3)
 		return -1;
 
@@ -1317,9 +1165,7 @@ static int rs_switch_to_mimo3(struct iwl_priv *priv,
 	return 0;
 }
 
-/*
- * Set up search table for SISO
- */
+
 static int rs_switch_to_siso(struct iwl_priv *priv,
 			     struct iwl_lq_sta *lq_sta,
 			     struct ieee80211_conf *conf,
@@ -1347,7 +1193,7 @@ static int rs_switch_to_siso(struct iwl_priv *priv,
 		tbl->is_ht40 = 0;
 
 	if (is_green)
-		tbl->is_SGI = 0; /*11n spec: no SGI in SISO+Greenfield*/
+		tbl->is_SGI = 0; 
 
 	rs_set_expected_tpt_table(lq_sta, tbl);
 	rate = rs_get_best_rate(priv, lq_sta, tbl, rate_mask, index);
@@ -1364,9 +1210,7 @@ static int rs_switch_to_siso(struct iwl_priv *priv,
 	return 0;
 }
 
-/*
- * Try to switch to new modulation mode from legacy
- */
+
 static int rs_move_legacy_other(struct iwl_priv *priv,
 				struct iwl_lq_sta *lq_sta,
 				struct ieee80211_conf *conf,
@@ -1386,7 +1230,7 @@ static int rs_move_legacy_other(struct iwl_priv *priv,
 	u8 update_search_tbl_counter = 0;
 
 	if (!iwl_ht_enabled(priv))
-		/* stay in Legacy */
+		
 		tbl->action = IWL_LEGACY_SWITCH_ANTENNA1;
 	else if (iwl_tx_ant_restriction(priv) == IWL_ANT_OK_SINGLE &&
 		   tbl->action > IWL_LEGACY_SWITCH_SISO)
@@ -1404,11 +1248,11 @@ static int rs_move_legacy_other(struct iwl_priv *priv,
 							tx_chains_num <= 2))
 				break;
 
-			/* Don't change antenna if success has been great */
+			
 			if (window->success_ratio >= IWL_RS_GOOD_RATIO)
 				break;
 
-			/* Set up search table to try other antenna */
+			
 			memcpy(search_tbl, tbl, sz);
 
 			if (rs_toggle_antenna(valid_tx_ant,
@@ -1421,7 +1265,7 @@ static int rs_move_legacy_other(struct iwl_priv *priv,
 		case IWL_LEGACY_SWITCH_SISO:
 			IWL_DEBUG_RATE(priv, "LQ: Legacy switch to SISO\n");
 
-			/* Set up search table to try SISO */
+			
 			memcpy(search_tbl, tbl, sz);
 			search_tbl->is_SGI = 0;
 			ret = rs_switch_to_siso(priv, lq_sta, conf, sta,
@@ -1437,7 +1281,7 @@ static int rs_move_legacy_other(struct iwl_priv *priv,
 		case IWL_LEGACY_SWITCH_MIMO2_BC:
 			IWL_DEBUG_RATE(priv, "LQ: Legacy switch to MIMO2\n");
 
-			/* Set up search table to try MIMO */
+			
 			memcpy(search_tbl, tbl, sz);
 			search_tbl->is_SGI = 0;
 
@@ -1462,7 +1306,7 @@ static int rs_move_legacy_other(struct iwl_priv *priv,
 		case IWL_LEGACY_SWITCH_MIMO3_ABC:
 			IWL_DEBUG_RATE(priv, "LQ: Legacy switch to MIMO3\n");
 
-			/* Set up search table to try MIMO3 */
+			
 			memcpy(search_tbl, tbl, sz);
 			search_tbl->is_SGI = 0;
 
@@ -1501,9 +1345,7 @@ out:
 
 }
 
-/*
- * Try to switch to new modulation mode from SISO
- */
+
 static int rs_move_siso_to_other(struct iwl_priv *priv,
 				 struct iwl_lq_sta *lq_sta,
 				 struct ieee80211_conf *conf,
@@ -1525,7 +1367,7 @@ static int rs_move_siso_to_other(struct iwl_priv *priv,
 
 	if (iwl_tx_ant_restriction(priv) == IWL_ANT_OK_SINGLE &&
 	    tbl->action > IWL_SISO_SWITCH_ANTENNA2) {
-		/* stay in SISO */
+		
 		tbl->action = IWL_SISO_SWITCH_ANTENNA1;
 	}
 	for (;;) {
@@ -1639,9 +1481,7 @@ static int rs_move_siso_to_other(struct iwl_priv *priv,
 	return 0;
 }
 
-/*
- * Try to switch to new modulation mode from MIMO2
- */
+
 static int rs_move_mimo2_to_other(struct iwl_priv *priv,
 				 struct iwl_lq_sta *lq_sta,
 				 struct ieee80211_conf *conf,
@@ -1664,7 +1504,7 @@ static int rs_move_mimo2_to_other(struct iwl_priv *priv,
 	if ((iwl_tx_ant_restriction(priv) == IWL_ANT_OK_SINGLE) &&
 	    (tbl->action < IWL_MIMO2_SWITCH_SISO_A ||
 	     tbl->action > IWL_MIMO2_SWITCH_SISO_C)) {
-		/* switch in SISO */
+		
 		tbl->action = IWL_MIMO2_SWITCH_SISO_A;
 	}
 	for (;;) {
@@ -1692,7 +1532,7 @@ static int rs_move_mimo2_to_other(struct iwl_priv *priv,
 		case IWL_MIMO2_SWITCH_SISO_C:
 			IWL_DEBUG_RATE(priv, "LQ: MIMO2 switch to SISO\n");
 
-			/* Set up new search table for SISO */
+			
 			memcpy(search_tbl, tbl, sz);
 
 			if (tbl->action == IWL_MIMO2_SWITCH_SISO_A)
@@ -1722,16 +1562,11 @@ static int rs_move_mimo2_to_other(struct iwl_priv *priv,
 
 			IWL_DEBUG_RATE(priv, "LQ: MIMO2 toggle SGI/NGI\n");
 
-			/* Set up new search table for MIMO2 */
+			
 			memcpy(search_tbl, tbl, sz);
 			search_tbl->is_SGI = !tbl->is_SGI;
 			rs_set_expected_tpt_table(lq_sta, search_tbl);
-			/*
-			 * If active table already uses the fastest possible
-			 * modulation (dual stream with short guard interval),
-			 * and it's working well, there's no need to look
-			 * for a better type of modulation!
-			 */
+			
 			if (tbl->is_SGI) {
 				s32 tpt = lq_sta->last_tpt / 100;
 				if (tpt >= search_tbl->expected_tpt[index])
@@ -1780,9 +1615,7 @@ static int rs_move_mimo2_to_other(struct iwl_priv *priv,
 
 }
 
-/*
- * Try to switch to new modulation mode from MIMO3
- */
+
 static int rs_move_mimo3_to_other(struct iwl_priv *priv,
 				 struct iwl_lq_sta *lq_sta,
 				 struct ieee80211_conf *conf,
@@ -1805,7 +1638,7 @@ static int rs_move_mimo3_to_other(struct iwl_priv *priv,
 	if ((iwl_tx_ant_restriction(priv) == IWL_ANT_OK_SINGLE) &&
 	    (tbl->action < IWL_MIMO3_SWITCH_SISO_A ||
 	     tbl->action > IWL_MIMO3_SWITCH_SISO_C)) {
-		/* switch in SISO */
+		
 		tbl->action = IWL_MIMO3_SWITCH_SISO_A;
 	}
 	for (;;) {
@@ -1831,7 +1664,7 @@ static int rs_move_mimo3_to_other(struct iwl_priv *priv,
 		case IWL_MIMO3_SWITCH_SISO_C:
 			IWL_DEBUG_RATE(priv, "LQ: MIMO3 switch to SISO\n");
 
-			/* Set up new search table for SISO */
+			
 			memcpy(search_tbl, tbl, sz);
 
 			if (tbl->action == IWL_MIMO3_SWITCH_SISO_A)
@@ -1885,16 +1718,11 @@ static int rs_move_mimo3_to_other(struct iwl_priv *priv,
 
 			IWL_DEBUG_RATE(priv, "LQ: MIMO3 toggle SGI/NGI\n");
 
-			/* Set up new search table for MIMO */
+			
 			memcpy(search_tbl, tbl, sz);
 			search_tbl->is_SGI = !tbl->is_SGI;
 			rs_set_expected_tpt_table(lq_sta, search_tbl);
-			/*
-			 * If active table already uses the fastest possible
-			 * modulation (dual stream with short guard interval),
-			 * and it's working well, there's no need to look
-			 * for a better type of modulation!
-			 */
+			
 			if (tbl->is_SGI) {
 				s32 tpt = lq_sta->last_tpt / 100;
 				if (tpt >= search_tbl->expected_tpt[index])
@@ -1927,13 +1755,7 @@ static int rs_move_mimo3_to_other(struct iwl_priv *priv,
 
 }
 
-/*
- * Check whether we should continue using same modulation mode, or
- * begin search for a new mode, based on:
- * 1) # tx successes or failures while using this mode
- * 2) # times calling this function
- * 3) elapsed time in this mode (not used, for now)
- */
+
 static void rs_stay_in_table(struct iwl_lq_sta *lq_sta)
 {
 	struct iwl_scale_tbl_info *tbl;
@@ -1947,24 +1769,17 @@ static void rs_stay_in_table(struct iwl_lq_sta *lq_sta)
 
 	tbl = &(lq_sta->lq_info[active_tbl]);
 
-	/* If we've been disallowing search, see if we should now allow it */
+	
 	if (lq_sta->stay_in_tbl) {
 
-		/* Elapsed time using current modulation mode */
+		
 		if (lq_sta->flush_timer)
 			flush_interval_passed =
 			time_after(jiffies,
 					(unsigned long)(lq_sta->flush_timer +
 					IWL_RATE_SCALE_FLUSH_INTVL));
 
-		/*
-		 * Check if we should allow search for new modulation mode.
-		 * If many frames have failed or succeeded, or we've used
-		 * this same modulation for a long time, allow search, and
-		 * reset history stats that keep track of whether we should
-		 * allow a new search.  Also (below) reset all bitmaps and
-		 * stats in active history.
-		 */
+		
 		if ((lq_sta->total_failed > lq_sta->max_failure_limit) ||
 		    (lq_sta->total_success > lq_sta->max_success_limit) ||
 		    ((!lq_sta->search_better_tbl) && (lq_sta->flush_timer)
@@ -1974,18 +1789,13 @@ static void rs_stay_in_table(struct iwl_lq_sta *lq_sta)
 				     lq_sta->total_success,
 				     flush_interval_passed);
 
-			/* Allow search for new mode */
-			lq_sta->stay_in_tbl = 0;	/* only place reset */
+			
+			lq_sta->stay_in_tbl = 0;	
 			lq_sta->total_failed = 0;
 			lq_sta->total_success = 0;
 			lq_sta->flush_timer = 0;
 
-		/*
-		 * Else if we've used this modulation mode enough repetitions
-		 * (regardless of elapsed time or success/failure), reset
-		 * history bitmaps and rate-specific stats for all rates in
-		 * active table.
-		 */
+		
 		} else {
 			lq_sta->table_count++;
 			if (lq_sta->table_count >=
@@ -1999,9 +1809,7 @@ static void rs_stay_in_table(struct iwl_lq_sta *lq_sta)
 			}
 		}
 
-		/* If transitioning to allow "search", reset all history
-		 * bitmaps and stats in active table (this will become the new
-		 * "search" table). */
+		
 		if (!lq_sta->stay_in_tbl) {
 			for (i = 0; i < IWL_RATE_COUNT; i++)
 				rs_rate_scale_clear_window(&(tbl->win[i]));
@@ -2009,10 +1817,7 @@ static void rs_stay_in_table(struct iwl_lq_sta *lq_sta)
 	}
 }
 
-/*
- * setup rate table in uCode
- * return rate_n_flags as used in the table
- */
+
 static u32 rs_update_rate_tbl(struct iwl_priv *priv,
 				struct iwl_lq_sta *lq_sta,
 				struct iwl_scale_tbl_info *tbl,
@@ -2020,7 +1825,7 @@ static u32 rs_update_rate_tbl(struct iwl_priv *priv,
 {
 	u32 rate;
 
-	/* Update uCode's rate table. */
+	
 	rate = rate_n_flags_from_tbl(priv, tbl, index, is_green);
 	rs_fill_link_cmd(priv, lq_sta, rate);
 	iwl_send_lq_cmd(priv, &lq_sta->lq, CMD_ASYNC);
@@ -2028,9 +1833,7 @@ static u32 rs_update_rate_tbl(struct iwl_priv *priv,
 	return rate;
 }
 
-/*
- * Do rate scaling and search for new modulation mode.
- */
+
 static void rs_rate_scale_perform(struct iwl_priv *priv,
 				  struct sk_buff *skb,
 				  struct ieee80211_sta *sta,
@@ -2065,8 +1868,8 @@ static void rs_rate_scale_perform(struct iwl_priv *priv,
 
 	IWL_DEBUG_RATE(priv, "rate scale calculate new rate for skb\n");
 
-	/* Send management frames and NO_ACK data using lowest rate. */
-	/* TODO: this could probably be improved.. */
+	
+	
 	if (!ieee80211_is_data(hdr->frame_control) ||
 	    info->flags & IEEE80211_TX_CTL_NO_ACK)
 		return;
@@ -2078,11 +1881,7 @@ static void rs_rate_scale_perform(struct iwl_priv *priv,
 
 	tid = rs_tl_add_packet(lq_sta, hdr);
 
-	/*
-	 * Select rate-scale / modulation-mode table to work with in
-	 * the rest of this function:  "search" if searching for better
-	 * modulation mode, or "active" if doing rate scaling within a mode.
-	 */
+	
 	if (!lq_sta->search_better_tbl)
 		active_tbl = lq_sta->active_tbl;
 	else
@@ -2095,21 +1894,21 @@ static void rs_rate_scale_perform(struct iwl_priv *priv,
 		lq_sta->is_green = rs_use_green(sta, &priv->current_ht_config);
 	is_green = lq_sta->is_green;
 
-	/* current tx rate */
+	
 	index = lq_sta->last_txrate_idx;
 
 	IWL_DEBUG_RATE(priv, "Rate scale index %d for type %d\n", index,
 		       tbl->lq_type);
 
-	/* rates available for this association, and for modulation mode */
+	
 	rate_mask = rs_get_supported_rates(lq_sta, hdr, tbl->lq_type);
 
 	IWL_DEBUG_RATE(priv, "mask 0x%04X \n", rate_mask);
 
-	/* mask with station rate restriction */
+	
 	if (is_legacy(tbl->lq_type)) {
 		if (lq_sta->band == IEEE80211_BAND_5GHZ)
-			/* supp_rates has no CCK bits in A mode */
+			
 			rate_scale_index_msk = (u16) (rate_mask &
 				(lq_sta->supp_rates << IWL_FIRST_OFDM_RATE));
 		else
@@ -2125,11 +1924,11 @@ static void rs_rate_scale_perform(struct iwl_priv *priv,
 	if (!((1 << index) & rate_scale_index_msk)) {
 		IWL_ERR(priv, "Current Rate is not valid\n");
 		if (lq_sta->search_better_tbl) {
-			/* revert to active table if search table is not valid*/
+			
 			tbl->lq_type = LQ_NONE;
 			lq_sta->search_better_tbl = 0;
 			tbl = &(lq_sta->lq_info[lq_sta->active_tbl]);
-			/* get "active" rate info */
+			
 			index = iwl_hwrate_to_plcp_idx(tbl->current_rate);
 			rate = rs_update_rate_tbl(priv, lq_sta,
 						  tbl, index, is_green);
@@ -2137,13 +1936,13 @@ static void rs_rate_scale_perform(struct iwl_priv *priv,
 		return;
 	}
 
-	/* Get expected throughput table and history window for current rate */
+	
 	if (!tbl->expected_tpt) {
 		IWL_ERR(priv, "tbl->expected_tpt is NULL\n");
 		return;
 	}
 
-	/* force user max rate if set by user */
+	
 	if ((lq_sta->max_rate_idx != -1) &&
 	    (lq_sta->max_rate_idx < index)) {
 		index = lq_sta->max_rate_idx;
@@ -2154,13 +1953,7 @@ static void rs_rate_scale_perform(struct iwl_priv *priv,
 
 	window = &(tbl->win[index]);
 
-	/*
-	 * If there is not enough history to calculate actual average
-	 * throughput, keep analyzing results of more tx frames, without
-	 * changing rate or mode (bypass most of the rest of this function).
-	 * Set up new rate table in uCode only if old rate is not supported
-	 * in current association (use new rate found above).
-	 */
+	
 	fail_count = window->counter - window->success_counter;
 	if ((fail_count < IWL_RATE_MIN_FAILURE_TH) &&
 			(window->success_counter < IWL_RATE_MIN_SUCCESS_TH)) {
@@ -2168,28 +1961,24 @@ static void rs_rate_scale_perform(struct iwl_priv *priv,
 			       "for index %d\n",
 			       window->success_counter, window->counter, index);
 
-		/* Can't calculate this yet; not enough history */
+		
 		window->average_tpt = IWL_INVALID_VALUE;
 
-		/* Should we stay with this modulation mode,
-		 * or search for a new one? */
+		
 		rs_stay_in_table(lq_sta);
 
 		goto out;
 	}
 
-	/* Else we have enough samples; calculate estimate of
-	 * actual average throughput */
+	
 
 	BUG_ON(window->average_tpt != ((window->success_ratio *
 			tbl->expected_tpt[index] + 64) / 128));
 
-	/* If we are searching for better modulation mode, check success. */
+	
 	if (lq_sta->search_better_tbl &&
 	    (iwl_tx_ant_restriction(priv) == IWL_ANT_OK_MULTI)) {
-		/* If good success, continue using the "search" mode;
-		 * no need to send new link quality command, since we're
-		 * continuing to use the setup that we've been trying. */
+		
 		if (window->average_tpt > lq_sta->last_tpt) {
 
 			IWL_DEBUG_RATE(priv, "LQ: SWITCHING TO NEW TABLE "
@@ -2201,11 +1990,11 @@ static void rs_rate_scale_perform(struct iwl_priv *priv,
 			if (!is_legacy(tbl->lq_type))
 				lq_sta->enable_counter = 1;
 
-			/* Swap tables; "search" becomes "active" */
+			
 			lq_sta->active_tbl = active_tbl;
 			current_tpt = window->average_tpt;
 
-		/* Else poor success; go back to mode in "active" table */
+		
 		} else {
 
 			IWL_DEBUG_RATE(priv, "LQ: GOING BACK TO THE OLD TABLE "
@@ -2214,43 +2003,41 @@ static void rs_rate_scale_perform(struct iwl_priv *priv,
 					window->average_tpt,
 					lq_sta->last_tpt);
 
-			/* Nullify "search" table */
+			
 			tbl->lq_type = LQ_NONE;
 
-			/* Revert to "active" table */
+			
 			active_tbl = lq_sta->active_tbl;
 			tbl = &(lq_sta->lq_info[active_tbl]);
 
-			/* Revert to "active" rate and throughput info */
+			
 			index = iwl_hwrate_to_plcp_idx(tbl->current_rate);
 			current_tpt = lq_sta->last_tpt;
 
-			/* Need to set up a new rate table in uCode */
+			
 			update_lq = 1;
 		}
 
-		/* Either way, we've made a decision; modulation mode
-		 * search is done, allow rate adjustment next time. */
+		
 		lq_sta->search_better_tbl = 0;
-		done_search = 1;	/* Don't switch modes below! */
+		done_search = 1;	
 		goto lq_update;
 	}
 
-	/* (Else) not in search of better modulation mode, try for better
-	 * starting rate, while staying in this mode. */
+	
 	high_low = rs_get_adjacent_rate(priv, index, rate_scale_index_msk,
 					tbl->lq_type);
 	low = high_low & 0xff;
 	high = (high_low >> 8) & 0xff;
 
-	/* If user set max rate, dont allow higher than user constrain */
+	
 	if ((lq_sta->max_rate_idx != -1) &&
 	    (lq_sta->max_rate_idx < high))
 		high = IWL_RATE_INVALID;
 
 	sr = window->success_ratio;
 
-	/* Collect measured throughputs for current and adjacent rates */
+	
 	current_tpt = window->average_tpt;
 	if (low != IWL_RATE_INVALID)
 		low_tpt = tbl->win[low].average_tpt;
@@ -2259,12 +2046,12 @@ static void rs_rate_scale_perform(struct iwl_priv *priv,
 
 	scale_action = 0;
 
-	/* Too many failures, decrease rate */
+	
 	if ((sr <= IWL_RATE_DECREASE_TH) || (current_tpt == 0)) {
 		IWL_DEBUG_RATE(priv, "decrease rate because of low success_ratio\n");
 		scale_action = -1;
 
-	/* No throughput measured yet for adjacent rates; try increase. */
+	
 	} else if ((low_tpt == IWL_INVALID_VALUE) &&
 		   (high_tpt == IWL_INVALID_VALUE)) {
 
@@ -2274,20 +2061,18 @@ static void rs_rate_scale_perform(struct iwl_priv *priv,
 			scale_action = 0;
 	}
 
-	/* Both adjacent throughputs are measured, but neither one has better
-	 * throughput; we're using the best rate, don't change it! */
+	
 	else if ((low_tpt != IWL_INVALID_VALUE) &&
 		 (high_tpt != IWL_INVALID_VALUE) &&
 		 (low_tpt < current_tpt) &&
 		 (high_tpt < current_tpt))
 		scale_action = 0;
 
-	/* At least one adjacent rate's throughput is measured,
-	 * and may have better performance. */
+	
 	else {
-		/* Higher adjacent rate's throughput is measured */
+		
 		if (high_tpt != IWL_INVALID_VALUE) {
-			/* Higher rate has better throughput */
+			
 			if (high_tpt > current_tpt &&
 					sr >= IWL_RATE_INCREASE_TH) {
 				scale_action = 1;
@@ -2295,9 +2080,9 @@ static void rs_rate_scale_perform(struct iwl_priv *priv,
 				scale_action = 0;
 			}
 
-		/* Lower adjacent rate's throughput is measured */
+		
 		} else if (low_tpt != IWL_INVALID_VALUE) {
-			/* Lower rate has better throughput */
+			
 			if (low_tpt > current_tpt) {
 				IWL_DEBUG_RATE(priv,
 				    "decrease rate because of low tpt\n");
@@ -2308,8 +2093,7 @@ static void rs_rate_scale_perform(struct iwl_priv *priv,
 		}
 	}
 
-	/* Sanity check; asked for decrease, but success rate or throughput
-	 * has been good at old rate.  Don't change it. */
+	
 	if ((scale_action == -1) && (low != IWL_RATE_INVALID) &&
 		    ((sr > IWL_RATE_HIGH_TH) ||
 		     (current_tpt > (100 * tbl->expected_tpt[low]))))
@@ -2321,7 +2105,7 @@ static void rs_rate_scale_perform(struct iwl_priv *priv,
 		scale_action = -1;
 	switch (scale_action) {
 	case -1:
-		/* Decrease starting rate, update uCode's rate table */
+		
 		if (low != IWL_RATE_INVALID) {
 			update_lq = 1;
 			index = low;
@@ -2329,7 +2113,7 @@ static void rs_rate_scale_perform(struct iwl_priv *priv,
 
 		break;
 	case 1:
-		/* Increase starting rate, update uCode's rate table */
+		
 		if (high != IWL_RATE_INVALID) {
 			update_lq = 1;
 			index = high;
@@ -2337,7 +2121,7 @@ static void rs_rate_scale_perform(struct iwl_priv *priv,
 
 		break;
 	case 0:
-		/* No change */
+		
 	default:
 		break;
 	}
@@ -2347,28 +2131,21 @@ static void rs_rate_scale_perform(struct iwl_priv *priv,
 		     index, scale_action, low, high, tbl->lq_type);
 
 lq_update:
-	/* Replace uCode's rate table for the destination station. */
+	
 	if (update_lq)
 		rate = rs_update_rate_tbl(priv, lq_sta,
 					  tbl, index, is_green);
 
 	if (iwl_tx_ant_restriction(priv) == IWL_ANT_OK_MULTI) {
-		/* Should we stay with this modulation mode,
-		 * or search for a new one? */
+		
 		rs_stay_in_table(lq_sta);
 	}
-	/*
-	 * Search for new modulation mode if we're:
-	 * 1)  Not changing rates right now
-	 * 2)  Not just finishing up a search
-	 * 3)  Allowing a new search
-	 */
+	
 	if (!update_lq && !done_search && !lq_sta->stay_in_tbl && window->counter) {
-		/* Save current throughput to compare with "search" throughput*/
+		
 		lq_sta->last_tpt = current_tpt;
 
-		/* Select a new "search" modulation mode to try.
-		 * If one is found, set up the new "search" table. */
+		
 		if (is_legacy(tbl->lq_type))
 			rs_move_legacy_other(priv, lq_sta, conf, sta, index);
 		else if (is_siso(tbl->lq_type))
@@ -2378,14 +2155,14 @@ lq_update:
 		else
 			rs_move_mimo3_to_other(priv, lq_sta, conf, sta, index);
 
-		/* If new "search" mode was selected, set up in uCode table */
+		
 		if (lq_sta->search_better_tbl) {
-			/* Access the "search" table, clear its history. */
+			
 			tbl = &(lq_sta->lq_info[(1 - lq_sta->active_tbl)]);
 			for (i = 0; i < IWL_RATE_COUNT; i++)
 				rs_rate_scale_clear_window(&(tbl->win[i]));
 
-			/* Use new "search" start rate */
+			
 			index = iwl_hwrate_to_plcp_idx(tbl->current_rate);
 
 			IWL_DEBUG_RATE(priv, "Switch current  mcs: %X index: %d\n",
@@ -2397,11 +2174,7 @@ lq_update:
 	}
 
 	if (done_search && !lq_sta->stay_in_tbl) {
-		/* If the "active" (non-search) mode was legacy,
-		 * and we've tried switching antennas,
-		 * but we haven't been able to try HT modes (not available),
-		 * stay with best antenna legacy modulation for a while
-		 * before next round of mode comparisons. */
+		
 		tbl1 = &(lq_sta->lq_info[lq_sta->active_tbl]);
 		if (is_legacy(tbl1->lq_type) && !conf_is_ht(conf) &&
 		    lq_sta->action_counter > tbl1->max_search) {
@@ -2409,9 +2182,7 @@ lq_update:
 			rs_set_stay_in_table(priv, 1, lq_sta);
 		}
 
-		/* If we're in an HT mode, and all 3 mode switch actions
-		 * have been tried and compared, stay in this best modulation
-		 * mode for a while before next round of mode comparisons. */
+		
 		if (lq_sta->enable_counter &&
 		    (lq_sta->action_counter >= tbl1->max_search) &&
 		    iwl_ht_enabled(priv)) {
@@ -2511,7 +2282,7 @@ static void rs_get_rate(void *priv_r, struct ieee80211_sta *sta, void *priv_sta,
 
 	IWL_DEBUG_RATE_LIMIT(priv, "rate scale calculate new rate for skb\n");
 
-	/* Get max rate if user set max rate */
+	
 	if (lq_sta) {
 		lq_sta->max_rate_idx = txrc->max_rate_idx;
 		if ((sband->band == IEEE80211_BAND_5GHZ) &&
@@ -2522,7 +2293,7 @@ static void rs_get_rate(void *priv_r, struct ieee80211_sta *sta, void *priv_sta,
 			lq_sta->max_rate_idx = -1;
 	}
 
-	/* Send management frames and NO_ACK data using lowest rate. */
+	
 	if (rate_control_send_low(sta, priv_sta, txrc))
 		return;
 
@@ -2548,7 +2319,7 @@ static void rs_get_rate(void *priv_r, struct ieee80211_sta *sta, void *priv_sta,
 
 	if (lq_sta->last_rate_n_flags & RATE_MCS_HT_MSK) {
 		rate_idx -= IWL_FIRST_OFDM_RATE;
-		/* 6M and 9M shared same MCS index */
+		
 		rate_idx = (rate_idx > 0) ? (rate_idx - 1) : 0;
 		if (rs_extract_rate(lq_sta->last_rate_n_flags) >=
 		    IWL_RATE_MIMO3_6M_PLCP)
@@ -2566,12 +2337,12 @@ static void rs_get_rate(void *priv_r, struct ieee80211_sta *sta, void *priv_sta,
 		if (lq_sta->last_rate_n_flags & RATE_MCS_GF_MSK)
 			info->control.rates[0].flags |= IEEE80211_TX_RC_GREEN_FIELD;
 	} else {
-		/* Check for invalid rates */
+		
 		if ((rate_idx < 0) || (rate_idx >= IWL_RATE_COUNT_LEGACY) ||
 				((sband->band == IEEE80211_BAND_5GHZ) &&
 				 (rate_idx < IWL_FIRST_OFDM_RATE)))
 			rate_idx = rate_lowest_index(sband, sta);
-		/* On valid 5 GHz rate, adjust index */
+		
 		else if (sband->band == IEEE80211_BAND_5GHZ)
 			rate_idx -= IWL_FIRST_OFDM_RATE;
 		info->control.rates[0].flags = 0;
@@ -2620,17 +2391,14 @@ static void rs_rate_init(void *priv_r, struct ieee80211_supported_band *sband,
 			rs_rate_scale_clear_window(&lq_sta->lq_info[j].win[i]);
 
 	IWL_DEBUG_RATE(priv, "LQ: *** rate scale station global init ***\n");
-	/* TODO: what is a good starting rate for STA? About middle? Maybe not
-	 * the lowest or the highest rate.. Could consider using RSSI from
-	 * previous packets? Need to have IEEE 802.1X auth succeed immediately
-	 * after assoc.. */
+	
 
 	lq_sta->ibss_sta_added = 0;
 	if (priv->iw_mode == NL80211_IFTYPE_AP) {
 		u8 sta_id = iwl_find_station(priv,
 								sta->addr);
 
-		/* for IBSS the call are from tasklet */
+		
 		IWL_DEBUG_RATE(priv, "LQ: ADD station %pM\n", sta->addr);
 
 		if (sta_id == IWL_INVALID_STATION) {
@@ -2642,7 +2410,7 @@ static void rs_rate_init(void *priv_r, struct ieee80211_supported_band *sband,
 			lq_sta->lq.sta_id = sta_id;
 			lq_sta->lq.rs_table[0].rate_n_flags = 0;
 		}
-		/* FIXME: this is w/a remove it later */
+		
 		priv->assoc_station_added = 1;
 	}
 
@@ -2653,16 +2421,13 @@ static void rs_rate_init(void *priv_r, struct ieee80211_supported_band *sband,
 	lq_sta->active_legacy_rate = priv->active_rate & ~(0x1000);
 	lq_sta->active_rate_basic = priv->active_rate_basic;
 	lq_sta->band = priv->band;
-	/*
-	 * active_siso_rate mask includes 9 MBits (bit 5), and CCK (bits 0-3),
-	 * supp_rates[] does not; shift to convert format, force 9 MBits off.
-	 */
+	
 	lq_sta->active_siso_rate = ht_cap->mcs.rx_mask[0] << 1;
 	lq_sta->active_siso_rate |= ht_cap->mcs.rx_mask[0] & 0x1;
 	lq_sta->active_siso_rate &= ~((u16)0x2);
 	lq_sta->active_siso_rate <<= IWL_FIRST_OFDM_RATE;
 
-	/* Same here */
+	
 	lq_sta->active_mimo2_rate = ht_cap->mcs.rx_mask[1] << 1;
 	lq_sta->active_mimo2_rate |= ht_cap->mcs.rx_mask[1] & 0x1;
 	lq_sta->active_mimo2_rate &= ~((u16)0x2);
@@ -2678,15 +2443,15 @@ static void rs_rate_init(void *priv_r, struct ieee80211_supported_band *sband,
 		     lq_sta->active_mimo2_rate,
 		     lq_sta->active_mimo3_rate);
 
-	/* These values will be overridden later */
+	
 	lq_sta->lq.general_params.single_stream_ant_msk = ANT_A;
 	lq_sta->lq.general_params.dual_stream_ant_msk = ANT_AB;
 
-	/* as default allow aggregation for all tids */
+	
 	lq_sta->tx_agg_tid_en = IWL_AGG_ALL_TID;
 	lq_sta->drv = priv;
 
-	/* Set last_txrate_idx to lowest rate */
+	
 	lq_sta->last_txrate_idx = rate_lowest_index(sband, sta);
 	if (sband->band == IEEE80211_BAND_5GHZ)
 		lq_sta->last_txrate_idx += IWL_FIRST_OFDM_RATE;
@@ -2706,15 +2471,15 @@ static void rs_fill_link_cmd(struct iwl_priv *priv,
 	u8 valid_tx_ant = 0;
 	struct iwl_link_quality_cmd *lq_cmd = &lq_sta->lq;
 
-	/* Override starting rate (index 0) if needed for debug purposes */
+	
 	rs_dbgfs_set_mcs(lq_sta, &new_rate, index);
 
-	/* Interpret new_rate (rate_n_flags) */
+	
 	memset(&tbl_type, 0, sizeof(tbl_type));
 	rs_get_tbl_info_from_mcs(new_rate, lq_sta->band,
 				  &tbl_type, &rate_idx);
 
-	/* How many times should we repeat the initial rate? */
+	
 	if (is_legacy(tbl_type.lq_type)) {
 		ant_toggle_cnt = 1;
 		repeat_rate = IWL_NUMBER_TRY;
@@ -2725,7 +2490,7 @@ static void rs_fill_link_cmd(struct iwl_priv *priv,
 	lq_cmd->general_params.mimo_delimiter =
 			is_mimo(tbl_type.lq_type) ? 1 : 0;
 
-	/* Fill 1st table entry (index 0) */
+	
 	lq_cmd->rs_table[index].rate_n_flags = cpu_to_le32(new_rate);
 
 	if (num_of_ant(tbl_type.ant_type) == 1) {
@@ -2734,7 +2499,7 @@ static void rs_fill_link_cmd(struct iwl_priv *priv,
 	} else if (num_of_ant(tbl_type.ant_type) == 2) {
 		lq_cmd->general_params.dual_stream_ant_msk =
 						tbl_type.ant_type;
-	} /* otherwise we don't modify the existing value */
+	} 
 
 	index++;
 	repeat_rate--;
@@ -2742,11 +2507,9 @@ static void rs_fill_link_cmd(struct iwl_priv *priv,
 	if (priv)
 		valid_tx_ant = priv->hw_params.valid_tx_ant;
 
-	/* Fill rest of rate table */
+	
 	while (index < LINK_QUAL_MAX_RETRY_NUM) {
-		/* Repeat initial/next rate.
-		 * For legacy IWL_NUMBER_TRY == 1, this loop will not execute.
-		 * For HT IWL_HT_NUMBER_TRY == 3, this executes twice. */
+		
 		while (repeat_rate > 0 && (index < LINK_QUAL_MAX_RETRY_NUM)) {
 			if (is_legacy(tbl_type.lq_type)) {
 				if (ant_toggle_cnt < NUM_TRY_BEFORE_ANT_TOGGLE)
@@ -2757,10 +2520,10 @@ static void rs_fill_link_cmd(struct iwl_priv *priv,
 					ant_toggle_cnt = 1;
 }
 
-			/* Override next rate if needed for debug purposes */
+			
 			rs_dbgfs_set_mcs(lq_sta, &new_rate, index);
 
-			/* Fill next table entry */
+			
 			lq_cmd->rs_table[index].rate_n_flags =
 					cpu_to_le32(new_rate);
 			repeat_rate--;
@@ -2770,17 +2533,15 @@ static void rs_fill_link_cmd(struct iwl_priv *priv,
 		rs_get_tbl_info_from_mcs(new_rate, lq_sta->band, &tbl_type,
 						&rate_idx);
 
-		/* Indicate to uCode which entries might be MIMO.
-		 * If initial rate was MIMO, this will finally end up
-		 * as (IWL_HT_NUMBER_TRY * 2), after 2nd pass, otherwise 0. */
+		
 		if (is_mimo(tbl_type.lq_type))
 			lq_cmd->general_params.mimo_delimiter = index;
 
-		/* Get next rate */
+		
 		new_rate = rs_get_lower_rate(lq_sta, &tbl_type, rate_idx,
 					     use_ht_possible);
 
-		/* How many times should we repeat the next rate? */
+		
 		if (is_legacy(tbl_type.lq_type)) {
 			if (ant_toggle_cnt < NUM_TRY_BEFORE_ANT_TOGGLE)
 				ant_toggle_cnt++;
@@ -2794,14 +2555,13 @@ static void rs_fill_link_cmd(struct iwl_priv *priv,
 			repeat_rate = IWL_HT_NUMBER_TRY;
 		}
 
-		/* Don't allow HT rates after next pass.
-		 * rs_get_lower_rate() will change type to LQ_A or LQ_G. */
+		
 		use_ht_possible = 0;
 
-		/* Override next rate if needed for debug purposes */
+		
 		rs_dbgfs_set_mcs(lq_sta, &new_rate, index);
 
-		/* Fill next table entry */
+		
 		lq_cmd->rs_table[index].rate_n_flags = cpu_to_le32(new_rate);
 
 		index++;
@@ -2818,7 +2578,7 @@ static void *rs_alloc(struct ieee80211_hw *hw, struct dentry *debugfsdir)
 {
 	return hw->priv;
 }
-/* rate scale requires free function to be implemented */
+
 static void rs_free(void *priv_rate)
 {
 	return;
@@ -2890,10 +2650,10 @@ static ssize_t rs_sta_dbgfs_scale_table_write(struct file *file,
 	else
 		lq_sta->dbg_fixed_rate = 0;
 
-	lq_sta->active_legacy_rate = 0x0FFF;	/* 1 - 54 MBits, includes CCK */
-	lq_sta->active_siso_rate   = 0x1FD0;	/* 6 - 60 MBits, no 9, no CCK */
-	lq_sta->active_mimo2_rate  = 0x1FD0;	/* 6 - 60 MBits, no 9, no CCK */
-	lq_sta->active_mimo3_rate  = 0x1FD0;	/* 6 - 60 MBits, no 9, no CCK */
+	lq_sta->active_legacy_rate = 0x0FFF;	
+	lq_sta->active_siso_rate   = 0x1FD0;	
+	lq_sta->active_mimo2_rate  = 0x1FD0;	
+	lq_sta->active_mimo3_rate  = 0x1FD0;	
 
 	IWL_DEBUG_RATE(priv, "sta_id %d rate 0x%X\n",
 		lq_sta->lq.sta_id, lq_sta->dbg_fixed_rate);

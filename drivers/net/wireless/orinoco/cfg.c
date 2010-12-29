@@ -1,7 +1,4 @@
-/* cfg80211 support
- *
- * See copyright notice in main.c
- */
+
 #include <linux/ieee80211.h>
 #include <net/cfg80211.h>
 #include "hw.h"
@@ -10,7 +7,7 @@
 
 #include "cfg.h"
 
-/* Supported bitrates. Must agree with hw.c */
+
 static struct ieee80211_rate orinoco_rates[] = {
 	{ .bitrate = 10 },
 	{ .bitrate = 20 },
@@ -20,7 +17,7 @@ static struct ieee80211_rate orinoco_rates[] = {
 
 static const void * const orinoco_wiphy_privid = &orinoco_wiphy_privid;
 
-/* Called after orinoco_private is allocated. */
+
 void orinoco_wiphy_init(struct wiphy *wiphy)
 {
 	struct orinoco_private *priv = wiphy_priv(wiphy);
@@ -30,7 +27,7 @@ void orinoco_wiphy_init(struct wiphy *wiphy)
 	set_wiphy_dev(wiphy, priv->dev);
 }
 
-/* Called after firmware is initialised */
+
 int orinoco_wiphy_register(struct wiphy *wiphy)
 {
 	struct orinoco_private *priv = wiphy_priv(wiphy);
@@ -43,9 +40,7 @@ int orinoco_wiphy_register(struct wiphy *wiphy)
 
 	wiphy->interface_modes = BIT(NL80211_IFTYPE_STATION);
 
-	/* TODO: should we set if we only have demo ad-hoc?
-	 *       (priv->has_port3)
-	 */
+	
 	if (priv->has_ibss)
 		wiphy->interface_modes |= BIT(NL80211_IFTYPE_ADHOC);
 
@@ -55,7 +50,7 @@ int orinoco_wiphy_register(struct wiphy *wiphy)
 	priv->band.bitrates = orinoco_rates;
 	priv->band.n_bitrates = ARRAY_SIZE(orinoco_rates);
 
-	/* Only support channels allowed by the card EEPROM */
+	
 	for (i = 0; i < NUM_CHANNELS; i++) {
 		if (priv->channel_mask & (1 << i)) {
 			priv->channels[i].center_freq =
@@ -185,7 +180,7 @@ static int orinoco_set_channel(struct wiphy *wiphy,
 
 	priv->channel = channel;
 	if (priv->iw_mode == NL80211_IFTYPE_MONITOR) {
-		/* Fast channel change - no commit if successful */
+		
 		hermes_t *hw = &priv->hw;
 		err = hermes_docmd_wait(hw, HERMES_CMD_TEST |
 					    HERMES_TEST_SET_CHANNEL,

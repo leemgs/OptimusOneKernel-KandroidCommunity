@@ -1,26 +1,4 @@
-/*
 
-  Broadcom B43 wireless driver
-  IEEE 802.11n PHY support
-
-  Copyright (c) 2008 Michael Buesch <mb@bu3sch.de>
-
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program; see the file COPYING.  If not, write to
-  the Free Software Foundation, Inc., 51 Franklin Steet, Fifth Floor,
-  Boston, MA 02110-1301, USA.
-
-*/
 
 #include <linux/delay.h>
 #include <linux/types.h>
@@ -31,16 +9,16 @@
 
 
 void b43_nphy_set_rxantenna(struct b43_wldev *dev, int antenna)
-{//TODO
+{
 }
 
 static void b43_nphy_op_adjust_txpower(struct b43_wldev *dev)
-{//TODO
+{
 }
 
 static enum b43_txpwr_result b43_nphy_op_recalc_txpower(struct b43_wldev *dev,
 							bool ignore_tssi)
-{//TODO
+{
 	return B43_TXPWR_RES_DONE;
 }
 
@@ -84,10 +62,10 @@ static void b43_chantab_phy_upload(struct b43_wldev *dev,
 
 static void b43_nphy_tx_power_fix(struct b43_wldev *dev)
 {
-	//TODO
+	
 }
 
-/* Tune the hardware to a new channel. */
+
 static int nphy_channel_switch(struct b43_wldev *dev, unsigned int channel)
 {
 	const struct b43_nphy_channeltab_entry *tabent;
@@ -96,8 +74,8 @@ static int nphy_channel_switch(struct b43_wldev *dev, unsigned int channel)
 	if (!tabent)
 		return -ESRCH;
 
-	//FIXME enable/disable band select upper20 in RXCTL
-	if (0 /*FIXME 5Ghz*/)
+	
+	if (0 )
 		b43_radio_maskset(dev, B2055_MASTER1, 0xFF8F, 0x20);
 	else
 		b43_radio_maskset(dev, B2055_MASTER1, 0xFF8F, 0x50);
@@ -107,7 +85,7 @@ static int nphy_channel_switch(struct b43_wldev *dev, unsigned int channel)
 	b43_radio_write16(dev, B2055_VCO_CAL10, 45);
 	b43_radio_write16(dev, B2055_VCO_CAL10, 65);
 	udelay(300);
-	if (0 /*FIXME 5Ghz*/)
+	if (0 )
 		b43_phy_set(dev, B43_NPHY_BANDCTL, B43_NPHY_BANDCTL_5GHZ);
 	else
 		b43_phy_mask(dev, B43_NPHY_BANDCTL, ~B43_NPHY_BANDCTL_5GHZ);
@@ -175,14 +153,14 @@ static void b43_radio_init2055_post(struct b43_wldev *dev)
 	b43_radio_write16(dev, B2055_C2_RX_BB_MIDACHP, 0x83);
 }
 
-/* Initialize a Broadcom 2055 N-radio */
+
 static void b43_radio_init2055(struct b43_wldev *dev)
 {
 	b43_radio_init2055_pre(dev);
 	if (b43_status(dev) < B43_STAT_INITIALIZED)
 		b2055_upload_inittab(dev, 0, 1);
 	else
-		b2055_upload_inittab(dev, 0/*FIXME on 5ghz band*/, 0);
+		b2055_upload_inittab(dev, 0, 0);
 	b43_radio_init2055_post(dev);
 }
 
@@ -203,10 +181,10 @@ void b43_nphy_radio_turn_off(struct b43_wldev *dev)
 			b43_ntab_write(dev, (offset) + i, (data)[i]);	\
 	} while (0)
 
-/* Upload the N-PHY tables. */
+
 static void b43_nphy_tables_init(struct b43_wldev *dev)
 {
-	/* Static tables */
+	
 	ntab_upload(dev, B43_NTAB_FRAMESTRUCT, b43_ntab_framestruct);
 	ntab_upload(dev, B43_NTAB_FRAMELT, b43_ntab_framelookup);
 	ntab_upload(dev, B43_NTAB_TMAP, b43_ntab_tmap);
@@ -222,7 +200,7 @@ static void b43_nphy_tables_init(struct b43_wldev *dev)
 	ntab_upload(dev, B43_NTAB_CHANEST, b43_ntab_channelest);
 	ntab_upload(dev, B43_NTAB_MCS, b43_ntab_mcs);
 
-	/* Volatile tables */
+	
 	ntab_upload(dev, B43_NTAB_NOISEVAR10, b43_ntab_noisevar10);
 	ntab_upload(dev, B43_NTAB_NOISEVAR11, b43_ntab_noisevar11);
 	ntab_upload(dev, B43_NTAB_C0_ESTPLT, b43_ntab_estimatepowerlt0);
@@ -244,7 +222,7 @@ static void b43_nphy_workarounds(struct b43_wldev *dev)
 
 	b43_phy_set(dev, B43_NPHY_IQFLIP,
 		    B43_NPHY_IQFLIP_ADC1 | B43_NPHY_IQFLIP_ADC2);
-	if (1 /* FIXME band is 2.4GHz */) {
+	if (1 ) {
 		b43_phy_set(dev, B43_NPHY_CLASSCTL,
 			    B43_NPHY_CLASSCTL_CCKEN);
 	} else {
@@ -254,7 +232,7 @@ static void b43_nphy_workarounds(struct b43_wldev *dev)
 	b43_radio_set(dev, B2055_C1_TX_RF_SPARE, 0x8);
 	b43_phy_write(dev, B43_NPHY_TXFRAMEDELAY, 8);
 
-	/* Fixup some tables */
+	
 	b43_ntab_write(dev, B43_NTAB16(8, 0x00), 0xA);
 	b43_ntab_write(dev, B43_NTAB16(8, 0x10), 0xA);
 	b43_ntab_write(dev, B43_NTAB16(8, 0x02), 0xCDAA);
@@ -271,13 +249,13 @@ static void b43_nphy_workarounds(struct b43_wldev *dev)
 	b43_phy_write(dev, B43_NPHY_RFCTL_LUT_TRSW_LO2, 0x2D8);
 	b43_phy_write(dev, B43_NPHY_RFCTL_LUT_TRSW_UP2, 0x301);
 
-	//TODO set RF sequence
+	
 
-	/* Set narrowband clip threshold */
+	
 	b43_phy_write(dev, B43_NPHY_C1_NBCLIPTHRES, 66);
 	b43_phy_write(dev, B43_NPHY_C2_NBCLIPTHRES, 66);
 
-	/* Set wideband clip 2 threshold */
+	
 	b43_phy_maskset(dev, B43_NPHY_C1_CLIPWBTHRES,
 			~B43_NPHY_C1_CLIPWBTHRES_CLIP2,
 			21 << B43_NPHY_C1_CLIPWBTHRES_CLIP2_SHIFT);
@@ -285,20 +263,20 @@ static void b43_nphy_workarounds(struct b43_wldev *dev)
 			~B43_NPHY_C2_CLIPWBTHRES_CLIP2,
 			21 << B43_NPHY_C2_CLIPWBTHRES_CLIP2_SHIFT);
 
-	/* Set Clip 2 detect */
+	
 	b43_phy_set(dev, B43_NPHY_C1_CGAINI,
 		    B43_NPHY_C1_CGAINI_CL2DETECT);
 	b43_phy_set(dev, B43_NPHY_C2_CGAINI,
 		    B43_NPHY_C2_CGAINI_CL2DETECT);
 
-	if (0 /*FIXME*/) {
-		/* Set dwell lengths */
+	if (0 ) {
+		
 		b43_phy_write(dev, B43_NPHY_CLIP1_NBDWELL_LEN, 43);
 		b43_phy_write(dev, B43_NPHY_CLIP2_NBDWELL_LEN, 43);
 		b43_phy_write(dev, B43_NPHY_W1CLIP1_DWELL_LEN, 9);
 		b43_phy_write(dev, B43_NPHY_W1CLIP2_DWELL_LEN, 9);
 
-		/* Set gain backoff */
+		
 		b43_phy_maskset(dev, B43_NPHY_C1_CGAINI,
 				~B43_NPHY_C1_CGAINI_GAINBKOFF,
 				1 << B43_NPHY_C1_CGAINI_GAINBKOFF_SHIFT);
@@ -306,7 +284,7 @@ static void b43_nphy_workarounds(struct b43_wldev *dev)
 				~B43_NPHY_C2_CGAINI_GAINBKOFF,
 				1 << B43_NPHY_C2_CGAINI_GAINBKOFF_SHIFT);
 
-		/* Set HPVGA2 index */
+		
 		b43_phy_maskset(dev, B43_NPHY_C1_INITGAIN,
 				~B43_NPHY_C1_INITGAIN_HPVGA2,
 				6 << B43_NPHY_C1_INITGAIN_HPVGA2_SHIFT);
@@ -314,12 +292,12 @@ static void b43_nphy_workarounds(struct b43_wldev *dev)
 				~B43_NPHY_C2_INITGAIN_HPVGA2,
 				6 << B43_NPHY_C2_INITGAIN_HPVGA2_SHIFT);
 
-		//FIXME verify that the specs really mean to use autoinc here.
+		
 		for (i = 0; i < 3; i++)
 			b43_ntab_write(dev, B43_NTAB16(7, 0x106) + i, 0x673);
 	}
 
-	/* Set minimum gain value */
+	
 	b43_phy_maskset(dev, B43_NPHY_C1_MINMAX_GAIN,
 			~B43_NPHY_C1_MINGAIN,
 			23 << B43_NPHY_C1_MINGAIN_SHIFT);
@@ -332,7 +310,7 @@ static void b43_nphy_workarounds(struct b43_wldev *dev)
 			     ~B43_NPHY_SCRAM_SIGCTL_SCM);
 	}
 
-	/* Set phase track alpha and beta */
+	
 	b43_phy_write(dev, B43_NPHY_PHASETR_A0, 0x125);
 	b43_phy_write(dev, B43_NPHY_PHASETR_A1, 0x1B3);
 	b43_phy_write(dev, B43_NPHY_PHASETR_A2, 0x105);
@@ -411,10 +389,10 @@ static void b43_nphy_bphy_init(struct b43_wldev *dev)
 	b43_phy_write(dev, B43_PHY_N_BMODE(0x38), 0x668);
 }
 
-/* RSSI Calibration */
+
 static void b43_nphy_rssi_cal(struct b43_wldev *dev, u8 type)
 {
-	//TODO
+	
 }
 
 int b43_phy_initn(struct b43_wldev *dev)
@@ -422,10 +400,10 @@ int b43_phy_initn(struct b43_wldev *dev)
 	struct b43_phy *phy = &dev->phy;
 	u16 tmp;
 
-	//TODO: Spectral management
+	
 	b43_nphy_tables_init(dev);
 
-	/* Clear all overrides */
+	
 	b43_phy_write(dev, B43_NPHY_RFCTL_OVER, 0);
 	b43_phy_write(dev, B43_NPHY_RFCTL_INTC1, 0);
 	b43_phy_write(dev, B43_NPHY_RFCTL_INTC2, 0);
@@ -449,8 +427,8 @@ int b43_phy_initn(struct b43_wldev *dev)
 	b43_phy_write(dev, B43_NPHY_PLOAD_CSENSE_EXTLEN, 80);
 	b43_phy_write(dev, B43_NPHY_C2_BCLIPBKOFF, 511);
 
-	//TODO MIMO-Config
-	//TODO Update TX/RX chain
+	
+	
 
 	if (phy->rev < 2) {
 		b43_phy_write(dev, B43_NPHY_DUP40_GFBL, 0xAA8);
@@ -464,28 +442,28 @@ int b43_phy_initn(struct b43_wldev *dev)
 	b43_nphy_force_rf_sequence(dev, B43_RFSEQ_RX2TX);
 	b43_nphy_force_rf_sequence(dev, B43_RFSEQ_RESET2RX);
 
-	b43_phy_read(dev, B43_NPHY_CLASSCTL); /* dummy read */
-	//TODO read core1/2 clip1 thres regs
+	b43_phy_read(dev, B43_NPHY_CLASSCTL); 
+	
 
-	if (1 /* FIXME Band is 2.4GHz */)
+	if (1 )
 		b43_nphy_bphy_init(dev);
-	//TODO disable TX power control
-	//TODO Fix the TX power settings
-	//TODO Init periodic calibration with reason 3
+	
+	
+	
 	b43_nphy_rssi_cal(dev, 2);
 	b43_nphy_rssi_cal(dev, 0);
 	b43_nphy_rssi_cal(dev, 1);
-	//TODO get TX gain
-	//TODO init superswitch
-	//TODO calibrate LO
-	//TODO idle TSSI TX pctl
-	//TODO TX power control power setup
-	//TODO table writes
-	//TODO TX power control coefficients
-	//TODO enable TX power control
-	//TODO control antenna selection
-	//TODO init radar detection
-	//TODO reset channel if changed
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 
 	b43err(dev->wl, "IEEE 802.11n devices are not supported, yet.\n");
 	return 0;
@@ -510,7 +488,7 @@ static void b43_nphy_op_prepare_structs(struct b43_wldev *dev)
 
 	memset(nphy, 0, sizeof(*nphy));
 
-	//TODO init struct b43_phy_n
+	
 }
 
 static void b43_nphy_op_free(struct b43_wldev *dev)
@@ -531,18 +509,18 @@ static inline void check_phyreg(struct b43_wldev *dev, u16 offset)
 {
 #if B43_DEBUG
 	if ((offset & B43_PHYROUTE) == B43_PHYROUTE_OFDM_GPHY) {
-		/* OFDM registers are onnly available on A/G-PHYs */
+		
 		b43err(dev->wl, "Invalid OFDM PHY access at "
 		       "0x%04X on N-PHY\n", offset);
 		dump_stack();
 	}
 	if ((offset & B43_PHYROUTE) == B43_PHYROUTE_EXT_GPHY) {
-		/* Ext-G registers are only available on G-PHYs */
+		
 		b43err(dev->wl, "Invalid EXT-G PHY access at "
 		       "0x%04X on N-PHY\n", offset);
 		dump_stack();
 	}
-#endif /* B43_DEBUG */
+#endif 
 }
 
 static u16 b43_nphy_op_read(struct b43_wldev *dev, u16 reg)
@@ -561,9 +539,9 @@ static void b43_nphy_op_write(struct b43_wldev *dev, u16 reg, u16 value)
 
 static u16 b43_nphy_op_radio_read(struct b43_wldev *dev, u16 reg)
 {
-	/* Register 1 is a 32-bit register. */
+	
 	B43_WARN_ON(reg == 1);
-	/* N-PHY needs 0x100 for read access */
+	
 	reg |= 0x100;
 
 	b43_write16(dev, B43_MMIO_RADIO_CONTROL, reg);
@@ -572,7 +550,7 @@ static u16 b43_nphy_op_radio_read(struct b43_wldev *dev, u16 reg)
 
 static void b43_nphy_op_radio_write(struct b43_wldev *dev, u16 reg, u16 value)
 {
-	/* Register 1 is a 32-bit register. */
+	
 	B43_WARN_ON(reg == 1);
 
 	b43_write16(dev, B43_MMIO_RADIO_CONTROL, reg);
@@ -581,7 +559,7 @@ static void b43_nphy_op_radio_write(struct b43_wldev *dev, u16 reg, u16 value)
 
 static void b43_nphy_op_software_rfkill(struct b43_wldev *dev,
 					bool blocked)
-{//TODO
+{
 }
 
 static void b43_nphy_op_switch_analog(struct b43_wldev *dev, bool on)

@@ -1,25 +1,4 @@
-/*
- * This file is part of wl1251
- *
- * Copyright (C) 2008-2009 Nokia Corporation
- *
- * Contact: Kalle Valo <kalle.valo@nokia.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/interrupt.h>
@@ -160,23 +139,22 @@ static int wl1251_chip_wakeup(struct wl1251 *wl)
 	msleep(WL1251_POWER_ON_SLEEP);
 	wl->if_ops->reset(wl);
 
-	/* We don't need a real memory partition here, because we only want
-	 * to use the registers at this point. */
+	
 	wl1251_set_partition(wl,
 			     0x00000000,
 			     0x00000000,
 			     REGISTERS_BASE,
 			     REGISTERS_DOWN_SIZE);
 
-	/* ELP module wake up */
+	
 	wl1251_fw_wakeup(wl);
 
-	/* whal_FwCtrl_BootSm() */
+	
 
-	/* 0. read chip id from CHIP_ID */
+	
 	wl->chip_id = wl1251_reg_read32(wl, CHIP_ID_B);
 
-	/* 1. check if chip id is valid */
+	
 
 	switch (wl->chip_id) {
 	case CHIP_ID_1251_PG12:
@@ -197,7 +175,7 @@ static int wl1251_chip_wakeup(struct wl1251 *wl)
 			goto out;
 	}
 
-	/* No NVS from netlink, try to get it from the filesystem */
+	
 	if (wl->nvs == NULL) {
 		ret = wl1251_fetch_nvs(wl);
 		if (ret < 0)
@@ -235,7 +213,7 @@ static void wl1251_irq_work(struct work_struct *work)
 		wl->rx_counter =
 			wl1251_mem_read32(wl, wl->data_path->rx_control_addr);
 
-		/* We handle a frmware bug here */
+		
 		switch ((wl->rx_counter - wl->rx_handled) & 0xf) {
 		case 0:
 			wl1251_debug(DEBUG_IRQ, "RX: FW and host in sync");
@@ -327,10 +305,7 @@ static int wl1251_join(struct wl1251 *wl, u8 bss_type, u8 channel,
 	if (ret < 0)
 		goto out;
 
-	/*
-	 * FIXME: we should wait for JOIN_EVENT_COMPLETE_ID but to simplify
-	 * locking we just sleep instead, for now
-	 */
+	
 	msleep(10);
 
 out:
@@ -370,25 +345,15 @@ static int wl1251_op_tx(struct ieee80211_hw *hw, struct sk_buff *skb)
 
 	skb_queue_tail(&wl->tx_queue, skb);
 
-	/*
-	 * The chip specific setup must run before the first TX packet -
-	 * before that, the tx_work will not be initialized!
-	 */
+	
 
 	ieee80211_queue_work(wl->hw, &wl->tx_work);
 
-	/*
-	 * The workqueue is slow to process the tx_queue and we need stop
-	 * the queue here, otherwise the queue will get too long.
-	 */
+	
 	if (skb_queue_len(&wl->tx_queue) >= WL1251_TX_QUEUE_MAX_LENGTH) {
 		ieee80211_stop_queues(wl->hw);
 
-		/*
-		 * FIXME: this is racy, the variable is not properly
-		 * protected. Maybe fix this by removing the stupid
-		 * variable altogether and checking the real queue state?
-		 */
+		
 		wl->tx_queue_stopped = true;
 	}
 
@@ -471,7 +436,7 @@ static void wl1251_op_stop(struct ieee80211_hw *hw)
 
 	mutex_lock(&wl->mutex);
 
-	/* let's notify MAC80211 about the remaining pending TX frames */
+	
 	wl1251_tx_flush(wl);
 	wl1251_power_off(wl);
 
@@ -610,11 +575,7 @@ static int wl1251_op_config(struct ieee80211_hw *hw, u32 changed)
 
 		wl->psm_requested = true;
 
-		/*
-		 * We enter PSM only if we're already associated.
-		 * If we're not, we'll enter it when joining an SSID,
-		 * through the bss_info_changed() hook.
-		 */
+		
 		ret = wl1251_ps_set_mode(wl, STATION_POWER_SAVE_MODE);
 	} else if (!(conf->flags & IEEE80211_CONF_PS) &&
 		   wl->psm_requested) {
@@ -662,10 +623,10 @@ static void wl1251_op_configure_filter(struct ieee80211_hw *hw,
 	changed &= WL1251_SUPPORTED_FILTERS;
 
 	if (changed == 0)
-		/* no filters which we support changed */
+		
 		return;
 
-	/* FIXME: wl->rx_config and wl->rx_filter are not protected */
+	
 
 	wl->rx_config = WL1251_DEFAULT_RX_CONFIG;
 	wl->rx_filter = WL1251_DEFAULT_RX_FILTER;
@@ -675,10 +636,7 @@ static void wl1251_op_configure_filter(struct ieee80211_hw *hw,
 		wl->rx_config |= CFG_RX_ALL_GOOD;
 	}
 	if (*total & FIF_ALLMULTI)
-		/*
-		 * CFG_MC_FILTER_EN in rx_config needs to be 0 to receive
-		 * all multicast frames
-		 */
+		
 		wl->rx_config &= ~CFG_MC_FILTER_EN;
 	if (*total & FIF_FCSFAIL)
 		wl->rx_filter |= CFG_RX_FCS_ERROR;
@@ -691,15 +649,11 @@ static void wl1251_op_configure_filter(struct ieee80211_hw *hw,
 	if (*total & FIF_OTHER_BSS)
 		wl->rx_filter &= ~CFG_BSSID_FILTER_EN;
 
-	/*
-	 * FIXME: workqueues need to be properly cancelled on stop(), for
-	 * now let's just disable changing the filter settings. They will
-	 * be updated any on config().
-	 */
-	/* schedule_work(&wl->filter_work); */
+	
+	
 }
 
-/* HW encryption */
+
 static int wl1251_set_key_type(struct wl1251 *wl,
 			       struct wl1251_cmd_set_keys *key,
 			       enum set_key_cmd cmd,
@@ -768,7 +722,7 @@ static int wl1251_op_set_key(struct ieee80211_hw *hw, enum set_key_cmd cmd,
 	wl1251_dump(DEBUG_CRYPT, "KEY: ", key->key, key->keylen);
 
 	if (is_zero_ether_addr(addr)) {
-		/* We dont support TX only encryption */
+		
 		ret = -EOPNOTSUPP;
 		goto out;
 	}
@@ -802,12 +756,7 @@ static int wl1251_op_set_key(struct ieee80211_hw *hw, enum set_key_cmd cmd,
 
 	if ((wl_cmd->key_type == KEY_TKIP_MIC_GROUP) ||
 	    (wl_cmd->key_type == KEY_TKIP_MIC_PAIRWISE)) {
-		/*
-		 * We get the key in the following form:
-		 * TKIP (16 bytes) - TX MIC (8 bytes) - RX MIC (8 bytes)
-		 * but the target is expecting:
-		 * TKIP - RX MIC - TX MIC
-		 */
+		
 		memcpy(wl_cmd->key, key->key, 16);
 		memcpy(wl_cmd->key + 16, key->key + 24, 8);
 		memcpy(wl_cmd->key + 24, key->key + 16, 8);
@@ -884,8 +833,8 @@ static int wl1251_build_probe_req(struct wl1251 *wl, u8 *ssid, size_t ssid_len)
 	memcpy(template.header.sa, wl->mac_addr, ETH_ALEN);
 	template.header.frame_ctl = cpu_to_le16(IEEE80211_STYPE_PROBE_REQ);
 
-	/* IEs */
-	/* SSID */
+	
+	
 	template.ssid.header.id = WLAN_EID_SSID;
 	template.ssid.header.len = ssid_len;
 	if (ssid_len && ssid)
@@ -893,14 +842,14 @@ static int wl1251_build_probe_req(struct wl1251 *wl, u8 *ssid, size_t ssid_len)
 	size += sizeof(struct wl12xx_ie_header) + ssid_len;
 	ptr += size;
 
-	/* Basic Rates */
+	
 	rates = (struct wl12xx_ie_rates *)ptr;
 	rates->header.id = WLAN_EID_SUPP_RATES;
 	rates->header.len = wl1251_build_basic_rates(rates->rates);
 	size += sizeof(struct wl12xx_ie_header) + rates->header.len;
 	ptr += sizeof(struct wl12xx_ie_header) + rates->header.len;
 
-	/* Extended rates */
+	
 	rates = (struct wl12xx_ie_rates *)ptr;
 	rates->header.id = WLAN_EID_EXT_SUPP_RATES;
 	rates->header.len = wl1251_build_extended_rates(rates->rates);
@@ -932,7 +881,7 @@ static int wl1251_hw_scan(struct wl1251 *wl, u8 *ssid, size_t len,
 	params->params.rx_filter_options =
 		cpu_to_le32(CFG_RX_PRSP_EN | CFG_RX_MGMT_EN | CFG_RX_BCN_EN);
 
-	/* High priority scan */
+	
 	if (!active_scan)
 		scan_options |= SCAN_PASSIVE;
 	if (high_prio)
@@ -941,7 +890,7 @@ static int wl1251_hw_scan(struct wl1251 *wl, u8 *ssid, size_t len,
 
 	params->params.num_channels = num_channels;
 	params->params.num_probe_requests = probe_requests;
-	params->params.tx_rate = cpu_to_le16(1 << 1); /* 2 Mbps */
+	params->params.tx_rate = cpu_to_le16(1 << 1); 
 	params->params.tid_trigger = 0;
 
 	for (i = 0; i < num_channels; i++) {
@@ -1087,7 +1036,7 @@ static void wl1251_op_bss_info_changed(struct ieee80211_hw *hw,
 			wl->beacon_int = bss_conf->beacon_int;
 			wl->dtim_period = bss_conf->dtim_period;
 
-			/* FIXME: call join */
+			
 
 			wl->aid = bss_conf->aid;
 
@@ -1099,7 +1048,7 @@ static void wl1251_op_bss_info_changed(struct ieee80211_hw *hw,
 			if (ret < 0)
 				goto out_sleep;
 
-			/* If we want to go in PSM but we're not there yet */
+			
 			if (wl->psm_requested && !wl->psm) {
 				mode = STATION_POWER_SAVE_MODE;
 				ret = wl1251_ps_set_mode(wl, mode);
@@ -1107,7 +1056,7 @@ static void wl1251_op_bss_info_changed(struct ieee80211_hw *hw,
 					goto out_sleep;
 			}
 		} else {
-			/* use defaults when not associated */
+			
 			wl->beacon_int = WL1251_DEFAULT_BEACON_INT;
 			wl->dtim_period = WL1251_DEFAULT_DTIM_PERIOD;
 		}
@@ -1191,7 +1140,7 @@ out:
 }
 
 
-/* can't be const, mac80211 writes to this */
+
 static struct ieee80211_rate wl1251_rates[] = {
 	{ .bitrate = 10,
 	  .hw_value = 0x1,
@@ -1234,7 +1183,7 @@ static struct ieee80211_rate wl1251_rates[] = {
 	  .hw_value_short = 0x1000, },
 };
 
-/* can't be const, mac80211 writes to this */
+
 static struct ieee80211_channel wl1251_channels[] = {
 	{ .hw_value = 1, .center_freq = 2412},
 	{ .hw_value = 2, .center_freq = 2417},
@@ -1251,7 +1200,7 @@ static struct ieee80211_channel wl1251_channels[] = {
 	{ .hw_value = 13, .center_freq = 2472},
 };
 
-/* can't be const, mac80211 writes to this */
+
 static struct ieee80211_supported_band wl1251_band_2ghz = {
 	.channels = wl1251_channels,
 	.n_channels = ARRAY_SIZE(wl1251_channels),
@@ -1299,12 +1248,12 @@ int wl1251_init_ieee80211(struct wl1251 *wl)
 {
 	int ret;
 
-	/* The tx descriptor buffer and the TKIP space */
+	
 	wl->hw->extra_tx_headroom = sizeof(struct tx_double_buffer_desc)
 		+ WL1251_TKIP_IV_SPACE;
 
-	/* unit us */
-	/* FIXME: find a proper value */
+	
+	
 	wl->hw->channel_change_time = 10000;
 
 	wl->hw->flags = IEEE80211_HW_SIGNAL_DBM |
@@ -1377,10 +1326,7 @@ struct ieee80211_hw *wl1251_alloc_hw(void)
 	INIT_WORK(&wl->irq_work, wl1251_irq_work);
 	INIT_WORK(&wl->tx_work, wl1251_tx_work);
 
-	/*
-	 * In case our MAC address is not correctly set,
-	 * we use a random but Nokia MAC.
-	 */
+	
 	memcpy(wl->mac_addr, nokia_oui, 3);
 	get_random_bytes(wl->mac_addr + 3, 3);
 

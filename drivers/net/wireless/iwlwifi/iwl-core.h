@@ -1,71 +1,9 @@
-/******************************************************************************
- *
- * This file is provided under a dual BSD/GPLv2 license.  When using or
- * redistributing this file, you may do so under either license.
- *
- * GPL LICENSE SUMMARY
- *
- * Copyright(c) 2008 - 2009 Intel Corporation. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of version 2 of the GNU General Public License as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110,
- * USA
- *
- * The full GNU General Public License is included in this distribution
- * in the file called LICENSE.GPL.
- *
- * Contact Information:
- *  Intel Linux Wireless <ilw@linux.intel.com>
- * Intel Corporation, 5200 N.E. Elam Young Parkway, Hillsboro, OR 97124-6497
- *
- * BSD LICENSE
- *
- * Copyright(c) 2005 - 2009 Intel Corporation. All rights reserved.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- *  * Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *  * Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *  * Neither the name Intel Corporation nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *****************************************************************************/
+
 
 #ifndef __iwl_core_h__
 #define __iwl_core_h__
 
-/************************
- * forward declarations *
- ************************/
+
 struct iwl_host_cmd;
 struct iwl_cmd;
 
@@ -130,9 +68,9 @@ struct iwl_ucode_ops {
 };
 
 struct iwl_lib_ops {
-	/* set hw dependent parameters */
+	
 	int (*set_hw_params)(struct iwl_priv *priv);
-	/* Handling TX */
+	
 	void (*txq_update_byte_cnt_tbl)(struct iwl_priv *priv,
 					struct iwl_tx_queue *txq,
 					u16 byte_cnt);
@@ -147,41 +85,41 @@ struct iwl_lib_ops {
 			     struct iwl_tx_queue *txq);
 	int (*txq_init)(struct iwl_priv *priv,
 			struct iwl_tx_queue *txq);
-	/* aggregations */
+	
 	int (*txq_agg_enable)(struct iwl_priv *priv, int txq_id, int tx_fifo,
 			      int sta_id, int tid, u16 ssn_idx);
 	int (*txq_agg_disable)(struct iwl_priv *priv, u16 txq_id, u16 ssn_idx,
 			       u8 tx_fifo);
-	/* setup Rx handler */
+	
 	void (*rx_handler_setup)(struct iwl_priv *priv);
-	/* setup deferred work */
+	
 	void (*setup_deferred_work)(struct iwl_priv *priv);
-	/* cancel deferred work */
+	
 	void (*cancel_deferred_work)(struct iwl_priv *priv);
-	/* alive notification after init uCode load */
+	
 	void (*init_alive_start)(struct iwl_priv *priv);
-	/* alive notification */
+	
 	int (*alive_notify)(struct iwl_priv *priv);
-	/* check validity of rtc data address */
+	
 	int (*is_valid_rtc_data_addr)(u32 addr);
-	/* 1st ucode load */
+	
 	int (*load_ucode)(struct iwl_priv *priv);
 	void (*dump_nic_event_log)(struct iwl_priv *priv);
 	void (*dump_nic_error_log)(struct iwl_priv *priv);
-	/* power management */
+	
 	struct iwl_apm_ops apm_ops;
 
-	/* power */
+	
 	int (*send_tx_power) (struct iwl_priv *priv);
 	void (*update_chain_flags)(struct iwl_priv *priv);
 	void (*post_associate) (struct iwl_priv *priv);
 	void (*config_ap) (struct iwl_priv *priv);
 	irqreturn_t (*isr) (int irq, void *data);
 
-	/* eeprom operations (as defined in iwl-eeprom.h) */
+	
 	struct iwl_eeprom_ops eeprom_ops;
 
-	/* temperature */
+	
 	struct iwl_temp_ops temp_ops;
 };
 
@@ -193,49 +131,17 @@ struct iwl_ops {
 };
 
 struct iwl_mod_params {
-	int sw_crypto;		/* def: 0 = using hardware encryption */
-	int disable_hw_scan;	/* def: 0 = use h/w scan */
-	int num_of_queues;	/* def: HW dependent */
-	int num_of_ampdu_queues;/* def: HW dependent */
-	int disable_11n;	/* def: 0 = 11n capabilities enabled */
-	int amsdu_size_8K;	/* def: 1 = enable 8K amsdu size */
-	int antenna;  		/* def: 0 = both antennas (use diversity) */
-	int restart_fw;		/* def: 1 = restart firmware */
+	int sw_crypto;		
+	int disable_hw_scan;	
+	int num_of_queues;	
+	int num_of_ampdu_queues;
+	int disable_11n;	
+	int amsdu_size_8K;	
+	int antenna;  		
+	int restart_fw;		
 };
 
-/**
- * struct iwl_cfg
- * @fw_name_pre: Firmware filename prefix. The api version and extension
- * 	(.ucode) will be added to filename before loading from disk. The
- * 	filename is constructed as fw_name_pre<api>.ucode.
- * @ucode_api_max: Highest version of uCode API supported by driver.
- * @ucode_api_min: Lowest version of uCode API supported by driver.
- * @pa_type: used by 6000 series only to identify the type of Power Amplifier
- * @max_ll_items: max number of OTP blocks
- * @shadow_ram_support: shadow support for OTP memory
- * @use_rts_for_ht: use rts/cts protection for HT traffic
- *
- * We enable the driver to be backward compatible wrt API version. The
- * driver specifies which APIs it supports (with @ucode_api_max being the
- * highest and @ucode_api_min the lowest). Firmware will only be loaded if
- * it has a supported API version. The firmware's API version will be
- * stored in @iwl_priv, enabling the driver to make runtime changes based
- * on firmware version used.
- *
- * For example,
- * if (IWL_UCODE_API(priv->ucode_ver) >= 2) {
- * 	Driver interacts with Firmware API version >= 2.
- * } else {
- * 	Driver interacts with Firmware API version 1.
- * }
- *
- * The ideal usage of this infrastructure is to treat a new ucode API
- * release as a new hardware revision. That is, through utilizing the
- * iwl_hcmd_utils_ops etc. we accommodate different command structures
- * and flows between hardware versions (4965/5000) as well as their API
- * versions.
- *
- */
+
 struct iwl_cfg {
 	const char *name;
 	const char *fw_name_pre;
@@ -259,9 +165,7 @@ struct iwl_cfg {
 	bool use_rts_for_ht;
 };
 
-/***************************
- *   L i b                 *
- ***************************/
+
 
 struct ieee80211_hw *iwl_alloc_all(struct iwl_cfg *cfg,
 		struct ieee80211_ops *hw_ops);
@@ -355,14 +259,12 @@ static inline void iwl_update_stats(struct iwl_priv *priv, bool is_tx,
 		stats = &priv->rx_stats;
 
 	if (ieee80211_is_data(fc)) {
-		/* data */
+		
 		stats->data_bytes += len;
 	}
 }
 #endif
-/*****************************************************
- * RX handlers.
- * **************************************************/
+
 void iwl_rx_pm_sleep_notif(struct iwl_priv *priv,
 			   struct iwl_rx_mem_buffer *rxb);
 void iwl_rx_pm_debug_statistics_notif(struct iwl_priv *priv,
@@ -370,9 +272,7 @@ void iwl_rx_pm_debug_statistics_notif(struct iwl_priv *priv,
 void iwl_rx_reply_error(struct iwl_priv *priv,
 			struct iwl_rx_mem_buffer *rxb);
 
-/*****************************************************
-* RX
-******************************************************/
+
 void iwl_rx_queue_free(struct iwl_priv *priv, struct iwl_rx_queue *rxq);
 void iwl_cmd_queue_free(struct iwl_priv *priv);
 int iwl_rx_queue_alloc(struct iwl_priv *priv);
@@ -388,18 +288,16 @@ int iwl_rx_queue_space(const struct iwl_rx_queue *q);
 void iwl_rx_allocate(struct iwl_priv *priv, gfp_t priority);
 void iwl_tx_cmd_complete(struct iwl_priv *priv, struct iwl_rx_mem_buffer *rxb);
 int iwl_tx_queue_reclaim(struct iwl_priv *priv, int txq_id, int index);
-/* Handlers */
+
 void iwl_rx_missed_beacon_notif(struct iwl_priv *priv,
 			       struct iwl_rx_mem_buffer *rxb);
 void iwl_rx_statistics(struct iwl_priv *priv,
 			      struct iwl_rx_mem_buffer *rxb);
 void iwl_rx_csa(struct iwl_priv *priv, struct iwl_rx_mem_buffer *rxb);
 
-/* TX helpers */
 
-/*****************************************************
-* TX
-******************************************************/
+
+
 int iwl_txq_ctx_reset(struct iwl_priv *priv);
 void iwl_hw_txq_free_tfd(struct iwl_priv *priv, struct iwl_tx_queue *txq);
 int iwl_hw_txq_attach_buf_to_tfd(struct iwl_priv *priv,
@@ -416,14 +314,10 @@ void iwl_tx_queue_free(struct iwl_priv *priv, int txq_id);
 int iwl_tx_agg_start(struct iwl_priv *priv, const u8 *ra, u16 tid, u16 *ssn);
 int iwl_tx_agg_stop(struct iwl_priv *priv , const u8 *ra, u16 tid);
 int iwl_txq_check_empty(struct iwl_priv *priv, int sta_id, u8 tid, int txq_id);
-/*****************************************************
- * TX power
- ****************************************************/
+
 int iwl_set_tx_power(struct iwl_priv *priv, s8 tx_power, bool force);
 
-/*******************************************************************************
- * Rate
- ******************************************************************************/
+
 
 void iwl_hwrate_to_tx_control(struct iwl_priv *priv, u32 rate_n_flags,
 			      struct ieee80211_tx_info *info);
@@ -452,9 +346,7 @@ static inline __le32 iwl_hw_set_rate_n_flags(u8 rate, u32 flags)
 	return cpu_to_le32(flags|(u32)rate);
 }
 
-/*******************************************************************************
- * Scanning
- ******************************************************************************/
+
 void iwl_init_scan_params(struct iwl_priv *priv);
 int iwl_scan_cancel(struct iwl_priv *priv);
 int iwl_scan_cancel_timeout(struct iwl_priv *priv, unsigned long ms);
@@ -472,34 +364,23 @@ void iwl_bg_abort_scan(struct work_struct *work);
 void iwl_bg_scan_completed(struct work_struct *work);
 void iwl_setup_scan_deferred_work(struct iwl_priv *priv);
 
-/* For faster active scanning, scan will move to the next channel if fewer than
- * PLCP_QUIET_THRESH packets are heard on this channel within
- * ACTIVE_QUIET_TIME after sending probe request.  This shortens the dwell
- * time if it's a quiet channel (nothing responded to our probe, and there's
- * no other traffic).
- * Disable "quiet" feature by setting PLCP_QUIET_THRESH to 0. */
-#define IWL_ACTIVE_QUIET_TIME       cpu_to_le16(10)  /* msec */
-#define IWL_PLCP_QUIET_THRESH       cpu_to_le16(1)  /* packets */
+
+#define IWL_ACTIVE_QUIET_TIME       cpu_to_le16(10)  
+#define IWL_PLCP_QUIET_THRESH       cpu_to_le16(1)  
 
 
-/*******************************************************************************
- * Calibrations - implemented in iwl-calib.c
- ******************************************************************************/
+
 int iwl_send_calib_results(struct iwl_priv *priv);
 int iwl_calib_set(struct iwl_calib_result *res, const u8 *buf, int len);
 void iwl_calib_free_results(struct iwl_priv *priv);
 
-/*******************************************************************************
- * Spectrum Measureemtns in  iwl-spectrum.c
- ******************************************************************************/
+
 #ifdef CONFIG_IWLWIFI_SPECTRUM_MEASUREMENT
 void iwl_setup_spectrum_handlers(struct iwl_priv *priv);
 #else
 static inline void iwl_setup_spectrum_handlers(struct iwl_priv *priv) {}
 #endif
-/*****************************************************
- *   S e n d i n g     H o s t     C o m m a n d s   *
- *****************************************************/
+
 
 const char *get_cmd_string(u8 cmd);
 int __must_check iwl_send_cmd_sync(struct iwl_priv *priv,
@@ -518,9 +399,7 @@ int iwl_enqueue_hcmd(struct iwl_priv *priv, struct iwl_host_cmd *cmd);
 int iwl_send_card_state(struct iwl_priv *priv, u32 flags,
 			u8 meta_flag);
 
-/*****************************************************
- * PCI						     *
- *****************************************************/
+
 irqreturn_t iwl_isr_legacy(int irq, void *data);
 int iwl_reset_ict(struct iwl_priv *priv);
 void iwl_disable_ict(struct iwl_priv *priv);
@@ -539,11 +418,9 @@ static inline u16 iwl_pcie_link_ctl(struct iwl_priv *priv)
 #ifdef CONFIG_PM
 int iwl_pci_suspend(struct pci_dev *pdev, pm_message_t state);
 int iwl_pci_resume(struct pci_dev *pdev);
-#endif /* CONFIG_PM */
+#endif 
 
-/*****************************************************
-*  Error Handling Debugging
-******************************************************/
+
 #ifdef CONFIG_IWLWIFI_DEBUG
 void iwl_dump_nic_event_log(struct iwl_priv *priv);
 void iwl_dump_nic_error_log(struct iwl_priv *priv);
@@ -559,16 +436,14 @@ static inline void iwl_dump_nic_error_log(struct iwl_priv *priv)
 
 void iwl_clear_isr_stats(struct iwl_priv *priv);
 
-/*****************************************************
-*  GEOS
-******************************************************/
+
 int iwlcore_init_geos(struct iwl_priv *priv);
 void iwlcore_free_geos(struct iwl_priv *priv);
 
-/*************** DRIVER STATUS FUNCTIONS   *****/
 
-#define STATUS_HCMD_ACTIVE	0	/* host command in progress */
-#define STATUS_HCMD_SYNC_ACTIVE	1	/* sync host command in progress */
+
+#define STATUS_HCMD_ACTIVE	0	
+#define STATUS_HCMD_SYNC_ACTIVE	1	
 #define STATUS_INT_ENABLED	2
 #define STATUS_RF_KILL_HW	3
 #define STATUS_INIT		5
@@ -588,8 +463,7 @@ void iwlcore_free_geos(struct iwl_priv *priv);
 
 static inline int iwl_is_ready(struct iwl_priv *priv)
 {
-	/* The adapter is 'ready' if READY and GEO_CONFIGURED bits are
-	 * set but EXIT_PENDING is not */
+	
 	return test_bit(STATUS_READY, &priv->status) &&
 	       test_bit(STATUS_GEO_CONFIGURED, &priv->status) &&
 	       !test_bit(STATUS_EXIT_PENDING, &priv->status);
@@ -656,4 +530,4 @@ static inline const struct ieee80211_supported_band *iwl_get_hw_mode(
 	return priv->hw->wiphy->bands[band];
 }
 
-#endif /* __iwl_core_h__ */
+#endif 

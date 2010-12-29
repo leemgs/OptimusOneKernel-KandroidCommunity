@@ -1,40 +1,4 @@
-/*
- * Intel Wireless Multicomm 3200 WiFi driver
- *
- * Copyright (C) 2009 Intel Corporation. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in
- *     the documentation and/or other materials provided with the
- *     distribution.
- *   * Neither the name of Intel Corporation nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- *
- * Intel Corporation <ilw@linux.intel.com>
- * Samuel Ortiz <samuel.ortiz@intel.com>
- * Zhu Yi <yi.zhu@intel.com>
- *
- */
+
 
 #ifndef _IWM_HAL_H_
 #define _IWM_HAL_H_
@@ -74,7 +38,7 @@ do {									  \
 				.lmac_offset = 4 }
 
 
-/* UDMA IN OP CODE -- cmd bits [3:0] */
+
 #define UDMA_IN_OPCODE_MASK			0xF
 
 #define UDMA_IN_OPCODE_GENERAL_RESP		0x0
@@ -91,36 +55,36 @@ do {									  \
 #define UDMA_IN_OPCODE_WIFI_LMAC		0x1F
 #define UDMA_IN_OPCODE_WIFI_UMAC		0x2F
 
-/* HW API: udma_hdi_nonwifi API (OUT and IN) */
 
-/* iwm_udma_nonwifi_cmd request response -- bits [9:9] */
+
+
 #define UDMA_HDI_OUT_NW_CMD_RESP_POS		9
 #define UDMA_HDI_OUT_NW_CMD_RESP_SEED		0x1
 
-/* iwm_udma_nonwifi_cmd handle by HW -- bits [11:11] */
+
 #define UDMA_HDI_OUT_NW_CMD_HANDLE_BY_HW_POS	11
 #define UDMA_HDI_OUT_NW_CMD_HANDLE_BY_HW_SEED	0x1
 
-/* iwm_udma_nonwifi_cmd sequence-number -- bits [12:15] */
+
 #define UDMA_HDI_OUT_NW_CMD_SEQ_NUM_POS		12
 #define UDMA_HDI_OUT_NW_CMD_SEQ_NUM_SEED	0xF
 
-/* UDMA IN Non-WIFI HW sequence number -- bits [12:15] */
+
 #define UDMA_IN_NW_HW_SEQ_NUM_POS		12
 #define UDMA_IN_NW_HW_SEQ_NUM_SEED		0xF
 
-/* UDMA IN Non-WIFI HW signature -- bits [16:31] */
+
 #define UDMA_IN_NW_HW_SIG_POS			16
 #define UDMA_IN_NW_HW_SIG_SEED			0xFFFF
 
-/* fixed signature */
+
 #define UDMA_IN_NW_HW_SIG			0xCBBC
 
-/* UDMA IN Non-WIFI HW block length -- bits [32:35] */
+
 #define UDMA_IN_NW_HW_LENGTH_SEED		0xF
 #define UDMA_IN_NW_HW_LENGTH_POS		32
 
-/* End of HW API: udma_hdi_nonwifi API (OUT and IN) */
+
 
 #define IWM_SDIO_FW_MAX_CHUNK_SIZE	2032
 #define IWM_MAX_WIFI_HEADERS_SIZE	32
@@ -233,4 +197,4 @@ void iwm_build_udma_wifi_hdr(struct iwm_priv *iwm,
 void iwm_build_umac_hdr(struct iwm_priv *iwm,
 			struct iwm_umac_fw_cmd_hdr *hdr,
 			struct iwm_umac_cmd *cmd);
-#endif /* _IWM_HAL_H_ */
+#endif 

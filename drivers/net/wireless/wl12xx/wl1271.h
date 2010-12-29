@@ -1,26 +1,4 @@
-/*
- * This file is part of wl1271
- *
- * Copyright (C) 1998-2009 Texas Instruments. All rights reserved.
- * Copyright (C) 2008-2009 Nokia Corporation
- *
- * Contact: Luciano Coelho <luciano.coelho@nokia.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #ifndef __WL1271_H__
 #define __WL1271_H__
@@ -138,7 +116,7 @@ struct wl1271_partition_set {
 
 struct wl1271;
 
-/* FIXME: I'm not sure about this structure name */
+
 struct wl1271_chip {
 	u32 id;
 	char fw_ver[21];
@@ -193,7 +171,7 @@ struct wl1271_debugfs {
 
 	struct dentry *wep_addr_key_count;
 	struct dentry *wep_default_key_count;
-	/* skipping wep.reserved */
+	
 	struct dentry *wep_key_not_found;
 	struct dentry *wep_decrypt_fail;
 	struct dentry *wep_packets;
@@ -211,7 +189,7 @@ struct wl1271_debugfs {
 	struct dentry *pwr_enable_ps;
 	struct dentry *pwr_disable_ps;
 	struct dentry *pwr_fix_tsf_ps;
-	/* skipping cont_miss_bcns_spread for now */
+	
 	struct dentry *pwr_rcvd_awake_beacons;
 
 	struct dentry *mic_rx_pkts;
@@ -256,7 +234,7 @@ struct wl1271_debugfs {
 #define NUM_TX_QUEUES              4
 #define NUM_RX_PKT_DESC            8
 
-/* FW status registers */
+
 struct wl1271_fw_status {
 	u32 intr;
 	u8  fw_rx_counter;
@@ -313,69 +291,69 @@ struct wl1271 {
 
 	struct wl1271_acx_mem_map *target_mem_map;
 
-	/* Accounting for allocated / available TX blocks on HW */
+	
 	u32 tx_blocks_freed[NUM_TX_QUEUES];
 	u32 tx_blocks_available;
 	u8 tx_results_count;
 
-	/* Transmitted TX packets counter for chipset interface */
+	
 	int tx_packets_count;
 
-	/* Time-offset between host and chipset clocks */
+	
 	int time_offset;
 
-	/* Session counter for the chipset */
+	
 	int session_counter;
 
-	/* Frames scheduled for transmission, not handled yet */
+	
 	struct sk_buff_head tx_queue;
 	bool tx_queue_stopped;
 
 	struct work_struct tx_work;
 	struct work_struct filter_work;
 
-	/* Pending TX frames */
+	
 	struct sk_buff *tx_frames[16];
 
-	/* FW Rx counter */
+	
 	u32 rx_counter;
 
-	/* Rx memory pool address */
+	
 	struct wl1271_rx_mem_pool_addr rx_mem_pool_addr;
 
-	/* The target interrupt mask */
+	
 	struct work_struct irq_work;
 
-	/* The mbox event mask */
+	
 	u32 event_mask;
 
-	/* Mailbox pointers */
+	
 	u32 mbox_ptr[2];
 
-	/* Are we currently scanning */
+	
 	bool scanning;
 
-	/* Our association ID */
+	
 	u16 aid;
 
-	/* Default key (for WEP) */
+	
 	u32 default_key;
 
 	unsigned int rx_config;
 	unsigned int rx_filter;
 
-	/* is firmware in elp mode */
+	
 	bool elp;
 
 	struct completion *elp_compl;
 
-	/* we can be in psm, but not in elp, we have to differentiate */
+	
 	bool psm;
 
-	/* PSM mode requested */
+	
 	bool psm_requested;
 
-	/* in dBm */
+	
 	int power_level;
 
 	struct wl1271_stats stats;
@@ -393,15 +371,15 @@ struct wl1271 {
 int wl1271_plt_start(struct wl1271 *wl);
 int wl1271_plt_stop(struct wl1271 *wl);
 
-#define JOIN_TIMEOUT 5000 /* 5000 milliseconds to join */
+#define JOIN_TIMEOUT 5000 
 
-#define SESSION_COUNTER_MAX 7 /* maximum value for the session counter */
+#define SESSION_COUNTER_MAX 7 
 
 #define WL1271_DEFAULT_POWER_LEVEL 0
 
 #define WL1271_TX_QUEUE_MAX_LENGTH 20
 
-/* WL1271 needs a 200ms sleep after power on */
-#define WL1271_POWER_ON_SLEEP 200 /* in miliseconds */
+
+#define WL1271_POWER_ON_SLEEP 200 
 
 #endif

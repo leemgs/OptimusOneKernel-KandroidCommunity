@@ -1,18 +1,4 @@
-/*
- * Copyright (c) 2008-2009 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+
 
 #ifndef DEBUG_H
 #define DEBUG_H
@@ -48,27 +34,7 @@ struct ath_buf;
 
 #ifdef CONFIG_ATH9K_DEBUG
 
-/**
- * struct ath_interrupt_stats - Contains statistics about interrupts
- * @total: Total no. of interrupts generated so far
- * @rxok: RX with no errors
- * @rxeol: RX with no more RXDESC available
- * @rxorn: RX FIFO overrun
- * @txok: TX completed at the requested rate
- * @txurn: TX FIFO underrun
- * @mib: MIB regs reaching its threshold
- * @rxphyerr: RX with phy errors
- * @rx_keycache_miss: RX with key cache misses
- * @swba: Software Beacon Alert
- * @bmiss: Beacon Miss
- * @bnr: Beacon Not Ready
- * @cst: Carrier Sense TImeout
- * @gtt: Global TX Timeout
- * @tim: RX beacon TIM occurrence
- * @cabend: RX End of CAB traffic
- * @dtimsync: DTIM sync lossage
- * @dtim: RX Beacon with DTIM
- */
+
 struct ath_interrupt_stats {
 	u32 total;
 	u32 rxok;
@@ -98,25 +64,7 @@ struct ath_rc_stats {
 	u8 per;
 };
 
-/**
- * struct ath_tx_stats - Statistics about TX
- * @queued: Total MPDUs (non-aggr) queued
- * @completed: Total MPDUs (non-aggr) completed
- * @a_aggr: Total no. of aggregates queued
- * @a_queued: Total AMPDUs queued
- * @a_completed: Total AMPDUs completed
- * @a_retries: No. of AMPDUs retried (SW)
- * @a_xretries: No. of AMPDUs dropped due to xretries
- * @fifo_underrun: FIFO underrun occurrences
-	Valid only for:
-		- non-aggregate condition.
-		- first packet of aggregate.
- * @xtxop: No. of frames filtered because of TXOP limit
- * @timer_exp: Transmit timer expiry
- * @desc_cfg_err: Descriptor configuration errors
- * @data_urn: TX data underrun errors
- * @delim_urn: TX delimiter underrun errors
- */
+
 struct ath_tx_stats {
 	u32 queued;
 	u32 completed;
@@ -209,6 +157,6 @@ static inline void ath_debug_stat_retries(struct ath_softc *sc, int rix,
 {
 }
 
-#endif /* CONFIG_ATH9K_DEBUG */
+#endif 
 
-#endif /* DEBUG_H */
+#endif 

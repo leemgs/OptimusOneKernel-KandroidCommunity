@@ -1,30 +1,4 @@
-/*
- *  linux/drivers/net/wireless/libertas/if_sdio.c
- *
- *  Copyright 2007-2008 Pierre Ossman
- *
- * Inspired by if_cs.c, Copyright 2007 Holger Schurig
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- *
- * This hardware has more or less no CMD53 support, so all registers
- * must be accessed using sdio_readb()/sdio_writeb().
- *
- * Transfers must be in one transaction or the firmware goes bonkers.
- * This means that the transfer must either be small enough to do a
- * byte based transfer or it must be padded to a multiple of the
- * current block size.
- *
- * As SDIO is still new to the kernel, it is unfortunately common with
- * bugs in the host controllers related to that. One such bug is that
- * controllers cannot do transfers that aren't a multiple of 4 bytes.
- * If you don't have time to fix the host controller driver, you can
- * work around the problem by modifying if_sdio_host_to_card() and
- * if_sdio_card_to_host() to pad the data.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/moduleparam.h>
@@ -42,19 +16,7 @@
 #include "cmd.h"
 #include "if_sdio.h"
 
-/* The if_sdio_remove() callback function is called when
- * user removes this module from kernel space or ejects
- * the card from the slot. The driver handles these 2 cases
- * differently for SD8688 combo chip.
- * If the user is removing the module, the FUNC_SHUTDOWN
- * command for SD8688 is sent to the firmware.
- * If the card is removed, there is no need to send this command.
- *
- * The variable 'user_rmmod' is used to distinguish these two
- * scenarios. This flag is initialized as FALSE in case the card
- * is removed, and will be set to TRUE for module removal when
- * module_exit function is called.
- */
+
 static u8 user_rmmod;
 
 static char *lbs_helper_name = NULL;
@@ -68,7 +30,7 @@ static const struct sdio_device_id if_sdio_ids[] = {
 			SDIO_DEVICE_ID_MARVELL_LIBERTAS) },
 	{ SDIO_DEVICE(SDIO_VENDOR_ID_MARVELL,
 			SDIO_DEVICE_ID_MARVELL_8688WLAN) },
-	{ /* end: all zeroes */				},
+	{ 				},
 };
 
 MODULE_DEVICE_TABLE(sdio, if_sdio_ids);
@@ -81,19 +43,19 @@ struct if_sdio_model {
 
 static struct if_sdio_model if_sdio_models[] = {
 	{
-		/* 8385 */
+		
 		.model = IF_SDIO_MODEL_8385,
 		.helper = "sd8385_helper.bin",
 		.firmware = "sd8385.bin",
 	},
 	{
-		/* 8686 */
+		
 		.model = IF_SDIO_MODEL_8686,
 		.helper = "sd8686_helper.bin",
 		.firmware = "sd8686.bin",
 	},
 	{
-		/* 8688 */
+		
 		.model = IF_SDIO_MODEL_8688,
 		.helper = "sd8688_helper.bin",
 		.firmware = "sd8688.bin",
@@ -128,16 +90,11 @@ struct if_sdio_card {
 	u8			rx_unit;
 };
 
-/********************************************************************/
-/* I/O                                                              */
-/********************************************************************/
 
-/*
- *  For SD8385/SD8686, this function reads firmware status after
- *  the image is downloaded, or reads RX packet length when
- *  interrupt (with IF_SDIO_H_INT_UPLD bit set) is received.
- *  For SD8688, this function reads firmware status only.
- */
+
+
+
+
 static u16 if_sdio_read_scratch(struct if_sdio_card *card, int *err)
 {
 	int ret;
@@ -181,12 +138,12 @@ static u16 if_sdio_read_rx_len(struct if_sdio_card *card, int *err)
 		rx_len = if_sdio_read_scratch(card, &ret);
 		break;
 	case IF_SDIO_MODEL_8688:
-	default: /* for newer chipsets */
+	default: 
 		rx_len = sdio_readb(card->func, IF_SDIO_RX_LEN, &ret);
 		if (!ret)
 			rx_len <<= card->rx_unit;
 		else
-			rx_len = 0xffff;	/* invalid length */
+			rx_len = 0xffff;	
 
 		break;
 	}
@@ -282,7 +239,7 @@ static int if_sdio_handle_event(struct if_sdio_card *card,
 		if (ret)
 			goto out;
 
-		/* right shift 3 bits to get the event id */
+		
 		event >>= 3;
 	} else {
 		if (size < 4) {
@@ -340,11 +297,7 @@ static int if_sdio_card_to_host(struct if_sdio_card *card)
 		mdelay(1);
 	}
 
-	/*
-	 * The transfer must be in one transaction or the firmware
-	 * goes suicidal. There's no way to guarantee that for all
-	 * controllers, but we can at least try.
-	 */
+	
 	chunk = sdio_align_size(card->func, size);
 
 	ret = sdio_readsb(card->func, card->buffer, card->ioport, chunk);
@@ -453,9 +406,9 @@ release:
 	lbs_deb_leave(LBS_DEB_SDIO);
 }
 
-/********************************************************************/
-/* Firmware                                                         */
-/********************************************************************/
+
+
+
 
 static int if_sdio_prog_helper(struct if_sdio_card *card)
 {
@@ -511,9 +464,7 @@ static int if_sdio_prog_helper(struct if_sdio_card *card)
 
 		*((__le32*)chunk_buffer) = cpu_to_le32(chunk_size);
 		memcpy(chunk_buffer + 4, firmware, chunk_size);
-/*
-		lbs_deb_sdio("sending %d bytes chunk\n", chunk_size);
-*/
+
 		ret = sdio_writesb(card->func, card->ioport,
 				chunk_buffer, 64);
 		if (ret)
@@ -523,7 +474,7 @@ static int if_sdio_prog_helper(struct if_sdio_card *card)
 		size -= chunk_size;
 	}
 
-	/* an empty block marks the end of the transfer */
+	
 	memset(chunk_buffer, 0, 4);
 	ret = sdio_writesb(card->func, card->ioport, chunk_buffer, 64);
 	if (ret)
@@ -531,7 +482,7 @@ static int if_sdio_prog_helper(struct if_sdio_card *card)
 
 	lbs_deb_sdio("waiting for helper to boot...\n");
 
-	/* wait for the helper to boot by looking at the size register */
+	
 	timeout = jiffies + HZ;
 	while (1) {
 		u16 req_size;
@@ -629,9 +580,7 @@ static int if_sdio_prog_real(struct if_sdio_card *card)
 		req_size |= sdio_readb(card->func, IF_SDIO_RD_BASE + 1, &ret) << 8;
 		if (ret)
 			goto release;
-/*
-		lbs_deb_sdio("firmware wants %d bytes\n", (int)req_size);
-*/
+
 		if (req_size == 0) {
 			lbs_deb_sdio("firmware helper gave up early\n");
 			ret = -EIO;
@@ -651,10 +600,7 @@ static int if_sdio_prog_real(struct if_sdio_card *card)
 			chunk_size = min(req_size, (size_t)512);
 
 			memcpy(chunk_buffer, firmware, chunk_size);
-/*
-			lbs_deb_sdio("sending %d bytes (%d bytes) chunk\n",
-				chunk_size, (chunk_size + 31) / 32 * 32);
-*/
+
 			ret = sdio_writesb(card->func, card->ioport,
 				chunk_buffer, roundup(chunk_size, 32));
 			if (ret)
@@ -670,7 +616,7 @@ static int if_sdio_prog_real(struct if_sdio_card *card)
 
 	lbs_deb_sdio("waiting for firmware to boot...\n");
 
-	/* wait for the firmware to boot */
+	
 	timeout = jiffies + HZ;
 	while (1) {
 		u16 scratch;
@@ -748,9 +694,9 @@ out:
 	return ret;
 }
 
-/*******************************************************************/
-/* Libertas callbacks                                              */
-/*******************************************************************/
+
+
+
 
 static int if_sdio_host_to_card(struct lbs_private *priv,
 		u8 type, u8 *buf, u16 nb)
@@ -770,11 +716,7 @@ static int if_sdio_host_to_card(struct lbs_private *priv,
 		goto out;
 	}
 
-	/*
-	 * The transfer must be in one transaction or the firmware
-	 * goes suicidal. There's no way to guarantee that for all
-	 * controllers, but we can at least try.
-	 */
+	
 	size = sdio_align_size(card->func, nb + 4);
 
 	packet = kzalloc(sizeof(struct if_sdio_packet) + size,
@@ -787,9 +729,7 @@ static int if_sdio_host_to_card(struct lbs_private *priv,
 	packet->next = NULL;
 	packet->nb = size;
 
-	/*
-	 * SDIO specific header.
-	 */
+	
 	packet->buffer[0] = (nb + 4) & 0xff;
 	packet->buffer[1] = ((nb + 4) >> 8) & 0xff;
 	packet->buffer[2] = type;
@@ -831,9 +771,9 @@ out:
 	return ret;
 }
 
-/*******************************************************************/
-/* SDIO callbacks                                                  */
-/*******************************************************************/
+
+
+
 
 static void if_sdio_interrupt(struct sdio_func *func)
 {
@@ -855,10 +795,7 @@ static void if_sdio_interrupt(struct sdio_func *func)
 	if (ret)
 		goto out;
 
-	/*
-	 * Ignore the define name, this really means the card has
-	 * successfully received the command.
-	 */
+	
 	if (cause & IF_SDIO_H_INT_DNLD)
 		lbs_host_to_card_done(card->priv);
 
@@ -919,7 +856,7 @@ static int if_sdio_probe(struct sdio_func *func,
 		card->scratch_reg = IF_SDIO_SCRATCH;
 		break;
 	case IF_SDIO_MODEL_8688:
-	default: /* for newer chipsets */
+	default: 
 		card->scratch_reg = IF_SDIO_FW_STATUS;
 		break;
 	}
@@ -1003,27 +940,20 @@ static int if_sdio_probe(struct sdio_func *func,
 
 	sdio_claim_host(func);
 
-	/*
-	 * Get rx_unit if the chip is SD8688 or newer.
-	 * SD8385 & SD8686 do not have rx_unit.
-	 */
+	
 	if ((card->model != IF_SDIO_MODEL_8385)
 			&& (card->model != IF_SDIO_MODEL_8686))
 		card->rx_unit = if_sdio_read_rx_unit(card);
 	else
 		card->rx_unit = 0;
 
-	/*
-	 * Enable interrupts now that everything is set up
-	 */
+	
 	sdio_writeb(func, 0x0f, IF_SDIO_H_INT_MASK, &ret);
 	sdio_release_host(func);
 	if (ret)
 		goto reclaim;
 
-	/*
-	 * FUNC_INIT is required for SD8688 WLAN/BT multiple functions
-	 */
+	
 	if (card->model == IF_SDIO_MODEL_8688) {
 		struct cmd_header cmd;
 
@@ -1078,10 +1008,7 @@ static void if_sdio_remove(struct sdio_func *func)
 	card = sdio_get_drvdata(func);
 
 	if (user_rmmod && (card->model == IF_SDIO_MODEL_8688)) {
-		/*
-		 * FUNC_SHUTDOWN is required for SD8688 WLAN/BT
-		 * multiple functions
-		 */
+		
 		struct cmd_header cmd;
 
 		memset(&cmd, 0, sizeof(cmd));
@@ -1125,9 +1052,9 @@ static struct sdio_driver if_sdio_driver = {
 	.remove		= if_sdio_remove,
 };
 
-/*******************************************************************/
-/* Module functions                                                */
-/*******************************************************************/
+
+
+
 
 static int __init if_sdio_init_module(void)
 {
@@ -1140,7 +1067,7 @@ static int __init if_sdio_init_module(void)
 
 	ret = sdio_register_driver(&if_sdio_driver);
 
-	/* Clear the flag in case user removes the card. */
+	
 	user_rmmod = 0;
 
 	lbs_deb_leave_args(LBS_DEB_SDIO, "ret %d", ret);
@@ -1152,7 +1079,7 @@ static void __exit if_sdio_exit_module(void)
 {
 	lbs_deb_enter(LBS_DEB_SDIO);
 
-	/* Set the flag as user is removing this module. */
+	
 	user_rmmod = 1;
 
 	sdio_unregister_driver(&if_sdio_driver);

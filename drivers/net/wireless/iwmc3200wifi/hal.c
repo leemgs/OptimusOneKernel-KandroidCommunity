@@ -1,101 +1,6 @@
-/*
- * Intel Wireless Multicomm 3200 WiFi driver
- *
- * Copyright (C) 2009 Intel Corporation. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in
- *     the documentation and/or other materials provided with the
- *     distribution.
- *   * Neither the name of Intel Corporation nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- *
- * Intel Corporation <ilw@linux.intel.com>
- * Samuel Ortiz <samuel.ortiz@intel.com>
- * Zhu Yi <yi.zhu@intel.com>
- *
- */
 
-/*
- * Hardware Abstraction Layer for iwm.
- *
- * This file mostly defines an abstraction API for
- * sending various commands to the target.
- *
- * We have 2 types of commands: wifi and non-wifi ones.
- *
- * - wifi commands:
- *   They are used for sending LMAC and UMAC commands,
- *   and thus are the most commonly used ones.
- *   There are 2 different wifi command types, the regular
- *   one and the LMAC one. The former is used to send
- *   UMAC commands (see UMAC_CMD_OPCODE_* from umac.h)
- *   while the latter is used for sending commands to the
- *   LMAC. If you look at LMAC commands you'll se that they
- *   are actually regular iwlwifi target commands encapsulated
- *   into a special UMAC command called UMAC passthrough.
- *   This is due to the fact the the host talks exclusively
- *   to the UMAC and so there needs to be a special UMAC
- *   command for talking to the LMAC.
- *   This is how a wifi command is layed out:
- *    ------------------------
- *   | iwm_udma_out_wifi_hdr  |
- *    ------------------------
- *   | SW meta_data (32 bits) |
- *    ------------------------
- *   | iwm_dev_cmd_hdr        |
- *    ------------------------
- *   | payload                |
- *   | ....                   |
- *
- * - non-wifi, or general commands:
- *   Those commands are handled by the device's bootrom,
- *   and are typically sent when the UMAC and the LMAC
- *   are not yet available.
- *    *   This is how a non-wifi command is layed out:
- *    ---------------------------
- *   | iwm_udma_out_nonwifi_hdr  |
- *    ---------------------------
- *   | payload                   |
- *   | ....                      |
 
- *
- * All the commands start with a UDMA header, which is
- * basically a 32 bits field. The 4 LSB there define
- * an opcode that allows the target to differentiate
- * between wifi (opcode is 0xf) and non-wifi commands
- * (opcode is [0..0xe]).
- *
- * When a command (wifi or non-wifi) is supposed to receive
- * an answer, we queue the command buffer. When we do receive
- * a command response from the UMAC, we go through the list
- * of pending command, and pass both the command and the answer
- * to the rx handler. Each command is sent with a unique
- * sequence id, and the answer is sent with the same one. This
- * is how we're supposed to match an answer with its command.
- * See rx.c:iwm_rx_handle_[non]wifi() and iwm_get_pending_[non]wifi()
- * for the implementation details.
- */
+
 #include <linux/kernel.h>
 #include <linux/netdevice.h>
 
@@ -351,11 +256,7 @@ static int iwm_send_udma_wifi_cmd(struct iwm_priv *iwm,
 
 	ret = iwm_tx_credit_alloc(iwm, udma_cmd->credit_group, buf->len);
 
-	/* We keep sending UMAC reset regardless of the command credits.
-	 * The UMAC is supposed to be reset anyway and the Tx credits are
-	 * reinitialized afterwards. If we are lucky, the reset could
-	 * still be done even though we have run out of credits for the
-	 * command pool at this moment.*/
+	
 	if (ret && (umac_cmd->id != UMAC_CMD_OPCODE_RESET)) {
 		IWM_DBG_TX(iwm, DBG, "Failed to alloc tx credit for cmd %d\n",
 			   umac_cmd->id);
@@ -365,7 +266,7 @@ static int iwm_send_udma_wifi_cmd(struct iwm_priv *iwm,
 	return iwm_bus_send_chunk(iwm, buf->start, buf->len);
 }
 
-/* target_cmd a.k.a udma_nonwifi_cmd can be sent when UMAC is not available */
+
 int iwm_hal_send_target_cmd(struct iwm_priv *iwm,
 			    struct iwm_udma_nonwifi_cmd *udma_cmd,
 			    const void *payload)
@@ -404,16 +305,11 @@ static void iwm_build_lmac_hdr(struct iwm_priv *iwm, struct iwm_lmac_hdr *hdr,
 	memset(hdr, 0, sizeof(*hdr));
 
 	hdr->id = cmd->id;
-	hdr->flags = 0; /* Is this ever used? */
+	hdr->flags = 0; 
 	hdr->seq_num = cmd->seq_num;
 }
 
-/*
- * iwm_hal_send_host_cmd(): sends commands to the UMAC or the LMAC.
- * Sending command to the LMAC is equivalent to sending a
- * regular UMAC command with the LMAC passtrough or the LMAC
- * wrapper UMAC command IDs.
- */
+
 int iwm_hal_send_host_cmd(struct iwm_priv *iwm,
 			  struct iwm_udma_wifi_cmd *udma_cmd,
 			  struct iwm_umac_cmd *umac_cmd,
@@ -445,17 +341,13 @@ int iwm_hal_send_host_cmd(struct iwm_priv *iwm,
 
 	ret = iwm_send_udma_wifi_cmd(iwm, cmd);
 
-	/* We free the cmd if we're not expecting any response */
+	
 	if (!umac_cmd->resp)
 		kfree(cmd);
 	return ret;
 }
 
-/*
- * iwm_hal_send_umac_cmd(): This is a special case for
- * iwm_hal_send_host_cmd() to send direct UMAC cmd (without
- * LMAC involved).
- */
+
 int iwm_hal_send_umac_cmd(struct iwm_priv *iwm,
 			  struct iwm_udma_wifi_cmd *udma_cmd,
 			  struct iwm_umac_cmd *umac_cmd,

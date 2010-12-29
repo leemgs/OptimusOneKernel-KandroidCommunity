@@ -1,18 +1,4 @@
-/*
- * Copyright (c) 2008-2009 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+
 
 #ifndef REG_H
 #define REG_H
@@ -1076,7 +1062,7 @@ enum {
 #define AR_RTC_INTR_MASK \
 	((AR_SREV_9100(ah)) ? (AR_RTC_BASE + 0x0058) : 0x7058)
 
-/* RTC_DERIVED_* - only for AR9100 */
+
 
 #define AR_RTC_DERIVED_CLK           (AR_RTC_BASE + 0x0038)
 #define AR_RTC_DERIVED_CLK_PERIOD    0x0000fffe
@@ -1176,7 +1162,7 @@ enum {
 #define AR9285_AN_RF2G4_DB2_4    0x00003800
 #define AR9285_AN_RF2G4_DB2_4_S    11
 
-/* AR9271 : 0x7828, 0x782c different setting from AR9285 */
+
 #define AR9271_AN_RF2G3_OB_cck		0x001C0000
 #define AR9271_AN_RF2G3_OB_cck_S	18
 #define AR9271_AN_RF2G3_OB_psk		0x00038000
@@ -1262,7 +1248,7 @@ enum {
 #define AR9287_AN_TOP2_XPABIAS_LVL      0xC0000000
 #define AR9287_AN_TOP2_XPABIAS_LVL_S    30
 
-/* AR9271 specific stuff */
+
 #define AR9271_RESET_POWER_DOWN_CONTROL		0x50044
 #define AR9271_RADIO_RF_RST			0x20
 #define AR9271_GATE_MAC_CTL			0x4000

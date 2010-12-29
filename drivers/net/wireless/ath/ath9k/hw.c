@@ -1,18 +1,4 @@
-/*
- * Copyright (c) 2008-2009 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+
 
 #include <linux/io.h>
 #include <asm/unaligned.h>
@@ -34,15 +20,15 @@ static u32 ath9k_hw_ini_fixup(struct ath_hw *ah,
 static void ath9k_hw_9280_spur_mitigate(struct ath_hw *ah, struct ath9k_channel *chan);
 static void ath9k_hw_spur_mitigate(struct ath_hw *ah, struct ath9k_channel *chan);
 
-/********************/
-/* Helper Functions */
-/********************/
+
+
+
 
 static u32 ath9k_hw_mac_usec(struct ath_hw *ah, u32 clks)
 {
 	struct ieee80211_conf *conf = &ah->ah_sc->hw->conf;
 
-	if (!ah->curchan) /* should really check for CCK instead */
+	if (!ah->curchan) 
 		return clks / ATH9K_CLOCK_RATE_CCK;
 	if (conf->channel->band == IEEE80211_BAND_2GHZ)
 		return clks / ATH9K_CLOCK_RATE_2GHZ_OFDM;
@@ -64,7 +50,7 @@ static u32 ath9k_hw_mac_clks(struct ath_hw *ah, u32 usecs)
 {
 	struct ieee80211_conf *conf = &ah->ah_sc->hw->conf;
 
-	if (!ah->curchan) /* should really check for CCK instead */
+	if (!ah->curchan) 
 		return usecs *ATH9K_CLOCK_RATE_CCK;
 	if (conf->channel->band == IEEE80211_BAND_2GHZ)
 		return usecs *ATH9K_CLOCK_RATE_2GHZ_OFDM;
@@ -81,13 +67,7 @@ static u32 ath9k_hw_mac_to_clks(struct ath_hw *ah, u32 usecs)
 		return ath9k_hw_mac_clks(ah, usecs);
 }
 
-/*
- * Read and write, they both share the same lock. We do this to serialize
- * reads and writes on Atheros 802.11n PCI devices only. This is required
- * as the FIFO on these devices can only accept sanely 2 requests. After
- * that the device goes bananas. Serializing the reads/writes prevents this
- * from happening.
- */
+
 
 void ath9k_iowrite32(struct ath_hw *ah, u32 reg_offset, u32 val)
 {
@@ -251,9 +231,9 @@ void ath9k_hw_get_channel_centers(struct ath_hw *ah,
 			  HT40_CHANNEL_CENTER_SHIFT : 15));
 }
 
-/******************/
-/* Chip Revisions */
-/******************/
+
+
+
 
 static void ath9k_hw_read_revisions(struct ath_hw *ah)
 {
@@ -293,9 +273,9 @@ static int ath9k_hw_get_radiorev(struct ath_hw *ah)
 	return ath9k_hw_reverse_bits(val, 8);
 }
 
-/************************************/
-/* HW Attach, Detach, Init Routines */
-/************************************/
+
+
+
 
 static void ath9k_hw_disablepcie(struct ath_hw *ah)
 {
@@ -414,22 +394,7 @@ static void ath9k_hw_init_config(struct ath_hw *ah)
 
 	ah->config.intr_mitigation = true;
 
-	/*
-	 * We need this for PCI devices only (Cardbus, PCI, miniPCI)
-	 * _and_ if on non-uniprocessor systems (Multiprocessor/HT).
-	 * This means we use it for all AR5416 devices, and the few
-	 * minor PCI AR9280 devices out there.
-	 *
-	 * Serialization is required because these devices do not handle
-	 * well the case of two concurrent reads/writes due to the latency
-	 * involved. During one read/write another read/write can be issued
-	 * on another CPU while the previous read/write may still be working
-	 * on our hardware, if we hit this case the hardware poops in a loop.
-	 * We prevent this by serializing reads and writes.
-	 *
-	 * This issue is not present on PCI-Express devices or pre-AR5416
-	 * devices (legacy, 802.11abg).
-	 */
+	
 	if (num_possible_cpus() > 1)
 		ah->config.serialize_regmode = SER_REG_MODE_AUTO;
 }
@@ -635,7 +600,7 @@ static bool ath9k_hw_macversion_supported(u32 macversion)
 	case AR_SREV_VERSION_9285:
 	case AR_SREV_VERSION_9287:
 		return true;
-	/* Not yet */
+	
 	case AR_SREV_VERSION_9271:
 	default:
 		break;
@@ -866,7 +831,7 @@ static void ath9k_hw_init_mode_gain_regs(struct ath_hw *ah)
 	} else if (AR_SREV_9285_12_OR_LATER(ah)) {
 		u32 txgain_type = ah->eep_ops->get_eeprom(ah, EEP_TXGAIN_TYPE);
 
-		/* txgain table */
+		
 		if (txgain_type == AR5416_EEP_TXGAIN_HIGH_POWER) {
 			INIT_INI_ARRAY(&ah->iniModesTxGain,
 			ar9285Modes_high_power_tx_gain_9285_1_2,
@@ -886,7 +851,7 @@ static void ath9k_hw_init_eeprom_fix(struct ath_hw *ah)
 
 	if (ah->hw_version.devid == AR9280_DEVID_PCI) {
 
-		/* EEPROM Fixup */
+		
 		for (i = 0; i < ah->iniModes.ia_rows; i++) {
 			u32 reg = INI_RA(&ah->iniModes, i, 0);
 
@@ -1242,9 +1207,9 @@ void ath9k_hw_detach(struct ath_hw *ah)
 	ah = NULL;
 }
 
-/*******/
-/* INI */
-/*******/
+
+
+
 
 static void ath9k_hw_override_ini(struct ath_hw *ah,
 				  struct ath9k_channel *chan)
@@ -1252,29 +1217,18 @@ static void ath9k_hw_override_ini(struct ath_hw *ah,
 	u32 val;
 
 	if (AR_SREV_9271(ah)) {
-		/*
-		 * Enable spectral scan to solution for issues with stuck
-		 * beacons on AR9271 1.0. The beacon stuck issue is not seeon on
-		 * AR9271 1.1
-		 */
+		
 		if (AR_SREV_9271_10(ah)) {
 			val = REG_READ(ah, AR_PHY_SPECTRAL_SCAN) | AR_PHY_SPECTRAL_SCAN_ENABLE;
 			REG_WRITE(ah, AR_PHY_SPECTRAL_SCAN, val);
 		}
 		else if (AR_SREV_9271_11(ah))
-			/*
-			 * change AR_PHY_RF_CTL3 setting to fix MAC issue
-			 * present on AR9271 1.1
-			 */
+			
 			REG_WRITE(ah, AR_PHY_RF_CTL3, 0x3a020001);
 		return;
 	}
 
-	/*
-	 * Set the RX_ABORT and RX_DIS and clear if off only after
-	 * RXE is set for MAC. This prevents frames with corrupted
-	 * descriptor status.
-	 */
+	
 	REG_SET_BIT(ah, AR_DIAG_SW, (AR_DIAG_RX_DIS | AR_DIAG_RX_ABORT));
 
 	if (AR_SREV_9280_10_OR_LATER(ah)) {
@@ -1290,10 +1244,7 @@ static void ath9k_hw_override_ini(struct ath_hw *ah,
 	if (!AR_SREV_5416_20_OR_LATER(ah) ||
 	    AR_SREV_9280_10_OR_LATER(ah))
 		return;
-	/*
-	 * Disable BB clock gating
-	 * Necessary to avoid issues on AR5416 2.0
-	 */
+	
 	REG_WRITE(ah, 0x9800 + (651 << 2), 0x11);
 }
 
@@ -1503,9 +1454,9 @@ static int ath9k_hw_process_ini(struct ath_hw *ah,
 	return 0;
 }
 
-/****************************************/
-/* Reset and Channel Switching Routines */
-/****************************************/
+
+
+
 
 static void ath9k_hw_set_rfmode(struct ath_hw *ah, struct ath9k_channel *chan)
 {
@@ -1536,45 +1487,27 @@ static inline void ath9k_hw_set_dma(struct ath_hw *ah)
 {
 	u32 regval;
 
-	/*
-	 * set AHB_MODE not to do cacheline prefetches
-	*/
+	
 	regval = REG_READ(ah, AR_AHB_MODE);
 	REG_WRITE(ah, AR_AHB_MODE, regval | AR_AHB_PREFETCH_RD_EN);
 
-	/*
-	 * let mac dma reads be in 128 byte chunks
-	 */
+	
 	regval = REG_READ(ah, AR_TXCFG) & ~AR_TXCFG_DMASZ_MASK;
 	REG_WRITE(ah, AR_TXCFG, regval | AR_TXCFG_DMASZ_128B);
 
-	/*
-	 * Restore TX Trigger Level to its pre-reset value.
-	 * The initial value depends on whether aggregation is enabled, and is
-	 * adjusted whenever underruns are detected.
-	 */
+	
 	REG_RMW_FIELD(ah, AR_TXCFG, AR_FTRIG, ah->tx_trig_level);
 
-	/*
-	 * let mac dma writes be in 128 byte chunks
-	 */
+	
 	regval = REG_READ(ah, AR_RXCFG) & ~AR_RXCFG_DMASZ_MASK;
 	REG_WRITE(ah, AR_RXCFG, regval | AR_RXCFG_DMASZ_128B);
 
-	/*
-	 * Setup receive FIFO threshold to hold off TX activities
-	 */
+	
 	REG_WRITE(ah, AR_RXFIFO_CFG, 0x200);
 
-	/*
-	 * reduce the number of usable entries in PCU TXBUF to avoid
-	 * wrap around issues.
-	 */
+	
 	if (AR_SREV_9285(ah)) {
-		/* For AR9285 the number of Fifos are reduced to half.
-		 * So set the usable tx buf size also to half to
-		 * avoid data/delimiter underruns
-		 */
+		
 		REG_WRITE(ah, AR_PCU_TXBUF_CTRL,
 			  AR_9285_PCU_TXBUF_CTRL_USABLE_SIZE);
 	} else if (!AR_SREV_9271(ah)) {
@@ -2026,7 +1959,7 @@ static void ath9k_hw_9280_spur_mitigate(struct ath_hw *ah, struct ath9k_channel 
 	for (i = 0; i < 123; i++) {
 		if ((cur_vit_mask > lower) && (cur_vit_mask < upper)) {
 
-			/* workaround for gcc bug #37014 */
+			
 			volatile int tmp_v = abs(cur_vit_mask - bin);
 
 			if (tmp_v < 75)
@@ -2227,7 +2160,7 @@ static void ath9k_hw_spur_mitigate(struct ath_hw *ah, struct ath9k_channel *chan
 	for (i = 0; i < 123; i++) {
 		if ((cur_vit_mask > lower) && (cur_vit_mask < upper)) {
 
-			/* workaround for gcc bug #37014 */
+			
 			volatile int tmp_v = abs(cur_vit_mask - bin);
 
 			if (tmp_v < 75)
@@ -2386,7 +2319,7 @@ int ath9k_hw_reset(struct ath_hw *ah, struct ath9k_channel *chan,
 
 	macStaId1 = REG_READ(ah, AR_STA_ID1) & AR_STA_ID1_BASE_RATE_11B;
 
-	/* For chips on which RTC reset is done, save TSF before it gets cleared */
+	
 	if (AR_SREV_9280(ah) && ah->eep_ops->get_eeprom(ah, EEP_OL_PWRCTRL))
 		tsf = ath9k_hw_gettsf64(ah);
 
@@ -2416,7 +2349,7 @@ int ath9k_hw_reset(struct ath_hw *ah, struct ath9k_channel *chan,
 		udelay(50);
 	}
 
-	/* Restore TSF */
+	
 	if (tsf && AR_SREV_9280(ah) && ah->eep_ops->get_eeprom(ah, EEP_OL_PWRCTRL))
 		ath9k_hw_settsf64(ah, tsf);
 
@@ -2424,7 +2357,7 @@ int ath9k_hw_reset(struct ath_hw *ah, struct ath9k_channel *chan,
 		REG_SET_BIT(ah, AR_GPIO_INPUT_EN_VAL, AR_GPIO_JTAG_DISABLE);
 
 	if (AR_SREV_9287_12_OR_LATER(ah)) {
-		/* Enable ASYNC FIFO */
+		
 		REG_SET_BIT(ah, AR_MAC_PCU_ASYNC_FIFO_REG3,
 				AR_MAC_PCU_ASYNC_FIFO_REG3_DATAPATH_SEL);
 		REG_SET_BIT(ah, AR_PHY_MODE, AR_PHY_MODE_ASYNCFIFO);
@@ -2437,15 +2370,14 @@ int ath9k_hw_reset(struct ath_hw *ah, struct ath9k_channel *chan,
 	if (r)
 		return r;
 
-	/* Setup MFP options for CCMP */
+	
 	if (AR_SREV_9280_20_OR_LATER(ah)) {
-		/* Mask Retry(b11), PwrMgt(b12), MoreData(b13) to 0 in mgmt
-		 * frames when constructing CCMP AAD. */
+		
 		REG_RMW_FIELD(ah, AR_AES_MUTE_MASK1, AR_AES_MUTE_MASK1_FC_MGMT,
 			      0xc7ff);
 		ah->sw_mgmt_crypto = false;
 	} else if (AR_SREV_9160_10_OR_LATER(ah)) {
-		/* Disable hardware crypto for management frames */
+		
 		REG_CLR_BIT(ah, AR_PCU_MISC_MODE2,
 			    AR_PCU_MISC_MODE2_MGMT_CRYPTO_ENABLE);
 		REG_SET_BIT(ah, AR_PCU_MISC_MODE2,
@@ -2555,9 +2487,7 @@ int ath9k_hw_reset(struct ath_hw *ah, struct ath9k_channel *chan,
 
 	REG_WRITE(ah, AR_CFG_LED, saveLedState | AR_CFG_SCLK_32KHZ);
 
-	/*
-	 * For big endian systems turn on swapping for descriptors
-	 */
+	
 	if (AR_SREV_9100(ah)) {
 		u32 mask;
 		mask = REG_READ(ah, AR_CFG);
@@ -2572,7 +2502,7 @@ int ath9k_hw_reset(struct ath_hw *ah, struct ath9k_channel *chan,
 				"Setting CFG 0x%x\n", REG_READ(ah, AR_CFG));
 		}
 	} else {
-		/* Configure AR9271 target WLAN */
+		
                 if (AR_SREV_9271(ah))
 			REG_WRITE(ah, AR_CFG, AR_CFG_SWRB | AR_CFG_SWTB);
 #ifdef __BIG_ENDIAN
@@ -2587,9 +2517,9 @@ int ath9k_hw_reset(struct ath_hw *ah, struct ath9k_channel *chan,
 	return 0;
 }
 
-/************************/
-/* Key Cache Management */
-/************************/
+
+
+
 
 bool ath9k_hw_keyreset(struct ath_hw *ah, u16 entry)
 {
@@ -2719,49 +2649,28 @@ bool ath9k_hw_set_keycache_entry(struct ath_hw *ah, u16 entry,
 	if (k->kv_len <= WLAN_KEY_LEN_WEP104)
 		key4 &= 0xff;
 
-	/*
-	 * Note: Key cache registers access special memory area that requires
-	 * two 32-bit writes to actually update the values in the internal
-	 * memory. Consequently, the exact order and pairs used here must be
-	 * maintained.
-	 */
+	
 
 	if (keyType == AR_KEYTABLE_TYPE_TKIP && ATH9K_IS_MIC_ENABLED(ah)) {
 		u16 micentry = entry + 64;
 
-		/*
-		 * Write inverted key[47:0] first to avoid Michael MIC errors
-		 * on frames that could be sent or received at the same time.
-		 * The correct key will be written in the end once everything
-		 * else is ready.
-		 */
+		
 		REG_WRITE(ah, AR_KEYTABLE_KEY0(entry), ~key0);
 		REG_WRITE(ah, AR_KEYTABLE_KEY1(entry), ~key1);
 
-		/* Write key[95:48] */
+		
 		REG_WRITE(ah, AR_KEYTABLE_KEY2(entry), key2);
 		REG_WRITE(ah, AR_KEYTABLE_KEY3(entry), key3);
 
-		/* Write key[127:96] and key type */
+		
 		REG_WRITE(ah, AR_KEYTABLE_KEY4(entry), key4);
 		REG_WRITE(ah, AR_KEYTABLE_TYPE(entry), keyType);
 
-		/* Write MAC address for the entry */
+		
 		(void) ath9k_hw_keysetmac(ah, entry, mac);
 
 		if (ah->misc_mode & AR_PCU_MIC_NEW_LOC_ENA) {
-			/*
-			 * TKIP uses two key cache entries:
-			 * Michael MIC TX/RX keys in the same key cache entry
-			 * (idx = main index + 64):
-			 * key0 [31:0] = RX key [31:0]
-			 * key1 [15:0] = TX key [31:16]
-			 * key1 [31:16] = reserved
-			 * key2 [31:0] = RX key [63:32]
-			 * key3 [15:0] = TX key [15:0]
-			 * key3 [31:16] = reserved
-			 * key4 [31:0] = TX key [63:32]
-			 */
+			
 			u32 mic0, mic1, mic2, mic3, mic4;
 
 			mic0 = get_unaligned_le32(k->kv_mic + 0);
@@ -2770,80 +2679,61 @@ bool ath9k_hw_set_keycache_entry(struct ath_hw *ah, u16 entry,
 			mic3 = get_unaligned_le16(k->kv_txmic + 0) & 0xffff;
 			mic4 = get_unaligned_le32(k->kv_txmic + 4);
 
-			/* Write RX[31:0] and TX[31:16] */
+			
 			REG_WRITE(ah, AR_KEYTABLE_KEY0(micentry), mic0);
 			REG_WRITE(ah, AR_KEYTABLE_KEY1(micentry), mic1);
 
-			/* Write RX[63:32] and TX[15:0] */
+			
 			REG_WRITE(ah, AR_KEYTABLE_KEY2(micentry), mic2);
 			REG_WRITE(ah, AR_KEYTABLE_KEY3(micentry), mic3);
 
-			/* Write TX[63:32] and keyType(reserved) */
+			
 			REG_WRITE(ah, AR_KEYTABLE_KEY4(micentry), mic4);
 			REG_WRITE(ah, AR_KEYTABLE_TYPE(micentry),
 				  AR_KEYTABLE_TYPE_CLR);
 
 		} else {
-			/*
-			 * TKIP uses four key cache entries (two for group
-			 * keys):
-			 * Michael MIC TX/RX keys are in different key cache
-			 * entries (idx = main index + 64 for TX and
-			 * main index + 32 + 96 for RX):
-			 * key0 [31:0] = TX/RX MIC key [31:0]
-			 * key1 [31:0] = reserved
-			 * key2 [31:0] = TX/RX MIC key [63:32]
-			 * key3 [31:0] = reserved
-			 * key4 [31:0] = reserved
-			 *
-			 * Upper layer code will call this function separately
-			 * for TX and RX keys when these registers offsets are
-			 * used.
-			 */
+			
 			u32 mic0, mic2;
 
 			mic0 = get_unaligned_le32(k->kv_mic + 0);
 			mic2 = get_unaligned_le32(k->kv_mic + 4);
 
-			/* Write MIC key[31:0] */
+			
 			REG_WRITE(ah, AR_KEYTABLE_KEY0(micentry), mic0);
 			REG_WRITE(ah, AR_KEYTABLE_KEY1(micentry), 0);
 
-			/* Write MIC key[63:32] */
+			
 			REG_WRITE(ah, AR_KEYTABLE_KEY2(micentry), mic2);
 			REG_WRITE(ah, AR_KEYTABLE_KEY3(micentry), 0);
 
-			/* Write TX[63:32] and keyType(reserved) */
+			
 			REG_WRITE(ah, AR_KEYTABLE_KEY4(micentry), 0);
 			REG_WRITE(ah, AR_KEYTABLE_TYPE(micentry),
 				  AR_KEYTABLE_TYPE_CLR);
 		}
 
-		/* MAC address registers are reserved for the MIC entry */
+		
 		REG_WRITE(ah, AR_KEYTABLE_MAC0(micentry), 0);
 		REG_WRITE(ah, AR_KEYTABLE_MAC1(micentry), 0);
 
-		/*
-		 * Write the correct (un-inverted) key[47:0] last to enable
-		 * TKIP now that all other registers are set with correct
-		 * values.
-		 */
+		
 		REG_WRITE(ah, AR_KEYTABLE_KEY0(entry), key0);
 		REG_WRITE(ah, AR_KEYTABLE_KEY1(entry), key1);
 	} else {
-		/* Write key[47:0] */
+		
 		REG_WRITE(ah, AR_KEYTABLE_KEY0(entry), key0);
 		REG_WRITE(ah, AR_KEYTABLE_KEY1(entry), key1);
 
-		/* Write key[95:48] */
+		
 		REG_WRITE(ah, AR_KEYTABLE_KEY2(entry), key2);
 		REG_WRITE(ah, AR_KEYTABLE_KEY3(entry), key3);
 
-		/* Write key[127:96] and key type */
+		
 		REG_WRITE(ah, AR_KEYTABLE_KEY4(entry), key4);
 		REG_WRITE(ah, AR_KEYTABLE_TYPE(entry), keyType);
 
-		/* Write MAC address for the entry */
+		
 		(void) ath9k_hw_keysetmac(ah, entry, mac);
 	}
 
@@ -2860,9 +2750,9 @@ bool ath9k_hw_keyisvalid(struct ath_hw *ah, u16 entry)
 	return false;
 }
 
-/******************************/
-/* Power Management (Chipset) */
-/******************************/
+
+
+
 
 static void ath9k_set_power_sleep(struct ath_hw *ah, int setChip)
 {
@@ -3018,15 +2908,7 @@ void ath9k_ps_restore(struct ath_softc *sc)
 	spin_unlock_irqrestore(&sc->sc_pm_lock, flags);
 }
 
-/*
- * Helper for ASPM support.
- *
- * Disable PLL when in L0s as well as receiver clock when in L1.
- * This power saving option must be enabled through the SerDes.
- *
- * Programming the SerDes must go through the same 288 bit serial shift
- * register as the other analog registers.  Hence the 9 writes.
- */
+
 void ath9k_hw_configpcipowersave(struct ath_hw *ah, int restore, int power_off)
 {
 	u8 i;
@@ -3035,18 +2917,14 @@ void ath9k_hw_configpcipowersave(struct ath_hw *ah, int restore, int power_off)
 	if (ah->is_pciexpress != true)
 		return;
 
-	/* Do not touch SerDes registers */
+	
 	if (ah->config.pcie_powersave_enable == 2)
 		return;
 
-	/* Nothing to do on restore for 11N */
+	
 	if (!restore) {
 		if (AR_SREV_9280_20_OR_LATER(ah)) {
-			/*
-			 * AR9280 2.0 or later chips use SerDes values from the
-			 * initvals.h initialized depending on chipset during
-			 * ath9k_hw_init()
-			 */
+			
 			for (i = 0; i < ah->iniPcieSerdes.ia_rows; i++) {
 				REG_WRITE(ah, INI_RA(&ah->iniPcieSerdes, i, 0),
 					  INI_RA(&ah->iniPcieSerdes, i, 1));
@@ -3056,12 +2934,12 @@ void ath9k_hw_configpcipowersave(struct ath_hw *ah, int restore, int power_off)
 			REG_WRITE(ah, AR_PCIE_SERDES, 0x9248fd00);
 			REG_WRITE(ah, AR_PCIE_SERDES, 0x24924924);
 
-			/* RX shut off when elecidle is asserted */
+			
 			REG_WRITE(ah, AR_PCIE_SERDES, 0xa8000019);
 			REG_WRITE(ah, AR_PCIE_SERDES, 0x13160820);
 			REG_WRITE(ah, AR_PCIE_SERDES, 0xe5980560);
 
-			/* Shut off CLKREQ active in L1 */
+			
 			if (ah->config.pcie_clock_req)
 				REG_WRITE(ah, AR_PCIE_SERDES, 0x401deffc);
 			else
@@ -3071,38 +2949,35 @@ void ath9k_hw_configpcipowersave(struct ath_hw *ah, int restore, int power_off)
 			REG_WRITE(ah, AR_PCIE_SERDES, 0xbe105554);
 			REG_WRITE(ah, AR_PCIE_SERDES, 0x00043007);
 
-			/* Load the new settings */
+			
 			REG_WRITE(ah, AR_PCIE_SERDES2, 0x00000000);
 
 		} else {
 			REG_WRITE(ah, AR_PCIE_SERDES, 0x9248fc00);
 			REG_WRITE(ah, AR_PCIE_SERDES, 0x24924924);
 
-			/* RX shut off when elecidle is asserted */
+			
 			REG_WRITE(ah, AR_PCIE_SERDES, 0x28000039);
 			REG_WRITE(ah, AR_PCIE_SERDES, 0x53160824);
 			REG_WRITE(ah, AR_PCIE_SERDES, 0xe5980579);
 
-			/*
-			 * Ignore ah->ah_config.pcie_clock_req setting for
-			 * pre-AR9280 11n
-			 */
+			
 			REG_WRITE(ah, AR_PCIE_SERDES, 0x001defff);
 
 			REG_WRITE(ah, AR_PCIE_SERDES, 0x1aaabe40);
 			REG_WRITE(ah, AR_PCIE_SERDES, 0xbe105554);
 			REG_WRITE(ah, AR_PCIE_SERDES, 0x000e3007);
 
-			/* Load the new settings */
+			
 			REG_WRITE(ah, AR_PCIE_SERDES2, 0x00000000);
 		}
 
 		udelay(1000);
 
-		/* set bit 19 to allow forcing of pcie core into L1 state */
+		
 		REG_SET_BIT(ah, AR_PCIE_PM_CTRL, AR_PCIE_PM_CTRL_ENA);
 
-		/* Several PCIe massages to ensure proper behaviour */
+		
 		if (ah->config.pcie_waen) {
 			val = ah->config.pcie_waen;
 			if (!power_off)
@@ -3114,10 +2989,7 @@ void ath9k_hw_configpcipowersave(struct ath_hw *ah, int restore, int power_off)
 				if (!power_off)
 					val &= (~AR_WA_D3_L1_DISABLE);
 			} else if (AR_SREV_9280(ah)) {
-				/*
-				 * On AR9280 chips bit 22 of 0x4004 needs to be
-				 * set otherwise card may disappear.
-				 */
+				
 				val = AR9280_WA_DEFAULT;
 				if (!power_off)
 					val &= (~AR_WA_D3_L1_DISABLE);
@@ -3129,12 +3001,7 @@ void ath9k_hw_configpcipowersave(struct ath_hw *ah, int restore, int power_off)
 	}
 
 	if (power_off) {
-		/*
-		 * Set PCIe workaround bits
-		 * bit 14 in WA register (disable L1) should only
-		 * be set when device enters D3 and be cleared
-		 * when device comes back to D0.
-		 */
+		
 		if (ah->config.pcie_waen) {
 			if (ah->config.pcie_waen & AR_WA_D3_L1_DISABLE)
 				REG_SET_BIT(ah, AR_WA, AR_WA_D3_L1_DISABLE);
@@ -3150,9 +3017,9 @@ void ath9k_hw_configpcipowersave(struct ath_hw *ah, int restore, int power_off)
 	}
 }
 
-/**********************/
-/* Interrupt Handling */
-/**********************/
+
+
+
 
 bool ath9k_hw_intrpend(struct ath_hw *ah)
 {
@@ -3430,9 +3297,9 @@ enum ath9k_int ath9k_hw_set_interrupts(struct ath_hw *ah, enum ath9k_int ints)
 	return omask;
 }
 
-/*******************/
-/* Beacon Handling */
-/*******************/
+
+
+
 
 void ath9k_hw_beaconinit(struct ath_hw *ah, u32 next_beacon, u32 beacon_period)
 {
@@ -3550,13 +3417,13 @@ void ath9k_hw_set_sta_beacon_timers(struct ath_hw *ah,
 		    AR_TBTT_TIMER_EN | AR_TIM_TIMER_EN |
 		    AR_DTIM_TIMER_EN);
 
-	/* TSF Out of Range Threshold */
+	
 	REG_WRITE(ah, AR_TSFOOR_THRESHOLD, bs->bs_tsfoor_threshold);
 }
 
-/*******************/
-/* HW Capabilities */
-/*******************/
+
+
+
 
 void ath9k_hw_fill_cap_info(struct ath_hw *ah)
 {
@@ -3621,17 +3488,14 @@ void ath9k_hw_fill_cap_info(struct ath_hw *ah)
 	}
 
 	pCap->tx_chainmask = ah->eep_ops->get_eeprom(ah, EEP_TX_MASK);
-	/*
-	 * For AR9271 we will temporarilly uses the rx chainmax as read from
-	 * the EEPROM.
-	 */
+	
 	if ((ah->hw_version.devid == AR5416_DEVID_PCI) &&
 	    !(eeval & AR5416_OPFLAGS_11A) &&
 	    !(AR_SREV_9271(ah)))
-		/* CB71: GPIO 0 is pulled down to indicate 3 rx chains */
+		
 		pCap->rx_chainmask = ath9k_hw_gpio_get(ah, 0) ? 0x5 : 0x7;
 	else
-		/* Use rx_chainmask from EEPROM. */
+		
 		pCap->rx_chainmask = ah->eep_ops->get_eeprom(ah, EEP_RX_MASK);
 
 	if (!(AR_SREV_9280(ah) && (ah->hw_version.macRev == 0)))
@@ -3854,9 +3718,9 @@ bool ath9k_hw_setcapability(struct ath_hw *ah, enum ath9k_capability_type type,
 	}
 }
 
-/****************************/
-/* GPIO / RFKILL / Antennae */
-/****************************/
+
+
+
 
 static void ath9k_hw_gpio_cfg_output_mux(struct ath_hw *ah,
 					 u32 gpio, u32 type)
@@ -3994,9 +3858,9 @@ bool ath9k_hw_setantennaswitch(struct ath_hw *ah,
 	return true;
 }
 
-/*********************/
-/* General Operation */
-/*********************/
+
+
+
 
 u32 ath9k_hw_getrxfilter(struct ath_hw *ah)
 {
@@ -4152,7 +4016,7 @@ void ath9k_hw_set11nmac2040(struct ath_hw *ah, enum ath9k_ht_macmode mode)
 	REG_WRITE(ah, AR_2040_MODE, macmode);
 }
 
-/* HW Generic timers configuration */
+
 
 static const struct ath_gen_timer_configuration gen_tmr_configuration[] =
 {
@@ -4181,9 +4045,9 @@ static const struct ath_gen_timer_configuration gen_tmr_configuration[] =
 				AR_NDP2_TIMER_MODE, 0x0080}
 };
 
-/* HW generic timer primitives */
 
-/* compute and clear index of rightmost 1 */
+
+
 static u32 rightmost_index(struct ath_gen_timer_table *timer_table, u32 *mask)
 {
 	u32 b;
@@ -4219,7 +4083,7 @@ struct ath_gen_timer *ath_gen_timer_alloc(struct ath_hw *ah,
 		return NULL;
 	}
 
-	/* allocate a hardware generic timer slot */
+	
 	timer_table->timers[timer_index] = timer;
 	timer->index = timer_index;
 	timer->trigger = trigger;
@@ -4245,16 +4109,11 @@ void ath_gen_timer_start(struct ath_hw *ah,
 	DPRINTF(ah->ah_sc, ATH_DBG_HWTIMER, "curent tsf %x period %x"
 		"timer_next %x\n", tsf, timer_period, timer_next);
 
-	/*
-	 * Pull timer_next forward if the current TSF already passed it
-	 * because of software latency
-	 */
+	
 	if (timer_next < tsf)
 		timer_next = tsf + timer_period;
 
-	/*
-	 * Program generic timer registers
-	 */
+	
 	REG_WRITE(ah, gen_tmr_configuration[timer->index].next_addr,
 		 timer_next);
 	REG_WRITE(ah, gen_tmr_configuration[timer->index].period_addr,
@@ -4262,7 +4121,7 @@ void ath_gen_timer_start(struct ath_hw *ah,
 	REG_SET_BIT(ah, gen_tmr_configuration[timer->index].mode_addr,
 		    gen_tmr_configuration[timer->index].mode_mask);
 
-	/* Enable both trigger and thresh interrupt masks */
+	
 	REG_SET_BIT(ah, AR_IMR_S5,
 		(SM(AR_GENTMR_BIT(timer->index), AR_IMR_S5_GENTIMER_THRESH) |
 		SM(AR_GENTMR_BIT(timer->index), AR_IMR_S5_GENTIMER_TRIG)));
@@ -4283,18 +4142,18 @@ void ath_gen_timer_stop(struct ath_hw *ah, struct ath_gen_timer *timer)
 		return;
 	}
 
-	/* Clear generic timer enable bits. */
+	
 	REG_CLR_BIT(ah, gen_tmr_configuration[timer->index].mode_addr,
 			gen_tmr_configuration[timer->index].mode_mask);
 
-	/* Disable both trigger and thresh interrupt masks */
+	
 	REG_CLR_BIT(ah, AR_IMR_S5,
 		(SM(AR_GENTMR_BIT(timer->index), AR_IMR_S5_GENTIMER_THRESH) |
 		SM(AR_GENTMR_BIT(timer->index), AR_IMR_S5_GENTIMER_TRIG)));
 
 	clear_bit(timer->index, &timer_table->timer_mask.timer_bits);
 
-	/* if no timer is enabled, turn off interrupt mask */
+	
 	if (timer_table->timer_mask.val == 0) {
 		ath9k_hw_set_interrupts(ah, 0);
 		ah->ah_sc->imask &= ~ATH9K_INT_GENTIMER;
@@ -4306,21 +4165,19 @@ void ath_gen_timer_free(struct ath_hw *ah, struct ath_gen_timer *timer)
 {
 	struct ath_gen_timer_table *timer_table = &ah->hw_gen_timers;
 
-	/* free the hardware generic timer slot */
+	
 	timer_table->timers[timer->index] = NULL;
 	kfree(timer);
 }
 
-/*
- * Generic Timer Interrupts handling
- */
+
 void ath_gen_timer_isr(struct ath_hw *ah)
 {
 	struct ath_gen_timer_table *timer_table = &ah->hw_gen_timers;
 	struct ath_gen_timer *timer;
 	u32 trigger_mask, thresh_mask, index;
 
-	/* get hardware generic timer interrupt status */
+	
 	trigger_mask = ah->intr_gen_timer_trigger;
 	thresh_mask = ah->intr_gen_timer_thresh;
 	trigger_mask &= timer_table->timer_mask.val;
@@ -4347,9 +4204,7 @@ void ath_gen_timer_isr(struct ath_hw *ah)
 	}
 }
 
-/*
- * Primitive to disable ASPM
- */
+
 void ath_pcie_aspm_disable(struct ath_softc *sc)
 {
 	struct pci_dev *pdev = to_pci_dev(sc->dev);

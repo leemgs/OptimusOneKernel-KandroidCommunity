@@ -1,25 +1,4 @@
-/*
- * This file is part of wl1271
- *
- * Copyright (C) 2009 Nokia Corporation
- *
- * Contact: Luciano Coelho <luciano.coelho@nokia.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -53,7 +32,7 @@ static int wl1271_init_templates_config(struct wl1271 *wl)
 {
 	int ret;
 
-	/* send empty templates for fw memory reservation */
+	
 	ret = wl1271_cmd_template_set(wl, CMD_TEMPL_CFG_PROBE_REQ_2_4, NULL,
 				      sizeof(struct wl12xx_probe_req_template));
 	if (ret < 0)
@@ -196,7 +175,7 @@ static int wl1271_init_general_parms(struct wl1271 *wl)
 	gen_parms->id = TEST_CMD_INI_FILE_GENERAL_PARAM;
 
 	gen_parms->ref_clk = REF_CLK_38_4_E;
-	/* FIXME: magic numbers */
+	
 	gen_parms->settling_time = 5;
 	gen_parms->clk_valid_on_wakeup = 0;
 	gen_parms->dc2dcmode = 0;
@@ -217,10 +196,7 @@ static int wl1271_init_general_parms(struct wl1271 *wl)
 
 static int wl1271_init_radio_parms(struct wl1271 *wl)
 {
-	/*
-	 * FIXME: All these magic numbers should be moved to some place where
-	 * they can be configured (separate file?)
-	 */
+	
 
 	struct wl1271_radio_parms *radio_parms;
 	int ret;
@@ -250,15 +226,15 @@ static int wl1271_init_radio_parms(struct wl1271 *wl)
 
 	radio_parms->id = TEST_CMD_INI_FILE_RADIO_PARAM;
 
-	/* Static radio parameters */
+	
 	radio_parms->rx_trace_loss = 10;
 	radio_parms->tx_trace_loss = 10;
 	memcpy(radio_parms->rx_rssi_and_proc_compens, compensation,
 	       sizeof(compensation));
 
-	/* We don't set the 5GHz -- N/A */
+	
 
-	/* Dynamic radio parameters */
+	
 	radio_parms->tx_ref_pd_voltage = cpu_to_le16(0x24e);
 	radio_parms->tx_ref_power = 0x78;
 	radio_parms->tx_offset_db = 0x0;
@@ -299,91 +275,90 @@ int wl1271_hw_init(struct wl1271 *wl)
 	if (ret < 0)
 		return ret;
 
-	/* Template settings */
+	
 	ret = wl1271_init_templates_config(wl);
 	if (ret < 0)
 		return ret;
 
-	/* Default memory configuration */
+	
 	ret = wl1271_acx_init_mem_config(wl);
 	if (ret < 0)
 		return ret;
 
-	/* RX config */
+	
 	ret = wl1271_init_rx_config(wl,
 				       RX_CFG_PROMISCUOUS | RX_CFG_TSF,
 				       RX_FILTER_OPTION_DEF);
-	/* RX_CONFIG_OPTION_ANY_DST_ANY_BSS,
-	   RX_FILTER_OPTION_FILTER_ALL); */
+	
 	if (ret < 0)
 		goto out_free_memmap;
 
-	/* PHY layer config */
+	
 	ret = wl1271_init_phy_config(wl);
 	if (ret < 0)
 		goto out_free_memmap;
 
-	/* Beacon filtering */
+	
 	ret = wl1271_init_beacon_filter(wl);
 	if (ret < 0)
 		goto out_free_memmap;
 
-	/* Configure TX patch complete interrupt behavior */
+	
 	ret = wl1271_acx_tx_config_options(wl);
 	if (ret < 0)
 		goto out_free_memmap;
 
-	/* RX complete interrupt pacing */
+	
 	ret = wl1271_acx_init_rx_interrupt(wl);
 	if (ret < 0)
 		goto out_free_memmap;
 
-	/* Bluetooth WLAN coexistence */
+	
 	ret = wl1271_init_pta(wl);
 	if (ret < 0)
 		goto out_free_memmap;
 
-	/* Energy detection */
+	
 	ret = wl1271_init_energy_detection(wl);
 	if (ret < 0)
 		goto out_free_memmap;
 
-	/* Beacons and boradcast settings */
+	
 	ret = wl1271_init_beacon_broadcast(wl);
 	if (ret < 0)
 		goto out_free_memmap;
 
-	/* Default fragmentation threshold */
+	
 	ret = wl1271_acx_frag_threshold(wl);
 	if (ret < 0)
 		goto out_free_memmap;
 
-	/* Default TID configuration */
+	
 	ret = wl1271_acx_tid_cfg(wl);
 	if (ret < 0)
 		goto out_free_memmap;
 
-	/* Default AC configuration */
+	
 	ret = wl1271_acx_ac_cfg(wl);
 	if (ret < 0)
 		goto out_free_memmap;
 
-	/* Configure TX rate classes */
+	
 	ret = wl1271_acx_rate_policies(wl);
 	if (ret < 0)
 		goto out_free_memmap;
 
-	/* Enable data path */
+	
 	ret = wl1271_cmd_data_path(wl, wl->channel, 1);
 	if (ret < 0)
 		goto out_free_memmap;
 
-	/* Configure for ELP power saving */
+	
 	ret = wl1271_acx_sleep_auth(wl, WL1271_PSM_ELP);
 	if (ret < 0)
 		goto out_free_memmap;
 
-	/* Configure HW encryption */
+	
 	ret = wl1271_init_hwenc_config(wl);
 	if (ret < 0)
 		goto out_free_memmap;

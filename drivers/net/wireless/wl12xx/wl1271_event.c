@@ -1,25 +1,4 @@
-/*
- * This file is part of wl1271
- *
- * Copyright (C) 2008-2009 Nokia Corporation
- *
- * Contact: Luciano Coelho <luciano.coelho@nokia.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #include "wl1271.h"
 #include "wl1271_reg.h"
@@ -109,16 +88,16 @@ int wl1271_event_handle(struct wl1271 *wl, u8 mbox_num)
 	if (mbox_num > 1)
 		return -EINVAL;
 
-	/* first we read the mbox descriptor */
+	
 	wl1271_spi_mem_read(wl, wl->mbox_ptr[mbox_num], &mbox,
 			    sizeof(struct event_mailbox));
 
-	/* process the descriptor */
+	
 	ret = wl1271_event_process(wl, &mbox);
 	if (ret < 0)
 		return ret;
 
-	/* then we let the firmware know it can go on...*/
+	
 	wl1271_reg_write32(wl, ACX_REG_INTERRUPT_TRIG, INTR_TRIG_EVENT_ACK);
 
 	return 0;

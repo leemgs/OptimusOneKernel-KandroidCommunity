@@ -1,6 +1,4 @@
-/**
-  * This file contains functions for 802.11D.
-  */
+
 #include <linux/ctype.h>
 #include <linux/kernel.h>
 #include <linux/wireless.h>
@@ -14,18 +12,18 @@
 #define TX_PWR_DEFAULT	10
 
 static struct region_code_mapping region_code_mapping[] = {
-	{"US ", 0x10},		/* US FCC      */
-	{"CA ", 0x10},		/* IC Canada   */
-	{"SG ", 0x10},		/* Singapore   */
-	{"EU ", 0x30},		/* ETSI        */
-	{"AU ", 0x30},		/* Australia   */
-	{"KR ", 0x30},		/* Republic Of Korea */
-	{"ES ", 0x31},		/* Spain       */
-	{"FR ", 0x32},		/* France      */
-	{"JP ", 0x40},		/* Japan       */
+	{"US ", 0x10},		
+	{"CA ", 0x10},		
+	{"SG ", 0x10},		
+	{"EU ", 0x30},		
+	{"AU ", 0x30},		
+	{"KR ", 0x30},		
+	{"ES ", 0x31},		
+	{"FR ", 0x32},		
+	{"JP ", 0x40},		
 };
 
-/* Following 2 structure defines the supported channels */
+
 static struct chan_freq_power channel_freq_power_UN_BG[] = {
 	{1, 2412, TX_PWR_DEFAULT},
 	{2, 2417, TX_PWR_DEFAULT},
@@ -56,7 +54,7 @@ static u8 lbs_region_2_code(u8 *region)
 			return (region_code_mapping[i].code);
 	}
 
-	/* default is US */
+	
 	return (region_code_mapping[0].code);
 }
 
@@ -68,19 +66,13 @@ static u8 *lbs_code_2_region(u8 code)
 		if (region_code_mapping[i].code == code)
 			return (region_code_mapping[i].region);
 	}
-	/* default is US */
+	
 	return (region_code_mapping[0].region);
 }
 
-/**
- *  @brief This function finds the nrchan-th chan after the firstchan
- *  @param band       band
- *  @param firstchan  first channel number
- *  @param nrchan   number of channels
- *  @return 	      the nrchan-th chan number
-*/
+
 static u8 lbs_get_chan_11d(u8 firstchan, u8 nrchan, u8 *chan)
-/*find the nrchan-th chan after the firstchan*/
+
 {
 	u8 i;
 	struct chan_freq_power *cfp;
@@ -97,7 +89,7 @@ static u8 lbs_get_chan_11d(u8 firstchan, u8 nrchan, u8 *chan)
 	}
 
 	if (i < cfp_no) {
-		/*if beyond the boundary */
+		
 		if (i + nrchan < cfp_no) {
 			*chan = (cfp + i + nrchan)->channel;
 			return 1;
@@ -107,12 +99,7 @@ static u8 lbs_get_chan_11d(u8 firstchan, u8 nrchan, u8 *chan)
 	return 0;
 }
 
-/**
- *  @brief This function Checks if chan txpwr is learned from AP/IBSS
- *  @param chan                 chan number
- *  @param parsed_region_chan   pointer to parsed_region_chan_11d
- *  @return 	                TRUE; FALSE
-*/
+
 static u8 lbs_channel_known_11d(u8 chan,
 			  struct parsed_region_chan_11d * parsed_region_chan)
 {
@@ -211,12 +198,7 @@ static int generate_domain_info_11d(struct parsed_region_chan_11d
 	return 0;
 }
 
-/**
- *  @brief This function generates parsed_region_chan from Domain Info learned from AP/IBSS
- *  @param region_chan          pointer to struct region_channel
- *  @param *parsed_region_chan  pointer to parsed_region_chan_11d
- *  @return 	                N/A
-*/
+
 static void lbs_generate_parsed_region_chan_11d(struct region_channel *region_chan,
 					  struct parsed_region_chan_11d *
 					  parsed_region_chan)
@@ -257,13 +239,7 @@ static void lbs_generate_parsed_region_chan_11d(struct region_channel *region_ch
 	return;
 }
 
-/**
- *  @brief generate parsed_region_chan from Domain Info learned from AP/IBSS
- *  @param region               region ID
- *  @param band                 band
- *  @param chan                 chan
- *  @return 	                TRUE;FALSE
-*/
+
 static u8 lbs_region_chan_supported_11d(u8 region, u8 chan)
 {
 	struct chan_freq_power *cfp;
@@ -279,7 +255,7 @@ static u8 lbs_region_chan_supported_11d(u8 region, u8 chan)
 
 	for (idx = 0; idx < cfp_no; idx++) {
 		if (chan == (cfp + idx)->channel) {
-			/* If Mrvl Chip Supported? */
+			
 			if ((cfp + idx)->unsupported) {
 				ret = 0;
 			} else {
@@ -289,19 +265,14 @@ static u8 lbs_region_chan_supported_11d(u8 region, u8 chan)
 		}
 	}
 
-	/*chan is not in the region table */
+	
 
 done:
 	lbs_deb_leave_args(LBS_DEB_11D, "ret %d", ret);
 	return ret;
 }
 
-/**
- *  @brief This function checks if chan txpwr is learned from AP/IBSS
- *  @param chan                 chan number
- *  @param parsed_region_chan   pointer to parsed_region_chan_11d
- *  @return 	                0
-*/
+
 static int parse_domain_info_11d(struct ieee_ie_country_info_full_set *countryinfo,
 				 u8 band,
 				 struct parsed_region_chan_11d *parsed_region_chan)
@@ -311,30 +282,23 @@ static int parse_domain_info_11d(struct ieee_ie_country_info_full_set *countryin
 	u8 region;
 	u8 curchan = 0;
 
-	u8 idx = 0;		/*chan index in parsed_region_chan */
+	u8 idx = 0;		
 
 	u8 j, i;
 
 	lbs_deb_enter(LBS_DEB_11D);
 
-	/*validation Rules:
-	   1. valid region Code
-	   2. First Chan increment
-	   3. channel range no overlap
-	   4. channel is valid?
-	   5. channel is supported by region?
-	   6. Others
-	 */
+	
 
 	lbs_deb_hex(LBS_DEB_11D, "countryinfo", (u8 *) countryinfo, 30);
 
 	if ((*(countryinfo->countrycode)) == 0
 	    || (countryinfo->header.len <= COUNTRY_CODE_LEN)) {
-		/* No region Info or Wrong region info: treat as No 11D info */
+		
 		goto done;
 	}
 
-	/*Step1: check region_code */
+	
 	parsed_region_chan->region = region =
 	    lbs_region_2_code(countryinfo->countrycode);
 
@@ -353,7 +317,7 @@ static int parse_domain_info_11d(struct ieee_ie_country_info_full_set *countryin
 	for (j = 0, lastchan = 0; j < nr_subband; j++) {
 
 		if (countryinfo->subband[j].firstchan <= lastchan) {
-			/*Step2&3. Check First Chan Num increment and no overlap */
+			
 			lbs_deb_11d("chan %d>%d, overlap\n",
 			       countryinfo->subband[j].firstchan, lastchan);
 			continue;
@@ -363,10 +327,10 @@ static int parse_domain_info_11d(struct ieee_ie_country_info_full_set *countryin
 		nrchan = countryinfo->subband[j].nrchan;
 
 		for (i = 0; idx < MAX_NO_OF_CHAN && i < nrchan; i++) {
-			/*step4: channel is supported? */
+			
 
 			if (!lbs_get_chan_11d(firstchan, i, &curchan)) {
-				/* Chan is not found in UN table */
+				
 				lbs_deb_11d("chan is not supported: %d \n", i);
 				break;
 			}
@@ -374,20 +338,20 @@ static int parse_domain_info_11d(struct ieee_ie_country_info_full_set *countryin
 			lastchan = curchan;
 
 			if (lbs_region_chan_supported_11d(region, curchan)) {
-				/*step5: Check if curchan is supported by mrvl in region */
+				
 				parsed_region_chan->chanpwr[idx].chan = curchan;
 				parsed_region_chan->chanpwr[idx].pwr =
 				    countryinfo->subband[j].maxtxpwr;
 				idx++;
 			} else {
-				/*not supported and ignore the chan */
+				
 				lbs_deb_11d(
 				       "i %d, chan %d unsupported in region %x, band %d\n",
 				       i, curchan, region, band);
 			}
 		}
 
-		/*Step6: Add other checking if any */
+		
 
 	}
 
@@ -402,12 +366,7 @@ done:
 	return 0;
 }
 
-/**
- *  @brief This function calculates the scan type for channels
- *  @param chan                 chan number
- *  @param parsed_region_chan   pointer to parsed_region_chan_11d
- *  @return 	                PASSIVE if chan is unknown; ACTIVE if chan is known
-*/
+
 u8 lbs_get_scan_type_11d(u8 chan,
 			  struct parsed_region_chan_11d * parsed_region_chan)
 {
@@ -435,11 +394,7 @@ void lbs_init_11d(struct lbs_private *priv)
 	return;
 }
 
-/**
- *  @brief This function sets DOMAIN INFO to FW
- *  @param priv       pointer to struct lbs_private
- *  @return 	      0; -1
-*/
+
 static int set_domain_info_11d(struct lbs_private *priv)
 {
 	int ret;
@@ -458,12 +413,7 @@ static int set_domain_info_11d(struct lbs_private *priv)
 	return ret;
 }
 
-/**
- *  @brief This function setups scan channels
- *  @param priv       pointer to struct lbs_private
- *  @param band       band
- *  @return 	      0
-*/
+
 int lbs_set_universaltable(struct lbs_private *priv, u8 band)
 {
 	u16 size = sizeof(struct chan_freq_power);
@@ -486,14 +436,7 @@ int lbs_set_universaltable(struct lbs_private *priv, u8 band)
 	return 0;
 }
 
-/**
- *  @brief This function implements command CMD_802_11D_DOMAIN_INFO
- *  @param priv       pointer to struct lbs_private
- *  @param cmd        pointer to cmd buffer
- *  @param cmdno      cmd ID
- *  @param cmdOption  cmd action
- *  @return 	      0
-*/
+
 int lbs_cmd_802_11d_domain_info(struct lbs_private *priv,
 				 struct cmd_ds_command *cmd, u16 cmdno,
 				 u16 cmdoption)
@@ -545,12 +488,7 @@ done:
 	return 0;
 }
 
-/**
- *  @brief This function parses countryinfo from AP and download country info to FW
- *  @param priv    pointer to struct lbs_private
- *  @param resp    pointer to command response buffer
- *  @return 	   0; -1
- */
+
 int lbs_ret_802_11d_domain_info(struct cmd_ds_command *resp)
 {
 	struct cmd_ds_802_11d_domain_info *domaininfo = &resp->params.domaininforesp;
@@ -575,7 +513,7 @@ int lbs_ret_802_11d_domain_info(struct cmd_ds_command *resp)
 	}
 
 	switch (action) {
-	case CMD_ACT_SET:	/*Proc Set action */
+	case CMD_ACT_SET:	
 		break;
 
 	case CMD_ACT_GET:
@@ -590,11 +528,7 @@ int lbs_ret_802_11d_domain_info(struct cmd_ds_command *resp)
 	return ret;
 }
 
-/**
- *  @brief This function parses countryinfo from AP and download country info to FW
- *  @param priv    pointer to struct lbs_private
- *  @return 	   0; -1
- */
+
 int lbs_parse_dnld_countryinfo_11d(struct lbs_private *priv,
                                         struct bss_descriptor * bss)
 {
@@ -631,11 +565,7 @@ done:
 	return ret;
 }
 
-/**
- *  @brief This function generates 11D info from user specified regioncode and download to FW
- *  @param priv    pointer to struct lbs_private
- *  @return 	   0; -1
- */
+
 int lbs_create_dnld_countryinfo_11d(struct lbs_private *priv)
 {
 	int ret;
@@ -646,7 +576,7 @@ int lbs_create_dnld_countryinfo_11d(struct lbs_private *priv)
 	lbs_deb_11d("curbssparams.band %d\n", priv->curbssparams.band);
 
 	if (priv->enable11d) {
-		/* update parsed_region_chan_11; dnld domaininf to FW */
+		
 
 		for (j = 0; j < ARRAY_SIZE(priv->region_channel); j++) {
 			region_chan = &priv->region_channel[j];

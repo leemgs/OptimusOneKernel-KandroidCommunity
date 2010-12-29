@@ -1,15 +1,4 @@
-/*
- * Definitions for RTL8187 leds
- *
- * Copyright 2009 Larry Finger <Larry.Finger@lwfinger.net>
- *
- * Based on the LED handling in the r8187 driver, which is:
- * Copyright (c) Realtek Semiconductor Corp. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef RTL8187_LED_H
 #define RTL8187_LED_H
@@ -41,17 +30,17 @@ enum {
 
 struct rtl8187_led {
 	struct ieee80211_hw *dev;
-	/* The LED class device */
+	
 	struct led_classdev led_dev;
-	/* The pin/method used to control the led */
+	
 	u8 ledpin;
-	/* The unique name string for this LED device. */
+	
 	char name[RTL8187_LED_MAX_NAME_LEN + 1];
 };
 
 void rtl8187_leds_init(struct ieee80211_hw *dev, u16 code);
 void rtl8187_leds_exit(struct ieee80211_hw *dev);
 
-#endif /* def CONFIG_RTL8187_LED */
+#endif 
 
-#endif /* RTL8187_LED_H */
+#endif 

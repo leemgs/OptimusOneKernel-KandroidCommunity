@@ -1,37 +1,11 @@
-/******************************************************************************
- *
- * GPL LICENSE SUMMARY
- *
- * Copyright(c) 2008 - 2009 Intel Corporation. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of version 2 of the GNU General Public License as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110,
- * USA
- *
- * The full GNU General Public License is included in this distribution
- * in the file called LICENSE.GPL.
- *
- * Contact Information:
- *  Intel Linux Wireless <ilw@linux.intel.com>
- * Intel Corporation, 5200 N.E. Elam Young Parkway, Hillsboro, OR 97124-6497
- *****************************************************************************/
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/sched.h>
 #include <net/mac80211.h>
 
-#include "iwl-dev.h" /* FIXME: remove */
+#include "iwl-dev.h" 
 #include "iwl-debug.h"
 #include "iwl-eeprom.h"
 #include "iwl-core.h"
@@ -141,10 +115,10 @@ static int iwl_send_cmd_async(struct iwl_priv *priv, struct iwl_host_cmd *cmd)
 
 	BUG_ON(!(cmd->flags & CMD_ASYNC));
 
-	/* An asynchronous command can not expect an SKB to be set. */
+	
 	BUG_ON(cmd->flags & CMD_WANT_SKB);
 
-	/* Assign a generic callback if one is not provided */
+	
 	if (!cmd->callback)
 		cmd->callback = iwl_generic_cmd_callback;
 
@@ -167,7 +141,7 @@ int iwl_send_cmd_sync(struct iwl_priv *priv, struct iwl_host_cmd *cmd)
 
 	BUG_ON(cmd->flags & CMD_ASYNC);
 
-	 /* A synchronous command can not have a callback set. */
+	 
 	BUG_ON(cmd->callback);
 
 	if (test_and_set_bit(STATUS_HCMD_SYNC_ACTIVE, &priv->status)) {
@@ -228,12 +202,7 @@ int iwl_send_cmd_sync(struct iwl_priv *priv, struct iwl_host_cmd *cmd)
 
 cancel:
 	if (cmd->flags & CMD_WANT_SKB) {
-		/*
-		 * Cancel the CMD_WANT_SKB flag for the cmd in the
-		 * TX cmd queue. Otherwise in case the cmd comes
-		 * in later, it will possibly set an invalid
-		 * address (cmd->meta.source).
-		 */
+		
 		priv->txq[IWL_CMD_QUEUE_NUM].meta[cmd_idx].flags &=
 							~CMD_WANT_SKB;
 	}

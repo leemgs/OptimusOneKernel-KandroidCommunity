@@ -1,28 +1,10 @@
-/*
- * Copyright (c) 2008-2009 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+
 
 #include "ath9k.h"
 
 #define FUDGE 2
 
-/*
- *  This function will modify certain transmit queue properties depending on
- *  the operating mode of the station (AP or AdHoc).  Parameters are AIFS
- *  settings and channel width min/max
-*/
+
 static int ath_beaconq_config(struct ath_softc *sc)
 {
 	struct ath_hw *ah = sc->sc_ah;
@@ -30,12 +12,12 @@ static int ath_beaconq_config(struct ath_softc *sc)
 
 	ath9k_hw_get_txq_props(ah, sc->beacon.beaconq, &qi);
 	if (sc->sc_ah->opmode == NL80211_IFTYPE_AP) {
-		/* Always burst out beacon and CAB traffic. */
+		
 		qi.tqi_aifs = 1;
 		qi.tqi_cwmin = 0;
 		qi.tqi_cwmax = 0;
 	} else {
-		/* Adhoc mode; important thing is to use 2x cwmin. */
+		
 		qi.tqi_aifs = sc->beacon.beacon_qi.tqi_aifs;
 		qi.tqi_cwmin = 2*sc->beacon.beacon_qi.tqi_cwmin;
 		qi.tqi_cwmax = sc->beacon.beacon_qi.tqi_cwmax;
@@ -51,11 +33,7 @@ static int ath_beaconq_config(struct ath_softc *sc)
 	}
 }
 
-/*
- *  Associates the beacon frame buffer with a transmit descriptor.  Will set
- *  up all required antenna switch parameters, rate codes, and channel flags.
- *  Beacons are always sent out at the lowest rate, and are not retried.
-*/
+
 static void ath_beacon_setup(struct ath_softc *sc, struct ath_vif *avp,
 			     struct ath_buf *bf)
 {
@@ -73,17 +51,13 @@ static void ath_beacon_setup(struct ath_softc *sc, struct ath_vif *avp,
 	if (((sc->sc_ah->opmode == NL80211_IFTYPE_ADHOC) ||
 	     (sc->sc_ah->opmode == NL80211_IFTYPE_MESH_POINT)) &&
 	    (ah->caps.hw_caps & ATH9K_HW_CAP_VEOL)) {
-		ds->ds_link = bf->bf_daddr; /* self-linked */
+		ds->ds_link = bf->bf_daddr; 
 		flags |= ATH9K_TXDESC_VEOL;
-		/* Let hardware handle antenna switching. */
+		
 		antenna = 0;
 	} else {
 		ds->ds_link = 0;
-		/*
-		 * Switch antenna every beacon.
-		 * Should only switch every beacon period, not for every SWBA
-		 * XXX assumes two antennae
-		 */
+		
 		antenna = ((sc->beacon.ast_be_xmit / sc->nbcnvifs) & 1 ? 2 : 1);
 	}
 
@@ -101,7 +75,7 @@ static void ath_beacon_setup(struct ath_softc *sc, struct ath_vif *avp,
 			       ATH9K_KEY_TYPE_CLEAR,
 			       flags);
 
-	/* NB: beacon's BufLen must be a multiple of 4 bytes */
+	
 	ath9k_hw_filltxdesc(ah, ds, roundup(skb->len, 4),
 			    true, true, ds);
 
@@ -135,7 +109,7 @@ static struct ath_buf *ath_beacon_generate(struct ieee80211_hw *hw,
 	if (avp->av_bcbuf == NULL)
 		return NULL;
 
-	/* Release the old beacon first */
+	
 
 	bf = avp->av_bcbuf;
 	skb = bf->bf_mpdu;
@@ -145,7 +119,7 @@ static struct ath_buf *ath_beacon_generate(struct ieee80211_hw *hw,
 		dev_kfree_skb_any(skb);
 	}
 
-	/* Get a new beacon from mac80211 */
+	
 
 	skb = ieee80211_beacon_get(hw, vif);
 	bf->bf_mpdu = skb;
@@ -156,10 +130,7 @@ static struct ath_buf *ath_beacon_generate(struct ieee80211_hw *hw,
 
 	info = IEEE80211_SKB_CB(skb);
 	if (info->flags & IEEE80211_TX_CTL_ASSIGN_SEQ) {
-		/*
-		 * TODO: make sure the seq# gets assigned properly (vs. other
-		 * TX frames)
-		 */
+		
 		struct ieee80211_hdr *hdr = (struct ieee80211_hdr *)skb->data;
 		sc->tx.seq_no += 0x10;
 		hdr->seq_ctrl &= cpu_to_le16(IEEE80211_SCTL_FRAG);
@@ -178,14 +149,7 @@ static struct ath_buf *ath_beacon_generate(struct ieee80211_hw *hw,
 
 	skb = ieee80211_get_buffered_bc(hw, vif);
 
-	/*
-	 * if the CABQ traffic from previous DTIM is pending and the current
-	 *  beacon is also a DTIM.
-	 *  1) if there is only one vif let the cab traffic continue.
-	 *  2) if there are more than one vif and we are using staggered
-	 *     beacons, then drain the cabq by dropping all the frames in
-	 *     the cabq so that the current vifs cab traffic can be scheduled.
-	 */
+	
 	spin_lock_bh(&cabq->axq_lock);
 	cabq_depth = cabq->axq_depth;
 	spin_unlock_bh(&cabq->axq_lock);
@@ -208,10 +172,7 @@ static struct ath_buf *ath_beacon_generate(struct ieee80211_hw *hw,
 	return bf;
 }
 
-/*
- * Startup beacon transmission for adhoc mode when they are sent entirely
- * by the hardware using the self-linked descriptor + veol trick.
-*/
+
 static void ath_beacon_start_adhoc(struct ath_softc *sc,
 				   struct ieee80211_vif *vif)
 {
@@ -230,7 +191,7 @@ static void ath_beacon_start_adhoc(struct ath_softc *sc,
 
 	ath_beacon_setup(sc, avp, bf);
 
-	/* NB: caller is known to have already stopped tx dma */
+	
 	ath9k_hw_puttxbuf(ah, sc->beacon.beaconq, bf->bf_daddr);
 	ath9k_hw_txstart(ah, sc->beacon.beaconq);
 	DPRINTF(sc, ATH_DBG_BEACON, "TXDP%u = %llx (%p)\n",
@@ -245,7 +206,7 @@ int ath_beaconq_setup(struct ath_hw *ah)
 	qi.tqi_aifs = 1;
 	qi.tqi_cwmin = 0;
 	qi.tqi_cwmax = 0;
-	/* NB: don't enable any interrupts */
+	
 	return ath9k_hw_setuptxqueue(ah, ATH9K_TX_QUEUE_BEACON, &qi);
 }
 
@@ -259,10 +220,9 @@ int ath_beacon_alloc(struct ath_wiphy *aphy, struct ieee80211_vif *vif)
 
 	avp = (void *)vif->drv_priv;
 
-	/* Allocate a beacon descriptor if we haven't done so. */
+	
 	if (!avp->av_bcbuf) {
-		/* Allocate beacon state for hostap/ibss.  We know
-		 * a buffer is available. */
+		
 		avp->av_bcbuf = list_first_entry(&sc->beacon.bbuf,
 						 struct ath_buf, list);
 		list_del(&avp->av_bcbuf->list);
@@ -270,24 +230,18 @@ int ath_beacon_alloc(struct ath_wiphy *aphy, struct ieee80211_vif *vif)
 		if (sc->sc_ah->opmode == NL80211_IFTYPE_AP ||
 		    !(sc->sc_ah->caps.hw_caps & ATH9K_HW_CAP_VEOL)) {
 			int slot;
-			/*
-			 * Assign the vif to a beacon xmit slot. As
-			 * above, this cannot fail to find one.
-			 */
+			
 			avp->av_bslot = 0;
 			for (slot = 0; slot < ATH_BCBUF; slot++)
 				if (sc->beacon.bslot[slot] == NULL) {
-					/*
-					 * XXX hack, space out slots to better
-					 * deal with misses
-					 */
+					
 					if (slot+1 < ATH_BCBUF &&
 					    sc->beacon.bslot[slot+1] == NULL) {
 						avp->av_bslot = slot+1;
 						break;
 					}
 					avp->av_bslot = slot;
-					/* NB: keep looking for a double slot */
+					
 				}
 			BUG_ON(sc->beacon.bslot[avp->av_bslot] != NULL);
 			sc->beacon.bslot[avp->av_bslot] = vif;
@@ -296,7 +250,7 @@ int ath_beacon_alloc(struct ath_wiphy *aphy, struct ieee80211_vif *vif)
 		}
 	}
 
-	/* release the previous beacon frame, if it already exists. */
+	
 	bf = avp->av_bcbuf;
 	if (bf->bf_mpdu != NULL) {
 		skb = bf->bf_mpdu;
@@ -306,7 +260,7 @@ int ath_beacon_alloc(struct ath_wiphy *aphy, struct ieee80211_vif *vif)
 		bf->bf_mpdu = NULL;
 	}
 
-	/* NB: the beacon data buffer must be 32-bit aligned. */
+	
 	skb = ieee80211_beacon_get(sc->hw, vif);
 	if (skb == NULL) {
 		DPRINTF(sc, ATH_DBG_BEACON, "cannot get skb\n");
@@ -315,21 +269,14 @@ int ath_beacon_alloc(struct ath_wiphy *aphy, struct ieee80211_vif *vif)
 
 	tstamp = ((struct ieee80211_mgmt *)skb->data)->u.beacon.timestamp;
 	sc->beacon.bc_tstamp = le64_to_cpu(tstamp);
-	/* Calculate a TSF adjustment factor required for staggered beacons. */
+	
 	if (avp->av_bslot > 0) {
 		u64 tsfadjust;
 		int intval;
 
 		intval = sc->beacon_interval ? : ATH_DEFAULT_BINTVAL;
 
-		/*
-		 * Calculate the TSF offset for this beacon slot, i.e., the
-		 * number of usecs that need to be added to the timestamp field
-		 * in Beacon and Probe Response frames. Beacon slot 0 is
-		 * processed at the correct offset, so it does not require TSF
-		 * adjustment. Other slots are adjusted to get the timestamp
-		 * close to the TBTT for the BSS.
-		 */
+		
 		tsfadjust = intval * avp->av_bslot / ATH_BCBUF;
 		avp->tsf_adjust = cpu_to_le64(TU_TO_USEC(tsfadjust));
 
@@ -394,13 +341,7 @@ void ath_beacon_tasklet(unsigned long data)
 	u64 tsf;
 	u16 intval;
 
-	/*
-	 * Check if the previous beacon has gone out.  If
-	 * not don't try to post another, skip this period
-	 * and wait for the next.  Missed beacons indicate
-	 * a problem and should not occur.  If we miss too
-	 * many consecutive beacons reset the device.
-	 */
+	
 	if (ath9k_hw_numtxpending(ah, sc->beacon.beaconq) != 0) {
 		sc->beacon.bmisscnt++;
 
@@ -425,24 +366,14 @@ void ath_beacon_tasklet(unsigned long data)
 		sc->beacon.bmisscnt = 0;
 	}
 
-	/*
-	 * Generate beacon frames. we are sending frames
-	 * staggered so calculate the slot for this frame based
-	 * on the tsf to safeguard against missing an swba.
-	 */
+	
 
 	intval = sc->beacon_interval ? : ATH_DEFAULT_BINTVAL;
 
 	tsf = ath9k_hw_gettsf64(ah);
 	tsftu = TSF_TO_TU(tsf>>32, tsf);
 	slot = ((tsftu % intval) * ATH_BCBUF) / intval;
-	/*
-	 * Reverse the slot order to get slot 0 on the TBTT offset that does
-	 * not require TSF adjustment and other slots adding
-	 * slot/ATH_BCBUF * beacon_int to timestamp. For example, with
-	 * ATH_BCBUF = 4, we process beacon slots as follows: 3 2 1 0 3 2 1 ..
-	 * and slot 0 is at correct offset to TBTT.
-	 */
+	
 	slot = ATH_BCBUF - slot - 1;
 	vif = sc->beacon.bslot[slot];
 	aphy = sc->beacon.bslot_aphy[slot];
@@ -460,98 +391,64 @@ void ath_beacon_tasklet(unsigned long data)
 		}
 	}
 
-	/*
-	 * Handle slot time change when a non-ERP station joins/leaves
-	 * an 11g network.  The 802.11 layer notifies us via callback,
-	 * we mark updateslot, then wait one beacon before effecting
-	 * the change.  This gives associated stations at least one
-	 * beacon interval to note the state change.
-	 *
-	 * NB: The slot time change state machine is clocked according
-	 *     to whether we are bursting or staggering beacons.  We
-	 *     recognize the request to update and record the current
-	 *     slot then don't transition until that slot is reached
-	 *     again.  If we miss a beacon for that slot then we'll be
-	 *     slow to transition but we'll be sure at least one beacon
-	 *     interval has passed.  When bursting slot is always left
-	 *     set to ATH_BCBUF so this check is a noop.
-	 */
+	
 	if (sc->beacon.updateslot == UPDATE) {
-		sc->beacon.updateslot = COMMIT; /* commit next beacon */
+		sc->beacon.updateslot = COMMIT; 
 		sc->beacon.slotupdate = slot;
 	} else if (sc->beacon.updateslot == COMMIT && sc->beacon.slotupdate == slot) {
 		ath9k_hw_setslottime(sc->sc_ah, sc->beacon.slottime);
 		sc->beacon.updateslot = OK;
 	}
 	if (bfaddr != 0) {
-		/*
-		 * Stop any current dma and put the new frame(s) on the queue.
-		 * This should never fail since we check above that no frames
-		 * are still pending on the queue.
-		 */
+		
 		if (!ath9k_hw_stoptxdma(ah, sc->beacon.beaconq)) {
 			DPRINTF(sc, ATH_DBG_FATAL,
 				"beacon queue %u did not stop?\n", sc->beacon.beaconq);
 		}
 
-		/* NB: cabq traffic should already be queued and primed */
+		
 		ath9k_hw_puttxbuf(ah, sc->beacon.beaconq, bfaddr);
 		ath9k_hw_txstart(ah, sc->beacon.beaconq);
 
-		sc->beacon.ast_be_xmit += bc;     /* XXX per-vif? */
+		sc->beacon.ast_be_xmit += bc;     
 	}
 }
 
-/*
- * For multi-bss ap support beacons are either staggered evenly over N slots or
- * burst together.  For the former arrange for the SWBA to be delivered for each
- * slot. Slots that are not occupied will generate nothing.
- */
+
 static void ath_beacon_config_ap(struct ath_softc *sc,
 				 struct ath_beacon_config *conf)
 {
 	u32 nexttbtt, intval;
 
-	/* Configure the timers only when the TSF has to be reset */
+	
 
 	if (!(sc->sc_flags & SC_OP_TSF_RESET))
 		return;
 
-	/* NB: the beacon interval is kept internally in TU's */
+	
 	intval = conf->beacon_interval & ATH9K_BEACON_PERIOD;
-	intval /= ATH_BCBUF;    /* for staggered beacons */
+	intval /= ATH_BCBUF;    
 	nexttbtt = intval;
 	intval |= ATH9K_BEACON_RESET_TSF;
 
-	/*
-	 * In AP mode we enable the beacon timers and SWBA interrupts to
-	 * prepare beacon frames.
-	 */
+	
 	intval |= ATH9K_BEACON_ENA;
 	sc->imask |= ATH9K_INT_SWBA;
 	ath_beaconq_config(sc);
 
-	/* Set the computed AP beacon timers */
+	
 
 	ath9k_hw_set_interrupts(sc->sc_ah, 0);
 	ath9k_hw_beaconinit(sc->sc_ah, nexttbtt, intval);
 	sc->beacon.bmisscnt = 0;
 	ath9k_hw_set_interrupts(sc->sc_ah, sc->imask);
 
-	/* Clear the reset TSF flag, so that subsequent beacon updation
-	   will not reset the HW TSF. */
+	
 
 	sc->sc_flags &= ~SC_OP_TSF_RESET;
 }
 
-/*
- * This sets up the beacon timers according to the timestamp of the last
- * received beacon and the current TSF, configures PCF and DTIM
- * handling, programs the sleep registers so the hardware will wakeup in
- * time to receive beacons, and configures the beacon miss handling so
- * we'll receive a BMISS interrupt when we stop seeing beacons from the AP
- * we've associated with.
- */
+
 static void ath_beacon_config_sta(struct ath_softc *sc,
 				  struct ath_beacon_config *conf)
 {
@@ -565,27 +462,21 @@ static void ath_beacon_config_sta(struct ath_softc *sc,
 	memset(&bs, 0, sizeof(bs));
 	intval = conf->beacon_interval & ATH9K_BEACON_PERIOD;
 
-	/*
-	 * Setup dtim and cfp parameters according to
-	 * last beacon we received (which may be none).
-	 */
+	
 	dtimperiod = conf->dtim_period;
-	if (dtimperiod <= 0)		/* NB: 0 if not known */
+	if (dtimperiod <= 0)		
 		dtimperiod = 1;
 	dtimcount = conf->dtim_count;
-	if (dtimcount >= dtimperiod)	/* NB: sanity check */
+	if (dtimcount >= dtimperiod)	
 		dtimcount = 0;
-	cfpperiod = 1;			/* NB: no PCF support yet */
+	cfpperiod = 1;			
 	cfpcount = 0;
 
 	sleepduration = conf->listen_interval * intval;
 	if (sleepduration <= 0)
 		sleepduration = intval;
 
-	/*
-	 * Pull nexttbtt forward to reflect the current
-	 * TSF and calculate dtim+cfp state for the result.
-	 */
+	
 	tsf = ath9k_hw_gettsf64(sc->sc_ah);
 	tsftu = TSF_TO_TU(tsf>>32, tsf) + FUDGE;
 
@@ -595,9 +486,9 @@ static void ath_beacon_config_sta(struct ath_softc *sc,
 	if (offset)
 		nexttbtt += intval;
 
-	/* DTIM Beacon every dtimperiod Beacon */
+	
 	dtim_dec_count = num_beacons % dtimperiod;
-	/* CFP every cfpperiod DTIM Beacon */
+	
 	cfp_dec_count = (num_beacons / dtimperiod) % cfpperiod;
 	if (dtim_dec_count)
 		cfp_dec_count++;
@@ -618,12 +509,7 @@ static void ath_beacon_config_sta(struct ath_softc *sc,
 	bs.bs_cfpnext = bs.bs_nextdtim + cfpcount*bs.bs_dtimperiod;
 	bs.bs_cfpmaxduration = 0;
 
-	/*
-	 * Calculate the number of consecutive beacons to miss* before taking
-	 * a BMISS interrupt. The configuration is specified in TU so we only
-	 * need calculate based	on the beacon interval.  Note that we clamp the
-	 * result to at most 15 beacons.
-	 */
+	
 	if (sleepduration > intval) {
 		bs.bs_bmissthreshold = conf->listen_interval *
 			ATH_DEFAULT_BMISS_LIMIT / 2;
@@ -635,20 +521,13 @@ static void ath_beacon_config_sta(struct ath_softc *sc,
 			bs.bs_bmissthreshold = 1;
 	}
 
-	/*
-	 * Calculate sleep duration. The configuration is given in ms.
-	 * We ensure a multiple of the beacon period is used. Also, if the sleep
-	 * duration is greater than the DTIM period then it makes senses
-	 * to make it a multiple of that.
-	 *
-	 * XXX fixed at 100ms
-	 */
+	
 
 	bs.bs_sleepduration = roundup(IEEE80211_MS_TO_TU(100), sleepduration);
 	if (bs.bs_sleepduration > bs.bs_dtimperiod)
 		bs.bs_sleepduration = bs.bs_dtimperiod;
 
-	/* TSF out of range threshold fixed at 1 second */
+	
 	bs.bs_tsfoor_threshold = ATH9K_TSFOOR_THRESHOLD;
 
 	DPRINTF(sc, ATH_DBG_BEACON, "tsf: %llu tsftu: %u\n", tsf, tsftu);
@@ -657,7 +536,7 @@ static void ath_beacon_config_sta(struct ath_softc *sc,
 		bs.bs_bmissthreshold, bs.bs_sleepduration,
 		bs.bs_cfpperiod, bs.bs_cfpmaxduration, bs.bs_cfpnext);
 
-	/* Set the computed STA beacon timers */
+	
 
 	ath9k_hw_set_interrupts(sc->sc_ah, 0);
 	ath9k_hw_set_sta_beacon_timers(sc->sc_ah, &bs);
@@ -675,7 +554,7 @@ static void ath_beacon_config_adhoc(struct ath_softc *sc,
 	intval = conf->beacon_interval & ATH9K_BEACON_PERIOD;
 
 
-	/* Pull nexttbtt forward to reflect the current TSF */
+	
 
 	nexttbtt = TSF_TO_TU(sc->beacon.bc_tstamp >> 32, sc->beacon.bc_tstamp);
 	if (nexttbtt == 0)
@@ -693,25 +572,21 @@ static void ath_beacon_config_adhoc(struct ath_softc *sc,
 		"IBSS nexttbtt %u intval %u (%u)\n",
 		nexttbtt, intval, conf->beacon_interval);
 
-	/*
-	 * In IBSS mode enable the beacon timers but only enable SWBA interrupts
-	 * if we need to manually prepare beacon frames.  Otherwise we use a
-	 * self-linked tx descriptor and let the hardware deal with things.
-	 */
+	
 	intval |= ATH9K_BEACON_ENA;
 	if (!(sc->sc_ah->caps.hw_caps & ATH9K_HW_CAP_VEOL))
 		sc->imask |= ATH9K_INT_SWBA;
 
 	ath_beaconq_config(sc);
 
-	/* Set the computed ADHOC beacon timers */
+	
 
 	ath9k_hw_set_interrupts(sc->sc_ah, 0);
 	ath9k_hw_beaconinit(sc->sc_ah, nexttbtt, intval);
 	sc->beacon.bmisscnt = 0;
 	ath9k_hw_set_interrupts(sc->sc_ah, sc->imask);
 
-	/* FIXME: Handle properly when vif is NULL */
+	
 	if (vif && sc->sc_ah->caps.hw_caps & ATH9K_HW_CAP_VEOL)
 		ath_beacon_start_adhoc(sc, vif);
 }
@@ -721,7 +596,7 @@ void ath_beacon_config(struct ath_softc *sc, struct ieee80211_vif *vif)
 	struct ath_beacon_config *cur_conf = &sc->cur_beacon_conf;
 	enum nl80211_iftype iftype;
 
-	/* Setup the beacon configuration parameters */
+	
 
 	if (vif) {
 		struct ieee80211_bss_conf *bss_conf = &vif->bss_conf;
@@ -738,12 +613,7 @@ void ath_beacon_config(struct ath_softc *sc, struct ieee80211_vif *vif)
 		iftype = sc->sc_ah->opmode;
 	}
 
-	/*
-	 * It looks like mac80211 may end up using beacon interval of zero in
-	 * some cases (at least for mesh point). Avoid getting into an
-	 * infinite loop by using a bit safer value instead. To be safe,
-	 * do sanity check on beacon interval for all operating modes.
-	 */
+	
 	if (cur_conf->beacon_interval == 0)
 		cur_conf->beacon_interval = 100;
 

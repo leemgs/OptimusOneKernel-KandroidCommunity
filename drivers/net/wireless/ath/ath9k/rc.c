@@ -1,379 +1,363 @@
-/*
- * Copyright (c) 2004 Video54 Technologies, Inc.
- * Copyright (c) 2004-2009 Atheros Communications, Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+
 
 #include "ath9k.h"
 
 static const struct ath_rate_table ar5416_11na_ratetable = {
 	42,
 	{
-		{ VALID, VALID, WLAN_RC_PHY_OFDM, 6000, /* 6 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_OFDM, 6000, 
 			5400, 0x0b, 0x00, 12,
 			0, 0, 0, 0, 0, 0 },
-		{ VALID, VALID, WLAN_RC_PHY_OFDM, 9000, /* 9 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_OFDM, 9000, 
 			7800,  0x0f, 0x00, 18,
 			0, 1, 1, 1, 1, 0 },
-		{ VALID, VALID, WLAN_RC_PHY_OFDM, 12000, /* 12 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_OFDM, 12000, 
 			10000, 0x0a, 0x00, 24,
 			2, 2, 2, 2, 2, 0 },
-		{ VALID, VALID, WLAN_RC_PHY_OFDM, 18000, /* 18 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_OFDM, 18000, 
 			13900, 0x0e, 0x00, 36,
 			2,  3, 3, 3, 3, 0 },
-		{ VALID, VALID, WLAN_RC_PHY_OFDM, 24000, /* 24 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_OFDM, 24000, 
 			17300, 0x09, 0x00, 48,
 			4,  4, 4, 4, 4, 0 },
-		{ VALID, VALID, WLAN_RC_PHY_OFDM, 36000, /* 36 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_OFDM, 36000, 
 			23000, 0x0d, 0x00, 72,
 			4,  5, 5, 5, 5, 0 },
-		{ VALID, VALID, WLAN_RC_PHY_OFDM, 48000, /* 48 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_OFDM, 48000, 
 			27400, 0x08, 0x00, 96,
 			4,  6, 6, 6, 6, 0 },
-		{ VALID, VALID, WLAN_RC_PHY_OFDM, 54000, /* 54 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_OFDM, 54000, 
 			29300, 0x0c, 0x00, 108,
 			4,  7, 7, 7, 7, 0 },
-		{ VALID_2040, VALID_2040, WLAN_RC_PHY_HT_20_SS, 6500, /* 6.5 Mb */
+		{ VALID_2040, VALID_2040, WLAN_RC_PHY_HT_20_SS, 6500, 
 			6400, 0x80, 0x00, 0,
 			0, 8, 24, 8, 24, 3216 },
-		{ VALID_20, VALID_20, WLAN_RC_PHY_HT_20_SS, 13000, /* 13 Mb */
+		{ VALID_20, VALID_20, WLAN_RC_PHY_HT_20_SS, 13000, 
 			12700, 0x81, 0x00, 1,
 			2, 9, 25, 9, 25, 6434 },
-		{ VALID_20, VALID_20, WLAN_RC_PHY_HT_20_SS, 19500, /* 19.5 Mb */
+		{ VALID_20, VALID_20, WLAN_RC_PHY_HT_20_SS, 19500, 
 			18800, 0x82, 0x00, 2,
 			2, 10, 26, 10, 26, 9650 },
-		{ VALID_20, VALID_20, WLAN_RC_PHY_HT_20_SS, 26000, /* 26 Mb */
+		{ VALID_20, VALID_20, WLAN_RC_PHY_HT_20_SS, 26000, 
 			25000, 0x83, 0x00, 3,
 			4,  11, 27, 11, 27, 12868 },
-		{ VALID_20, VALID_20, WLAN_RC_PHY_HT_20_SS, 39000, /* 39 Mb */
+		{ VALID_20, VALID_20, WLAN_RC_PHY_HT_20_SS, 39000, 
 			36700, 0x84, 0x00, 4,
 			4,  12, 28, 12, 28, 19304 },
-		{ INVALID, VALID_20, WLAN_RC_PHY_HT_20_SS, 52000, /* 52 Mb */
+		{ INVALID, VALID_20, WLAN_RC_PHY_HT_20_SS, 52000, 
 			48100, 0x85, 0x00, 5,
 			4,  13, 29, 13, 29, 25740 },
-		{ INVALID, VALID_20, WLAN_RC_PHY_HT_20_SS, 58500, /* 58.5 Mb */
+		{ INVALID, VALID_20, WLAN_RC_PHY_HT_20_SS, 58500, 
 			53500, 0x86, 0x00, 6,
 			4,  14, 30, 14, 30,  28956 },
-		{ INVALID, VALID_20, WLAN_RC_PHY_HT_20_SS, 65000, /* 65 Mb */
+		{ INVALID, VALID_20, WLAN_RC_PHY_HT_20_SS, 65000, 
 			59000, 0x87, 0x00, 7,
 			4,  15, 31, 15, 32, 32180 },
-		{ INVALID, INVALID, WLAN_RC_PHY_HT_20_DS, 13000, /* 13 Mb */
+		{ INVALID, INVALID, WLAN_RC_PHY_HT_20_DS, 13000, 
 			12700, 0x88, 0x00,
 			8, 3, 16, 33, 16, 33, 6430 },
-		{ INVALID, INVALID, WLAN_RC_PHY_HT_20_DS, 26000, /* 26 Mb */
+		{ INVALID, INVALID, WLAN_RC_PHY_HT_20_DS, 26000, 
 			24800, 0x89, 0x00, 9,
 			2, 17, 34, 17, 34, 12860 },
-		{ INVALID, INVALID, WLAN_RC_PHY_HT_20_DS, 39000, /* 39 Mb */
+		{ INVALID, INVALID, WLAN_RC_PHY_HT_20_DS, 39000, 
 			36600, 0x8a, 0x00, 10,
 			2, 18, 35, 18, 35, 19300 },
-		{ VALID_20, INVALID, WLAN_RC_PHY_HT_20_DS, 52000, /* 52 Mb */
+		{ VALID_20, INVALID, WLAN_RC_PHY_HT_20_DS, 52000, 
 			48100, 0x8b, 0x00, 11,
 			4,  19, 36, 19, 36, 25736 },
-		{ VALID_20, INVALID, WLAN_RC_PHY_HT_20_DS, 78000, /* 78 Mb */
+		{ VALID_20, INVALID, WLAN_RC_PHY_HT_20_DS, 78000, 
 			69500, 0x8c, 0x00, 12,
 			4,  20, 37, 20, 37, 38600 },
-		{ VALID_20, INVALID, WLAN_RC_PHY_HT_20_DS, 104000, /* 104 Mb */
+		{ VALID_20, INVALID, WLAN_RC_PHY_HT_20_DS, 104000, 
 			89500, 0x8d, 0x00, 13,
 			4,  21, 38, 21, 38, 51472 },
-		{ VALID_20, INVALID, WLAN_RC_PHY_HT_20_DS, 117000, /* 117 Mb */
+		{ VALID_20, INVALID, WLAN_RC_PHY_HT_20_DS, 117000, 
 			98900, 0x8e, 0x00, 14,
 			4,  22, 39, 22, 39, 57890 },
-		{ VALID_20, INVALID, WLAN_RC_PHY_HT_20_DS, 130000, /* 130 Mb */
+		{ VALID_20, INVALID, WLAN_RC_PHY_HT_20_DS, 130000, 
 			108300, 0x8f, 0x00, 15,
 			4,  23, 40, 23, 41, 64320 },
-		{ VALID_40, VALID_40, WLAN_RC_PHY_HT_40_SS, 13500, /* 13.5 Mb */
+		{ VALID_40, VALID_40, WLAN_RC_PHY_HT_40_SS, 13500, 
 			13200, 0x80, 0x00, 0,
 			0, 8, 24, 24, 24, 6684 },
-		{ VALID_40, VALID_40, WLAN_RC_PHY_HT_40_SS, 27500, /* 27.0 Mb */
+		{ VALID_40, VALID_40, WLAN_RC_PHY_HT_40_SS, 27500, 
 			25900, 0x81, 0x00, 1,
 			2, 9, 25, 25, 25, 13368 },
-		{ VALID_40, VALID_40, WLAN_RC_PHY_HT_40_SS, 40500, /* 40.5 Mb */
+		{ VALID_40, VALID_40, WLAN_RC_PHY_HT_40_SS, 40500, 
 			38600, 0x82, 0x00, 2,
 			2, 10, 26, 26, 26, 20052 },
-		{ VALID_40, VALID_40, WLAN_RC_PHY_HT_40_SS, 54000, /* 54 Mb */
+		{ VALID_40, VALID_40, WLAN_RC_PHY_HT_40_SS, 54000, 
 			49800, 0x83, 0x00, 3,
 			4,  11, 27, 27, 27, 26738 },
-		{ VALID_40, VALID_40, WLAN_RC_PHY_HT_40_SS, 81500, /* 81 Mb */
+		{ VALID_40, VALID_40, WLAN_RC_PHY_HT_40_SS, 81500, 
 			72200, 0x84, 0x00, 4,
 			4,  12, 28, 28, 28, 40104 },
-		{ INVALID, VALID_40, WLAN_RC_PHY_HT_40_SS, 108000, /* 108 Mb */
+		{ INVALID, VALID_40, WLAN_RC_PHY_HT_40_SS, 108000, 
 			92900, 0x85, 0x00, 5,
 			4,  13, 29, 29, 29, 53476 },
-		{ INVALID, VALID_40, WLAN_RC_PHY_HT_40_SS, 121500, /* 121.5 Mb */
+		{ INVALID, VALID_40, WLAN_RC_PHY_HT_40_SS, 121500, 
 			102700, 0x86, 0x00, 6,
 			4,  14, 30, 30, 30, 60156 },
-		{ INVALID, VALID_40, WLAN_RC_PHY_HT_40_SS, 135000, /* 135 Mb */
+		{ INVALID, VALID_40, WLAN_RC_PHY_HT_40_SS, 135000, 
 			112000, 0x87, 0x00, 7,
 			4,  15, 31, 32, 32, 66840 },
-		{ INVALID, VALID_40, WLAN_RC_PHY_HT_40_SS_HGI, 150000, /* 150 Mb */
+		{ INVALID, VALID_40, WLAN_RC_PHY_HT_40_SS_HGI, 150000, 
 			122000, 0x87, 0x00, 7,
 			4,  15, 31, 32, 32, 74200 },
-		{ INVALID, INVALID, WLAN_RC_PHY_HT_40_DS, 27000, /* 27 Mb */
+		{ INVALID, INVALID, WLAN_RC_PHY_HT_40_DS, 27000, 
 			25800, 0x88, 0x00, 8,
 			0, 16, 33, 33, 33, 13360 },
-		{ INVALID, INVALID, WLAN_RC_PHY_HT_40_DS, 54000, /* 54 Mb */
+		{ INVALID, INVALID, WLAN_RC_PHY_HT_40_DS, 54000, 
 			49800, 0x89, 0x00, 9,
 			2, 17, 34, 34, 34, 26720 },
-		{ INVALID, INVALID, WLAN_RC_PHY_HT_40_DS, 81000, /* 81 Mb */
+		{ INVALID, INVALID, WLAN_RC_PHY_HT_40_DS, 81000, 
 			71900, 0x8a, 0x00, 10,
 			2, 18, 35, 35, 35, 40080 },
-		{ VALID_40, INVALID, WLAN_RC_PHY_HT_40_DS, 108000, /* 108 Mb */
+		{ VALID_40, INVALID, WLAN_RC_PHY_HT_40_DS, 108000, 
 			92500, 0x8b, 0x00, 11,
 			4,  19, 36, 36, 36, 53440 },
-		{ VALID_40, INVALID, WLAN_RC_PHY_HT_40_DS, 162000, /* 162 Mb */
+		{ VALID_40, INVALID, WLAN_RC_PHY_HT_40_DS, 162000, 
 			130300, 0x8c, 0x00, 12,
 			4,  20, 37, 37, 37, 80160 },
-		{ VALID_40, INVALID, WLAN_RC_PHY_HT_40_DS, 216000, /* 216 Mb */
+		{ VALID_40, INVALID, WLAN_RC_PHY_HT_40_DS, 216000, 
 			162800, 0x8d, 0x00, 13,
 			4,  21, 38, 38, 38, 106880 },
-		{ VALID_40, INVALID, WLAN_RC_PHY_HT_40_DS, 243000, /* 243 Mb */
+		{ VALID_40, INVALID, WLAN_RC_PHY_HT_40_DS, 243000, 
 			178200, 0x8e, 0x00, 14,
 			4,  22, 39, 39, 39, 120240 },
-		{ VALID_40, INVALID, WLAN_RC_PHY_HT_40_DS, 270000, /* 270 Mb */
+		{ VALID_40, INVALID, WLAN_RC_PHY_HT_40_DS, 270000, 
 			192100, 0x8f, 0x00, 15,
 			4,  23, 40, 41, 41, 133600 },
-		{ VALID_40, INVALID, WLAN_RC_PHY_HT_40_DS_HGI, 300000, /* 300 Mb */
+		{ VALID_40, INVALID, WLAN_RC_PHY_HT_40_DS_HGI, 300000, 
 			207000, 0x8f, 0x00, 15,
 			4,  23, 40, 41, 41, 148400 },
 	},
-	50,  /* probe interval */
-	WLAN_RC_HT_FLAG,  /* Phy rates allowed initially */
+	50,  
+	WLAN_RC_HT_FLAG,  
 };
 
-/* 4ms frame limit not used for NG mode.  The values filled
- * for HT are the 64K max aggregate limit */
+
 
 static const struct ath_rate_table ar5416_11ng_ratetable = {
 	46,
 	{
-		{ VALID_ALL, VALID_ALL, WLAN_RC_PHY_CCK, 1000, /* 1 Mb */
+		{ VALID_ALL, VALID_ALL, WLAN_RC_PHY_CCK, 1000, 
 			900, 0x1b, 0x00, 2,
 			0, 0, 0, 0, 0, 0 },
-		{ VALID_ALL, VALID_ALL, WLAN_RC_PHY_CCK, 2000, /* 2 Mb */
+		{ VALID_ALL, VALID_ALL, WLAN_RC_PHY_CCK, 2000, 
 			1900, 0x1a, 0x04, 4,
 			1, 1, 1, 1, 1, 0 },
-		{ VALID_ALL, VALID_ALL, WLAN_RC_PHY_CCK, 5500, /* 5.5 Mb */
+		{ VALID_ALL, VALID_ALL, WLAN_RC_PHY_CCK, 5500, 
 			4900, 0x19, 0x04, 11,
 			2, 2, 2, 2, 2, 0 },
-		{ VALID_ALL, VALID_ALL, WLAN_RC_PHY_CCK, 11000, /* 11 Mb */
+		{ VALID_ALL, VALID_ALL, WLAN_RC_PHY_CCK, 11000, 
 			8100, 0x18, 0x04, 22,
 			3, 3, 3, 3, 3, 0 },
-		{ INVALID, INVALID, WLAN_RC_PHY_OFDM, 6000, /* 6 Mb */
+		{ INVALID, INVALID, WLAN_RC_PHY_OFDM, 6000, 
 			5400, 0x0b, 0x00, 12,
 			4, 4, 4, 4, 4, 0 },
-		{ INVALID, INVALID, WLAN_RC_PHY_OFDM, 9000, /* 9 Mb */
+		{ INVALID, INVALID, WLAN_RC_PHY_OFDM, 9000, 
 			7800, 0x0f, 0x00, 18,
 			4, 5, 5, 5, 5, 0 },
-		{ VALID, VALID, WLAN_RC_PHY_OFDM, 12000, /* 12 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_OFDM, 12000, 
 			10100, 0x0a, 0x00, 24,
 			6, 6, 6, 6, 6, 0 },
-		{ VALID, VALID, WLAN_RC_PHY_OFDM, 18000, /* 18 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_OFDM, 18000, 
 			14100,  0x0e, 0x00, 36,
 			6, 7, 7, 7, 7, 0 },
-		{ VALID, VALID, WLAN_RC_PHY_OFDM, 24000, /* 24 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_OFDM, 24000, 
 			17700, 0x09, 0x00, 48,
 			8,  8, 8, 8, 8, 0 },
-		{ VALID, VALID, WLAN_RC_PHY_OFDM, 36000, /* 36 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_OFDM, 36000, 
 			23700, 0x0d, 0x00, 72,
 			8,  9, 9, 9, 9, 0 },
-		{ VALID, VALID, WLAN_RC_PHY_OFDM, 48000, /* 48 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_OFDM, 48000, 
 			27400, 0x08, 0x00, 96,
 			8,  10, 10, 10, 10, 0 },
-		{ VALID, VALID, WLAN_RC_PHY_OFDM, 54000, /* 54 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_OFDM, 54000, 
 			30900, 0x0c, 0x00, 108,
 			8,  11, 11, 11, 11, 0 },
-		{ INVALID, INVALID, WLAN_RC_PHY_HT_20_SS, 6500, /* 6.5 Mb */
+		{ INVALID, INVALID, WLAN_RC_PHY_HT_20_SS, 6500, 
 			6400, 0x80, 0x00, 0,
 			4, 12, 28, 12, 28, 3216 },
-		{ VALID_20, VALID_20, WLAN_RC_PHY_HT_20_SS, 13000, /* 13 Mb */
+		{ VALID_20, VALID_20, WLAN_RC_PHY_HT_20_SS, 13000, 
 			12700, 0x81, 0x00, 1,
 			6, 13, 29, 13, 29, 6434 },
-		{ VALID_20, VALID_20, WLAN_RC_PHY_HT_20_SS, 19500, /* 19.5 Mb */
+		{ VALID_20, VALID_20, WLAN_RC_PHY_HT_20_SS, 19500, 
 			18800, 0x82, 0x00, 2,
 			6, 14, 30, 14, 30, 9650 },
-		{ VALID_20, VALID_20, WLAN_RC_PHY_HT_20_SS, 26000, /* 26 Mb */
+		{ VALID_20, VALID_20, WLAN_RC_PHY_HT_20_SS, 26000, 
 			25000, 0x83, 0x00, 3,
 			8,  15, 31, 15, 31, 12868 },
-		{ VALID_20, VALID_20, WLAN_RC_PHY_HT_20_SS, 39000, /* 39 Mb */
+		{ VALID_20, VALID_20, WLAN_RC_PHY_HT_20_SS, 39000, 
 			36700, 0x84, 0x00, 4,
 			8,  16, 32, 16, 32, 19304 },
-		{ INVALID, VALID_20, WLAN_RC_PHY_HT_20_SS, 52000, /* 52 Mb */
+		{ INVALID, VALID_20, WLAN_RC_PHY_HT_20_SS, 52000, 
 			48100, 0x85, 0x00, 5,
 			8,  17, 33, 17, 33, 25740 },
-		{ INVALID,  VALID_20, WLAN_RC_PHY_HT_20_SS, 58500, /* 58.5 Mb */
+		{ INVALID,  VALID_20, WLAN_RC_PHY_HT_20_SS, 58500, 
 			53500, 0x86, 0x00, 6,
 			8,  18, 34, 18, 34, 28956 },
-		{ INVALID, VALID_20, WLAN_RC_PHY_HT_20_SS, 65000, /* 65 Mb */
+		{ INVALID, VALID_20, WLAN_RC_PHY_HT_20_SS, 65000, 
 			59000, 0x87, 0x00, 7,
 			8,  19, 35, 19, 36, 32180 },
-		{ INVALID, INVALID, WLAN_RC_PHY_HT_20_DS, 13000, /* 13 Mb */
+		{ INVALID, INVALID, WLAN_RC_PHY_HT_20_DS, 13000, 
 			12700, 0x88, 0x00, 8,
 			4, 20, 37, 20, 37, 6430 },
-		{ INVALID, INVALID, WLAN_RC_PHY_HT_20_DS, 26000, /* 26 Mb */
+		{ INVALID, INVALID, WLAN_RC_PHY_HT_20_DS, 26000, 
 			24800, 0x89, 0x00, 9,
 			6, 21, 38, 21, 38, 12860 },
-		{ INVALID, INVALID, WLAN_RC_PHY_HT_20_DS, 39000, /* 39 Mb */
+		{ INVALID, INVALID, WLAN_RC_PHY_HT_20_DS, 39000, 
 			36600, 0x8a, 0x00, 10,
 			6, 22, 39, 22, 39, 19300 },
-		{ VALID_20, INVALID, WLAN_RC_PHY_HT_20_DS, 52000, /* 52 Mb */
+		{ VALID_20, INVALID, WLAN_RC_PHY_HT_20_DS, 52000, 
 			48100, 0x8b, 0x00, 11,
 			8,  23, 40, 23, 40, 25736 },
-		{ VALID_20, INVALID, WLAN_RC_PHY_HT_20_DS, 78000, /* 78 Mb */
+		{ VALID_20, INVALID, WLAN_RC_PHY_HT_20_DS, 78000, 
 			69500, 0x8c, 0x00, 12,
 			8,  24, 41, 24, 41, 38600 },
-		{ VALID_20, INVALID, WLAN_RC_PHY_HT_20_DS, 104000, /* 104 Mb */
+		{ VALID_20, INVALID, WLAN_RC_PHY_HT_20_DS, 104000, 
 			89500, 0x8d, 0x00, 13,
 			8,  25, 42, 25, 42, 51472 },
-		{ VALID_20, INVALID, WLAN_RC_PHY_HT_20_DS, 117000, /* 117 Mb */
+		{ VALID_20, INVALID, WLAN_RC_PHY_HT_20_DS, 117000, 
 			98900, 0x8e, 0x00, 14,
 			8,  26, 43, 26, 44, 57890 },
-		{ VALID_20, INVALID, WLAN_RC_PHY_HT_20_DS, 130000, /* 130 Mb */
+		{ VALID_20, INVALID, WLAN_RC_PHY_HT_20_DS, 130000, 
 			108300, 0x8f, 0x00, 15,
 			8,  27, 44, 27, 45, 64320 },
-		{ VALID_40, VALID_40, WLAN_RC_PHY_HT_40_SS, 13500, /* 13.5 Mb */
+		{ VALID_40, VALID_40, WLAN_RC_PHY_HT_40_SS, 13500, 
 			13200, 0x80, 0x00, 0,
 			8, 12, 28, 28, 28, 6684 },
-		{ VALID_40, VALID_40, WLAN_RC_PHY_HT_40_SS, 27500, /* 27.0 Mb */
+		{ VALID_40, VALID_40, WLAN_RC_PHY_HT_40_SS, 27500, 
 			25900, 0x81, 0x00, 1,
 			8, 13, 29, 29, 29, 13368 },
-		{ VALID_40, VALID_40, WLAN_RC_PHY_HT_40_SS, 40500, /* 40.5 Mb */
+		{ VALID_40, VALID_40, WLAN_RC_PHY_HT_40_SS, 40500, 
 			38600, 0x82, 0x00, 2,
 			8, 14, 30, 30, 30, 20052 },
-		{ VALID_40, VALID_40, WLAN_RC_PHY_HT_40_SS, 54000, /* 54 Mb */
+		{ VALID_40, VALID_40, WLAN_RC_PHY_HT_40_SS, 54000, 
 			49800, 0x83, 0x00, 3,
 			8,  15, 31, 31, 31, 26738 },
-		{ VALID_40, VALID_40, WLAN_RC_PHY_HT_40_SS, 81500, /* 81 Mb */
+		{ VALID_40, VALID_40, WLAN_RC_PHY_HT_40_SS, 81500, 
 			72200, 0x84, 0x00, 4,
 			8,  16, 32, 32, 32, 40104 },
-		{ INVALID, VALID_40, WLAN_RC_PHY_HT_40_SS, 108000, /* 108 Mb */
+		{ INVALID, VALID_40, WLAN_RC_PHY_HT_40_SS, 108000, 
 			92900, 0x85, 0x00, 5,
 			8,  17, 33, 33, 33, 53476 },
-		{ INVALID,  VALID_40, WLAN_RC_PHY_HT_40_SS, 121500, /* 121.5 Mb */
+		{ INVALID,  VALID_40, WLAN_RC_PHY_HT_40_SS, 121500, 
 			102700, 0x86, 0x00, 6,
 			8,  18, 34, 34, 34, 60156 },
-		{ INVALID, VALID_40, WLAN_RC_PHY_HT_40_SS, 135000, /* 135 Mb */
+		{ INVALID, VALID_40, WLAN_RC_PHY_HT_40_SS, 135000, 
 			112000, 0x87, 0x00, 7,
 			8,  19, 35, 36, 36, 66840 },
-		{ INVALID, VALID_40, WLAN_RC_PHY_HT_40_SS_HGI, 150000, /* 150 Mb */
+		{ INVALID, VALID_40, WLAN_RC_PHY_HT_40_SS_HGI, 150000, 
 			122000, 0x87, 0x00, 7,
 			8,  19, 35, 36, 36, 74200 },
-		{ INVALID, INVALID, WLAN_RC_PHY_HT_40_DS, 27000, /* 27 Mb */
+		{ INVALID, INVALID, WLAN_RC_PHY_HT_40_DS, 27000, 
 			25800, 0x88, 0x00, 8,
 			8, 20, 37, 37, 37, 13360 },
-		{ INVALID, INVALID, WLAN_RC_PHY_HT_40_DS, 54000, /* 54 Mb */
+		{ INVALID, INVALID, WLAN_RC_PHY_HT_40_DS, 54000, 
 			49800, 0x89, 0x00, 9,
 			8, 21, 38, 38, 38, 26720 },
-		{ INVALID, INVALID, WLAN_RC_PHY_HT_40_DS, 81000, /* 81 Mb */
+		{ INVALID, INVALID, WLAN_RC_PHY_HT_40_DS, 81000, 
 			71900, 0x8a, 0x00, 10,
 			8, 22, 39, 39, 39, 40080 },
-		{ VALID_40, INVALID, WLAN_RC_PHY_HT_40_DS, 108000, /* 108 Mb */
+		{ VALID_40, INVALID, WLAN_RC_PHY_HT_40_DS, 108000, 
 			92500, 0x8b, 0x00, 11,
 			8,  23, 40, 40, 40, 53440 },
-		{ VALID_40, INVALID, WLAN_RC_PHY_HT_40_DS, 162000, /* 162 Mb */
+		{ VALID_40, INVALID, WLAN_RC_PHY_HT_40_DS, 162000, 
 			130300, 0x8c, 0x00, 12,
 			8,  24, 41, 41, 41, 80160 },
-		{ VALID_40, INVALID, WLAN_RC_PHY_HT_40_DS, 216000, /* 216 Mb */
+		{ VALID_40, INVALID, WLAN_RC_PHY_HT_40_DS, 216000, 
 			162800, 0x8d, 0x00, 13,
 			8,  25, 42, 42, 42, 106880 },
-		{ VALID_40, INVALID, WLAN_RC_PHY_HT_40_DS, 243000, /* 243 Mb */
+		{ VALID_40, INVALID, WLAN_RC_PHY_HT_40_DS, 243000, 
 			178200, 0x8e, 0x00, 14,
 			8,  26, 43, 43, 43, 120240 },
-		{ VALID_40, INVALID, WLAN_RC_PHY_HT_40_DS, 270000, /* 270 Mb */
+		{ VALID_40, INVALID, WLAN_RC_PHY_HT_40_DS, 270000, 
 			192100, 0x8f, 0x00, 15,
 			8,  27, 44, 45, 45, 133600 },
-		{ VALID_40, INVALID, WLAN_RC_PHY_HT_40_DS_HGI, 300000, /* 300 Mb */
+		{ VALID_40, INVALID, WLAN_RC_PHY_HT_40_DS_HGI, 300000, 
 			207000, 0x8f, 0x00, 15,
 			8,  27, 44, 45, 45, 148400 },
 		},
-	50,  /* probe interval */
-	WLAN_RC_HT_FLAG,  /* Phy rates allowed initially */
+	50,  
+	WLAN_RC_HT_FLAG,  
 };
 
 static const struct ath_rate_table ar5416_11a_ratetable = {
 	8,
 	{
-		{ VALID, VALID, WLAN_RC_PHY_OFDM, 6000, /* 6 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_OFDM, 6000, 
 			5400, 0x0b, 0x00, (0x80|12),
 			0, 0, 0 },
-		{ VALID, VALID, WLAN_RC_PHY_OFDM, 9000, /* 9 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_OFDM, 9000, 
 			7800, 0x0f, 0x00, 18,
 			0, 1, 0 },
-		{ VALID, VALID, WLAN_RC_PHY_OFDM, 12000, /* 12 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_OFDM, 12000, 
 			10000, 0x0a, 0x00, (0x80|24),
 			2, 2, 0 },
-		{ VALID, VALID, WLAN_RC_PHY_OFDM, 18000, /* 18 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_OFDM, 18000, 
 			13900, 0x0e, 0x00, 36,
 			2, 3, 0 },
-		{ VALID, VALID, WLAN_RC_PHY_OFDM, 24000, /* 24 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_OFDM, 24000, 
 			17300, 0x09, 0x00, (0x80|48),
 			4,  4, 0 },
-		{ VALID, VALID, WLAN_RC_PHY_OFDM, 36000, /* 36 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_OFDM, 36000, 
 			23000, 0x0d, 0x00, 72,
 			4,  5, 0 },
-		{ VALID, VALID, WLAN_RC_PHY_OFDM, 48000, /* 48 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_OFDM, 48000, 
 			27400, 0x08, 0x00, 96,
 			4,  6, 0 },
-		{ VALID, VALID, WLAN_RC_PHY_OFDM, 54000, /* 54 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_OFDM, 54000, 
 			29300, 0x0c, 0x00, 108,
 			4,  7, 0 },
 	},
-	50,  /* probe interval */
-	0,   /* Phy rates allowed initially */
+	50,  
+	0,   
 };
 
 static const struct ath_rate_table ar5416_11g_ratetable = {
 	12,
 	{
-		{ VALID, VALID, WLAN_RC_PHY_CCK, 1000, /* 1 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_CCK, 1000, 
 			900, 0x1b, 0x00, 2,
 			0, 0, 0 },
-		{ VALID, VALID, WLAN_RC_PHY_CCK, 2000, /* 2 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_CCK, 2000, 
 			1900, 0x1a, 0x04, 4,
 			1, 1, 0 },
-		{ VALID, VALID, WLAN_RC_PHY_CCK, 5500, /* 5.5 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_CCK, 5500, 
 			4900, 0x19, 0x04, 11,
 			2, 2, 0 },
-		{ VALID, VALID, WLAN_RC_PHY_CCK, 11000, /* 11 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_CCK, 11000, 
 			8100, 0x18, 0x04, 22,
 			3, 3, 0 },
-		{ INVALID, INVALID, WLAN_RC_PHY_OFDM, 6000, /* 6 Mb */
+		{ INVALID, INVALID, WLAN_RC_PHY_OFDM, 6000, 
 			5400, 0x0b, 0x00, 12,
 			4, 4, 0 },
-		{ INVALID, INVALID, WLAN_RC_PHY_OFDM, 9000, /* 9 Mb */
+		{ INVALID, INVALID, WLAN_RC_PHY_OFDM, 9000, 
 			7800, 0x0f, 0x00, 18,
 			4, 5, 0 },
-		{ VALID, VALID, WLAN_RC_PHY_OFDM, 12000, /* 12 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_OFDM, 12000, 
 			10000, 0x0a, 0x00, 24,
 			6, 6, 0 },
-		{ VALID, VALID, WLAN_RC_PHY_OFDM, 18000, /* 18 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_OFDM, 18000, 
 			13900, 0x0e, 0x00, 36,
 			6, 7, 0 },
-		{ VALID, VALID, WLAN_RC_PHY_OFDM, 24000, /* 24 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_OFDM, 24000, 
 			17300, 0x09, 0x00, 48,
 			8,  8, 0 },
-		{ VALID, VALID, WLAN_RC_PHY_OFDM, 36000, /* 36 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_OFDM, 36000, 
 			23000, 0x0d, 0x00, 72,
 			8,  9, 0 },
-		{ VALID, VALID, WLAN_RC_PHY_OFDM, 48000, /* 48 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_OFDM, 48000, 
 			27400, 0x08, 0x00, 96,
 			8,  10, 0 },
-		{ VALID, VALID, WLAN_RC_PHY_OFDM, 54000, /* 54 Mb */
+		{ VALID, VALID, WLAN_RC_PHY_OFDM, 54000, 
 			29300, 0x0c, 0x00, 108,
 			8,  11, 0 },
 	},
-	50,  /* probe interval */
-	0,   /* Phy rates allowed initially */
+	50,  
+	0,   
 };
 
 static inline int8_t median(int8_t a, int8_t b, int8_t c)
@@ -444,13 +428,13 @@ int ath_rc_get_nextvalid_txrate(const struct ath_rate_table *rate_table,
 		}
 	}
 
-	/* No more valid rates */
+	
 	*next_idx = 0;
 
 	return 0;
 }
 
-/* Return true only for single stream */
+
 
 static int ath_rc_valid_phyrate(u32 phy, u32 capflag, int ignore_cw)
 {
@@ -520,7 +504,7 @@ static u8 ath_rc_setvalid_rates(struct ath_rate_priv *ath_rc_priv,
 {
 	u8 i, j, hi = 0;
 
-	/* Use intersection of working rates and valid rates */
+	
 	for (i = 0; i < rateset->rs_nrates; i++) {
 		for (j = 0; j < rate_table->rate_cnt; j++) {
 			u32 phy = rate_table->info[j].phy;
@@ -530,9 +514,7 @@ static u8 ath_rc_setvalid_rates(struct ath_rate_priv *ath_rc_priv,
 			u8 rate = rateset->rs_rates[i];
 			u8 dot11rate = rate_table->info[j].dot11rate;
 
-			/* We allow a rate only if its valid and the
-			 * capflag matches one of the validity
-			 * (VALID/VALID_20/VALID_40) flags */
+			
 
 			if (((rate & 0x7F) == (dot11rate & 0x7F)) &&
 			    ((valid & WLAN_RC_CAP_MODE(capflag)) ==
@@ -566,7 +548,7 @@ static u8 ath_rc_setvalid_htrates(struct ath_rate_priv *ath_rc_priv,
 
 	u8 i, j, hi = 0;
 
-	/* Use intersection of working rates and valid rates */
+	
 	for (i = 0; i < rateset->rs_nrates; i++) {
 		for (j = 0; j < rate_table->rate_cnt; j++) {
 			u32 phy = rate_table->info[j].phy;
@@ -595,7 +577,7 @@ static u8 ath_rc_setvalid_htrates(struct ath_rate_priv *ath_rc_priv,
 	return hi;
 }
 
-/* Finds the highest rate index we can use */
+
 static u8 ath_rc_get_highest_rix(struct ath_softc *sc,
 			         struct ath_rate_priv *ath_rc_priv,
 				 const struct ath_rate_table *rate_table,
@@ -612,10 +594,7 @@ static u8 ath_rc_get_highest_rix(struct ath_softc *sc,
 	minindex = 0;
 	best_rate = minindex;
 
-	/*
-	 * Try the higher rate first. It will reduce memory moving time
-	 * if we have very good channel characteristics.
-	 */
+	
 	for (index = maxindex; index >= minindex ; index--) {
 		u8 per_thres;
 
@@ -623,17 +602,7 @@ static u8 ath_rc_get_highest_rix(struct ath_softc *sc,
 		if (rate > ath_rc_priv->rate_max_phy)
 			continue;
 
-		/*
-		 * For TCP the average collision rate is around 11%,
-		 * so we ignore PERs less than this.  This is to
-		 * prevent the rate we are currently using (whose
-		 * PER might be in the 10-15 range because of TCP
-		 * collisions) looking worse than the next lower
-		 * rate whose PER has decayed close to 0.  If we
-		 * used to next lower rate, its PER would grow to
-		 * 10-15 and we would be worse off then staying
-		 * at the current rate.
-		 */
+		
 		per_thres = ath_rc_priv->per[rate];
 		if (per_thres < 12)
 			per_thres = 12;
@@ -649,15 +618,12 @@ static u8 ath_rc_get_highest_rix(struct ath_softc *sc,
 
 	rate = best_rate;
 
-	/*
-	 * Must check the actual rate (ratekbps) to account for
-	 * non-monoticity of 11g's rate table
-	 */
+	
 
 	if (rate >= ath_rc_priv->rate_max_phy) {
 		rate = ath_rc_priv->rate_max_phy;
 
-		/* Probe the next allowed phy state */
+		
 		if (ath_rc_get_nextvalid_txrate(rate_table,
 					ath_rc_priv, rate, &next_rate) &&
 		    (now_msec - ath_rc_priv->probe_time >
@@ -682,7 +648,7 @@ static u8 ath_rc_get_highest_rix(struct ath_softc *sc,
 	    !(ath_rc_priv->ht_cap & WLAN_RC_DS_FLAG))
 		return rate;
 
-	/* This should not happen */
+	
 	WARN_ON(1);
 
 	rate = ath_rc_priv->valid_rate_index[0];
@@ -717,7 +683,7 @@ static void ath_rc_rate_set_rtscts(struct ath_softc *sc,
 	struct ieee80211_tx_rate *rates = tx_info->control.rates;
 	int i = 0, rix = 0, cix, enable_g_protection = 0;
 
-	/* get the cix for the lowest valid rix */
+	
 	for (i = 3; i >= 0; i--) {
 		if (rates[i].count && (rates[i].idx >= 0)) {
 			rix = rates[i].idx;
@@ -726,16 +692,12 @@ static void ath_rc_rate_set_rtscts(struct ath_softc *sc,
 	}
 	cix = rate_table->info[rix].ctrl_rate;
 
-	/* All protection frames are transmited at 2Mb/s for 802.11g,
-	 * otherwise we transmit them at 1Mb/s */
+	
 	if (sc->hw->conf.channel->band == IEEE80211_BAND_2GHZ &&
 	    !conf_is_ht(&sc->hw->conf))
 		enable_g_protection = 1;
 
-	/*
-	 * If 802.11g protection is enabled, determine whether to use RTS/CTS or
-	 * just CTS.  Note that this is only done for OFDM/HT unicast frames.
-	 */
+	
 	if ((sc->sc_flags & SC_OP_PROTECT_ENABLE) &&
 	    (rate_table->info[rix].phy == WLAN_RC_PHY_OFDM ||
 	     WLAN_RC_PHY_HT(rate_table->info[rix].phy))) {
@@ -763,16 +725,7 @@ static void ath_get_rate(void *priv, struct ieee80211_sta *sta, void *priv_sta,
 	if (rate_control_send_low(sta, priv_sta, txrc))
 		return;
 
-	/*
-	 * For Multi Rate Retry we use a different number of
-	 * retry attempt counts. This ends up looking like this:
-	 *
-	 * MRR[0] = 2
-	 * MRR[1] = 2
-	 * MRR[2] = 2
-	 * MRR[3] = 4
-	 *
-	 */
+	
 	try_per_rate = sc->hw->max_rate_tries;
 
 	rate_table = sc->cur_rate_table;
@@ -780,52 +733,35 @@ static void ath_get_rate(void *priv, struct ieee80211_sta *sta, void *priv_sta,
 	nrix = rix;
 
 	if (is_probe) {
-		/* set one try for probe rates. For the
-		 * probes don't enable rts */
+		
 		ath_rc_rate_set_series(rate_table, &rates[i++], txrc,
 				       1, nrix, 0);
 
-		/* Get the next tried/allowed rate. No RTS for the next series
-		 * after the probe rate
-		 */
+		
 		ath_rc_get_lower_rix(rate_table, ath_rc_priv, rix, &nrix);
 		ath_rc_rate_set_series(rate_table, &rates[i++], txrc,
 				       try_per_rate, nrix, 0);
 
 		tx_info->flags |= IEEE80211_TX_CTL_RATE_CTRL_PROBE;
 	} else {
-		/* Set the choosen rate. No RTS for first series entry. */
+		
 		ath_rc_rate_set_series(rate_table, &rates[i++], txrc,
 				       try_per_rate, nrix, 0);
 	}
 
-	/* Fill in the other rates for multirate retry */
+	
 	for ( ; i < 4; i++) {
-		/* Use twice the number of tries for the last MRR segment. */
+		
 		if (i + 1 == 4)
 			try_per_rate = 4;
 
 		ath_rc_get_lower_rix(rate_table, ath_rc_priv, rix, &nrix);
-		/* All other rates in the series have RTS enabled */
+		
 		ath_rc_rate_set_series(rate_table, &rates[i], txrc,
 				       try_per_rate, nrix, 1);
 	}
 
-	/*
-	 * NB:Change rate series to enable aggregation when operating
-	 * at lower MCS rates. When first rate in series is MCS2
-	 * in HT40 @ 2.4GHz, series should look like:
-	 *
-	 * {MCS2, MCS1, MCS0, MCS0}.
-	 *
-	 * When first rate in series is MCS3 in HT20 @ 2.4GHz, series should
-	 * look like:
-	 *
-	 * {MCS3, MCS2, MCS1, MCS1}
-	 *
-	 * So, set fourth rate in series to be same as third one for
-	 * above conditions.
-	 */
+	
 	if ((sc->hw->conf.channel->band == IEEE80211_BAND_2GHZ) &&
 	    (conf_is_ht(&sc->hw->conf))) {
 		u8 dot11rate = rate_table->info[rix].dot11rate;
@@ -838,13 +774,7 @@ static void ath_get_rate(void *priv, struct ieee80211_sta *sta, void *priv_sta,
 		}
 	}
 
-	/*
-	 * Force hardware to use computed duration for next
-	 * fragment by disabling multi-rate retry, which
-	 * updates duration based on the multi-rate duration table.
-	 *
-	 * FIXME: Fix duration
-	 */
+	
 	if (ieee80211_has_morefrags(fc) ||
 	    (le16_to_cpu(hdr->seq_ctrl) & IEEE80211_SCTL_FRAG)) {
 		rates[1].count = rates[2].count = rates[3].count = 0;
@@ -852,7 +782,7 @@ static void ath_get_rate(void *priv, struct ieee80211_sta *sta, void *priv_sta,
 		rates[0].count = ATH_TXMAXTRY;
 	}
 
-	/* Setup RTS/CTS */
+	
 	ath_rc_rate_set_rtscts(sc, rate_table, tx_info);
 }
 
@@ -887,39 +817,28 @@ static bool ath_rc_update_per(struct ath_softc *sc,
 			if (ath_rc_priv->per[tx_rate] > 100)
 				ath_rc_priv->per[tx_rate] = 100;
 		} else {
-			/* xretries == 2 */
+			
 			count = ARRAY_SIZE(nretry_to_per_lookup);
 			if (retries >= count)
 				retries = count - 1;
 
-			/* new_PER = 7/8*old_PER + 1/8*(currentPER) */
+			
 			ath_rc_priv->per[tx_rate] =
 				(u8)(last_per - (last_per >> 3) + (100 >> 3));
 		}
 
-		/* xretries == 1 or 2 */
+		
 
 		if (ath_rc_priv->probe_rate == tx_rate)
 			ath_rc_priv->probe_rate = 0;
 
-	} else { /* xretries == 0 */
+	} else { 
 		count = ARRAY_SIZE(nretry_to_per_lookup);
 		if (retries >= count)
 			retries = count - 1;
 
 		if (tx_info_priv->n_bad_frames) {
-			/* new_PER = 7/8*old_PER + 1/8*(currentPER)
-			 * Assuming that n_frames is not 0.  The current PER
-			 * from the retries is 100 * retries / (retries+1),
-			 * since the first retries attempts failed, and the
-			 * next one worked.  For the one that worked,
-			 * n_bad_frames subframes out of n_frames wored,
-			 * so the PER for that part is
-			 * 100 * n_bad_frames / n_frames, and it contributes
-			 * 100 * n_bad_frames / (n_frames * (retries+1)) to
-			 * the above PER.  The expression below is a
-			 * simplified version of the sum of these two terms.
-			 */
+			
 			if (tx_info_priv->n_frames > 0) {
 				int n_frames, n_bad_frames;
 				u8 cur_per, new_per;
@@ -938,20 +857,11 @@ static bool ath_rc_update_per(struct ath_softc *sc,
 		}
 
 
-		/*
-		 * If we got at most one retry then increase the max rate if
-		 * this was a probe.  Otherwise, ignore the probe.
-		 */
+		
 		if (ath_rc_priv->probe_rate && ath_rc_priv->probe_rate == tx_rate) {
 			if (retries > 0 || 2 * tx_info_priv->n_bad_frames >
 				tx_info_priv->n_frames) {
-				/*
-				 * Since we probed with just a single attempt,
-				 * any retries means the probe failed.  Also,
-				 * if the attempt worked, but more than half
-				 * the subframes were bad then also consider
-				 * the probe a failure.
-				 */
+				
 				ath_rc_priv->probe_rate = 0;
 			} else {
 				u8 probe_rate = 0;
@@ -965,28 +875,17 @@ static bool ath_rc_update_per(struct ath_softc *sc,
 
 				ath_rc_priv->probe_rate = 0;
 
-				/*
-				 * Since this probe succeeded, we allow the next
-				 * probe twice as soon.  This allows the maxRate
-				 * to move up faster if the probes are
-				 * succesful.
-				 */
+				
 				ath_rc_priv->probe_time =
 					now_msec - rate_table->probe_interval / 2;
 			}
 		}
 
 		if (retries > 0) {
-			/*
-			 * Don't update anything.  We don't know if
-			 * this was because of collisions or poor signal.
-			 */
+			
 			ath_rc_priv->hw_maxretry_pktcnt = 0;
 		} else {
-			/*
-			 * It worked with no retries. First ignore bogus (small)
-			 * rssi_ack values.
-			 */
+			
 			if (tx_rate == ath_rc_priv->rate_max_phy &&
 			    ath_rc_priv->hw_maxretry_pktcnt < 255) {
 				ath_rc_priv->hw_maxretry_pktcnt++;
@@ -998,8 +897,7 @@ static bool ath_rc_update_per(struct ath_softc *sc,
 	return state_change;
 }
 
-/* Update PER, RSSI and whatever else that the code thinks it is doing.
-   If you can make sense of all this, you really need to go out more. */
+
 
 static void ath_rc_update_ht(struct ath_softc *sc,
 			     struct ath_rate_priv *ath_rc_priv,
@@ -1018,27 +916,24 @@ static void ath_rc_update_ht(struct ath_softc *sc,
 
 	last_per = ath_rc_priv->per[tx_rate];
 
-	/* Update PER first */
+	
 	state_change = ath_rc_update_per(sc, rate_table, ath_rc_priv,
 					 tx_info_priv, tx_rate, xretries,
 					 retries, now_msec);
 
-	/*
-	 * If this rate looks bad (high PER) then stop using it for
-	 * a while (except if we are probing).
-	 */
+	
 	if (ath_rc_priv->per[tx_rate] >= 55 && tx_rate > 0 &&
 	    rate_table->info[tx_rate].ratekbps <=
 	    rate_table->info[ath_rc_priv->rate_max_phy].ratekbps) {
 		ath_rc_get_lower_rix(rate_table, ath_rc_priv,
 				     (u8)tx_rate, &ath_rc_priv->rate_max_phy);
 
-		/* Don't probe for a little while. */
+		
 		ath_rc_priv->probe_time = now_msec;
 	}
 
-	/* Make sure the rates below this have lower PER */
-	/* Monotonicity is kept only for rates below the current rate. */
+	
+	
 	if (ath_rc_priv->per[tx_rate] < last_per) {
 		for (rate = tx_rate - 1; rate >= 0; rate--) {
 
@@ -1050,7 +945,7 @@ static void ath_rc_update_ht(struct ath_softc *sc,
 		}
 	}
 
-	/* Maintain monotonicity for rates above the current rate */
+	
 	for (rate = tx_rate; rate < size - 1; rate++) {
 		if (ath_rc_priv->per[rate+1] <
 		    ath_rc_priv->per[rate])
@@ -1058,8 +953,7 @@ static void ath_rc_update_ht(struct ath_softc *sc,
 				ath_rc_priv->per[rate];
 	}
 
-	/* Every so often, we reduce the thresholds
-	 * and PER (different for CCK and OFDM). */
+	
 	if (now_msec - ath_rc_priv->per_down_time >=
 	    rate_table->probe_interval) {
 		for (rate = 0; rate < size; rate++) {
@@ -1106,18 +1000,14 @@ static void ath_rc_tx_status(struct ath_softc *sc,
 
 	rate_table = sc->cur_rate_table;
 
-	/*
-	 * If the first rate is not the final index, there
-	 * are intermediate rate failures to be processed.
-	 */
+	
 	if (final_ts_idx != 0) {
-		/* Process intermediate rates that failed.*/
+		
 		for (i = 0; i < final_ts_idx ; i++) {
 			if (rates[i].count != 0 && (rates[i].idx >= 0)) {
 				flags = rates[i].flags;
 
-				/* If HT40 and we have switched mode from
-				 * 40 to 20 => don't update */
+				
 
 				if ((flags & IEEE80211_TX_RC_40_MHZ_WIDTH) &&
 				    !(ath_rc_priv->ht_cap & WLAN_RC_40_FLAG))
@@ -1131,19 +1021,14 @@ static void ath_rc_tx_status(struct ath_softc *sc,
 			}
 		}
 	} else {
-		/*
-		 * Handle the special case of MIMO PS burst, where the second
-		 * aggregate is sent out with only one rate and one try.
-		 * Treating it as an excessive retry penalizes the rate
-		 * inordinately.
-		 */
+		
 		if (rates[0].count == 1 && xretries == 1)
 			xretries = 2;
 	}
 
 	flags = rates[i].flags;
 
-	/* If HT40 and we have switched mode from 40 to 20 => don't update */
+	
 	if ((flags & IEEE80211_TX_RC_40_MHZ_WIDTH) &&
 	    !(ath_rc_priv->ht_cap & WLAN_RC_40_FLAG))
 		return;
@@ -1202,16 +1087,15 @@ static void ath_rc_init(struct ath_softc *sc,
 		return;
 	}
 
-	/* Initial rate table size. Will change depending
-	 * on the working rate set */
+	
 	ath_rc_priv->rate_table_size = RATE_TABLE_SIZE;
 
-	/* Initialize thresholds according to the global rate table */
+	
 	for (i = 0 ; i < ath_rc_priv->rate_table_size; i++) {
 		ath_rc_priv->per[i] = 0;
 	}
 
-	/* Determine the valid rates */
+	
 	ath_rc_init_valid_txmask(ath_rc_priv);
 
 	for (i = 0; i < WLAN_RC_PHY_MAX; i++) {
@@ -1221,11 +1105,11 @@ static void ath_rc_init(struct ath_softc *sc,
 	}
 
 	if (!rateset->rs_nrates) {
-		/* No working rate, just initialize valid rates */
+		
 		hi = ath_rc_init_validrates(ath_rc_priv, rate_table,
 					    ath_rc_priv->ht_cap);
 	} else {
-		/* Use intersection of working rates and valid rates */
+		
 		hi = ath_rc_setvalid_rates(ath_rc_priv, rate_table,
 					   rateset, ath_rc_priv->ht_cap);
 		if (ath_rc_priv->ht_cap & WLAN_RC_HT_FLAG) {
@@ -1286,9 +1170,9 @@ static u8 ath_rc_build_ht_caps(struct ath_softc *sc, struct ieee80211_sta *sta,
 	return caps;
 }
 
-/***********************************/
-/* mac80211 Rate Control callbacks */
-/***********************************/
+
+
+
 
 static void ath_tx_status(void *priv, struct ieee80211_supported_band *sband,
 			  struct ieee80211_sta *sta, void *priv_sta,
@@ -1314,12 +1198,7 @@ static void ath_tx_status(void *priv, struct ieee80211_supported_band *sband,
 	if (tx_info_priv->tx.ts_status & ATH9K_TXERR_FILT)
 		goto exit;
 
-	/*
-	 * If underrun error is seen assume it as an excessive retry only
-	 * if prefetch trigger level have reached the max (0x3f for 5416)
-	 * Adjust the long retry as if the frame was tried hw->max_rate_tries
-	 * times. This affects how ratectrl updates PER for the failed rate.
-	 */
+	
 	if (tx_info_priv->tx.ts_flags &
 	    (ATH9K_TX_DATA_UNDERRUN | ATH9K_TX_DELIM_UNDERRUN) &&
 	    ((sc->sc_ah->tx_trig_level) >= ath_rc_priv->tx_triglevel_max)) {
@@ -1335,7 +1214,7 @@ static void ath_tx_status(void *priv, struct ieee80211_supported_band *sband,
 			 (is_underrun) ? sc->hw->max_rate_tries :
 			 tx_info_priv->tx.ts_longretry);
 
-	/* Check if aggregation has to be enabled for this tid */
+	
 	if (conf_is_ht(&sc->hw->conf) &&
 	    !(skb->protocol == cpu_to_be16(ETH_P_PAE))) {
 		if (ieee80211_is_data_qos(fc)) {
@@ -1387,7 +1266,7 @@ static void ath_rate_init(void *priv, struct ieee80211_supported_band *sband,
 	is_cw40 = sta->ht_cap.cap & IEEE80211_HT_CAP_SUP_WIDTH_20_40;
 	is_sgi40 = sta->ht_cap.cap & IEEE80211_HT_CAP_SGI_40;
 
-	/* Choose rate table first */
+	
 
 	if ((sc->sc_ah->opmode == NL80211_IFTYPE_STATION) ||
 	    (sc->sc_ah->opmode == NL80211_IFTYPE_MESH_POINT) ||
@@ -1396,7 +1275,7 @@ static void ath_rate_init(void *priv, struct ieee80211_supported_band *sband,
 						   sta->ht_cap.ht_supported,
 						   is_cw40);
 	} else if (sc->sc_ah->opmode == NL80211_IFTYPE_AP) {
-		/* cur_rate_table would be set on init through config() */
+		
 		rate_table = sc->cur_rate_table;
 	}
 
@@ -1417,7 +1296,7 @@ static void ath_rate_update(void *priv, struct ieee80211_supported_band *sband,
 	bool local_sgi40 = (ath_rc_priv->ht_cap & WLAN_RC_SGI_FLAG) ?
 		true : false;
 
-	/* FIXME: Handle AP mode later when we support CWM */
+	
 
 	if (changed & IEEE80211_RC_HT_CHANGED) {
 		if (sc->sc_ah->opmode != NL80211_IFTYPE_STATION)

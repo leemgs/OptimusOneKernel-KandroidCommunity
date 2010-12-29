@@ -1,25 +1,4 @@
-/*
 
-  Broadcom B43 wireless driver
-
-  Copyright (c) 2007 Michael Buesch <mb@bu3sch.de>
-
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program; see the file COPYING.  If not, write to
-  the Free Software Foundation, Inc., 51 Franklin Steet, Fifth Floor,
-  Boston, MA 02110-1301, USA.
-
-*/
 
 #include "pcmcia.h"
 
@@ -33,7 +12,7 @@
 #include <pcmcia/cisreg.h>
 
 
-static /*const */ struct pcmcia_device_id b43_pcmcia_tbl[] = {
+static  struct pcmcia_device_id b43_pcmcia_tbl[] = {
 	PCMCIA_DEVICE_MANF_CARD(0x2D0, 0x448),
 	PCMCIA_DEVICE_MANF_CARD(0x2D0, 0x476),
 	PCMCIA_DEVICE_NULL,
@@ -55,10 +34,10 @@ static int b43_pcmcia_resume(struct pcmcia_device *dev)
 
 	return ssb_bus_resume(ssb);
 }
-#else /* CONFIG_PM */
+#else 
 # define b43_pcmcia_suspend		NULL
 # define b43_pcmcia_resume		NULL
-#endif /* CONFIG_PM */
+#endif 
 
 static int __devinit b43_pcmcia_probe(struct pcmcia_device *dev)
 {
@@ -119,7 +98,7 @@ static int __devinit b43_pcmcia_probe(struct pcmcia_device *dev)
 
 	dev->irq.Attributes = IRQ_TYPE_DYNAMIC_SHARING;
 	dev->irq.IRQInfo1 = IRQ_LEVEL_ID;
-	dev->irq.Handler = NULL; /* The handler is registered later. */
+	dev->irq.Handler = NULL; 
 	dev->irq.Instance = NULL;
 	res = pcmcia_request_irq(dev, &dev->irq);
 	if (res != 0)

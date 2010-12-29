@@ -1,27 +1,6 @@
-/*
-	Copyright (C) 2004 - 2009 rt2x00 SourceForge Project
-	<http://rt2x00.serialmonkey.com>
 
-	This program is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-	GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program; if not, write to the
-	Free Software Foundation, Inc.,
-	59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
-
-/*
-	Module: rt2x00lib
-	Abstract: rt2x00 generic configuration routines.
- */
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -54,12 +33,7 @@ void rt2x00lib_config_intf(struct rt2x00_dev *rt2x00dev,
 		break;
 	}
 
-	/*
-	 * Note that when NULL is passed as address we will send
-	 * 00:00:00:00:00 to the device to clear the address.
-	 * This will prevent the device being confused when it wants
-	 * to ACK frames or consideres itself associated.
-	 */
+	
 	memset(&conf.mac, 0, sizeof(conf.mac));
 	if (mac)
 		memcpy(&conf.mac, mac, ETH_ALEN);
@@ -97,7 +71,7 @@ void rt2x00lib_config_erp(struct rt2x00_dev *rt2x00dev,
 	erp.basic_rates = bss_conf->basic_rates;
 	erp.beacon_int = bss_conf->beacon_int;
 
-	/* Update global beacon interval time, this is needed for PS support */
+	
 	rt2x00dev->beacon_int = bss_conf->beacon_int;
 
 	rt2x00dev->ops->lib->config_erp(rt2x00dev, &erp);
@@ -119,17 +93,7 @@ void rt2x00lib_config_antenna(struct rt2x00_dev *rt2x00dev,
 	struct antenna_setup *def = &rt2x00dev->default_ant;
 	struct antenna_setup *active = &rt2x00dev->link.ant.active;
 
-	/*
-	 * Failsafe: Make sure we are not sending the
-	 * ANTENNA_SW_DIVERSITY state to the driver.
-	 * If that happens, fallback to hardware defaults,
-	 * or our own default.
-	 * If diversity handling is active for a particular antenna,
-	 * we shouldn't overwrite that antenna.
-	 * The calls to rt2x00lib_config_antenna_check()
-	 * might have caused that we restore back to the already
-	 * active setting. If that has happened we can quit.
-	 */
+	
 	if (!(ant->flags & ANTENNA_RX_DIVERSITY))
 		config.rx = rt2x00lib_config_antenna_check(config.rx, def->rx);
 	else
@@ -143,18 +107,11 @@ void rt2x00lib_config_antenna(struct rt2x00_dev *rt2x00dev,
 	if (config.rx == active->rx && config.tx == active->tx)
 		return;
 
-	/*
-	 * Antenna setup changes require the RX to be disabled,
-	 * else the changes will be ignored by the device.
-	 */
+	
 	if (test_bit(DEVICE_STATE_ENABLED_RADIO, &rt2x00dev->flags))
 		rt2x00lib_toggle_rx(rt2x00dev, STATE_RADIO_RX_OFF_LINK);
 
-	/*
-	 * Write new antenna setup to device and reset the link tuner.
-	 * The latter is required since we need to recalibrate the
-	 * noise-sensitivity ratio for the new setup.
-	 */
+	
 	rt2x00dev->ops->lib->config_ant(rt2x00dev, &config);
 
 	rt2x00link_reset_tuner(rt2x00dev, true);
@@ -190,15 +147,10 @@ void rt2x00lib_config(struct rt2x00_dev *rt2x00dev,
 		       sizeof(libconf.channel));
 	}
 
-	/*
-	 * Start configuration.
-	 */
+	
 	rt2x00dev->ops->lib->config(rt2x00dev, &libconf, ieee80211_flags);
 
-	/*
-	 * Some configuration changes affect the link quality
-	 * which means we need to reset the link tuner.
-	 */
+	
 	if (ieee80211_flags & IEEE80211_CONF_CHANGE_CHANNEL)
 		rt2x00link_reset_tuner(rt2x00dev, false);
 

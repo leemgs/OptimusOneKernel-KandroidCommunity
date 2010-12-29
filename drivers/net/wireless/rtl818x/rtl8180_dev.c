@@ -1,19 +1,5 @@
 
-/*
- * Linux device driver for RTL8180 / RTL8185
- *
- * Copyright 2007 Michael Wu <flamingice@sourmilk.net>
- * Copyright 2007 Andrea Merello <andreamrl@tiscali.it>
- *
- * Based on the r8180 driver, which is:
- * Copyright 2004-2005 Andrea Merello <andreamrl@tiscali.it>, et al.
- *
- * Thanks to Realtek for their support!
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/pci.h>
@@ -34,12 +20,12 @@ MODULE_DESCRIPTION("RTL8180 / RTL8185 PCI wireless driver");
 MODULE_LICENSE("GPL");
 
 static struct pci_device_id rtl8180_table[] __devinitdata = {
-	/* rtl8185 */
+	
 	{ PCI_DEVICE(PCI_VENDOR_ID_REALTEK, 0x8185) },
 	{ PCI_DEVICE(PCI_VENDOR_ID_BELKIN, 0x700f) },
 	{ PCI_DEVICE(PCI_VENDOR_ID_BELKIN, 0x701f) },
 
-	/* rtl8180 */
+	
 	{ PCI_DEVICE(PCI_VENDOR_ID_REALTEK, 0x8180) },
 	{ PCI_DEVICE(0x1799, 0x6001) },
 	{ PCI_DEVICE(0x1799, 0x6020) },
@@ -131,10 +117,10 @@ static void rtl8180_handle_rx(struct ieee80211_hw *dev)
 			skb_put(skb, flags & 0xFFF);
 
 			rx_status.antenna = (flags2 >> 15) & 1;
-			/* TODO: improve signal/rssi reporting */
+			
 			rx_status.qual = flags2 & 0xFF;
 			rx_status.signal = (flags2 >> 8) & 0x7F;
-			/* XXX: is this correct? */
+			
 			rx_status.rate_idx = (flags >> 20) & 0xF;
 			rx_status.freq = dev->conf.channel->center_freq;
 			rx_status.band = dev->conf.channel->band;
@@ -330,7 +316,7 @@ static int rtl8180_init_hw(struct ieee80211_hw *dev)
 	rtl818x_ioread8(priv, &priv->map->CMD);
 	msleep(10);
 
-	/* reset */
+	
 	rtl818x_iowrite16(priv, &priv->map->INT_MASK, 0);
 	rtl818x_ioread8(priv, &priv->map->CMD);
 
@@ -341,7 +327,7 @@ static int rtl8180_init_hw(struct ieee80211_hw *dev)
 	rtl818x_ioread8(priv, &priv->map->CMD);
 	msleep(200);
 
-	/* check success of reset */
+	
 	if (rtl818x_ioread8(priv, &priv->map->CMD) & RTL818X_CMD_RESET) {
 		printk(KERN_ERR "%s: reset timeout!\n", wiphy_name(dev->wiphy));
 		return -ETIMEDOUT;
@@ -352,7 +338,7 @@ static int rtl8180_init_hw(struct ieee80211_hw *dev)
 	msleep(200);
 
 	if (rtl818x_ioread8(priv, &priv->map->CONFIG3) & (1 << 3)) {
-		/* For cardbus */
+		
 		reg = rtl818x_ioread8(priv, &priv->map->CONFIG3);
 		reg |= 1 << 1;
 		rtl818x_iowrite8(priv, &priv->map->CONFIG3, reg);
@@ -372,7 +358,7 @@ static int rtl8180_init_hw(struct ieee80211_hw *dev)
 	rtl818x_iowrite32(priv, &priv->map->TNPDA, priv->tx_ring[1].dma);
 	rtl818x_iowrite32(priv, &priv->map->TLPDA, priv->tx_ring[0].dma);
 
-	/* TODO: necessary? specs indicate not */
+	
 	rtl818x_iowrite8(priv, &priv->map->EEPROM_CMD, RTL818X_EEPROM_CMD_CONFIG);
 	reg = rtl818x_ioread8(priv, &priv->map->CONFIG2);
 	rtl818x_iowrite8(priv, &priv->map->CONFIG2, reg & ~(1 << 3));
@@ -382,9 +368,9 @@ static int rtl8180_init_hw(struct ieee80211_hw *dev)
 	}
 	rtl818x_iowrite8(priv, &priv->map->EEPROM_CMD, RTL818X_EEPROM_CMD_NORMAL);
 
-	/* TODO: set CONFIG5 for calibrating AGC on rtl8180 + philips radio? */
+	
 
-	/* TODO: turn off hw wep on rtl8180 */
+	
 
 	rtl818x_iowrite32(priv, &priv->map->INT_TIMEOUT, 0);
 
@@ -395,7 +381,7 @@ static int rtl8180_init_hw(struct ieee80211_hw *dev)
 
 		rtl818x_iowrite16(priv, &priv->map->BRSR, 0x01F3);
 
-		/* TODO: set ClkRun enable? necessary? */
+		
 		reg = rtl818x_ioread8(priv, &priv->map->GP_ENABLE);
 		rtl818x_iowrite8(priv, &priv->map->GP_ENABLE, reg & ~(1 << 6));
 		rtl818x_iowrite8(priv, &priv->map->EEPROM_CMD, RTL818X_EEPROM_CMD_CONFIG);
@@ -565,7 +551,7 @@ static int rtl8180_start(struct ieee80211_hw *dev)
 	      RTL818X_RX_CONF_RX_AUTORESETPHY |
 	      RTL818X_RX_CONF_MGMT |
 	      RTL818X_RX_CONF_DATA |
-	      (7 << 8 /* MAX RX DMA */) |
+	      (7 << 8 ) |
 	      RTL818X_RX_CONF_BROADCAST |
 	      RTL818X_RX_CONF_NICMAC;
 
@@ -593,12 +579,12 @@ static int rtl8180_start(struct ieee80211_hw *dev)
 		reg |=  RTL818X_TX_AGC_CTL_FEEDBACK_ANT;
 		rtl818x_iowrite8(priv, &priv->map->TX_AGC_CTL, reg);
 
-		/* disable early TX */
+		
 		rtl818x_iowrite8(priv, (u8 __iomem *)priv->map + 0xec, 0x3f);
 	}
 
 	reg = rtl818x_ioread32(priv, &priv->map->TX_CONF);
-	reg |= (6 << 21 /* MAX TX DMA */) |
+	reg |= (6 << 21 ) |
 	       RTL818X_TX_CONF_NO_ICV;
 
 	if (priv->r8185)
@@ -606,7 +592,7 @@ static int rtl8180_start(struct ieee80211_hw *dev)
 	else
 		reg &= ~RTL818X_TX_CONF_HW_SEQNUM;
 
-	/* different meaning, same value on both rtl8185 and rtl8180 */
+	
 	reg &= ~RTL818X_TX_CONF_SAT_HWPLCP;
 
 	rtl818x_iowrite32(priv, &priv->map->TX_CONF, reg);
@@ -989,7 +975,7 @@ static int __devinit rtl8180_probe(struct pci_dev *pdev,
 		random_ether_addr(dev->wiphy->perm_addr);
 	}
 
-	/* CCK TX power */
+	
 	for (i = 0; i < 14; i += 2) {
 		u16 txpwr;
 		eeprom_93cx6_read(&eeprom, 0x10 + (i >> 1), &txpwr);
@@ -997,7 +983,7 @@ static int __devinit rtl8180_probe(struct pci_dev *pdev,
 		priv->channels[i + 1].hw_value = txpwr >> 8;
 	}
 
-	/* OFDM TX power */
+	
 	if (priv->r8185) {
 		for (i = 0; i < 14; i += 2) {
 			u16 txpwr;
@@ -1070,7 +1056,7 @@ static int rtl8180_resume(struct pci_dev *pdev)
 	return 0;
 }
 
-#endif /* CONFIG_PM */
+#endif 
 
 static struct pci_driver rtl8180_driver = {
 	.name		= KBUILD_MODNAME,
@@ -1080,7 +1066,7 @@ static struct pci_driver rtl8180_driver = {
 #ifdef CONFIG_PM
 	.suspend	= rtl8180_suspend,
 	.resume		= rtl8180_resume,
-#endif /* CONFIG_PM */
+#endif 
 };
 
 static int __init rtl8180_init(void)

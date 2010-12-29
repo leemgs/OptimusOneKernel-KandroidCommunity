@@ -1,40 +1,4 @@
-/*
- * Intel Wireless Multicomm 3200 WiFi driver
- *
- * Copyright (C) 2009 Intel Corporation. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in
- *     the documentation and/or other materials provided with the
- *     distribution.
- *   * Neither the name of Intel Corporation nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- *
- * Intel Corporation <ilw@linux.intel.com>
- * Samuel Ortiz <samuel.ortiz@intel.com>
- * Zhu Yi <yi.zhu@intel.com>
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/netdevice.h>
@@ -70,7 +34,7 @@ static struct iwm_conf def_iwm_conf = {
 	.enable_qos		= 1,
 	.mode			= UMAC_MODE_BSS,
 
-	/* UMAC configuration */
+	
 	.power_index		= 0,
 	.frag_threshold		= IEEE80211_MAX_FRAG_THRESHOLD,
 	.rts_threshold		= IEEE80211_MAX_RTS_THRESHOLD,
@@ -81,7 +45,7 @@ static struct iwm_conf def_iwm_conf = {
 	.wireless_mode		= WIRELESS_MODE_11A | WIRELESS_MODE_11G,
 	.coexist_mode		= COEX_MODE_CM,
 
-	/* IBSS */
+	
 	.ibss_band		= UMAC_BAND_2GHZ,
 	.ibss_channel		= 1,
 
@@ -145,13 +109,7 @@ static void iwm_reset_worker(struct work_struct *work)
 
 	iwm = container_of(work, struct iwm_priv, reset_worker);
 
-	/*
-	 * XXX: The iwm->mutex is introduced purely for this reset work,
-	 * because the other users for iwm_up and iwm_down are only netdev
-	 * ndo_open and ndo_stop which are already protected by rtnl.
-	 * Please remove iwm->mutex together if iwm_reset_worker() is not
-	 * required in the future.
-	 */
+	
 	if (!mutex_trylock(&iwm->mutex)) {
 		IWM_WARN(iwm, "We are in the middle of interface bringing "
 			 "UP/DOWN. Skip driver resetting.\n");
@@ -280,11 +238,7 @@ void iwm_priv_deinit(struct iwm_priv *iwm)
 	kfree(iwm->last_fw_err);
 }
 
-/*
- * We reset all the structures, and we reset the UMAC.
- * After calling this routine, you're expected to reload
- * the firmware.
- */
+
 void iwm_reset(struct iwm_priv *iwm)
 {
 	struct iwm_notif *notif, *next;
@@ -319,24 +273,7 @@ void iwm_resetting(struct iwm_priv *iwm)
 	schedule_work(&iwm->reset_worker);
 }
 
-/*
- * Notification code:
- *
- * We're faced with the following issue: Any host command can
- * have an answer or not, and if there's an answer to expect,
- * it can be treated synchronously or asynchronously.
- * To work around the synchronous answer case, we implemented
- * our notification mechanism.
- * When a code path needs to wait for a command response
- * synchronously, it calls notif_handle(), which waits for the
- * right notification to show up, and then process it. Before
- * starting to wait, it registered as a waiter for this specific
- * answer (by toggling a bit in on of the handler_map), so that
- * the rx code knows that it needs to send a notification to the
- * waiting processes. It does so by calling iwm_notif_send(),
- * which adds the notification to the pending notifications list,
- * and then wakes the waiting processes up.
- */
+
 int iwm_notif_send(struct iwm_priv *iwm, struct iwm_wifi_cmd *cmd,
 		   u8 cmd_id, u8 source, u8 *buf, unsigned long buf_size)
 {
@@ -435,7 +372,7 @@ static int iwm_config_boot_params(struct iwm_priv *iwm)
 	struct iwm_udma_nonwifi_cmd target_cmd;
 	int ret;
 
-	/* check Wimax is off and config debug monitor */
+	
 	if (iwm->conf.wimax_not_present) {
 		u32 data1 = 0x1f;
 		u32 addr1 = 0x606BE258;
@@ -596,7 +533,7 @@ static int __iwm_up(struct iwm_priv *iwm)
 
 	iwm_rx_setup_handlers(iwm);
 
-	/* Wait for initial BARKER_REBOOT from hardware */
+	
 	notif_reboot = iwm_notif_wait(iwm, IWM_BARKER_REBOOT_NOTIFICATION,
 				      IWM_SRC_UDMA, 2 * HZ);
 	if (!notif_reboot) {
@@ -604,7 +541,7 @@ static int __iwm_up(struct iwm_priv *iwm)
 		goto err_disable;
 	}
 
-	/* We send the barker back */
+	
 	ret = iwm_bus_send_chunk(iwm, notif_reboot->buf, 16);
 	if (ret) {
 		IWM_ERR(iwm, "REBOOT barker response failed\n");
@@ -615,7 +552,7 @@ static int __iwm_up(struct iwm_priv *iwm)
 	kfree(notif_reboot->buf);
 	kfree(notif_reboot);
 
-	/* Wait for ACK_BARKER from hardware */
+	
 	notif_ack = iwm_notif_wait(iwm, IWM_ACK_BARKER_NOTIFICATION,
 				   IWM_SRC_UDMA, 2 * HZ);
 	if (!notif_ack) {
@@ -626,7 +563,7 @@ static int __iwm_up(struct iwm_priv *iwm)
 	kfree(notif_ack->buf);
 	kfree(notif_ack);
 
-	/* We start to config static boot parameters */
+	
 	ret = iwm_config_boot_params(iwm);
 	if (ret) {
 		IWM_ERR(iwm, "Config boot parameters failed\n");
@@ -639,14 +576,14 @@ static int __iwm_up(struct iwm_priv *iwm)
 		goto err_disable;
 	}
 
-	/* We can load the FWs */
+	
 	ret = iwm_load_fw(iwm);
 	if (ret) {
 		IWM_ERR(iwm, "FW loading failed\n");
 		goto err_disable;
 	}
 
-	/* We configure the UMAC and enable the wifi module */
+	
 	ret = iwm_send_umac_config(iwm,
 			cpu_to_le32(UMAC_RST_CTRL_FLG_WIFI_CORE_EN) |
 			cpu_to_le32(UMAC_RST_CTRL_FLG_WIFI_LINK_EN) |
@@ -690,7 +627,7 @@ static int __iwm_up(struct iwm_priv *iwm)
 		goto err_fw;
 	}
 
-	/* Set the READY bit to indicate interface is brought up successfully */
+	
 	set_bit(IWM_STATUS_READY, &iwm->status);
 
 	return 0;
@@ -721,7 +658,7 @@ static int __iwm_down(struct iwm_priv *iwm)
 {
 	int ret;
 
-	/* The interface is already down */
+	
 	if (!test_bit(IWM_STATUS_READY, &iwm->status))
 		return 0;
 

@@ -1,30 +1,4 @@
-/******************************************************************************
- *
- * GPL LICENSE SUMMARY
- *
- * Copyright(c) 2008 - 2009 Intel Corporation. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of version 2 of the GNU General Public License as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110,
- * USA
- *
- * The full GNU General Public License is included in this distribution
- * in the file called LICENSE.GPL.
- *
- * Contact Information:
- *  Intel Linux Wireless <ilw@linux.intel.com>
- * Intel Corporation, 5200 N.E. Elam Young Parkway, Hillsboro, OR 97124-6497
- *****************************************************************************/
+
 #include <linux/types.h>
 #include <linux/etherdevice.h>
 #include <net/lib80211.h>
@@ -37,30 +11,22 @@
 #include "iwl-io.h"
 #include "iwl-helpers.h"
 
-/* For active scan, listen ACTIVE_DWELL_TIME (msec) on each channel after
- * sending probe req.  This should be set long enough to hear probe responses
- * from more than one AP.  */
-#define IWL_ACTIVE_DWELL_TIME_24    (30)       /* all times in msec */
+
+#define IWL_ACTIVE_DWELL_TIME_24    (30)       
 #define IWL_ACTIVE_DWELL_TIME_52    (20)
 
 #define IWL_ACTIVE_DWELL_FACTOR_24GHZ (3)
 #define IWL_ACTIVE_DWELL_FACTOR_52GHZ (2)
 
-/* For passive scan, listen PASSIVE_DWELL_TIME (msec) on each channel.
- * Must be set longer than active dwell time.
- * For the most reliable scan, set > AP beacon interval (typically 100msec). */
-#define IWL_PASSIVE_DWELL_TIME_24   (20)       /* all times in msec */
+
+#define IWL_PASSIVE_DWELL_TIME_24   (20)       
 #define IWL_PASSIVE_DWELL_TIME_52   (10)
 #define IWL_PASSIVE_DWELL_BASE      (100)
 #define IWL_CHANNEL_TUNE_TIME       5
 
 
 
-/**
- * iwl_scan_cancel - Cancel any currently executing HW scan
- *
- * NOTE: priv->mutex is not required before calling this function
- */
+
 int iwl_scan_cancel(struct iwl_priv *priv)
 {
 	if (!test_bit(STATUS_SCAN_HW, &priv->status)) {
@@ -83,12 +49,7 @@ int iwl_scan_cancel(struct iwl_priv *priv)
 	return 0;
 }
 EXPORT_SYMBOL(iwl_scan_cancel);
-/**
- * iwl_scan_cancel_timeout - Cancel any currently executing HW scan
- * @ms: amount of time to wait (in milliseconds) for scan to abort
- *
- * NOTE: priv->mutex must be held before calling this function
- */
+
 int iwl_scan_cancel_timeout(struct iwl_priv *priv, unsigned long ms)
 {
 	unsigned long now = jiffies;
@@ -118,9 +79,7 @@ static int iwl_send_scan_abort(struct iwl_priv *priv)
 		.flags = CMD_WANT_SKB,
 	};
 
-	/* If there isn't a scan actively going on in the hardware
-	 * then we are in between scan bands and not actually
-	 * actively scanning, so don't send the abort command */
+	
 	if (!test_bit(STATUS_SCAN_HW, &priv->status)) {
 		clear_bit(STATUS_SCAN_ABORTING, &priv->status);
 		return 0;
@@ -134,12 +93,7 @@ static int iwl_send_scan_abort(struct iwl_priv *priv)
 
 	res = (struct iwl_rx_packet *)cmd.reply_skb->data;
 	if (res->u.status != CAN_ABORT_STATUS) {
-		/* The scan abort will return 1 for success or
-		 * 2 for "failure".  A failure condition can be
-		 * due to simply not being in an active scan which
-		 * can occur if we send the scan abort before we
-		 * the microcode has notified us that a scan is
-		 * completed. */
+		
 		IWL_DEBUG_INFO(priv, "SCAN_ABORT returned %d.\n", res->u.status);
 		clear_bit(STATUS_SCAN_ABORTING, &priv->status);
 		clear_bit(STATUS_SCAN_HW, &priv->status);
@@ -151,7 +105,7 @@ static int iwl_send_scan_abort(struct iwl_priv *priv)
 	return ret;
 }
 
-/* Service response to REPLY_SCAN_CMD (0x80) */
+
 static void iwl_rx_reply_scan(struct iwl_priv *priv,
 			      struct iwl_rx_mem_buffer *rxb)
 {
@@ -164,7 +118,7 @@ static void iwl_rx_reply_scan(struct iwl_priv *priv,
 #endif
 }
 
-/* Service SCAN_START_NOTIFICATION (0x82) */
+
 static void iwl_rx_scan_start_notif(struct iwl_priv *priv,
 				    struct iwl_rx_mem_buffer *rxb)
 {
@@ -182,7 +136,7 @@ static void iwl_rx_scan_start_notif(struct iwl_priv *priv,
 		       notif->status, notif->beacon_timer);
 }
 
-/* Service SCAN_RESULTS_NOTIFICATION (0x83) */
+
 static void iwl_rx_scan_results_notif(struct iwl_priv *priv,
 				      struct iwl_rx_mem_buffer *rxb)
 {
@@ -209,7 +163,7 @@ static void iwl_rx_scan_results_notif(struct iwl_priv *priv,
 	priv->next_scan_jiffies = 0;
 }
 
-/* Service SCAN_COMPLETE_NOTIFICATION (0x84) */
+
 static void iwl_rx_scan_complete_notif(struct iwl_priv *priv,
 				       struct iwl_rx_mem_buffer *rxb)
 {
@@ -223,7 +177,7 @@ static void iwl_rx_scan_complete_notif(struct iwl_priv *priv,
 		       scan_notif->tsf_high, scan_notif->status);
 #endif
 
-	/* The HW is no longer scanning */
+	
 	clear_bit(STATUS_SCAN_HW, &priv->status);
 
 	IWL_DEBUG_INFO(priv, "Scan pass on %sGHz took %dms\n",
@@ -232,22 +186,18 @@ static void iwl_rx_scan_complete_notif(struct iwl_priv *priv,
 		       jiffies_to_msecs(elapsed_jiffies
 					(priv->scan_pass_start, jiffies)));
 
-	/* Remove this scanned band from the list of pending
-	 * bands to scan, band G precedes A in order of scanning
-	 * as seen in iwl_bg_request_scan */
+	
 	if (priv->scan_bands & BIT(IEEE80211_BAND_2GHZ))
 		priv->scan_bands &= ~BIT(IEEE80211_BAND_2GHZ);
 	else if (priv->scan_bands &  BIT(IEEE80211_BAND_5GHZ))
 		priv->scan_bands &= ~BIT(IEEE80211_BAND_5GHZ);
 
-	/* If a request to abort was given, or the scan did not succeed
-	 * then we reset the scan state machine and terminate,
-	 * re-queuing another scan if one has been requested */
+	
 	if (test_bit(STATUS_SCAN_ABORTING, &priv->status)) {
 		IWL_DEBUG_INFO(priv, "Aborted scan completed.\n");
 		clear_bit(STATUS_SCAN_ABORTING, &priv->status);
 	} else {
-		/* If there are more bands on this scan pass reschedule */
+		
 		if (priv->scan_bands)
 			goto reschedule;
 	}
@@ -272,7 +222,7 @@ reschedule:
 
 void iwl_setup_rx_scan_handlers(struct iwl_priv *priv)
 {
-	/* scan handlers */
+	
 	priv->rx_handlers[REPLY_SCAN_CMD] = iwl_rx_reply_scan;
 	priv->rx_handlers[SCAN_START_NOTIFICATION] = iwl_rx_scan_start_notif;
 	priv->rx_handlers[SCAN_RESULTS_NOTIFICATION] =
@@ -303,9 +253,7 @@ u16 iwl_get_passive_dwell_time(struct iwl_priv *priv,
 	    IWL_PASSIVE_DWELL_BASE + IWL_PASSIVE_DWELL_TIME_52;
 
 	if (iwl_is_associated(priv)) {
-		/* If we're associated, we clamp the maximum passive
-		 * dwell time to be 98% of the beacon interval (minus
-		 * 2 * channel tune time) */
+		
 		passive = priv->beacon_int;
 		if ((passive > IWL_PASSIVE_DWELL_BASE) || !passive)
 			passive = IWL_PASSIVE_DWELL_BASE;
@@ -367,13 +315,10 @@ static int iwl_get_channels_for_scan(struct iwl_priv *priv,
 		scan_ch->active_dwell = cpu_to_le16(active_dwell);
 		scan_ch->passive_dwell = cpu_to_le16(passive_dwell);
 
-		/* Set txpower levels to defaults */
+		
 		scan_ch->dsp_atten = 110;
 
-		/* NOTE: if we were doing 6Mb OFDM for scans we'd use
-		 * power level:
-		 * scan_ch->tx_gain = ((1 << 5) | (2 << 3)) | 3;
-		 */
+		
 		if (band == IEEE80211_BAND_5GHZ)
 			scan_ch->tx_gain = ((1 << 5) | (3 << 3)) | 3;
 		else
@@ -450,10 +395,7 @@ int iwl_mac_hw_scan(struct ieee80211_hw *hw,
 		goto out_unlock;
 	}
 
-	/* We don't schedule scan within next_scan_jiffies period.
-	 * Avoid scanning during possible EAPOL exchange, return
-	 * success immediately.
-	 */
+	
 	if (priv->next_scan_jiffies &&
 	    time_after(priv->next_scan_jiffies, jiffies)) {
 		IWL_DEBUG_SCAN(priv, "scan rejected: within next scan period\n");
@@ -462,7 +404,7 @@ int iwl_mac_hw_scan(struct ieee80211_hw *hw,
 		goto out_unlock;
 	}
 
-	/* if we just finished scan ask for delay */
+	
 	if (iwl_is_associated(priv) && priv->last_scan_jiffies &&
 	    time_after(priv->last_scan_jiffies + IWL_DELAY_NEXT_SCAN, jiffies)) {
 		IWL_DEBUG_SCAN(priv, "scan rejected: within previous scan period\n");
@@ -513,9 +455,7 @@ void iwl_bg_scan_check(struct work_struct *data)
 }
 EXPORT_SYMBOL(iwl_bg_scan_check);
 
-/**
- * iwl_fill_probe_req - fill in all required fields and IE for probe request
- */
+
 
 u16 iwl_fill_probe_req(struct iwl_priv *priv, struct ieee80211_mgmt *frame,
 		       const u8 *ies, int ie_len, int left)
@@ -523,8 +463,7 @@ u16 iwl_fill_probe_req(struct iwl_priv *priv, struct ieee80211_mgmt *frame,
 	int len = 0;
 	u8 *pos = NULL;
 
-	/* Make sure there is enough space for the probe request,
-	 * two mandatory IEs and the data */
+	
 	left -= 24;
 	if (left < 0)
 		return 0;
@@ -537,10 +476,10 @@ u16 iwl_fill_probe_req(struct iwl_priv *priv, struct ieee80211_mgmt *frame,
 
 	len += 24;
 
-	/* ...next IE... */
+	
 	pos = &frame->u.probe_req.variable[0];
 
-	/* fill in our indirect SSID IE */
+	
 	left -= 2;
 	if (left < 0)
 		return 0;
@@ -593,13 +532,11 @@ static void iwl_bg_request_scan(struct work_struct *data)
 		goto done;
 	}
 
-	/* Make sure the scan wasn't canceled before this queued work
-	 * was given the chance to run... */
+	
 	if (!test_bit(STATUS_SCANNING, &priv->status))
 		goto done;
 
-	/* This should never be called or scheduled if there is currently
-	 * a scan active in the hardware. */
+	
 	if (test_bit(STATUS_SCAN_HW, &priv->status)) {
 		IWL_DEBUG_INFO(priv, "Multiple concurrent scan requests in parallel. "
 			       "Ignoring second request.\n");
@@ -676,7 +613,7 @@ static void iwl_bg_request_scan(struct work_struct *data)
 		int i, p = 0;
 		IWL_DEBUG_SCAN(priv, "Kicking off active scan\n");
 		for (i = 0; i < priv->scan_request->n_ssids; i++) {
-			/* always does wildcard anyway */
+			
 			if (!priv->scan_request->ssids[i].ssid_len)
 				continue;
 			scan->direct_scan[p].id = WLAN_EID_SSID;
@@ -712,16 +649,10 @@ static void iwl_bg_request_scan(struct work_struct *data)
 	} else if (priv->scan_bands & BIT(IEEE80211_BAND_5GHZ)) {
 		band = IEEE80211_BAND_5GHZ;
 		rate = IWL_RATE_6M_PLCP;
-		/*
-		 * If active scaning is requested but a certain channel
-		 * is marked passive, we can do active scanning if we
-		 * detect transmissions.
-		 */
+		
 		scan->good_CRC_th = is_active ? IWL_GOOD_CRC_TH : 0;
 
-		/* Force use of chains B and C (0x6) for scan Rx for 4965
-		 * Avoid A (0x1) because of its off-channel reception on A-band.
-		 */
+		
 		if ((priv->hw_rev & CSR_HW_REV_TYPE_MSK) == CSR_HW_REV_TYPE_4965)
 			rx_ant = ANT_BC;
 	} else {
@@ -734,7 +665,7 @@ static void iwl_bg_request_scan(struct work_struct *data)
 	rate_flags |= iwl_ant_idx_to_flags(priv->scan_tx_ant[band]);
 	scan->tx_cmd.rate_n_flags = iwl_hw_set_rate_n_flags(rate, rate_flags);
 
-	/* MIMO is not used here, but value is required */
+	
 	rx_chain |= ANT_ABC << RXON_RX_CHAIN_VALID_POS;
 	rx_chain |= ANT_ABC << RXON_RX_CHAIN_FORCE_MIMO_SEL_POS;
 	rx_chain |= rx_ant << RXON_RX_CHAIN_FORCE_SEL_POS;
@@ -780,14 +711,10 @@ static void iwl_bg_request_scan(struct work_struct *data)
 	return;
 
  done:
-	/* Cannot perform scan. Make sure we clear scanning
-	* bits from status so next scan request can be performed.
-	* If we don't clear scanning status bit here all next scan
-	* will fail
-	*/
+	
 	clear_bit(STATUS_SCAN_HW, &priv->status);
 	clear_bit(STATUS_SCANNING, &priv->status);
-	/* inform mac80211 scan aborted */
+	
 	queue_work(priv->workqueue, &priv->scan_completed);
 	mutex_unlock(&priv->mutex);
 }
@@ -823,8 +750,7 @@ void iwl_bg_scan_completed(struct work_struct *work)
 	if (test_bit(STATUS_EXIT_PENDING, &priv->status))
 		return;
 
-	/* Since setting the TXPOWER may have been deferred while
-	 * performing the scan, fire one off */
+	
 	mutex_lock(&priv->mutex);
 	iwl_set_tx_power(priv, priv->tx_power_user_lmt, true);
 	mutex_unlock(&priv->mutex);

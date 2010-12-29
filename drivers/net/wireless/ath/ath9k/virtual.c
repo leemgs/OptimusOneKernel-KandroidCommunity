@@ -1,18 +1,4 @@
-/*
- * Copyright (c) 2008-2009 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+
 
 #include "ath9k.h"
 
@@ -44,11 +30,7 @@ void ath9k_set_bssid_mask(struct ieee80211_hw *hw)
 	int i, j;
 	u8 mask[ETH_ALEN];
 
-	/*
-	 * Add primary MAC address even if it is not in active use since it
-	 * will be configured to the hardware as the starting point and the
-	 * BSSID mask will need to be changed if another address is active.
-	 */
+	
 	iter_data.addr = kmalloc(ETH_ALEN, GFP_ATOMIC);
 	if (iter_data.addr) {
 		memcpy(iter_data.addr, sc->sc_ah->macaddr, ETH_ALEN);
@@ -56,7 +38,7 @@ void ath9k_set_bssid_mask(struct ieee80211_hw *hw)
 	} else
 		iter_data.count = 0;
 
-	/* Get list of all active MAC addresses */
+	
 	spin_lock_bh(&sc->wiphy_lock);
 	ieee80211_iterate_active_interfaces_atomic(sc->hw, ath9k_vif_iter,
 						   &iter_data);
@@ -68,7 +50,7 @@ void ath9k_set_bssid_mask(struct ieee80211_hw *hw)
 	}
 	spin_unlock_bh(&sc->wiphy_lock);
 
-	/* Generate an address mask to cover all active addresses */
+	
 	memset(mask, 0, ETH_ALEN);
 	for (i = 0; i < iter_data.count; i++) {
 		u8 *a1 = iter_data.addr + i * ETH_ALEN;
@@ -85,7 +67,7 @@ void ath9k_set_bssid_mask(struct ieee80211_hw *hw)
 
 	kfree(iter_data.addr);
 
-	/* Invert the mask and configure hardware */
+	
 	sc->bssidmask[0] = ~mask[0];
 	sc->bssidmask[1] = ~mask[1];
 	sc->bssidmask[2] = ~mask[2];
@@ -114,7 +96,7 @@ int ath9k_wiphy_add(struct ath_softc *sc)
 	}
 
 	if (i == sc->num_sec_wiphy) {
-		/* No empty slot available; increase array length */
+		
 		struct ath_wiphy **n;
 		n = krealloc(sc->sec_wiphy,
 			     (sc->num_sec_wiphy + 1) *
@@ -139,11 +121,8 @@ int ath9k_wiphy_add(struct ath_softc *sc)
 	spin_unlock_bh(&sc->wiphy_lock);
 
 	memcpy(addr, sc->sc_ah->macaddr, ETH_ALEN);
-	addr[0] |= 0x02; /* Locally managed address */
-	/*
-	 * XOR virtual wiphy index into the least significant bits to generate
-	 * a different MAC address for each virtual wiphy.
-	 */
+	addr[0] |= 0x02; 
+	
 	addr[5] ^= i & 0xff;
 	addr[4] ^= (i & 0xff00) >> 8;
 	addr[3] ^= (i & 0xff0000) >> 16;
@@ -155,7 +134,7 @@ int ath9k_wiphy_add(struct ath_softc *sc)
 	error = ieee80211_register_hw(hw);
 
 	if (error == 0) {
-		/* Make sure wiphy scheduler is started (if enabled) */
+		
 		ath9k_wiphy_set_scheduler(sc, sc->wiphy_scheduler_int);
 	}
 
@@ -273,13 +252,13 @@ bool ath9k_wiphy_scanning(struct ath_softc *sc)
 
 static int __ath9k_wiphy_unpause(struct ath_wiphy *aphy);
 
-/* caller must hold wiphy_lock */
+
 static void __ath9k_wiphy_unpause_ch(struct ath_wiphy *aphy)
 {
 	if (aphy == NULL)
 		return;
 	if (aphy->chan_idx != aphy->sc->chan_idx)
-		return; /* wiphy not on the selected channel */
+		return; 
 	__ath9k_wiphy_unpause(aphy);
 }
 
@@ -301,14 +280,11 @@ void ath9k_wiphy_chan_work(struct work_struct *work)
 	if (aphy == NULL)
 		return;
 
-	/*
-	 * All pending interfaces paused; ready to change
-	 * channels.
-	 */
+	
 
-	/* Change channels */
+	
 	mutex_lock(&sc->mutex);
-	/* XXX: remove me eventually */
+	
 	ath9k_update_ichannel(sc, aphy->hw,
 			      &sc->sc_ah->channels[sc->chan_idx]);
 	ath_update_chainmask(sc, sc->chan_is_ht);
@@ -324,10 +300,7 @@ void ath9k_wiphy_chan_work(struct work_struct *work)
 	ath9k_wiphy_unpause_channel(sc);
 }
 
-/*
- * ath9k version of ieee80211_tx_status() for TX frames that are generated
- * internally in the driver.
- */
+
 void ath9k_tx_status(struct ieee80211_hw *hw, struct sk_buff *skb)
 {
 	struct ath_wiphy *aphy = hw->priv;
@@ -340,17 +313,11 @@ void ath9k_tx_status(struct ieee80211_hw *hw, struct sk_buff *skb)
 		if (!(info->flags & IEEE80211_TX_STAT_ACK)) {
 			printk(KERN_DEBUG "ath9k: %s: no ACK for pause "
 			       "frame\n", wiphy_name(hw->wiphy));
-			/*
-			 * The AP did not reply; ignore this to allow us to
-			 * continue.
-			 */
+			
 		}
 		aphy->state = ATH_WIPHY_PAUSED;
 		if (!ath9k_wiphy_pausing(aphy->sc)) {
-			/*
-			 * Drop from tasklet to work to allow mutex for channel
-			 * change.
-			 */
+			
 			ieee80211_queue_work(aphy->sc->hw,
 				   &aphy->sc->chan_work);
 		}
@@ -381,7 +348,7 @@ static void ath9k_pause_iter(void *data, u8 *mac, struct ieee80211_vif *vif)
 			ath9k_mark_paused(aphy);
 			break;
 		}
-		/* TODO: could avoid this if already in PS mode */
+		
 		if (ath9k_send_nullfunc(aphy, vif, avp->bssid, 1)) {
 			printk(KERN_DEBUG "%s: failed to send PS nullfunc\n",
 			       __func__);
@@ -389,7 +356,7 @@ static void ath9k_pause_iter(void *data, u8 *mac, struct ieee80211_vif *vif)
 		}
 		break;
 	case NL80211_IFTYPE_AP:
-		/* Beacon transmission is paused by aphy->state change */
+		
 		ath9k_mark_paused(aphy);
 		break;
 	default:
@@ -397,16 +364,12 @@ static void ath9k_pause_iter(void *data, u8 *mac, struct ieee80211_vif *vif)
 	}
 }
 
-/* caller must hold wiphy_lock */
+
 static int __ath9k_wiphy_pause(struct ath_wiphy *aphy)
 {
 	ieee80211_stop_queues(aphy->hw);
 	aphy->state = ATH_WIPHY_PAUSING;
-	/*
-	 * TODO: handle PAUSING->PAUSED for the case where there are multiple
-	 * active vifs (now we do it on the first vif getting ready; should be
-	 * on the last)
-	 */
+	
 	ieee80211_iterate_active_interfaces_atomic(aphy->hw, ath9k_pause_iter,
 						   aphy);
 	return 0;
@@ -433,14 +396,14 @@ static void ath9k_unpause_iter(void *data, u8 *mac, struct ieee80211_vif *vif)
 		ath9k_send_nullfunc(aphy, vif, avp->bssid, 0);
 		break;
 	case NL80211_IFTYPE_AP:
-		/* Beacon transmission is re-enabled by aphy->state change */
+		
 		break;
 	default:
 		break;
 	}
 }
 
-/* caller must hold wiphy_lock */
+
 static int __ath9k_wiphy_unpause(struct ath_wiphy *aphy)
 {
 	ieee80211_iterate_active_interfaces_atomic(aphy->hw,
@@ -471,7 +434,7 @@ static void __ath9k_wiphy_mark_all_paused(struct ath_softc *sc)
 	}
 }
 
-/* caller must hold wiphy_lock */
+
 static void __ath9k_wiphy_pause_all(struct ath_softc *sc)
 {
 	int i;
@@ -491,12 +454,7 @@ int ath9k_wiphy_select(struct ath_wiphy *aphy)
 
 	spin_lock_bh(&sc->wiphy_lock);
 	if (__ath9k_wiphy_scanning(sc)) {
-		/*
-		 * For now, we are using mac80211 sw scan and it expects to
-		 * have full control over channel changes, so avoid wiphy
-		 * scheduling during a scan. This could be optimized if the
-		 * scanning control were moved into the driver.
-		 */
+		
 		spin_unlock_bh(&sc->wiphy_lock);
 		return -EBUSY;
 	}
@@ -509,28 +467,20 @@ int ath9k_wiphy_select(struct ath_wiphy *aphy)
 			printk(KERN_DEBUG "ath9k: Previous wiphy select timed "
 			       "out; disable/enable hw to recover\n");
 			__ath9k_wiphy_mark_all_paused(sc);
-			/*
-			 * TODO: this workaround to fix hardware is unlikely to
-			 * be specific to virtual wiphy changes. It can happen
-			 * on normal channel change, too, and as such, this
-			 * should really be made more generic. For example,
-			 * tricker radio disable/enable on GTT interrupt burst
-			 * (say, 10 GTT interrupts received without any TX
-			 * frame being completed)
-			 */
+			
 			spin_unlock_bh(&sc->wiphy_lock);
 			ath_radio_disable(sc);
 			ath_radio_enable(sc);
 			ieee80211_queue_work(aphy->sc->hw,
 				   &aphy->sc->chan_work);
-			return -EBUSY; /* previous select still in progress */
+			return -EBUSY; 
 		}
 		spin_unlock_bh(&sc->wiphy_lock);
-		return -EBUSY; /* previous select still in progress */
+		return -EBUSY; 
 	}
 	sc->wiphy_select_failures = 0;
 
-	/* Store the new channel */
+	
 	sc->chan_idx = aphy->chan_idx;
 	sc->chan_is_ht = aphy->chan_is_ht;
 	sc->next_wiphy = aphy;
@@ -540,14 +490,11 @@ int ath9k_wiphy_select(struct ath_wiphy *aphy)
 	spin_unlock_bh(&sc->wiphy_lock);
 
 	if (now) {
-		/* Ready to request channel change immediately */
+		
 		ieee80211_queue_work(aphy->sc->hw, &aphy->sc->chan_work);
 	}
 
-	/*
-	 * wiphys will be unpaused in ath9k_tx_status() once channel has been
-	 * changed if any wiphy needs time to become paused.
-	 */
+	
 
 	return 0;
 }
@@ -577,10 +524,7 @@ static void ath9k_wiphy_pause_chan(struct ath_wiphy *aphy,
 	if (selected->state == ATH_WIPHY_SCAN) {
 		if (aphy == selected)
 			return;
-		/*
-		 * Pause all other wiphys for the duration of the scan even if
-		 * they are on the current channel now.
-		 */
+		
 	} else if (aphy->chan_idx == selected->chan_idx)
 		return;
 	aphy->state = ATH_WIPHY_PAUSED;
@@ -612,7 +556,7 @@ void ath9k_wiphy_work(struct work_struct *work)
 	spin_lock_bh(&sc->wiphy_lock);
 
 	if (sc->wiphy_scheduler_int == 0) {
-		/* wiphy scheduler is disabled */
+		
 		spin_unlock_bh(&sc->wiphy_lock);
 		return;
 	}
@@ -634,7 +578,7 @@ try_again:
 				first = false;
 				goto try_again;
 			}
-			/* No wiphy is ready to be scheduled */
+			
 		} else
 			aphy = sc->pri_wiphy;
 	}
@@ -662,7 +606,7 @@ void ath9k_wiphy_set_scheduler(struct ath_softc *sc, unsigned int msec_int)
 					     sc->wiphy_scheduler_int);
 }
 
-/* caller must hold wiphy_lock */
+
 bool ath9k_all_wiphys_idle(struct ath_softc *sc)
 {
 	unsigned int i;

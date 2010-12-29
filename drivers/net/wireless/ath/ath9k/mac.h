@@ -1,18 +1,4 @@
-/*
- * Copyright (c) 2008-2009 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+
 
 #ifndef MAC_H
 #define MAC_H
@@ -183,19 +169,7 @@ struct ath_desc {
 #define ATH9K_TXDESC_NOACK		0x0002
 #define ATH9K_TXDESC_RTSENA		0x0004
 #define ATH9K_TXDESC_CTSENA		0x0008
-/* ATH9K_TXDESC_INTREQ forces a tx interrupt to be generated for
- * the descriptor its marked on.  We take a tx interrupt to reap
- * descriptors when the h/w hits an EOL condition or
- * when the descriptor is specifically marked to generate
- * an interrupt with this flag. Descriptors should be
- * marked periodically to insure timely replenishing of the
- * supply needed for sending frames. Defering interrupts
- * reduces system load and potentially allows more concurrent
- * work to be done but if done to aggressively can cause
- * senders to backup. When the hardware queue is left too
- * large rate control information may also be too out of
- * date. An Alternative for this is TX interrupt mitigation
- * but this needs more testing. */
+
 #define ATH9K_TXDESC_INTREQ		0x0010
 #define ATH9K_TXDESC_VEOL		0x0020
 #define ATH9K_TXDESC_EXT_ONLY		0x0040
@@ -594,11 +568,9 @@ struct ath9k_keyval {
 	u8 kv_type;
 	u8 kv_pad;
 	u16 kv_len;
-	u8 kv_val[16]; /* TK */
-	u8 kv_mic[8]; /* Michael MIC key */
-	u8 kv_txmic[8]; /* Michael MIC TX key (used only if the hardware
-			 * supports both MIC keys in the same key cache entry;
-			 * in that case, kv_mic is the RX key) */
+	u8 kv_val[16]; 
+	u8 kv_mic[8]; 
+	u8 kv_txmic[8]; 
 };
 
 enum ath9k_key_type {
@@ -682,4 +654,4 @@ void ath9k_hw_startpcureceive(struct ath_hw *ah);
 void ath9k_hw_stoppcurecv(struct ath_hw *ah);
 bool ath9k_hw_stopdmarecv(struct ath_hw *ah);
 
-#endif /* MAC_H */
+#endif 

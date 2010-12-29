@@ -1,25 +1,4 @@
-/*
- * This file is part of wl1251
- *
- * Copyright (C) 2008 Nokia Corporation
- *
- * Contact: Kalle Valo <kalle.valo@nokia.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #include "wl1251_reg.h"
 #include "wl1251_ps.h"
@@ -28,7 +7,7 @@
 
 #define WL1251_WAKEUP_TIMEOUT 2000
 
-/* Routines to toggle sleep mode while in ELP */
+
 void wl1251_ps_elp_sleep(struct wl1251 *wl)
 {
 	if (wl->elp || !wl->psm)
@@ -57,10 +36,7 @@ int wl1251_ps_elp_wakeup(struct wl1251 *wl)
 
 	elp_reg = wl1251_read32(wl, HW_ACCESS_ELP_CTRL_REG_ADDR);
 
-	/*
-	 * FIXME: we should wait for irq from chip but, as a temporary
-	 * solution to simplify locking, let's poll instead
-	 */
+	
 	while (!(elp_reg & ELPCTRL_WLAN_READY)) {
 		if (time_after(jiffies, timeout)) {
 			wl1251_error("elp wakeup timeout");
@@ -94,12 +70,7 @@ static int wl1251_ps_set_elp(struct wl1251 *wl, bool enable)
 	} else {
 		wl1251_debug(DEBUG_PSM, "sleep auth cam");
 
-		/*
-		 * When the target is in ELP, we can only
-		 * access the ELP control register. Thus,
-		 * we have to wake the target up before
-		 * changing the power authorization.
-		 */
+		
 
 		wl1251_ps_elp_wakeup(wl);
 

@@ -1,41 +1,4 @@
-/*
- * Atheros AR9170 driver
- *
- * USB - frontend
- *
- * Copyright 2008, Johannes Berg <johannes@sipsolutions.net>
- * Copyright 2009, Christian Lamparter <chunkeey@web.de>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; see the file COPYING.  If not, see
- * http://www.gnu.org/licenses/.
- *
- * This file incorporates work covered by the following copyright and
- * permission notice:
- *    Copyright (c) 2007-2008 Atheros Communications, Inc.
- *
- *    Permission to use, copy, modify, and/or distribute this software for any
- *    purpose with or without fee is hereby granted, provided that the above
- *    copyright notice and this permission notice appear in all copies.
- *
- *    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- *    WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- *    MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- *    ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- *    WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- *    ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- *    OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+
 
 #include <linux/module.h>
 #include <linux/usb.h>
@@ -60,42 +23,42 @@ enum ar9170_requirements {
 };
 
 static struct usb_device_id ar9170_usb_ids[] = {
-	/* Atheros 9170 */
+	
 	{ USB_DEVICE(0x0cf3, 0x9170) },
-	/* Atheros TG121N */
+	
 	{ USB_DEVICE(0x0cf3, 0x1001) },
-	/* TP-Link TL-WN821N v2 */
+	
 	{ USB_DEVICE(0x0cf3, 0x1002) },
-	/* Cace Airpcap NX */
+	
 	{ USB_DEVICE(0xcace, 0x0300) },
-	/* D-Link DWA 160 A1 */
+	
 	{ USB_DEVICE(0x07d1, 0x3c10) },
-	/* D-Link DWA 160 A2 */
+	
 	{ USB_DEVICE(0x07d1, 0x3a09) },
-	/* Netgear WNDA3100 */
+	
 	{ USB_DEVICE(0x0846, 0x9010) },
-	/* Netgear WN111 v2 */
+	
 	{ USB_DEVICE(0x0846, 0x9001) },
-	/* Zydas ZD1221 */
+	
 	{ USB_DEVICE(0x0ace, 0x1221) },
-	/* ZyXEL NWD271N */
+	
 	{ USB_DEVICE(0x0586, 0x3417) },
-	/* Z-Com UB81 BG */
+	
 	{ USB_DEVICE(0x0cde, 0x0023) },
-	/* Z-Com UB82 ABG */
+	
 	{ USB_DEVICE(0x0cde, 0x0026) },
-	/* Arcadyan WN7512 */
+	
 	{ USB_DEVICE(0x083a, 0xf522) },
-	/* Planex GWUS300 */
+	
 	{ USB_DEVICE(0x2019, 0x5304) },
-	/* IO-Data WNGDNUS2 */
+	
 	{ USB_DEVICE(0x04bb, 0x093f) },
-	/* AVM FRITZ!WLAN USB Stick N */
+	
 	{ USB_DEVICE(0x057C, 0x8401) },
-	/* AVM FRITZ!WLAN USB Stick N 2.4 */
+	
 	{ USB_DEVICE(0x057C, 0x8402), .driver_info = AR9170_REQ_FW1_ONLY },
 
-	/* terminate */
+	
 	{}
 };
 MODULE_DEVICE_TABLE(usb, ar9170_usb_ids);
@@ -169,11 +132,11 @@ static void ar9170_usb_irq_completed(struct urb *urb)
 	struct ar9170_usb *aru = urb->context;
 
 	switch (urb->status) {
-	/* everything is fine */
+	
 	case 0:
 		break;
 
-	/* disconnect */
+	
 	case -ENOENT:
 	case -ECONNRESET:
 	case -ENODEV:
@@ -211,11 +174,11 @@ static void ar9170_usb_rx_completed(struct urb *urb)
 		goto free;
 
 	switch (urb->status) {
-	/* everything is fine */
+	
 	case 0:
 		break;
 
-	/* disconnect */
+	
 	case -ENOENT:
 	case -ECONNRESET:
 	case -ENODEV:
@@ -255,7 +218,7 @@ static int ar9170_usb_prep_rx_urb(struct ar9170_usb *aru,
 	if (!skb)
 		return -ENOMEM;
 
-	/* reserve some space for mac80211's radiotap */
+	
 	skb_reserve(skb, 32);
 
 	usb_fill_bulk_urb(urb, aru->udev,
@@ -273,7 +236,7 @@ static int ar9170_usb_alloc_rx_irq_urb(struct ar9170_usb *aru)
 	void *ibuf;
 	int err = -ENOMEM;
 
-	/* initialize interrupt endpoint */
+	
 	urb = usb_alloc_urb(0, GFP_KERNEL);
 	if (!urb)
 		goto out;
@@ -329,7 +292,7 @@ static int ar9170_usb_alloc_rx_bulk_urbs(struct ar9170_usb *aru)
 		usb_free_urb(urb);
 	}
 
-	/* the device now waiting for a firmware. */
+	
 	aru->common.state = AR9170_IDLE;
 	return 0;
 
@@ -355,7 +318,7 @@ static int ar9170_usb_flush(struct ar9170 *ar)
 		usb_free_urb(urb);
 	}
 
-	/* lets wait a while until the tx - queues are dried out */
+	
 	ret = usb_wait_anchor_empty_timeout(&aru->tx_submitted,
 					    msecs_to_jiffies(100));
 	if (ret == 0)
@@ -404,7 +367,7 @@ static int ar9170_usb_exec_cmd(struct ar9170 *ar, enum ar9170_cmd cmd,
 
 	ar->cmdbuf[0] = cpu_to_le32(plen);
 	ar->cmdbuf[0] |= cpu_to_le32(cmd << 8);
-	/* writing multiple regs fills this buffer already */
+	
 	if (plen && payload != (u8 *)(&ar->cmdbuf[1]))
 		memcpy(&ar->cmdbuf[1], payload, plen);
 
@@ -441,18 +404,18 @@ static int ar9170_usb_exec_cmd(struct ar9170 *ar, enum ar9170_cmd cmd,
 	return 0;
 
 err_unbuf:
-	/* Maybe the device was removed in the second we were waiting? */
+	
 	if (IS_STARTED(ar)) {
 		dev_err(&aru->udev->dev, "no command feedback "
 					 "received (%d).\n", err);
 
-		/* provide some maybe useful debug information */
+		
 		print_hex_dump_bytes("ar9170 cmd: ", DUMP_PREFIX_NONE,
 				     aru->common.cmdbuf, plen + 4);
 		dump_stack();
 	}
 
-	/* invalidate to avoid completing the next prematurely */
+	
 	spin_lock_irqsave(&aru->common.cmdlock, flags);
 	aru->readbuf = NULL;
 	aru->readlen = 0;
@@ -469,7 +432,7 @@ static int ar9170_usb_tx(struct ar9170 *ar, struct sk_buff *skb)
 	struct urb *urb;
 
 	if (unlikely(!IS_STARTED(ar))) {
-		/* Seriously, what were you drink... err... thinking!? */
+		
 		return -EPERM;
 	}
 
@@ -504,22 +467,18 @@ static void ar9170_usb_callback_cmd(struct ar9170 *ar, u32 len , void *buffer)
 	in = le32_to_cpup((__le32 *)buffer);
 	out = le32_to_cpu(ar->cmdbuf[0]);
 
-	/* mask off length byte */
+	
 	out &= ~0xFF;
 
 	if (aru->readlen >= 0) {
-		/* add expected length */
+		
 		out |= aru->readlen;
 	} else {
-		/* add obtained length */
+		
 		out |= in & 0xFF;
 	}
 
-	/*
-	 * Some commands (e.g: AR9170_CMD_FREQUENCY) have a variable response
-	 * length and we cannot predict the correct length in advance.
-	 * So we only check if we provided enough space for the data.
-	 */
+	
 	if (unlikely(out < in)) {
 		dev_warn(&aru->udev->dev, "received invalid command response "
 					  "got %d bytes, instead of %d bytes "
@@ -527,10 +486,7 @@ static void ar9170_usb_callback_cmd(struct ar9170 *ar, u32 len , void *buffer)
 			 in, out, len);
 		print_hex_dump_bytes("ar9170 invalid resp: ",
 				     DUMP_PREFIX_OFFSET, buffer, len);
-		/*
-		 * Do not complete, then the command times out,
-		 * and we get a stack trace from there.
-		 */
+		
 		return ;
 	}
 
@@ -557,7 +513,7 @@ static int ar9170_usb_upload(struct ar9170_usb *aru, const void *data,
 		memcpy(buf, data, transfer);
 
 		err = usb_control_msg(aru->udev, usb_sndctrlpipe(aru->udev, 0),
-				      0x30 /* FW DL */, 0x40 | USB_DIR_OUT,
+				      0x30 , 0x40 | USB_DIR_OUT,
 				      addr >> 8, 0, buf, transfer, 1000);
 
 		if (err < 0) {
@@ -573,7 +529,7 @@ static int ar9170_usb_upload(struct ar9170_usb *aru, const void *data,
 
 	if (complete) {
 		err = usb_control_msg(aru->udev, usb_sndctrlpipe(aru->udev, 0),
-				      0x31 /* FW DL COMPLETE */,
+				      0x31 ,
 				      0x40 | USB_DIR_OUT, 0, 0, NULL, 0, 5000);
 	}
 
@@ -634,7 +590,7 @@ static int ar9170_usb_reset(struct ar9170_usb *aru)
 	if (lock)
 		usb_unlock_device(aru->udev);
 
-	/* let it rest - for a second - */
+	
 	msleep(1000);
 
 	return ret;
@@ -647,7 +603,7 @@ static int ar9170_usb_upload_firmware(struct ar9170_usb *aru)
 	if (!aru->init_values)
 		goto upload_fw_start;
 
-	/* First, upload initial values to device RAM */
+	
 	err = ar9170_usb_upload(aru, aru->init_values->data,
 				aru->init_values->size, 0x102800, false);
 	if (err) {
@@ -658,7 +614,7 @@ static int ar9170_usb_upload_firmware(struct ar9170_usb *aru)
 
 upload_fw_start:
 
-	/* Then, upload the firmware itself and start it */
+	
 	return ar9170_usb_upload(aru, aru->firmware->data, aru->firmware->size,
 				0x200000, true);
 }
@@ -670,10 +626,10 @@ static int ar9170_usb_init_transport(struct ar9170_usb *aru)
 
 	ar9170_regwrite_begin(ar);
 
-	/* Set USB Rx stream mode MAX packet number to 2 */
+	
 	ar9170_regwrite(AR9170_USB_REG_MAX_AGG_UPLOAD, 0x4);
 
-	/* Set USB Rx stream mode timeout to 10us */
+	
 	ar9170_regwrite(AR9170_USB_REG_UPLOAD_TIME_CTL, 0x80);
 
 	ar9170_regwrite_finish();
@@ -699,11 +655,7 @@ static void ar9170_usb_stop(struct ar9170 *ar)
 
 	usb_poison_anchored_urbs(&aru->tx_submitted);
 
-	/*
-	 * Note:
-	 * So far we freed all tx urbs, but we won't dare to touch any rx urbs.
-	 * Else we would end up with a unresponsive device...
-	 */
+	
 }
 
 static int ar9170_usb_open(struct ar9170 *ar)
@@ -738,7 +690,7 @@ static int ar9170_usb_init_device(struct ar9170_usb *aru)
 	if (err) {
 		err = ar9170_echo_test(&aru->common, 0x60d43110);
 		if (err) {
-			/* force user invention, by disabling the device */
+			
 			err = usb_driver_set_configuration(aru->udev, -1);
 			dev_err(&aru->udev->dev, "device is in a bad state. "
 						 "please reconnect it!\n");
@@ -807,7 +759,7 @@ static int ar9170_usb_probe(struct usb_interface *intf,
 
 #ifdef CONFIG_PM
 	udev->reset_resume = 1;
-#endif /* CONFIG_PM */
+#endif 
 	err = ar9170_usb_reset(aru);
 	if (err)
 		goto err_freehw;
@@ -908,7 +860,7 @@ err_unrx:
 
 	return err;
 }
-#endif /* CONFIG_PM */
+#endif 
 
 static struct usb_driver ar9170_driver = {
 	.name = "ar9170usb",
@@ -920,7 +872,7 @@ static struct usb_driver ar9170_driver = {
 	.suspend = ar9170_suspend,
 	.resume = ar9170_resume,
 	.reset_resume = ar9170_resume,
-#endif /* CONFIG_PM */
+#endif 
 };
 
 static int __init ar9170_init(void)

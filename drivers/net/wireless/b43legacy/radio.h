@@ -1,32 +1,4 @@
-/*
 
-  Broadcom B43legacy wireless driver
-
-  Copyright (c) 2005 Martin Langer <martin-langer@gmx.de>,
-		     Stefano Brivio <stefano.brivio@polimi.it>
-		     Michael Buesch <mbuesch@freenet.de>
-		     Danny van Dyk <kugelfang@gentoo.org>
-		     Andreas Jaggi <andreas.jaggi@waterwave.ch>
-
-  Some parts of the code in this file are derived from the ipw2200
-  driver  Copyright(c) 2003 - 2004 Intel Corporation.
-
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program; see the file COPYING.  If not, write to
-  the Free Software Foundation, Inc., 51 Franklin Steet, Fifth Floor,
-  Boston, MA 02110-1301, USA.
-
-*/
 
 #ifndef B43legacy_RADIO_H_
 #define B43legacy_RADIO_H_
@@ -36,13 +8,11 @@
 
 #define B43legacy_RADIO_DEFAULT_CHANNEL_BG	6
 
-/* Force antenna 0. */
+
 #define B43legacy_RADIO_TXANTENNA_0		0
-/* Force antenna 1. */
+
 #define B43legacy_RADIO_TXANTENNA_1		1
-/* Use the RX antenna, that was selected for the most recently
- * received good PLCP header.
- */
+
 #define B43legacy_RADIO_TXANTENNA_LASTPLCP	3
 #define B43legacy_RADIO_TXANTENNA_DEFAULT	B43legacy_RADIO_TXANTENNA_LASTPLCP
 
@@ -95,4 +65,4 @@ void b43legacy_nrssi_mem_update(struct b43legacy_wldev *dev);
 void b43legacy_radio_set_tx_iq(struct b43legacy_wldev *dev);
 u16 b43legacy_radio_calibrationvalue(struct b43legacy_wldev *dev);
 
-#endif /* B43legacy_RADIO_H_ */
+#endif 

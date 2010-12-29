@@ -1,30 +1,4 @@
-/******************************************************************************
- *
- * GPL LICENSE SUMMARY
- *
- * Copyright(c) 2008 - 2009 Intel Corporation. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of version 2 of the GNU General Public License as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110,
- * USA
- *
- * The full GNU General Public License is included in this distribution
- * in the file called LICENSE.GPL.
- *
- * Contact Information:
- *  Intel Linux Wireless <ilw@linux.intel.com>
- * Intel Corporation, 5200 N.E. Elam Young Parkway, Hillsboro, OR 97124-6497
- *****************************************************************************/
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -40,7 +14,7 @@
 #include "iwl-io.h"
 #include "iwl-calib.h"
 
-/* create and remove of files */
+
 #define DEBUGFS_ADD_DIR(name, parent) do {                              \
 	dbgfs->dir_##name = debugfs_create_dir(#name, parent);          \
 	if (!(dbgfs->dir_##name))                                       \
@@ -78,7 +52,7 @@
 	name = NULL;                            \
 } while (0);
 
-/* file operation */
+
 #define DEBUGFS_READ_FUNC(name)                                         \
 static ssize_t iwl_dbgfs_##name##_read(struct file *file,               \
 					char __user *user_buf,          \
@@ -313,7 +287,7 @@ static ssize_t iwl_dbgfs_stations_read(struct file *file, char __user *user_buf,
 	char *buf;
 	int i, j, pos = 0;
 	ssize_t ret;
-	/* Add 30 for initial string */
+	
 	const size_t bufsz = 30 + sizeof(char) * 500 * (priv->num_stations);
 
 	buf = kmalloc(bufsz, GFP_KERNEL);
@@ -397,7 +371,7 @@ static ssize_t iwl_dbgfs_nvm_read(struct file *file,
 		return -ENOMEM;
 	}
 
-	/* 4 characters for byte 0xYY */
+	
 	buf = kzalloc(buf_size, GFP_KERNEL);
 	if (!buf) {
 		IWL_ERR(priv, "Can not allocate Buffer\n");
@@ -569,7 +543,7 @@ static ssize_t iwl_dbgfs_interrupt_read(struct file *file,
 	int pos = 0;
 	int cnt = 0;
 	char *buf;
-	int bufsz = 24 * 64; /* 24 items * 64 char per item */
+	int bufsz = 24 * 64; 
 	ssize_t ret;
 
 	buf = kzalloc(bufsz, GFP_KERNEL);
@@ -793,11 +767,7 @@ static ssize_t iwl_dbgfs_sleep_level_override_write(struct file *file,
 	if (sscanf(buf, "%d", &value) != 1)
 		return -EINVAL;
 
-	/*
-	 * Our users expect 0 to be "CAM", but 0 isn't actually
-	 * valid here. However, let's not confuse them and present
-	 * IWL_POWER_INDEX_1 as "1", not "0".
-	 */
+	
 	if (value > 0)
 		value -= 1;
 
@@ -820,7 +790,7 @@ static ssize_t iwl_dbgfs_sleep_level_override_read(struct file *file,
 	int pos, value;
 	const size_t bufsz = sizeof(buf);
 
-	/* see the write function */
+	
 	value = priv->power_data.debug_sleep_level_override;
 	if (value >= 0)
 		value += 1;
@@ -997,7 +967,7 @@ static ssize_t iwl_dbgfs_tx_queue_read(struct file *file,
 				0x1f : txq->swq_id);
 		if (cnt >= 4)
 			continue;
-		/* for the ACs, display the stop count too */
+		
 		pos += scnprintf(buf + pos, bufsz - pos,
 				"        stop-count: %d\n",
 				atomic_read(&priv->queue_stop_count[cnt]));
@@ -1076,7 +1046,7 @@ static ssize_t iwl_dbgfs_ucode_rx_stats_read(struct file *file,
 	if (!iwl_is_alive(priv))
 		return -EAGAIN;
 
-	/* make request to uCode to retrieve statistics information */
+	
 	mutex_lock(&priv->mutex);
 	ret = iwl_send_statistics_request(priv, 0);
 	mutex_unlock(&priv->mutex);
@@ -1092,10 +1062,7 @@ static ssize_t iwl_dbgfs_ucode_rx_stats_read(struct file *file,
 		return -ENOMEM;
 	}
 
-	/* the statistic information display here is based on
-	 * the last statistics notification from uCode
-	 * might not reflect the current uCode activity
-	 */
+	
 	ofdm = &priv->statistics.rx.ofdm;
 	cck = &priv->statistics.rx.cck;
 	general = &priv->statistics.rx.general;
@@ -1269,7 +1236,7 @@ static ssize_t iwl_dbgfs_ucode_tx_stats_read(struct file *file,
 	if (!iwl_is_alive(priv))
 		return -EAGAIN;
 
-	/* make request to uCode to retrieve statistics information */
+	
 	mutex_lock(&priv->mutex);
 	ret = iwl_send_statistics_request(priv, 0);
 	mutex_unlock(&priv->mutex);
@@ -1285,10 +1252,7 @@ static ssize_t iwl_dbgfs_ucode_tx_stats_read(struct file *file,
 		return -ENOMEM;
 	}
 
-	/* the statistic information display here is based on
-	 * the last statistics notification from uCode
-	 * might not reflect the current uCode activity
-	 */
+	
 	tx = &priv->statistics.tx;
 	pos += iwl_dbgfs_statistics_flag(priv, buf, bufsz);
 	pos += scnprintf(buf + pos, bufsz - pos, "Statistics_Tx:\n");
@@ -1368,7 +1332,7 @@ static ssize_t iwl_dbgfs_ucode_general_stats_read(struct file *file,
 	if (!iwl_is_alive(priv))
 		return -EAGAIN;
 
-	/* make request to uCode to retrieve statistics information */
+	
 	mutex_lock(&priv->mutex);
 	ret = iwl_send_statistics_request(priv, 0);
 	mutex_unlock(&priv->mutex);
@@ -1384,10 +1348,7 @@ static ssize_t iwl_dbgfs_ucode_general_stats_read(struct file *file,
 		return -ENOMEM;
 	}
 
-	/* the statistic information display here is based on
-	 * the last statistics notification from uCode
-	 * might not reflect the current uCode activity
-	 */
+	
 	general = &priv->statistics.general;
 	dbg = &priv->statistics.general.dbg;
 	div = &priv->statistics.general.div;
@@ -1577,7 +1538,7 @@ static ssize_t iwl_dbgfs_tx_power_read(struct file *file,
 	if (!iwl_is_alive(priv))
 		pos += scnprintf(buf + pos, bufsz - pos, "N/A\n");
 	else {
-		/* make request to uCode to retrieve statistics information */
+		
 		mutex_lock(&priv->mutex);
 		ret = iwl_send_statistics_request(priv, 0);
 		mutex_unlock(&priv->mutex);
@@ -1626,10 +1587,7 @@ DEBUGFS_READ_FILE_OPS(sensitivity);
 DEBUGFS_READ_FILE_OPS(chain_noise);
 DEBUGFS_READ_FILE_OPS(tx_power);
 
-/*
- * Create the debugfs files and directories
- *
- */
+
 int iwl_dbgfs_register(struct iwl_priv *priv, const char *name)
 {
 	struct iwl_debugfs *dbgfs;
@@ -1697,10 +1655,7 @@ err:
 }
 EXPORT_SYMBOL(iwl_dbgfs_register);
 
-/**
- * Remove the debugfs files and directories
- *
- */
+
 void iwl_dbgfs_unregister(struct iwl_priv *priv)
 {
 	if (!priv->dbgfs)

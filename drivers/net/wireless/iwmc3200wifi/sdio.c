@@ -1,66 +1,6 @@
-/*
- * Intel Wireless Multicomm 3200 WiFi driver
- *
- * Copyright (C) 2009 Intel Corporation. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in
- *     the documentation and/or other materials provided with the
- *     distribution.
- *   * Neither the name of Intel Corporation nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- *
- * Intel Corporation <ilw@linux.intel.com>
- * Samuel Ortiz <samuel.ortiz@intel.com>
- * Zhu Yi <yi.zhu@intel.com>
- *
- */
 
-/*
- * This is the SDIO bus specific hooks for iwm.
- * It also is the module's entry point.
- *
- * Interesting code paths:
- * iwm_sdio_probe() (Called by an SDIO bus scan)
- *  -> iwm_if_alloc() (netdev.c)
- *      -> iwm_wdev_alloc() (cfg80211.c, allocates and register our wiphy)
- *          -> wiphy_new()
- *          -> wiphy_register()
- *      -> alloc_netdev_mq()
- *      -> register_netdev()
- *
- * iwm_sdio_remove()
- *  -> iwm_if_free() (netdev.c)
- *      -> unregister_netdev()
- *      -> iwm_wdev_free() (cfg80211.c)
- *          -> wiphy_unregister()
- *          -> wiphy_free()
- *
- * iwm_sdio_isr() (called in process context from the SDIO core code)
- *  -> queue_work(.., isr_worker)
- *      -- [async] --> iwm_sdio_isr_worker()
- *                      -> iwm_rx_handle()
- */
+
+
 
 #include <linux/kernel.h>
 #include <linux/netdevice.h>
@@ -115,20 +55,20 @@ static void iwm_sdio_isr(struct sdio_func *func)
 
 	buf_size = hw->blk_size;
 
-	/* We're checking the status */
+	
 	val = sdio_readb(func, IWM_SDIO_INTR_STATUS_ADDR, &ret);
 	if (val == 0 || ret < 0) {
 		IWM_ERR(iwm, "Wrong INTR_STATUS\n");
 		return;
 	}
 
-	/* See if we have free buffers */
+	
 	if (skb_queue_len(&iwm->rx_list) > IWM_RX_LIST_SIZE) {
 		IWM_ERR(iwm, "No buffer for more Rx frames\n");
 		return;
 	}
 
-	/* We first read the transaction size */
+	
 	read_size = sdio_readb(func, IWM_SDIO_INTR_GET_SIZE_ADDR + 1, &ret);
 	read_size = read_size << 8;
 
@@ -137,7 +77,7 @@ static void iwm_sdio_isr(struct sdio_func *func)
 		return;
 	}
 
-	/* We need to clear the INT register */
+	
 	sdio_writeb(func, 1, IWM_SDIO_INTR_CLEAR_ADDR, &ret);
 	if (ret < 0) {
 		IWM_ERR(iwm, "Couldn't clear the INT register\n");
@@ -156,14 +96,14 @@ static void iwm_sdio_isr(struct sdio_func *func)
 	rx_info->rx_size = read_size;
 	rx_info->rx_buf_size = buf_size;
 
-	/* Now we can read the actual buffer */
+	
 	ret = sdio_memcpy_fromio(func, skb_put(skb, read_size),
 				 IWM_SDIO_DATA_ADDR, read_size);
 
-	/* The skb is put on a driver's specific Rx SKB list */
+	
 	skb_queue_tail(&iwm->rx_list, skb);
 
-	/* We can now schedule the actual worker */
+	
 	queue_work(hw->isr_wq, &hw->isr_worker);
 }
 
@@ -176,7 +116,7 @@ static void iwm_sdio_rx_free(struct iwm_sdio_priv *hw)
 	skb_queue_purge(&iwm->rx_list);
 }
 
-/* Bus ops */
+
 static int if_sdio_enable(struct iwm_priv *iwm)
 {
 	struct iwm_sdio_priv *hw = iwm_to_if_sdio(iwm);
@@ -250,7 +190,7 @@ static int if_sdio_send_chunk(struct iwm_priv *iwm, u8 *buf, int count)
 
 	if ((unsigned long)buf & 0x3) {
 		IWM_ERR(iwm, "buf <%p> is not dword aligned\n", buf);
-		/* TODO: Is this a hardware limitation? use get_unligned */
+		
 		return -EINVAL;
 	}
 
@@ -262,7 +202,7 @@ static int if_sdio_send_chunk(struct iwm_priv *iwm, u8 *buf, int count)
 	return ret;
 }
 
-/* debugfs hooks */
+
 static int iwm_debugfs_sdio_open(struct inode *inode, struct file *filp)
 {
 	filp->private_data = inode->i_private;
@@ -408,7 +348,7 @@ static int iwm_sdio_probe(struct sdio_func *func,
 	struct device *dev = &func->dev;
 	int ret;
 
-	/* check if TOP has already initialized the card */
+	
 	sdio_claim_host(func);
 	ret = sdio_enable_func(func);
 	if (ret) {
@@ -495,7 +435,7 @@ static void iwm_sdio_remove(struct sdio_func *func)
 static const struct sdio_device_id iwm_sdio_ids[] = {
 	{ SDIO_DEVICE(SDIO_VENDOR_ID_INTEL,
 		      SDIO_DEVICE_ID_INTEL_IWMC3200WIFI) },
-	{ /* end: all zeroes */	},
+	{ 	},
 };
 MODULE_DEVICE_TABLE(sdio, iwm_sdio_ids);
 

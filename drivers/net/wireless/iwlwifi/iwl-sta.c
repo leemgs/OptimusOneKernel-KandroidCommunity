@@ -1,31 +1,4 @@
-/******************************************************************************
- *
- * Copyright(c) 2003 - 2009 Intel Corporation. All rights reserved.
- *
- * Portions of this file are derived from the ipw3945 project, as well
- * as portions of the ieee80211 subsystem header files.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of version 2 of the GNU General Public License as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
- *
- * The full GNU General Public License is included in this distribution in the
- * file called LICENSE.
- *
- * Contact Information:
- *  Intel Linux Wireless <ilw@linux.intel.com>
- * Intel Corporation, 5200 N.E. Elam Young Parkway, Hillsboro, OR 97124-6497
- *
- *****************************************************************************/
+
 
 #include <net/mac80211.h>
 #include <linux/etherdevice.h>
@@ -34,8 +7,8 @@
 #include "iwl-core.h"
 #include "iwl-sta.h"
 
-#define IWL_STA_DRIVER_ACTIVE BIT(0) /* driver entry is active */
-#define IWL_STA_UCODE_ACTIVE  BIT(1) /* ucode entry is active */
+#define IWL_STA_DRIVER_ACTIVE BIT(0) 
+#define IWL_STA_UCODE_ACTIVE  BIT(1) 
 
 u8 iwl_find_station(struct iwl_priv *priv, const u8 *addr)
 {
@@ -121,7 +94,7 @@ static void iwl_add_sta_callback(struct iwl_priv *priv,
 	switch (res->u.add_sta.status) {
 	case ADD_STA_SUCCESS_MSK:
 		iwl_sta_ucode_activate(priv, sta_id);
-		 /* fall through */
+		 
 	default:
 		IWL_DEBUG_HC(priv, "Received REPLY_ADD_STA:(0x%08X)\n",
 			     res->u.add_sta.status);
@@ -224,9 +197,7 @@ static void iwl_set_ht_add_station(struct iwl_priv *priv, u8 index,
 	return;
 }
 
-/**
- * iwl_add_station - Add station to tables in driver and device
- */
+
 u8 iwl_add_station(struct iwl_priv *priv, const u8 *addr, bool is_ap, u8 flags,
 		struct ieee80211_sta_ht_cap *ht_info)
 {
@@ -254,8 +225,7 @@ u8 iwl_add_station(struct iwl_priv *priv, const u8 *addr, bool is_ap, u8 flags,
 				sta_id = i;
 		}
 
-	/* These two conditions have the same outcome, but keep them separate
-	   since they have different meanings */
+	
 	if (unlikely(sta_id == IWL_INVALID_STATION)) {
 		spin_unlock_irqrestore(&priv->sta_lock, flags_spin);
 		return sta_id;
@@ -274,27 +244,27 @@ u8 iwl_add_station(struct iwl_priv *priv, const u8 *addr, bool is_ap, u8 flags,
 			sta_id, addr);
 	priv->num_stations++;
 
-	/* Set up the REPLY_ADD_STA command to send to device */
+	
 	memset(&station->sta, 0, sizeof(struct iwl_addsta_cmd));
 	memcpy(station->sta.sta.addr, addr, ETH_ALEN);
 	station->sta.mode = 0;
 	station->sta.sta.sta_id = sta_id;
 	station->sta.station_flags = 0;
 
-	/* BCAST station and IBSS stations do not work in HT mode */
+	
 	if (sta_id != priv->hw_params.bcast_sta_id &&
 	    priv->iw_mode != NL80211_IFTYPE_ADHOC)
 		iwl_set_ht_add_station(priv, sta_id, ht_info);
 
-	/* 3945 only */
+	
 	rate = (priv->band == IEEE80211_BAND_5GHZ) ?
 		IWL_RATE_6M_PLCP : IWL_RATE_1M_PLCP;
-	/* Turn on both antennas for the station... */
+	
 	station->sta.rate_n_flags = cpu_to_le16(rate | RATE_MCS_ANT_AB_MSK);
 
 	spin_unlock_irqrestore(&priv->sta_lock, flags_spin);
 
-	/* Add station to device's station table */
+	
 	iwl_send_add_sta(priv, &station->sta, flags);
 	return sta_id;
 
@@ -312,7 +282,7 @@ static void iwl_sta_ucode_deactivate(struct iwl_priv *priv, const char *addr)
 
 	spin_lock_irqsave(&priv->sta_lock, flags);
 
-	/* Ucode must be active and driver must be non active */
+	
 	if (priv->stations[sta_id].used != IWL_STA_UCODE_ACTIVE)
 		IWL_ERR(priv, "removed non active STA %d\n", sta_id);
 
@@ -407,9 +377,7 @@ static int iwl_send_remove_station(struct iwl_priv *priv, const u8 *addr,
 	return ret;
 }
 
-/**
- * iwl_remove_station - Remove driver's knowledge of station.
- */
+
 int iwl_remove_station(struct iwl_priv *priv, const u8 *addr, bool is_ap)
 {
 	int sta_id = IWL_INVALID_STATION;
@@ -465,11 +433,7 @@ out:
 	return ret;
 }
 
-/**
- * iwl_clear_stations_table - Clear the driver's station table
- *
- * NOTE:  This does not clear or otherwise alter the device's station table.
- */
+
 void iwl_clear_stations_table(struct iwl_priv *priv)
 {
 	unsigned long flags;
@@ -485,10 +449,10 @@ void iwl_clear_stations_table(struct iwl_priv *priv)
 	priv->num_stations = 0;
 	memset(priv->stations, 0, sizeof(priv->stations));
 
-	/* clean ucode key table bit map */
+	
 	priv->ucode_key_table = 0;
 
-	/* keep track of static keys */
+	
 	for (i = 0; i < WEP_KEYS_MAX ; i++) {
 		if (priv->wep_keys[i].key_size)
 			set_bit(i, &priv->ucode_key_table);
@@ -656,8 +620,7 @@ static int iwl_set_wep_dynamic_key_info(struct iwl_priv *priv,
 			== STA_KEY_FLG_NO_ENC)
 		priv->stations[sta_id].sta.key.key_offset =
 				 iwl_get_free_ucode_key_index(priv);
-	/* else, we are overriding an existing key => no need to allocated room
-	 * in uCode. */
+	
 
 	WARN(priv->stations[sta_id].sta.key.key_offset == WEP_INVALID_OFFSET,
 		"no space for a new key");
@@ -704,8 +667,7 @@ static int iwl_set_ccmp_dynamic_key_info(struct iwl_priv *priv,
 			== STA_KEY_FLG_NO_ENC)
 		priv->stations[sta_id].sta.key.key_offset =
 				 iwl_get_free_ucode_key_index(priv);
-	/* else, we are overriding an existing key => no need to allocated room
-	 * in uCode. */
+	
 
 	WARN(priv->stations[sta_id].sta.key.key_offset == WEP_INVALID_OFFSET,
 		"no space for a new key");
@@ -748,8 +710,7 @@ static int iwl_set_tkip_dynamic_key_info(struct iwl_priv *priv,
 			== STA_KEY_FLG_NO_ENC)
 		priv->stations[sta_id].sta.key.key_offset =
 				 iwl_get_free_ucode_key_index(priv);
-	/* else, we are overriding an existing key => no need to allocated room
-	 * in uCode. */
+	
 
 	WARN(priv->stations[sta_id].sta.key.key_offset == WEP_INVALID_OFFSET,
 		"no space for a new key");
@@ -757,7 +718,7 @@ static int iwl_set_tkip_dynamic_key_info(struct iwl_priv *priv,
 	priv->stations[sta_id].sta.key.key_flags = key_flags;
 
 
-	/* This copy is acutally not needed: we get the key with each TX */
+	
 	memcpy(priv->stations[sta_id].keyinfo.key, keyconf->key, 16);
 
 	memcpy(priv->stations[sta_id].sta.key.key, keyconf->key, 16);
@@ -783,8 +744,7 @@ void iwl_update_tkip_key(struct iwl_priv *priv,
 	}
 
 	if (iwl_scan_cancel(priv)) {
-		/* cancel scan failed, just live w/ bad key and rely
-		   briefly on SW decryption */
+		
 		return;
 	}
 
@@ -825,11 +785,7 @@ int iwl_remove_dynamic_key(struct iwl_priv *priv,
 		      keyconf->keyidx, sta_id);
 
 	if (keyconf->keyidx != keyidx) {
-		/* We need to remove a key with index different that the one
-		 * in the uCode. This means that the key we need to remove has
-		 * been replaced by another one with different index.
-		 * Don't do anything and return ok
-		 */
+		
 		spin_unlock_irqrestore(&priv->sta_lock, flags);
 		return 0;
 	}
@@ -945,20 +901,7 @@ int iwl_send_lq_cmd(struct iwl_priv *priv,
 }
 EXPORT_SYMBOL(iwl_send_lq_cmd);
 
-/**
- * iwl_sta_init_lq - Initialize a station's hardware rate table
- *
- * The uCode's station table contains a table of fallback rates
- * for automatic fallback during transmission.
- *
- * NOTE: This sets up a default set of values.  These will be replaced later
- *       if the driver's iwl-agn-rs rate scaling algorithm is used, instead of
- *       rc80211_simple.
- *
- * NOTE: Run REPLY_ADD_STA command to set up station table entry, before
- *       calling this function (which runs REPLY_TX_LINK_QUALITY_CMD,
- *       which requires station table entry to exist).
- */
+
 static void iwl_sta_init_lq(struct iwl_priv *priv, const u8 *addr, bool is_ap)
 {
 	int i, r;
@@ -967,8 +910,7 @@ static void iwl_sta_init_lq(struct iwl_priv *priv, const u8 *addr, bool is_ap)
 	};
 	u32 rate_flags;
 
-	/* Set up the rate scaling to start at selected rate, fall back
-	 * all the way down to 1M in IEEE order, and then spin on 1M */
+	
 	if (is_ap)
 		r = IWL_RATE_54M_INDEX;
 	else if (priv->band == IEEE80211_BAND_5GHZ)
@@ -996,19 +938,14 @@ static void iwl_sta_init_lq(struct iwl_priv *priv, const u8 *addr, bool is_ap)
 	link_cmd.agg_params.agg_time_limit =
 		cpu_to_le16(LINK_QUAL_AGG_TIME_LIMIT_DEF);
 
-	/* Update the rate scaling for control frame Tx to AP */
+	
 	link_cmd.sta_id = is_ap ? IWL_AP_ID : priv->hw_params.bcast_sta_id;
 
 	iwl_send_cmd_pdu_async(priv, REPLY_TX_LINK_QUALITY_CMD,
 			       sizeof(link_cmd), &link_cmd, NULL);
 }
 
-/**
- * iwl_rxon_add_station - add station into station table.
- *
- * there is only one AP station with id= IWL_AP_ID
- * NOTE: mutex must be held before calling this function
- */
+
 int iwl_rxon_add_station(struct iwl_priv *priv, const u8 *addr, bool is_ap)
 {
 	struct ieee80211_sta *sta;
@@ -1016,14 +953,9 @@ int iwl_rxon_add_station(struct iwl_priv *priv, const u8 *addr, bool is_ap)
 	struct ieee80211_sta_ht_cap *cur_ht_config = NULL;
 	u8 sta_id;
 
-	/* Add station to device's station table */
+	
 
-	/*
-	 * XXX: This check is definitely not correct, if we're an AP
-	 *	it'll always be false which is not what we want, but
-	 *	it doesn't look like iwlagn is prepared to be an HT
-	 *	AP anyway.
-	 */
+	
 	if (priv->current_ht_config.is_ht) {
 		rcu_read_lock();
 		sta = ieee80211_find_sta(priv->hw, addr);
@@ -1036,49 +968,43 @@ int iwl_rxon_add_station(struct iwl_priv *priv, const u8 *addr, bool is_ap)
 
 	sta_id = iwl_add_station(priv, addr, is_ap, CMD_SYNC, cur_ht_config);
 
-	/* Set up default rate scaling table in device's station table */
+	
 	iwl_sta_init_lq(priv, addr, is_ap);
 
 	return sta_id;
 }
 EXPORT_SYMBOL(iwl_rxon_add_station);
 
-/**
- * iwl_get_sta_id - Find station's index within station table
- *
- * If new IBSS station, create new entry in station table
- */
+
 int iwl_get_sta_id(struct iwl_priv *priv, struct ieee80211_hdr *hdr)
 {
 	int sta_id;
 	__le16 fc = hdr->frame_control;
 
-	/* If this frame is broadcast or management, use broadcast station id */
+	
 	if (!ieee80211_is_data(fc) ||  is_multicast_ether_addr(hdr->addr1))
 		return priv->hw_params.bcast_sta_id;
 
 	switch (priv->iw_mode) {
 
-	/* If we are a client station in a BSS network, use the special
-	 * AP station entry (that's the only station we communicate with) */
+	
 	case NL80211_IFTYPE_STATION:
 		return IWL_AP_ID;
 
-	/* If we are an AP, then find the station, or use BCAST */
+	
 	case NL80211_IFTYPE_AP:
 		sta_id = iwl_find_station(priv, hdr->addr1);
 		if (sta_id != IWL_INVALID_STATION)
 			return sta_id;
 		return priv->hw_params.bcast_sta_id;
 
-	/* If this frame is going out to an IBSS network, find the station,
-	 * or create a new station table entry */
+	
 	case NL80211_IFTYPE_ADHOC:
 		sta_id = iwl_find_station(priv, hdr->addr1);
 		if (sta_id != IWL_INVALID_STATION)
 			return sta_id;
 
-		/* Create new station table entry */
+		
 		sta_id = iwl_add_station(priv, hdr->addr1, false,
 					CMD_ASYNC, NULL);
 
@@ -1099,14 +1025,12 @@ int iwl_get_sta_id(struct iwl_priv *priv, struct ieee80211_hdr *hdr)
 }
 EXPORT_SYMBOL(iwl_get_sta_id);
 
-/**
- * iwl_sta_tx_modify_enable_tid - Enable Tx for this TID in station table
- */
+
 void iwl_sta_tx_modify_enable_tid(struct iwl_priv *priv, int sta_id, int tid)
 {
 	unsigned long flags;
 
-	/* Remove "disable" flag, to enable Tx for this TID */
+	
 	spin_lock_irqsave(&priv->sta_lock, flags);
 	priv->stations[sta_id].sta.sta.modify_mask = STA_MODIFY_TID_DISABLE_TX;
 	priv->stations[sta_id].sta.tid_disable_tx &= cpu_to_le16(~(1 << tid));
@@ -1179,7 +1103,7 @@ static void iwl_sta_modify_ps_wake(struct iwl_priv *priv, int sta_id)
 
 void iwl_update_ps_mode(struct iwl_priv *priv, u16 ps_bit, u8 *addr)
 {
-	/* FIXME: need locking over ps_status ??? */
+	
 	u8 sta_id = iwl_find_station(priv, addr);
 
 	if (sta_id != IWL_INVALID_STATION) {

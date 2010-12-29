@@ -1,25 +1,4 @@
-/*
- * This file is part of wl1271
- *
- * Copyright (C) 2008-2009 Nokia Corporation
- *
- * Contact: Luciano Coelho <luciano.coelho@nokia.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/platform_device.h>
@@ -80,13 +59,7 @@ static void wl1271_fw_status(struct wl1271 *wl, struct wl1271_fw_status *status)
 	u32 total = 0;
 	int i;
 
-	/*
-	 * FIXME: Reading the FW status directly from the registers seems to
-	 * be the right thing to do, but it doesn't work.  And in the
-	 * reference driver, there is a workaround called
-	 * USE_SDIO_24M_WORKAROUND, which reads the status from memory
-	 * instead, so we do the same here.
-	 */
+	
 
 	wl1271_spi_mem_read(wl, STATUS_MEM_ADDRESS, status, sizeof(*status));
 
@@ -97,7 +70,7 @@ static void wl1271_fw_status(struct wl1271 *wl, struct wl1271_fw_status *status)
 		     status->drv_rx_counter,
 		     status->tx_results_counter);
 
-	/* update number of available TX blocks */
+	
 	for (i = 0; i < NUM_TX_QUEUES; i++) {
 		u32 cnt = status->tx_released_blks[i] - wl->tx_blocks_freed[i];
 		wl->tx_blocks_freed[i] = status->tx_released_blks[i];
@@ -105,11 +78,11 @@ static void wl1271_fw_status(struct wl1271 *wl, struct wl1271_fw_status *status)
 		total += cnt;
 	}
 
-	/* if more blocks are available now, schedule some tx work */
+	
 	if (total && !skb_queue_empty(&wl->tx_queue))
 		schedule_work(&wl->tx_work);
 
-	/* update the host-chipset time offset */
+	
 	wl->time_offset = jiffies_to_usecs(jiffies) - status->fw_localtime;
 }
 
@@ -169,7 +142,7 @@ static void wl1271_irq_work(struct work_struct *work)
 
 			wl1271_debug(DEBUG_IRQ, "WL1271_ACX_INTR_DATA");
 
-			/* check for tx results */
+			
 			if (tx_res_cnt)
 				wl1271_tx_complete(wl, tx_res_cnt);
 
@@ -198,7 +171,7 @@ static irqreturn_t wl1271_irq(int irq, void *cookie)
 
 	wl = cookie;
 
-	/* complete the ELP completion */
+	
 	spin_lock_irqsave(&wl->wl_lock, flags);
 	if (wl->elp_compl) {
 		complete(wl->elp_compl);
@@ -321,23 +294,22 @@ static int wl1271_chip_wakeup(struct wl1271 *wl)
 	wl1271_spi_reset(wl);
 	wl1271_spi_init(wl);
 
-	/* We don't need a real memory partition here, because we only want
-	 * to use the registers at this point. */
+	
 	wl1271_set_partition(wl,
 			     0x00000000,
 			     0x00000000,
 			     REGISTERS_BASE,
 			     REGISTERS_DOWN_SIZE);
 
-	/* ELP module wake up */
+	
 	wl1271_fw_wakeup(wl);
 
-	/* whal_FwCtrl_BootSm() */
+	
 
-	/* 0. read chip id from CHIP_ID */
+	
 	wl->chip.id = wl1271_reg_read32(wl, CHIP_ID_B);
 
-	/* 1. check if chip id is valid */
+	
 
 	switch (wl->chip.id) {
 	case CHIP_ID_1271_PG10:
@@ -368,7 +340,7 @@ static int wl1271_chip_wakeup(struct wl1271 *wl)
 			goto out;
 	}
 
-	/* No NVS from netlink, try to get it from the filesystem */
+	
 	if (wl->nvs == NULL) {
 		ret = wl1271_fetch_nvs(wl);
 		if (ret < 0)
@@ -394,7 +366,7 @@ static void wl1271_filter_work(struct work_struct *work)
 	if (ret < 0)
 		goto out;
 
-	/* FIXME: replace the magic numbers with proper definitions */
+	
 	ret = wl1271_cmd_join(wl, wl->bss_type, 1, 100, 0);
 	if (ret < 0)
 		goto out_sleep;
@@ -476,25 +448,15 @@ static int wl1271_op_tx(struct ieee80211_hw *hw, struct sk_buff *skb)
 
 	skb_queue_tail(&wl->tx_queue, skb);
 
-	/*
-	 * The chip specific setup must run before the first TX packet -
-	 * before that, the tx_work will not be initialized!
-	 */
+	
 
 	schedule_work(&wl->tx_work);
 
-	/*
-	 * The workqueue is slow to process the tx_queue and we need stop
-	 * the queue here, otherwise the queue will get too long.
-	 */
+	
 	if (skb_queue_len(&wl->tx_queue) >= WL1271_TX_QUEUE_MAX_LENGTH) {
 		ieee80211_stop_queues(wl->hw);
 
-		/*
-		 * FIXME: this is racy, the variable is not properly
-		 * protected. Maybe fix this by removing the stupid
-		 * variable altogether and checking the real queue state?
-		 */
+		
 		wl->tx_queue_stopped = true;
 	}
 
@@ -574,7 +536,7 @@ static void wl1271_op_stop(struct ieee80211_hw *hw)
 
 	mutex_lock(&wl->mutex);
 
-	/* let's notify MAC80211 about the remaining pending TX frames */
+	
 	wl1271_tx_flush(wl);
 	wl1271_power_off(wl);
 
@@ -624,7 +586,7 @@ static int wl1271_op_add_interface(struct ieee80211_hw *hw,
 		goto out;
 	}
 
-	/* FIXME: what if conf->mac_addr changes? */
+	
 
 out:
 	mutex_unlock(&wl->mutex);
@@ -668,7 +630,7 @@ static int wl1271_op_config_interface(struct ieee80211_hw *hw,
 		memcpy(wl->ssid, conf->ssid, wl->ssid_len);
 
 	if (wl->bss_type != BSS_TYPE_IBSS) {
-		/* FIXME: replace the magic numbers with proper definitions */
+		
 		ret = wl1271_cmd_join(wl, wl->bss_type, 5, 100, 1);
 		if (ret < 0)
 			goto out_sleep;
@@ -692,7 +654,7 @@ static int wl1271_op_config_interface(struct ieee80211_hw *hw,
 		if (ret < 0)
 			goto out_sleep;
 
-		/* FIXME: replace the magic numbers with proper definitions */
+		
 		ret = wl1271_cmd_join(wl, wl->bss_type, 1, 100, 0);
 
 		if (ret < 0)
@@ -732,7 +694,7 @@ static int wl1271_op_config(struct ieee80211_hw *hw, u32 changed)
 		u8 old_channel = wl->channel;
 		wl->channel = channel;
 
-		/* FIXME: use beacon interval provided by mac80211 */
+		
 		ret = wl1271_cmd_join(wl, wl->bss_type, 1, 100, 0);
 		if (ret < 0) {
 			wl->channel = old_channel;
@@ -749,11 +711,7 @@ static int wl1271_op_config(struct ieee80211_hw *hw, u32 changed)
 
 		wl->psm_requested = true;
 
-		/*
-		 * We enter PSM only if we're already associated.
-		 * If we're not, we'll enter it when joining an SSID,
-		 * through the bss_info_changed() hook.
-		 */
+		
 		ret = wl1271_ps_set_mode(wl, STATION_POWER_SAVE_MODE);
 	} else if (!(conf->flags & IEEE80211_CONF_PS) &&
 		   wl->psm_requested) {
@@ -803,16 +761,12 @@ static void wl1271_op_configure_filter(struct ieee80211_hw *hw,
 	if (changed == 0)
 		return;
 
-	/* FIXME: wl->rx_config and wl->rx_filter are not protected */
+	
 	wl->rx_config = WL1271_DEFAULT_RX_CONFIG;
 	wl->rx_filter = WL1271_DEFAULT_RX_FILTER;
 
-	/*
-	 * FIXME: workqueues need to be properly cancelled on stop(), for
-	 * now let's just disable changing the filter settings. They will
-	 * be updated any on config().
-	 */
-	/* schedule_work(&wl->filter_work); */
+	
+	
 }
 
 static int wl1271_op_set_key(struct ieee80211_hw *hw, enum set_key_cmd cmd,
@@ -840,7 +794,7 @@ static int wl1271_op_set_key(struct ieee80211_hw *hw, enum set_key_cmd cmd,
 	wl1271_dump(DEBUG_CRYPT, "KEY: ", key_conf->key, key_conf->keylen);
 
 	if (is_zero_ether_addr(addr)) {
-		/* We dont support TX only encryption */
+		
 		ret = -EOPNOTSUPP;
 		goto out;
 	}
@@ -998,7 +952,7 @@ static void wl1271_op_bss_info_changed(struct ieee80211_hw *hw,
 			if (ret < 0)
 				goto out_sleep;
 
-			/* If we want to go in PSM but we're not there yet */
+			
 			if (wl->psm_requested && !wl->psm) {
 				mode = STATION_POWER_SAVE_MODE;
 				ret = wl1271_ps_set_mode(wl, mode);
@@ -1044,7 +998,7 @@ out:
 }
 
 
-/* can't be const, mac80211 writes to this */
+
 static struct ieee80211_rate wl1271_rates[] = {
 	{ .bitrate = 10,
 	  .hw_value = 0x1,
@@ -1087,7 +1041,7 @@ static struct ieee80211_rate wl1271_rates[] = {
 	  .hw_value_short = 0x1000, },
 };
 
-/* can't be const, mac80211 writes to this */
+
 static struct ieee80211_channel wl1271_channels[] = {
 	{ .hw_value = 1, .center_freq = 2412},
 	{ .hw_value = 2, .center_freq = 2417},
@@ -1104,7 +1058,7 @@ static struct ieee80211_channel wl1271_channels[] = {
 	{ .hw_value = 13, .center_freq = 2472},
 };
 
-/* can't be const, mac80211 writes to this */
+
 static struct ieee80211_supported_band wl1271_band_2ghz = {
 	.channels = wl1271_channels,
 	.n_channels = ARRAY_SIZE(wl1271_channels),
@@ -1118,7 +1072,7 @@ static const struct ieee80211_ops wl1271_ops = {
 	.add_interface = wl1271_op_add_interface,
 	.remove_interface = wl1271_op_remove_interface,
 	.config = wl1271_op_config,
-/* 	.config_interface = wl1271_op_config_interface, */
+
 	.configure_filter = wl1271_op_configure_filter,
 	.tx = wl1271_op_tx,
 	.set_key = wl1271_op_set_key,
@@ -1151,15 +1105,11 @@ static int wl1271_register_hw(struct wl1271 *wl)
 
 static int wl1271_init_ieee80211(struct wl1271 *wl)
 {
-	/*
-	 * The tx descriptor buffer and the TKIP space.
-	 *
-	 * FIXME: add correct 1271 descriptor size
-	 */
+	
 	wl->hw->extra_tx_headroom = WL1271_TKIP_IV_SPACE;
 
-	/* unit us */
-	/* FIXME: find a proper value */
+	
+	
 	wl->hw->channel_change_time = 10000;
 
 	wl->hw->flags = IEEE80211_HW_SIGNAL_DBM |
@@ -1183,7 +1133,7 @@ static struct platform_device wl1271_device = {
 	.name           = "wl1271",
 	.id             = -1,
 
-	/* device model insists to have a release function */
+	
 	.dev            = {
 		.release = wl1271_device_release,
 	},
@@ -1233,17 +1183,13 @@ static int __devinit wl1271_probe(struct spi_device *spi)
 	wl->tx_queue_stopped = false;
 	wl->power_level = WL1271_DEFAULT_POWER_LEVEL;
 
-	/* We use the default power on sleep time until we know which chip
-	 * we're using */
+	
 	for (i = 0; i < FW_TX_CMPLT_BLOCK_SIZE; i++)
 		wl->tx_frames[i] = NULL;
 
 	spin_lock_init(&wl->wl_lock);
 
-	/*
-	 * In case our MAC address is not correctly set,
-	 * we use a random but Nokia MAC.
-	 */
+	
 	memcpy(wl->mac_addr, nokia_oui, 3);
 	get_random_bytes(wl->mac_addr + 3, 3);
 
@@ -1257,8 +1203,7 @@ static int __devinit wl1271_probe(struct spi_device *spi)
 		goto out_free;
 	}
 
-	/* This is the only SPI value that we need to set here, the rest
-	 * comes from the board-peripherals file */
+	
 	spi->bits_per_word = 32;
 
 	ret = spi_setup(spi);

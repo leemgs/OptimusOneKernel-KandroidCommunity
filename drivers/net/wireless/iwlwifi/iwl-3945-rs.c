@@ -1,28 +1,4 @@
-/******************************************************************************
- *
- * Copyright(c) 2005 - 2009 Intel Corporation. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of version 2 of the GNU General Public License as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
- *
- * The full GNU General Public License is included in this distribution in the
- * file called LICENSE.
- *
- * Contact Information:
- *  Intel Linux Wireless <ilw@linux.intel.com>
- * Intel Corporation, 5200 N.E. Elam Young Parkway, Hillsboro, OR 97124-6497
- *
- *****************************************************************************/
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -70,7 +46,7 @@ struct iwl3945_rs_sta {
 	struct dentry *rs_sta_dbgfs_stats_table_file;
 #endif
 
-	/* used to be in sta_info */
+	
 	int last_txrate_idx;
 };
 
@@ -173,13 +149,7 @@ static void iwl3945_clear_window(struct iwl3945_rate_scale_data *window)
 	window->stamp = 0;
 }
 
-/**
- * iwl3945_rate_scale_flush_windows - flush out the rate scale windows
- *
- * Returns the number of windows that have gathered data but were
- * not flushed.  If there were any that were not flushed, then
- * reschedule the rate flushing routine.
- */
+
 static int iwl3945_rate_scale_flush_windows(struct iwl3945_rs_sta *rs_sta)
 {
 	int unflushed = 0;
@@ -187,11 +157,7 @@ static int iwl3945_rate_scale_flush_windows(struct iwl3945_rs_sta *rs_sta)
 	unsigned long flags;
 	struct iwl_priv *priv __maybe_unused = rs_sta->priv;
 
-	/*
-	 * For each rate, if we have collected data on that rate
-	 * and it has been more than IWL_RATE_WIN_FLUSH
-	 * since we flushed, clear out the gathered statistics
-	 */
+	
 	for (i = 0; i < IWL_RATE_COUNT_3945; i++) {
 		if (!rs_sta->win[i].counter)
 			continue;
@@ -211,8 +177,8 @@ static int iwl3945_rate_scale_flush_windows(struct iwl3945_rs_sta *rs_sta)
 	return unflushed;
 }
 
-#define IWL_RATE_FLUSH_MAX              5000	/* msec */
-#define IWL_RATE_FLUSH_MIN              50	/* msec */
+#define IWL_RATE_FLUSH_MAX              5000	
+#define IWL_RATE_FLUSH_MIN              50	
 #define IWL_AVERAGE_PACKETS             1500
 
 static void iwl3945_bg_rate_scale_flush(unsigned long data)
@@ -229,7 +195,7 @@ static void iwl3945_bg_rate_scale_flush(unsigned long data)
 
 	spin_lock_irqsave(&rs_sta->lock, flags);
 
-	/* Number of packets Rx'd since last time this timer ran */
+	
 	packet_count = (rs_sta->tx_packets - rs_sta->last_tx_packets) + 1;
 
 	rs_sta->last_tx_packets = rs_sta->tx_packets + 1;
@@ -241,7 +207,7 @@ static void iwl3945_bg_rate_scale_flush(unsigned long data)
 		IWL_DEBUG_RATE(priv, "Tx'd %d packets in %dms\n",
 			       packet_count, duration);
 
-		/* Determine packets per second */
+		
 		if (duration)
 			pps = (packet_count * 1000) / duration;
 		else
@@ -269,8 +235,7 @@ static void iwl3945_bg_rate_scale_flush(unsigned long data)
 		rs_sta->flush_time = IWL_RATE_FLUSH;
 		rs_sta->flush_pending = 0;
 	}
-	/* If there weren't any unflushed entries, we don't schedule the timer
-	 * to run again */
+	
 
 	rs_sta->last_flush = jiffies;
 
@@ -279,13 +244,7 @@ static void iwl3945_bg_rate_scale_flush(unsigned long data)
 	IWL_DEBUG_RATE(priv, "leave\n");
 }
 
-/**
- * iwl3945_collect_tx_data - Update the success/failure sliding window
- *
- * We keep a sliding window of the last 64 packets transmitted
- * at this rate.  window->data contains the bitmask of successful
- * packets.
- */
+
 static void iwl3945_collect_tx_data(struct iwl3945_rs_sta *rs_sta,
 				struct iwl3945_rate_scale_data *window,
 				int success, int retries, int index)
@@ -301,18 +260,11 @@ static void iwl3945_collect_tx_data(struct iwl3945_rs_sta *rs_sta,
 
 	spin_lock_irqsave(&rs_sta->lock, flags);
 
-	/*
-	 * Keep track of only the latest 62 tx frame attempts in this rate's
-	 * history window; anything older isn't really relevant any more.
-	 * If we have filled up the sliding window, drop the oldest attempt;
-	 * if the oldest attempt (highest bit in bitmap) shows "success",
-	 * subtract "1" from the success counter (this is the main reason
-	 * we keep these bitmaps!).
-	 * */
+	
 	while (retries > 0) {
 		if (window->counter >= IWL_RATE_MAX_WINDOW) {
 
-			/* remove earliest */
+			
 			window->counter = IWL_RATE_MAX_WINDOW - 1;
 
 			if (window->data & (1ULL << (IWL_RATE_MAX_WINDOW - 1))) {
@@ -321,12 +273,10 @@ static void iwl3945_collect_tx_data(struct iwl3945_rs_sta *rs_sta,
 			}
 		}
 
-		/* Increment frames-attempted counter */
+		
 		window->counter++;
 
-		/* Shift bitmap by one frame (throw away oldest history),
-		 * OR in "1", and increment "success" if this
-		 * frame was successful. */
+		
 		window->data <<= 1;
 		if (success > 0) {
 			window->success_counter++;
@@ -337,7 +287,7 @@ static void iwl3945_collect_tx_data(struct iwl3945_rs_sta *rs_sta,
 		retries--;
 	}
 
-	/* Calculate current success ratio, avoid divide-by-0! */
+	
 	if (window->counter > 0)
 		window->success_ratio = 128 * (100 * window->success_counter)
 					/ window->counter;
@@ -346,7 +296,7 @@ static void iwl3945_collect_tx_data(struct iwl3945_rs_sta *rs_sta,
 
 	fail_count = window->counter - window->success_counter;
 
-	/* Calculate average throughput, if we have enough history. */
+	
 	if ((fail_count >= IWL_RATE_MIN_FAILURE_TH) ||
 	    (window->success_counter >= IWL_RATE_MIN_SUCCESS_TH))
 		window->average_tpt = ((window->success_ratio *
@@ -354,7 +304,7 @@ static void iwl3945_collect_tx_data(struct iwl3945_rs_sta *rs_sta,
 	else
 		window->average_tpt = IWL_INVALID_VALUE;
 
-	/* Tag this window as having been updated */
+	
 	window->stamp = jiffies;
 
 	spin_unlock_irqrestore(&rs_sta->lock, flags);
@@ -370,10 +320,7 @@ static void rs_rate_init(void *priv_r, struct ieee80211_supported_band *sband,
 
 	IWL_DEBUG_RATE(priv, "enter\n");
 
-	/* TODO: what is a good starting rate for STA? About middle? Maybe not
-	 * the lowest or the highest rate.. Could consider using RSSI from
-	 * previous packets? Need to have IEEE 802.1X auth succeed immediately
-	 * after assoc.. */
+	
 
 	for (i = sband->n_bitrates - 1; i >= 0; i--) {
 		if (sta->supp_rates[sband->band] & (1 << i)) {
@@ -383,7 +330,7 @@ static void rs_rate_init(void *priv_r, struct ieee80211_supported_band *sband,
 	}
 
 	priv->sta_supp_rates = sta->supp_rates[sband->band];
-	/* For 5 GHz band it start at IWL_FIRST_OFDM_RATE */
+	
 	if (sband->band == IEEE80211_BAND_5GHZ) {
 		rs_sta->last_txrate_idx += IWL_FIRST_OFDM_RATE;
 		priv->sta_supp_rates = priv->sta_supp_rates <<
@@ -399,7 +346,7 @@ static void *rs_alloc(struct ieee80211_hw *hw, struct dentry *debugfsdir)
 	return hw->priv;
 }
 
-/* rate scale requires free function to be implemented */
+
 static void rs_free(void *priv)
 {
 	return;
@@ -412,10 +359,7 @@ static void *rs_alloc_sta(void *iwl_priv, struct ieee80211_sta *sta, gfp_t gfp)
 	struct iwl_priv *priv = iwl_priv;
 	int i;
 
-	/*
-	 * XXX: If it's using sta->drv_priv anyway, it might
-	 *	as well just put all the information there.
-	 */
+	
 
 	IWL_DEBUG_RATE(priv, "enter\n");
 
@@ -433,7 +377,7 @@ static void *rs_alloc_sta(void *iwl_priv, struct ieee80211_sta *sta, gfp_t gfp)
 
 	rs_sta->start_rate = IWL_RATE_INVALID;
 
-	/* default to just 802.11b */
+	
 	rs_sta->expected_tpt = iwl3945_expected_tpt_b;
 
 	rs_sta->last_partial_flush = jiffies;
@@ -470,12 +414,7 @@ static void rs_free_sta(void *iwl_priv, struct ieee80211_sta *sta,
 }
 
 
-/**
- * rs_tx_status - Update rate control values based on Tx results
- *
- * NOTE: Uses iwl_priv->retry_rate for the # of retries attempted by
- * the hardware for each rate.
- */
+
 static void rs_tx_status(void *priv_rate, struct ieee80211_supported_band *sband,
 			 struct ieee80211_sta *sta, void *priv_sta,
 			 struct sk_buff *skb)
@@ -490,7 +429,7 @@ static void rs_tx_status(void *priv_rate, struct ieee80211_supported_band *sband
 	IWL_DEBUG_RATE(priv, "enter\n");
 
 	retries = info->status.rates[0].count;
-	/* Sanity Check for retries */
+	
 	if (retries > IWL_RATE_RETRY_TH)
 		retries = IWL_RATE_RETRY_TH;
 
@@ -510,16 +449,7 @@ static void rs_tx_status(void *priv_rate, struct ieee80211_supported_band *sband
 	scale_rate_index = first_index;
 	last_index = first_index;
 
-	/*
-	 * Update the window for each rate.  We determine which rates
-	 * were Tx'd based on the total number of retries vs. the number
-	 * of retries configured for each rate -- currently set to the
-	 * priv value 'retry_rate' vs. rate specific
-	 *
-	 * On exit from this while loop last_index indicates the rate
-	 * at which the frame was finally transmitted (or failed if no
-	 * ACK)
-	 */
+	
 	while (retries > 1) {
 		if ((retries - 1) < priv->retry_rate) {
 			current_count = (retries - 1);
@@ -530,8 +460,7 @@ static void rs_tx_status(void *priv_rate, struct ieee80211_supported_band *sband
 							 scale_rate_index);
 		}
 
-		/* Update this rate accounting for as many retries
-		 * as was used for it (per current_count) */
+		
 		iwl3945_collect_tx_data(rs_sta,
 				    &rs_sta->win[scale_rate_index],
 				    0, current_count, scale_rate_index);
@@ -544,7 +473,7 @@ static void rs_tx_status(void *priv_rate, struct ieee80211_supported_band *sband
 	}
 
 
-	/* Update the last index window with success/failure based on ACK */
+	
 	IWL_DEBUG_RATE(priv, "Update rate %d with %s.\n",
 		       last_index,
 		       (info->flags & IEEE80211_TX_STAT_ACK) ?
@@ -553,9 +482,7 @@ static void rs_tx_status(void *priv_rate, struct ieee80211_supported_band *sband
 			    &rs_sta->win[last_index],
 			    info->flags & IEEE80211_TX_STAT_ACK, 1, last_index);
 
-	/* We updated the rate scale window -- if its been more than
-	 * flush_time since the last run, schedule the flush
-	 * again */
+	
 	spin_lock_irqsave(&rs_sta->lock, flags);
 
 	if (!rs_sta->flush_pending &&
@@ -582,13 +509,12 @@ static u16 iwl3945_get_adjacent_rate(struct iwl3945_rs_sta *rs_sta,
 	u8 low = IWL_RATE_INVALID;
 	struct iwl_priv *priv __maybe_unused = rs_sta->priv;
 
-	/* 802.11A walks to the next literal adjacent rate in
-	 * the rate table */
+	
 	if (unlikely(band == IEEE80211_BAND_5GHZ)) {
 		int i;
 		u32 mask;
 
-		/* Find the previous rate that is in the rate mask */
+		
 		i = index - 1;
 		for (mask = (1 << i); i >= 0; i--, mask >>= 1) {
 			if (rate_mask & mask) {
@@ -597,7 +523,7 @@ static u16 iwl3945_get_adjacent_rate(struct iwl3945_rs_sta *rs_sta,
 			}
 		}
 
-		/* Find the next rate that is in the rate mask */
+		
 		i = index + 1;
 		for (mask = (1 << i); i < IWL_RATE_COUNT_3945;
 		     i++, mask <<= 1) {
@@ -639,22 +565,7 @@ static u16 iwl3945_get_adjacent_rate(struct iwl3945_rs_sta *rs_sta,
 	return (high << 8) | low;
 }
 
-/**
- * rs_get_rate - find the rate for the requested packet
- *
- * Returns the ieee80211_rate structure allocated by the driver.
- *
- * The rate control algorithm has no internal mapping between hw_mode's
- * rate ordering and the rate ordering used by the rate control algorithm.
- *
- * The rate control algorithm uses a single table of rates that goes across
- * the entire A/B/G spectrum vs. being limited to just one particular
- * hw_mode.
- *
- * As such, we can't convert the index obtained below into the hw_mode's
- * rate table and must reference the driver allocated rate table
- *
- */
+
 static void rs_get_rate(void *priv_r, struct ieee80211_sta *sta,
 			void *priv_sta,	struct ieee80211_tx_rate_control *txrc)
 {
@@ -685,7 +596,7 @@ static void rs_get_rate(void *priv_r, struct ieee80211_sta *sta,
 
 	rate_mask = sta->supp_rates[sband->band];
 
-	/* get user max rate if set */
+	
 	max_rate_idx = txrc->max_rate_idx;
 	if ((sband->band == IEEE80211_BAND_5GHZ) && (max_rate_idx != -1))
 		max_rate_idx += IWL_FIRST_OFDM_RATE;
@@ -713,9 +624,7 @@ static void rs_get_rate(void *priv_r, struct ieee80211_sta *sta,
 
 	spin_lock_irqsave(&rs_sta->lock, flags);
 
-	/* for recent assoc, choose best rate regarding
-	 * to rssi value
-	 */
+	
 	if (rs_sta->start_rate != IWL_RATE_INVALID) {
 		if (rs_sta->start_rate < index &&
 		   (rate_mask & (1 << rs_sta->start_rate)))
@@ -723,7 +632,7 @@ static void rs_get_rate(void *priv_r, struct ieee80211_sta *sta,
 		rs_sta->start_rate = IWL_RATE_INVALID;
 	}
 
-	/* force user max rate if set by user */
+	
 	if ((max_rate_idx != -1) && (max_rate_idx < index)) {
 		if (rate_mask & (1 << max_rate_idx))
 			index = max_rate_idx;
@@ -745,7 +654,7 @@ static void rs_get_rate(void *priv_r, struct ieee80211_sta *sta,
 			       window->success_counter,
 			       rs_sta->expected_tpt ? "not " : "");
 
-	   /* Can't calculate this yet; not enough history */
+	   
 		window->average_tpt = IWL_INVALID_VALUE;
 		goto out;
 
@@ -758,11 +667,11 @@ static void rs_get_rate(void *priv_r, struct ieee80211_sta *sta,
 	low = high_low & 0xff;
 	high = (high_low >> 8) & 0xff;
 
-	/* If user set max rate, dont allow higher than user constrain */
+	
 	if ((max_rate_idx != -1) && (max_rate_idx < high))
 		high = IWL_RATE_INVALID;
 
-	/* Collect Measured throughputs of adjacent rates */
+	
 	if (low != IWL_RATE_INVALID)
 		low_tpt = rs_sta->win[low].average_tpt;
 
@@ -773,12 +682,11 @@ static void rs_get_rate(void *priv_r, struct ieee80211_sta *sta,
 
 	scale_action = 0;
 
-	/* Low success ratio , need to drop the rate */
+	
 	if ((window->success_ratio < IWL_RATE_DECREASE_TH) || !current_tpt) {
 		IWL_DEBUG_RATE(priv, "decrease rate because of low success_ratio\n");
 		scale_action = -1;
-	/* No throughput measured yet for adjacent rates,
-	 * try increase */
+	
 	} else if ((low_tpt == IWL_INVALID_VALUE) &&
 		   (high_tpt == IWL_INVALID_VALUE)) {
 
@@ -787,9 +695,7 @@ static void rs_get_rate(void *priv_r, struct ieee80211_sta *sta,
 		else if (low != IWL_RATE_INVALID)
 			scale_action = 0;
 
-	/* Both adjacent throughputs are measured, but neither one has
-	 * better throughput; we're using the best rate, don't change
-	 * it! */
+	
 	} else if ((low_tpt != IWL_INVALID_VALUE) &&
 		 (high_tpt != IWL_INVALID_VALUE) &&
 		 (low_tpt < current_tpt) && (high_tpt < current_tpt)) {
@@ -799,12 +705,11 @@ static void rs_get_rate(void *priv_r, struct ieee80211_sta *sta,
 			       low_tpt, high_tpt, current_tpt);
 		scale_action = 0;
 
-	/* At least one of the rates has better throughput */
+	
 	} else {
 		if (high_tpt != IWL_INVALID_VALUE) {
 
-			/* High rate has better throughput, Increase
-			 * rate */
+			
 			if (high_tpt > current_tpt &&
 				window->success_ratio >= IWL_RATE_INCREASE_TH)
 				scale_action = 1;
@@ -819,15 +724,13 @@ static void rs_get_rate(void *priv_r, struct ieee80211_sta *sta,
 				    "decrease rate because of low tpt\n");
 				scale_action = -1;
 			} else if (window->success_ratio >= IWL_RATE_INCREASE_TH) {
-				/* Lower rate has better
-				 * throughput,decrease rate */
+				
 				scale_action = 1;
 			}
 		}
 	}
 
-	/* Sanity check; asked for decrease, but success rate or throughput
-	 * has been good at old rate.  Don't change it. */
+	
 	if ((scale_action == -1) && (low != IWL_RATE_INVALID) &&
 		    ((window->success_ratio > IWL_RATE_HIGH_TH) ||
 		     (current_tpt > (100 * rs_sta->expected_tpt[low]))))
@@ -836,13 +739,13 @@ static void rs_get_rate(void *priv_r, struct ieee80211_sta *sta,
 	switch (scale_action) {
 	case -1:
 
-		/* Decrese rate */
+		
 		if (low != IWL_RATE_INVALID)
 			index = low;
 		break;
 
 	case 1:
-		/* Increase rate */
+		
 		if (high != IWL_RATE_INVALID)
 			index = high;
 
@@ -850,7 +753,7 @@ static void rs_get_rate(void *priv_r, struct ieee80211_sta *sta,
 
 	case 0:
 	default:
-		/* No change */
+		
 		break;
 	}
 
@@ -974,7 +877,7 @@ void iwl3945_rate_scale_init(struct ieee80211_hw *hw, s32 sta_id)
 	rs_sta->tgg = 0;
 	switch (priv->band) {
 	case IEEE80211_BAND_2GHZ:
-		/* TODO: this always does G, not a regression */
+		
 		if (priv->active_rxon.flags & RXON_FLG_TGG_PROTECT_MSK) {
 			rs_sta->tgg = 1;
 			rs_sta->expected_tpt = iwl3945_expected_tpt_g_prot;

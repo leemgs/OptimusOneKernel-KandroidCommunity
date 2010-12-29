@@ -1,22 +1,4 @@
-/* ZD1211 USB-WLAN driver for Linux
- *
- * Copyright (C) 2005-2007 Ulrich Kunitz <kune@deine-taler.de>
- * Copyright (C) 2006-2007 Daniel Drake <dsd@gentoo.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- */
+
 
 #include <linux/kernel.h>
 
@@ -144,7 +126,7 @@ static void dump_regwrite(u32 rw)
 		break;
 	}
 }
-#endif /* 0 */
+#endif 
 
 static int rf2959_init_hw(struct zd_rf *rf)
 {
@@ -156,9 +138,9 @@ static int rf2959_init_hw(struct zd_rf *rf)
 		{ CR11,  0x00 }, { CR15,  0xD0 }, { CR17,  0x68 },
 		{ CR19,  0x4a }, { CR20,  0x0c }, { CR21,  0x0E },
 		{ CR23,  0x48 },
-		/* normal size for cca threshold */
+		
 		{ CR24,  0x14 },
-		/* { CR24,  0x20 }, */
+		
 		{ CR26,  0x90 }, { CR27,  0x30 }, { CR29,  0x20 },
 		{ CR31,  0xb2 }, { CR32,  0x43 }, { CR33,  0x28 },
 		{ CR38,  0x30 }, { CR34,  0x0f }, { CR35,  0xF0 },
@@ -168,57 +150,52 @@ static int rf2959_init_hw(struct zd_rf *rf)
 		{ CR82,  0x00 }, { CR83,  0x24 }, { CR84,  0x04 },
 		{ CR85,  0x00 }, { CR86,  0x10 }, { CR87,  0x2A },
 		{ CR88,  0x10 }, { CR89,  0x24 }, { CR90,  0x18 },
-		/* { CR91,  0x18 }, */
-		/* should solve continous CTS frame problems */
+		
+		
 		{ CR91,  0x00 },
 		{ CR92,  0x0a }, { CR93,  0x00 }, { CR94,  0x01 },
 		{ CR95,  0x00 }, { CR96,  0x40 }, { CR97,  0x37 },
 		{ CR98,  0x05 }, { CR99,  0x28 }, { CR100, 0x00 },
 		{ CR101, 0x13 }, { CR102, 0x27 }, { CR103, 0x27 },
 		{ CR104, 0x18 }, { CR105, 0x12 },
-		/* normal size */
+		
 		{ CR106, 0x1a },
-		/* { CR106, 0x22 }, */
+		
 		{ CR107, 0x24 }, { CR108, 0x0a }, { CR109, 0x13 },
 		{ CR110, 0x2F }, { CR111, 0x27 }, { CR112, 0x27 },
 		{ CR113, 0x27 }, { CR114, 0x27 }, { CR115, 0x40 },
 		{ CR116, 0x40 }, { CR117, 0xF0 }, { CR118, 0xF0 },
 		{ CR119, 0x16 },
-		/* no TX continuation */
+		
 		{ CR122, 0x00 },
-		/* { CR122, 0xff }, */
+		
 		{ CR127, 0x03 }, { CR131, 0x08 }, { CR138, 0x28 },
 		{ CR148, 0x44 }, { CR150, 0x10 }, { CR169, 0xBB },
 		{ CR170, 0xBB },
 	};
 
 	static const u32 rv[] = {
-		0x000007,  /* REG0(CFG1) */
-		0x07dd43,  /* REG1(IFPLL1) */
-		0x080959,  /* REG2(IFPLL2) */
+		0x000007,  
+		0x07dd43,  
+		0x080959,  
 		0x0e6666,
-		0x116a57,  /* REG4 */
-		0x17dd43,  /* REG5 */
-		0x1819f9,  /* REG6 */
+		0x116a57,  
+		0x17dd43,  
+		0x1819f9,  
 		0x1e6666,
 		0x214554,
 		0x25e7fa,
 		0x27fffa,
-		/* The Zydas driver somehow forgets to set this value. It's
-		 * only set for Japan. We are using internal power control
-		 * for now.
-		 */
-		0x294128, /* internal power */
-		/* 0x28252c, */ /* External control TX power */
-		/* CR31_CCK, CR51_6-36M, CR52_48M, CR53_54M */
+		
+		0x294128, 
+		 
+		
 		0x2c0000,
 		0x300000,
-		0x340000,  /* REG13(0xD) */
-		0x381e0f,  /* REG14(0xE) */
-		/* Bogus, RF2959's data sheet doesn't know register 27, which is
-		 * actually referenced here. The commented 0x11 is 17.
-		 */
-		0x6c180f,  /* REG27(0x11) */
+		0x340000,  
+		0x381e0f,  
+		
+		0x6c180f,  
 	};
 
 	r = zd_iowrite16a_locked(chip, ioreqs, ARRAY_SIZE(ioreqs));

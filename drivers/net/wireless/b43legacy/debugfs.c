@@ -1,27 +1,4 @@
-/*
 
-  Broadcom B43legacy wireless driver
-
-  debugfs driver debugging code
-
-  Copyright (c) 2005-2007 Michael Buesch <mb@bu3sch.de>
-
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program; see the file COPYING.  If not, write to
-  the Free Software Foundation, Inc., 51 Franklin Steet, Fifth Floor,
-  Boston, MA 02110-1301, USA.
-
-*/
 
 #include <linux/fs.h>
 #include <linux/debugfs.h>
@@ -38,16 +15,16 @@
 #include "xmit.h"
 
 
-/* The root directory. */
+
 static struct dentry *rootdir;
 
 struct b43legacy_debugfs_fops {
 	ssize_t (*read)(struct b43legacy_wldev *dev, char *buf, size_t bufsize);
 	int (*write)(struct b43legacy_wldev *dev, const char *buf, size_t count);
 	struct file_operations fops;
-	/* Offset of struct b43legacy_dfs_file in struct b43legacy_dfsentry */
+	
 	size_t file_struct_offset;
-	/* Take wl->irq_lock before calling read/write? */
+	
 	bool take_irqlock;
 };
 
@@ -75,7 +52,7 @@ struct b43legacy_dfs_file * fops_to_dfs_file(struct b43legacy_wldev *dev,
 	} while (0)
 
 
-/* wl->irq_lock is locked */
+
 static ssize_t tsf_read_file(struct b43legacy_wldev *dev, char *buf, size_t bufsize)
 {
 	ssize_t count = 0;
@@ -89,7 +66,7 @@ static ssize_t tsf_read_file(struct b43legacy_wldev *dev, char *buf, size_t bufs
 	return count;
 }
 
-/* wl->irq_lock is locked */
+
 static int tsf_write_file(struct b43legacy_wldev *dev, const char *buf, size_t count)
 {
 	u64 tsf;
@@ -101,7 +78,7 @@ static int tsf_write_file(struct b43legacy_wldev *dev, const char *buf, size_t c
 	return 0;
 }
 
-/* wl->irq_lock is locked */
+
 static ssize_t ucode_regs_read_file(struct b43legacy_wldev *dev, char *buf, size_t bufsize)
 {
 	ssize_t count = 0;
@@ -115,7 +92,7 @@ static ssize_t ucode_regs_read_file(struct b43legacy_wldev *dev, char *buf, size
 	return count;
 }
 
-/* wl->irq_lock is locked */
+
 static ssize_t shm_read_file(struct b43legacy_wldev *dev, char *buf, size_t bufsize)
 {
 	ssize_t count = 0;
@@ -182,7 +159,7 @@ out_unlock:
 	return count;
 }
 
-/* wl->irq_lock is locked */
+
 static int restart_write_file(struct b43legacy_wldev *dev, const char *buf, size_t count)
 {
 	int err = 0;
@@ -211,7 +188,7 @@ static ssize_t b43legacy_debugfs_read(struct file *file, char __user *userbuf,
 	struct b43legacy_dfs_file *dfile;
 	ssize_t uninitialized_var(ret);
 	char *buf;
-	const size_t bufsize = 1024 * 16; /* 16 KiB buffer */
+	const size_t bufsize = 1024 * 16; 
 	const size_t buforder = get_order(bufsize);
 	int err = 0;
 

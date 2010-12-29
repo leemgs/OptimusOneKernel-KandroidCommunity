@@ -1,28 +1,4 @@
-/******************************************************************************
- *
- * Copyright(c) 2008-2009 Intel Corporation. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of version 2 of the GNU General Public License as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
- *
- * The full GNU General Public License is included in this distribution in the
- * file called LICENSE.
- *
- * Contact Information:
- *  Intel Linux Wireless <ilw@linux.intel.com>
- * Intel Corporation, 5200 N.E. Elam Young Parkway, Hillsboro, OR 97124-6497
- *
- *****************************************************************************/
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -45,11 +21,11 @@
 #include "iwl-helpers.h"
 #include "iwl-5000-hw.h"
 
-/* Highest firmware API version supported */
+
 #define IWL6000_UCODE_API_MAX 4
 #define IWL6050_UCODE_API_MAX 4
 
-/* Lowest firmware API version supported */
+
 #define IWL6000_UCODE_API_MIN 1
 #define IWL6050_UCODE_API_MIN 1
 
@@ -63,27 +39,27 @@
 
 static void iwl6000_set_ct_threshold(struct iwl_priv *priv)
 {
-	/* want Celsius */
+	
 	priv->hw_params.ct_kill_threshold = CT_KILL_THRESHOLD;
 	priv->hw_params.ct_kill_exit_threshold = CT_KILL_EXIT_THRESHOLD;
 }
 
-/* NIC configuration for 6000 series */
+
 static void iwl6000_nic_config(struct iwl_priv *priv)
 {
 	iwl5000_nic_config(priv);
 
-	/* no locking required for register write */
+	
 	if (priv->cfg->pa_type == IWL_PA_HYBRID) {
-		/* 2x2 hybrid phy type */
+		
 		iwl_write32(priv, CSR_GP_DRIVER_REG,
 			     CSR_GP_DRIVER_REG_BIT_RADIO_SKU_2x2_HYB);
 	} else if (priv->cfg->pa_type == IWL_PA_INTERNAL) {
-		/* 2x2 IPA phy type */
+		
 		iwl_write32(priv, CSR_GP_DRIVER_REG,
 			     CSR_GP_DRIVER_REG_BIT_RADIO_SKU_2x2_IPA);
 	}
-	/* else do nothing, uCode configured */
+	
 }
 
 static struct iwl_lib_ops iwl6000_lib = {
@@ -154,9 +130,7 @@ static struct iwl_ops iwl6000_ops = {
 };
 
 
-/*
- * "h": Hybrid configuration, use both internal and external Power Amplifier
- */
+
 struct iwl_cfg iwl6000h_2agn_cfg = {
 	.name = "6000 Series 2x2 AGN",
 	.fw_name_pre = IWL6000_FW_PRE,
@@ -175,12 +149,10 @@ struct iwl_cfg iwl6000h_2agn_cfg = {
 	.max_ll_items = OTP_MAX_LL_ITEMS_6x00,
 	.shadow_ram_support = true,
 	.ht_greenfield_support = true,
-	.use_rts_for_ht = true, /* use rts/cts protection */
+	.use_rts_for_ht = true, 
 };
 
-/*
- * "i": Internal configuration, use internal Power Amplifier
- */
+
 struct iwl_cfg iwl6000i_2agn_cfg = {
 	.name = "6000 Series 2x2 AGN",
 	.fw_name_pre = IWL6000_FW_PRE,
@@ -199,7 +171,7 @@ struct iwl_cfg iwl6000i_2agn_cfg = {
 	.max_ll_items = OTP_MAX_LL_ITEMS_6x00,
 	.shadow_ram_support = true,
 	.ht_greenfield_support = true,
-	.use_rts_for_ht = true, /* use rts/cts protection */
+	.use_rts_for_ht = true, 
 };
 
 struct iwl_cfg iwl6050_2agn_cfg = {
@@ -220,7 +192,7 @@ struct iwl_cfg iwl6050_2agn_cfg = {
 	.max_ll_items = OTP_MAX_LL_ITEMS_6x00,
 	.shadow_ram_support = true,
 	.ht_greenfield_support = true,
-	.use_rts_for_ht = true, /* use rts/cts protection */
+	.use_rts_for_ht = true, 
 };
 
 struct iwl_cfg iwl6000_3agn_cfg = {
@@ -241,7 +213,7 @@ struct iwl_cfg iwl6000_3agn_cfg = {
 	.max_ll_items = OTP_MAX_LL_ITEMS_6x00,
 	.shadow_ram_support = true,
 	.ht_greenfield_support = true,
-	.use_rts_for_ht = true, /* use rts/cts protection */
+	.use_rts_for_ht = true, 
 };
 
 struct iwl_cfg iwl6050_3agn_cfg = {
@@ -262,7 +234,7 @@ struct iwl_cfg iwl6050_3agn_cfg = {
 	.max_ll_items = OTP_MAX_LL_ITEMS_6x00,
 	.shadow_ram_support = true,
 	.ht_greenfield_support = true,
-	.use_rts_for_ht = true, /* use rts/cts protection */
+	.use_rts_for_ht = true, 
 };
 
 MODULE_FIRMWARE(IWL6000_MODULE_FIRMWARE(IWL6000_UCODE_API_MAX));

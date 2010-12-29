@@ -1,30 +1,4 @@
-/******************************************************************************
- *
- * Copyright(c) 2007 - 2009 Intel Corporation. All rights reserved.
- *
- * Portions of this file are derived from the ipw3945 project, as well
- * as portions of the ieee80211 subsystem header files.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of version 2 of the GNU General Public License as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
- *
- * The full GNU General Public License is included in this distribution in the
- * file called LICENSE.
- *
- * Contact Information:
- *  Intel Linux Wireless <ilw@linux.intel.com>
- * Intel Corporation, 5200 N.E. Elam Young Parkway, Hillsboro, OR 97124-6497
- *****************************************************************************/
+
 
 
 #include <linux/kernel.h>
@@ -41,28 +15,16 @@
 #include "iwl-debug.h"
 #include "iwl-power.h"
 
-/*
- * Setting power level allows the card to go to sleep when not busy.
- *
- * We calculate a sleep command based on the required latency, which
- * we get from mac80211. In order to handle thermal throttling, we can
- * also use pre-defined power levels.
- */
 
-/*
- * For now, keep using power level 1 instead of automatically
- * adjusting ...
- */
+
+
 bool no_sleep_autoadjust = true;
 module_param(no_sleep_autoadjust, bool, S_IRUGO);
 MODULE_PARM_DESC(no_sleep_autoadjust,
 		 "don't automatically adjust sleep level "
 		 "according to maximum network latency");
 
-/*
- * This defines the old power levels. They are still used by default
- * (level 1) and for thermal throttle (levels 3 through 5)
- */
+
 
 struct iwl_power_vec_entry {
 	struct iwl_powertable_cmd cmd;
@@ -81,8 +43,8 @@ struct iwl_power_vec_entry {
 				     cpu_to_le32(X2), \
 				     cpu_to_le32(X3), \
 				     cpu_to_le32(X4)}
-/* default power management (not Tx power) table values */
-/* for DTIM period 0 through IWL_DTIM_RANGE_0_MAX */
+
+
 static const struct iwl_power_vec_entry range_0[IWL_POWER_NUM] = {
 	{{SLP, SLP_TOUT(200), SLP_TOUT(500), SLP_VEC(1, 2, 2, 2, 0xFF)}, 0},
 	{{SLP, SLP_TOUT(200), SLP_TOUT(300), SLP_VEC(1, 2, 2, 2, 0xFF)}, 0},
@@ -92,7 +54,7 @@ static const struct iwl_power_vec_entry range_0[IWL_POWER_NUM] = {
 };
 
 
-/* for DTIM period IWL_DTIM_RANGE_0_MAX + 1 through IWL_DTIM_RANGE_1_MAX */
+
 static const struct iwl_power_vec_entry range_1[IWL_POWER_NUM] = {
 	{{SLP, SLP_TOUT(200), SLP_TOUT(500), SLP_VEC(1, 2, 3, 4, 4)}, 0},
 	{{SLP, SLP_TOUT(200), SLP_TOUT(300), SLP_VEC(1, 2, 3, 4, 7)}, 0},
@@ -101,7 +63,7 @@ static const struct iwl_power_vec_entry range_1[IWL_POWER_NUM] = {
 	{{SLP, SLP_TOUT(25), SLP_TOUT(25), SLP_VEC(2, 4, 7, 10, 10)}, 2}
 };
 
-/* for DTIM period > IWL_DTIM_RANGE_1_MAX */
+
 static const struct iwl_power_vec_entry range_2[IWL_POWER_NUM] = {
 	{{SLP, SLP_TOUT(200), SLP_TOUT(500), SLP_VEC(1, 2, 3, 4, 0xFF)}, 0},
 	{{SLP, SLP_TOUT(200), SLP_TOUT(300), SLP_VEC(2, 4, 6, 7, 0xFF)}, 0},
@@ -160,17 +122,7 @@ static void iwl_static_sleep_cmd(struct iwl_priv *priv,
 	IWL_DEBUG_POWER(priv, "Sleep command for index %d\n", lvl + 1);
 }
 
-/* default Thermal Throttling transaction table
- * Current state   |         Throttling Down               |  Throttling Up
- *=============================================================================
- *                 Condition Nxt State  Condition Nxt State Condition Nxt State
- *-----------------------------------------------------------------------------
- *     IWL_TI_0     T >= 115   CT_KILL  115>T>=105   TI_1      N/A      N/A
- *     IWL_TI_1     T >= 115   CT_KILL  115>T>=110   TI_2     T<=95     TI_0
- *     IWL_TI_2     T >= 115   CT_KILL                        T<=100    TI_1
- *    IWL_CT_KILL      N/A       N/A       N/A        N/A     T<=95     TI_0
- *=============================================================================
- */
+
 static const struct iwl_tt_trans tt_range_0[IWL_TI_STATE_MAX - 1] = {
 	{IWL_TI_0, IWL_ABSOLUTE_ZERO, 104},
 	{IWL_TI_1, 105, CT_KILL_THRESHOLD},
@@ -192,7 +144,7 @@ static const struct iwl_tt_trans tt_range_3[IWL_TI_STATE_MAX - 1] = {
 	{IWL_TI_CT_KILL, CT_KILL_EXIT_THRESHOLD + 1, IWL_ABSOLUTE_MAX}
 };
 
-/* Advance Thermal Throttling default restriction table */
+
 static const struct iwl_tt_restriction restriction_range[IWL_TI_STATE_MAX] = {
 	{IWL_ANT_OK_MULTI, IWL_ANT_OK_MULTI, true },
 	{IWL_ANT_OK_SINGLE, IWL_ANT_OK_MULTI, true },
@@ -216,16 +168,7 @@ static void iwl_power_fill_sleep_cmd(struct iwl_priv *priv,
 				     struct iwl_powertable_cmd *cmd,
 				     int dynps_ms, int wakeup_period)
 {
-	/*
-	 * These are the original power level 3 sleep successions. The
-	 * device may behave better with such succession and was also
-	 * only tested with that. Just like the original sleep commands,
-	 * also adjust the succession here to the wakeup_period below.
-	 * The ranges are the same as for the sleep commands, 0-2, 3-9
-	 * and >10, which is selected based on the DTIM interval for
-	 * the sleep index but here we use the wakeup period since that
-	 * is what we need to do for the latency requirements.
-	 */
+	
 	static const u8 slp_succ_r0[IWL_POWER_VEC_SIZE] = { 2, 2, 2, 2, 2 };
 	static const u8 slp_succ_r1[IWL_POWER_VEC_SIZE] = { 2, 4, 6, 7, 9 };
 	static const u8 slp_succ_r2[IWL_POWER_VEC_SIZE] = { 2, 7, 9, 9, 0xFF };
@@ -240,7 +183,7 @@ static void iwl_power_fill_sleep_cmd(struct iwl_priv *priv,
 	memset(cmd, 0, sizeof(*cmd));
 
 	cmd->flags = IWL_POWER_DRIVER_ALLOW_SLEEP_MSK |
-		     IWL_POWER_FAST_PD; /* no use seeing frames for others */
+		     IWL_POWER_FAST_PD; 
 
 	if (priv->power_data.pci_pm)
 		cmd->flags |= IWL_POWER_PCI_PM_MSK;
@@ -283,7 +226,7 @@ int iwl_power_update_mode(struct iwl_priv *priv, bool force)
 	struct iwl_powertable_cmd cmd;
 	int dtimper;
 
-	/* Don't update the RX chain when chain noise calibration is running */
+	
 	update_chains = priv->chain_noise_data.state == IWL_CHAIN_NOISE_DONE ||
 			priv->chain_noise_data.state == IWL_CHAIN_NOISE_ALIVE;
 
@@ -371,16 +314,9 @@ enum iwl_antenna_ok iwl_rx_ant_restriction(struct iwl_priv *priv)
 	return restriction->rx_stream;
 }
 
-#define CT_KILL_EXIT_DURATION (5)	/* 5 seconds duration */
+#define CT_KILL_EXIT_DURATION (5)	
 
-/*
- * toggle the bit to wake up uCode and check the temperature
- * if the temperature is below CT, uCode will stay awake and send card
- * state notification with CT_KILL bit clear to inform Thermal Throttling
- * Management to change state. Otherwise, uCode will go back to sleep
- * without doing anything, driver should continue the 5 seconds timer
- * to wake up uCode for temperature check until temperature drop below CT
- */
+
 static void iwl_tt_check_exit_ct_kill(unsigned long data)
 {
 	struct iwl_priv *priv = (struct iwl_priv *)data;
@@ -406,9 +342,7 @@ static void iwl_tt_check_exit_ct_kill(unsigned long data)
 			iwl_release_nic_access(priv);
 		spin_unlock_irqrestore(&priv->reg_lock, flags);
 
-		/* Reschedule the ct_kill timer to occur in
-		 * CT_KILL_EXIT_DURATION seconds to ensure we get a
-		 * thermal update */
+		
 		mod_timer(&priv->thermal_throttle.ct_kill_exit_tm, jiffies +
 			  CT_KILL_EXIT_DURATION * HZ);
 	}
@@ -436,15 +370,7 @@ static void iwl_perform_ct_kill_task(struct iwl_priv *priv,
 #define IWL_REDUCED_PERFORMANCE_THRESHOLD_2	(100)
 #define IWL_REDUCED_PERFORMANCE_THRESHOLD_1	(90)
 
-/*
- * Legacy thermal throttling
- * 1) Avoid NIC destruction due to high temperatures
- *	Chip will identify dangerously high temperatures that can
- *	harm the device and will power down
- * 2) Avoid the NIC power down due to high temperature
- *	Throttle early enough to lower the power consumption before
- *	drastic steps are needed
- */
+
 static void iwl_legacy_tt_handler(struct iwl_priv *priv, s32 temp)
 {
 	struct iwl_tt_mgmt *tt = &priv->thermal_throttle;
@@ -461,7 +387,7 @@ static void iwl_legacy_tt_handler(struct iwl_priv *priv, s32 temp)
 	}
 #endif
 	old_state = tt->state;
-	/* in Celsius */
+	
 	if (temp >= IWL_MINIMAL_POWER_THRESHOLD)
 		tt->state = IWL_TI_CT_KILL;
 	else if (temp >= IWL_REDUCED_PERFORMANCE_THRESHOLD_2)
@@ -477,11 +403,7 @@ static void iwl_legacy_tt_handler(struct iwl_priv *priv, s32 temp)
 	if (tt->state != old_state) {
 		switch (tt->state) {
 		case IWL_TI_0:
-			/*
-			 * When the system is ready to go back to IWL_TI_0
-			 * we only have to call iwl_power_update_mode() to
-			 * do so.
-			 */
+			
 			break;
 		case IWL_TI_1:
 			tt->tt_power_mode = IWL_POWER_INDEX_3;
@@ -495,9 +417,7 @@ static void iwl_legacy_tt_handler(struct iwl_priv *priv, s32 temp)
 		}
 		mutex_lock(&priv->mutex);
 		if (iwl_power_update_mode(priv, true)) {
-			/* TT state not updated
-			 * try again during next temperature read
-			 */
+			
 			tt->state = old_state;
 			IWL_ERR(priv, "Cannot update power mode, "
 					"TT state not updated\n");
@@ -516,27 +436,7 @@ static void iwl_legacy_tt_handler(struct iwl_priv *priv, s32 temp)
 	}
 }
 
-/*
- * Advance thermal throttling
- * 1) Avoid NIC destruction due to high temperatures
- *	Chip will identify dangerously high temperatures that can
- *	harm the device and will power down
- * 2) Avoid the NIC power down due to high temperature
- *	Throttle early enough to lower the power consumption before
- *	drastic steps are needed
- *	Actions include relaxing the power down sleep thresholds and
- *	decreasing the number of TX streams
- * 3) Avoid throughput performance impact as much as possible
- *
- *=============================================================================
- *                 Condition Nxt State  Condition Nxt State Condition Nxt State
- *-----------------------------------------------------------------------------
- *     IWL_TI_0     T >= 115   CT_KILL  115>T>=105   TI_1      N/A      N/A
- *     IWL_TI_1     T >= 115   CT_KILL  115>T>=110   TI_2     T<=95     TI_0
- *     IWL_TI_2     T >= 115   CT_KILL                        T<=100    TI_1
- *    IWL_CT_KILL      N/A       N/A       N/A        N/A     T<=95     TI_0
- *=============================================================================
- */
+
 static void iwl_advance_tt_handler(struct iwl_priv *priv, s32 temp)
 {
 	struct iwl_tt_mgmt *tt = &priv->thermal_throttle;
@@ -547,16 +447,7 @@ static void iwl_advance_tt_handler(struct iwl_priv *priv, s32 temp)
 
 	old_state = tt->state;
 	for (i = 0; i < IWL_TI_STATE_MAX - 1; i++) {
-		/* based on the current TT state,
-		 * find the curresponding transaction table
-		 * each table has (IWL_TI_STATE_MAX - 1) entries
-		 * tt->transaction + ((old_state * (IWL_TI_STATE_MAX - 1))
-		 * will advance to the correct table.
-		 * then based on the current temperature
-		 * find the next state need to transaction to
-		 * go through all the possible (IWL_TI_STATE_MAX - 1) entries
-		 * in the current table to see if transaction is needed
-		 */
+		
 		transaction = tt->transaction +
 			((old_state * (IWL_TI_STATE_MAX - 1)) + i);
 		if (temp >= transaction->tt_low &&
@@ -586,37 +477,28 @@ static void iwl_advance_tt_handler(struct iwl_priv *priv, s32 temp)
 		struct iwl_rxon_cmd *rxon = &priv->staging_rxon;
 
 		if (tt->state >= IWL_TI_1) {
-			/* force PI = IWL_POWER_INDEX_5 in the case of TI > 0 */
+			
 			tt->tt_power_mode = IWL_POWER_INDEX_5;
 			if (!iwl_ht_enabled(priv))
-				/* disable HT */
+				
 				rxon->flags &= ~(RXON_FLG_CHANNEL_MODE_MSK |
 					RXON_FLG_CTRL_CHANNEL_LOC_HI_MSK |
 					RXON_FLG_HT40_PROT_MSK |
 					RXON_FLG_HT_PROT_MSK);
 			else {
-				/* check HT capability and set
-				 * according to the system HT capability
-				 * in case get disabled before */
+				
 				iwl_set_rxon_ht(priv, &priv->current_ht_config);
 			}
 
 		} else {
-			/*
-			 * restore system power setting -- it will be
-			 * recalculated automatically.
-			 */
+			
 
-			/* check HT capability and set
-			 * according to the system HT capability
-			 * in case get disabled before */
+			
 			iwl_set_rxon_ht(priv, &priv->current_ht_config);
 		}
 		mutex_lock(&priv->mutex);
 		if (iwl_power_update_mode(priv, true)) {
-			/* TT state not updated
-			 * try again during next temperature read
-			 */
+			
 			IWL_ERR(priv, "Cannot update power mode, "
 					"TT state not updated\n");
 			tt->state = old_state;
@@ -639,16 +521,7 @@ static void iwl_advance_tt_handler(struct iwl_priv *priv, s32 temp)
 	}
 }
 
-/* Card State Notification indicated reach critical temperature
- * if PSP not enable, no Thermal Throttling function will be performed
- * just set the GP1 bit to acknowledge the event
- * otherwise, go into IWL_TI_CT_KILL state
- * since Card State Notification will not provide any temperature reading
- * for Legacy mode
- * so just pass the CT_KILL temperature to iwl_legacy_tt_handler()
- * for advance mode
- * pass CT_KILL_THRESHOLD+1 to make sure move into IWL_TI_CT_KILL state
- */
+
 static void iwl_bg_ct_enter(struct work_struct *work)
 {
 	struct iwl_priv *priv = container_of(work, struct iwl_priv, ct_enter);
@@ -672,11 +545,7 @@ static void iwl_bg_ct_enter(struct work_struct *work)
 	}
 }
 
-/* Card State Notification indicated out of critical temperature
- * since Card State Notification will not provide any temperature reading
- * so pass the IWL_REDUCED_PERFORMANCE_THRESHOLD_2 temperature
- * to iwl_legacy_tt_handler() to get out of IWL_CT_KILL state
- */
+
 static void iwl_bg_ct_exit(struct work_struct *work)
 {
 	struct iwl_priv *priv = container_of(work, struct iwl_priv, ct_exit);
@@ -688,7 +557,7 @@ static void iwl_bg_ct_exit(struct work_struct *work)
 	if (!iwl_is_ready(priv))
 		return;
 
-	/* stop ct_kill_exit_tm timer */
+	
 	del_timer_sync(&priv->thermal_throttle.ct_kill_exit_tm);
 
 	if (tt->state == IWL_TI_CT_KILL) {
@@ -726,7 +595,7 @@ EXPORT_SYMBOL(iwl_tt_exit_ct_kill);
 static void iwl_bg_tt_work(struct work_struct *work)
 {
 	struct iwl_priv *priv = container_of(work, struct iwl_priv, tt_work);
-	s32 temp = priv->temperature; /* degrees CELSIUS except 4965 */
+	s32 temp = priv->temperature; 
 
 	if (test_bit(STATUS_EXIT_PENDING, &priv->status))
 		return;
@@ -750,11 +619,7 @@ void iwl_tt_handler(struct iwl_priv *priv)
 }
 EXPORT_SYMBOL(iwl_tt_handler);
 
-/* Thermal throttling initialization
- * For advance thermal throttling:
- *     Initialize Thermal Index and temperature threshold table
- *     Initialize thermal throttling restriction table
- */
+
 void iwl_tt_initialize(struct iwl_priv *priv)
 {
 	struct iwl_tt_mgmt *tt = &priv->thermal_throttle;
@@ -770,7 +635,7 @@ void iwl_tt_initialize(struct iwl_priv *priv)
 	priv->thermal_throttle.ct_kill_exit_tm.data = (unsigned long)priv;
 	priv->thermal_throttle.ct_kill_exit_tm.function = iwl_tt_check_exit_ct_kill;
 
-	/* setup deferred ct kill work */
+	
 	INIT_WORK(&priv->tt_work, iwl_bg_tt_work);
 	INIT_WORK(&priv->ct_enter, iwl_bg_ct_enter);
 	INIT_WORK(&priv->ct_exit, iwl_bg_ct_exit);
@@ -819,19 +684,19 @@ void iwl_tt_initialize(struct iwl_priv *priv)
 }
 EXPORT_SYMBOL(iwl_tt_initialize);
 
-/* cleanup thermal throttling management related memory and timer */
+
 void iwl_tt_exit(struct iwl_priv *priv)
 {
 	struct iwl_tt_mgmt *tt = &priv->thermal_throttle;
 
-	/* stop ct_kill_exit_tm timer if activated */
+	
 	del_timer_sync(&priv->thermal_throttle.ct_kill_exit_tm);
 	cancel_work_sync(&priv->tt_work);
 	cancel_work_sync(&priv->ct_enter);
 	cancel_work_sync(&priv->ct_exit);
 
 	if (priv->thermal_throttle.advanced_tt) {
-		/* free advance thermal throttling memory */
+		
 		kfree(tt->restriction);
 		tt->restriction = NULL;
 		kfree(tt->transaction);
@@ -840,7 +705,7 @@ void iwl_tt_exit(struct iwl_priv *priv)
 }
 EXPORT_SYMBOL(iwl_tt_exit);
 
-/* initialize to default */
+
 void iwl_power_initialize(struct iwl_priv *priv)
 {
 	u16 lctl = iwl_pcie_link_ctl(priv);

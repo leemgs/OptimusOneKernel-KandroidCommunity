@@ -1,25 +1,4 @@
-/*
- * This file is part of wl1271
- *
- * Copyright (C) 2008-2009 Nokia Corporation
- *
- * Contact: Luciano Coelho <luciano.coelho@nokia.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #include "wl1271_acx.h"
 
@@ -106,14 +85,10 @@ int wl1271_acx_fw_version(struct wl1271 *wl, char *buf, size_t len)
 		goto out;
 	}
 
-	/* be careful with the buffer sizes */
+	
 	strncpy(buf, rev->fw_version, min(len, sizeof(rev->fw_version)));
 
-	/*
-	 * if the firmware version string is exactly
-	 * sizeof(rev->fw_version) long or fw_len is less than
-	 * sizeof(rev->fw_version) it won't be null terminated
-	 */
+	
 	buf[min(len, sizeof(rev->fw_version)) - 1] = '\0';
 
 out:
@@ -163,7 +138,7 @@ int wl1271_acx_feature_cfg(struct wl1271 *wl)
 		goto out;
 	}
 
-	/* DF_ENCRYPTION_DISABLE and DF_SNIFF_MODE_ENABLE are disabled */
+	
 	feature->data_flow_options = 0;
 	feature->options = 0;
 
@@ -260,7 +235,7 @@ int wl1271_acx_pd_threshold(struct wl1271 *wl)
 		goto out;
 	}
 
-	/* FIXME: threshold value not set */
+	
 
 	ret = wl1271_cmd_configure(wl, ACX_PD_THRESHOLD, pd, sizeof(*pd));
 	if (ret < 0) {
@@ -313,7 +288,7 @@ int wl1271_acx_group_address_tbl(struct wl1271 *wl)
 		goto out;
 	}
 
-	/* MAC filtering */
+	
 	acx->enabled = 0;
 	acx->num_groups = 0;
 	memset(acx->mac_table, 0, ADDRESS_GROUP_MAX_LEN);
@@ -480,7 +455,7 @@ int wl1271_acx_sg_cfg(struct wl1271 *wl)
 		goto out;
 	}
 
-	/* BT-WLAN coext parameters */
+	
 	param->min_rate = RATE_INDEX_24MBPS;
 	param->bt_hp_max_time = PTA_BT_HP_MAXTIME_DEF;
 	param->wlan_hp_max_time = PTA_WLAN_HP_MAX_TIME_DEF;
@@ -617,7 +592,7 @@ int wl1271_acx_event_mbox_mask(struct wl1271 *wl, u32 event_mask)
 		goto out;
 	}
 
-	/* high event mask is unused */
+	
 	mask->high_event_mask = 0xffffffff;
 
 	mask->event_mask = event_mask;
@@ -717,7 +692,7 @@ int wl1271_acx_rate_policies(struct wl1271 *wl)
 		goto out;
 	}
 
-	/* configure one default (one-size-fits-all) rate class */
+	
 	acx->rate_class_cnt = 1;
 	acx->rate_class[0].enabled_rates = ACX_RATE_MASK_ALL;
 	acx->rate_class[0].short_retry_limit = ACX_RATE_RETRY_LIMIT;
@@ -749,17 +724,11 @@ int wl1271_acx_ac_cfg(struct wl1271 *wl)
 		goto out;
 	}
 
-	/*
-	 * FIXME: Configure each AC with appropriate values (most suitable
-	 * values will probably be different for each AC.
-	 */
+	
 	for (i = 0; i < WL1271_ACX_AC_COUNT; i++) {
 		acx->ac = i;
 
-		/*
-		 * FIXME: The following default values originate from
-		 * the TI reference driver. What do they mean?
-		 */
+		
 		acx->cw_min = 15;
 		acx->cw_max = 63;
 		acx->aifsn = 3;
@@ -793,7 +762,7 @@ int wl1271_acx_tid_cfg(struct wl1271 *wl)
 		goto out;
 	}
 
-	/* FIXME: configure each TID with a different AC reference */
+	
 	for (i = 0; i < WL1271_ACX_TID_COUNT; i++) {
 		acx->queue_id = i;
 		acx->tsid = WL1271_ACX_AC_BE;
@@ -878,7 +847,7 @@ int wl1271_acx_mem_cfg(struct wl1271 *wl)
 		goto out;
 	}
 
-	/* memory config */
+	
 	mem_conf->num_stations = cpu_to_le16(DEFAULT_NUM_STATIONS);
 	mem_conf->rx_mem_block_num = ACX_RX_MEM_BLOCKS;
 	mem_conf->tx_min_mem_block_num = ACX_TX_MIN_MEM_BLOCKS;
@@ -912,7 +881,7 @@ int wl1271_acx_init_mem_config(struct wl1271 *wl)
 		return -ENOMEM;
 	}
 
-	/* we now ask for the firmware built memory map */
+	
 	ret = wl1271_acx_mem_map(wl, (void *)wl->target_mem_map,
 				 sizeof(struct wl1271_acx_mem_map));
 	if (ret < 0) {
@@ -922,7 +891,7 @@ int wl1271_acx_init_mem_config(struct wl1271 *wl)
 		return ret;
 	}
 
-	/* initialize TX block book keeping */
+	
 	wl->tx_blocks_available = wl->target_mem_map->num_tx_mem_blocks;
 	wl1271_debug(DEBUG_TX, "available tx blocks: %d",
 		     wl->tx_blocks_available);
@@ -945,7 +914,7 @@ int wl1271_acx_init_rx_interrupt(struct wl1271 *wl)
 
 	rx_conf->threshold = WL1271_RX_INTR_THRESHOLD_DEF;
 	rx_conf->timeout = WL1271_RX_INTR_TIMEOUT_DEF;
-	rx_conf->mblk_threshold = USHORT_MAX; /* Disabled */
+	rx_conf->mblk_threshold = USHORT_MAX; 
 	rx_conf->queue_type = RX_QUEUE_TYPE_RX_LOW_PRIORITY;
 
 	ret = wl1271_cmd_configure(wl, ACX_RX_CONFIG_OPT, rx_conf,

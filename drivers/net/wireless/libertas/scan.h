@@ -1,9 +1,4 @@
-/**
-  * Interface for the wlan network scan routines
-  *
-  * Driver interface functions and type declarations for the scan module
-  * implemented in scan.c.
-  */
+
 #ifndef _LBS_SCAN_H
 #define _LBS_SCAN_H
 
@@ -11,9 +6,7 @@
 
 #define MAX_NETWORK_COUNT 128
 
-/**
- *  @brief Maximum number of channels that can be sent in a setuserscan ioctl
- */
+
 #define LBS_IOCTL_USER_SCAN_CHAN_MAX  50
 
 int lbs_ssid_cmp(u8 *ssid1, u8 ssid1_len, u8 *ssid2, u8 ssid2_len);

@@ -1,7 +1,4 @@
-/*
- * This file contains the function prototypes, data structure
- * and defines for all the host/station commands
- */
+
 #ifndef _LBS_HOSTCMD_H
 #define _LBS_HOSTCMD_H
 
@@ -9,78 +6,78 @@
 #include "11d.h"
 #include "types.h"
 
-/* 802.11-related definitions */
 
-/* TxPD descriptor */
+
+
 struct txpd {
-	/* union to cope up with later FW revisions */
+	
 	union {
-		/* Current Tx packet status */
+		
 		__le32 tx_status;
 		struct {
-			/* BSS type: client, AP, etc. */
+			
 			u8 bss_type;
-			/* BSS number */
+			
 			u8 bss_num;
-			/* Reserved */
+			
 			__le16 reserved;
 		} bss;
 	} u;
-	/* Tx control */
+	
 	__le32 tx_control;
 	__le32 tx_packet_location;
-	/* Tx packet length */
+	
 	__le16 tx_packet_length;
-	/* First 2 byte of destination MAC address */
+	
 	u8 tx_dest_addr_high[2];
-	/* Last 4 byte of destination MAC address */
+	
 	u8 tx_dest_addr_low[4];
-	/* Pkt Priority */
+	
 	u8 priority;
-	/* Pkt Trasnit Power control */
+	
 	u8 powermgmt;
-	/* Amount of time the packet has been queued in the driver (units = 2ms) */
+	
 	u8 pktdelay_2ms;
-	/* reserved */
+	
 	u8 reserved1;
 } __attribute__ ((packed));
 
-/* RxPD Descriptor */
+
 struct rxpd {
-	/* union to cope up with later FW revisions */
+	
 	union {
-		/* Current Rx packet status */
+		
 		__le16 status;
 		struct {
-			/* BSS type: client, AP, etc. */
+			
 			u8 bss_type;
-			/* BSS number */
+			
 			u8 bss_num;
 		} __attribute__ ((packed)) bss;
 	} __attribute__ ((packed)) u;
 
-	/* SNR */
+	
 	u8 snr;
 
-	/* Tx control */
+	
 	u8 rx_control;
 
-	/* Pkt length */
+	
 	__le16 pkt_len;
 
-	/* Noise Floor */
+	
 	u8 nf;
 
-	/* Rx Packet Rate */
+	
 	u8 rx_rate;
 
-	/* Pkt addr */
+	
 	__le32 pkt_ptr;
 
-	/* Next Rx RxPD addr */
+	
 	__le32 next_rxpd_ptr;
 
-	/* Pkt Priority */
+	
 	u8 priority;
 	u8 reserved[3];
 } __attribute__ ((packed));
@@ -95,32 +92,32 @@ struct cmd_header {
 struct cmd_ctrl_node {
 	struct list_head list;
 	int result;
-	/* command response */
+	
 	int (*callback)(struct lbs_private *, unsigned long, struct cmd_header *);
 	unsigned long callback_arg;
-	/* command data */
+	
 	struct cmd_header *cmdbuf;
-	/* wait queue */
+	
 	u16 cmdwaitqwoken;
 	wait_queue_head_t cmdwait_q;
 };
 
-/* Generic structure to hold all key types. */
+
 struct enc_key {
 	u16 len;
-	u16 flags;  /* KEY_INFO_* from defs.h */
-	u16 type; /* KEY_TYPE_* from defs.h */
+	u16 flags;  
+	u16 type; 
 	u8 key[32];
 };
 
-/* lbs_offset_value */
+
 struct lbs_offset_value {
 	u32 offset;
 	u32 value;
 } __attribute__ ((packed));
 
-/* Define general data structure */
-/* cmd_DS_GEN */
+
+
 struct cmd_ds_gen {
 	__le16 command;
 	__le16 size;
@@ -132,42 +129,39 @@ struct cmd_ds_gen {
 #define S_DS_GEN sizeof(struct cmd_ds_gen)
 
 
-/*
- * Define data structure for CMD_GET_HW_SPEC
- * This structure defines the response for the GET_HW_SPEC command
- */
+
 struct cmd_ds_get_hw_spec {
 	struct cmd_header hdr;
 
-	/* HW Interface version number */
+	
 	__le16 hwifversion;
-	/* HW version number */
+	
 	__le16 version;
-	/* Max number of TxPD FW can handle */
+	
 	__le16 nr_txpd;
-	/* Max no of Multicast address */
+	
 	__le16 nr_mcast_adr;
-	/* MAC address */
+	
 	u8 permanentaddr[6];
 
-	/* region Code */
+	
 	__le16 regioncode;
 
-	/* Number of antenna used */
+	
 	__le16 nr_antenna;
 
-	/* FW release number, example 0x01030304 = 2.3.4p1 */
+	
 	__le32 fwrelease;
 
-	/* Base Address of TxPD queue */
+	
 	__le32 wcb_base;
-	/* Read Pointer of RxPd queue */
+	
 	__le32 rxpd_rdptr;
 
-	/* Write Pointer of RxPd queue */
+	
 	__le32 rxpd_wrptr;
 
-	/*FW/HW capability */
+	
 	__le32 fwcapinfo;
 } __attribute__ ((packed));
 
@@ -177,18 +171,11 @@ struct cmd_ds_802_11_subscribe_event {
 	__le16 action;
 	__le16 events;
 
-	/* A TLV to the CMD_802_11_SUBSCRIBE_EVENT command can contain a
-	 * number of TLVs. From the v5.1 manual, those TLVs would add up to
-	 * 40 bytes. However, future firmware might add additional TLVs, so I
-	 * bump this up a bit.
-	 */
+	
 	uint8_t tlv[128];
 } __attribute__ ((packed));
 
-/*
- * This scan handle Country Information IE(802.11d compliant)
- * Define data structure for CMD_802_11_SCAN
- */
+
 struct cmd_ds_802_11_scan {
 	struct cmd_header hdr;
 
@@ -272,7 +259,7 @@ struct cmd_ds_802_11_associate {
 	__le16 listeninterval;
 	__le16 bcnperiod;
 	u8 dtimperiod;
-	u8 iebuf[512];    /* Enough for required and most optional IEs */
+	u8 iebuf[512];    
 } __attribute__ ((packed));
 
 struct cmd_ds_802_11_associate_response {
@@ -287,13 +274,13 @@ struct cmd_ds_802_11_associate_response {
 struct cmd_ds_802_11_set_wep {
 	struct cmd_header hdr;
 
-	/* ACT_ADD, ACT_REMOVE or ACT_ENABLE */
+	
 	__le16 action;
 
-	/* key Index selected for Tx */
+	
 	__le16 keyindex;
 
-	/* 40, 128bit or TXWEP */
+	
 	uint8_t keytype[4];
 	uint8_t keymaterial[4][16];
 } __attribute__ ((packed));
@@ -390,35 +377,35 @@ struct cmd_ds_802_11_beacon_control {
 struct cmd_ds_802_11_sleep_params {
 	struct cmd_header hdr;
 
-	/* ACT_GET/ACT_SET */
+	
 	__le16 action;
 
-	/* Sleep clock error in ppm */
+	
 	__le16 error;
 
-	/* Wakeup offset in usec */
+	
 	__le16 offset;
 
-	/* Clock stabilization time in usec */
+	
 	__le16 stabletime;
 
-	/* control periodic calibration */
+	
 	uint8_t calcontrol;
 
-	/* control the use of external sleep clock */
+	
 	uint8_t externalsleepclk;
 
-	/* reserved field, should be set to zero */
+	
 	__le16 reserved;
 } __attribute__ ((packed));
 
 struct cmd_ds_802_11_inactivity_timeout {
 	struct cmd_header hdr;
 
-	/* ACT_GET/ACT_SET */
+	
 	__le16 action;
 
-	/* Inactivity timeout in msec */
+	
 	__le16 timeout;
 } __attribute__ ((packed));
 
@@ -427,13 +414,13 @@ struct cmd_ds_802_11_rf_channel {
 
 	__le16 action;
 	__le16 channel;
-	__le16 rftype;      /* unused */
-	__le16 reserved;    /* unused */
-	u8 channellist[32]; /* unused */
+	__le16 rftype;      
+	__le16 reserved;    
+	u8 channellist[32]; 
 } __attribute__ ((packed));
 
 struct cmd_ds_802_11_rssi {
-	/* weighting factor */
+	
 	__le16 N;
 
 	__le16 reserved_0;
@@ -467,7 +454,7 @@ struct cmd_ds_802_11_rf_tx_power {
 struct cmd_ds_802_11_rf_antenna {
 	__le16 action;
 
-	/* Number of antennas or 0xffff(diversity) */
+	
 	__le16 antennamode;
 
 } __attribute__ ((packed));
@@ -537,12 +524,12 @@ struct cmd_ds_802_11_ad_hoc_start {
 	u8 ssid[IW_ESSID_MAX_SIZE];
 	u8 bsstype;
 	__le16 beaconperiod;
-	u8 dtimperiod;   /* Reserved on v9 and later */
+	u8 dtimperiod;   
 	struct ieee_ie_ibss_param_set ibss;
 	u8 reserved1[4];
 	struct ieee_ie_ds_param_set ds;
 	u8 reserved2[4];
-	__le16 probedelay;  /* Reserved on v9 and later */
+	__le16 probedelay;  
 	__le16 capability;
 	u8 rates[MAX_RATES];
 	u8 tlv_memory_size_pad[100];
@@ -570,18 +557,15 @@ struct adhoc_bssdesc {
 	__le16 capability;
 	u8 rates[MAX_RATES];
 
-	/* DO NOT ADD ANY FIELDS TO THIS STRUCTURE. It is used below in the
-	 * Adhoc join command and will cause a binary layout mismatch with
-	 * the firmware
-	 */
+	
 } __attribute__ ((packed));
 
 struct cmd_ds_802_11_ad_hoc_join {
 	struct cmd_header hdr;
 
 	struct adhoc_bssdesc bss;
-	__le16 failtimeout;   /* Reserved on v9 and later */
-	__le16 probedelay;    /* Reserved on v9 and later */
+	__le16 failtimeout;   
+	__le16 probedelay;    
 } __attribute__ ((packed));
 
 struct cmd_ds_802_11_ad_hoc_stop {
@@ -596,22 +580,22 @@ struct cmd_ds_802_11_enable_rsn {
 } __attribute__ ((packed));
 
 struct MrvlIEtype_keyParamSet {
-	/* type ID */
+	
 	__le16 type;
 
-	/* length of Payload */
+	
 	__le16 length;
 
-	/* type of key: WEP=0, TKIP=1, AES=2 */
+	
 	__le16 keytypeid;
 
-	/* key control Info specific to a keytypeid */
+	
 	__le16 keyinfo;
 
-	/* length of key */
+	
 	__le16 keylen;
 
-	/* key material of size keylen */
+	
 	u8 key[32];
 } __attribute__ ((packed));
 
@@ -657,7 +641,7 @@ struct cmd_ds_802_11_eeprom_access {
 	__le16 action;
 	__le16 offset;
 	__le16 len;
-	/* firmware says it returns a maximum of 20 bytes */
+	
 #define LBS_EEPROM_READ_LEN 20
 	u8 value[LBS_EEPROM_READ_LEN];
 } __attribute__ ((packed));
@@ -699,8 +683,8 @@ struct cmd_ds_802_11_afc {
 			__le16 period;
 		};
 		struct {
-			__le16 timing_offset; /* signed */
-			__le16 carrier_offset; /* signed */
+			__le16 timing_offset; 
+			__le16 carrier_offset; 
 		};
 	};
 } __attribute__ ((packed));
@@ -748,7 +732,7 @@ struct cmd_ds_mesh_config {
         __le16 channel;
         __le16 type;
         __le16 length;
-        u8 data[128];   /* last position reserved */
+        u8 data[128];   
 } __attribute__ ((packed));
 
 
@@ -756,20 +740,20 @@ struct cmd_ds_mesh_access {
 	struct cmd_header hdr;
 
 	__le16 action;
-	__le32 data[32];	/* last position reserved */
+	__le32 data[32];	
 } __attribute__ ((packed));
 
-/* Number of stats counters returned by the firmware */
+
 #define MESH_STATS_NUM 8
 
 struct cmd_ds_command {
-	/* command header */
+	
 	__le16 command;
 	__le16 size;
 	__le16 seqnum;
 	__le16 result;
 
-	/* command Body */
+	
 	union {
 		struct cmd_ds_802_11_ps_mode psmode;
 		struct cmd_ds_802_11_get_stat gstat;

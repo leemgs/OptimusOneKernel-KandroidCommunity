@@ -1,41 +1,9 @@
-/*
- * This file is part of wl1251
- *
- * Copyright (c) 1998-2007 Texas Instruments Incorporated
- * Copyright (C) 2008 Nokia Corporation
- *
- * Contact: Kalle Valo <kalle.valo@nokia.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #ifndef __WL1251_EVENT_H__
 #define __WL1251_EVENT_H__
 
-/*
- * Mbox events
- *
- * The event mechanism is based on a pair of event buffers (buffers A and
- * B) at fixed locations in the target's memory. The host processes one
- * buffer while the other buffer continues to collect events. If the host
- * is not processing events, an interrupt is issued to signal that a buffer
- * is ready. Once the host is done with processing events from one buffer,
- * it signals the target (with an ACK interrupt) that the event buffer is
- * free.
- */
+
 
 enum {
 	RESERVED1_EVENT_ID                       = BIT(0),
@@ -95,10 +63,10 @@ struct event_mailbox {
 	u8 channel_switch_status;
 	u8 scheduled_scan_status;
 
-	/* Channels scanned by the scheduled scan */
+	
 	u16 scheduled_scan_channels;
 
-	/* If bit 0 is set -> target's fatal error */
+	
 	u16 health_report;
 	u16 bad_fft_counter;
 	u8 bt_pta_sense_info;
@@ -106,7 +74,7 @@ struct event_mailbox {
 	u32 reserved;
 	u32 debug_report[2];
 
-	/* Number of FCS errors since last event */
+	
 	u32 fcs_err_counter;
 
 	struct event_debug_report report;

@@ -1,26 +1,4 @@
-/*
- * This file is part of wl1271
- *
- * Copyright (C) 1998-2009 Texas Instruments. All rights reserved.
- * Copyright (C) 2008-2009 Nokia Corporation
- *
- * Contact: Luciano Coelho <luciano.coelho@nokia.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #ifndef __WL1271_ACX_H__
 #define __WL1271_ACX_H__
@@ -28,28 +6,24 @@
 #include "wl1271.h"
 #include "wl1271_cmd.h"
 
-/*************************************************************************
 
-    Host Interrupt Register (WiLink -> Host)
 
-**************************************************************************/
-/* HW Initiated interrupt Watchdog timer expiration */
 #define WL1271_ACX_INTR_WATCHDOG           BIT(0)
-/* Init sequence is done (masked interrupt, detection through polling only ) */
+
 #define WL1271_ACX_INTR_INIT_COMPLETE      BIT(1)
-/* Event was entered to Event MBOX #A*/
+
 #define WL1271_ACX_INTR_EVENT_A            BIT(2)
-/* Event was entered to Event MBOX #B*/
+
 #define WL1271_ACX_INTR_EVENT_B            BIT(3)
-/* Command processing completion*/
+
 #define WL1271_ACX_INTR_CMD_COMPLETE       BIT(4)
-/* Signaling the host on HW wakeup */
+
 #define WL1271_ACX_INTR_HW_AVAILABLE       BIT(5)
-/* The MISC bit is used for aggregation of RX, TxComplete and TX rate update */
+
 #define WL1271_ACX_INTR_DATA               BIT(6)
-/* Trace meassge on MBOX #A */
+
 #define WL1271_ACX_INTR_TRACE_A            BIT(7)
-/* Trace meassge on MBOX #B */
+
 #define WL1271_ACX_INTR_TRACE_B            BIT(8)
 
 #define WL1271_ACX_INTR_ALL		   0xFFFFFFFF
@@ -65,87 +39,68 @@
 					    WL1271_ACX_INTR_EVENT_B | \
 					    WL1271_ACX_INTR_DATA)
 
-/* Target's information element */
+
 struct acx_header {
 	struct wl1271_cmd_header cmd;
 
-	/* acx (or information element) header */
+	
 	u16 id;
 
-	/* payload length (not including headers */
+	
 	u16 len;
 };
 
 struct acx_error_counter {
 	struct acx_header header;
 
-	/* The number of PLCP errors since the last time this */
-	/* information element was interrogated. This field is */
-	/* automatically cleared when it is interrogated.*/
+	
+	
+	
 	u32 PLCP_error;
 
-	/* The number of FCS errors since the last time this */
-	/* information element was interrogated. This field is */
-	/* automatically cleared when it is interrogated.*/
+	
+	
+	
 	u32 FCS_error;
 
-	/* The number of MPDUs without PLCP header errors received*/
-	/* since the last time this information element was interrogated. */
-	/* This field is automatically cleared when it is interrogated.*/
+	
+	
+	
 	u32 valid_frame;
 
-	/* the number of missed sequence numbers in the squentially */
-	/* values of frames seq numbers */
+	
+	
 	u32 seq_num_miss;
 } __attribute__ ((packed));
 
 struct acx_revision {
 	struct acx_header header;
 
-	/*
-	 * The WiLink firmware version, an ASCII string x.x.x.x,
-	 * that uniquely identifies the current firmware.
-	 * The left most digit is incremented each time a
-	 * significant change is made to the firmware, such as
-	 * code redesign or new platform support.
-	 * The second digit is incremented when major enhancements
-	 * are added or major fixes are made.
-	 * The third digit is incremented for each GA release.
-	 * The fourth digit is incremented for each build.
-	 * The first two digits identify a firmware release version,
-	 * in other words, a unique set of features.
-	 * The first three digits identify a GA release.
-	 */
+	
 	char fw_version[20];
 
-	/*
-	 * This 4 byte field specifies the WiLink hardware version.
-	 * bits 0  - 15: Reserved.
-	 * bits 16 - 23: Version ID - The WiLink version ID
-	 *              (1 = first spin, 2 = second spin, and so on).
-	 * bits 24 - 31: Chip ID - The WiLink chip ID.
-	 */
+	
 	u32 hw_version;
 } __attribute__ ((packed));
 
 enum wl1271_psm_mode {
-	/* Active mode */
+	
 	WL1271_PSM_CAM = 0,
 
-	/* Power save mode */
+	
 	WL1271_PSM_PS = 1,
 
-	/* Extreme low power */
+	
 	WL1271_PSM_ELP = 2,
 };
 
 struct acx_sleep_auth {
 	struct acx_header header;
 
-	/* The sleep level authorization of the device. */
-	/* 0 - Always active*/
-	/* 1 - Power down mode: light / fast sleep*/
-	/* 2 - ELP mode: Deep / Max sleep*/
+	
+	
+	
+	
 	u8  sleep_auth;
 	u8  padding[3];
 } __attribute__ ((packed));
@@ -161,8 +116,8 @@ enum {
 #define DEFAULT_UCAST_PRIORITY          0
 #define DEFAULT_RX_Q_PRIORITY           0
 #define DEFAULT_NUM_STATIONS            1
-#define DEFAULT_RXQ_PRIORITY            0 /* low 0 .. 15 high  */
-#define DEFAULT_RXQ_TYPE                0x07    /* All frames, Data/Ctrl/Mgmt */
+#define DEFAULT_RXQ_PRIORITY            0 
+#define DEFAULT_RXQ_TYPE                0x07    
 #define TRACE_BUFFER_MAX_SIZE           256
 
 #define  DP_RX_PACKET_RING_CHUNK_SIZE 1600
@@ -182,94 +137,11 @@ enum {
 struct acx_rx_msdu_lifetime {
 	struct acx_header header;
 
-	/*
-	 * The maximum amount of time, in TU, before the
-	 * firmware discards the MSDU.
-	 */
+	
 	u32 lifetime;
 } __attribute__ ((packed));
 
-/*
- * RX Config Options Table
- * Bit		Definition
- * ===		==========
- * 31:14		Reserved
- * 13		Copy RX Status - when set, write three receive status words
- *		to top of rx'd MPDUs.
- *		When cleared, do not write three status words (added rev 1.5)
- * 12		Reserved
- * 11		RX Complete upon FCS error - when set, give rx complete
- *		interrupt for FCS errors, after the rx filtering, e.g. unicast
- *		frames not to us with FCS error will not generate an interrupt.
- * 10		SSID Filter Enable - When set, the WiLink discards all beacon,
- *	        probe request, and probe response frames with an SSID that does
- *		not match the SSID specified by the host in the START/JOIN
- *		command.
- *		When clear, the WiLink receives frames with any SSID.
- * 9		Broadcast Filter Enable - When set, the WiLink discards all
- *		broadcast frames. When clear, the WiLink receives all received
- *		broadcast frames.
- * 8:6		Reserved
- * 5		BSSID Filter Enable - When set, the WiLink discards any frames
- *		with a BSSID that does not match the BSSID specified by the
- *		host.
- *		When clear, the WiLink receives frames from any BSSID.
- * 4		MAC Addr Filter - When set, the WiLink discards any frames
- *		with a destination address that does not match the MAC address
- *		of the adaptor.
- *		When clear, the WiLink receives frames destined to any MAC
- *		address.
- * 3		Promiscuous - When set, the WiLink receives all valid frames
- *		(i.e., all frames that pass the FCS check).
- *		When clear, only frames that pass the other filters specified
- *		are received.
- * 2		FCS - When set, the WiLink includes the FCS with the received
- *		frame.
- *		When cleared, the FCS is discarded.
- * 1		PLCP header - When set, write all data from baseband to frame
- *		buffer including PHY header.
- * 0		Reserved - Always equal to 0.
- *
- * RX Filter Options Table
- * Bit		Definition
- * ===		==========
- * 31:12		Reserved - Always equal to 0.
- * 11		Association - When set, the WiLink receives all association
- *		related frames (association request/response, reassocation
- *		request/response, and disassociation). When clear, these frames
- *		are discarded.
- * 10		Auth/De auth - When set, the WiLink receives all authentication
- *		and de-authentication frames. When clear, these frames are
- *		discarded.
- * 9		Beacon - When set, the WiLink receives all beacon frames.
- *		When clear, these frames are discarded.
- * 8		Contention Free - When set, the WiLink receives all contention
- *		free frames.
- *		When clear, these frames are discarded.
- * 7		Control - When set, the WiLink receives all control frames.
- *		When clear, these frames are discarded.
- * 6		Data - When set, the WiLink receives all data frames.
- *		When clear, these frames are discarded.
- * 5		FCS Error - When set, the WiLink receives frames that have FCS
- *		errors.
- *		When clear, these frames are discarded.
- * 4		Management - When set, the WiLink receives all management
- *		frames.
- *		When clear, these frames are discarded.
- * 3		Probe Request - When set, the WiLink receives all probe request
- *		frames.
- *		When clear, these frames are discarded.
- * 2		Probe Response - When set, the WiLink receives all probe
- *		response frames.
- *		When clear, these frames are discarded.
- * 1		RTS/CTS/ACK - When set, the WiLink receives all RTS, CTS and ACK
- *		frames.
- *		When clear, these frames are discarded.
- * 0		Rsvd Type/Sub Type - When set, the WiLink receives all frames
- *		that have reserved frame types and sub types as defined by the
- *		802.11 specification.
- *		When clear, these frames are discarded.
- */
+
 struct acx_rx_config {
 	struct acx_header header;
 
@@ -296,7 +168,7 @@ enum acx_slot_type {
 struct acx_slot {
 	struct acx_header header;
 
-	u8 wone_index; /* Reserved */
+	u8 wone_index; 
 	u8 slot_time;
 	u8 reserved[6];
 } __attribute__ ((packed));
@@ -325,18 +197,10 @@ struct acx_dot11_grp_addr_tbl {
 struct acx_rx_timeout {
 	struct acx_header header;
 
-	/*
-	 * The longest time the STA will wait to receive
-	 * traffic from the AP after a PS-poll has been
-	 * transmitted.
-	 */
+	
 	u16 ps_poll_timeout;
 
-	/*
-	 * The longest time the STA will wait to receive
-	 * traffic from the AP after a frame has been sent
-	 * from an UPSD enabled queue.
-	 */
+	
 	u16 upsd_timeout;
 } __attribute__ ((packed));
 
@@ -356,41 +220,12 @@ struct acx_beacon_filter_option {
 
 	u8 enable;
 
-	/*
-	 * The number of beacons without the unicast TIM
-	 * bit set that the firmware buffers before
-	 * signaling the host about ready frames.
-	 * When set to 0 and the filter is enabled, beacons
-	 * without the unicast TIM bit set are dropped.
-	 */
+	
 	u8 max_num_beacons;
 	u8 pad[2];
 } __attribute__ ((packed));
 
-/*
- * ACXBeaconFilterEntry (not 221)
- * Byte Offset     Size (Bytes)    Definition
- * ===========     ============    ==========
- * 0				1               IE identifier
- * 1               1               Treatment bit mask
- *
- * ACXBeaconFilterEntry (221)
- * Byte Offset     Size (Bytes)    Definition
- * ===========     ============    ==========
- * 0               1               IE identifier
- * 1               1               Treatment bit mask
- * 2               3               OUI
- * 5               1               Type
- * 6               2               Version
- *
- *
- * Treatment bit mask - The information element handling:
- * bit 0 - The information element is compared and transferred
- * in case of change.
- * bit 1 - The information element is transferred to the host
- * with each appearance or disappearance.
- * Note that both bits can be set at the same time.
- */
+
 #define	BEACON_FILTER_TABLE_MAX_IE_NUM		       (32)
 #define BEACON_FILTER_TABLE_MAX_VENDOR_SPECIFIC_IE_NUM (6)
 #define BEACON_FILTER_TABLE_IE_ENTRY_SIZE	       (2)
@@ -418,15 +253,7 @@ enum {
 struct acx_bt_wlan_coex {
 	struct acx_header header;
 
-	/*
-	 * 0 -> PTA enabled
-	 * 1 -> PTA disabled
-	 * 2 -> sense no active mode, i.e.
-	 *      an interrupt is sent upon
-	 *      BT activity.
-	 * 3 -> PTA is switched on in response
-	 *      to the interrupt sending.
-	 */
+	
 	u8 enable;
 	u8 pad[3];
 } __attribute__ ((packed));
@@ -463,125 +290,83 @@ struct acx_bt_wlan_coex {
 struct acx_bt_wlan_coex_param {
 	struct acx_header header;
 
-	/*
-	 * The minimum rate of a received WLAN packet in the STA,
-	 * during protective mode, of which a new BT-HP request
-	 * during this Rx will always be respected and gain the antenna.
-	 */
+	
 	u32 min_rate;
 
-	/* Max time the BT HP will be respected. */
+	
 	u16 bt_hp_max_time;
 
-	/* Max time the WLAN HP will be respected. */
+	
 	u16 wlan_hp_max_time;
 
-	/*
-	 * The time between the last BT activity
-	 * and the moment when the sense mode returns
-	 * to SENSE_INACTIVE.
-	 */
+	
 	u16 sense_disable_timer;
 
-	/* Time before the next BT HP instance */
+	
 	u16 rx_time_bt_hp;
 	u16 tx_time_bt_hp;
 
-	/* range: 10-20000    default: 1500 */
+	
 	u16 rx_time_bt_hp_fast;
 	u16 tx_time_bt_hp_fast;
 
-	/* range: 2000-65535  default: 8700 */
+	
 	u16 wlan_cycle_fast;
 
-	/* range: 0 - 15000 (Msec) default: 1000 */
+	
 	u16 bt_anti_starvation_period;
 
-	/* range 400-10000(Usec) default: 3000 */
+	
 	u16 next_bt_lp_packet;
 
-	/* Deafult: worst case for BT DH5 traffic */
+	
 	u16 wake_up_beacon;
 
-	/* range: 0-50000(Usec) default: 1050 */
+	
 	u16 hp_dm_max_guard_time;
 
-	/*
-	 * This is to prevent both BT & WLAN antenna
-	 * starvation.
-	 * Range: 100-50000(Usec) default:2550
-	 */
+	
 	u16 next_wlan_packet;
 
-	/* 0 -> shared antenna */
+	
 	u8 antenna_type;
 
-	/*
-	 * 0 -> TI legacy
-	 * 1 -> Palau
-	 */
+	
 	u8 signal_type;
 
-	/*
-	 * BT AFH status
-	 * 0 -> no AFH
-	 * 1 -> from dedicated GPIO
-	 * 2 -> AFH on (from host)
-	 */
+	
 	u8 afh_leverage_on;
 
-	/*
-	 * The number of cycles during which no
-	 * TX will be sent after 1 cycle of RX
-	 * transaction in protective mode
-	 */
+	
 	u8 quiet_cycle_num;
 
-	/*
-	 * The maximum number of CTSs that will
-	 * be sent for receiving RX packet in
-	 * protective mode
-	 */
+	
 	u8 max_cts;
 
-	/*
-	 * The number of WLAN packets
-	 * transferred in common mode before
-	 * switching to BT.
-	 */
+	
 	u8 wlan_packets_num;
 
-	/*
-	 * The number of BT packets
-	 * transferred in common mode before
-	 * switching to WLAN.
-	 */
+	
 	u8 bt_packets_num;
 
-	/* range: 1-255  default: 5 */
+	
 	u8 missed_rx_avalanche;
 
-	/* range: 0-1    default: 1 */
+	
 	u8 wlan_elp_hp;
 
-	/* range: 0 - 15  default: 4 */
+	
 	u8 bt_anti_starvation_cycles;
 
 	u8 ack_mode_dual_ant;
 
-	/*
-	 * Allow PA_SD assertion/de-assertion
-	 * during enabled BT activity.
-	 */
+	
 	u8 pa_sd_enable;
 
-	/*
-	 * Enable/Disable PTA in auto mode:
-	 * Support Both Active & P.S modes
-	 */
+	
 	u8 pta_auto_mode_enable;
 
-	/* range: 0 - 20  default: 1 */
+	
 	u8 bt_hp_respected_num;
 } __attribute__ ((packed));
 
@@ -591,7 +376,7 @@ struct acx_bt_wlan_coex_param {
 struct acx_energy_detection {
 	struct acx_header header;
 
-	/* The RX Clear Channel Assessment threshold in the PHY */
+	
 	u16 rx_cca_threshold;
 	u8 tx_energy_detection;
 	u8 pad;
@@ -608,10 +393,10 @@ struct acx_beacon_broadcast {
 	u16 beacon_rx_timeout;
 	u16 broadcast_timeout;
 
-	/* Enables receiving of broadcast packets in PS mode */
+	
 	u8 rx_broadcast_in_ps;
 
-	/* Consecutive PS Poll failures before updating the host */
+	
 	u8 ps_poll_threshold;
 	u8 pad[2];
 } __attribute__ ((packed));
@@ -620,7 +405,7 @@ struct acx_event_mask {
 	struct acx_header header;
 
 	u32 event_mask;
-	u32 high_event_mask; /* Unused */
+	u32 high_event_mask; 
 } __attribute__ ((packed));
 
 #define CFG_RX_FCS		BIT(2)
@@ -672,17 +457,17 @@ struct acx_current_tx_power {
 } __attribute__ ((packed));
 
 enum acx_wake_up_event {
-	WAKE_UP_EVENT_BEACON_BITMAP	= 0x01, /* Wake on every Beacon*/
-	WAKE_UP_EVENT_DTIM_BITMAP	= 0x02,	/* Wake on every DTIM*/
-	WAKE_UP_EVENT_N_DTIM_BITMAP	= 0x04, /* Wake on every Nth DTIM */
-	WAKE_UP_EVENT_N_BEACONS_BITMAP	= 0x08, /* Wake on every Nth Beacon */
+	WAKE_UP_EVENT_BEACON_BITMAP	= 0x01, 
+	WAKE_UP_EVENT_DTIM_BITMAP	= 0x02,	
+	WAKE_UP_EVENT_N_DTIM_BITMAP	= 0x04, 
+	WAKE_UP_EVENT_N_BEACONS_BITMAP	= 0x08, 
 	WAKE_UP_EVENT_BITS_MASK		= 0x0F
 };
 
 struct acx_wake_up_condition {
 	struct acx_header header;
 
-	u8 wake_up_event; /* Only one bit can be set */
+	u8 wake_up_event; 
 	u8 listen_interval;
 	u8 pad[2];
 } __attribute__ ((packed));
@@ -690,9 +475,7 @@ struct acx_wake_up_condition {
 struct acx_aid {
 	struct acx_header header;
 
-	/*
-	 * To be set when associated with an AP.
-	 */
+	
 	u16 aid;
 	u8 pad[2];
 } __attribute__ ((packed));
@@ -705,10 +488,7 @@ enum acx_preamble_type {
 struct acx_preamble {
 	struct acx_header header;
 
-	/*
-	 * When set, the WiLink transmits the frames with a short preamble and
-	 * when cleared, the WiLink transmits the frames with a long preamble.
-	 */
+	
 	u8 preamble;
 	u8 padding[3];
 } __attribute__ ((packed));
@@ -747,143 +527,129 @@ struct acx_dma_statistics {
 }  __attribute__ ((packed));
 
 struct acx_isr_statistics {
-	/* host command complete */
+	
 	u32 cmd_cmplt;
 
-	/* fiqisr() */
+	
 	u32 fiqs;
 
-	/* (INT_STS_ND & INT_TRIG_RX_HEADER) */
+	
 	u32 rx_headers;
 
-	/* (INT_STS_ND & INT_TRIG_RX_CMPLT) */
+	
 	u32 rx_completes;
 
-	/* (INT_STS_ND & INT_TRIG_NO_RX_BUF) */
+	
 	u32 rx_mem_overflow;
 
-	/* (INT_STS_ND & INT_TRIG_S_RX_RDY) */
+	
 	u32 rx_rdys;
 
-	/* irqisr() */
+	
 	u32 irqs;
 
-	/* (INT_STS_ND & INT_TRIG_TX_PROC) */
+	
 	u32 tx_procs;
 
-	/* (INT_STS_ND & INT_TRIG_DECRYPT_DONE) */
+	
 	u32 decrypt_done;
 
-	/* (INT_STS_ND & INT_TRIG_DMA0) */
+	
 	u32 dma0_done;
 
-	/* (INT_STS_ND & INT_TRIG_DMA1) */
+	
 	u32 dma1_done;
 
-	/* (INT_STS_ND & INT_TRIG_TX_EXC_CMPLT) */
+	
 	u32 tx_exch_complete;
 
-	/* (INT_STS_ND & INT_TRIG_COMMAND) */
+	
 	u32 commands;
 
-	/* (INT_STS_ND & INT_TRIG_RX_PROC) */
+	
 	u32 rx_procs;
 
-	/* (INT_STS_ND & INT_TRIG_PM_802) */
+	
 	u32 hw_pm_mode_changes;
 
-	/* (INT_STS_ND & INT_TRIG_ACKNOWLEDGE) */
+	
 	u32 host_acknowledges;
 
-	/* (INT_STS_ND & INT_TRIG_PM_PCI) */
+	
 	u32 pci_pm;
 
-	/* (INT_STS_ND & INT_TRIG_ACM_WAKEUP) */
+	
 	u32 wakeups;
 
-	/* (INT_STS_ND & INT_TRIG_LOW_RSSI) */
+	
 	u32 low_rssi;
 } __attribute__ ((packed));
 
 struct acx_wep_statistics {
-	/* WEP address keys configured */
+	
 	u32 addr_key_count;
 
-	/* default keys configured */
+	
 	u32 default_key_count;
 
 	u32 reserved;
 
-	/* number of times that WEP key not found on lookup */
+	
 	u32 key_not_found;
 
-	/* number of times that WEP key decryption failed */
+	
 	u32 decrypt_fail;
 
-	/* WEP packets decrypted */
+	
 	u32 packets;
 
-	/* WEP decrypt interrupts */
+	
 	u32 interrupt;
 } __attribute__ ((packed));
 
 #define ACX_MISSED_BEACONS_SPREAD 10
 
 struct acx_pwr_statistics {
-	/* the amount of enters into power save mode (both PD & ELP) */
+	
 	u32 ps_enter;
 
-	/* the amount of enters into ELP mode */
+	
 	u32 elp_enter;
 
-	/* the amount of missing beacon interrupts to the host */
+	
 	u32 missing_bcns;
 
-	/* the amount of wake on host-access times */
+	
 	u32 wake_on_host;
 
-	/* the amount of wake on timer-expire */
+	
 	u32 wake_on_timer_exp;
 
-	/* the number of packets that were transmitted with PS bit set */
+	
 	u32 tx_with_ps;
 
-	/* the number of packets that were transmitted with PS bit clear */
+	
 	u32 tx_without_ps;
 
-	/* the number of received beacons */
+	
 	u32 rcvd_beacons;
 
-	/* the number of entering into PowerOn (power save off) */
+	
 	u32 power_save_off;
 
-	/* the number of entries into power save mode */
+	
 	u16 enable_ps;
 
-	/*
-	 * the number of exits from power save, not including failed PS
-	 * transitions
-	 */
+	
 	u16 disable_ps;
 
-	/*
-	 * the number of times the TSF counter was adjusted because
-	 * of drift
-	 */
+	
 	u32 fix_tsf_ps;
 
-	/* Gives statistics about the spread continuous missed beacons.
-	 * The 16 LSB are dedicated for the PS mode.
-	 * The 16 MSB are dedicated for the PS mode.
-	 * cont_miss_bcns_spread[0] - single missed beacon.
-	 * cont_miss_bcns_spread[1] - two continuous missed beacons.
-	 * cont_miss_bcns_spread[2] - three continuous missed beacons.
-	 * ...
-	 * cont_miss_bcns_spread[9] - ten and more continuous missed beacons.
-	*/
+	
 	u32 cont_miss_bcns_spread[ACX_MISSED_BEACONS_SPREAD];
 
-	/* the number of beacons in awake mode */
+	
 	u32 rcvd_awake_beacons;
 } __attribute__ ((packed));
 
@@ -1025,8 +791,8 @@ struct acx_frag_threshold {
 
 struct acx_tx_config_options {
 	struct acx_header header;
-	u16 tx_compl_timeout;     /* msec */
-	u16 tx_compl_threshold;   /* number of packets */
+	u16 tx_compl_timeout;     
+	u16 tx_compl_threshold;   
 } __attribute__ ((packed));
 
 #define ACX_RX_MEM_BLOCKS     64
@@ -1059,7 +825,7 @@ struct wl1271_acx_mem_map {
 	void *packet_template_start;
 	void *packet_template_end;
 
-	/* Address of the TX result interface (control block) */
+	
 	u32 tx_result;
 	u32 tx_result_queue_start;
 
@@ -1075,13 +841,13 @@ struct wl1271_acx_mem_map {
 	void *debug_buffer2_start;
 	void *debug_buffer2_end;
 
-	/* Number of blocks FW allocated for TX packets */
+	
 	u32 num_tx_mem_blocks;
 
-	/* Number of blocks FW allocated for RX packets */
+	
 	u32 num_rx_mem_blocks;
 
-	/* the following 4 fields are valid in SLAVE mode only */
+	
 	u8 *tx_cbuf;
 	u8 *rx_cbuf;
 	void *rx_ctrl;
@@ -1089,14 +855,13 @@ struct wl1271_acx_mem_map {
 } __attribute__ ((packed));
 
 enum wl1271_acx_rx_queue_type {
-	RX_QUEUE_TYPE_RX_LOW_PRIORITY,    /* All except the high priority */
-	RX_QUEUE_TYPE_RX_HIGH_PRIORITY,   /* Management and voice packets */
+	RX_QUEUE_TYPE_RX_LOW_PRIORITY,    
+	RX_QUEUE_TYPE_RX_HIGH_PRIORITY,   
 	RX_QUEUE_TYPE_NUM,
 	RX_QUEUE_TYPE_MAX = USHORT_MAX
 };
 
-#define WL1271_RX_INTR_THRESHOLD_DEF  0       /* no pacing, send interrupt on
-					       * every event */
+#define WL1271_RX_INTR_THRESHOLD_DEF  0       
 #define WL1271_RX_INTR_THRESHOLD_MIN  0
 #define WL1271_RX_INTR_THRESHOLD_MAX  15
 
@@ -1121,19 +886,19 @@ enum {
 	ACX_AC_CFG                  = 0x0007,
 	ACX_MEM_MAP                 = 0x0008,
 	ACX_AID                     = 0x000A,
-	/* ACX_FW_REV is missing in the ref driver, but seems to work */
+	
 	ACX_FW_REV                  = 0x000D,
 	ACX_MEDIUM_USAGE            = 0x000F,
 	ACX_RX_CFG                  = 0x0010,
-	ACX_TX_QUEUE_CFG            = 0x0011, /* FIXME: only used by wl1251 */
-	ACX_STATISTICS              = 0x0013, /* Debug API */
+	ACX_TX_QUEUE_CFG            = 0x0011, 
+	ACX_STATISTICS              = 0x0013, 
 	ACX_PWR_CONSUMPTION_STATISTICS = 0x0014,
 	ACX_FEATURE_CFG             = 0x0015,
 	ACX_TID_CFG                 = 0x001A,
 	ACX_PS_RX_STREAMING         = 0x001B,
 	ACX_BEACON_FILTER_OPT       = 0x001F,
 	ACX_NOISE_HIST              = 0x0021,
-	ACX_HDK_VERSION             = 0x0022, /* ??? */
+	ACX_HDK_VERSION             = 0x0022, 
 	ACX_PD_THRESHOLD            = 0x0023,
 	ACX_TX_CONFIG_OPT           = 0x0024,
 	ACX_CCA_THRESHOLD           = 0x0025,
@@ -1218,4 +983,4 @@ int wl1271_acx_mem_cfg(struct wl1271 *wl);
 int wl1271_acx_init_mem_config(struct wl1271 *wl);
 int wl1271_acx_init_rx_interrupt(struct wl1271 *wl);
 
-#endif /* __WL1271_ACX_H__ */
+#endif 

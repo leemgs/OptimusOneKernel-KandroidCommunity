@@ -1,25 +1,4 @@
-/*
- * Intel Wireless Multicomm 3200 WiFi driver
- *
- * Copyright (C) 2009 Intel Corporation <ilw@linux.intel.com>
- * Samuel Ortiz <samuel.ortiz@intel.com>
- * Zhu Yi <yi.zhu@intel.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version
- * 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/netdevice.h>
@@ -410,8 +389,7 @@ static int iwm_cfg80211_join_ibss(struct wiphy *wiphy, struct net_device *dev,
 	if (!test_bit(IWM_STATUS_READY, &iwm->status))
 		return -EIO;
 
-	/* UMAC doesn't support creating IBSS network with specified bssid.
-	 * This should be removed after we have join only mode supported. */
+	
 	if (params->bssid)
 		return -EOPNOTSUPP;
 
@@ -423,7 +401,7 @@ static int iwm_cfg80211_join_ibss(struct wiphy *wiphy, struct net_device *dev,
 		bss = cfg80211_get_ibss(iwm_to_wiphy(iwm), NULL,
 					params->ssid, params->ssid_len);
 	}
-	/* IBSS join only mode is not supported by UMAC ATM */
+	
 	if (bss) {
 		cfg80211_put_bss(bss);
 		return -EOPNOTSUPP;
@@ -622,11 +600,7 @@ static int iwm_cfg80211_connect(struct wiphy *wiphy, struct net_device *dev,
 			return ret;
 	}
 
-	/*
-	 * We save the WEP key in case we want to do shared authentication.
-	 * We have to do it so because UMAC will assert whenever it gets a
-	 * key before a profile.
-	 */
+	
 	if (sme->key) {
 		key_param.key = kmemdup(sme->key, sme->key_len, GFP_KERNEL);
 		if (key_param.key == NULL)
@@ -652,13 +626,7 @@ static int iwm_cfg80211_connect(struct wiphy *wiphy, struct net_device *dev,
 	    sme->key == NULL)
 		return ret;
 
-	/*
-	 * We want to do shared auth.
-	 * We need to actually set the key we previously cached,
-	 * and then tell the UMAC it's the default one.
-	 * That will trigger the auth+assoc UMAC machinery, and again,
-	 * this must be done after setting the profile.
-	 */
+	
 	ret = iwm_set_key(iwm, 0, &iwm->keys[sme->key_idx]);
 	if (ret < 0)
 		return ret;
@@ -752,20 +720,7 @@ struct wireless_dev *iwm_wdev_alloc(int sizeof_bus, struct device *dev)
 	int ret = 0;
 	struct wireless_dev *wdev;
 
-	/*
-	 * We're trying to have the following memory
-	 * layout:
-	 *
-	 * +-------------------------+
-	 * | struct wiphy	     |
-	 * +-------------------------+
-	 * | struct iwm_priv         |
-	 * +-------------------------+
-	 * | bus private data        |
-	 * | (e.g. iwm_priv_sdio)    |
-	 * +-------------------------+
-	 *
-	 */
+	
 
 	wdev = kzalloc(sizeof(struct wireless_dev), GFP_KERNEL);
 	if (!wdev) {

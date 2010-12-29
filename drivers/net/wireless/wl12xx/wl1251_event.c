@@ -1,26 +1,4 @@
-/*
- * This file is part of wl1251
- *
- * Copyright (c) 1998-2007 Texas Instruments Incorporated
- * Copyright (C) 2008 Nokia Corporation
- *
- * Contact: Kalle Valo <kalle.valo@nokia.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #include "wl1251.h"
 #include "wl1251_reg.h"
@@ -112,16 +90,16 @@ int wl1251_event_handle(struct wl1251 *wl, u8 mbox_num)
 	if (mbox_num > 1)
 		return -EINVAL;
 
-	/* first we read the mbox descriptor */
+	
 	wl1251_mem_read(wl, wl->mbox_ptr[mbox_num], &mbox,
 			    sizeof(struct event_mailbox));
 
-	/* process the descriptor */
+	
 	ret = wl1251_event_process(wl, &mbox);
 	if (ret < 0)
 		return ret;
 
-	/* then we let the firmware know it can go on...*/
+	
 	wl1251_reg_write32(wl, ACX_REG_INTERRUPT_TRIG, INTR_TRIG_EVENT_ACK);
 
 	return 0;

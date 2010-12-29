@@ -1,40 +1,6 @@
-/*********************************************************************
- *                
- * Filename:      netwave_cs.c
- * Version:       0.4.1
- * Description:   Netwave AirSurfer Wireless LAN PC Card driver
- * Status:        Experimental.
- * Authors:       John Markus Bjørndalen <johnm@cs.uit.no>
- *                Dag Brattli <dagb@cs.uit.no>
- *                David Hinds <dahinds@users.sourceforge.net>
- * Created at:    A long time ago!
- * Modified at:   Mon Nov 10 11:54:37 1997
- * Modified by:   Dag Brattli <dagb@cs.uit.no>
- * 
- *     Copyright (c) 1997 University of Tromsø, Norway
- *
- * Revision History:
- *
- *   08-Nov-97 15:14:47   John Markus Bjørndalen <johnm@cs.uit.no>
- *    - Fixed some bugs in netwave_rx and cleaned it up a bit. 
- *      (One of the bugs would have destroyed packets when receiving
- *      multiple packets per interrupt). 
- *    - Cleaned up parts of newave_hw_xmit. 
- *    - A few general cleanups. 
- *   24-Oct-97 13:17:36   Dag Brattli <dagb@cs.uit.no>
- *    - Fixed netwave_rx receive function (got updated docs)
- *   Others:
- *    - Changed name from xircnw to netwave, take a look at 
- *      http://www.netwave-wireless.com
- *    - Some reorganizing of the code
- *    - Removed possible race condition between interrupt handler and transmit
- *      function
- *    - Started to add wireless extensions, but still needs some coding
- *    - Added watchdog for better handling of transmission timeouts 
- *      (hopefully this works better)
- ********************************************************************/
 
-/* To have statistics (just packets sent) define this */
+
+
 #undef NETWAVE_STATS
 
 #include <linux/module.h>
@@ -69,7 +35,7 @@
 #include <asm/dma.h>
 
 #define NETWAVE_REGOFF         0x8000
-/* The Netwave IO registers, offsets to iobase */
+
 #define NETWAVE_REG_COR        0x0
 #define NETWAVE_REG_CCSR       0x2
 #define NETWAVE_REG_ASR        0x4
@@ -79,7 +45,7 @@
 #define NETWAVE_REG_IOHI       0x7
 #define NETWAVE_REG_IOCONTROL  0x8
 #define NETWAVE_REG_DATA       0xf
-/* The Netwave Extended IO registers, offsets to RamBase */
+
 #define NETWAVE_EREG_ASCC      0x114
 #define NETWAVE_EREG_RSER      0x120
 #define NETWAVE_EREG_RSERW     0x124
@@ -100,10 +66,7 @@
 #define NETWAVE_EREG_CRBP      0x17a
 #define NETWAVE_EREG_ARW       0x166
 
-/*
- * Commands used in the extended command buffer
- * NETWAVE_EREG_CB (0x100-0x10F) 
- */
+
 #define NETWAVE_CMD_NOP        0x00
 #define NETWAVE_CMD_SRC        0x01
 #define NETWAVE_CMD_STC        0x02
@@ -118,40 +81,34 @@
 #define NETWAVE_CMD_SMD        0x0b
 #define NETWAVE_CMD_SAPD       0x0c
 #define NETWAVE_CMD_SSS        0x11
-/* End of Command marker */
+
 #define NETWAVE_CMD_EOC        0x00
 
-/* ASR register bits */
+
 #define NETWAVE_ASR_RXRDY   0x80
 #define NETWAVE_ASR_TXBA    0x01
 
 #define TX_TIMEOUT		((32*HZ)/100)
 
-static const unsigned int imrConfRFU1 = 0x10; /* RFU interrupt mask, keep high */
-static const unsigned int imrConfIENA = 0x02; /* Interrupt enable */
+static const unsigned int imrConfRFU1 = 0x10; 
+static const unsigned int imrConfIENA = 0x02; 
 
-static const unsigned int corConfIENA   = 0x01; /* Interrupt enable */
-static const unsigned int corConfLVLREQ = 0x40; /* Keep high */
+static const unsigned int corConfIENA   = 0x01; 
+static const unsigned int corConfLVLREQ = 0x40; 
 
-static const unsigned int rxConfRxEna  = 0x80; /* Receive Enable */
-static const unsigned int rxConfMAC    = 0x20; /* MAC host receive mode*/ 
-static const unsigned int rxConfPro    = 0x10; /* Promiscuous */
-static const unsigned int rxConfAMP    = 0x08; /* Accept Multicast Packets */
-static const unsigned int rxConfBcast  = 0x04; /* Accept Broadcast Packets */
+static const unsigned int rxConfRxEna  = 0x80; 
+static const unsigned int rxConfMAC    = 0x20;  
+static const unsigned int rxConfPro    = 0x10; 
+static const unsigned int rxConfAMP    = 0x08; 
+static const unsigned int rxConfBcast  = 0x04; 
 
-static const unsigned int txConfTxEna  = 0x80; /* Transmit Enable */
-static const unsigned int txConfMAC    = 0x20; /* Host sends MAC mode */
-static const unsigned int txConfEUD    = 0x10; /* Enable Uni-Data packets */
-static const unsigned int txConfKey    = 0x02; /* Scramble data packets */
-static const unsigned int txConfLoop   = 0x01; /* Loopback mode */
+static const unsigned int txConfTxEna  = 0x80; 
+static const unsigned int txConfMAC    = 0x20; 
+static const unsigned int txConfEUD    = 0x10; 
+static const unsigned int txConfKey    = 0x02; 
+static const unsigned int txConfLoop   = 0x01; 
 
-/*
-   All the PCMCIA modules use PCMCIA_DEBUG to control debugging.  If
-   you do not define PCMCIA_DEBUG at all, all the debug code will be
-   left out.  If you compile with PCMCIA_DEBUG=0, the debug code will
-   be present but disabled -- but it can then be enabled for specific
-   modules at load time with a 'pc_debug=#' option to insmod.
-*/
+
 
 #ifdef PCMCIA_DEBUG
 static int pc_debug = PCMCIA_DEBUG;
@@ -163,79 +120,57 @@ static char *version =
 #define DEBUG(n, args...)
 #endif
 
-/*====================================================================*/
 
-/* Parameters that can be set with 'insmod' */
 
-/* Choose the domain, default is 0x100 */
+
+
+
 static u_int  domain = 0x100;
 
-/* Scramble key, range from 0x0 to 0xffff.  
- * 0x0 is no scrambling. 
- */
+
 static u_int  scramble_key = 0x0;
 
-/* Shared memory speed, in ns. The documentation states that 
- * the card should not be read faster than every 400ns. 
- * This timing should be provided by the HBA. If it becomes a 
- * problem, try setting mem_speed to 400. 
- */
+
 static int mem_speed;
 
 module_param(domain, int, 0);
 module_param(scramble_key, int, 0);
 module_param(mem_speed, int, 0);
 
-/*====================================================================*/
 
-/* PCMCIA (Card Services) related functions */
-static void netwave_release(struct pcmcia_device *link);     /* Card removal */
-static int netwave_pcmcia_config(struct pcmcia_device *arg); /* Runs after card
-													   insertion */
-static void netwave_detach(struct pcmcia_device *p_dev);    /* Destroy instance */
 
-/* Hardware configuration */
+
+static void netwave_release(struct pcmcia_device *link);     
+static int netwave_pcmcia_config(struct pcmcia_device *arg); 
+static void netwave_detach(struct pcmcia_device *p_dev);    
+
+
 static void netwave_doreset(unsigned int iobase, u_char __iomem *ramBase);
 static void netwave_reset(struct net_device *dev);
 
-/* Misc device stuff */
-static int netwave_open(struct net_device *dev);  /* Open the device */
-static int netwave_close(struct net_device *dev); /* Close the device */
 
-/* Packet transmission and Packet reception */
+static int netwave_open(struct net_device *dev);  
+static int netwave_close(struct net_device *dev); 
+
+
 static netdev_tx_t netwave_start_xmit( struct sk_buff *skb,
 					     struct net_device *dev);
 static int netwave_rx( struct net_device *dev);
 
-/* Interrupt routines */
+
 static irqreturn_t netwave_interrupt(int irq, void *dev_id);
 static void netwave_watchdog(struct net_device *);
 
-/* Wireless extensions */
+
 static struct iw_statistics* netwave_get_wireless_stats(struct net_device *dev);
 
 static void set_multicast_list(struct net_device *dev);
 
-/*
-   A struct pcmcia_device structure has fields for most things that are needed
-   to keep track of a socket, but there will usually be some device
-   specific information that also needs to be kept track of.  The
-   'priv' pointer in a struct pcmcia_device structure can be used to point to
-   a device-specific private data structure, like this.
 
-   A driver needs to provide a dev_node_t structure for each device
-   on a card.  In some cases, there is only one device per card (for
-   example, ethernet cards, modems).  In other cases, there may be
-   many actual or logical devices (SCSI adapters, memory cards with
-   multiple partitions).  The dev_node_t structures need to be kept
-   in a linked list starting at the 'dev' field of a struct pcmcia_device
-   structure.  We allocate them in the card's private data structure,
-   because they generally can't be allocated dynamically.
-*/
 
 static const struct iw_handler_def	netwave_handler_def;
 
-#define SIOCGIPSNAP	SIOCIWFIRSTPRIV	+ 1	/* Site Survey Snapshot */
+#define SIOCGIPSNAP	SIOCIWFIRSTPRIV	+ 1	
 
 #define MAX_ESA 10
 
@@ -265,23 +200,20 @@ struct site_survey {
    
 typedef struct netwave_private {
 	struct pcmcia_device	*p_dev;
-    spinlock_t	spinlock;	/* Serialize access to the hardware (SMP) */
+    spinlock_t	spinlock;	
     dev_node_t node;
     u_char     __iomem *ramBase;
     int        timeoutCounter;
     int        lastExec;
-    struct timer_list      watchdog;	/* To avoid blocking state */
+    struct timer_list      watchdog;	
     struct site_survey     nss;
-    struct iw_statistics   iw_stats;    /* Wireless stats */
+    struct iw_statistics   iw_stats;    
 } netwave_private;
 
-/*
- * The Netwave card is little-endian, so won't work for big endian
- * systems.
- */
+
 static inline unsigned short get_uint16(u_char __iomem *staddr) 
 {
-    return readw(staddr); /* Return only 16 bits */
+    return readw(staddr); 
 }
 
 static inline short get_int16(u_char __iomem * staddr)
@@ -289,14 +221,10 @@ static inline short get_int16(u_char __iomem * staddr)
     return readw(staddr);
 }
 
-/* 
- * Wait until the WOC (Write Operation Complete) bit in the 
- * ASR (Adapter Status Register) is asserted. 
- * This should have aborted if it takes too long time. 
- */
+
 static inline void wait_WOC(unsigned int iobase)
 {
-    /* Spin lock */
+    
     while ((inb(iobase + NETWAVE_REG_ASR) & 0x8) != 0x8) ; 
 }
 
@@ -304,31 +232,23 @@ static void netwave_snapshot(netwave_private *priv, u_char __iomem *ramBase,
 			     unsigned int iobase) {
     u_short resultBuffer;
 
-    /* if time since last snapshot is > 1 sec. (100 jiffies?)  then take 
-     * new snapshot, else return cached data. This is the recommended rate.  
-     */
+    
     if ( jiffies - priv->lastExec > 100) { 
-	/* Take site survey  snapshot */ 
-	/*printk( KERN_DEBUG "Taking new snapshot. %ld\n", jiffies -
-	  priv->lastExec); */
+	 
+	
 	wait_WOC(iobase); 
 	writeb(NETWAVE_CMD_SSS, ramBase + NETWAVE_EREG_CB + 0); 
 	writeb(NETWAVE_CMD_EOC, ramBase + NETWAVE_EREG_CB + 1); 
 	wait_WOC(iobase); 
 
-	/* Get result and copy to cach */ 
+	 
 	resultBuffer = readw(ramBase + NETWAVE_EREG_CRBP); 
 	copy_from_pc( &priv->nss, ramBase+resultBuffer, 
 		      sizeof(struct site_survey)); 
     } 
 }
 
-/*
- * Function netwave_get_wireless_stats (dev)
- *
- *    Wireless extensions statistics
- *
- */
+
 static struct iw_statistics *netwave_get_wireless_stats(struct net_device *dev)
 {	
     unsigned long flags;
@@ -367,17 +287,7 @@ static const struct net_device_ops netwave_netdev_ops = {
 	.ndo_validate_addr	= eth_validate_addr,
 };
 
-/*
- * Function netwave_attach (void)
- *
- *     Creates an "instance" of the driver, allocating local data 
- *     structures for one device.  The device is registered with Card 
- *     Services.
- *
- *     The dev_link structure is initialized, but we don't actually
- *     configure the card at this point -- we wait until we receive a
- *     card insertion event.
- */
+
 static int netwave_probe(struct pcmcia_device *link)
 {
     struct net_device *dev;
@@ -385,7 +295,7 @@ static int netwave_probe(struct pcmcia_device *link)
 
     DEBUG(0, "netwave_attach()\n");
 
-    /* Initialize the struct pcmcia_device structure */
+    
     dev = alloc_etherdev(sizeof(netwave_private));
     if (!dev)
 	return -ENOMEM;
@@ -393,30 +303,28 @@ static int netwave_probe(struct pcmcia_device *link)
     priv->p_dev = link;
     link->priv = dev;
 
-    /* The io structure describes IO port mapping */
+    
     link->io.NumPorts1 = 16;
     link->io.Attributes1 = IO_DATA_PATH_WIDTH_16;
-    /* link->io.NumPorts2 = 16; 
-       link->io.Attributes2 = IO_DATA_PATH_WIDTH_16; */
+    
     link->io.IOAddrLines = 5;
     
-    /* Interrupt setup */
+    
     link->irq.Attributes = IRQ_TYPE_DYNAMIC_SHARING | IRQ_HANDLE_PRESENT;
     link->irq.IRQInfo1 = IRQ_LEVEL_ID;
     link->irq.Handler = &netwave_interrupt;
     
-    /* General socket configuration */
+    
     link->conf.Attributes = CONF_ENABLE_IRQ;
     link->conf.IntType = INT_MEMORY_AND_IO;
     link->conf.ConfigIndex = 1;
 
-    /* Netwave private struct init. link/dev/node already taken care of,
-     * other stuff zero'd - Jean II */
+    
     spin_lock_init(&priv->spinlock);
 
-    /* Netwave specific entries in the device structure */
+    
     dev->netdev_ops = &netwave_netdev_ops;
-    /* wireless extensions */
+    
     dev->wireless_handlers = &netwave_handler_def;
 
     dev->watchdog_timeo = TX_TIMEOUT;
@@ -424,16 +332,9 @@ static int netwave_probe(struct pcmcia_device *link)
     link->irq.Instance = dev;
 
     return netwave_pcmcia_config( link);
-} /* netwave_attach */
+} 
 
-/*
- * Function netwave_detach (link)
- *
- *    This deletes a driver "instance".  The device is de-registered
- *    with Card Services.  If it has been released, all local data
- *    structures are freed.  Otherwise, the structures will be freed
- *    when the device is released.
- */
+
 static void netwave_detach(struct pcmcia_device *link)
 {
 	struct net_device *dev = link->priv;
@@ -446,11 +347,9 @@ static void netwave_detach(struct pcmcia_device *link)
 		unregister_netdev(dev);
 
 	free_netdev(dev);
-} /* netwave_detach */
+} 
 
-/*
- * Wireless Handler : get protocol name
- */
+
 static int netwave_get_name(struct net_device *dev,
 			    struct iw_request_info *info,
 			    union iwreq_data *wrqu,
@@ -460,9 +359,7 @@ static int netwave_get_name(struct net_device *dev,
 	return 0;
 }
 
-/*
- * Wireless Handler : set Network ID
- */
+
 static int netwave_set_nwid(struct net_device *dev,
 			    struct iw_request_info *info,
 			    union iwreq_data *wrqu,
@@ -473,7 +370,7 @@ static int netwave_set_nwid(struct net_device *dev,
 	netwave_private *priv = netdev_priv(dev);
 	u_char __iomem *ramBase = priv->ramBase;
 
-	/* Disable interrupts & save flags */
+	
 	spin_lock_irqsave(&priv->spinlock, flags);
 
 	if(!wrqu->nwid.disabled) {
@@ -487,15 +384,13 @@ static int netwave_set_nwid(struct net_device *dev,
 	    writeb(NETWAVE_CMD_EOC, ramBase + NETWAVE_EREG_CB + 3);
 	}
 
-	/* ReEnable interrupts & restore flags */
+	
 	spin_unlock_irqrestore(&priv->spinlock, flags);
     
 	return 0;
 }
 
-/*
- * Wireless Handler : get Network ID
- */
+
 static int netwave_get_nwid(struct net_device *dev,
 			    struct iw_request_info *info,
 			    union iwreq_data *wrqu,
@@ -507,9 +402,7 @@ static int netwave_get_nwid(struct net_device *dev,
 	return 0;
 }
 
-/*
- * Wireless Handler : set scramble key
- */
+
 static int netwave_set_scramble(struct net_device *dev,
 				struct iw_request_info *info,
 				union iwreq_data *wrqu,
@@ -520,7 +413,7 @@ static int netwave_set_scramble(struct net_device *dev,
 	netwave_private *priv = netdev_priv(dev);
 	u_char __iomem *ramBase = priv->ramBase;
 
-	/* Disable interrupts & save flags */
+	
 	spin_lock_irqsave(&priv->spinlock, flags);
 
 	scramble_key = (key[0] << 8) | key[1];
@@ -530,15 +423,13 @@ static int netwave_set_scramble(struct net_device *dev,
 	writeb((scramble_key>>8) & 0xff, ramBase + NETWAVE_EREG_CB + 2);
 	writeb(NETWAVE_CMD_EOC, ramBase + NETWAVE_EREG_CB + 3);
 
-	/* ReEnable interrupts & restore flags */
+	
 	spin_unlock_irqrestore(&priv->spinlock, flags);
     
 	return 0;
 }
 
-/*
- * Wireless Handler : get scramble key
- */
+
 static int netwave_get_scramble(struct net_device *dev,
 				struct iw_request_info *info,
 				union iwreq_data *wrqu,
@@ -551,9 +442,7 @@ static int netwave_get_scramble(struct net_device *dev,
 	return 0;
 }
 
-/*
- * Wireless Handler : get mode
- */
+
 static int netwave_get_mode(struct net_device *dev,
 			    struct iw_request_info *info,
 			    union iwreq_data *wrqu,
@@ -567,9 +456,7 @@ static int netwave_get_mode(struct net_device *dev,
 	return 0;
 }
 
-/*
- * Wireless Handler : get range info
- */
+
 static int netwave_get_range(struct net_device *dev,
 			     struct iw_request_info *info,
 			     union iwreq_data *wrqu,
@@ -578,18 +465,18 @@ static int netwave_get_range(struct net_device *dev,
 	struct iw_range *range = (struct iw_range *) extra;
 	int ret = 0;
 
-	/* Set the length (very important for backward compatibility) */
+	
 	wrqu->data.length = sizeof(struct iw_range);
 
-	/* Set all the info we don't care or don't know about to zero */
+	
 	memset(range, 0, sizeof(struct iw_range));
 
-	/* Set the Wireless Extension versions */
+	
 	range->we_version_compiled = WIRELESS_EXT;
-	range->we_version_source = 9;	/* Nothing for us in v10 and v11 */
+	range->we_version_source = 9;	
 		   
-	/* Set information in the range struct */
-	range->throughput = 450 * 1000;	/* don't argue on this ! */
+	
+	range->throughput = 450 * 1000;	
 	range->min_nwid = 0x0000;
 	range->max_nwid = 0x01FF;
 
@@ -601,18 +488,16 @@ static int netwave_get_range(struct net_device *dev,
 	range->max_qual.noise = 0;
 		   
 	range->num_bitrates = 1;
-	range->bitrate[0] = 1000000;	/* 1 Mb/s */
+	range->bitrate[0] = 1000000;	
 
-	range->encoding_size[0] = 2;		/* 16 bits scrambling */
+	range->encoding_size[0] = 2;		
 	range->num_encoding_sizes = 1;
-	range->max_encoding_tokens = 1;	/* Only one key possible */
+	range->max_encoding_tokens = 1;	
 
 	return ret;
 }
 
-/*
- * Wireless Private Handler : get snapshot
- */
+
 static int netwave_get_snap(struct net_device *dev,
 			    struct iw_request_info *info,
 			    union iwreq_data *wrqu,
@@ -623,29 +508,26 @@ static int netwave_get_snap(struct net_device *dev,
 	netwave_private *priv = netdev_priv(dev);
 	u_char __iomem *ramBase = priv->ramBase;
 
-	/* Disable interrupts & save flags */
+	
 	spin_lock_irqsave(&priv->spinlock, flags);
 
-	/* Take snapshot of environment */
+	
 	netwave_snapshot( priv, ramBase, iobase);
 	wrqu->data.length = priv->nss.length;
 	memcpy(extra, (u_char *) &priv->nss, sizeof( struct site_survey));
 
 	priv->lastExec = jiffies;
 
-	/* ReEnable interrupts & restore flags */
+	
 	spin_unlock_irqrestore(&priv->spinlock, flags);
     
 	return(0);
 }
 
-/*
- * Structures to export the Wireless Handlers
- *     This is the stuff that are treated the wireless extensions (iwconfig)
- */
+
 
 static const struct iw_priv_args netwave_private_args[] = {
-/*{ cmd,         set_args,                            get_args, name } */
+
   { SIOCGIPSNAP, 0, 
     IW_PRIV_TYPE_BYTE | IW_PRIV_SIZE_FIXED | sizeof(struct site_survey), 
     "getsitesurvey" },
@@ -653,56 +535,56 @@ static const struct iw_priv_args netwave_private_args[] = {
 
 static const iw_handler		netwave_handler[] =
 {
-	NULL,				/* SIOCSIWNAME */
-	netwave_get_name,		/* SIOCGIWNAME */
-	netwave_set_nwid,		/* SIOCSIWNWID */
-	netwave_get_nwid,		/* SIOCGIWNWID */
-	NULL,				/* SIOCSIWFREQ */
-	NULL,				/* SIOCGIWFREQ */
-	NULL,				/* SIOCSIWMODE */
-	netwave_get_mode,		/* SIOCGIWMODE */
-	NULL,				/* SIOCSIWSENS */
-	NULL,				/* SIOCGIWSENS */
-	NULL,				/* SIOCSIWRANGE */
-	netwave_get_range,		/* SIOCGIWRANGE */
-	NULL,				/* SIOCSIWPRIV */
-	NULL,				/* SIOCGIWPRIV */
-	NULL,				/* SIOCSIWSTATS */
-	NULL,				/* SIOCGIWSTATS */
-	NULL,				/* SIOCSIWSPY */
-	NULL,				/* SIOCGIWSPY */
-	NULL,				/* -- hole -- */
-	NULL,				/* -- hole -- */
-	NULL,				/* SIOCSIWAP */
-	NULL,				/* SIOCGIWAP */
-	NULL,				/* -- hole -- */
-	NULL,				/* SIOCGIWAPLIST */
-	NULL,				/* -- hole -- */
-	NULL,				/* -- hole -- */
-	NULL,				/* SIOCSIWESSID */
-	NULL,				/* SIOCGIWESSID */
-	NULL,				/* SIOCSIWNICKN */
-	NULL,				/* SIOCGIWNICKN */
-	NULL,				/* -- hole -- */
-	NULL,				/* -- hole -- */
-	NULL,				/* SIOCSIWRATE */
-	NULL,				/* SIOCGIWRATE */
-	NULL,				/* SIOCSIWRTS */
-	NULL,				/* SIOCGIWRTS */
-	NULL,				/* SIOCSIWFRAG */
-	NULL,				/* SIOCGIWFRAG */
-	NULL,				/* SIOCSIWTXPOW */
-	NULL,				/* SIOCGIWTXPOW */
-	NULL,				/* SIOCSIWRETRY */
-	NULL,				/* SIOCGIWRETRY */
-	netwave_set_scramble,		/* SIOCSIWENCODE */
-	netwave_get_scramble,		/* SIOCGIWENCODE */
+	NULL,				
+	netwave_get_name,		
+	netwave_set_nwid,		
+	netwave_get_nwid,		
+	NULL,				
+	NULL,				
+	NULL,				
+	netwave_get_mode,		
+	NULL,				
+	NULL,				
+	NULL,				
+	netwave_get_range,		
+	NULL,				
+	NULL,				
+	NULL,				
+	NULL,				
+	NULL,				
+	NULL,				
+	NULL,				
+	NULL,				
+	NULL,				
+	NULL,				
+	NULL,				
+	NULL,				
+	NULL,				
+	NULL,				
+	NULL,				
+	NULL,				
+	NULL,				
+	NULL,				
+	NULL,				
+	NULL,				
+	NULL,				
+	NULL,				
+	NULL,				
+	NULL,				
+	NULL,				
+	NULL,				
+	NULL,				
+	NULL,				
+	NULL,				
+	NULL,				
+	netwave_set_scramble,		
+	netwave_get_scramble,		
 };
 
 static const iw_handler		netwave_private_handler[] =
 {
-	NULL,				/* SIOCIWFIRSTPRIV */
-	netwave_get_snap,		/* SIOCIWFIRSTPRIV + 1 */
+	NULL,				
+	netwave_get_snap,		
 };
 
 static const struct iw_handler_def	netwave_handler_def =
@@ -716,14 +598,7 @@ static const struct iw_handler_def	netwave_handler_def =
 	.get_wireless_stats = netwave_get_wireless_stats,
 };
 
-/*
- * Function netwave_pcmcia_config (link)
- *
- *     netwave_pcmcia_config() is scheduled to run after a CARD_INSERTION 
- *     event is received, to configure the PCMCIA socket, and to make the
- *     device available to the system. 
- *
- */
+
 
 #define CS_CHECK(fn, ret) \
 do { last_fn = (fn); if ((last_ret = (ret)) != 0) goto cs_failed; } while (0)
@@ -738,11 +613,7 @@ static int netwave_pcmcia_config(struct pcmcia_device *link) {
 
     DEBUG(0, "netwave_pcmcia_config(0x%p)\n", link);
 
-    /*
-     *  Try allocating IO ports.  This tries a few fixed addresses.
-     *  If you want, you can also read the card's config table to
-     *  pick addresses -- see the serial driver for an example.
-     */
+    
     for (i = j = 0x0; j < 0x400; j += 0x20) {
 	link->io.BasePort1 = j ^ 0x300;
 	i = pcmcia_request_io(link, &link->io);
@@ -754,24 +625,13 @@ static int netwave_pcmcia_config(struct pcmcia_device *link) {
 	goto failed;
     }
 
-    /*
-     *  Now allocate an interrupt line.  Note that this does not
-     *  actually assign a handler to the interrupt.
-     */
+    
     CS_CHECK(RequestIRQ, pcmcia_request_irq(link, &link->irq));
 
-    /*
-     *  This actually configures the PCMCIA socket -- setting up
-     *  the I/O windows and the interrupt mapping.
-     */
+    
     CS_CHECK(RequestConfiguration, pcmcia_request_configuration(link, &link->conf));
 
-    /*
-     *  Allocate a 32K memory window.  Note that the struct pcmcia_device
-     *  structure provides space for one window handle -- if your
-     *  device needs several windows, you'll need to keep track of
-     *  the handles in your private data structure, dev->priv.
-     */
+    
     DEBUG(1, "Setting mem speed of %d\n", mem_speed);
 
     req.Attributes = WIN_DATA_WIDTH_8|WIN_MEMORY_TYPE_CM|WIN_ENABLE;
@@ -781,7 +641,7 @@ static int netwave_pcmcia_config(struct pcmcia_device *link) {
     mem.CardOffset = 0x20000; mem.Page = 0; 
     CS_CHECK(MapMemPage, pcmcia_map_mem_page(link->win, &mem));
 
-    /* Store base address of the common window frame */
+    
     ramBase = ioremap(req.Base, 0x8000);
     priv->ramBase = ramBase;
 
@@ -797,10 +657,10 @@ static int netwave_pcmcia_config(struct pcmcia_device *link) {
     strcpy(priv->node.dev_name, dev->name);
     link->dev_node = &priv->node;
 
-    /* Reset card before reading physical address */
+    
     netwave_doreset(dev->base_addr, ramBase);
 
-    /* Read the ethernet address and fill in the Netwave registers. */
+    
     for (i = 0; i < 6; i++) 
 	dev->dev_addr[i] = readb(ramBase + NETWAVE_EREG_PA + i);
 
@@ -812,7 +672,7 @@ static int netwave_pcmcia_config(struct pcmcia_device *link) {
 	   (int) readb(ramBase+NETWAVE_EREG_NI+1),
 	   dev->dev_addr);
 
-    /* get revision words */
+    
     printk(KERN_DEBUG "Netwave_reset: revision %04x %04x\n", 
 	   get_uint16(ramBase + NETWAVE_EREG_ARW),
 	   get_uint16(ramBase + NETWAVE_EREG_ARW+2));
@@ -823,15 +683,9 @@ cs_failed:
 failed:
     netwave_release(link);
     return -ENODEV;
-} /* netwave_pcmcia_config */
+} 
 
-/*
- * Function netwave_release (arg)
- *
- *    After a card is removed, netwave_release() will unregister the net
- *    device, and release the PCMCIA configuration.  If the device is
- *    still open, this will be postponed until it is closed.
- */
+
 static void netwave_release(struct pcmcia_device *link)
 {
 	struct net_device *dev = link->priv;
@@ -867,27 +721,19 @@ static int netwave_resume(struct pcmcia_device *link)
 }
 
 
-/*
- * Function netwave_doreset (ioBase, ramBase)
- *
- *    Proper hardware reset of the card.
- */
+
 static void netwave_doreset(unsigned int ioBase, u_char __iomem *ramBase)
 {
-    /* Reset card */
+    
     wait_WOC(ioBase);
     outb(0x80, ioBase + NETWAVE_REG_PMR);
-    writeb(0x08, ramBase + NETWAVE_EREG_ASCC); /* Bit 3 is WOC */
-    outb(0x0, ioBase + NETWAVE_REG_PMR); /* release reset */
+    writeb(0x08, ramBase + NETWAVE_EREG_ASCC); 
+    outb(0x0, ioBase + NETWAVE_REG_PMR); 
 }
 
-/*
- * Function netwave_reset (dev)
- *
- *    Reset and restore all of the netwave registers 
- */
+
 static void netwave_reset(struct net_device *dev) {
-    /* u_char state; */
+    
     netwave_private *priv = netdev_priv(dev);
     u_char __iomem *ramBase = priv->ramBase;
     unsigned int iobase = dev->base_addr;
@@ -896,28 +742,28 @@ static void netwave_reset(struct net_device *dev) {
 
     priv->timeoutCounter = 0;
 
-    /* Reset card */
+    
     netwave_doreset(iobase, ramBase);
     printk(KERN_DEBUG "netwave_reset: Done with hardware reset\n");
 	
-    /* Write a NOP to check the card */
+    
     wait_WOC(iobase);
     writeb(NETWAVE_CMD_NOP, ramBase + NETWAVE_EREG_CB + 0);
     writeb(NETWAVE_CMD_EOC, ramBase + NETWAVE_EREG_CB + 1);
 	
-    /* Set receive conf */
+    
     wait_WOC(iobase);
     writeb(NETWAVE_CMD_SRC, ramBase + NETWAVE_EREG_CB + 0);
     writeb(rxConfRxEna + rxConfBcast, ramBase + NETWAVE_EREG_CB + 1);
     writeb(NETWAVE_CMD_EOC, ramBase + NETWAVE_EREG_CB + 2);
     
-    /* Set transmit conf */
+    
     wait_WOC(iobase);
     writeb(NETWAVE_CMD_STC, ramBase + NETWAVE_EREG_CB + 0);
     writeb(txConfTxEna, ramBase + NETWAVE_EREG_CB + 1);
     writeb(NETWAVE_CMD_EOC, ramBase + NETWAVE_EREG_CB + 2);
     
-    /* Now set the MU Domain */
+    
     printk(KERN_DEBUG "Setting domain to 0x%x%02x\n", (domain >> 8) & 0x01, domain & 0xff);
     wait_WOC(iobase);
     writeb(NETWAVE_CMD_SMD, ramBase + NETWAVE_EREG_CB + 0);
@@ -925,7 +771,7 @@ static void netwave_reset(struct net_device *dev) {
     writeb((domain>>8) & 0x01, ramBase + NETWAVE_EREG_CB + 2);
     writeb(NETWAVE_CMD_EOC, ramBase + NETWAVE_EREG_CB + 3);
 	
-    /* Set scramble key */
+    
     printk(KERN_DEBUG "Setting scramble key to 0x%x\n", scramble_key);
     wait_WOC(iobase);
     writeb(NETWAVE_CMD_SSK, ramBase + NETWAVE_EREG_CB + 0);
@@ -933,33 +779,23 @@ static void netwave_reset(struct net_device *dev) {
     writeb((scramble_key>>8) & 0xff, ramBase + NETWAVE_EREG_CB + 2);
     writeb(NETWAVE_CMD_EOC, ramBase + NETWAVE_EREG_CB + 3);
 
-    /* Enable interrupts, bit 4 high to keep unused
-     * source from interrupting us, bit 2 high to 
-     * set interrupt enable, 567 to enable TxDN, 
-     * RxErr and RxRdy
-     */
+    
     wait_WOC(iobase);
     outb(imrConfIENA+imrConfRFU1, iobase + NETWAVE_REG_IMR);
 
-    /* Hent 4 bytes fra 0x170. Skal vaere 0a,29,88,36
-     * waitWOC
-     * skriv 80 til d000:3688
-     * sjekk om det ble 80
-     */
     
-    /* Enable Receiver */
+    
+    
     wait_WOC(iobase);
     writeb(NETWAVE_CMD_ER, ramBase + NETWAVE_EREG_CB + 0);
     writeb(NETWAVE_CMD_EOC, ramBase + NETWAVE_EREG_CB + 1);
 	
-    /* Set the IENA bit in COR */
+    
     wait_WOC(iobase);
     outb(corConfIENA + corConfLVLREQ, iobase + NETWAVE_REG_COR);
 }
 
-/*
- * Function netwave_hw_xmit (data, len, dev)    
- */
+
 static int netwave_hw_xmit(unsigned char* data, int len,
 			   struct net_device* dev) {
     unsigned long flags;
@@ -973,13 +809,13 @@ static int netwave_hw_xmit(unsigned char* data, int len,
     u_char __iomem * ramBase = priv->ramBase;
     unsigned int iobase = dev->base_addr;
 
-    /* Disable interrupts & save flags */
+    
     spin_lock_irqsave(&priv->spinlock, flags);
 
-    /* Check if there are transmit buffers available */
+    
     wait_WOC(iobase);
     if ((inb(iobase+NETWAVE_REG_ASR) & NETWAVE_ASR_TXBA) == 0) {
-	/* No buffers available */
+	
 	printk(KERN_DEBUG "netwave_hw_xmit: %s - no xmit buffers available.\n",
 	       dev->name);
 	spin_unlock_irqrestore(&priv->spinlock, flags);
@@ -994,7 +830,7 @@ static int netwave_hw_xmit(unsigned char* data, int len,
 	  readb(ramBase + NETWAVE_EREG_LIF),
 	  readb(ramBase + NETWAVE_EREG_ISPLQ));
 
-    /* Now try to insert it into the adapters free memory */
+    
     wait_WOC(iobase);
     TxFreeList = get_uint16(ramBase + NETWAVE_EREG_TDP);
     MaxData    = get_uint16(ramBase + NETWAVE_EREG_TDP+2);
@@ -1003,7 +839,7 @@ static int netwave_hw_xmit(unsigned char* data, int len,
     DEBUG(3, "TxFreeList %x, MaxData %x, DataOffset %x\n",
 	  TxFreeList, MaxData, DataOffset);
 
-    /* Copy packet to the adapter fragment buffers */
+    
     curBuff = TxFreeList; 
     tmpcount = 0; 
     while (tmpcount < len) {
@@ -1012,11 +848,11 @@ static int netwave_hw_xmit(unsigned char* data, int len,
 		   (tmplen < MaxData) ? tmplen : MaxData);
 	tmpcount += MaxData;
 			
-	/* Advance to next buffer */
+	
 	curBuff = get_uint16(ramBase + curBuff);
     }
     
-    /* Now issue transmit list */
+    
     wait_WOC(iobase);
     writeb(NETWAVE_CMD_TL, ramBase + NETWAVE_EREG_CB + 0);
     writeb(len & 0xff, ramBase + NETWAVE_EREG_CB + 1);
@@ -1029,11 +865,7 @@ static int netwave_hw_xmit(unsigned char* data, int len,
 
 static netdev_tx_t netwave_start_xmit(struct sk_buff *skb,
 					    struct net_device *dev) {
-	/* This flag indicate that the hardware can't perform a transmission.
-	 * Theoritically, NET3 check it before sending a packet to the driver,
-	 * but in fact it never do that and pool continuously.
-	 * As the watchdog will abort too long transmissions, we are quite safe...
-	 */
+	
 
     netif_stop_queue(dev);
 
@@ -1042,7 +874,7 @@ static netdev_tx_t netwave_start_xmit(struct sk_buff *skb,
 	unsigned char* buf = skb->data;
 	
 	if (netwave_hw_xmit( buf, length, dev) == 1) {
-	    /* Some error, let's make them call us another time? */
+	    
 	    netif_start_queue(dev);
 	}
 	dev->trans_start = jiffies;
@@ -1050,18 +882,9 @@ static netdev_tx_t netwave_start_xmit(struct sk_buff *skb,
     dev_kfree_skb(skb);
     
     return NETDEV_TX_OK;
-} /* netwave_start_xmit */
+} 
 
-/*
- * Function netwave_interrupt (irq, dev_id)
- *
- *    This function is the interrupt handler for the Netwave card. This
- *    routine will be called whenever: 
- *	  1. A packet is received.
- *	  2. A packet has successfully been transferred and the unit is
- *	     ready to transmit another packet.
- *	  3. A command has completed execution.
- */
+
 static irqreturn_t netwave_interrupt(int irq, void* dev_id)
 {
     unsigned int iobase;
@@ -1077,13 +900,13 @@ static irqreturn_t netwave_interrupt(int irq, void* dev_id)
     iobase = dev->base_addr;
     ramBase = priv->ramBase;
 	
-    /* Now find what caused the interrupt, check while interrupts ready */
+    
     for (i = 0; i < 10; i++) {
 	u_char status;
 		
 	wait_WOC(iobase);	
 	if (!(inb(iobase+NETWAVE_REG_CCSR) & 0x02))
-	    break; /* None of the interrupt sources asserted (normal exit) */
+	    break; 
 	
         status = inb(iobase + NETWAVE_REG_ASR);
 		
@@ -1093,13 +916,13 @@ static irqreturn_t netwave_interrupt(int irq, void* dev_id)
 	    break;
 	}
 		
-	/* RxRdy */
+	
 	if (status & 0x80) {
 	    netwave_rx(dev);
-	    /* wait_WOC(iobase); */
-	    /* RxRdy cannot be reset directly by the host */
+	    
+	    
 	}
-	/* RxErr */
+	
 	if (status & 0x40) {
 	    u_char rser;
 			
@@ -1112,22 +935,18 @@ static irqreturn_t netwave_interrupt(int irq, void* dev_id)
 	    if (rser & 0x02)
 		++dev->stats.rx_frame_errors;
 			
-	    /* Clear the RxErr bit in RSER. RSER+4 is the
-	     * write part. Also clear the RxCRC (0x04) and 
-	     * RxBig (0x02) bits if present */
+	    
 	    wait_WOC(iobase);
 	    writeb(0x40 | (rser & 0x06), ramBase + NETWAVE_EREG_RSER + 4);
 
-	    /* Write bit 6 high to ASCC to clear RxErr in ASR,
-	     * WOC must be set first! 
-	     */
+	    
 	    wait_WOC(iobase);
 	    writeb(0x40, ramBase + NETWAVE_EREG_ASCC);
 
-	    /* Remember to count up dev->stats on error packets */
+	    
 	    ++dev->stats.rx_errors;
 	}
-	/* TxDN */
+	
 	if (status & 0x20) {
 	    int txStatus;
 
@@ -1136,7 +955,7 @@ static irqreturn_t netwave_interrupt(int irq, void* dev_id)
 		  txStatus, readb(ramBase + NETWAVE_EREG_TSER + 1));
 	    
 	    if (txStatus & 0x20) {
-		/* Transmitting was okay, clear bits */
+		
 		wait_WOC(iobase);
 		writeb(0x2f, ramBase + NETWAVE_EREG_TSER + 4);
 		++dev->stats.tx_packets;
@@ -1144,22 +963,17 @@ static irqreturn_t netwave_interrupt(int irq, void* dev_id)
 			
 	    if (txStatus & 0xd0) {
 		if (txStatus & 0x80) {
-		    ++dev->stats.collisions; /* Because of /proc/net/dev*/
-		    /* ++dev->stats.tx_aborted_errors; */
-		    /* printk("Collision. %ld\n", jiffies - dev->trans_start); */
+		    ++dev->stats.collisions; 
+		    
+		    
 		}
 		if (txStatus & 0x40) 
 		    ++dev->stats.tx_carrier_errors;
-		/* 0x80 TxGU Transmit giveup - nine times and no luck
-		 * 0x40 TxNOAP No access point. Discarded packet.
-		 * 0x10 TxErr Transmit error. Always set when 
-		 *      TxGU and TxNOAP is set. (Those are the only ones
-		 *      to set TxErr).
-		 */
+		
 		DEBUG(3, "netwave_interrupt: TxDN with error status %x\n", 
 		      txStatus);
 		
-		/* Clear out TxGU, TxNOAP, TxErr and TxTrys */
+		
 		wait_WOC(iobase);
 		writeb(0xdf & txStatus, ramBase+NETWAVE_EREG_TSER+4);
 		++dev->stats.tx_errors;
@@ -1170,31 +984,21 @@ static irqreturn_t netwave_interrupt(int irq, void* dev_id)
 
 	    netif_wake_queue(dev);
 	}
-	/* TxBA, this would trigger on all error packets received */
-	/* if (status & 0x01) {
-	   DEBUG(4, "Transmit buffers available, %x\n", status);
-	   }
-	   */
+	
+	
     }
-    /* Handled if we looped at least one time - Jean II */
+    
     return IRQ_RETVAL(i);
-} /* netwave_interrupt */
+} 
 
-/*
- * Function netwave_watchdog (a)
- *
- *    Watchdog : when we start a transmission, we set a timer in the
- *    kernel.  If the transmission complete, this timer is disabled. If
- *    it expire, we reset the card.
- *
- */
+
 static void netwave_watchdog(struct net_device *dev) {
 
     DEBUG(1, "%s: netwave_watchdog: watchdog timer expired\n", dev->name);
     netwave_reset(dev);
     dev->trans_start = jiffies;
     netif_wake_queue(dev);
-} /* netwave_watchdog */
+} 
 
 static int netwave_rx(struct net_device *dev)
 {
@@ -1213,18 +1017,18 @@ static int netwave_rx(struct net_device *dev)
 	
     DEBUG(3, "xinw_rx: Receiving ... \n");
 
-    /* Receive max 10 packets for now. */
+    
     for (i = 0; i < 10; i++) {
-	/* Any packets? */
+	
 	wait_WOC(iobase);
 	rxStatus = readb(ramBase + NETWAVE_EREG_RSER);		
-	if ( !( rxStatus & 0x80)) /* No more packets */
+	if ( !( rxStatus & 0x80)) 
 	    break;
 		
-	/* Check if multicast/broadcast or other */
-	/* multicast = (rxStatus & 0x20);  */
+	
+	
 		
-	/* The receive list pointer and length of the packet */
+	
 	wait_WOC(iobase);
 	rcvLen  = get_int16( ramBase + NETWAVE_EREG_RDP);
 	rcvList = get_uint16( ramBase + NETWAVE_EREG_RDP + 2);
@@ -1240,22 +1044,22 @@ static int netwave_rx(struct net_device *dev)
 	    DEBUG(1, "netwave_rx: Could not allocate an sk_buff of "
 		  "length %d\n", rcvLen);
 	    ++dev->stats.rx_dropped;
-	    /* Tell the adapter to skip the packet */
+	    
 	    wait_WOC(iobase);
 	    writeb(NETWAVE_CMD_SRP, ramBase + NETWAVE_EREG_CB + 0);
 	    writeb(NETWAVE_CMD_EOC, ramBase + NETWAVE_EREG_CB + 1);
 	    return 0;
 	}
 
-	skb_reserve( skb, 2);  /* Align IP on 16 byte */
+	skb_reserve( skb, 2);  
 	skb_put( skb, rcvLen);
 
-	/* Copy packet fragments to the skb data area */
+	
 	ptr = (u_char*) skb->data;
 	curBuffer = rcvList;
 	tmpcount = 0; 
 	while ( tmpcount < rcvLen) {
-	    /* Get length and offset of current buffer */
+	    
 	    dataCount  = get_uint16( ramBase+curBuffer+2);
 	    dataOffset = get_uint16( ramBase+curBuffer+4);
 		
@@ -1264,18 +1068,18 @@ static int netwave_rx(struct net_device *dev)
 
 	    tmpcount += dataCount;
 		
-	    /* Point to next buffer */
+	    
 	    curBuffer = get_uint16(ramBase + curBuffer);
 	}
 	
 	skb->protocol = eth_type_trans(skb,dev);
-	/* Queue packet for network layer */
+	
 	netif_rx(skb);
 
 	dev->stats.rx_packets++;
 	dev->stats.rx_bytes += rcvLen;
 
-	/* Got the packet, tell the adapter to skip it */
+	
 	wait_WOC(iobase);
 	writeb(NETWAVE_CMD_SRP, ramBase + NETWAVE_EREG_CB + 0);
 	writeb(NETWAVE_CMD_EOC, ramBase + NETWAVE_EREG_CB + 1);
@@ -1344,12 +1148,7 @@ static void __exit exit_netwave_cs(void)
 module_init(init_netwave_cs);
 module_exit(exit_netwave_cs);
 
-/* Set or clear the multicast filter for this adaptor.
-   num_addrs == -1	Promiscuous mode, receive all packets
-   num_addrs == 0	Normal mode, clear multicast list
-   num_addrs > 0	Multicast mode, receive normal and MC packets, and do
-   best-effort filtering.
- */
+
 static void set_multicast_list(struct net_device *dev)
 {
     unsigned int iobase = dev->base_addr;
@@ -1369,18 +1168,18 @@ static void set_multicast_list(struct net_device *dev)
 #endif
 	
     if (dev->mc_count || (dev->flags & IFF_ALLMULTI)) {
-	/* Multicast Mode */
+	
 	rcvMode = rxConfRxEna + rxConfAMP + rxConfBcast;
     } else if (dev->flags & IFF_PROMISC) {
-	/* Promiscous mode */
+	
 	rcvMode = rxConfRxEna + rxConfPro + rxConfAMP + rxConfBcast;
     } else {
-	/* Normal mode */
+	
 	rcvMode = rxConfRxEna + rxConfBcast;
     }
 	
-    /* printk("netwave set_multicast_list: rcvMode to %x\n", rcvMode);*/
-    /* Now set receive mode */
+    
+    
     wait_WOC(iobase);
     writeb(NETWAVE_CMD_SRC, ramBase + NETWAVE_EREG_CB + 0);
     writeb(rcvMode, ramBase + NETWAVE_EREG_CB + 1);

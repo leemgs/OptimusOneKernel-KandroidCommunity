@@ -1,27 +1,11 @@
-/*
- * Copyright (c) 2008-2009 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+
 
 #include "ath9k.h"
 
-/* We can tune this as we go by monitoring really low values */
+
 #define ATH9K_NF_TOO_LOW	-60
 
-/* AR5416 may return very high value (like -31 dBm), in those cases the nf
- * is incorrect and we should use the static NF value. Later we can try to
- * find out why they are reporting these values */
+
 
 static bool ath9k_hw_nf_in_range(struct ath_hw *ah, s16 nf)
 {
@@ -274,14 +258,14 @@ static bool ath9k_hw_per_calibration(struct ath_hw *ah,
 	return iscaldone;
 }
 
-/* Assumes you are talking about the currently configured channel */
+
 static bool ath9k_hw_iscal_supported(struct ath_hw *ah,
 				     enum ath9k_cal_types calType)
 {
 	struct ieee80211_conf *conf = &ah->ah_sc->hw->conf;
 
 	switch (calType & ah->supp_cals) {
-	case IQ_MISMATCH_CAL: /* Both 2 GHz and 5 GHz support OFDM */
+	case IQ_MISMATCH_CAL: 
 		return true;
 	case ADC_GAIN_CAL:
 	case ADC_DC_CAL:
@@ -552,7 +536,7 @@ static void ath9k_hw_adc_dccal_calibrate(struct ath_hw *ah, u8 numChains)
 		  AR_PHY_NEW_ADC_DC_OFFSET_CORR_ENABLE);
 }
 
-/* This is done for the currently configured channel */
+
 bool ath9k_hw_reset_calvalid(struct ath_hw *ah)
 {
 	struct ieee80211_conf *conf = &ah->ah_sc->hw->conf;
@@ -806,58 +790,52 @@ static void ath9k_hw_9271_pa_cal(struct ath_hw *ah)
 	regVal |= (0x1 << 27);
 	REG_WRITE(ah, 0x9808, regVal);
 
-	/* 786c,b23,1, pwddac=1 */
+	
 	REG_RMW_FIELD(ah, AR9285_AN_TOP3, AR9285_AN_TOP3_PWDDAC, 1);
-	/* 7854, b5,1, pdrxtxbb=1 */
+	
 	REG_RMW_FIELD(ah, AR9285_AN_RXTXBB1, AR9285_AN_RXTXBB1_PDRXTXBB1, 1);
-	/* 7854, b7,1, pdv2i=1 */
+	
 	REG_RMW_FIELD(ah, AR9285_AN_RXTXBB1, AR9285_AN_RXTXBB1_PDV2I, 1);
-	/* 7854, b8,1, pddacinterface=1 */
+	
 	REG_RMW_FIELD(ah, AR9285_AN_RXTXBB1, AR9285_AN_RXTXBB1_PDDACIF, 1);
-	/* 7824,b12,0, offcal=0 */
+	
 	REG_RMW_FIELD(ah, AR9285_AN_RF2G2, AR9285_AN_RF2G2_OFFCAL, 0);
-	/* 7838, b1,0, pwddb=0 */
+	
 	REG_RMW_FIELD(ah, AR9285_AN_RF2G7, AR9285_AN_RF2G7_PWDDB, 0);
-	/* 7820,b11,0, enpacal=0 */
+	
 	REG_RMW_FIELD(ah, AR9285_AN_RF2G1, AR9285_AN_RF2G1_ENPACAL, 0);
-	/* 7820,b25,1, pdpadrv1=0 */
+	
 	REG_RMW_FIELD(ah, AR9285_AN_RF2G1, AR9285_AN_RF2G1_PDPADRV1, 0);
-	/* 7820,b24,0, pdpadrv2=0 */
+	
 	REG_RMW_FIELD(ah, AR9285_AN_RF2G1,AR9285_AN_RF2G1_PDPADRV2,0);
-	/* 7820,b23,0, pdpaout=0 */
+	
 	REG_RMW_FIELD(ah, AR9285_AN_RF2G1, AR9285_AN_RF2G1_PDPAOUT, 0);
-	/* 783c,b14-16,7, padrvgn2tab_0=7 */
+	
 	REG_RMW_FIELD(ah, AR9285_AN_RF2G8,AR9285_AN_RF2G8_PADRVGN2TAB0, 7);
-	/*
-	 * 7838,b29-31,0, padrvgn1tab_0=0
-	 * does not matter since we turn it off
-	 */
+	
 	REG_RMW_FIELD(ah, AR9285_AN_RF2G7,AR9285_AN_RF2G7_PADRVGN2TAB0, 0);
 
 	REG_RMW_FIELD(ah, AR9285_AN_RF2G3, AR9271_AN_RF2G3_CCOMP, 0xfff);
 
-	/* Set:
-	 * localmode=1,bmode=1,bmoderxtx=1,synthon=1,
-	 * txon=1,paon=1,oscon=1,synthon_force=1
-	 */
+	
 	REG_WRITE(ah, AR9285_AN_TOP2, 0xca0358a0);
 	udelay(30);
 	REG_RMW_FIELD(ah, AR9285_AN_RF2G6, AR9271_AN_RF2G6_OFFS, 0);
 
-	/* find off_6_1; */
+	
 	for (i = 6; i >= 0; i--) {
 		regVal = REG_READ(ah, 0x7834);
 		regVal |= (1 << (20 + i));
 		REG_WRITE(ah, 0x7834, regVal);
 		udelay(1);
-		//regVal = REG_READ(ah, 0x7834);
+		
 		regVal &= (~(0x1 << (20 + i)));
 		regVal |= (MS(REG_READ(ah, 0x7840), AR9285_AN_RXTXBB1_SPARE9)
 			    << (20 + i));
 		REG_WRITE(ah, 0x7834, regVal);
 	}
 
-	/*  Empirical offset correction  */
+	
 #if 0
 	REG_RMW_FIELD(ah, AR9285_AN_RF2G6, AR9271_AN_RF2G6_OFFS, 0x20);
 #endif
@@ -891,7 +869,7 @@ static inline void ath9k_hw_9285_pa_cal(struct ath_hw *ah, bool is_reset)
 
 	DPRINTF(ah->ah_sc, ATH_DBG_CALIBRATE, "Running PA Calibration\n");
 
-	/* PA CAL is not needed for high power solution */
+	
 	if (ah->eep_ops->get_eeprom(ah, EEP_TXGAIN_TYPE) ==
 	    AR5416_EEP_TXGAIN_HIGH_POWER)
 		return;
@@ -1007,9 +985,9 @@ bool ath9k_hw_calibrate(struct ath_hw *ah, struct ath9k_channel *chan,
 		}
 	}
 
-	/* Do NF cal only at longer intervals */
+	
 	if (longcal) {
-		/* Do periodic PAOffset Cal */
+		
 		if (AR_SREV_9271(ah))
 			ath9k_hw_9271_pa_cal(ah);
 		else if (AR_SREV_9285_11_OR_LATER(ah)) {
@@ -1022,13 +1000,10 @@ bool ath9k_hw_calibrate(struct ath_hw *ah, struct ath9k_channel *chan,
 		if (OLC_FOR_AR9280_20_LATER || OLC_FOR_AR9287_10_LATER)
 			ath9k_olc_temp_compensation(ah);
 
-		/* Get the value from the previous NF cal and update history buffer */
+		
 		ath9k_hw_getnf(ah, chan);
 
-		/*
-		 * Load the NF from history buffer of the current channel.
-		 * NF is slow time-variant, so it is OK to use a historical value.
-		 */
+		
 		ath9k_hw_loadnf(ah, ah->curchan);
 
 		ath9k_hw_start_nfcal(ah);
@@ -1090,12 +1065,12 @@ bool ath9k_hw_init_cal(struct ath_hw *ah, struct ath9k_channel *chan)
 				    AR_PHY_AGC_CONTROL_FLTR_CAL);
 		}
 
-		/* Calibrate the AGC */
+		
 		REG_WRITE(ah, AR_PHY_AGC_CONTROL,
 			  REG_READ(ah, AR_PHY_AGC_CONTROL) |
 			  AR_PHY_AGC_CONTROL_CAL);
 
-		/* Poll for offset calibration complete */
+		
 		if (!ath9k_hw_wait(ah, AR_PHY_AGC_CONTROL, AR_PHY_AGC_CONTROL_CAL,
 				   0, AH_WAIT_TIMEOUT)) {
 			DPRINTF(ah->ah_sc, ATH_DBG_CALIBRATE,
@@ -1113,17 +1088,17 @@ bool ath9k_hw_init_cal(struct ath_hw *ah, struct ath9k_channel *chan)
 		}
 	}
 
-	/* Do PA Calibration */
+	
 	if (AR_SREV_9285_11_OR_LATER(ah))
 		ath9k_hw_9285_pa_cal(ah, true);
 
-	/* Do NF Calibration after DC offset and other calibrations */
+	
 	REG_WRITE(ah, AR_PHY_AGC_CONTROL,
 		  REG_READ(ah, AR_PHY_AGC_CONTROL) | AR_PHY_AGC_CONTROL_NF);
 
 	ah->cal_list = ah->cal_list_last = ah->cal_list_curr = NULL;
 
-	/* Enable IQ, ADC Gain and ADC DC offset CALs */
+	
 	if (AR_SREV_9100(ah) || AR_SREV_9160_10_OR_LATER(ah)) {
 		if (ath9k_hw_iscal_supported(ah, ADC_GAIN_CAL)) {
 			INIT_CAL(&ah->adcgain_caldata);

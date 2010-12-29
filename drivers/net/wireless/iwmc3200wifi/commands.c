@@ -1,40 +1,4 @@
-/*
- * Intel Wireless Multicomm 3200 WiFi driver
- *
- * Copyright (C) 2009 Intel Corporation. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in
- *     the documentation and/or other materials provided with the
- *     distribution.
- *   * Neither the name of Intel Corporation nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- *
- * Intel Corporation <ilw@linux.intel.com>
- * Samuel Ortiz <samuel.ortiz@intel.com>
- * Zhu Yi <yi.zhu@intel.com>
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/wireless.h>
@@ -350,7 +314,7 @@ int iwm_send_umac_config(struct iwm_priv *iwm, __le32 reset_flags)
 {
 	int ret;
 
-	/* Use UMAC default values */
+	
 	ret = iwm_umac_set_config_fix(iwm, UMAC_PARAM_TBL_CFG_FIX,
 				      CFG_POWER_INDEX, iwm->conf.power_index);
 	if (ret < 0)
@@ -384,32 +348,14 @@ int iwm_send_umac_config(struct iwm_priv *iwm, __le32 reset_flags)
 	if (ret < 0)
 		return ret;
 
-	/*
-	ret = iwm_umac_set_config_fix(iwm, UMAC_PARAM_TBL_CFG_FIX,
-				      CFG_ASSOCIATION_TIMEOUT,
-				      iwm->conf.assoc_timeout);
-	if (ret < 0)
-		return ret;
-
-	ret = iwm_umac_set_config_fix(iwm, UMAC_PARAM_TBL_CFG_FIX,
-				      CFG_ROAM_TIMEOUT,
-				      iwm->conf.roam_timeout);
-	if (ret < 0)
-		return ret;
-
-	ret = iwm_umac_set_config_fix(iwm, UMAC_PARAM_TBL_CFG_FIX,
-				      CFG_WIRELESS_MODE,
-				      WIRELESS_MODE_11A | WIRELESS_MODE_11G);
-	if (ret < 0)
-		return ret;
-	*/
+	
 
 	ret = iwm_umac_set_config_var(iwm, CFG_NET_ADDR,
 				      iwm_to_ndev(iwm)->dev_addr, ETH_ALEN);
 	if (ret < 0)
 		return ret;
 
-	/* UMAC PM static configurations */
+	
 	ret = iwm_umac_set_config_fix(iwm, UMAC_PARAM_TBL_CFG_FIX,
 				      CFG_PM_LEGACY_RX_TIMEOUT, 0x12C);
 	if (ret < 0)
@@ -430,7 +376,7 @@ int iwm_send_umac_config(struct iwm_priv *iwm, __le32 reset_flags)
 	if (ret < 0)
 		return ret;
 
-	/* reset UMAC */
+	
 	ret = iwm_send_umac_reset(iwm, reset_flags, 1);
 	if (ret < 0)
 		return ret;
@@ -451,7 +397,7 @@ int iwm_send_packet(struct iwm_priv *iwm, struct sk_buff *skb, int pool_id)
 	struct iwm_umac_cmd umac_cmd;
 	struct iwm_tx_info *tx_info = skb_to_tx_info(skb);
 
-	udma_cmd.eop = 1; /* always set eop for non-concatenated Tx */
+	udma_cmd.eop = 1; 
 	udma_cmd.credit_group = pool_id;
 	udma_cmd.ra_tid = tx_info->sta << 4 | tx_info->tid;
 	udma_cmd.lmac_offset = 0;
@@ -486,7 +432,7 @@ static int iwm_target_read(struct iwm_priv *iwm, __le32 address,
 		return ret;
 	}
 
-	/* When succeding, the send_target routine returns the seq number */
+	
 	seq_num = ret;
 
 	ret = wait_event_interruptible_timeout(iwm->nonwifi_queue,
@@ -570,8 +516,7 @@ int iwm_set_tx_key(struct iwm_priv *iwm, u8 key_idx)
 	if (ret < 0)
 		return ret;
 
-	/* UMAC only allows to set default key for WEP and auth type is
-	 * NOT 802.1X or RSNA. */
+	
 	if ((iwm->umac_profile->sec.ucast_cipher != UMAC_CIPHER_TYPE_WEP_40 &&
 	     iwm->umac_profile->sec.ucast_cipher != UMAC_CIPHER_TYPE_WEP_104) ||
 	    iwm->umac_profile->sec.auth_type == UMAC_AUTH_TYPE_8021X ||
@@ -705,13 +650,7 @@ int iwm_set_key(struct iwm_priv *iwm, bool remove, struct iwm_key *key)
 
 		if ((key->cipher == WLAN_CIPHER_SUITE_TKIP) ||
 		    (key->cipher == WLAN_CIPHER_SUITE_CCMP))
-			/*
-			 * UGLY_UGLY_UGLY
-			 * Copied HACK from the MWG driver.
-			 * Without it, the key is set before the second
-			 * EAPOL frame is sent, and the latter is thus
-			 * encrypted.
-			 */
+			
 			schedule_timeout_interruptible(usecs_to_jiffies(300));
 
 		ret =  iwm_send_wifi_if_cmd(iwm, cmd, cmd_size, 1);

@@ -1,25 +1,4 @@
-/*
- * This file is part of wl1271
- *
- * Copyright (C) 2009 Nokia Corporation
- *
- * Contact: Luciano Coelho <luciano.coelho@nokia.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #include "wl1271.h"
 #include "wl1271_acx.h"
@@ -40,34 +19,34 @@ static u32 wl1271_rx_get_buf_size(struct wl1271_fw_status *status,
 		RX_BUF_SIZE_SHIFT_DIV;
 }
 
-/* The values of this table must match the wl1271_rates[] array */
+
 static u8 wl1271_rx_rate_to_idx[] = {
-	/* MCS rates are used only with 11n */
-	WL1271_RX_RATE_UNSUPPORTED, /* WL1271_RATE_MCS7 */
-	WL1271_RX_RATE_UNSUPPORTED, /* WL1271_RATE_MCS6 */
-	WL1271_RX_RATE_UNSUPPORTED, /* WL1271_RATE_MCS5 */
-	WL1271_RX_RATE_UNSUPPORTED, /* WL1271_RATE_MCS4 */
-	WL1271_RX_RATE_UNSUPPORTED, /* WL1271_RATE_MCS3 */
-	WL1271_RX_RATE_UNSUPPORTED, /* WL1271_RATE_MCS2 */
-	WL1271_RX_RATE_UNSUPPORTED, /* WL1271_RATE_MCS1 */
-	WL1271_RX_RATE_UNSUPPORTED, /* WL1271_RATE_MCS0 */
+	
+	WL1271_RX_RATE_UNSUPPORTED, 
+	WL1271_RX_RATE_UNSUPPORTED, 
+	WL1271_RX_RATE_UNSUPPORTED, 
+	WL1271_RX_RATE_UNSUPPORTED, 
+	WL1271_RX_RATE_UNSUPPORTED, 
+	WL1271_RX_RATE_UNSUPPORTED, 
+	WL1271_RX_RATE_UNSUPPORTED, 
+	WL1271_RX_RATE_UNSUPPORTED, 
 
-	11,                         /* WL1271_RATE_54   */
-	10,                         /* WL1271_RATE_48   */
-	9,                          /* WL1271_RATE_36   */
-	8,                          /* WL1271_RATE_24   */
+	11,                         
+	10,                         
+	9,                          
+	8,                          
 
-	/* TI-specific rate */
-	WL1271_RX_RATE_UNSUPPORTED, /* WL1271_RATE_22   */
+	
+	WL1271_RX_RATE_UNSUPPORTED, 
 
-	7,                          /* WL1271_RATE_18   */
-	6,                          /* WL1271_RATE_12   */
-	3,                          /* WL1271_RATE_11   */
-	5,                          /* WL1271_RATE_9    */
-	4,                          /* WL1271_RATE_6    */
-	2,                          /* WL1271_RATE_5_5  */
-	1,                          /* WL1271_RATE_2    */
-	0                           /* WL1271_RATE_1    */
+	7,                          
+	6,                          
+	3,                          
+	5,                          
+	4,                          
+	2,                          
+	1,                          
+	0                           
 };
 
 static void wl1271_rx_status(struct wl1271 *wl,
@@ -83,25 +62,16 @@ static void wl1271_rx_status(struct wl1271 *wl,
 		wl1271_warning("unsupported band 0x%x",
 			       desc->flags & WL1271_RX_DESC_BAND_MASK);
 
-	/*
-	 * FIXME: Add mactime handling.  For IBSS (ad-hoc) we need to get the
-	 * timestamp from the beacon (acx_tsf_info).  In BSS mode (infra) we
-	 * only need the mactime for monitor mode.  For now the mactime is
-	 * not valid, so RX_FLAG_TSFT should not be set
-	 */
+	
 	status->signal = desc->rssi;
 
-	/* FIXME: Should this be optimized? */
+	
 	status->qual = (desc->rssi - WL1271_RX_MIN_RSSI) * 100 /
 		(WL1271_RX_MAX_RSSI - WL1271_RX_MIN_RSSI);
 	status->qual = min(status->qual, 100);
 	status->qual = max(status->qual, 0);
 
-	/*
-	 * FIXME: In wl1251, the SNR should be divided by two.  In wl1271 we
-	 * need to divide by two for now, but TI has been discussing about
-	 * changing it.  This needs to be rechecked.
-	 */
+	
 	status->noise = desc->rssi - (desc->snr >> 1);
 
 	status->freq = ieee80211_channel_to_frequency(desc->channel);
@@ -140,10 +110,10 @@ static void wl1271_rx_handle_data(struct wl1271 *wl, u32 length)
 	buf = skb_put(skb, length);
 	wl1271_spi_reg_read(wl, WL1271_SLV_MEM_DATA, buf, length, true);
 
-	/* the data read starts with the descriptor */
+	
 	desc = (struct wl1271_rx_descriptor *) buf;
 
-	/* now we pull the descriptor out of the buffer */
+	
 	skb_pull(skb, sizeof(*desc));
 
 	fc = (u16 *)skb->data;
@@ -181,7 +151,7 @@ void wl1271_rx(struct wl1271 *wl, struct wl1271_fw_status *status)
 		wl->rx_mem_pool_addr.addr_extra =
 			wl->rx_mem_pool_addr.addr + 4;
 
-		/* Choose the block we want to read */
+		
 		wl1271_spi_reg_write(wl, WL1271_SLV_REG_DATA,
 				     &wl->rx_mem_pool_addr,
 				     sizeof(wl->rx_mem_pool_addr), false);
@@ -194,7 +164,7 @@ void wl1271_rx(struct wl1271 *wl, struct wl1271_fw_status *status)
 
 	wl1271_reg_write32(wl, RX_DRIVER_COUNTER_ADDRESS, wl->rx_counter);
 
-	/* This is a workaround for some problems in the chip */
+	
 	wl1271_reg_write32(wl, RX_DRIVER_DUMMY_WRITE_ADDRESS, 0x1);
 
 }

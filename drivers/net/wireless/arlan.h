@@ -1,15 +1,11 @@
-/*
- *  Copyright (C) 1997 Cullen Jennings
- *  Copyright (C) 1998 Elmer.Joandi@ut.ee, +37-255-13500	
- *  GNU General Public License applies
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/types.h>
 #include <linux/skbuff.h>
-#include <linux/if_ether.h>	/* For the statistics structure. */
-#include <linux/if_arp.h>	/* For ARPHRD_ETHER */
+#include <linux/if_ether.h>	
+#include <linux/if_arp.h>	
 #include <linux/ptrace.h>
 #include <linux/ioport.h>
 #include <linux/in.h>
@@ -27,11 +23,11 @@
 #include <linux/etherdevice.h>
 
 
-//#define ARLAN_DEBUGGING 1
+
 
 #define ARLAN_PROC_INTERFACE
-#define MAX_ARLANS 4 /* not more than 4 ! */
-#define ARLAN_PROC_SHM_DUMP /* shows all card registers, makes driver way larger */
+#define MAX_ARLANS 4 
+#define ARLAN_PROC_SHM_DUMP 
 
 #define ARLAN_MAX_MULTICAST_ADDRS 16
 #define ARLAN_RCV_CLEAN 	0
@@ -80,7 +76,7 @@ extern int     arlan_command(struct net_device * dev, int command);
 
 struct arlan_shmem
 {
-      /* Header Signature */ 
+       
       volatile	char textRegion[48];
       volatile	u_char resetFlag;
       volatile	u_char  diagnosticInfo;
@@ -91,20 +87,20 @@ struct arlan_shmem
       volatile	u_char hardwareType;
       volatile	u_char majorHardwareVersion;
       volatile	u_char minorHardwareVersion;
-      volatile	u_char radioModule;// shows EEPROM, can be overridden at 0x111
-      volatile	u_char defaultChannelSet; // shows EEProm, can be overriiden at 0x10A
+      volatile	u_char radioModule;
+      volatile	u_char defaultChannelSet; 
       volatile	u_char _2[47];
       
-      /* Control/Status Block - 0x0080 */
-      volatile	u_char interruptInProgress; /* not used by lancpu */
-      volatile	u_char cntrlRegImage; /* not used by lancpu */
+      
+      volatile	u_char interruptInProgress; 
+      volatile	u_char cntrlRegImage; 
       volatile	u_char _3[13];
       volatile	u_char dumpByte;
-      volatile	u_char commandByte; /* non-zero = active */
+      volatile	u_char commandByte; 
       volatile	u_char commandParameter[15];
 
-      /* Receive Status - 0x00a0 */
-      volatile	u_char rxStatus; /* 1- data, 2-control, 0xff - registr change */
+      
+      volatile	u_char rxStatus; 
       volatile	u_char rxFrmType;
       volatile	u_short rxOffset;
       volatile	u_short rxLength;
@@ -114,7 +110,7 @@ struct arlan_shmem
       volatile	u_char scrambled;
       volatile	u_char _4[1];
       
-      /* Transmit Status - 0x00b0 */
+      
       volatile	u_char txStatus;
       volatile	u_char txAckQuality;
       volatile	u_char numRetries;
@@ -131,15 +127,15 @@ struct arlan_shmem
       volatile	u_char assignedLocaltalkAddress;
       volatile	u_char _7[27];
 
-      /* System Parameter Block */
+      
 
-      /* - Driver Parameters (Novell Specific) */
+      
 
       volatile	u_short txTimeout;
       volatile	u_short transportTime;
       volatile	u_char _8[4];
 
-      /* - Configuration Parameters */
+      
       volatile	u_char irqLevel;
       volatile	u_char spreadingCode;
       volatile	u_char channelSet;
@@ -170,7 +166,7 @@ struct arlan_shmem
       volatile	u_short specRouterTimeout;
       volatile	u_char _13[5];
 
-      /* Scrambled Area */
+      
       volatile	u_char SID[4];
       volatile	u_char encryptionKey[12];
       volatile	u_char _14[2];
@@ -203,7 +199,7 @@ struct arlan_shmem
       volatile	u_char wireTest;
       volatile	u_char _18[14];
 
-      /* Statistics Block - 0x0300 */
+      
       volatile	u_char hostcpuLock;
       volatile	u_char lancpuLock;
       volatile	u_char resetTime[18];
@@ -218,7 +214,7 @@ struct arlan_shmem
       volatile	u_short maxNumReTransmitDatagram;
       volatile	u_short maxNumReTransmitFrames;
       volatile	u_short maxNumConsecutiveDuplicateFrames;
-      /* misaligned here so we have to go to characters */
+      
      
       volatile	u_char numBytesTransmitted[4];
       volatile	u_char numBytesReceived[4];
@@ -328,7 +324,7 @@ struct TxParam
 };
 
 #define TX_RING_SIZE 2
-/* Information that need to be kept for each board. */
+
 struct arlan_private {
       struct arlan_shmem __iomem * card;
       struct arlan_shmem * conf;

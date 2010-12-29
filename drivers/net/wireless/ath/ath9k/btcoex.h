@@ -1,18 +1,4 @@
-/*
- * Copyright (c) 2009 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+
 
 #ifndef BTCOEX_H
 #define BTCOEX_H
@@ -25,7 +11,7 @@
 #define ATH_BTCOEX_DEF_DUTY_CYCLE 55
 #define ATH_BTCOEX_BMISS_THRESH   50
 
-#define ATH_BT_PRIORITY_TIME_THRESHOLD 1000 /* ms */
+#define ATH_BT_PRIORITY_TIME_THRESHOLD 1000 
 #define ATH_BT_CNT_THRESHOLD	       3
 
 enum ath_btcoex_scheme {
@@ -42,19 +28,19 @@ enum ath_stomp_type {
 };
 
 enum ath_bt_mode {
-	ATH_BT_COEX_MODE_LEGACY,	/* legacy rx_clear mode */
-	ATH_BT_COEX_MODE_UNSLOTTED,	/* untimed/unslotted mode */
-	ATH_BT_COEX_MODE_SLOTTED,	/* slotted mode */
-	ATH_BT_COEX_MODE_DISALBED,	/* coexistence disabled */
+	ATH_BT_COEX_MODE_LEGACY,	
+	ATH_BT_COEX_MODE_UNSLOTTED,	
+	ATH_BT_COEX_MODE_SLOTTED,	
+	ATH_BT_COEX_MODE_DISALBED,	
 };
 
 struct ath_btcoex_config {
 	u8 bt_time_extend;
 	bool bt_txstate_extend;
 	bool bt_txframe_extend;
-	enum ath_bt_mode bt_mode; /* coexistence mode */
+	enum ath_bt_mode bt_mode; 
 	bool bt_quiet_collision;
-	bool bt_rxclear_polarity; /* invert rx_clear as WLAN_ACTIVE*/
+	bool bt_rxclear_polarity; 
 	u8 bt_priority_time;
 	u8 bt_first_slot_time;
 	bool bt_hold_rx_clear;
@@ -65,19 +51,19 @@ struct ath_btcoex_info {
 	u8 wlanactive_gpio;
 	u8 btactive_gpio;
 	u8 btpriority_gpio;
-	u8 bt_duty_cycle; 	/* BT duty cycle in percentage */
-	int bt_stomp_type; 	/* Types of BT stomping */
-	u32 bt_coex_mode; 	/* Register setting for AR_BT_COEX_MODE */
-	u32 bt_coex_weights; 	/* Register setting for AR_BT_COEX_WEIGHT */
-	u32 bt_coex_mode2; 	/* Register setting for AR_BT_COEX_MODE2 */
-	u32 btcoex_no_stomp;   /* in usec */
-	u32 btcoex_period;     	/* in usec */
+	u8 bt_duty_cycle; 	
+	int bt_stomp_type; 	
+	u32 bt_coex_mode; 	
+	u32 bt_coex_weights; 	
+	u32 bt_coex_mode2; 	
+	u32 btcoex_no_stomp;   
+	u32 btcoex_period;     	
 	u32 bt_priority_cnt;
 	unsigned long bt_priority_time;
 	bool hw_timer_enabled;
 	spinlock_t btcoex_lock;
-	struct timer_list period_timer;      /* Timer for BT period */
-	struct ath_gen_timer *no_stomp_timer; /*Timer for no BT stomping*/
+	struct timer_list period_timer;      
+	struct ath_gen_timer *no_stomp_timer; 
 };
 
 bool ath_btcoex_supported(u16 subsysid);

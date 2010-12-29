@@ -1,27 +1,6 @@
-/*
-	Copyright (C) 2004 - 2009 rt2x00 SourceForge Project
-	<http://rt2x00.serialmonkey.com>
 
-	This program is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-	GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program; if not, write to the
-	Free Software Foundation, Inc.,
-	59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
-
-/*
-	Module: rt2x00lib
-	Abstract: rt2x00 led datastructures and routines
- */
 
 #ifndef RT2X00LEDS_H
 #define RT2X00LEDS_H
@@ -45,6 +24,6 @@ struct rt2x00_led {
 #define LED_REGISTERED		( 1 << 1 )
 };
 
-#endif /* CONFIG_RT2X00_LIB_LEDS */
+#endif 
 
-#endif /* RT2X00LEDS_H */
+#endif 

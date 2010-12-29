@@ -1,18 +1,4 @@
-/*
- * Copyright (c) 2008-2009 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+
 
 static const u32 ar5416Modes[][6] = {
     { 0x00001030, 0x00000230, 0x00000460, 0x000002c0, 0x00000160, 0x000001e0 },
@@ -1988,7 +1974,7 @@ static u32 ar5416Addac_91601_1[][2] = {
     {0x000098cc,  0x00000000 },
 };
 
-/* XXX 9280 1 */
+
 static const u32 ar9280Modes_9280[][6] = {
     { 0x00001030, 0x00000230, 0x00000460, 0x000002c0, 0x00000160, 0x000001e0 },
     { 0x00001070, 0x00000168, 0x000002d0, 0x00000318, 0x0000018c, 0x000001e0 },
@@ -2538,7 +2524,7 @@ static const u32 ar9280Common_9280[][2] = {
     { 0x00007898, 0x2a850160 },
 };
 
-/* XXX 9280 2 */
+
 static const u32 ar9280Modes_9280_2[][6] = {
     { 0x00001030, 0x00000230, 0x00000460, 0x000002c0, 0x00000160, 0x000001e0 },
     { 0x00001070, 0x00000168, 0x000002d0, 0x00000318, 0x0000018c, 0x000001e0 },
@@ -3439,7 +3425,7 @@ static const u32 ar9280PciePhy_clkreq_always_on_L1_9280[][2] = {
     {0x00004044,  0x00000000 },
 };
 
-/* AR9285 Revsion 10*/
+
 static const u_int32_t ar9285Modes_9285[][6] = {
     { 0x00001030, 0x00000230, 0x00000460, 0x000002c0, 0x00000160, 0x000001e0 },
     { 0x00001070, 0x00000168, 0x000002d0, 0x00000318, 0x0000018c, 0x000001e0 },
@@ -4121,9 +4107,9 @@ static const u_int32_t ar9285PciePhy_clkreq_off_L1_9285[][2] = {
     {0x00004044,  0x00000000 },
 };
 
-/* AR9285 v1_2 PCI Register Writes.  Created: 04/13/09 */
+
 static const u_int32_t ar9285Modes_9285_1_2[][6] = {
-    /* Address      5G-HT20     5G-HT40     2G-HT40     2G-HT20     Turbo   */
+    
     { 0x00001030, 0x00000230, 0x00000460, 0x000002c0, 0x00000160, 0x000001e0 },
     { 0x00001070, 0x00000168, 0x000002d0, 0x00000318, 0x0000018c, 0x000001e0 },
     { 0x000010b0, 0x00000e60, 0x00001cc0, 0x00007c70, 0x00003e38, 0x00001180 },
@@ -4753,7 +4739,7 @@ static const u_int32_t ar9285Common_9285_1_2[][2] = {
 };
 
 static const u_int32_t ar9285Modes_high_power_tx_gain_9285_1_2[][6] = {
-    /* Address      5G-HT20     5G-HT40     2G-HT40     2G-HT20     Turbo   */
+    
     { 0x0000a300, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000 },
     { 0x0000a304, 0x00000000, 0x00000000, 0x00006200, 0x00006200, 0x00000000 },
     { 0x0000a308, 0x00000000, 0x00000000, 0x00008201, 0x00008201, 0x00000000 },
@@ -4789,7 +4775,7 @@ static const u_int32_t ar9285Modes_high_power_tx_gain_9285_1_2[][6] = {
 };
 
 static const u_int32_t ar9285Modes_original_tx_gain_9285_1_2[][6] = {
-    /* Address      5G-HT20     5G-HT40     2G-HT40     2G-HT20     Turbo   */
+    
     { 0x0000a300, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000 },
     { 0x0000a304, 0x00000000, 0x00000000, 0x00009200, 0x00009200, 0x00000000 },
     { 0x0000a308, 0x00000000, 0x00000000, 0x00010208, 0x00010208, 0x00000000 },
@@ -4850,9 +4836,9 @@ static const u_int32_t ar9285PciePhy_clkreq_off_L1_9285_1_2[][2] = {
     {0x00004044,  0x00000000 },
 };
 
-/* AR9287 Revision 10 */
+
 static const u_int32_t ar9287Modes_9287_1_0[][6] = {
-    /* Address      5G-HT20     5G-HT40     2G-HT40     2G-HT20     Turbo   */
+    
     { 0x00001030, 0x00000000, 0x00000000, 0x000002c0, 0x00000160, 0x000001e0 },
     { 0x00001070, 0x00000000, 0x00000000, 0x00000318, 0x0000018c, 0x000001e0 },
     { 0x000010b0, 0x00000000, 0x00000000, 0x00007c70, 0x00003e38, 0x00001180 },
@@ -5270,7 +5256,7 @@ static const u_int32_t ar9287Common_9287_1_0[][2] = {
 };
 
 static const u_int32_t ar9287Modes_tx_gain_9287_1_0[][6] = {
-    /* Address      5G-HT20     5G-HT40     2G-HT40     2G-HT20     Turbo   */
+    
     { 0x0000a300, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000 },
     { 0x0000a304, 0x00000000, 0x00000000, 0x00004002, 0x00004002, 0x00004002 },
     { 0x0000a308, 0x00000000, 0x00000000, 0x00008004, 0x00008004, 0x00008004 },
@@ -5320,7 +5306,7 @@ static const u_int32_t ar9287Modes_tx_gain_9287_1_0[][6] = {
 
 
 static const u_int32_t ar9287Modes_rx_gain_9287_1_0[][6] = {
-    /* Address      5G-HT20     5G-HT40     2G-HT40     2G-HT20     Turbo   */
+    
     { 0x00009a00, 0x00000000, 0x00000000, 0x0000a120, 0x0000a120, 0x0000a120 },
     { 0x00009a04, 0x00000000, 0x00000000, 0x0000a124, 0x0000a124, 0x0000a124 },
     { 0x00009a08, 0x00000000, 0x00000000, 0x0000a128, 0x0000a128, 0x0000a128 },
@@ -5607,10 +5593,10 @@ static const u_int32_t ar9287PciePhy_clkreq_off_L1_9287_1_0[][2] = {
     {0x00004044,  0x00000000 },
 };
 
-/* AR9287 Revision 11 */
+
 
 static const u_int32_t ar9287Modes_9287_1_1[][6] = {
-    /* Address      5G-HT20     5G-HT40     2G-HT40     2G-HT20     Turbo   */
+    
     { 0x00001030, 0x00000000, 0x00000000, 0x000002c0, 0x00000160, 0x000001e0 },
     { 0x00001070, 0x00000000, 0x00000000, 0x00000318, 0x0000018c, 0x000001e0 },
     { 0x000010b0, 0x00000000, 0x00000000, 0x00007c70, 0x00003e38, 0x00001180 },
@@ -6028,7 +6014,7 @@ static const u_int32_t ar9287Common_9287_1_1[][2] = {
 };
 
 static const u_int32_t ar9287Modes_tx_gain_9287_1_1[][6] = {
-    /* Address      5G-HT20     5G-HT40     2G-HT40     2G-HT20     Turbo   */
+    
     { 0x0000a300, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000 },
     { 0x0000a304, 0x00000000, 0x00000000, 0x00004002, 0x00004002, 0x00004002 },
     { 0x0000a308, 0x00000000, 0x00000000, 0x00008004, 0x00008004, 0x00008004 },
@@ -6077,7 +6063,7 @@ static const u_int32_t ar9287Modes_tx_gain_9287_1_1[][6] = {
 };
 
 static const u_int32_t ar9287Modes_rx_gain_9287_1_1[][6] = {
-    /* Address      5G-HT20     5G-HT40     2G-HT40     2G-HT20     Turbo   */
+    
     { 0x00009a00, 0x00000000, 0x00000000, 0x0000a120, 0x0000a120, 0x0000a120 },
     { 0x00009a04, 0x00000000, 0x00000000, 0x0000a124, 0x0000a124, 0x0000a124 },
     { 0x00009a08, 0x00000000, 0x00000000, 0x0000a128, 0x0000a128, 0x0000a128 },
@@ -6365,7 +6351,7 @@ static const u_int32_t ar9287PciePhy_clkreq_off_L1_9287_1_1[][2] = {
 };
 
 
-/* AR9271 initialization values automaticaly created: 03/23/09 */
+
 static const u_int32_t ar9271Modes_9271_1_0[][6] = {
     { 0x00001030, 0x00000230, 0x00000460, 0x000002c0, 0x00000160, 0x000001e0 },
     { 0x00001070, 0x00000168, 0x000002d0, 0x00000318, 0x0000018c, 0x000001e0 },

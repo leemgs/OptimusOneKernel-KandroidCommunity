@@ -1,50 +1,6 @@
-/*
- * Intel Wireless Multicomm 3200 WiFi driver
- *
- * Copyright (C) 2009 Intel Corporation <ilw@linux.intel.com>
- * Samuel Ortiz <samuel.ortiz@intel.com>
- * Zhu Yi <yi.zhu@intel.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version
- * 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
- *
- */
 
-/*
- * This is the netdev related hooks for iwm.
- *
- * Some interesting code paths:
- *
- * iwm_open() (Called at netdev interface bringup time)
- *  -> iwm_up() (main.c)
- *      -> iwm_bus_enable()
- *          -> if_sdio_enable() (In case of an SDIO bus)
- *              -> sdio_enable_func()
- *      -> iwm_notif_wait(BARKER_REBOOT) (wait for reboot barker)
- *      -> iwm_notif_wait(ACK_BARKER) (wait for ACK barker)
- *      -> iwm_load_fw() (fw.c)
- *          -> iwm_load_umac()
- *          -> iwm_load_lmac() (Calibration LMAC)
- *          -> iwm_load_lmac() (Operational LMAC)
- *      -> iwm_send_umac_config()
- *
- * iwm_stop() (Called at netdev interface bringdown time)
- *  -> iwm_down()
- *      -> iwm_bus_disable()
- *          -> if_sdio_disable() (In case of an SDIO bus)
- *              -> sdio_disable_func()
- */
+
+
 #include <linux/netdevice.h>
 
 #include "iwm.h"
@@ -66,14 +22,7 @@ static int iwm_stop(struct net_device *ndev)
 	return iwm_down(iwm);
 }
 
-/*
- * iwm AC to queue mapping
- *
- * AC_VO -> queue 3
- * AC_VI -> queue 2
- * AC_BE -> queue 1
- * AC_BK -> queue 0
- */
+
 static const u16 iwm_1d_to_queue[8] = { 1, 0, 0, 1, 2, 2, 3, 3 };
 
 static u16 iwm_select_queue(struct net_device *dev, struct sk_buff *skb)

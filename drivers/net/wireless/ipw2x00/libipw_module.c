@@ -1,34 +1,4 @@
-/*******************************************************************************
 
-  Copyright(c) 2004-2005 Intel Corporation. All rights reserved.
-
-  Portions of this file are based on the WEP enablement code provided by the
-  Host AP project hostap-drivers v0.1.3
-  Copyright (c) 2001-2002, SSH Communications Security Corp and Jouni Malinen
-  <j@w1.fi>
-  Copyright (c) 2002-2003, Jouni Malinen <j@w1.fi>
-
-  This program is free software; you can redistribute it and/or modify it
-  under the terms of version 2 of the GNU General Public License as
-  published by the Free Software Foundation.
-
-  This program is distributed in the hope that it will be useful, but WITHOUT
-  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-  more details.
-
-  You should have received a copy of the GNU General Public License along with
-  this program; if not, write to the Free Software Foundation, Inc., 59
-  Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-  The full GNU General Public License is included in this distribution in the
-  file called LICENSE.
-
-  Contact Information:
-  Intel Linux Wireless <ilw@linux.intel.com>
-  Intel Corporation, 5200 N.E. Elam Young Parkway, Hillsboro, OR 97124-6497
-
-*******************************************************************************/
 
 #include <linux/compiler.h>
 #include <linux/errno.h>
@@ -164,24 +134,20 @@ struct net_device *alloc_ieee80211(int sizeof_priv)
 	}
 	libipw_networks_initialize(ieee);
 
-	/* Default fragmentation threshold is maximum payload size */
+	
 	ieee->fts = DEFAULT_FTS;
 	ieee->rts = DEFAULT_FTS;
 	ieee->scan_age = DEFAULT_MAX_SCAN_AGE;
 	ieee->open_wep = 1;
 
-	/* Default to enabling full open WEP with host based encrypt/decrypt */
+	
 	ieee->host_encrypt = 1;
 	ieee->host_decrypt = 1;
 	ieee->host_mc_decrypt = 1;
 
-	/* Host fragementation in Open mode. Default is enabled.
-	 * Note: host fragmentation is always enabled if host encryption
-	 * is enabled. For cards can do hardware encryption, they must do
-	 * hardware fragmentation as well. So we don't need a variable
-	 * like host_enc_frag. */
+	
 	ieee->host_open_frag = 1;
-	ieee->ieee802_1x = 1;	/* Default to supporting 802.1x */
+	ieee->ieee802_1x = 1;	
 
 	spin_lock_init(&ieee->lock);
 
@@ -240,7 +206,7 @@ static int store_debug_level(struct file *file, const char __user * buffer,
 
 	return strnlen(buf, len);
 }
-#endif				/* CONFIG_LIBIPW_DEBUG */
+#endif				
 
 static int __init libipw_init(void)
 {
@@ -264,7 +230,7 @@ static int __init libipw_init(void)
 	e->read_proc = show_debug_level;
 	e->write_proc = store_debug_level;
 	e->data = NULL;
-#endif				/* CONFIG_LIBIPW_DEBUG */
+#endif				
 
 	printk(KERN_INFO DRV_NAME ": " DRV_DESCRIPTION ", " DRV_VERSION "\n");
 	printk(KERN_INFO DRV_NAME ": " DRV_COPYRIGHT "\n");
@@ -280,14 +246,14 @@ static void __exit libipw_exit(void)
 		remove_proc_entry(DRV_NAME, init_net.proc_net);
 		libipw_proc = NULL;
 	}
-#endif				/* CONFIG_LIBIPW_DEBUG */
+#endif				
 }
 
 #ifdef CONFIG_LIBIPW_DEBUG
 #include <linux/moduleparam.h>
 module_param(debug, int, 0444);
 MODULE_PARM_DESC(debug, "debug output mask");
-#endif				/* CONFIG_LIBIPW_DEBUG */
+#endif				
 
 module_exit(libipw_exit);
 module_init(libipw_init);

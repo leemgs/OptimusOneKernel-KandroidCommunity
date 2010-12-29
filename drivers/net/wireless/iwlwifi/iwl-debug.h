@@ -1,30 +1,4 @@
-/******************************************************************************
- *
- * Copyright(c) 2003 - 2009 Intel Corporation. All rights reserved.
- *
- * Portions of this file are derived from the ipw3945 project.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of version 2 of the GNU General Public License as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
- *
- * The full GNU General Public License is included in this distribution in the
- * file called LICENSE.
- *
- * Contact Information:
- *  Intel Linux Wireless <ilw@linux.intel.com>
- * Intel Corporation, 5200 N.E. Elam Young Parkway, Hillsboro, OR 97124-6497
- *
- *****************************************************************************/
+
 
 #ifndef __iwl_debug_h__
 #define __iwl_debug_h__
@@ -123,7 +97,7 @@ void iwl_dbgfs_unregister(struct iwl_priv *priv);
 static inline void iwl_print_hex_dump(struct iwl_priv *priv, int level,
 				      void *p, u32 len)
 {}
-#endif				/* CONFIG_IWLWIFI_DEBUG */
+#endif				
 
 
 
@@ -135,65 +109,45 @@ static inline int iwl_dbgfs_register(struct iwl_priv *priv, const char *name)
 static inline void iwl_dbgfs_unregister(struct iwl_priv *priv)
 {
 }
-#endif				/* CONFIG_IWLWIFI_DEBUGFS */
+#endif				
 
-/*
- * To use the debug system:
- *
- * If you are defining a new debug classification, simply add it to the #define
- * list here in the form of
- *
- * #define IWL_DL_xxxx VALUE
- *
- * where xxxx should be the name of the classification (for example, WEP).
- *
- * You then need to either add a IWL_xxxx_DEBUG() macro definition for your
- * classification, or use IWL_DEBUG(IWL_DL_xxxx, ...) whenever you want
- * to send output to that classification.
- *
- * The active debug levels can be accessed via files
- *
- * 	/sys/module/iwlagn/parameters/debug{50}
- * 	/sys/class/net/wlan0/device/debug_level
- *
- * when CONFIG_IWLWIFI_DEBUG=y.
- */
 
-/* 0x0000000F - 0x00000001 */
+
+
 #define IWL_DL_INFO		(1 << 0)
 #define IWL_DL_MAC80211		(1 << 1)
 #define IWL_DL_HCMD		(1 << 2)
 #define IWL_DL_STATE		(1 << 3)
-/* 0x000000F0 - 0x00000010 */
+
 #define IWL_DL_MACDUMP		(1 << 4)
 #define IWL_DL_HCMD_DUMP	(1 << 5)
 #define IWL_DL_RADIO		(1 << 7)
-/* 0x00000F00 - 0x00000100 */
+
 #define IWL_DL_POWER		(1 << 8)
 #define IWL_DL_TEMP		(1 << 9)
 #define IWL_DL_NOTIF		(1 << 10)
 #define IWL_DL_SCAN		(1 << 11)
-/* 0x0000F000 - 0x00001000 */
+
 #define IWL_DL_ASSOC		(1 << 12)
 #define IWL_DL_DROP		(1 << 13)
 #define IWL_DL_TXPOWER		(1 << 14)
 #define IWL_DL_AP		(1 << 15)
-/* 0x000F0000 - 0x00010000 */
+
 #define IWL_DL_FW		(1 << 16)
 #define IWL_DL_RF_KILL		(1 << 17)
 #define IWL_DL_FW_ERRORS	(1 << 18)
 #define IWL_DL_LED		(1 << 19)
-/* 0x00F00000 - 0x00100000 */
+
 #define IWL_DL_RATE		(1 << 20)
 #define IWL_DL_CALIB		(1 << 21)
 #define IWL_DL_WEP		(1 << 22)
 #define IWL_DL_TX		(1 << 23)
-/* 0x0F000000 - 0x01000000 */
+
 #define IWL_DL_RX		(1 << 24)
 #define IWL_DL_ISR		(1 << 25)
 #define IWL_DL_HT		(1 << 26)
 #define IWL_DL_IO		(1 << 27)
-/* 0xF0000000 - 0x10000000 */
+
 #define IWL_DL_11H		(1 << 28)
 #define IWL_DL_STATS		(1 << 29)
 #define IWL_DL_TX_REPLY		(1 << 30)

@@ -1,22 +1,4 @@
-/*
- * Radio tuning for Maxim max2820 on RTL8180
- *
- * Copyright 2007 Andrea Merello <andreamrl@tiscali.it>
- *
- * Code from the BSD driver and the rtl8181 project have been
- * very useful to understand certain things
- *
- * I want to thanks the Authors of such projects and the Ndiswrapper
- * project Authors.
- *
- * A special Big Thanks also is for all people who donated me cards,
- * making possible the creation of the original rtl8180 driver
- * from which this code is derived!
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/pci.h>
@@ -27,7 +9,7 @@
 #include "rtl8180_max2820.h"
 
 static const u32 max2820_chan[] = {
-	12, /* CH 1 */
+	12, 
 	17,
 	22,
 	27,
@@ -40,7 +22,7 @@ static const u32 max2820_chan[] = {
 	62,
 	67,
 	72,
-	84, /* CH 14 */
+	84, 
 };
 
 static void write_max2820(struct ieee80211_hw *dev, u8 addr, u32 data)
@@ -84,8 +66,7 @@ static void max2820_rf_set_channel(struct ieee80211_hw *dev,
 	u32 txpw = priv->channels[chan_idx].hw_value & 0xFF;
 	u32 chan = max2820_chan[chan_idx];
 
-	/* While philips SA2400 drive the PA bias from
-	 * sa2400, for MAXIM we do this directly from BB */
+	
 	rtl8180_write_phy(dev, 3, txpw);
 
 	max2820_write_phy_antenna(dev, channel);
@@ -103,32 +84,29 @@ static void max2820_rf_init(struct ieee80211_hw *dev)
 {
 	struct rtl8180_priv *priv = dev->priv;
 
-	/* MAXIM from netbsd driver */
-	write_max2820(dev, 0, 0x007); /* test mode as indicated in datasheet */
-	write_max2820(dev, 1, 0x01e); /* enable register */
-	write_max2820(dev, 2, 0x001); /* synt register */
+	
+	write_max2820(dev, 0, 0x007); 
+	write_max2820(dev, 1, 0x01e); 
+	write_max2820(dev, 2, 0x001); 
 
 	max2820_rf_set_channel(dev, NULL);
 
-	write_max2820(dev, 4, 0x313); /* rx register */
+	write_max2820(dev, 4, 0x313); 
 
-	/* PA is driven directly by the BB, we keep the MAXIM bias
-	 * at the highest value in case that setting it to lower
-	 * values may introduce some further attenuation somewhere..
-	 */
+	
 	write_max2820(dev, 5, 0x00f);
 
-	/* baseband configuration */
-	rtl8180_write_phy(dev, 0, 0x88); /* sys1       */
-	rtl8180_write_phy(dev, 3, 0x08); /* txagc      */
-	rtl8180_write_phy(dev, 4, 0xf8); /* lnadet     */
-	rtl8180_write_phy(dev, 5, 0x90); /* ifagcinit  */
-	rtl8180_write_phy(dev, 6, 0x1a); /* ifagclimit */
-	rtl8180_write_phy(dev, 7, 0x64); /* ifagcdet   */
+	
+	rtl8180_write_phy(dev, 0, 0x88); 
+	rtl8180_write_phy(dev, 3, 0x08); 
+	rtl8180_write_phy(dev, 4, 0xf8); 
+	rtl8180_write_phy(dev, 5, 0x90); 
+	rtl8180_write_phy(dev, 6, 0x1a); 
+	rtl8180_write_phy(dev, 7, 0x64); 
 
 	max2820_write_phy_antenna(dev, 1);
 
-	rtl8180_write_phy(dev, 0x11, 0x88); /* trl */
+	rtl8180_write_phy(dev, 0x11, 0x88); 
 
 	if (rtl818x_ioread8(priv, &priv->map->CONFIG2) &
 	    RTL818X_CONFIG2_ANTENNA_DIV)
@@ -138,8 +116,8 @@ static void max2820_rf_init(struct ieee80211_hw *dev)
 
 	rtl8180_write_phy(dev, 0x13, 0x9b);
 
-	rtl8180_write_phy(dev, 0x19, 0x0);  /* CHESTLIM */
-	rtl8180_write_phy(dev, 0x1a, 0x9f); /* CHSQLIM  */
+	rtl8180_write_phy(dev, 0x19, 0x0);  
+	rtl8180_write_phy(dev, 0x1a, 0x9f); 
 
 	max2820_rf_set_channel(dev, NULL);
 }

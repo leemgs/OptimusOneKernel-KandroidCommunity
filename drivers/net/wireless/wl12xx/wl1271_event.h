@@ -1,41 +1,9 @@
-/*
- * This file is part of wl1271
- *
- * Copyright (C) 1998-2009 Texas Instruments. All rights reserved.
- * Copyright (C) 2008-2009 Nokia Corporation
- *
- * Contact: Luciano Coelho <luciano.coelho@nokia.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #ifndef __WL1271_EVENT_H__
 #define __WL1271_EVENT_H__
 
-/*
- * Mbox events
- *
- * The event mechanism is based on a pair of event buffers (buffers A and
- * B) at fixed locations in the target's memory. The host processes one
- * buffer while the other buffer continues to collect events. If the host
- * is not processing events, an interrupt is issued to signal that a buffer
- * is ready. Once the host is done with processing events from one buffer,
- * it signals the target (with an ACK interrupt) that the event buffer is
- * free.
- */
+
 
 enum {
 	MEASUREMENT_START_EVENT_ID		 = BIT(8),

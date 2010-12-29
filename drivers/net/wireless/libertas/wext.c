@@ -1,6 +1,4 @@
-/**
-  * This file contains ioctl functions
-  */
+
 #include <linux/ctype.h>
 #include <linux/delay.h>
 #include <linux/if.h>
@@ -46,14 +44,7 @@ static inline void lbs_cancel_association_work(struct lbs_private *priv)
 }
 
 
-/**
- *  @brief Find the channel frequency power info with specific channel
- *
- *  @param priv 	A pointer to struct lbs_private structure
- *  @param band		it can be BAND_A, BAND_G or BAND_B
- *  @param channel      the channel for looking
- *  @return 	   	A pointer to struct chan_freq_power structure or NULL if not find.
- */
+
 struct chan_freq_power *lbs_find_cfp_by_band_and_channel(
 	struct lbs_private *priv,
 	u8 band,
@@ -87,14 +78,7 @@ struct chan_freq_power *lbs_find_cfp_by_band_and_channel(
 	return cfp;
 }
 
-/**
- *  @brief Find the channel frequency power info with specific frequency
- *
- *  @param priv 	A pointer to struct lbs_private structure
- *  @param band		it can be BAND_A, BAND_G or BAND_B
- *  @param freq	        the frequency for looking
- *  @return 	   	A pointer to struct chan_freq_power structure or NULL if not find.
- */
+
 static struct chan_freq_power *find_cfp_by_band_and_freq(
 	struct lbs_private *priv,
 	u8 band,
@@ -128,12 +112,7 @@ static struct chan_freq_power *find_cfp_by_band_and_freq(
 	return cfp;
 }
 
-/**
- *  @brief Copy active data rates based on adapter mode and status
- *
- *  @param priv              A pointer to struct lbs_private structure
- *  @param rate		        The buf to return the active rates
- */
+
 static void copy_active_data_rates(struct lbs_private *priv, u8 *rates)
 {
 	lbs_deb_enter(LBS_DEB_WEXT);
@@ -153,7 +132,7 @@ static int lbs_get_name(struct net_device *dev, struct iw_request_info *info,
 
 	lbs_deb_enter(LBS_DEB_WEXT);
 
-	/* We could add support for 802.11n here as needed. Jean II */
+	
 	snprintf(cwrq, IFNAMSIZ, "IEEE 802.11b/g");
 
 	lbs_deb_leave(LBS_DEB_WEXT);
@@ -211,9 +190,7 @@ static int lbs_set_nick(struct net_device *dev, struct iw_request_info *info,
 
 	lbs_deb_enter(LBS_DEB_WEXT);
 
-	/*
-	 * Check the size of the string
-	 */
+	
 
 	if (dwrq->length > 16) {
 		return -E2BIG;
@@ -239,7 +216,7 @@ static int lbs_get_nick(struct net_device *dev, struct iw_request_info *info,
 	memcpy(extra, priv->nodename, dwrq->length);
 	extra[dwrq->length] = '\0';
 
-	dwrq->flags = 1;	/* active */
+	dwrq->flags = 1;	
 
 	lbs_deb_leave(LBS_DEB_WEXT);
 	return 0;
@@ -252,7 +229,7 @@ static int mesh_get_nick(struct net_device *dev, struct iw_request_info *info,
 
 	lbs_deb_enter(LBS_DEB_WEXT);
 
-	/* Use nickname to indicate that mesh is on */
+	
 
 	if (priv->mesh_connect_status == LBS_CONNECTED) {
 		strncpy(extra, "Mesh", 12);
@@ -281,7 +258,7 @@ static int lbs_set_rts(struct net_device *dev, struct iw_request_info *info,
 	if (vwrq->disabled)
 		val = MRVDRV_RTS_MAX_VALUE;
 
-	if (val > MRVDRV_RTS_MAX_VALUE) /* min rts value is 0 */
+	if (val > MRVDRV_RTS_MAX_VALUE) 
 		return -EINVAL;
 
 	ret = lbs_set_snmp_mib(priv, SNMP_MIB_OID_RTS_THRESHOLD, (u16) val);
@@ -304,7 +281,7 @@ static int lbs_get_rts(struct net_device *dev, struct iw_request_info *info,
 		goto out;
 
 	vwrq->value = val;
-	vwrq->disabled = val > MRVDRV_RTS_MAX_VALUE; /* min rts value is 0 */
+	vwrq->disabled = val > MRVDRV_RTS_MAX_VALUE; 
 	vwrq->fixed = 1;
 
 out:
@@ -427,20 +404,19 @@ static int lbs_set_retry(struct net_device *dev, struct iw_request_info *info,
         if ((vwrq->flags & IW_RETRY_TYPE) != IW_RETRY_LIMIT)
                 return -EOPNOTSUPP;
 
-	/* The MAC has a 4-bit Total_Tx_Count register
-	   Total_Tx_Count = 1 + Tx_Retry_Count */
+	
 #define TX_RETRY_MIN 0
 #define TX_RETRY_MAX 14
 	if (vwrq->value < TX_RETRY_MIN || vwrq->value > TX_RETRY_MAX)
 		return -EINVAL;
 
-	/* Add 1 to convert retry count to try count */
+	
 	if (vwrq->flags & IW_RETRY_SHORT)
 		slimit = (u16) (vwrq->value + 1);
 	else if (vwrq->flags & IW_RETRY_LONG)
 		llimit = (u16) (vwrq->value + 1);
 	else
-		slimit = llimit = (u16) (vwrq->value + 1); /* set both */
+		slimit = llimit = (u16) (vwrq->value + 1); 
 
 	if (llimit) {
 		ret = lbs_set_snmp_mib(priv, SNMP_MIB_OID_LONG_RETRY_LIMIT,
@@ -450,7 +426,7 @@ static int lbs_set_retry(struct net_device *dev, struct iw_request_info *info,
 	}
 
 	if (slimit) {
-		/* txretrycount follows the short retry limit */
+		
 		priv->txretrycount = slimit;
 		ret = lbs_set_snmp_mib(priv, SNMP_MIB_OID_SHORT_RETRY_LIMIT,
 				       slimit);
@@ -479,7 +455,7 @@ static int lbs_get_retry(struct net_device *dev, struct iw_request_info *info,
 		if (ret)
 			goto out;
 
-		/* Subtract 1 to convert try count to retry count */
+		
 		vwrq->value = val - 1;
 		vwrq->flags = IW_RETRY_LIMIT | IW_RETRY_LONG;
 	} else {
@@ -487,9 +463,9 @@ static int lbs_get_retry(struct net_device *dev, struct iw_request_info *info,
 		if (ret)
 			goto out;
 
-		/* txretry count follows the short retry limit */
+		
 		priv->txretrycount = val;
-		/* Subtract 1 to convert try count to retry count */
+		
 		vwrq->value = val - 1;
 		vwrq->flags = IW_RETRY_LIMIT | IW_RETRY_SHORT;
 	}
@@ -518,26 +494,8 @@ static inline void sort_channels(struct iw_freq *freq, int num)
 			}
 }
 
-/* data rate listing
-	MULTI_BANDS:
-		abg		a	b	b/g
-   Infra 	G(12)		A(8)	B(4)	G(12)
-   Adhoc 	A+B(12)		A(8)	B(4)	B(4)
 
-	non-MULTI_BANDS:
-					b	b/g
-   Infra 	     		    	B(4)	G(12)
-   Adhoc 	      		    	B(4)	B(4)
- */
-/**
- *  @brief Get Range Info
- *
- *  @param dev                  A pointer to net_device structure
- *  @param info			A pointer to iw_request_info structure
- *  @param vwrq 		A pointer to iw_param structure
- *  @param extra		A pointer to extra data buf
- *  @return 	   		0 --success, otherwise fail
- */
+
 static int lbs_get_range(struct net_device *dev, struct iw_request_info *info,
 			  struct iw_point *dwrq, char *extra)
 {
@@ -625,10 +583,7 @@ static int lbs_get_range(struct net_device *dev, struct iw_request_info *info,
 
 	sort_channels(&range->freq[0], range->num_frequency);
 
-	/*
-	 * Set an indication of the max TCP throughput in bit/s that we can
-	 * expect using this interface
-	 */
+	
 	if (i > 2)
 		range->throughput = 5000 * 1000;
 	else
@@ -644,19 +599,13 @@ static int lbs_get_range(struct net_device *dev, struct iw_request_info *info,
 	range->num_encoding_sizes = 2;
 	range->max_encoding_tokens = 4;
 
-	/*
-	 * Right now we support only "iwconfig ethX power on|off"
-	 */
+	
 	range->pm_capa = IW_POWER_ON;
 
-	/*
-	 * Minimum version we recommend
-	 */
+	
 	range->we_version_source = 15;
 
-	/*
-	 * Version we are compiled with
-	 */
+	
 	range->we_version_compiled = WIRELESS_EXT;
 
 	range->retry_capa = IW_RETRY_LIMIT;
@@ -665,23 +614,21 @@ static int lbs_get_range(struct net_device *dev, struct iw_request_info *info,
 	range->min_retry = TX_RETRY_MIN;
 	range->max_retry = TX_RETRY_MAX;
 
-	/*
-	 * Set the qual, level and noise range values
-	 */
+	
 	range->max_qual.qual = 100;
 	range->max_qual.level = 0;
 	range->max_qual.noise = 0;
 	range->max_qual.updated = IW_QUAL_ALL_UPDATED | IW_QUAL_DBM;
 
 	range->avg_qual.qual = 70;
-	/* TODO: Find real 'good' to 'bad' threshold value for RSSI */
+	
 	range->avg_qual.level = 0;
 	range->avg_qual.noise = 0;
 	range->avg_qual.updated = IW_QUAL_ALL_UPDATED | IW_QUAL_DBM;
 
 	range->sensitivity = 0;
 
-	/* Setup the supported power level ranges */
+	
 	memset(range->txpower, 0, sizeof(range->txpower));
 	range->txpower_capa = IW_TXPOW_DBM | IW_TXPOW_RANGE;
 	range->txpower[0] = priv->txpower_min;
@@ -719,9 +666,7 @@ static int lbs_set_power(struct net_device *dev, struct iw_request_info *info,
 			return -EINVAL;
 	}
 
-	/* PS is currently supported only in Infrastructure mode
-	 * Remove this check if it is to be supported in IBSS mode also
-	 */
+	
 
 	if (vwrq->disabled) {
 		priv->psmode = LBS802_11POWERMODECAM;
@@ -794,12 +739,12 @@ static struct iw_statistics *lbs_get_wireless_stats(struct net_device *dev)
 
 	priv->wstats.status = priv->mode;
 
-	/* If we're not associated, all quality values are meaningless */
+	
 	if ((priv->connect_status != LBS_CONNECTED) &&
 	    (priv->mesh_connect_status != LBS_CONNECTED))
 		goto out;
 
-	/* Quality by RSSI */
+	
 	priv->wstats.qual.level =
 	    CAL_RSSI(priv->SNR[TYPE_BEACON][TYPE_NOAVG],
 	     priv->NF[TYPE_BEACON][TYPE_NOAVG]);
@@ -829,7 +774,7 @@ static struct iw_statistics *lbs_get_wireless_stats(struct net_device *dev)
 		    10 + VERY_GOOD;
 	quality = rssi_qual;
 
-	/* Quality by TX errors */
+	
 	priv->wstats.discard.retries = dev->stats.tx_errors;
 
 	memset(&log, 0, sizeof(log));
@@ -856,12 +801,12 @@ static struct iw_statistics *lbs_get_wireless_stats(struct net_device *dev)
 	priv->wstats.discard.retries = tx_retries;
 	priv->wstats.discard.misc = le32_to_cpu(log.ackfailure);
 
-	/* Calculate quality */
+	
 	priv->wstats.qual.qual = min_t(u8, quality, 100);
 	priv->wstats.qual.updated = IW_QUAL_ALL_UPDATED | IW_QUAL_DBM;
 	stats_valid = 1;
 
-	/* update stats asynchronously for future calls */
+	
 	lbs_prepare_and_send_command(priv, CMD_802_11_RSSI, 0,
 					0, 0, NULL);
 out:
@@ -899,7 +844,7 @@ static int lbs_set_freq(struct net_device *dev, struct iw_request_info *info,
 		goto out;
 	}
 
-	/* If setting by frequency, convert to a channel */
+	
 	if (fwrq->e == 1) {
 		long f = fwrq->m / 100000;
 
@@ -913,7 +858,7 @@ static int lbs_set_freq(struct net_device *dev, struct iw_request_info *info,
 		fwrq->m = (int) cfp->channel;
 	}
 
-	/* Setting by channel number */
+	
 	if (fwrq->m > 1000 || fwrq->e > 0) {
 		goto out;
 	}
@@ -949,7 +894,7 @@ static int lbs_mesh_set_freq(struct net_device *dev,
 
 	lbs_deb_enter(LBS_DEB_WEXT);
 
-	/* If setting by frequency, convert to a channel */
+	
 	if (fwrq->e == 1) {
 		long f = fwrq->m / 100000;
 
@@ -963,7 +908,7 @@ static int lbs_mesh_set_freq(struct net_device *dev,
 		fwrq->m = (int) cfp->channel;
 	}
 
-	/* Setting by channel number */
+	
 	if (fwrq->m > 1000 || fwrq->e > 0) {
 		goto out;
 	}
@@ -1006,7 +951,7 @@ static int lbs_set_rate(struct net_device *dev, struct iw_request_info *info,
 	if (vwrq->fixed && vwrq->value == -1)
 		goto out;
 
-	/* Auto rate? */
+	
 	priv->enablehwauto = !vwrq->fixed;
 
 	if (vwrq->value == -1)
@@ -1017,7 +962,7 @@ static int lbs_set_rate(struct net_device *dev, struct iw_request_info *info,
 
 		new_rate = vwrq->value / 500000;
 		priv->cur_rate = new_rate;
-		/* the rest is only needed for lbs_set_data_rate() */
+		
 		memset(rates, 0, sizeof(rates));
 		copy_active_data_rates(priv, rates);
 		if (!memchr(rates, new_rate, sizeof(rates))) {
@@ -1039,10 +984,10 @@ static int lbs_set_rate(struct net_device *dev, struct iw_request_info *info,
 			goto out;
 	}
 
-	/* Try the newer command first (Firmware Spec 5.1 and above) */
+	
 	ret = lbs_cmd_802_11_rate_adapt_rateset(priv, CMD_ACT_SET);
 
-	/* Fallback to older version */
+	
 	if (ret)
 		ret = lbs_set_data_rate(priv, new_rate);
 
@@ -1111,15 +1056,7 @@ out:
 }
 
 
-/**
- *  @brief Get Encryption key
- *
- *  @param dev                  A pointer to net_device structure
- *  @param info			A pointer to iw_request_info structure
- *  @param vwrq 		A pointer to iw_param structure
- *  @param extra		A pointer to extra data buf
- *  @return 	   		0 --success, otherwise fail
- */
+
 static int lbs_get_encode(struct net_device *dev,
 			   struct iw_request_info *info,
 			   struct iw_point *dwrq, u8 * extra)
@@ -1134,7 +1071,7 @@ static int lbs_get_encode(struct net_device *dev,
 
 	dwrq->flags = 0;
 
-	/* Authentication method */
+	
 	switch (priv->secinfo.auth_mode) {
 	case IW_AUTH_ALG_OPEN_SYSTEM:
 		dwrq->flags = IW_ENCODE_OPEN;
@@ -1153,7 +1090,7 @@ static int lbs_get_encode(struct net_device *dev,
 
 	mutex_lock(&priv->lock);
 
-	/* Default to returning current transmit key */
+	
 	if (index < 0)
 		index = priv->wep_tx_keyidx;
 
@@ -1163,11 +1100,11 @@ static int lbs_get_encode(struct net_device *dev,
 		dwrq->length = priv->wep_keys[index].len;
 
 		dwrq->flags |= (index + 1);
-		/* Return WEP enabled */
+		
 		dwrq->flags &= ~IW_ENCODE_DISABLED;
 	} else if ((priv->secinfo.WPAenabled)
 		   || (priv->secinfo.WPA2enabled)) {
-		/* return WPA enabled */
+		
 		dwrq->flags &= ~IW_ENCODE_DISABLED;
 		dwrq->flags |= IW_ENCODE_NOKEY;
 	} else {
@@ -1186,16 +1123,7 @@ static int lbs_get_encode(struct net_device *dev,
 	return 0;
 }
 
-/**
- *  @brief Set Encryption key (internal)
- *
- *  @param priv			A pointer to private card structure
- *  @param key_material		A pointer to key material
- *  @param key_length		length of key material
- *  @param index		key index to set
- *  @param set_tx_key		Force set TX key (1 = yes, 0 = no)
- *  @return 	   		0 --success, otherwise fail
- */
+
 static int lbs_set_wep_key(struct assoc_request *assoc_req,
 			    const char *key_material,
 			    u16 key_length,
@@ -1207,13 +1135,13 @@ static int lbs_set_wep_key(struct assoc_request *assoc_req,
 
 	lbs_deb_enter(LBS_DEB_WEXT);
 
-	/* Paranoid validation of key index */
+	
 	if (index > 3) {
 		ret = -EINVAL;
 		goto out;
 	}
 
-	/* validate max key length */
+	
 	if (key_length > KEY_LEN_WEP_104) {
 		ret = -EINVAL;
 		goto out;
@@ -1225,14 +1153,14 @@ static int lbs_set_wep_key(struct assoc_request *assoc_req,
 		memset(pkey, 0, sizeof(struct enc_key));
 		pkey->type = KEY_TYPE_ID_WEP;
 
-		/* Standardize the key length */
+		
 		pkey->len = (key_length > KEY_LEN_WEP_40) ?
 		                KEY_LEN_WEP_104 : KEY_LEN_WEP_40;
 		memcpy(pkey->key, key_material, key_length);
 	}
 
 	if (set_tx_key) {
-		/* Ensure the chosen key is valid */
+		
 		if (!pkey->len) {
 			lbs_deb_wext("key not set, so cannot enable it\n");
 			ret = -EINVAL;
@@ -1254,7 +1182,7 @@ static int validate_key_index(u16 def_index, u16 raw_index,
 	if (!out_index || !is_default)
 		return -EINVAL;
 
-	/* Verify index if present, otherwise use default TX key index */
+	
 	if (raw_index > 0) {
 		if (raw_index > 4)
 			return -EINVAL;
@@ -1272,10 +1200,10 @@ static void disable_wep(struct assoc_request *assoc_req)
 
 	lbs_deb_enter(LBS_DEB_WEXT);
 
-	/* Set Open System auth mode */
+	
 	assoc_req->secinfo.auth_mode = IW_AUTH_ALG_OPEN_SYSTEM;
 
-	/* Clear WEP keys and mark WEP as disabled */
+	
 	assoc_req->secinfo.wep_enabled = 0;
 	for (i = 0; i < 4; i++)
 		assoc_req->wep_keys[i].len = 0;
@@ -1305,15 +1233,7 @@ static void disable_wpa(struct assoc_request *assoc_req)
 	lbs_deb_leave(LBS_DEB_WEXT);
 }
 
-/**
- *  @brief Set Encryption key
- *
- *  @param dev                  A pointer to net_device structure
- *  @param info			A pointer to iw_request_info structure
- *  @param vwrq 		A pointer to iw_param structure
- *  @param extra		A pointer to extra data buf
- *  @return 	   		0 --success, otherwise fail
- */
+
 static int lbs_set_encode(struct net_device *dev,
 		    struct iw_request_info *info,
 		    struct iw_point *dwrq, char *extra)
@@ -1346,9 +1266,7 @@ static int lbs_set_encode(struct net_device *dev,
 		goto out;
 	}
 
-	/* If WEP isn't enabled, or if there is no key data but a valid
-	 * index, set the TX key.
-	 */
+	
 	if (!assoc_req->secinfo.wep_enabled || (dwrq->length == 0 && !is_default))
 		set_tx_key = 1;
 
@@ -1380,15 +1298,7 @@ out:
 	return ret;
 }
 
-/**
- *  @brief Get Extended Encryption key (WPA/802.1x and WEP)
- *
- *  @param dev                  A pointer to net_device structure
- *  @param info			A pointer to iw_request_info structure
- *  @param vwrq 		A pointer to iw_param structure
- *  @param extra		A pointer to extra data buf
- *  @return 	   		0 on success, otherwise failure
- */
+
 static int lbs_get_encodeext(struct net_device *dev,
 			      struct iw_request_info *info,
 			      struct iw_point *dwrq,
@@ -1435,14 +1345,14 @@ static int lbs_get_encodeext(struct net_device *dev,
 		if (   priv->secinfo.wep_enabled
 		    && !priv->secinfo.WPAenabled
 		    && !priv->secinfo.WPA2enabled) {
-			/* WEP */
+			
 			ext->alg = IW_ENCODE_ALG_WEP;
 			ext->key_len = priv->wep_keys[index].len;
 			key = &priv->wep_keys[index].key[0];
 		} else if (   !priv->secinfo.wep_enabled
 		           && (priv->secinfo.WPAenabled ||
 		               priv->secinfo.WPA2enabled)) {
-			/* WPA */
+			
 			struct enc_key * pkey = NULL;
 
 			if (   priv->wpa_mcast_key.len
@@ -1486,15 +1396,7 @@ out:
 	return ret;
 }
 
-/**
- *  @brief Set Encryption key Extended (WPA/802.1x and WEP)
- *
- *  @param dev                  A pointer to net_device structure
- *  @param info			A pointer to iw_request_info structure
- *  @param vwrq 		A pointer to iw_param structure
- *  @param extra		A pointer to extra data buf
- *  @return 	   		0 --success, otherwise fail
- */
+
 static int lbs_set_encodeext(struct net_device *dev,
 			      struct iw_request_info *info,
 			      struct iw_point *dwrq,
@@ -1527,15 +1429,13 @@ static int lbs_set_encodeext(struct net_device *dev,
 		if (ret)
 			goto out;
 
-		/* If WEP isn't enabled, or if there is no key data but a valid
-		 * index, or if the set-TX-key flag was passed, set the TX key.
-		 */
+		
 		if (   !assoc_req->secinfo.wep_enabled
 		    || (dwrq->length == 0 && !is_default)
 		    || (ext->ext_flags & IW_ENCODE_EXT_SET_TX_KEY))
 			set_tx_key = 1;
 
-		/* Copy key to driver */
+		
 		ret = lbs_set_wep_key(assoc_req, ext->key, ext->key_len, index,
 					set_tx_key);
 		if (ret)
@@ -1547,7 +1447,7 @@ static int lbs_set_encodeext(struct net_device *dev,
 			assoc_req->secinfo.auth_mode = IW_AUTH_ALG_OPEN_SYSTEM;
 		}
 
-		/* Mark the various WEP bits as modified */
+		
 		set_bit(ASSOC_FLAG_SECINFO, &assoc_req->flags);
 		if (dwrq->length)
 			set_bit(ASSOC_FLAG_WEP_KEYS, &assoc_req->flags);
@@ -1556,7 +1456,7 @@ static int lbs_set_encodeext(struct net_device *dev,
 	} else if ((alg == IW_ENCODE_ALG_TKIP) || (alg == IW_ENCODE_ALG_CCMP)) {
 		struct enc_key * pkey;
 
-		/* validate key length */
+		
 		if (((alg == IW_ENCODE_ALG_TKIP)
 			&& (ext->key_len != KEY_LEN_WPA_TKIP))
 		    || ((alg == IW_ENCODE_ALG_CCMP)
@@ -1583,7 +1483,7 @@ static int lbs_set_encodeext(struct net_device *dev,
 		if (pkey->len)
 			pkey->flags |= KEY_INFO_WPA_ENABLED;
 
-		/* Do this after zeroing key structure */
+		
 		if (ext->ext_flags & IW_ENCODE_EXT_GROUP_KEY) {
 			pkey->flags |= KEY_INFO_WPA_MCAST;
 		} else {
@@ -1596,7 +1496,7 @@ static int lbs_set_encodeext(struct net_device *dev,
 			pkey->type = KEY_TYPE_ID_AES;
 		}
 
-		/* If WPA isn't enabled yet, do that now */
+		
 		if (   assoc_req->secinfo.WPAenabled == 0
 		    && assoc_req->secinfo.WPA2enabled == 0) {
 			assoc_req->secinfo.WPAenabled = 1;
@@ -1604,18 +1504,14 @@ static int lbs_set_encodeext(struct net_device *dev,
 			set_bit(ASSOC_FLAG_SECINFO, &assoc_req->flags);
 		}
 
-		/* Only disable wep if necessary: can't waste time here. */
+		
 		if (priv->mac_control & CMD_ACT_MAC_WEP_ENABLE)
 			disable_wep(assoc_req);
 	}
 
 out:
 	if (ret == 0) {
-		/* 802.1x and WPA rekeying must happen as quickly as possible,
-		 * especially during the 4-way handshake; thus if in
-		 * infrastructure mode, and either (a) 802.1x is enabled or
-		 * (b) WPA is being used, set the key right away.
-		 */
+		
 		if (assoc_req->mode == IW_MODE_INFRA &&
 		    ((assoc_req->secinfo.key_mgmt & IW_AUTH_KEY_MGMT_802_1X) ||
 		     (assoc_req->secinfo.key_mgmt & IW_AUTH_KEY_MGMT_PSK) ||
@@ -1734,9 +1630,7 @@ static int lbs_set_auth(struct net_device *dev,
 	case IW_AUTH_CIPHER_PAIRWISE:
 	case IW_AUTH_CIPHER_GROUP:
 	case IW_AUTH_DROP_UNENCRYPTED:
-		/*
-		 * libertas does not use these parameters
-		 */
+		
 		break;
 
 	case IW_AUTH_KEY_MGMT:
@@ -1870,9 +1764,7 @@ static int lbs_set_txpow(struct net_device *dev, struct iw_request_info *info,
 	}
 
 	if (vwrq->fixed == 0) {
-		/* User requests automatic tx power control, however there are
-		 * many auto tx settings.  For now use firmware defaults until
-		 * we come up with a good way to expose these to the user. */
+		
 		if (priv->fwrelease < 0x09000000) {
 			ret = lbs_set_power_adapt_cfg(priv, 1,
 					POW_ADAPT_DEFAULT_P0,
@@ -1887,15 +1779,13 @@ static int lbs_set_txpow(struct net_device *dev, struct iw_request_info *info,
 			goto out;
 		dbm = priv->txpower_max;
 	} else {
-		/* Userspace check in iwrange if it should use dBm or mW,
-		 * therefore this should never happen... Jean II */
+		
 		if ((vwrq->flags & IW_TXPOW_TYPE) != IW_TXPOW_DBM) {
 			ret = -EOPNOTSUPP;
 			goto out;
 		}
 
-		/* Validate requested power level against firmware allowed
-		 * levels */
+		
 		if (priv->txpower_min && (dbm < priv->txpower_min)) {
 			ret = -EINVAL;
 			goto out;
@@ -1919,7 +1809,7 @@ static int lbs_set_txpow(struct net_device *dev, struct iw_request_info *info,
 			goto out;
 	}
 
-	/* If the radio was off, turn it on */
+	
 	if (!priv->radio_on) {
 		ret = lbs_set_radio(priv, RADIO_PREAMBLE_AUTO, 1);
 		if (ret)
@@ -1942,27 +1832,20 @@ static int lbs_get_essid(struct net_device *dev, struct iw_request_info *info,
 
 	lbs_deb_enter(LBS_DEB_WEXT);
 
-	/*
-	 * Note : if dwrq->flags != 0, we should get the relevant SSID from
-	 * the SSID list...
-	 */
+	
 
-	/*
-	 * Get the current SSID
-	 */
+	
 	if (priv->connect_status == LBS_CONNECTED) {
 		memcpy(extra, priv->curbssparams.ssid,
 		       priv->curbssparams.ssid_len);
 	} else {
 		memset(extra, 0, 32);
 	}
-	/*
-	 * If none, we may want to get the one that was set
-	 */
+	
 
 	dwrq->length = priv->curbssparams.ssid_len;
 
-	dwrq->flags = 1;	/* active */
+	dwrq->flags = 1;	
 
 	lbs_deb_leave(LBS_DEB_WEXT);
 	return 0;
@@ -1986,7 +1869,7 @@ static int lbs_set_essid(struct net_device *dev, struct iw_request_info *info,
 		goto out;
 	}
 
-	/* Check the size of the string */
+	
 	if (in_ssid_len > IW_ESSID_MAX_SIZE) {
 		ret = -E2BIG;
 		goto out;
@@ -1995,9 +1878,9 @@ static int lbs_set_essid(struct net_device *dev, struct iw_request_info *info,
 	memset(&ssid, 0, sizeof(ssid));
 
 	if (!dwrq->flags || !in_ssid_len) {
-		/* "any" SSID requested; leave SSID blank */
+		
 	} else {
-		/* Specific SSID requested */
+		
 		memcpy(&ssid, extra, in_ssid_len);
 		ssid_len = in_ssid_len;
 	}
@@ -2012,12 +1895,12 @@ static int lbs_set_essid(struct net_device *dev, struct iw_request_info *info,
 out:
 	mutex_lock(&priv->lock);
 	if (ret == 0) {
-		/* Get or create the current association request */
+		
 		assoc_req = lbs_get_association_request(priv);
 		if (!assoc_req) {
 			ret = -ENOMEM;
 		} else {
-			/* Copy the SSID to the association request */
+			
 			memcpy(&assoc_req->ssid, &ssid, IW_ESSID_MAX_SIZE);
 			assoc_req->ssid_len = ssid_len;
 			set_bit(ASSOC_FLAG_SSID, &assoc_req->flags);
@@ -2025,7 +1908,7 @@ out:
 		}
 	}
 
-	/* Cancel the association request if there was an error */
+	
 	if (ret != 0) {
 		lbs_cancel_association_work(priv);
 	}
@@ -2048,7 +1931,7 @@ static int lbs_mesh_get_essid(struct net_device *dev,
 
 	dwrq->length = priv->mesh_ssid_len;
 
-	dwrq->flags = 1;	/* active */
+	dwrq->flags = 1;	
 
 	lbs_deb_leave(LBS_DEB_WEXT);
 	return 0;
@@ -2068,7 +1951,7 @@ static int lbs_mesh_set_essid(struct net_device *dev,
 		goto out;
 	}
 
-	/* Check the size of the string */
+	
 	if (dwrq->length > IW_ESSID_MAX_SIZE) {
 		ret = -E2BIG;
 		goto out;
@@ -2078,7 +1961,7 @@ static int lbs_mesh_set_essid(struct net_device *dev,
 		ret = -EINVAL;
 		goto out;
 	} else {
-		/* Specific SSID requested */
+		
 		memcpy(priv->mesh_ssid, extra, dwrq->length);
 		priv->mesh_ssid_len = dwrq->length;
 	}
@@ -2090,15 +1973,7 @@ static int lbs_mesh_set_essid(struct net_device *dev,
 	return ret;
 }
 
-/**
- *  @brief Connect to the AP or Ad-hoc Network with specific bssid
- *
- *  @param dev          A pointer to net_device structure
- *  @param info         A pointer to iw_request_info structure
- *  @param awrq         A pointer to iw_param structure
- *  @param extra        A pointer to extra data buf
- *  @return             0 --success, otherwise fail
- */
+
 static int lbs_set_wap(struct net_device *dev, struct iw_request_info *info,
 		 struct sockaddr *awrq, char *extra)
 {
@@ -2118,13 +1993,13 @@ static int lbs_set_wap(struct net_device *dev, struct iw_request_info *info,
 
 	mutex_lock(&priv->lock);
 
-	/* Get or create the current association request */
+	
 	assoc_req = lbs_get_association_request(priv);
 	if (!assoc_req) {
 		lbs_cancel_association_work(priv);
 		ret = -ENOMEM;
 	} else {
-		/* Copy the BSSID to the association request */
+		
 		memcpy(&assoc_req->bssid, awrq->sa_data, ETH_ALEN);
 		set_bit(ASSOC_FLAG_BSSID, &assoc_req->flags);
 		lbs_postpone_association_work(priv);
@@ -2135,123 +2010,121 @@ static int lbs_set_wap(struct net_device *dev, struct iw_request_info *info,
 	return ret;
 }
 
-/*
- * iwconfig settable callbacks
- */
+
 static const iw_handler lbs_handler[] = {
-	(iw_handler) NULL,	/* SIOCSIWCOMMIT */
-	(iw_handler) lbs_get_name,	/* SIOCGIWNAME */
-	(iw_handler) NULL,	/* SIOCSIWNWID */
-	(iw_handler) NULL,	/* SIOCGIWNWID */
-	(iw_handler) lbs_set_freq,	/* SIOCSIWFREQ */
-	(iw_handler) lbs_get_freq,	/* SIOCGIWFREQ */
-	(iw_handler) lbs_set_mode,	/* SIOCSIWMODE */
-	(iw_handler) lbs_get_mode,	/* SIOCGIWMODE */
-	(iw_handler) NULL,	/* SIOCSIWSENS */
-	(iw_handler) NULL,	/* SIOCGIWSENS */
-	(iw_handler) NULL,	/* SIOCSIWRANGE */
-	(iw_handler) lbs_get_range,	/* SIOCGIWRANGE */
-	(iw_handler) NULL,	/* SIOCSIWPRIV */
-	(iw_handler) NULL,	/* SIOCGIWPRIV */
-	(iw_handler) NULL,	/* SIOCSIWSTATS */
-	(iw_handler) NULL,	/* SIOCGIWSTATS */
-	iw_handler_set_spy,	/* SIOCSIWSPY */
-	iw_handler_get_spy,	/* SIOCGIWSPY */
-	iw_handler_set_thrspy,	/* SIOCSIWTHRSPY */
-	iw_handler_get_thrspy,	/* SIOCGIWTHRSPY */
-	(iw_handler) lbs_set_wap,	/* SIOCSIWAP */
-	(iw_handler) lbs_get_wap,	/* SIOCGIWAP */
-	(iw_handler) NULL,	/* SIOCSIWMLME */
-	(iw_handler) NULL,	/* SIOCGIWAPLIST - deprecated */
-	(iw_handler) lbs_set_scan,	/* SIOCSIWSCAN */
-	(iw_handler) lbs_get_scan,	/* SIOCGIWSCAN */
-	(iw_handler) lbs_set_essid,	/* SIOCSIWESSID */
-	(iw_handler) lbs_get_essid,	/* SIOCGIWESSID */
-	(iw_handler) lbs_set_nick,	/* SIOCSIWNICKN */
-	(iw_handler) lbs_get_nick,	/* SIOCGIWNICKN */
-	(iw_handler) NULL,	/* -- hole -- */
-	(iw_handler) NULL,	/* -- hole -- */
-	(iw_handler) lbs_set_rate,	/* SIOCSIWRATE */
-	(iw_handler) lbs_get_rate,	/* SIOCGIWRATE */
-	(iw_handler) lbs_set_rts,	/* SIOCSIWRTS */
-	(iw_handler) lbs_get_rts,	/* SIOCGIWRTS */
-	(iw_handler) lbs_set_frag,	/* SIOCSIWFRAG */
-	(iw_handler) lbs_get_frag,	/* SIOCGIWFRAG */
-	(iw_handler) lbs_set_txpow,	/* SIOCSIWTXPOW */
-	(iw_handler) lbs_get_txpow,	/* SIOCGIWTXPOW */
-	(iw_handler) lbs_set_retry,	/* SIOCSIWRETRY */
-	(iw_handler) lbs_get_retry,	/* SIOCGIWRETRY */
-	(iw_handler) lbs_set_encode,	/* SIOCSIWENCODE */
-	(iw_handler) lbs_get_encode,	/* SIOCGIWENCODE */
-	(iw_handler) lbs_set_power,	/* SIOCSIWPOWER */
-	(iw_handler) lbs_get_power,	/* SIOCGIWPOWER */
-	(iw_handler) NULL,	/* -- hole -- */
-	(iw_handler) NULL,	/* -- hole -- */
-	(iw_handler) lbs_set_genie,	/* SIOCSIWGENIE */
-	(iw_handler) lbs_get_genie,	/* SIOCGIWGENIE */
-	(iw_handler) lbs_set_auth,	/* SIOCSIWAUTH */
-	(iw_handler) lbs_get_auth,	/* SIOCGIWAUTH */
-	(iw_handler) lbs_set_encodeext,/* SIOCSIWENCODEEXT */
-	(iw_handler) lbs_get_encodeext,/* SIOCGIWENCODEEXT */
-	(iw_handler) NULL,		/* SIOCSIWPMKSA */
+	(iw_handler) NULL,	
+	(iw_handler) lbs_get_name,	
+	(iw_handler) NULL,	
+	(iw_handler) NULL,	
+	(iw_handler) lbs_set_freq,	
+	(iw_handler) lbs_get_freq,	
+	(iw_handler) lbs_set_mode,	
+	(iw_handler) lbs_get_mode,	
+	(iw_handler) NULL,	
+	(iw_handler) NULL,	
+	(iw_handler) NULL,	
+	(iw_handler) lbs_get_range,	
+	(iw_handler) NULL,	
+	(iw_handler) NULL,	
+	(iw_handler) NULL,	
+	(iw_handler) NULL,	
+	iw_handler_set_spy,	
+	iw_handler_get_spy,	
+	iw_handler_set_thrspy,	
+	iw_handler_get_thrspy,	
+	(iw_handler) lbs_set_wap,	
+	(iw_handler) lbs_get_wap,	
+	(iw_handler) NULL,	
+	(iw_handler) NULL,	
+	(iw_handler) lbs_set_scan,	
+	(iw_handler) lbs_get_scan,	
+	(iw_handler) lbs_set_essid,	
+	(iw_handler) lbs_get_essid,	
+	(iw_handler) lbs_set_nick,	
+	(iw_handler) lbs_get_nick,	
+	(iw_handler) NULL,	
+	(iw_handler) NULL,	
+	(iw_handler) lbs_set_rate,	
+	(iw_handler) lbs_get_rate,	
+	(iw_handler) lbs_set_rts,	
+	(iw_handler) lbs_get_rts,	
+	(iw_handler) lbs_set_frag,	
+	(iw_handler) lbs_get_frag,	
+	(iw_handler) lbs_set_txpow,	
+	(iw_handler) lbs_get_txpow,	
+	(iw_handler) lbs_set_retry,	
+	(iw_handler) lbs_get_retry,	
+	(iw_handler) lbs_set_encode,	
+	(iw_handler) lbs_get_encode,	
+	(iw_handler) lbs_set_power,	
+	(iw_handler) lbs_get_power,	
+	(iw_handler) NULL,	
+	(iw_handler) NULL,	
+	(iw_handler) lbs_set_genie,	
+	(iw_handler) lbs_get_genie,	
+	(iw_handler) lbs_set_auth,	
+	(iw_handler) lbs_get_auth,	
+	(iw_handler) lbs_set_encodeext,
+	(iw_handler) lbs_get_encodeext,
+	(iw_handler) NULL,		
 };
 
 static const iw_handler mesh_wlan_handler[] = {
-	(iw_handler) NULL,	/* SIOCSIWCOMMIT */
-	(iw_handler) lbs_get_name,	/* SIOCGIWNAME */
-	(iw_handler) NULL,	/* SIOCSIWNWID */
-	(iw_handler) NULL,	/* SIOCGIWNWID */
-	(iw_handler) lbs_mesh_set_freq,	/* SIOCSIWFREQ */
-	(iw_handler) lbs_get_freq,	/* SIOCGIWFREQ */
-	(iw_handler) NULL,		/* SIOCSIWMODE */
-	(iw_handler) mesh_wlan_get_mode,	/* SIOCGIWMODE */
-	(iw_handler) NULL,	/* SIOCSIWSENS */
-	(iw_handler) NULL,	/* SIOCGIWSENS */
-	(iw_handler) NULL,	/* SIOCSIWRANGE */
-	(iw_handler) lbs_get_range,	/* SIOCGIWRANGE */
-	(iw_handler) NULL,	/* SIOCSIWPRIV */
-	(iw_handler) NULL,	/* SIOCGIWPRIV */
-	(iw_handler) NULL,	/* SIOCSIWSTATS */
-	(iw_handler) NULL,	/* SIOCGIWSTATS */
-	iw_handler_set_spy,	/* SIOCSIWSPY */
-	iw_handler_get_spy,	/* SIOCGIWSPY */
-	iw_handler_set_thrspy,	/* SIOCSIWTHRSPY */
-	iw_handler_get_thrspy,	/* SIOCGIWTHRSPY */
-	(iw_handler) NULL,	/* SIOCSIWAP */
-	(iw_handler) NULL,	/* SIOCGIWAP */
-	(iw_handler) NULL,	/* SIOCSIWMLME */
-	(iw_handler) NULL,	/* SIOCGIWAPLIST - deprecated */
-	(iw_handler) lbs_set_scan,	/* SIOCSIWSCAN */
-	(iw_handler) lbs_get_scan,	/* SIOCGIWSCAN */
-	(iw_handler) lbs_mesh_set_essid,/* SIOCSIWESSID */
-	(iw_handler) lbs_mesh_get_essid,/* SIOCGIWESSID */
-	(iw_handler) NULL,		/* SIOCSIWNICKN */
-	(iw_handler) mesh_get_nick,	/* SIOCGIWNICKN */
-	(iw_handler) NULL,	/* -- hole -- */
-	(iw_handler) NULL,	/* -- hole -- */
-	(iw_handler) lbs_set_rate,	/* SIOCSIWRATE */
-	(iw_handler) lbs_get_rate,	/* SIOCGIWRATE */
-	(iw_handler) lbs_set_rts,	/* SIOCSIWRTS */
-	(iw_handler) lbs_get_rts,	/* SIOCGIWRTS */
-	(iw_handler) lbs_set_frag,	/* SIOCSIWFRAG */
-	(iw_handler) lbs_get_frag,	/* SIOCGIWFRAG */
-	(iw_handler) lbs_set_txpow,	/* SIOCSIWTXPOW */
-	(iw_handler) lbs_get_txpow,	/* SIOCGIWTXPOW */
-	(iw_handler) lbs_set_retry,	/* SIOCSIWRETRY */
-	(iw_handler) lbs_get_retry,	/* SIOCGIWRETRY */
-	(iw_handler) lbs_set_encode,	/* SIOCSIWENCODE */
-	(iw_handler) lbs_get_encode,	/* SIOCGIWENCODE */
-	(iw_handler) lbs_set_power,	/* SIOCSIWPOWER */
-	(iw_handler) lbs_get_power,	/* SIOCGIWPOWER */
-	(iw_handler) NULL,	/* -- hole -- */
-	(iw_handler) NULL,	/* -- hole -- */
-	(iw_handler) lbs_set_genie,	/* SIOCSIWGENIE */
-	(iw_handler) lbs_get_genie,	/* SIOCGIWGENIE */
-	(iw_handler) lbs_set_auth,	/* SIOCSIWAUTH */
-	(iw_handler) lbs_get_auth,	/* SIOCGIWAUTH */
-	(iw_handler) lbs_set_encodeext,/* SIOCSIWENCODEEXT */
-	(iw_handler) lbs_get_encodeext,/* SIOCGIWENCODEEXT */
-	(iw_handler) NULL,		/* SIOCSIWPMKSA */
+	(iw_handler) NULL,	
+	(iw_handler) lbs_get_name,	
+	(iw_handler) NULL,	
+	(iw_handler) NULL,	
+	(iw_handler) lbs_mesh_set_freq,	
+	(iw_handler) lbs_get_freq,	
+	(iw_handler) NULL,		
+	(iw_handler) mesh_wlan_get_mode,	
+	(iw_handler) NULL,	
+	(iw_handler) NULL,	
+	(iw_handler) NULL,	
+	(iw_handler) lbs_get_range,	
+	(iw_handler) NULL,	
+	(iw_handler) NULL,	
+	(iw_handler) NULL,	
+	(iw_handler) NULL,	
+	iw_handler_set_spy,	
+	iw_handler_get_spy,	
+	iw_handler_set_thrspy,	
+	iw_handler_get_thrspy,	
+	(iw_handler) NULL,	
+	(iw_handler) NULL,	
+	(iw_handler) NULL,	
+	(iw_handler) NULL,	
+	(iw_handler) lbs_set_scan,	
+	(iw_handler) lbs_get_scan,	
+	(iw_handler) lbs_mesh_set_essid,
+	(iw_handler) lbs_mesh_get_essid,
+	(iw_handler) NULL,		
+	(iw_handler) mesh_get_nick,	
+	(iw_handler) NULL,	
+	(iw_handler) NULL,	
+	(iw_handler) lbs_set_rate,	
+	(iw_handler) lbs_get_rate,	
+	(iw_handler) lbs_set_rts,	
+	(iw_handler) lbs_get_rts,	
+	(iw_handler) lbs_set_frag,	
+	(iw_handler) lbs_get_frag,	
+	(iw_handler) lbs_set_txpow,	
+	(iw_handler) lbs_get_txpow,	
+	(iw_handler) lbs_set_retry,	
+	(iw_handler) lbs_get_retry,	
+	(iw_handler) lbs_set_encode,	
+	(iw_handler) lbs_get_encode,	
+	(iw_handler) lbs_set_power,	
+	(iw_handler) lbs_get_power,	
+	(iw_handler) NULL,	
+	(iw_handler) NULL,	
+	(iw_handler) lbs_set_genie,	
+	(iw_handler) lbs_get_genie,	
+	(iw_handler) lbs_set_auth,	
+	(iw_handler) lbs_get_auth,	
+	(iw_handler) lbs_set_encodeext,
+	(iw_handler) lbs_get_encodeext,
+	(iw_handler) NULL,		
 };
 struct iw_handler_def lbs_handler_def = {
 	.num_standard	= ARRAY_SIZE(lbs_handler),

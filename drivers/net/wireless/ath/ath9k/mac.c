@@ -1,18 +1,4 @@
-/*
- * Copyright (c) 2008-2009 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+
 
 #include "ath9k.h"
 
@@ -96,8 +82,8 @@ bool ath9k_hw_updatetxtriglevel(struct ath_hw *ah, bool bIncTrigLevel)
 
 bool ath9k_hw_stoptxdma(struct ath_hw *ah, u32 q)
 {
-#define ATH9K_TX_STOP_DMA_TIMEOUT	4000    /* usec */
-#define ATH9K_TIME_QUANTUM		100     /* usec */
+#define ATH9K_TX_STOP_DMA_TIMEOUT	4000    
+#define ATH9K_TIME_QUANTUM		100     
 
 	struct ath9k_hw_capabilities *pCap = &ah->caps;
 	struct ath9k_tx_queue_info *qi;
@@ -954,14 +940,14 @@ void ath9k_hw_stoppcurecv(struct ath_hw *ah)
 
 bool ath9k_hw_stopdmarecv(struct ath_hw *ah)
 {
-#define AH_RX_STOP_DMA_TIMEOUT 10000   /* usec */
-#define AH_RX_TIME_QUANTUM     100     /* usec */
+#define AH_RX_STOP_DMA_TIMEOUT 10000   
+#define AH_RX_TIME_QUANTUM     100     
 
 	int i;
 
 	REG_WRITE(ah, AR_CR, AR_CR_RXD);
 
-	/* Wait for rx enable bit to go low */
+	
 	for (i = AH_RX_STOP_DMA_TIMEOUT / AH_TIME_QUANTUM; i != 0; i--) {
 		if ((REG_READ(ah, AR_CR) & AR_CR_RXE) == 0)
 			break;

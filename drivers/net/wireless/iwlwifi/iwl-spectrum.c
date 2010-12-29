@@ -1,31 +1,4 @@
-/******************************************************************************
- *
- * Copyright(c) 2003 - 2009 Intel Corporation. All rights reserved.
- *
- * Portions of this file are derived from the ipw3945 project, as well
- * as portions of the ieee80211 subsystem header files.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of version 2 of the GNU General Public License as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
- *
- * The full GNU General Public License is included in this distribution in the
- * file called LICENSE.
- *
- * Contact Information:
- *  Intel Linux Wireless <ilw@linux.intel.com>
- * Intel Corporation, 5200 N.E. Elam Young Parkway, Hillsboro, OR 97124-6497
- *
- *****************************************************************************/
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -48,14 +21,9 @@
 #define BEACON_TIME_MASK_HIGH	0xFF000000
 #define TIME_UNIT		1024
 
-/*
- * extended beacon time format
- * time in usec will be changed into a 32-bit value in 8:24 format
- * the high 1 byte is the beacon counts
- * the lower 3 bytes is the time in usec within one beacon interval
- */
 
-/* TOOD: was used in sysfs debug interface need to add to mac */
+
+
 #if 0
 static u32 iwl_usecs_to_beacons(u32 usec, u32 beacon_interval)
 {
@@ -72,9 +40,7 @@ static u32 iwl_usecs_to_beacons(u32 usec, u32 beacon_interval)
 	return (quot << 24) + rem;
 }
 
-/* base is usually what we get from ucode with each received frame,
- * the same as HW timer counter counting down
- */
+
 
 static __le32 iwl_add_beacon_time(u32 base, u32 addon, u32 beacon_interval)
 {
@@ -152,7 +118,7 @@ static int iwl_get_measurement(struct iwl_priv *priv,
 
 	spectrum_resp_status = le16_to_cpu(res->u.spectrum.status);
 	switch (spectrum_resp_status) {
-	case 0:		/* Command will be handled */
+	case 0:		
 		if (res->u.spectrum.id != 0xff) {
 			IWL_DEBUG_INFO(priv,
 				"Replaced existing measurement: %d\n",
@@ -163,7 +129,7 @@ static int iwl_get_measurement(struct iwl_priv *priv,
 		rc = 0;
 		break;
 
-	case 1:		/* Command will not be handled */
+	case 1:		
 		rc = -EAGAIN;
 		break;
 	}

@@ -1,6 +1,4 @@
-/**
-  * This file contains definition for IOCTL call.
-  */
+
 #ifndef	_LBS_WEXT_H_
 #define	_LBS_WEXT_H_
 

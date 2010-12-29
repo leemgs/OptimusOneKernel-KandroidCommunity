@@ -1,40 +1,4 @@
-/*
- * Atheros AR9170 driver
- *
- * MAC programming
- *
- * Copyright 2008, Johannes Berg <johannes@sipsolutions.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; see the file COPYING.  If not, see
- * http://www.gnu.org/licenses/.
- *
- * This file incorporates work covered by the following copyright and
- * permission notice:
- *    Copyright (c) 2007-2008 Atheros Communications, Inc.
- *
- *    Permission to use, copy, modify, and/or distribute this software for any
- *    purpose with or without fee is hereby granted, provided that the above
- *    copyright notice and this permission notice appear in all copies.
- *
- *    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- *    WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- *    MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- *    ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- *    WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- *    ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- *    OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+
 #include "ar9170.h"
 #include "cmd.h"
 
@@ -77,7 +41,7 @@ int ar9170_set_basic_rates(struct ar9170 *ar)
 
 	ofdm = ar->vif->bss_conf.basic_rates >> 4;
 
-	/* FIXME: is still necessary? */
+	
 	if (ar->hw->conf.channel->band == IEEE80211_BAND_5GHZ)
 		cck = 0;
 	else
@@ -125,11 +89,11 @@ static int ar9170_set_ampdu_density(struct ar9170 *ar, u8 mpdudensity)
 {
 	u32 val;
 
-	/* don't allow AMPDU density > 8us */
+	
 	if (mpdudensity > 6)
 		return -EINVAL;
 
-	/* Watch out! Otus uses slightly different density values. */
+	
 	val = 0x140a00 | (mpdudensity ? (mpdudensity + 1) : 0);
 
 	ar9170_regwrite_begin(ar);
@@ -147,7 +111,7 @@ int ar9170_init_mac(struct ar9170 *ar)
 
 	ar9170_regwrite(AR9170_MAC_REG_RETRY_MAX, 0);
 
-	/* enable MMIC */
+	
 	ar9170_regwrite(AR9170_MAC_REG_SNIFFER,
 			AR9170_MAC_REG_SNIFFER_DEFAULTS);
 
@@ -157,59 +121,59 @@ int ar9170_init_mac(struct ar9170 *ar)
 	ar9170_regwrite(AR9170_MAC_REG_EIFS_AND_SIFS, 0xa144000);
 	ar9170_regwrite(AR9170_MAC_REG_SLOT_TIME, 9 << 10);
 
-	/* CF-END mode */
+	
 	ar9170_regwrite(0x1c3b2c, 0x19000000);
 
-	/* NAV protects ACK only (in TXOP) */
+	
 	ar9170_regwrite(0x1c3b38, 0x201);
 
-	/* Set Beacon PHY CTRL's TPC to 0x7, TA1=1 */
-	/* OTUS set AM to 0x1 */
+	
+	
 	ar9170_regwrite(AR9170_MAC_REG_BCN_HT1, 0x8000170);
 
 	ar9170_regwrite(AR9170_MAC_REG_BACKOFF_PROTECT, 0x105);
 
-	/* AGG test code*/
-	/* Aggregation MAX number and timeout */
+	
+	
 	ar9170_regwrite(0x1c3b9c, 0x10000a);
 
 	ar9170_regwrite(AR9170_MAC_REG_FRAMETYPE_FILTER,
 			AR9170_MAC_REG_FTF_DEFAULTS);
 
-	/* Enable deaggregator, response in sniffer mode */
+	
 	ar9170_regwrite(0x1c3c40, 0x1 | 1<<30);
 
-	/* rate sets */
+	
 	ar9170_regwrite(AR9170_MAC_REG_BASIC_RATE, 0x150f);
 	ar9170_regwrite(AR9170_MAC_REG_MANDATORY_RATE, 0x150f);
 	ar9170_regwrite(AR9170_MAC_REG_RTS_CTS_RATE, 0x10b01bb);
 
-	/* MIMO response control */
-	ar9170_regwrite(0x1c3694, 0x4003C1E);/* bit 26~28  otus-AM */
+	
+	ar9170_regwrite(0x1c3694, 0x4003C1E);
 
-	/* switch MAC to OTUS interface */
+	
 	ar9170_regwrite(0x1c3600, 0x3);
 
 	ar9170_regwrite(AR9170_MAC_REG_AMPDU_RX_THRESH, 0xffff);
 
-	/* set PHY register read timeout (??) */
+	
 	ar9170_regwrite(AR9170_MAC_REG_MISC_680, 0xf00008);
 
-	/* Disable Rx TimeOut, workaround for BB. */
+	
 	ar9170_regwrite(AR9170_MAC_REG_RX_TIMEOUT, 0x0);
 
-	/* Set CPU clock frequency to 88/80MHz */
+	
 	ar9170_regwrite(AR9170_PWR_REG_CLOCK_SEL,
 			AR9170_PWR_CLK_AHB_80_88MHZ |
 			AR9170_PWR_CLK_DAC_160_INV_DLY);
 
-	/* Set WLAN DMA interrupt mode: generate int per packet */
+	
 	ar9170_regwrite(AR9170_MAC_REG_TXRX_MPI, 0x110011);
 
 	ar9170_regwrite(AR9170_MAC_REG_FCS_SELECT,
 			AR9170_MAC_FCS_FIFO_PROT);
 
-	/* Disables the CF_END frame, undocumented register */
+	
 	ar9170_regwrite(AR9170_MAC_REG_TXOP_NOT_ENOUGH_IND,
 			0x141E0F48);
 
@@ -282,13 +246,7 @@ static int ar9170_set_promiscouous(struct ar9170 *ar)
 	if (ar->sniffer_enabled) {
 		sniffer |= AR9170_MAC_REG_SNIFFER_ENABLE_PROMISC;
 
-		/*
-		 * Rx decryption works in place.
-		 *
-		 * If we don't disable it, the hardware will render all
-		 * encrypted frames which are encrypted with an unknown
-		 * key useless.
-		 */
+		
 
 		encr_mode |= AR9170_MAC_REG_ENCRYPTION_RX_SOFTWARE;
 		ar->sniffer_enabled = true;
@@ -355,7 +313,7 @@ int ar9170_set_operating_mode(struct ar9170 *ar)
 	if (err)
 		return err;
 
-	/* set AMPDU density to 8us. */
+	
 	err = ar9170_set_ampdu_density(ar, 6);
 	if (err)
 		return err;
@@ -426,10 +384,7 @@ int ar9170_update_beacon(struct ar9170 *ar)
 
 	ar9170_regwrite_begin(ar);
 	for (i = 0; i < DIV_ROUND_UP(skb->len, 4); i++) {
-		/*
-		 * XXX: This accesses beyond skb data for up
-		 *	to the last 3 bytes!!
-		 */
+		
 
 		if (old && (data[i] == old[i]))
 			continue;
@@ -438,7 +393,7 @@ int ar9170_update_beacon(struct ar9170 *ar)
 		ar9170_regwrite(AR9170_BEACON_BUFFER_ADDRESS + 4 * i, word);
 	}
 
-	/* XXX: use skb->cb info */
+	
 	if (ar->hw->conf.channel->band == IEEE80211_BAND_2GHZ)
 		ar9170_regwrite(AR9170_MAC_REG_BCN_PLCP,
 				((skb->len + 4) << (3 + 16)) + 0x0400);

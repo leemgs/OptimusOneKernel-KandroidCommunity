@@ -1,30 +1,4 @@
-/*
 
-  Broadcom B43 wireless driver
-  IEEE 802.11g PHY driver
-
-  Copyright (c) 2005 Martin Langer <martin-langer@gmx.de>,
-  Copyright (c) 2005-2007 Stefano Brivio <stefano.brivio@polimi.it>
-  Copyright (c) 2005-2008 Michael Buesch <mb@bu3sch.de>
-  Copyright (c) 2005, 2006 Danny van Dyk <kugelfang@gentoo.org>
-  Copyright (c) 2005, 2006 Andreas Jaggi <andreas.jaggi@waterwave.ch>
-
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program; see the file COPYING.  If not, write to
-  the Free Software Foundation, Inc., 51 Franklin Steet, Fifth Floor,
-  Boston, MA 02110-1301, USA.
-
-*/
 
 #include "b43.h"
 #include "phy_g.h"
@@ -68,7 +42,7 @@ static void b43_calc_nrssi_threshold(struct b43_wldev *dev);
 #define bitrev4(tmp) (bitrev8(tmp) >> 4)
 
 
-/* Get the freq, as it has to be written to the device. */
+
 static inline u16 channel2freq_bg(u8 channel)
 {
 	B43_WARN_ON(!(channel >= 1 && channel <= 14));
@@ -81,7 +55,7 @@ static void generate_rfatt_list(struct b43_wldev *dev,
 {
 	struct b43_phy *phy = &dev->phy;
 
-	/* APHY.rev < 5 || GPHY.rev < 6 */
+	
 	static const struct b43_rfatt rfatt_0[] = {
 		{.att = 3,.with_padmix = 0,},
 		{.att = 1,.with_padmix = 0,},
@@ -98,7 +72,7 @@ static void generate_rfatt_list(struct b43_wldev *dev,
 		{.att = 3,.with_padmix = 1,},
 		{.att = 4,.with_padmix = 1,},
 	};
-	/* Radio.rev == 8 && Radio.version == 0x2050 */
+	
 	static const struct b43_rfatt rfatt_1[] = {
 		{.att = 2,.with_padmix = 1,},
 		{.att = 4,.with_padmix = 1,},
@@ -108,7 +82,7 @@ static void generate_rfatt_list(struct b43_wldev *dev,
 		{.att = 12,.with_padmix = 1,},
 		{.att = 14,.with_padmix = 1,},
 	};
-	/* Otherwise */
+	
 	static const struct b43_rfatt rfatt_2[] = {
 		{.att = 0,.with_padmix = 1,},
 		{.att = 2,.with_padmix = 1,},
@@ -120,7 +94,7 @@ static void generate_rfatt_list(struct b43_wldev *dev,
 	};
 
 	if (!b43_has_hardware_pctl(dev)) {
-		/* Software pctl */
+		
 		list->list = rfatt_0;
 		list->len = ARRAY_SIZE(rfatt_0);
 		list->min_val = 0;
@@ -128,14 +102,14 @@ static void generate_rfatt_list(struct b43_wldev *dev,
 		return;
 	}
 	if (phy->radio_ver == 0x2050 && phy->radio_rev == 8) {
-		/* Hardware pctl */
+		
 		list->list = rfatt_1;
 		list->len = ARRAY_SIZE(rfatt_1);
 		list->min_val = 0;
 		list->max_val = 14;
 		return;
 	}
-	/* Hardware pctl */
+	
 	list->list = rfatt_2;
 	list->len = ARRAY_SIZE(rfatt_2);
 	list->min_val = 0;
@@ -171,7 +145,7 @@ static void b43_shm_clear_tssi(struct b43_wldev *dev)
 	b43_shm_write16(dev, B43_SHM_SHARED, 0x0072, 0x7F7F);
 }
 
-/* Synthetic PU workaround */
+
 static void b43_synth_pu_workaround(struct b43_wldev *dev, u8 channel)
 {
 	struct b43_phy *phy = &dev->phy;
@@ -179,7 +153,7 @@ static void b43_synth_pu_workaround(struct b43_wldev *dev, u8 channel)
 	might_sleep();
 
 	if (phy->radio_ver != 0x2050 || phy->radio_rev >= 6) {
-		/* We do not need the workaround. */
+		
 		return;
 	}
 
@@ -193,7 +167,7 @@ static void b43_synth_pu_workaround(struct b43_wldev *dev, u8 channel)
 	b43_write16(dev, B43_MMIO_CHANNEL, channel2freq_bg(channel));
 }
 
-/* Set the baseband attenuation value on chip. */
+
 void b43_gphy_set_baseband_attenuation(struct b43_wldev *dev,
 				       u16 baseband_attenuation)
 {
@@ -210,7 +184,7 @@ void b43_gphy_set_baseband_attenuation(struct b43_wldev *dev,
 	}
 }
 
-/* Adjust the transmission power output (G-PHY) */
+
 static void b43_set_txpower_g(struct b43_wldev *dev,
 			      const struct b43_bbatt *bbatt,
 			      const struct b43_rfatt *rfatt, u8 tx_control)
@@ -228,8 +202,7 @@ static void b43_set_txpower_g(struct b43_wldev *dev,
 	if (unlikely(tx_bias == 0xFF))
 		tx_bias = 0;
 
-	/* Save the values for later. Use memmove, because it's valid
-	 * to pass &gphy->rfatt as rfatt pointer argument. Same for bbatt. */
+	
 	gphy->tx_control = tx_control;
 	memmove(&gphy->rfatt, rfatt, sizeof(*rfatt));
 	gphy->rfatt.with_padmix = !!(tx_control & B43_TXCTL_TXMIX);
@@ -259,7 +232,7 @@ static void b43_set_txpower_g(struct b43_wldev *dev,
 	b43_lo_g_adjust(dev);
 }
 
-/* GPHY_TSSI_Power_Lookup_Table_Init */
+
 static void b43_gphy_tssi_power_lt_init(struct b43_wldev *dev)
 {
 	struct b43_phy_g *gphy = dev->phy.g;
@@ -277,7 +250,7 @@ static void b43_gphy_tssi_power_lt_init(struct b43_wldev *dev)
 	}
 }
 
-/* GPHY_Gain_Lookup_Table_Init */
+
 static void b43_gphy_gain_lt_init(struct b43_wldev *dev)
 {
 	struct b43_phy *phy = &dev->phy;
@@ -368,14 +341,14 @@ static void b43_set_original_gains(struct b43_wldev *dev)
 	b43_dummy_transmission(dev, false, true);
 }
 
-/* http://bcm-specs.sipsolutions.net/NRSSILookupTable */
+
 static void b43_nrssi_hw_write(struct b43_wldev *dev, u16 offset, s16 val)
 {
 	b43_phy_write(dev, B43_PHY_NRSSILT_CTRL, offset);
 	b43_phy_write(dev, B43_PHY_NRSSILT_DATA, (u16) val);
 }
 
-/* http://bcm-specs.sipsolutions.net/NRSSILookupTable */
+
 static s16 b43_nrssi_hw_read(struct b43_wldev *dev, u16 offset)
 {
 	u16 val;
@@ -386,7 +359,7 @@ static s16 b43_nrssi_hw_read(struct b43_wldev *dev, u16 offset)
 	return (s16) val;
 }
 
-/* http://bcm-specs.sipsolutions.net/NRSSILookupTable */
+
 static void b43_nrssi_hw_update(struct b43_wldev *dev, u16 val)
 {
 	u16 i;
@@ -400,7 +373,7 @@ static void b43_nrssi_hw_update(struct b43_wldev *dev, u16 val)
 	}
 }
 
-/* http://bcm-specs.sipsolutions.net/NRSSILookupTable */
+
 static void b43_nrssi_mem_update(struct b43_wldev *dev)
 {
 	struct b43_phy_g *gphy = dev->phy.g;
@@ -428,7 +401,7 @@ static void b43_calc_nrssi_offset(struct b43_wldev *dev)
 	backup[0] = b43_phy_read(dev, 0x0001);
 	backup[1] = b43_phy_read(dev, 0x0811);
 	backup[2] = b43_phy_read(dev, 0x0812);
-	if (phy->rev != 1) {	/* Not in specs, but needed to prevent PPC machine check */
+	if (phy->rev != 1) {	
 		backup[3] = b43_phy_read(dev, 0x0814);
 		backup[4] = b43_phy_read(dev, 0x0815);
 	}
@@ -486,7 +459,7 @@ static void b43_calc_nrssi_offset(struct b43_wldev *dev)
 			saved = 4;
 	} else {
 		b43_radio_mask(dev, 0x007A, 0x007F);
-		if (phy->rev != 1) {	/* Not in specs, but needed to prevent PPC machine check */
+		if (phy->rev != 1) {	
 			b43_phy_set(dev, 0x0814, 0x0001);
 			b43_phy_mask(dev, 0x0815, 0xFFFE);
 		}
@@ -502,7 +475,7 @@ static void b43_calc_nrssi_offset(struct b43_wldev *dev)
 		} else {
 			b43_phy_set(dev, 0x000A, 0x2000);
 		}
-		if (phy->rev != 1) {	/* Not in specs, but needed to prevent PPC machine check */
+		if (phy->rev != 1) {	
 			b43_phy_set(dev, 0x0814, 0x0004);
 			b43_phy_mask(dev, 0x0815, 0xFFFB);
 		}
@@ -539,7 +512,7 @@ static void b43_calc_nrssi_offset(struct b43_wldev *dev)
 		b43_phy_write(dev, 0x080F, backup[14]);
 		b43_phy_write(dev, 0x0810, backup[15]);
 	}
-	if (phy->rev != 1) {	/* Not in specs, but needed to prevent PPC machine check */
+	if (phy->rev != 1) {	
 		b43_phy_write(dev, 0x0814, backup[3]);
 		b43_phy_write(dev, 0x0815, backup[4]);
 	}
@@ -763,10 +736,7 @@ static void b43_calc_nrssi_threshold(struct b43_wldev *dev)
 	}
 }
 
-/* Stack implementation to save/restore values from the
- * interference mitigation code.
- * It is save to restore values in random order.
- */
+
 static void _stack_save(u32 *_stackptr, size_t *stackidx,
 			u8 id, u16 offset, u16 value)
 {
@@ -1228,15 +1198,15 @@ static u16 radio2050_rfover_val(struct b43_wldev *dev,
 }
 
 struct init2050_saved_values {
-	/* Core registers */
+	
 	u16 reg_3EC;
 	u16 reg_3E6;
 	u16 reg_3F4;
-	/* Radio registers */
+	
 	u16 radio_43;
 	u16 radio_51;
 	u16 radio_52;
-	/* PHY registers */
+	
 	u16 phy_pgactl;
 	u16 phy_cck_5A;
 	u16 phy_cck_59;
@@ -1263,7 +1233,7 @@ static u16 b43_radio_init2050(struct b43_wldev *dev)
 	u16 i, j;
 	u32 tmp1 = 0, tmp2 = 0;
 
-	memset(&sav, 0, sizeof(sav));	/* get rid of "may be used uninitialized..." */
+	memset(&sav, 0, sizeof(sav));	
 
 	sav.radio_43 = b43_radio_read16(dev, 0x43);
 	sav.radio_51 = b43_radio_read16(dev, 0x51);
@@ -1448,7 +1418,7 @@ static u16 b43_radio_init2050(struct b43_wldev *dev)
 			break;
 	}
 
-	/* Restore the registers */
+	
 	b43_phy_write(dev, B43_PHY_PGACTL, sav.phy_pgactl);
 	b43_radio_write16(dev, 0x51, sav.radio_51);
 	b43_radio_write16(dev, 0x52, sav.radio_52);
@@ -1552,7 +1522,7 @@ static void b43_phy_initb5(struct b43_wldev *dev)
 		b43_write16(dev, 0x03E4, 0x3000);
 
 	old_channel = phy->channel;
-	/* Force to channel 7, even if not supported. */
+	
 	b43_gphy_channel_switch(dev, 7, 0);
 
 	if (phy->radio_ver != 0x2050) {
@@ -1610,7 +1580,7 @@ static void b43_phy_initb6(struct b43_wldev *dev)
 		b43_hf_write(dev, b43_hf_read(dev)
 			     | B43_HF_TSSIRPSMW);
 	}
-	B43_WARN_ON(phy->radio_rev == 6 || phy->radio_rev == 7);	/* We had code for these revs here... */
+	B43_WARN_ON(phy->radio_rev == 6 || phy->radio_rev == 7);	
 	if (phy->radio_rev == 8) {
 		b43_radio_write16(dev, 0x51, 0);
 		b43_radio_write16(dev, 0x52, 0x40);
@@ -1719,7 +1689,7 @@ static void b43_calc_loopback_gain(struct b43_wldev *dev)
 	backup_phy[1] = b43_phy_read(dev, B43_PHY_CCKBBANDCFG);
 	backup_phy[2] = b43_phy_read(dev, B43_PHY_RFOVER);
 	backup_phy[3] = b43_phy_read(dev, B43_PHY_RFOVERVAL);
-	if (phy->rev != 1) {	/* Not in specs, but needed to prevent PPC machine check */
+	if (phy->rev != 1) {	
 		backup_phy[4] = b43_phy_read(dev, B43_PHY_ANALOGOVER);
 		backup_phy[5] = b43_phy_read(dev, B43_PHY_ANALOGOVERVAL);
 	}
@@ -1744,7 +1714,7 @@ static void b43_calc_loopback_gain(struct b43_wldev *dev)
 	b43_phy_mask(dev, B43_PHY_RFOVERVAL, 0xFFFD);
 	b43_phy_set(dev, B43_PHY_RFOVER, 0x0001);
 	b43_phy_mask(dev, B43_PHY_RFOVERVAL, 0xFFFE);
-	if (phy->rev != 1) {	/* Not in specs, but needed to prevent PPC machine check */
+	if (phy->rev != 1) {	
 		b43_phy_set(dev, B43_PHY_ANALOGOVER, 0x0001);
 		b43_phy_mask(dev, B43_PHY_ANALOGOVERVAL, 0xFFFE);
 		b43_phy_set(dev, B43_PHY_ANALOGOVER, 0x0002);
@@ -1760,7 +1730,7 @@ static void b43_calc_loopback_gain(struct b43_wldev *dev)
 	b43_phy_write(dev, B43_PHY_CCK(0x58), 0x000D);
 
 	b43_phy_set(dev, B43_PHY_CCK(0x0A), 0x2000);
-	if (phy->rev != 1) {	/* Not in specs, but needed to prevent PPC machine check */
+	if (phy->rev != 1) {	
 		b43_phy_set(dev, B43_PHY_ANALOGOVER, 0x0004);
 		b43_phy_mask(dev, B43_PHY_ANALOGOVERVAL, 0xFFFB);
 	}
@@ -1826,7 +1796,7 @@ static void b43_calc_loopback_gain(struct b43_wldev *dev)
 		trsw_rx = 0x18;
       exit_loop2:
 
-	if (phy->rev != 1) {	/* Not in specs, but needed to prevent PPC machine check */
+	if (phy->rev != 1) {	
 		b43_phy_write(dev, B43_PHY_ANALOGOVER, backup_phy[4]);
 		b43_phy_write(dev, B43_PHY_ANALOGOVERVAL, backup_phy[5]);
 	}
@@ -1888,14 +1858,14 @@ static void b43_hardware_pctl_early_init(struct b43_wldev *dev)
 	}
 }
 
-/* Hardware power control for G-PHY */
+
 static void b43_hardware_pctl_init_gphy(struct b43_wldev *dev)
 {
 	struct b43_phy *phy = &dev->phy;
 	struct b43_phy_g *gphy = phy->g;
 
 	if (!b43_has_hardware_pctl(dev)) {
-		/* No hardware power control */
+		
 		b43_hf_write(dev, b43_hf_read(dev) & ~B43_HF_HWPCTL);
 		return;
 	}
@@ -1914,11 +1884,11 @@ static void b43_hardware_pctl_init_gphy(struct b43_wldev *dev)
 
 	b43_gphy_dc_lt_init(dev, 1);
 
-	/* Enable hardware pctl in firmware. */
+	
 	b43_hf_write(dev, b43_hf_read(dev) | B43_HF_HWPCTL);
 }
 
-/* Intialize B/G PHY power control */
+
 static void b43_phy_init_pctl(struct b43_wldev *dev)
 {
 	struct ssb_bus *bus = dev->dev->bus;
@@ -1936,7 +1906,7 @@ static void b43_phy_init_pctl(struct b43_wldev *dev)
 
 	b43_phy_write(dev, 0x0028, 0x8018);
 
-	/* This does something with the Analog... */
+	
 	b43_write16(dev, B43_MMIO_PHY0, b43_read16(dev, B43_MMIO_PHY0)
 		    & 0xFFDF);
 
@@ -1967,7 +1937,7 @@ static void b43_phy_init_pctl(struct b43_wldev *dev)
 		b43_dummy_transmission(dev, false, true);
 		gphy->cur_idle_tssi = b43_phy_read(dev, B43_PHY_ITSSI);
 		if (B43_DEBUG) {
-			/* Current-Idle-TSSI sanity check. */
+			
 			if (abs(gphy->cur_idle_tssi - gphy->tgt_idle_tssi) >= 20) {
 				b43dbg(dev->wl,
 				       "!WARNING! Idle-TSSI phy->cur_idle_tssi "
@@ -2066,13 +2036,8 @@ static void b43_phy_initg(struct b43_wldev *dev)
 	}
 
 	if (!(dev->dev->bus->sprom.boardflags_lo & B43_BFL_RSSI)) {
-		/* The specs state to update the NRSSI LT with
-		 * the value 0x7FFFFFFF here. I think that is some weird
-		 * compiler optimization in the original driver.
-		 * Essentially, what we do here is resetting all NRSSI LT
-		 * entries to -32 (see the clamp_val() in nrssi_hw_update())
-		 */
-		b43_nrssi_hw_update(dev, 0xFFFF);	//FIXME?
+		
+		b43_nrssi_hw_update(dev, 0xFFFF);	
 		b43_calc_nrssi_threshold(dev);
 	} else if (phy->gmode || phy->rev >= 2) {
 		if (gphy->nrssi[0] == -1000) {
@@ -2084,9 +2049,7 @@ static void b43_phy_initg(struct b43_wldev *dev)
 	if (phy->radio_rev == 8)
 		b43_phy_write(dev, B43_PHY_EXTG(0x05), 0x3230);
 	b43_phy_init_pctl(dev);
-	/* FIXME: The spec says in the following if, the 0 should be replaced
-	   'if OFDM may not be used in the current locale'
-	   but OFDM is legal everywhere */
+	
 	if ((dev->dev->bus->chip_id == 0x4306
 	     && dev->dev->bus->chip_package == 2) || 0) {
 		b43_phy_mask(dev, B43_PHY_CRS0, 0xBFFF);
@@ -2263,7 +2226,7 @@ static u8 b43_gphy_aci_detect(struct b43_wldev *dev, u8 channel)
 		rssi = b43_phy_read(dev, 0x048A) & 0x3F;
 	else
 		rssi = saved & 0x3F;
-	/* clamp temp to signed 5bit */
+	
 	if (rssi > 32)
 		rssi -= 64;
 	for (i = 0; i < 100; i++) {
@@ -2376,7 +2339,7 @@ u8 *b43_generate_dyn_tssi2dbm_tab(struct b43_wldev *dev,
 	return tab;
 }
 
-/* Initialise the TSSI->dBm lookup table */
+
 static int b43_gphy_init_tssi2dbm_table(struct b43_wldev *dev)
 {
 	struct b43_phy *phy = &dev->phy;
@@ -2388,13 +2351,13 @@ static int b43_gphy_init_tssi2dbm_table(struct b43_wldev *dev)
 	pab2 = (s16) (dev->dev->bus->sprom.pa0b2);
 
 	B43_WARN_ON((dev->dev->bus->chip_id == 0x4301) &&
-		    (phy->radio_ver != 0x2050)); /* Not supported anymore */
+		    (phy->radio_ver != 0x2050)); 
 
 	gphy->dyn_tssi_tbl = 0;
 
 	if (pab0 != 0 && pab1 != 0 && pab2 != 0 &&
 	    pab0 != -1 && pab1 != -1 && pab2 != -1) {
-		/* The pabX values are set in SPROM. Use them. */
+		
 		if ((s8) dev->dev->bus->sprom.itssi_bg != 0 &&
 		    (s8) dev->dev->bus->sprom.itssi_bg != -1) {
 			gphy->tgt_idle_tssi =
@@ -2407,7 +2370,7 @@ static int b43_gphy_init_tssi2dbm_table(struct b43_wldev *dev)
 			return -ENOMEM;
 		gphy->dyn_tssi_tbl = 1;
 	} else {
-		/* pabX values not set in SPROM. */
+		
 		gphy->tgt_idle_tssi = 52;
 		gphy->tssi2dbm = b43_tssi2dbm_g_table;
 	}
@@ -2458,24 +2421,23 @@ static void b43_gphy_op_prepare_structs(struct b43_wldev *dev)
 	struct b43_txpower_lo_control *lo;
 	unsigned int i;
 
-	/* tssi2dbm table is constant, so it is initialized at alloc time.
-	 * Save a copy of the pointer. */
+	
 	tssi2dbm = gphy->tssi2dbm;
 	tgt_idle_tssi = gphy->tgt_idle_tssi;
-	/* Save the LO pointer. */
+	
 	lo = gphy->lo_control;
 
-	/* Zero out the whole PHY structure. */
+	
 	memset(gphy, 0, sizeof(*gphy));
 
-	/* Restore pointers. */
+	
 	gphy->tssi2dbm = tssi2dbm;
 	gphy->tgt_idle_tssi = tgt_idle_tssi;
 	gphy->lo_control = lo;
 
 	memset(gphy->minlowsig, 0xFF, sizeof(gphy->minlowsig));
 
-	/* NRSSI */
+	
 	for (i = 0; i < ARRAY_SIZE(gphy->nrssi); i++)
 		gphy->nrssi[i] = -1000;
 	for (i = 0; i < ARRAY_SIZE(gphy->nrssi_lt); i++)
@@ -2486,12 +2448,12 @@ static void b43_gphy_op_prepare_structs(struct b43_wldev *dev)
 
 	gphy->interfmode = B43_INTERFMODE_NONE;
 
-	/* OFDM-table address caching. */
+	
 	gphy->ofdmtab_addr_direction = B43_OFDMTAB_DIRECTION_UNKNOWN;
 
 	gphy->average_tssi = 0xFF;
 
-	/* Local Osciallator structure */
+	
 	lo->tx_bias = 0xFF;
 	INIT_LIST_HEAD(&lo->calib_list);
 }
@@ -2526,12 +2488,11 @@ static int b43_gphy_op_prepare_hardware(struct b43_wldev *dev)
 	generate_rfatt_list(dev, &lo->rfatt_list);
 	generate_bbatt_list(dev, &lo->bbatt_list);
 
-	/* Commit previous writes */
+	
 	b43_read32(dev, B43_MMIO_MACCTL);
 
 	if (phy->rev == 1) {
-		/* Workaround: Temporarly disable gmode through the early init
-		 * phase, as the gmode stuff is not needed for phy rev 1 */
+		
 		phy->gmode = 0;
 		b43_wireless_core_reset(dev, 0);
 		b43_phy_initg(dev);
@@ -2568,9 +2529,9 @@ static void b43_gphy_op_write(struct b43_wldev *dev, u16 reg, u16 value)
 
 static u16 b43_gphy_op_radio_read(struct b43_wldev *dev, u16 reg)
 {
-	/* Register 1 is a 32-bit register. */
+	
 	B43_WARN_ON(reg == 1);
-	/* G-PHY needs 0x80 for read access. */
+	
 	reg |= 0x80;
 
 	b43_write16(dev, B43_MMIO_RADIO_CONTROL, reg);
@@ -2579,7 +2540,7 @@ static u16 b43_gphy_op_radio_read(struct b43_wldev *dev, u16 reg)
 
 static void b43_gphy_op_radio_write(struct b43_wldev *dev, u16 reg, u16 value)
 {
-	/* Register 1 is a 32-bit register. */
+	
 	B43_WARN_ON(reg == 1);
 
 	b43_write16(dev, B43_MMIO_RADIO_CONTROL, reg);
@@ -2601,7 +2562,7 @@ static void b43_gphy_op_software_rfkill(struct b43_wldev *dev,
 	might_sleep();
 
 	if (!blocked) {
-		/* Turn radio ON */
+		
 		if (phy->radio_on)
 			return;
 
@@ -2609,7 +2570,7 @@ static void b43_gphy_op_software_rfkill(struct b43_wldev *dev,
 		b43_phy_write(dev, 0x0015, 0xCC00);
 		b43_phy_write(dev, 0x0015, (phy->gmode ? 0x00C0 : 0x0000));
 		if (gphy->radio_off_context.valid) {
-			/* Restore the RFover values. */
+			
 			b43_phy_write(dev, B43_PHY_RFOVER,
 				      gphy->radio_off_context.rfover);
 			b43_phy_write(dev, B43_PHY_RFOVERVAL,
@@ -2620,7 +2581,7 @@ static void b43_gphy_op_software_rfkill(struct b43_wldev *dev,
 		b43_gphy_channel_switch(dev, 6, 1);
 		b43_gphy_channel_switch(dev, channel, 0);
 	} else {
-		/* Turn radio OFF */
+		
 		u16 rfover, rfoverval;
 
 		rfover = b43_phy_read(dev, B43_PHY_RFOVER);
@@ -2645,7 +2606,7 @@ static int b43_gphy_op_switch_channel(struct b43_wldev *dev,
 
 static unsigned int b43_gphy_op_get_default_chan(struct b43_wldev *dev)
 {
-	return 1; /* Default to channel 1 */
+	return 1; 
 }
 
 static void b43_gphy_op_set_rx_antenna(struct b43_wldev *dev, int antenna)
@@ -2745,9 +2706,7 @@ static int b43_gphy_op_interf_mitigation(struct b43_wldev *dev,
 	return 0;
 }
 
-/* http://bcm-specs.sipsolutions.net/EstimatePowerOut
- * This function converts a TSSI value to dBm in Q5.2
- */
+
 static s8 b43_gphy_estimate_power_out(struct b43_wldev *dev, s8 tssi)
 {
 	struct b43_phy_g *gphy = dev->phy.g;
@@ -2768,10 +2727,9 @@ static void b43_put_attenuation_into_ranges(struct b43_wldev *dev,
 	int bbatt = *_bbatt;
 	struct b43_txpower_lo_control *lo = dev->phy.g->lo_control;
 
-	/* Get baseband and radio attenuation values into their permitted ranges.
-	 * Radio attenuation affects power level 4 times as much as baseband. */
+	
 
-	/* Range constants */
+	
 	const int rf_min = lo->rfatt_list.min_val;
 	const int rf_max = lo->rfatt_list.max_val;
 	const int bb_min = lo->bbatt_list.min_val;
@@ -2779,13 +2737,13 @@ static void b43_put_attenuation_into_ranges(struct b43_wldev *dev,
 
 	while (1) {
 		if (rfatt > rf_max && bbatt > bb_max - 4)
-			break;	/* Can not get it into ranges */
+			break;	
 		if (rfatt < rf_min && bbatt < bb_min + 4)
-			break;	/* Can not get it into ranges */
+			break;	
 		if (bbatt > bb_max && rfatt > rf_max - 1)
-			break;	/* Can not get it into ranges */
+			break;	
 		if (bbatt < bb_min && rfatt < rf_min + 1)
-			break;	/* Can not get it into ranges */
+			break;	
 
 		if (bbatt > bb_max) {
 			bbatt -= 4;
@@ -2823,7 +2781,7 @@ static void b43_gphy_op_adjust_txpower(struct b43_wldev *dev)
 
 	b43_mac_suspend(dev);
 
-	/* Calculate the new attenuation values. */
+	
 	bbatt = gphy->bbatt.att;
 	bbatt += gphy->bbatt_delta;
 	rfatt = gphy->rfatt.att;
@@ -2856,7 +2814,7 @@ static void b43_gphy_op_adjust_txpower(struct b43_wldev *dev)
 			}
 		}
 	}
-	/* Save the control values */
+	
 	gphy->tx_control = tx_control;
 	b43_put_attenuation_into_ranges(dev, &bbatt, &rfatt);
 	gphy->rfatt.att = rfatt;
@@ -2865,7 +2823,7 @@ static void b43_gphy_op_adjust_txpower(struct b43_wldev *dev)
 	if (b43_debug(dev, B43_DBG_XMITPOWER))
 		b43dbg(dev->wl, "Adjusting TX power\n");
 
-	/* Adjust the hardware */
+	
 	b43_phy_lock(dev);
 	b43_radio_lock(dev);
 	b43_set_txpower_g(dev, &gphy->bbatt, &gphy->rfatt,
@@ -2887,11 +2845,11 @@ static enum b43_txpwr_result b43_gphy_op_recalc_txpower(struct b43_wldev *dev,
 	int rfatt_delta, bbatt_delta;
 	unsigned int max_pwr;
 
-	/* First get the average TSSI */
+	
 	cck_result = b43_phy_shm_tssi_read(dev, B43_SHM_SH_TSSI_CCK);
 	ofdm_result = b43_phy_shm_tssi_read(dev, B43_SHM_SH_TSSI_OFDM_G);
 	if ((cck_result < 0) && (ofdm_result < 0)) {
-		/* No TSSI information available */
+		
 		if (!ignore_tssi)
 			goto no_adjustment_needed;
 		cck_result = 0;
@@ -2903,32 +2861,32 @@ static enum b43_txpwr_result b43_gphy_op_recalc_txpower(struct b43_wldev *dev,
 		average_tssi = cck_result;
 	else
 		average_tssi = (cck_result + ofdm_result) / 2;
-	/* Merge the average with the stored value. */
+	
 	if (likely(gphy->average_tssi != 0xFF))
 		average_tssi = (average_tssi + gphy->average_tssi) / 2;
 	gphy->average_tssi = average_tssi;
 	B43_WARN_ON(average_tssi >= B43_TSSI_MAX);
 
-	/* Estimate the TX power emission based on the TSSI */
+	
 	estimated_pwr = b43_gphy_estimate_power_out(dev, average_tssi);
 
 	B43_WARN_ON(phy->type != B43_PHYTYPE_G);
 	max_pwr = dev->dev->bus->sprom.maxpwr_bg;
 	if (dev->dev->bus->sprom.boardflags_lo & B43_BFL_PACTRL)
-		max_pwr -= 3; /* minus 0.75 */
-	if (unlikely(max_pwr >= INT_TO_Q52(30/*dBm*/))) {
+		max_pwr -= 3; 
+	if (unlikely(max_pwr >= INT_TO_Q52(30))) {
 		b43warn(dev->wl,
 			"Invalid max-TX-power value in SPROM.\n");
-		max_pwr = INT_TO_Q52(20); /* fake it */
+		max_pwr = INT_TO_Q52(20); 
 		dev->dev->bus->sprom.maxpwr_bg = max_pwr;
 	}
 
-	/* Get desired power (in Q5.2) */
+	
 	if (phy->desired_txpower < 0)
 		desired_pwr = INT_TO_Q52(0);
 	else
 		desired_pwr = INT_TO_Q52(phy->desired_txpower);
-	/* And limit it. max_pwr already is Q5.2 */
+	
 	desired_pwr = clamp_val(desired_pwr, 0, max_pwr);
 	if (b43_debug(dev, B43_DBG_XMITPOWER)) {
 		b43dbg(dev->wl,
@@ -2940,22 +2898,21 @@ static enum b43_txpwr_result b43_gphy_op_recalc_txpower(struct b43_wldev *dev,
 		       Q52_ARG(max_pwr));
 	}
 
-	/* Calculate the adjustment delta. */
+	
 	pwr_adjust = desired_pwr - estimated_pwr;
 	if (pwr_adjust == 0)
 		goto no_adjustment_needed;
 
-	/* RF attenuation delta. */
+	
 	rfatt_delta = ((pwr_adjust + 7) / 8);
-	/* Lower attenuation => Bigger power output. Negate it. */
+	
 	rfatt_delta = -rfatt_delta;
 
-	/* Baseband attenuation delta. */
+	
 	bbatt_delta = pwr_adjust / 2;
-	/* Lower attenuation => Bigger power output. Negate it. */
+	
 	bbatt_delta = -bbatt_delta;
-	/* RF att affects power level 4 times as much as
-	 * Baseband attennuation. Subtract it. */
+	
 	bbatt_delta -= 4 * rfatt_delta;
 
 #if B43_DEBUG
@@ -2967,17 +2924,17 @@ static enum b43_txpwr_result b43_gphy_op_recalc_txpower(struct b43_wldev *dev,
 		       (pwr_adjust < 0 ? "-" : ""), Q52_ARG(dbm),
 		       bbatt_delta, rfatt_delta);
 	}
-#endif /* DEBUG */
+#endif 
 
-	/* So do we finally need to adjust something in hardware? */
+	
 	if ((rfatt_delta == 0) && (bbatt_delta == 0))
 		goto no_adjustment_needed;
 
-	/* Save the deltas for later when we adjust the power. */
+	
 	gphy->bbatt_delta = bbatt_delta;
 	gphy->rfatt_delta = rfatt_delta;
 
-	/* We need to adjust the TX power on the device. */
+	
 	return B43_TXPWR_RES_NEED_ADJUST;
 
 no_adjustment_needed:
@@ -2990,20 +2947,20 @@ static void b43_gphy_op_pwork_15sec(struct b43_wldev *dev)
 	struct b43_phy_g *gphy = phy->g;
 
 	b43_mac_suspend(dev);
-	//TODO: update_aci_moving_average
+	
 	if (gphy->aci_enable && gphy->aci_wlan_automatic) {
-		if (!gphy->aci_enable && 1 /*TODO: not scanning? */ ) {
-			if (0 /*TODO: bunch of conditions */ ) {
+		if (!gphy->aci_enable && 1  ) {
+			if (0  ) {
 				phy->ops->interf_mitigation(dev,
 					B43_INTERFMODE_MANUALWLAN);
 			}
-		} else if (0 /*TODO*/) {
-			   if (/*(aci_average > 1000) &&*/ !b43_gphy_aci_scan(dev))
+		} else if (0 ) {
+			   if ( !b43_gphy_aci_scan(dev))
 				phy->ops->interf_mitigation(dev, B43_INTERFMODE_NONE);
 		}
 	} else if (gphy->interfmode == B43_INTERFMODE_NONWLAN &&
 		   phy->rev == 1) {
-		//TODO: implement rev1 workaround
+		
 	}
 	b43_lo_g_maintanance_work(dev);
 	b43_mac_enable(dev);
@@ -3021,7 +2978,7 @@ static void b43_gphy_op_pwork_60sec(struct b43_wldev *dev)
 	if ((phy->radio_ver == 0x2050) && (phy->radio_rev == 8)) {
 		u8 old_chan = phy->channel;
 
-		/* VCO Calibration */
+		
 		if (old_chan >= 8)
 			b43_switch_channel(dev, 1);
 		else

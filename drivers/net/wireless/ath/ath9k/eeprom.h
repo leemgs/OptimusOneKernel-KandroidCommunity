@@ -1,18 +1,4 @@
-/*
- * Copyright (c) 2008-2009 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+
 
 #ifndef EEPROM_H
 #define EEPROM_H
@@ -77,19 +63,10 @@
 #define SUB_NUM_CTL_MODES_AT_5G_40 2
 #define SUB_NUM_CTL_MODES_AT_2G_40 3
 
-#define INCREASE_MAXPOW_BY_TWO_CHAIN     6  /* 10*log10(2)*2 */
-#define INCREASE_MAXPOW_BY_THREE_CHAIN   10 /* 10*log10(3)*2 */
+#define INCREASE_MAXPOW_BY_TWO_CHAIN     6  
+#define INCREASE_MAXPOW_BY_THREE_CHAIN   10 
 
-/*
- * For AR9285 and later chipsets, the following bits are not being programmed
- * in EEPROM and so need to be enabled always.
- *
- * Bit 0: en_fcc_mid
- * Bit 1: en_jap_mid
- * Bit 2: en_fcc_dfs_ht40
- * Bit 3: en_jap_ht40
- * Bit 4: en_jap_dfs_ht40
- */
+
 #define AR9285_RDEXT_DEFAULT    0x1F
 
 #define AR_EEPROM_MAC(i)	(0x1d+(i))
@@ -155,12 +132,12 @@
 #define AR5416_MAX_CHAINS               3
 #define AR5416_PWR_TABLE_OFFSET         -5
 
-/* Rx gain type values */
+
 #define AR5416_EEP_RXGAIN_23DB_BACKOFF     0
 #define AR5416_EEP_RXGAIN_13DB_BACKOFF     1
 #define AR5416_EEP_RXGAIN_ORIG             2
 
-/* Tx gain type values */
+
 #define AR5416_EEP_TXGAIN_ORIGINAL         0
 #define AR5416_EEP_TXGAIN_HIGH_POWER       1
 
@@ -712,4 +689,4 @@ extern const struct eeprom_ops eep_def_ops;
 extern const struct eeprom_ops eep_4k_ops;
 extern const struct eeprom_ops eep_AR9287_ops;
 
-#endif /* EEPROM_H */
+#endif 

@@ -1,18 +1,4 @@
-/*
- * Copyright (c) 2008-2009 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+
 
 #ifndef HW_H
 #define HW_H
@@ -49,7 +35,7 @@
 #define AT9285_COEX3WIRE_SA_SUBSYSID	0x30aa
 #define AT9285_COEX3WIRE_DA_SUBSYSID	0x30ab
 
-/* Register read/write primitives */
+
 #define REG_WRITE(_ah, _reg, _val) ath9k_iowrite32((_ah), (_reg), (_val))
 #define REG_READ(_ah, _reg) ath9k_ioread32((_ah), (_reg))
 
@@ -102,8 +88,8 @@
 #define ATH9K_NUM_QUEUES            10
 
 #define MAX_RATE_POWER              63
-#define AH_WAIT_TIMEOUT             100000 /* (us) */
-#define AH_TSF_WRITE_TIMEOUT        100    /* (us) */
+#define AH_WAIT_TIMEOUT             100000 
+#define AH_TSF_WRITE_TIMEOUT        100    
 #define AH_TIME_QUANTUM             10
 #define AR_KEYTABLE_SIZE            128
 #define POWER_UP_TIME               10000
@@ -169,8 +155,8 @@ enum ath9k_capability_type {
 };
 
 struct ath9k_hw_capabilities {
-	u32 hw_caps; /* ATH9K_HW_CAP_* from ath9k_hw_caps */
-	DECLARE_BITMAP(wireless_modes, ATH9K_MODE_MAX); /* ATH9K_MODE_* */
+	u32 hw_caps; 
+	DECLARE_BITMAP(wireless_modes, ATH9K_MODE_MAX); 
 	u16 total_queues;
 	u16 keycache_size;
 	u16 low_5ghz_chan, high_5ghz_chan;
@@ -325,7 +311,7 @@ struct ath9k_channel {
 	 (((_c)->channel % 20) != 0) &&			\
 	 (((_c)->channel % 10) != 0))
 
-/* These macros check chanmode and not channelFlags */
+
 #define IS_CHAN_B(_c) ((_c)->chanmode == CHANNEL_B)
 #define IS_CHAN_HT20(_c) (((_c)->chanmode == CHANNEL_A_HT20) ||	\
 			  ((_c)->chanmode == CHANNEL_G_HT20))
@@ -363,7 +349,7 @@ struct ath9k_beacon_state {
 #define ATH9K_BEACON_PERIOD       0x0000ffff
 #define ATH9K_BEACON_ENA          0x00800000
 #define ATH9K_BEACON_RESET_TSF    0x01000000
-#define ATH9K_TSFOOR_THRESHOLD    0x00004240 /* 16k us */
+#define ATH9K_TSFOOR_THRESHOLD    0x00004240 
 	u32 bs_dtimperiod;
 	u16 bs_cfpperiod;
 	u16 bs_cfpmaxduration;
@@ -398,16 +384,13 @@ struct ath9k_hw_version {
 	u16 subsysid;
 };
 
-/* Generic TSF timer definitions */
+
 
 #define ATH_MAX_GEN_TIMER	16
 
 #define AR_GENTMR_BIT(_index)	(1 << (_index))
 
-/*
- * Using de Bruijin sequence to to look up 1's index in a 32 bit number
- * debruijn32 = 0000 0111 0111 1100 1011 0101 0011 0001
- */
+
 #define debruijn32 0x077CB531U
 
 struct ath_gen_timer_configuration {
@@ -478,7 +461,7 @@ struct ath_hw {
 	bool chip_fullsleep;
 	u32 atim_window;
 
-	/* Calibration */
+	
 	enum ath9k_cal_types supp_cals;
 	struct ath9k_cal_list iq_caldata;
 	struct ath9k_cal_list adcgain_caldata;
@@ -524,7 +507,7 @@ struct ath_hw {
 		DONT_USE_32KHZ,
 	} enable_32kHz_clock;
 
-	/* RF */
+	
 	u32 *analogBank0Data;
 	u32 *analogBank1Data;
 	u32 *analogBank2Data;
@@ -543,7 +526,7 @@ struct ath_hw {
 	u32 globaltxtimeout;
 	u8 gbeacon_rate;
 
-	/* ANI */
+	
 	u32 proc_phyerr;
 	u32 aniperiod;
 	struct ar5416AniState *curani;
@@ -585,7 +568,7 @@ struct ath_hw {
 	struct ath_gen_timer_table hw_gen_timers;
 };
 
-/* Initialization, Detach, Reset */
+
 const char *ath9k_hw_probe(u16 vendorid, u16 devid);
 void ath9k_hw_detach(struct ath_hw *ah);
 int ath9k_hw_init(struct ath_hw *ah);
@@ -598,7 +581,7 @@ bool ath9k_hw_getcapability(struct ath_hw *ah, enum ath9k_capability_type type,
 bool ath9k_hw_setcapability(struct ath_hw *ah, enum ath9k_capability_type type,
 			    u32 capability, u32 setting, int *status);
 
-/* Key Cache Management */
+
 bool ath9k_hw_keyreset(struct ath_hw *ah, u16 entry);
 bool ath9k_hw_keysetmac(struct ath_hw *ah, u16 entry, const u8 *mac);
 bool ath9k_hw_set_keycache_entry(struct ath_hw *ah, u16 entry,
@@ -606,7 +589,7 @@ bool ath9k_hw_set_keycache_entry(struct ath_hw *ah, u16 entry,
 				 const u8 *mac);
 bool ath9k_hw_keyisvalid(struct ath_hw *ah, u16 entry);
 
-/* GPIO / RFKILL / Antennae */
+
 void ath9k_hw_cfg_gpio_input(struct ath_hw *ah, u32 gpio);
 u32 ath9k_hw_gpio_get(struct ath_hw *ah, u32 gpio);
 void ath9k_hw_cfg_output(struct ath_hw *ah, u32 gpio,
@@ -620,7 +603,7 @@ bool ath9k_hw_setantennaswitch(struct ath_hw *ah,
 			       u8 *tx_chainmask, u8 *rx_chainmask,
 			       u8 *antenna_cfgd);
 
-/* General Operation */
+
 bool ath9k_hw_wait(struct ath_hw *ah, u32 reg, u32 mask, u32 val, u32 timeout);
 u32 ath9k_hw_reverse_bits(u32 val, u32 n);
 bool ath9k_get_channel_edges(struct ath_hw *ah, u16 flags, u16 *low, u16 *high);
@@ -653,12 +636,12 @@ bool ath9k_hw_setpower(struct ath_hw *ah,
 		       enum ath9k_power_mode mode);
 void ath9k_hw_configpcipowersave(struct ath_hw *ah, int restore, int power_off);
 
-/* Interrupt Handling */
+
 bool ath9k_hw_intrpend(struct ath_hw *ah);
 bool ath9k_hw_getisr(struct ath_hw *ah, enum ath9k_int *masked);
 enum ath9k_int ath9k_hw_set_interrupts(struct ath_hw *ah, enum ath9k_int ints);
 
-/* Generic hw timer primitives */
+
 struct ath_gen_timer *ath_gen_timer_alloc(struct ath_hw *ah,
 					  void (*trigger)(void *),
 					  void (*overflow)(void *),

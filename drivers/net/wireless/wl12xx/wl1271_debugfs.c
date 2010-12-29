@@ -1,25 +1,4 @@
-/*
- * This file is part of wl1271
- *
- * Copyright (C) 2009 Nokia Corporation
- *
- * Contact: Luciano Coelho <luciano.coelho@nokia.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #include "wl1271_debugfs.h"
 
@@ -29,10 +8,10 @@
 #include "wl1271_acx.h"
 #include "wl1271_ps.h"
 
-/* ms */
+
 #define WL1271_DEBUGFS_STATS_LIFETIME 1000
 
-/* debugfs macros idea from mac80211 */
+
 
 #define DEBUGFS_READONLY_FILE(name, buflen, fmt, value...)		\
 static ssize_t name## _read(struct file *file, char __user *userbuf,	\
@@ -159,7 +138,7 @@ DEBUGFS_FWSTATS_FILE(isr, low_rssi, 20, "%u");
 
 DEBUGFS_FWSTATS_FILE(wep, addr_key_count, 20, "%u");
 DEBUGFS_FWSTATS_FILE(wep, default_key_count, 20, "%u");
-/* skipping wep.reserved */
+
 DEBUGFS_FWSTATS_FILE(wep, key_not_found, 20, "%u");
 DEBUGFS_FWSTATS_FILE(wep, decrypt_fail, 20, "%u");
 DEBUGFS_FWSTATS_FILE(wep, packets, 20, "%u");
@@ -177,7 +156,7 @@ DEBUGFS_FWSTATS_FILE(pwr, power_save_off, 20, "%u");
 DEBUGFS_FWSTATS_FILE(pwr, enable_ps, 20, "%u");
 DEBUGFS_FWSTATS_FILE(pwr, disable_ps, 20, "%u");
 DEBUGFS_FWSTATS_FILE(pwr, fix_tsf_ps, 20, "%u");
-/* skipping cont_miss_bcns_spread for now */
+
 DEBUGFS_FWSTATS_FILE(pwr, rcvd_awake_beacons, 20, "%u");
 
 DEBUGFS_FWSTATS_FILE(mic, rx_pkts, 20, "%u");
@@ -276,7 +255,7 @@ static void wl1271_debugfs_delete_files(struct wl1271 *wl)
 
 	DEBUGFS_FWSTATS_DEL(wep, addr_key_count);
 	DEBUGFS_FWSTATS_DEL(wep, default_key_count);
-	/* skipping wep.reserved */
+	
 	DEBUGFS_FWSTATS_DEL(wep, key_not_found);
 	DEBUGFS_FWSTATS_DEL(wep, decrypt_fail);
 	DEBUGFS_FWSTATS_DEL(wep, packets);
@@ -294,7 +273,7 @@ static void wl1271_debugfs_delete_files(struct wl1271 *wl)
 	DEBUGFS_FWSTATS_DEL(pwr, enable_ps);
 	DEBUGFS_FWSTATS_DEL(pwr, disable_ps);
 	DEBUGFS_FWSTATS_DEL(pwr, fix_tsf_ps);
-	/* skipping cont_miss_bcns_spread for now */
+	
 	DEBUGFS_FWSTATS_DEL(pwr, rcvd_awake_beacons);
 
 	DEBUGFS_FWSTATS_DEL(mic, rx_pkts);
@@ -376,7 +355,7 @@ static int wl1271_debugfs_add_files(struct wl1271 *wl)
 
 	DEBUGFS_FWSTATS_ADD(wep, addr_key_count);
 	DEBUGFS_FWSTATS_ADD(wep, default_key_count);
-	/* skipping wep.reserved */
+	
 	DEBUGFS_FWSTATS_ADD(wep, key_not_found);
 	DEBUGFS_FWSTATS_ADD(wep, decrypt_fail);
 	DEBUGFS_FWSTATS_ADD(wep, packets);
@@ -394,7 +373,7 @@ static int wl1271_debugfs_add_files(struct wl1271 *wl)
 	DEBUGFS_FWSTATS_ADD(pwr, enable_ps);
 	DEBUGFS_FWSTATS_ADD(pwr, disable_ps);
 	DEBUGFS_FWSTATS_ADD(pwr, fix_tsf_ps);
-	/* skipping cont_miss_bcns_spread for now */
+	
 	DEBUGFS_FWSTATS_ADD(pwr, rcvd_awake_beacons);
 
 	DEBUGFS_FWSTATS_ADD(mic, rx_pkts);

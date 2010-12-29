@@ -1,18 +1,4 @@
-/*
- * Copyright (c) 2008-2009 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+
 
 #include "ath9k.h"
 
@@ -395,7 +381,7 @@ static void ath9k_hw_ani_lower_immunity(struct ath_hw *ah)
 	} else {
 		rssi = BEACON_RSSI(ah);
 		if (rssi > aniState->rssiThrHigh) {
-			/* XXX: Handle me */
+			
 		} else if (rssi > aniState->rssiThrLow) {
 			if (aniState->ofdmWeakSigDetectOff) {
 				if (ath9k_hw_ani_control(ah,
@@ -480,10 +466,7 @@ void ath9k_ani_reset(struct ath_hw *ah)
 		ah->stats.ast_ani_reset++;
 
 		if (ah->opmode == NL80211_IFTYPE_AP) {
-			/*
-			 * ath9k_hw_ani_control() will only process items set on
-			 * ah->ani_function
-			 */
+			
 			if (IS_CHAN_2GHZ(chan))
 				ah->ani_function = (ATH9K_ANI_SPUR_IMMUNITY_LEVEL |
 						    ATH9K_ANI_FIRSTEP_LEVEL);
@@ -637,7 +620,7 @@ void ath9k_enable_mib_counters(struct ath_hw *ah)
 	REG_WRITE(ah, AR_PHY_ERR_MASK_2, AR_PHY_ERR_CCK_TIMING);
 }
 
-/* Freeze the MIB counters, get the stats and then clear them */
+
 void ath9k_hw_disable_mib_counters(struct ath_hw *ah)
 {
 	DPRINTF(ah->ah_sc, ATH_DBG_ANI, "Disable MIB counters\n");
@@ -688,28 +671,24 @@ u32 ath9k_hw_GetMibCycleCountsPct(struct ath_hw *ah,
 	return good;
 }
 
-/*
- * Process a MIB interrupt.  We may potentially be invoked because
- * any of the MIB counters overflow/trigger so don't assume we're
- * here because a PHY error counter triggered.
- */
+
 void ath9k_hw_procmibevent(struct ath_hw *ah)
 {
 	u32 phyCnt1, phyCnt2;
 
-	/* Reset these counters regardless */
+	
 	REG_WRITE(ah, AR_FILT_OFDM, 0);
 	REG_WRITE(ah, AR_FILT_CCK, 0);
 	if (!(REG_READ(ah, AR_SLP_MIB_CTRL) & AR_SLP_MIB_PENDING))
 		REG_WRITE(ah, AR_SLP_MIB_CTRL, AR_SLP_MIB_CLEAR);
 
-	/* Clear the mib counters and save them in the stats */
+	
 	ath9k_hw_update_mibstats(ah, &ah->ah_mibStats);
 
 	if (!DO_ANI(ah))
 		return;
 
-	/* NB: these are not reset-on-read */
+	
 	phyCnt1 = REG_READ(ah, AR_PHY_ERR_1);
 	phyCnt2 = REG_READ(ah, AR_PHY_ERR_2);
 	if (((phyCnt1 & AR_MIBCNT_INTRMASK) == AR_MIBCNT_INTRMASK) ||
@@ -717,7 +696,7 @@ void ath9k_hw_procmibevent(struct ath_hw *ah)
 		struct ar5416AniState *aniState = ah->curani;
 		u32 ofdmPhyErrCnt, cckPhyErrCnt;
 
-		/* NB: only use ast_ani_*errs with AH_PRIVATE_DIAG */
+		
 		ofdmPhyErrCnt = phyCnt1 - aniState->ofdmPhyErrBase;
 		ah->stats.ast_ani_ofdmerrs +=
 			ofdmPhyErrCnt - aniState->ofdmPhyErrCount;
@@ -728,17 +707,12 @@ void ath9k_hw_procmibevent(struct ath_hw *ah)
 			cckPhyErrCnt - aniState->cckPhyErrCount;
 		aniState->cckPhyErrCount = cckPhyErrCnt;
 
-		/*
-		 * NB: figure out which counter triggered.  If both
-		 * trigger we'll only deal with one as the processing
-		 * clobbers the error counter so the trigger threshold
-		 * check will never be true.
-		 */
+		
 		if (aniState->ofdmPhyErrCount > aniState->ofdmTrigHigh)
 			ath9k_hw_ani_ofdm_err_trigger(ah);
 		if (aniState->cckPhyErrCount > aniState->cckTrigHigh)
 			ath9k_hw_ani_cck_err_trigger(ah);
-		/* NB: always restart to insure the h/w counters are reset */
+		
 		ath9k_ani_restart(ah);
 	}
 }

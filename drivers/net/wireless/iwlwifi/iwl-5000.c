@@ -1,27 +1,4 @@
-/******************************************************************************
- *
- * Copyright(c) 2007 - 2009 Intel Corporation. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of version 2 of the GNU General Public License as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
- *
- * The full GNU General Public License is included in this distribution in the
- * file called LICENSE.
- *
- * Contact Information:
- * Intel Corporation, 5200 N.E. Elam Young Parkway, Hillsboro, OR 97124-6497
- *
- *****************************************************************************/
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -46,11 +23,11 @@
 #include "iwl-5000-hw.h"
 #include "iwl-6000-hw.h"
 
-/* Highest firmware API version supported */
+
 #define IWL5000_UCODE_API_MAX 2
 #define IWL5150_UCODE_API_MAX 2
 
-/* Lowest firmware API version supported */
+
 #define IWL5000_UCODE_API_MIN 1
 #define IWL5150_UCODE_API_MIN 1
 
@@ -72,14 +49,14 @@ static const u16 iwl5000_default_queue_to_tx_fifo[] = {
 	IWL_TX_FIFO_HCCA_2
 };
 
-/* FIXME: same implementation as 4965 */
+
 static int iwl5000_apm_stop_master(struct iwl_priv *priv)
 {
 	unsigned long flags;
 
 	spin_lock_irqsave(&priv->lock, flags);
 
-	/* set stop master bit */
+	
 	iwl_set_bit(priv, CSR_RESET, CSR_RESET_REG_FLAG_STOP_MASTER);
 
 	iwl_poll_direct_bit(priv, CSR_RESET,
@@ -99,25 +76,24 @@ int iwl5000_apm_init(struct iwl_priv *priv)
 	iwl_set_bit(priv, CSR_GIO_CHICKEN_BITS,
 		    CSR_GIO_CHICKEN_BITS_REG_BIT_DIS_L0S_EXIT_TIMER);
 
-	/* disable L0s without affecting L1 :don't wait for ICH L0s bug W/A) */
+	
 	iwl_set_bit(priv, CSR_GIO_CHICKEN_BITS,
 		    CSR_GIO_CHICKEN_BITS_REG_BIT_L1A_NO_L0S_RX);
 
-	/* Set FH wait threshold to maximum (HW error during stress W/A) */
+	
 	iwl_set_bit(priv, CSR_DBG_HPET_MEM_REG, CSR_DBG_HPET_MEM_REG_VAL);
 
-	/* enable HAP INTA to move device L1a -> L0s */
+	
 	iwl_set_bit(priv, CSR_HW_IF_CONFIG_REG,
 		    CSR_HW_IF_CONFIG_REG_BIT_HAP_WAKE_L1A);
 
 	if (priv->cfg->need_pll_cfg)
 		iwl_set_bit(priv, CSR_ANA_PLL_CFG, CSR50_ANA_PLL_CFG_VAL);
 
-	/* set "initialization complete" bit to move adapter
-	 * D0U* --> D0A* state */
+	
 	iwl_set_bit(priv, CSR_GP_CNTRL, CSR_GP_CNTRL_REG_FLAG_INIT_DONE);
 
-	/* wait for clock stabilization */
+	
 	ret = iwl_poll_direct_bit(priv, CSR_GP_CNTRL,
 			CSR_GP_CNTRL_REG_FLAG_MAC_CLOCK_READY, 25000);
 	if (ret < 0) {
@@ -125,19 +101,19 @@ int iwl5000_apm_init(struct iwl_priv *priv)
 		return ret;
 	}
 
-	/* enable DMA */
+	
 	iwl_write_prph(priv, APMG_CLK_EN_REG, APMG_CLK_VAL_DMA_CLK_RQT);
 
 	udelay(20);
 
-	/* disable L1-Active */
+	
 	iwl_set_bits_prph(priv, APMG_PCIDEV_STT_REG,
 			  APMG_PCIDEV_STT_VAL_L1_ACT_DIS);
 
 	return ret;
 }
 
-/* FIXME: this is identical to 4965 */
+
 void iwl5000_apm_stop(struct iwl_priv *priv)
 {
 	unsigned long flags;
@@ -150,7 +126,7 @@ void iwl5000_apm_stop(struct iwl_priv *priv)
 
 	udelay(10);
 
-	/* clear "init complete"  move adapter D0A* --> D0U state */
+	
 	iwl_clear_bit(priv, CSR_GP_CNTRL, CSR_GP_CNTRL_REG_FLAG_INIT_DONE);
 
 	spin_unlock_irqrestore(&priv->lock, flags);
@@ -168,16 +144,15 @@ int iwl5000_apm_reset(struct iwl_priv *priv)
 	udelay(10);
 
 
-	/* FIXME: put here L1A -L0S w/a */
+	
 
 	if (priv->cfg->need_pll_cfg)
 		iwl_set_bit(priv, CSR_ANA_PLL_CFG, CSR50_ANA_PLL_CFG_VAL);
 
-	/* set "initialization complete" bit to move adapter
-	 * D0U* --> D0A* state */
+	
 	iwl_set_bit(priv, CSR_GP_CNTRL, CSR_GP_CNTRL_REG_FLAG_INIT_DONE);
 
-	/* wait for clock stabilization */
+	
 	ret = iwl_poll_direct_bit(priv, CSR_GP_CNTRL,
 			CSR_GP_CNTRL_REG_FLAG_MAC_CLOCK_READY, 25000);
 	if (ret < 0) {
@@ -185,12 +160,12 @@ int iwl5000_apm_reset(struct iwl_priv *priv)
 		goto out;
 	}
 
-	/* enable DMA */
+	
 	iwl_write_prph(priv, APMG_CLK_EN_REG, APMG_CLK_VAL_DMA_CLK_RQT);
 
 	udelay(20);
 
-	/* disable L1-Active */
+	
 	iwl_set_bits_prph(priv, APMG_PCIDEV_STT_REG,
 			  APMG_PCIDEV_STT_VAL_L1_ACT_DIS);
 out:
@@ -199,7 +174,7 @@ out:
 }
 
 
-/* NIC configuration for 5000 series and up */
+
 void iwl5000_nic_config(struct iwl_priv *priv)
 {
 	unsigned long flags;
@@ -210,33 +185,30 @@ void iwl5000_nic_config(struct iwl_priv *priv)
 
 	lctl = iwl_pcie_link_ctl(priv);
 
-	/* HW bug W/A */
-	/* L1-ASPM is enabled by BIOS */
+	
+	
 	if ((lctl & PCI_CFG_LINK_CTRL_VAL_L1_EN) == PCI_CFG_LINK_CTRL_VAL_L1_EN)
-		/* L1-APSM enabled: disable L0S  */
+		
 		iwl_set_bit(priv, CSR_GIO_REG, CSR_GIO_REG_VAL_L0S_ENABLED);
 	else
-		/* L1-ASPM disabled: enable L0S */
+		
 		iwl_clear_bit(priv, CSR_GIO_REG, CSR_GIO_REG_VAL_L0S_ENABLED);
 
 	radio_cfg = iwl_eeprom_query16(priv, EEPROM_RADIO_CONFIG);
 
-	/* write radio config values to register */
+	
 	if (EEPROM_RF_CFG_TYPE_MSK(radio_cfg) < EEPROM_5000_RF_CFG_TYPE_MAX)
 		iwl_set_bit(priv, CSR_HW_IF_CONFIG_REG,
 			    EEPROM_RF_CFG_TYPE_MSK(radio_cfg) |
 			    EEPROM_RF_CFG_STEP_MSK(radio_cfg) |
 			    EEPROM_RF_CFG_DASH_MSK(radio_cfg));
 
-	/* set CSR_HW_CONFIG_REG for uCode use */
+	
 	iwl_set_bit(priv, CSR_HW_IF_CONFIG_REG,
 		    CSR_HW_IF_CONFIG_REG_BIT_RADIO_SI |
 		    CSR_HW_IF_CONFIG_REG_BIT_MAC_SI);
 
-	/* W/A : NIC is stuck in a reset state after Early PCIe power off
-	 * (PCIe power is lost before PERST# is asserted),
-	 * causing ME FW to lose ownership and not being able to obtain it back.
-	 */
+	
 	iwl_set_bits_mask_prph(priv, APMG_PS_CTRL_REG,
 				APMG_PS_CTRL_EARLY_PWR_OFF_RESET_DIS,
 				~APMG_PS_CTRL_EARLY_PWR_OFF_RESET_DIS);
@@ -246,9 +218,7 @@ void iwl5000_nic_config(struct iwl_priv *priv)
 }
 
 
-/*
- * EEPROM
- */
+
 static u32 eeprom_indirect_address(const struct iwl_priv *priv, u32 address)
 {
 	u16 offset = 0;
@@ -281,7 +251,7 @@ static u32 eeprom_indirect_address(const struct iwl_priv *priv, u32 address)
 		break;
 	}
 
-	/* translate the offset from words to byte */
+	
 	return (address & ADDRESS_MSK) + (offset << 1);
 }
 
@@ -308,7 +278,7 @@ static void iwl5000_gain_computation(struct iwl_priv *priv,
 	s32 delta_g;
 	struct iwl_chain_noise_data *data = &priv->chain_noise_data;
 
-	/* Find Gain Code for the antennas B and C */
+	
 	for (i = 1; i < NUM_RX_CHAINS; i++) {
 		if ((data->disconn_array[i])) {
 			data->delta_gain_code[i] = 0;
@@ -316,12 +286,12 @@ static void iwl5000_gain_computation(struct iwl_priv *priv,
 		}
 		delta_g = (1000 * ((s32)average_noise[0] -
 			(s32)average_noise[i])) / 1500;
-		/* bound gain by 2 bits value max, 3rd bit is sign */
+		
 		data->delta_gain_code[i] =
 			min(abs(delta_g), (long) CHAIN_NOISE_MAX_DELTA_GAIN_CODE);
 
 		if (delta_g < 0)
-			/* set negative sign */
+			
 			data->delta_gain_code[i] |= (1 << 2);
 	}
 
@@ -390,7 +360,7 @@ void iwl5000_rts_tx_cmd_flag(struct ieee80211_tx_info *info,
 
 static struct iwl_sensitivity_ranges iwl5000_sensitivity = {
 	.min_nrg_cck = 95,
-	.max_nrg_cck = 0, /* not used, set to 0 */
+	.max_nrg_cck = 0, 
 	.auto_corr_min_ofdm = 90,
 	.auto_corr_min_ofdm_mrc = 170,
 	.auto_corr_min_ofdm_x1 = 120,
@@ -411,7 +381,7 @@ static struct iwl_sensitivity_ranges iwl5000_sensitivity = {
 
 static struct iwl_sensitivity_ranges iwl5150_sensitivity = {
 	.min_nrg_cck = 95,
-	.max_nrg_cck = 0, /* not used, set to 0 */
+	.max_nrg_cck = 0, 
 	.auto_corr_min_ofdm = 90,
 	.auto_corr_min_ofdm_mrc = 170,
 	.auto_corr_min_ofdm_x1 = 105,
@@ -419,7 +389,7 @@ static struct iwl_sensitivity_ranges iwl5150_sensitivity = {
 
 	.auto_corr_max_ofdm = 120,
 	.auto_corr_max_ofdm_mrc = 210,
-	/* max = min for performance bug in 5150 DSP */
+	
 	.auto_corr_max_ofdm_x1 = 105,
 	.auto_corr_max_ofdm_mrc_x1 = 220,
 
@@ -450,13 +420,11 @@ static void iwl5150_set_ct_threshold(struct iwl_priv *priv)
 
 static void iwl5000_set_ct_threshold(struct iwl_priv *priv)
 {
-	/* want Celsius */
+	
 	priv->hw_params.ct_kill_threshold = CT_KILL_THRESHOLD_LEGACY;
 }
 
-/*
- *  Calibration
- */
+
 static int iwl5000_set_Xtal_calib(struct iwl_priv *priv)
 {
 	struct iwl_calib_xtal_freq_cmd cmd;
@@ -499,12 +467,10 @@ static void iwl5000_rx_calib_result(struct iwl_priv *priv,
 	int len = le32_to_cpu(pkt->len_n_flags) & FH_RSCSR_FRAME_SIZE_MSK;
 	int index;
 
-	/* reduce the size of the length field itself */
+	
 	len -= 4;
 
-	/* Define the order in which the results will be sent to the runtime
-	 * uCode. iwl_send_calib_results sends them in a row according to their
-	 * index. We sort them here */
+	
 	switch (hdr->op_code) {
 	case IWL_PHY_CALIBRATE_DC_CMD:
 		index = IWL_CALIB_DC;
@@ -536,9 +502,7 @@ static void iwl5000_rx_calib_complete(struct iwl_priv *priv,
 	queue_work(priv->workqueue, &priv->restart);
 }
 
-/*
- * ucode
- */
+
 static int iwl5000_load_section(struct iwl_priv *priv,
 				struct fw_desc *image,
 				u32 dst_addr)
@@ -631,7 +595,7 @@ int iwl5000_load_ucode(struct iwl_priv *priv)
 {
 	int ret = 0;
 
-	/* check whether init ucode should be loaded, or rather runtime ucode */
+	
 	if (priv->ucode_init.len && (priv->ucode_type == UCODE_NONE)) {
 		IWL_DEBUG_INFO(priv, "Init ucode found. Loading init ucode...\n");
 		ret = iwl5000_load_given_ucode(priv,
@@ -658,20 +622,16 @@ void iwl5000_init_alive_start(struct iwl_priv *priv)
 {
 	int ret = 0;
 
-	/* Check alive response for "valid" sign from uCode */
+	
 	if (priv->card_alive_init.is_valid != UCODE_VALID_OK) {
-		/* We had an error bringing up the hardware, so take it
-		 * all the way back down so we can try again */
+		
 		IWL_DEBUG_INFO(priv, "Initialize Alive failed.\n");
 		goto restart;
 	}
 
-	/* initialize uCode was loaded... verify inst image.
-	 * This is a paranoid check, because we would not have gotten the
-	 * "initialize" alive if code weren't properly loaded.  */
+	
 	if (iwl_verify_ucode(priv)) {
-		/* Runtime instruction load was bad;
-		 * take it all the way back down so we can try again */
+		
 		IWL_DEBUG_INFO(priv, "Bad \"initialize\" uCode load.\n");
 		goto restart;
 	}
@@ -688,7 +648,7 @@ void iwl5000_init_alive_start(struct iwl_priv *priv)
 	return;
 
 restart:
-	/* real restart (first load init_ucode) */
+	
 	queue_work(priv->workqueue, &priv->restart);
 }
 
@@ -753,13 +713,13 @@ int iwl5000_alive_notify(struct iwl_priv *priv)
 	iwl_write_prph(priv, IWL50_SCD_DRAM_BASE_ADDR,
 		       priv->scd_bc_tbls.dma >> 10);
 
-	/* Enable DMA channel */
+	
 	for (chan = 0; chan < FH50_TCSR_CHNL_NUM ; chan++)
 		iwl_write_direct32(priv, FH_TCSR_CHNL_TX_CONFIG_REG(chan),
 				FH_TCSR_TX_CONFIG_REG_VAL_DMA_CHNL_ENABLE |
 				FH_TCSR_TX_CONFIG_REG_VAL_DMA_CREDIT_ENABLE);
 
-	/* Update FH chicken bits */
+	
 	reg_val = iwl_read_direct32(priv, FH_TX_CHICKEN_BITS_REG);
 	iwl_write_direct32(priv, FH_TX_CHICKEN_BITS_REG,
 			   reg_val | FH_TX_CHICKEN_BITS_SCD_AUTO_RETRY_EN);
@@ -768,7 +728,7 @@ int iwl5000_alive_notify(struct iwl_priv *priv)
 		IWL50_SCD_QUEUECHAIN_SEL_ALL(priv->hw_params.max_txq_num));
 	iwl_write_prph(priv, IWL50_SCD_AGGR_SEL, 0);
 
-	/* initiate the queues */
+	
 	for (i = 0; i < priv->hw_params.max_txq_num; i++) {
 		iwl_write_prph(priv, IWL50_SCD_QUEUE_RDPTR(i), 0);
 		iwl_write_direct32(priv, HBUS_TARG_WRPTR, 0 | (i << 8));
@@ -788,19 +748,18 @@ int iwl5000_alive_notify(struct iwl_priv *priv)
 	iwl_write_prph(priv, IWL50_SCD_INTERRUPT_MASK,
 			IWL_MASK(0, priv->hw_params.max_txq_num));
 
-	/* Activate all Tx DMA/FIFO channels */
+	
 	priv->cfg->ops->lib->txq_set_sched(priv, IWL_MASK(0, 7));
 
 	iwl5000_set_wr_ptrs(priv, IWL_CMD_QUEUE_NUM, 0);
 
-	/* map qos queues to fifos one-to-one */
+	
 	for (i = 0; i < ARRAY_SIZE(iwl5000_default_queue_to_tx_fifo); i++) {
 		int ac = iwl5000_default_queue_to_tx_fifo[i];
 		iwl_txq_ctx_activate(priv, i);
 		iwl5000_tx_queue_set_status(priv, &priv->txq[i], ac, 0);
 	}
-	/* TODO - need to initialize those FIFOs inside the loop above,
-	 * not only mark them as active */
+	
 	iwl_txq_ctx_activate(priv, 4);
 	iwl_txq_ctx_activate(priv, 7);
 	iwl_txq_ctx_activate(priv, 8);
@@ -859,8 +818,8 @@ int iwl5000_hw_set_hw_params(struct iwl_priv *priv)
 	if (priv->cfg->ops->lib->temp_ops.set_ct_kill)
 		priv->cfg->ops->lib->temp_ops.set_ct_kill(priv);
 
-	/* Set initial sensitivity parameters */
-	/* Set initial calibration set */
+	
+	
 	switch (priv->hw_rev & CSR_HW_REV_TYPE_MSK) {
 	case CSR_HW_REV_TYPE_5150:
 		priv->hw_params.sens = &iwl5150_sensitivity;
@@ -885,9 +844,7 @@ int iwl5000_hw_set_hw_params(struct iwl_priv *priv)
 	return 0;
 }
 
-/**
- * iwl5000_txq_update_byte_cnt_tbl - Set up entry in Tx byte-count array
- */
+
 void iwl5000_txq_update_byte_cnt_tbl(struct iwl_priv *priv,
 					    struct iwl_tx_queue *txq,
 					    u16 byte_cnt)
@@ -975,8 +932,7 @@ static int iwl5000_tx_queue_set_q2ratid(struct iwl_priv *priv, u16 ra_tid,
 }
 static void iwl5000_tx_queue_stop_scheduler(struct iwl_priv *priv, u16 txq_id)
 {
-	/* Simply stop the queue, but don't change any configuration;
-	 * the SCD_ACT_EN bit is the write-enable mask for the ACTIVE bit. */
+	
 	iwl_write_prph(priv,
 		IWL50_SCD_QUEUE_STATUS_BITS(txq_id),
 		(0 << IWL50_SCD_QUEUE_STTS_REG_POS_ACTIVE)|
@@ -1000,30 +956,29 @@ int iwl5000_txq_agg_enable(struct iwl_priv *priv, int txq_id,
 
 	ra_tid = BUILD_RAxTID(sta_id, tid);
 
-	/* Modify device's station table to Tx this TID */
+	
 	iwl_sta_tx_modify_enable_tid(priv, sta_id, tid);
 
 	spin_lock_irqsave(&priv->lock, flags);
 
-	/* Stop this Tx queue before configuring it */
+	
 	iwl5000_tx_queue_stop_scheduler(priv, txq_id);
 
-	/* Map receiver-address / traffic-ID to this queue */
+	
 	iwl5000_tx_queue_set_q2ratid(priv, ra_tid, txq_id);
 
-	/* Set this queue as a chain-building queue */
+	
 	iwl_set_bits_prph(priv, IWL50_SCD_QUEUECHAIN_SEL, (1<<txq_id));
 
-	/* enable aggregations for the queue */
+	
 	iwl_set_bits_prph(priv, IWL50_SCD_AGGR_SEL, (1<<txq_id));
 
-	/* Place first TFD at index corresponding to start sequence number.
-	 * Assumes that ssn_idx is valid (!= 0xFFF) */
+	
 	priv->txq[txq_id].q.read_ptr = (ssn_idx & 0xff);
 	priv->txq[txq_id].q.write_ptr = (ssn_idx & 0xff);
 	iwl5000_set_wr_ptrs(priv, txq_id, ssn_idx);
 
-	/* Set up Tx window size and frame limit for this queue */
+	
 	iwl_write_targ_mem(priv, priv->scd_base_addr +
 			IWL50_SCD_CONTEXT_QUEUE_OFFSET(txq_id) +
 			sizeof(u32),
@@ -1036,7 +991,7 @@ int iwl5000_txq_agg_enable(struct iwl_priv *priv, int txq_id,
 
 	iwl_set_bits_prph(priv, IWL50_SCD_INTERRUPT_MASK, (1 << txq_id));
 
-	/* Set up Status area in SRAM, map to Tx DMA/FIFO, activate the queue */
+	
 	iwl5000_tx_queue_set_status(priv, &priv->txq[txq_id], tx_fifo, 1);
 
 	spin_unlock_irqrestore(&priv->lock, flags);
@@ -1062,7 +1017,7 @@ int iwl5000_txq_agg_disable(struct iwl_priv *priv, u16 txq_id,
 
 	priv->txq[txq_id].q.read_ptr = (ssn_idx & 0xff);
 	priv->txq[txq_id].q.write_ptr = (ssn_idx & 0xff);
-	/* supposes that ssn_idx is valid (!= 0xFFF) */
+	
 	iwl5000_set_wr_ptrs(priv, txq_id, ssn_idx);
 
 	iwl_clear_bits_prph(priv, IWL50_SCD_INTERRUPT_MASK, (1 << txq_id));
@@ -1077,16 +1032,13 @@ u16 iwl5000_build_addsta_hcmd(const struct iwl_addsta_cmd *cmd, u8 *data)
 	u16 size = (u16)sizeof(struct iwl_addsta_cmd);
 	struct iwl_addsta_cmd *addsta = (struct iwl_addsta_cmd *)data;
 	memcpy(addsta, cmd, size);
-	/* resrved in 5000 */
+	
 	addsta->rate_n_flags = cpu_to_le16(0);
 	return size;
 }
 
 
-/*
- * Activate/Deactivate Tx DMA/FIFO channels according tx fifos mask
- * must be called under priv->lock and mac access
- */
+
 void iwl5000_txq_set_sched(struct iwl_priv *priv, u32 mask)
 {
 	iwl_write_prph(priv, IWL50_SCD_TXFACT, mask);
@@ -1120,13 +1072,13 @@ static int iwl5000_tx_status_reply_tx(struct iwl_priv *priv,
 	agg->rate_n_flags = rate_n_flags;
 	agg->bitmap = 0;
 
-	/* # frames attempted by Tx command */
+	
 	if (agg->frame_count == 1) {
-		/* Only one frame was attempted; no block-ack will arrive */
+		
 		status = le16_to_cpu(frame_status[0].status);
 		idx = start_idx;
 
-		/* FIXME: code repetition */
+		
 		IWL_DEBUG_TX_REPLY(priv, "FrameCnt = %d, StartIdx=%d idx=%d\n",
 				   agg->frame_count, agg->start_idx, idx);
 
@@ -1137,7 +1089,7 @@ static int iwl5000_tx_status_reply_tx(struct iwl_priv *priv,
 					IEEE80211_TX_STAT_ACK : 0;
 		iwl_hwrate_to_tx_control(priv, rate_n_flags, info);
 
-		/* FIXME: code repetition end */
+		
 
 		IWL_DEBUG_TX_REPLY(priv, "1 Frame 0x%x failure :%d\n",
 				    status & 0xff, tx_resp->failure_frame);
@@ -1145,11 +1097,11 @@ static int iwl5000_tx_status_reply_tx(struct iwl_priv *priv,
 
 		agg->wait_for_ba = 0;
 	} else {
-		/* Two or more frames were attempted; expect block-ack */
+		
 		u64 bitmap = 0;
 		int start = agg->start_idx;
 
-		/* Construct bit-map of pending frames within Tx window */
+		
 		for (i = 0; i < agg->frame_count; i++) {
 			u16 sc;
 			status = le16_to_cpu(frame_status[i].status);
@@ -1253,7 +1205,7 @@ static void iwl5000_rx_reply_tx(struct iwl_priv *priv,
 
 		iwl5000_tx_status_reply_tx(priv, agg, tx_resp, txq_id, index);
 
-		/* check if BAR is needed */
+		
 		if ((tx_resp->frame_count == 1) && !iwl_is_tx_success(status))
 			info->flags |= IEEE80211_TX_STAT_AMPDU_NO_BACK;
 
@@ -1308,7 +1260,7 @@ static void iwl5000_rx_reply_tx(struct iwl_priv *priv,
 		IWL_ERR(priv, "TODO:  Implement Tx ABORT REQUIRED!!!\n");
 }
 
-/* Currently 5000 is the superset of everything */
+
 u16 iwl5000_get_hcmd_size(u8 cmd_id, u16 len)
 {
 	return len;
@@ -1316,13 +1268,13 @@ u16 iwl5000_get_hcmd_size(u8 cmd_id, u16 len)
 
 void iwl5000_setup_deferred_work(struct iwl_priv *priv)
 {
-	/* in 5000 the tx power calibration is done in uCode */
+	
 	priv->disable_tx_power_cal = 1;
 }
 
 void iwl5000_rx_handler_setup(struct iwl_priv *priv)
 {
-	/* init calibration handlers */
+	
 	priv->rx_handlers[CALIBRATION_RES_NOTIFICATION] =
 					iwl5000_rx_calib_result;
 	priv->rx_handlers[CALIBRATION_COMPLETE_NOTIFICATION] =
@@ -1388,7 +1340,7 @@ int  iwl5000_send_tx_power(struct iwl_priv *priv)
 	struct iwl5000_tx_power_dbm_cmd tx_power_cmd;
 	u8 tx_ant_cfg_cmd;
 
-	/* half dBm need to multiply */
+	
 	tx_power_cmd.global_lmt = (s8)(2 * priv->tx_power_user_lmt);
 	tx_power_cmd.flags = IWL50_TX_POWER_NO_CLOSED;
 	tx_power_cmd.srv_chan_lmt = IWL50_TX_POWER_AUTO;
@@ -1405,7 +1357,7 @@ int  iwl5000_send_tx_power(struct iwl_priv *priv)
 
 void iwl5000_temperature(struct iwl_priv *priv)
 {
-	/* store temperature from statistics (in Celsius) */
+	
 	priv->temperature = le32_to_cpu(priv->statistics.general.temperature);
 	iwl_tt_handler(priv);
 }
@@ -1417,18 +1369,16 @@ static void iwl5150_temperature(struct iwl_priv *priv)
 
 	vt = le32_to_cpu(priv->statistics.general.temperature);
 	vt = vt / IWL_5150_VOLTAGE_TO_TEMPERATURE_COEFF + offset;
-	/* now vt hold the temperature in Kelvin */
+	
 	priv->temperature = KELVIN_TO_CELSIUS(vt);
 	iwl_tt_handler(priv);
 }
 
-/* Calc max signal level (dBm) among 3 possible receivers */
+
 int iwl5000_calc_rssi(struct iwl_priv *priv,
 			     struct iwl_rx_phy_res *rx_resp)
 {
-	/* data from PHY/DSP regarding signal strength, etc.,
-	 *   contents are always there, not configurable by host
-	 */
+	
 	struct iwl5000_non_cfg_phy *ncphy =
 		(struct iwl5000_non_cfg_phy *)rx_resp->non_cfg_phy_buf;
 	u32 val, rssi_a, rssi_b, rssi_c, max_rssi;
@@ -1437,12 +1387,7 @@ int iwl5000_calc_rssi(struct iwl_priv *priv,
 	val  = le32_to_cpu(ncphy->non_cfg_phy[IWL50_RX_RES_AGC_IDX]);
 	agc = (val & IWL50_OFDM_AGC_MSK) >> IWL50_OFDM_AGC_BIT_POS;
 
-	/* Find max rssi among 3 possible receivers.
-	 * These values are measured by the digital signal processor (DSP).
-	 * They should stay fairly constant even as the signal strength varies,
-	 *   if the radio's automatic gain control (AGC) is working right.
-	 * AGC value (see below) will provide the "interesting" info.
-	 */
+	
 	val = le32_to_cpu(ncphy->non_cfg_phy[IWL50_RX_RES_RSSI_AB_IDX]);
 	rssi_a = (val & IWL50_OFDM_RSSI_A_MSK) >> IWL50_OFDM_RSSI_A_BIT_POS;
 	rssi_b = (val & IWL50_OFDM_RSSI_B_MSK) >> IWL50_OFDM_RSSI_B_BIT_POS;
@@ -1455,8 +1400,7 @@ int iwl5000_calc_rssi(struct iwl_priv *priv,
 	IWL_DEBUG_STATS(priv, "Rssi In A %d B %d C %d Max %d AGC dB %d\n",
 		rssi_a, rssi_b, rssi_c, max_rssi, agc);
 
-	/* dBm = max_rssi dB - agc dB - constant.
-	 * Higher AGC (higher radio gain) means lower signal. */
+	
 	return max_rssi - agc - IWL49_RSSI_OFFSET;
 }
 
@@ -1647,7 +1591,7 @@ struct iwl_mod_params iwl50_mod_params = {
 	.num_of_ampdu_queues = IWL50_NUM_AMPDU_QUEUES,
 	.amsdu_size_8K = 1,
 	.restart_fw = 1,
-	/* the rest are 0 by default */
+	
 };
 
 
@@ -1666,7 +1610,7 @@ struct iwl_cfg iwl5300_agn_cfg = {
 	.valid_rx_ant = ANT_ABC,
 	.need_pll_cfg = true,
 	.ht_greenfield_support = true,
-	.use_rts_for_ht = true, /* use rts/cts protection */
+	.use_rts_for_ht = true, 
 };
 
 struct iwl_cfg iwl5100_bg_cfg = {
@@ -1718,7 +1662,7 @@ struct iwl_cfg iwl5100_agn_cfg = {
 	.valid_rx_ant = ANT_AB,
 	.need_pll_cfg = true,
 	.ht_greenfield_support = true,
-	.use_rts_for_ht = true, /* use rts/cts protection */
+	.use_rts_for_ht = true, 
 };
 
 struct iwl_cfg iwl5350_agn_cfg = {
@@ -1736,7 +1680,7 @@ struct iwl_cfg iwl5350_agn_cfg = {
 	.valid_rx_ant = ANT_ABC,
 	.need_pll_cfg = true,
 	.ht_greenfield_support = true,
-	.use_rts_for_ht = true, /* use rts/cts protection */
+	.use_rts_for_ht = true, 
 };
 
 struct iwl_cfg iwl5150_agn_cfg = {
@@ -1754,7 +1698,7 @@ struct iwl_cfg iwl5150_agn_cfg = {
 	.valid_rx_ant = ANT_AB,
 	.need_pll_cfg = true,
 	.ht_greenfield_support = true,
-	.use_rts_for_ht = true, /* use rts/cts protection */
+	.use_rts_for_ht = true, 
 };
 
 MODULE_FIRMWARE(IWL5000_MODULE_FIRMWARE(IWL5000_UCODE_API_MAX));

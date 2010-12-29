@@ -1,40 +1,4 @@
-/*
- * Intel Wireless Multicomm 3200 WiFi driver
- *
- * Copyright (C) 2009 Intel Corporation. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in
- *     the documentation and/or other materials provided with the
- *     distribution.
- *   * Neither the name of Intel Corporation nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- *
- * Intel Corporation <ilw@linux.intel.com>
- * Samuel Ortiz <samuel.ortiz@intel.com>
- * Zhu Yi <yi.zhu@intel.com>
- *
- */
+
 
 #ifndef __IWM_H__
 #define __IWM_H__
@@ -98,12 +62,12 @@ struct iwm_if_ops;
 struct iwm_wifi_cmd;
 
 struct pool_entry {
-	int id;		/* group id */
-	int sid;	/* super group id */
-	int min_pages;	/* min capacity in pages */
-	int max_pages;	/* max capacity in pages */
-	int alloc_pages;	/* allocated # of pages. incresed by driver */
-	int total_freed_pages;	/* total freed # of pages. incresed by UMAC */
+	int id;		
+	int sid;	
+	int min_pages;	
+	int max_pages;	
+	int alloc_pages;	
+	int total_freed_pages;	
 };
 
 struct spool_entry {
@@ -115,7 +79,7 @@ struct spool_entry {
 struct iwm_tx_credit {
 	spinlock_t lock;
 	int pool_nr;
-	unsigned long full_pools_map; /* bitmap for # of filled tx pools */
+	unsigned long full_pools_map; 
 	struct pool_entry pools[IWM_MACS_OUT_GROUPS];
 	struct spool_entry spools[IWM_MACS_OUT_SGROUPS];
 };
@@ -152,7 +116,7 @@ struct iwm_rx_info {
 struct iwm_umac_key_hdr {
 	u8 mac[ETH_ALEN];
 	u8 key_idx;
-	u8 multicast; /* BCast encrypt & BCast decrypt of frames FROM mac */
+	u8 multicast; 
 } __attribute__ ((packed));
 
 struct iwm_key {
@@ -190,7 +154,7 @@ struct iwm_tx_queue {
 	u8 *concat_ptr;
 };
 
-/* Queues 0 ~ 3 for AC data, 5 for iPAN */
+
 #define IWM_TX_QUEUES		5
 #define IWM_TX_DATA_QUEUES	4
 #define IWM_TX_CMD_QUEUE	4
@@ -334,12 +298,12 @@ void iwm_link_off(struct iwm_priv *iwm);
 int iwm_up(struct iwm_priv *iwm);
 int iwm_down(struct iwm_priv *iwm);
 
-/* TX API */
+
 void iwm_tx_credit_inc(struct iwm_priv *iwm, int id, int total_freed_pages);
 void iwm_tx_worker(struct work_struct *work);
 int iwm_xmit_frame(struct sk_buff *skb, struct net_device *netdev);
 
-/* RX API */
+
 void iwm_rx_setup_handlers(struct iwm_priv *iwm);
 int iwm_rx_handle(struct iwm_priv *iwm, u8 *buf, unsigned long buf_size);
 int iwm_rx_handle_resp(struct iwm_priv *iwm, u8 *buf, unsigned long buf_size,

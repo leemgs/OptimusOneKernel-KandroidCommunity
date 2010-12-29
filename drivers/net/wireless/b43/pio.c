@@ -1,27 +1,4 @@
-/*
 
-  Broadcom B43 wireless driver
-
-  PIO data transfer
-
-  Copyright (c) 2005-2008 Michael Buesch <mb@bu3sch.de>
-
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program; see the file COPYING.  If not, write to
-  the Free Software Foundation, Inc., 51 Franklin Steet, Fifth Floor,
-  Boston, MA 02110-1301, USA.
-
-*/
 
 #include "b43.h"
 #include "pio.h"
@@ -38,14 +15,7 @@ static u16 generate_cookie(struct b43_pio_txqueue *q,
 {
 	u16 cookie;
 
-	/* Use the upper 4 bits of the cookie as
-	 * PIO controller ID and store the packet index number
-	 * in the lower 12 bits.
-	 * Note that the cookie must never be 0, as this
-	 * is a special value used in RX path.
-	 * It can also not be 0xFFFF because that is special
-	 * for multicast frames.
-	 */
+	
 	cookie = (((u16)q->index + 1) << 12);
 	cookie |= pack->index;
 
@@ -150,7 +120,7 @@ static struct b43_pio_txqueue *b43_setup_pioqueue_tx(struct b43_wldev *dev,
 
 	q->free_packet_slots = B43_PIO_MAX_NR_TXPACKETS;
 	if (q->rev >= 8) {
-		q->buffer_size = 1920; //FIXME this constant is wrong.
+		q->buffer_size = 1920; 
 	} else {
 		q->buffer_size = b43_piotx_read16(q, B43_PIO_TXQBUFSIZE);
 		q->buffer_size -= 80;
@@ -181,7 +151,7 @@ static struct b43_pio_rxqueue *b43_setup_pioqueue_rx(struct b43_wldev *dev,
 	q->mmio_base = index_to_pioqueue_base(dev, index) +
 		       pio_rxqueue_offset(dev);
 
-	/* Enable Direct FIFO RX (PIO) on the engine. */
+	
 	b43_dma_direct_fifo_rx(dev, index, 1);
 
 	return q;
@@ -295,18 +265,18 @@ err_destroy_bk:
 	return err;
 }
 
-/* Static mapping of mac80211's queues (priorities) to b43 PIO queues. */
+
 static struct b43_pio_txqueue *select_queue_by_priority(struct b43_wldev *dev,
 							u8 queue_prio)
 {
 	struct b43_pio_txqueue *q;
 
 	if (dev->qos_enabled) {
-		/* 0 = highest priority */
+		
 		switch (queue_prio) {
 		default:
 			B43_WARN_ON(1);
-			/* fallthrough */
+			
 		case 0:
 			q = dev->pio.tx_queue_AC_VO;
 			break;
@@ -342,7 +312,7 @@ static u16 tx_write_2byte_queue(struct b43_pio_txqueue *q,
 			q->mmio_base + B43_PIO_TXDATA,
 			sizeof(u16));
 	if (data_len & 1) {
-		/* Write the last byte. */
+		
 		ctl &= ~B43_PIO_TXCTL_WRITEHI;
 		b43_piotx_write16(q, B43_PIO_TXCTL, ctl);
 		wl->tx_tail[0] = data[data_len - 1];
@@ -367,9 +337,9 @@ static void pio_tx_frame_2byte_queue(struct b43_pio_txpacket *pack,
 	ctl |= B43_PIO_TXCTL_FREADY;
 	ctl &= ~B43_PIO_TXCTL_EOF;
 
-	/* Transfer the header data. */
+	
 	ctl = tx_write_2byte_queue(q, ctl, hdr, hdrlen);
-	/* Transfer the frame data. */
+	
 	ctl = tx_write_2byte_queue(q, ctl, frame, frame_len);
 
 	ctl |= B43_PIO_TXCTL_EOF;
@@ -394,7 +364,7 @@ static u32 tx_write_4byte_queue(struct b43_pio_txqueue *q,
 			sizeof(u32));
 	if (data_len & 3) {
 		wl->tx_tail[3] = 0;
-		/* Write the last few bytes. */
+		
 		ctl &= ~(B43_PIO8_TXCTL_8_15 | B43_PIO8_TXCTL_16_23 |
 			 B43_PIO8_TXCTL_24_31);
 		switch (data_len & 3) {
@@ -437,9 +407,9 @@ static void pio_tx_frame_4byte_queue(struct b43_pio_txpacket *pack,
 	ctl |= B43_PIO8_TXCTL_FREADY;
 	ctl &= ~B43_PIO8_TXCTL_EOF;
 
-	/* Transfer the header data. */
+	
 	ctl = tx_write_4byte_queue(q, ctl, hdr, hdrlen);
-	/* Transfer the frame data. */
+	
 	ctl = tx_write_4byte_queue(q, ctl, frame, frame_len);
 
 	ctl |= B43_PIO8_TXCTL_EOF;
@@ -469,8 +439,7 @@ static int pio_tx_frame(struct b43_pio_txqueue *q,
 		return err;
 
 	if (info->flags & IEEE80211_TX_CTL_SEND_AFTER_DTIM) {
-		/* Tell the firmware about the cookie of the last
-		 * mcast frame, so it can clear the more-data bit in it. */
+		
 		b43_shm_write16(dev, B43_SHM_SHARED,
 				B43_SHM_SH_MCASTCOOKIE, cookie);
 	}
@@ -481,11 +450,10 @@ static int pio_tx_frame(struct b43_pio_txqueue *q,
 	else
 		pio_tx_frame_2byte_queue(pack, (const u8 *)&wl->txhdr, hdrlen);
 
-	/* Remove it from the list of available packet slots.
-	 * It will be put back when we receive the status report. */
+	
 	list_del(&pack->list);
 
-	/* Update the queue statistics. */
+	
 	q->buffer_used += roundup(skb->len + hdrlen, 4);
 	q->free_packet_slots -= 1;
 
@@ -503,13 +471,12 @@ int b43_pio_tx(struct b43_wldev *dev, struct sk_buff *skb)
 	hdr = (struct ieee80211_hdr *)skb->data;
 
 	if (info->flags & IEEE80211_TX_CTL_SEND_AFTER_DTIM) {
-		/* The multicast queue will be sent after the DTIM. */
+		
 		q = dev->pio.tx_queue_mcast;
-		/* Set the frame More-Data bit. Ucode will clear it
-		 * for us on the last frame. */
+		
 		hdr->frame_control |= cpu_to_le16(IEEE80211_FCTL_MOREDATA);
 	} else {
-		/* Decide by priority where to put this frame. */
+		
 		q = select_queue_by_priority(dev, skb_get_queue_mapping(skb));
 	}
 
@@ -529,22 +496,19 @@ int b43_pio_tx(struct b43_wldev *dev, struct sk_buff *skb)
 	B43_WARN_ON(q->buffer_used > q->buffer_size);
 
 	if (total_len > (q->buffer_size - q->buffer_used)) {
-		/* Not enough memory on the queue. */
+		
 		err = -EBUSY;
 		ieee80211_stop_queue(dev->wl->hw, skb_get_queue_mapping(skb));
 		q->stopped = 1;
 		goto out;
 	}
 
-	/* Assign the queue number to the ring (if not already done before)
-	 * so TX status handling can use it. The mac80211-queue to b43-queue
-	 * mapping is static, so we don't need to store it per frame. */
+	
 	q->queue_prio = skb_get_queue_mapping(skb);
 
 	err = pio_tx_frame(q, skb);
 	if (unlikely(err == -ENOKEY)) {
-		/* Drop this packet, as we don't have the encryption key
-		 * anymore and must not transmit it unencrypted. */
+		
 		dev_kfree_skb_any(skb);
 		err = 0;
 		goto out;
@@ -558,7 +522,7 @@ int b43_pio_tx(struct b43_wldev *dev, struct sk_buff *skb)
 	B43_WARN_ON(q->buffer_used > q->buffer_size);
 	if (((q->buffer_size - q->buffer_used) < roundup(2 + 2 + 6, 4)) ||
 	    (q->free_packet_slots == 0)) {
-		/* The queue is full. */
+		
 		ieee80211_stop_queue(dev->wl->hw, skb_get_queue_mapping(skb));
 		q->stopped = 1;
 	}
@@ -615,7 +579,7 @@ void b43_pio_get_tx_stats(struct b43_wldev *dev,
 	}
 }
 
-/* Returns whether we should fetch another frame. */
+
 static bool pio_rx_frame(struct b43_pio_rxqueue *q)
 {
 	struct b43_wldev *dev = q->dev;
@@ -628,7 +592,7 @@ static bool pio_rx_frame(struct b43_pio_rxqueue *q)
 
 	memset(&wl->rxhdr, 0, sizeof(wl->rxhdr));
 
-	/* Check if we have data and wait for it to get ready. */
+	
 	if (q->rev >= 8) {
 		u32 ctl;
 
@@ -662,7 +626,7 @@ static bool pio_rx_frame(struct b43_pio_rxqueue *q)
 	return 1;
 data_ready:
 
-	/* Get the preamble (RX header) */
+	
 	if (q->rev >= 8) {
 		ssb_block_read(dev->dev, &wl->rxhdr, sizeof(wl->rxhdr),
 			       q->mmio_base + B43_PIO8_RXDATA,
@@ -672,7 +636,7 @@ data_ready:
 			       q->mmio_base + B43_PIO_RXDATA,
 			       sizeof(u16));
 	}
-	/* Sanity checks. */
+	
 	len = le16_to_cpu(wl->rxhdr.frame_len);
 	if (unlikely(len > 0x700)) {
 		err_msg = "len > 0x700";
@@ -686,15 +650,13 @@ data_ready:
 	macstat = le32_to_cpu(wl->rxhdr.mac_status);
 	if (macstat & B43_RX_MAC_FCSERR) {
 		if (!(q->dev->wl->filter_flags & FIF_FCSFAIL)) {
-			/* Drop frames with failed FCS. */
+			
 			err_msg = "Frame FCS error";
 			goto rx_error;
 		}
 	}
 
-	/* We always pad 2 bytes, as that's what upstream code expects
-	 * due to the RX-header being 30 bytes. In case the frame is
-	 * unaligned, we pad another 2 bytes. */
+	
 	padding = (macstat & B43_RX_MAC_PADDING) ? 2 : 0;
 	skb = dev_alloc_skb(len + padding + 2);
 	if (unlikely(!skb)) {
@@ -708,7 +670,7 @@ data_ready:
 			       q->mmio_base + B43_PIO8_RXDATA,
 			       sizeof(u32));
 		if (len & 3) {
-			/* Read the last few bytes. */
+			
 			ssb_block_read(dev->dev, wl->rx_tail, 4,
 				       q->mmio_base + B43_PIO8_RXDATA,
 				       sizeof(u32));
@@ -732,7 +694,7 @@ data_ready:
 			       q->mmio_base + B43_PIO_RXDATA,
 			       sizeof(u16));
 		if (len & 1) {
-			/* Read the last byte. */
+			
 			ssb_block_read(dev->dev, wl->rx_tail, 2,
 				       q->mmio_base + B43_PIO_RXDATA,
 				       sizeof(u16));

@@ -1,9 +1,4 @@
-/*
- *  Copyright (C) 1997 Cullen Jennings
- *  Copyright (C) 1998 Elmer Joandiu, elmer@ylenurme.ee
- *  GNU General Public License applies
- * This module provides support for the Arlan 655 card made by Aironet
- */
+
 
 #include "arlan.h"
 
@@ -180,19 +175,17 @@ int arlan_command(struct net_device *dev, int command_p)
 		priv->waiting_command_mask &= ~ARLAN_COMMAND_INT_ENABLE;
 	}
 
-	/* Card access serializing lock */
+	
 	spin_lock_irqsave(&priv->lock, flags);
 
-	/* Check cards status and waiting */
+	
 
 	if (priv->waiting_command_mask & (ARLAN_COMMAND_LONG_WAIT_NOW | ARLAN_COMMAND_WAIT_NOW))
 	{
 		while (priv->waiting_command_mask & (ARLAN_COMMAND_LONG_WAIT_NOW | ARLAN_COMMAND_WAIT_NOW))
 		{
 			if (READSHMB(arlan->resetFlag) ||
-				READSHMB(arlan->commandByte))	/* || 
-								   (readControlRegister(dev) & ARLAN_ACCESS))
-								 */
+				READSHMB(arlan->commandByte))	
 				udelay(40);
 			else
 				priv->waiting_command_mask &= ~(ARLAN_COMMAND_LONG_WAIT_NOW | ARLAN_COMMAND_WAIT_NOW);
@@ -239,11 +232,11 @@ int arlan_command(struct net_device *dev, int command_p)
 	if (priv->waiting_command_mask & ARLAN_COMMAND_CONF)
 		priv->under_config = 1;
 
-	/* Issuing command */
+	
 	arlan_lock_card_access(dev);
 	if (priv->waiting_command_mask & ARLAN_COMMAND_POWERUP)
 	{
-	//     if (readControlRegister(dev) & (ARLAN_ACCESS && ARLAN_POWER))
+	
 		setPowerOn(dev);
 		arlan_interrupt_lancpu(dev);
 		priv->waiting_command_mask &= ~ARLAN_COMMAND_POWERUP;
@@ -294,17 +287,17 @@ int arlan_command(struct net_device *dev, int command_p)
 			printk(KERN_ERR "%s: Doing chip reset\n", dev->name);
 		priv->lastReset = jiffies;
 		WRITESHM(arlan->commandByte, 0, u_char);
-		/* hold card in reset state */
+		
 		setHardwareReset(dev);
-		/* set reset flag and then release reset */
+		
 		WRITESHM(arlan->resetFlag, 0xff, u_char);
 		clearChannelAttention(dev);
 		clearHardwareReset(dev);
 		priv->card_polling_interval = HZ / 4;
 		priv->waiting_command_mask &= ~ARLAN_COMMAND_RESET;
 		priv->waiting_command_mask |= ARLAN_COMMAND_INT_RACK;
-//		priv->waiting_command_mask |= ARLAN_COMMAND_INT_RENABLE; 
-//		priv->waiting_command_mask |= ARLAN_COMMAND_RX;
+
+
 	}
 	else if (priv->waiting_command_mask & ARLAN_COMMAND_INT_RACK)
 	{
@@ -334,8 +327,8 @@ int arlan_command(struct net_device *dev, int command_p)
 		arlan_interrupt_lancpu(dev);
 		priv->waiting_command_mask &= ~ARLAN_COMMAND_CONF;
 		priv->card_polling_interval = HZ / 10;
-//		priv->waiting_command_mask |= ARLAN_COMMAND_INT_RACK;   
-//		priv->waiting_command_mask |= ARLAN_COMMAND_INT_ENABLE; 
+
+
 		priv->waiting_command_mask |= ARLAN_COMMAND_CONF_WAIT;
 	}
 	else if (priv->waiting_command_mask & ARLAN_COMMAND_CONF_WAIT)
@@ -366,7 +359,7 @@ int arlan_command(struct net_device *dev, int command_p)
 			WRITESHMB(arlan->commandByte, ARLAN_COM_INT | ARLAN_COM_RX_ENABLE);
 			WRITESHMB(arlan->commandParameter[0], conf->rxParameter);
 			arlan_interrupt_lancpu(dev);
-			priv->rx_command_given = 0; // mnjah, bad
+			priv->rx_command_given = 0; 
 			priv->waiting_command_mask &= ~ARLAN_COMMAND_RX;
 			priv->card_polling_interval = 1;
 		}
@@ -395,7 +388,7 @@ int arlan_command(struct net_device *dev, int command_p)
 				memset_io(arlan->commandParameter, 0, 0xf);
 				WRITESHMB(arlan->commandByte, ARLAN_COM_TX_ENABLE | ARLAN_COM_INT);
 				memcpy_toio(arlan->commandParameter, &TXLAST(dev), 14);
-//				for ( i=1 ; i < 15 ; i++) printk("%02x:",READSHMB(arlan->commandParameter[i]));
+
 				priv->tx_last_sent = jiffies;
 				arlan_interrupt_lancpu(dev);
 				priv->tx_command_given = 1;
@@ -486,7 +479,7 @@ static inline void arlan_command_process(struct net_device *dev)
 				break;
 			times++;
 		}
-		/* if long command, we won't repeat trying */ ;
+		 ;
 		if (priv->card_polling_interval > 1)
 			break;
 		times++;
@@ -683,7 +676,7 @@ static int arlan_hw_tx(struct net_device *dev, char *buf, int length)
 		for (i = 0; i < 6; i++)
 			TXHEAD(dev).dest[i] = buf[i];
 		TXHEAD(dev).clear = conf->txClear;
-		TXHEAD(dev).retries = conf->txRetries;	/* 0 is use default */
+		TXHEAD(dev).retries = conf->txRetries;	
 		TXHEAD(dev).routing = conf->txRouting;
 		TXHEAD(dev).scrambled = conf->txScrambled;
 		memcpy_toio((char __iomem *)arlan + TXHEAD(dev).offset, buf + ARLAN_FAKE_HDR_LEN, TXHEAD(dev).length);
@@ -814,13 +807,13 @@ static int arlan_hw_config(struct net_device *dev)
 	memcpy_toio(arlan->encryptionKey + keyStart, encryptionKey, 8);
 	memcpy_toio(arlan->name, conf->siteName, 16);
 
-	WRITESHMB(arlan->commandByte, ARLAN_COM_INT | ARLAN_COM_CONF);	/* do configure */
-	memset_io(arlan->commandParameter, 0, 0xf);	/* 0xf */
+	WRITESHMB(arlan->commandByte, ARLAN_COM_INT | ARLAN_COM_CONF);	
+	memset_io(arlan->commandParameter, 0, 0xf);	
 	memset_io(arlan->commandParameter + 1, 0, 2);
 	if (conf->writeEEPROM)
 	{
 		  memset_io(arlan->commandParameter, conf->writeEEPROM, 1);
-//		conf->writeEEPROM=0;
+
 	}
 	if (conf->registrationMode && conf->registrationInterrupts)
 		memset_io(arlan->commandParameter + 3, 1, 1);
@@ -957,11 +950,7 @@ static int arlan_read_card_configuration(struct net_device *dev)
 static int lastFoundAt = 0xbe000;
 
 
-/*
- * This is the real probe routine. Linux has a history of friendly device
- * probes on the ISA bus. A good device probes avoids doing writes, and
- * verifies that the correct device exists and functions.
- */
+
 #define ARLAN_SHMEM_SIZE	0x2000
 static int __init arlan_check_fingerprint(unsigned long memaddr)
 {
@@ -973,20 +962,20 @@ static int __init arlan_check_fingerprint(unsigned long memaddr)
 	ARLAN_DEBUG_ENTRY("arlan_check_fingerprint");
 
 	if (!request_mem_region(paddr, ARLAN_SHMEM_SIZE, "arlan")) {
-		// printk(KERN_WARNING "arlan: memory region %lx excluded from probing \n",paddr);
+		
 		return -ENODEV;
 	}
 
 	memcpy_fromio(tempBuf, arlan->textRegion, 29);
 	tempBuf[30] = 0;
 
-	/* check for card at this address */
+	
 	if (0 != strncmp(tempBuf, probeText, 29)){
  		release_mem_region(paddr, ARLAN_SHMEM_SIZE);
 		return -ENODEV;
 	}
 
-//   printk(KERN_INFO "arlan found at 0x%x \n",memaddr);
+
 	ARLAN_DEBUG_EXIT("arlan_check_fingerprint");
 
 	return 0;
@@ -1002,7 +991,7 @@ static int arlan_change_mtu(struct net_device *dev, int new_mtu)
 		return -EINVAL;
 	dev->mtu = new_mtu;
 	if (new_mtu < 256)
-		new_mtu = 256;	/* cards book suggests 1600 */
+		new_mtu = 256;	
 	conf->maxDatagramSize = new_mtu;
 	conf->maxFrameSize = new_mtu + 48;
 
@@ -1148,7 +1137,7 @@ static int arlan_open(struct net_device *dev)
 	init_timer(&priv->timer);
 	priv->timer.expires = jiffies + HZ / 10;
 	priv->timer.data = (unsigned long) dev;
-	priv->timer.function = &arlan_registration_timer;	/* timer handler */
+	priv->timer.function = &arlan_registration_timer;	
 
 	arlan_command(dev, ARLAN_COMMAND_POWERUP | ARLAN_COMMAND_LONG_WAIT_NOW);
 	mdelay(200);
@@ -1162,10 +1151,10 @@ static int arlan_open(struct net_device *dev)
 static void arlan_tx_timeout (struct net_device *dev)
 {
 	printk(KERN_ERR "%s: arlan transmit timed out, kernel decided\n", dev->name);
-	/* Try to restart the adaptor. */
+	
 	arlan_command(dev, ARLAN_COMMAND_CLEAN_AND_RESET);
-	// dev->trans_start = jiffies;
-	// netif_start_queue (dev);
+	
+	
 }
 
 
@@ -1305,7 +1294,7 @@ static void arlan_tx_done_interrupt(struct net_device *dev, int status)
 			IFDEBUG(ARLAN_DEBUG_TX_CHAIN)
 				printk("arlan intr: transmit timed out\n");
 			priv->bad += 1;
-			//arlan_queue_retransmit(dev);
+			
 			RetryOrFail(dev);
 		}
 		break;
@@ -1316,7 +1305,7 @@ static void arlan_tx_done_interrupt(struct net_device *dev, int status)
 				printk("arlan intr: transmit max retries\n");
 			priv->bad += 1;
 			priv->reset = 0;
-			//arlan_queue_retransmit(dev);
+			
 			RetryOrFail(dev);
 		}
 		break;
@@ -1327,7 +1316,7 @@ static void arlan_tx_done_interrupt(struct net_device *dev, int status)
 				printk("arlan intr: transmit aborted\n");
 			priv->bad += 1;
 			arlan_queue_retransmit(dev);
-			//RetryOrFail(dev);
+			
 		}
 		break;
 
@@ -1336,7 +1325,7 @@ static void arlan_tx_done_interrupt(struct net_device *dev, int status)
 			IFDEBUG(ARLAN_DEBUG_TX_CHAIN)
 				printk("arlan intr: transmit not registered\n");
 			priv->bad += 1;
-			//debug=101;
+			
 			arlan_queue_retransmit(dev);
 		}
 		break;
@@ -1347,7 +1336,7 @@ static void arlan_tx_done_interrupt(struct net_device *dev, int status)
 				printk("arlan intr: transmit destination full\n");
 			priv->bad += 1;
 			priv->reset = 0;
-			//arlan_drop_tx(dev);
+			
 			arlan_queue_retransmit(dev);
 		}
 		break;
@@ -1368,7 +1357,7 @@ static void arlan_tx_done_interrupt(struct net_device *dev, int status)
 				printk("arlan intr: transmit dest mail box full\n");
 			priv->bad += 1;
 			priv->reset = 0;
-			//arlan_drop_tx(dev);
+			
 			arlan_queue_retransmit(dev);
 		}
 		break;
@@ -1379,7 +1368,7 @@ static void arlan_tx_done_interrupt(struct net_device *dev, int status)
 				printk("arlan intr: transmit root dest not reg.\n");
 			priv->bad += 1;
 			priv->reset = 1;
-			//arlan_drop_tx(dev);
+			
 			arlan_queue_retransmit(dev);
 		}
 		break;
@@ -1408,8 +1397,8 @@ static void arlan_rx_interrupt(struct net_device *dev, u_char rxStatus, u_short 
 
 
 	ARLAN_DEBUG_ENTRY("arlan_rx_interrupt");
-	// by spec,   not                WRITESHMB(arlan->rxStatus,0x00);
-	// prohibited here              arlan_command(dev, ARLAN_COMMAND_RX);
+	
+	
 
 	if (pkt_len < 10 || pkt_len > 2048)
 	{
@@ -1444,14 +1433,14 @@ static void arlan_rx_interrupt(struct net_device *dev, u_char rxStatus, u_short 
 		case 2:
 		case 3:
 		{
-			/* Malloc up new buffer. */
+			
 			struct sk_buff *skb;
 
 			DEBUGSHM(50, "arlan recv pkt offs=%d\n", arlan->rxOffset, u_short);
 			DEBUGSHM(1, "arlan rxFrmType = %d \n", arlan->rxFrmType, u_char);
 			DEBUGSHM(1, KERN_INFO "arlan rx scrambled = %d \n", arlan->scrambled, u_char);
 
-			/* here we do multicast filtering to avoid slow 8-bit memcopy */
+			
 #ifdef ARLAN_MULTICAST
 			if (!(dev->flags & IFF_ALLMULTI) &&
 				!(dev->flags & IFF_PROMISC) &&
@@ -1484,13 +1473,12 @@ static void arlan_rx_interrupt(struct net_device *dev, u_char rxStatus, u_short 
 							printk(KERN_ERR "%s: invalid multicast address length given.\n", dev->name);
 						dmi = dmi->next;
 					}
-					/* we reach here if multicast filtering is on and packet 
-					 * is multicast and not for receive */
+					
 					goto end_of_interrupt;
 				}
 			}
-#endif				// ARLAN_MULTICAST
-			/* multicast filtering ends here */
+#endif				
+			
 			pkt_len += ARLAN_FAKE_HDR_LEN;
 
 			skb = dev_alloc_skb(pkt_len + 4);
@@ -1599,7 +1587,7 @@ static void arlan_process_interrupt(struct net_device *dev)
 			goto ends;
 		}
 		if (rxStatus == 1 || rxStatus == 2)
-		{		/* a packet waiting */
+		{		
 			arlan_rx_interrupt(dev, rxStatus, rxOffset, pkt_len);
 			goto ends;
 		}
@@ -1700,10 +1688,7 @@ static long alignLong(volatile u_char * ptr)
 }
 #endif
 
-/*
- * Get the current statistics.
- * This may be called with the card open or closed.
- */
+
 
 static struct net_device_stats *arlan_statistics(struct net_device *dev)
 {
@@ -1713,7 +1698,7 @@ static struct net_device_stats *arlan_statistics(struct net_device *dev)
 
 	ARLAN_DEBUG_ENTRY("arlan_statistics");
 
-	/* Update the statistics from the device registers. */
+	
 
 	READSHM(dev->stats.collisions, arlan->numReTransmissions, u_int);
 	READSHM(dev->stats.rx_crc_errors, arlan->numCRCErrors, u_int);
@@ -1755,7 +1740,7 @@ static void arlan_set_multicast(struct net_device *dev)
 	}
 	else
 	{
-		/* turn off promiscuous mode  */
+		
 		unsigned char recMode;
 		READSHM(recMode, arlan->receiveMode, u_char);
 		conf->receiveMode = ARLAN_RCV_CLEAN | ARLAN_RCV_CONTROL;
@@ -1780,10 +1765,7 @@ struct net_device * __init arlan_probe(int unit)
 	if (arlans_found == MAX_ARLANS)
 		return ERR_PTR(-ENODEV);
 
-	/* 
-	 * Reserve space for local data and a copy of the shared memory
-	 * that is used by the /proc interface.
-	 */
+	
 	dev = alloc_etherdev(sizeof(struct arlan_private)
 			     + sizeof(struct arlan_shmem));
 	if (!dev)

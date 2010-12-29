@@ -1,20 +1,4 @@
-/*
- * mac80211 glue code for mac80211 Prism54 drivers
- *
- * Copyright (c) 2006, Michael Wu <flamingice@sourmilk.net>
- * Copyright (c) 2007-2009, Christian Lamparter <chunkeey@web.de>
- * Copyright 2008, Johannes Berg <johannes@sipsolutions.net>
- *
- * Based on:
- * - the islsm (softmac prism54) driver, which is:
- *   Copyright 2004-2006 Jean-Baptiste Note <jbnote@gmail.com>, et al.
- * - stlc45xx driver
- *   Copyright (C) 2008 Nokia Corporation and/or its subsidiary(-ies).
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/firmware.h>
@@ -41,15 +25,12 @@ static void p54_sta_notify(struct ieee80211_hw *dev, struct ieee80211_vif *vif,
 	switch (notify_cmd) {
 	case STA_NOTIFY_ADD:
 	case STA_NOTIFY_REMOVE:
-		/*
-		 * Notify the firmware that we don't want or we don't
-		 * need to buffer frames for this station anymore.
-		 */
+		
 
 		p54_sta_unlock(priv, sta->addr);
 		break;
 	case STA_NOTIFY_AWAKE:
-		/* update the firmware's filter table */
+		
 		p54_sta_unlock(priv, sta->addr);
 		break;
 	default:
@@ -89,11 +70,7 @@ u8 *p54_find_ie(struct sk_buff *skb, u8 ie)
 
 static int p54_beacon_format_ie_tim(struct sk_buff *skb)
 {
-	/*
-	 * the good excuse for this mess is ... the firmware.
-	 * The dummy TIM MUST be at the end of the beacon frame,
-	 * because it'll be overwritten!
-	 */
+	
 	u8 *tim;
 	u8 dtim_len;
 	u8 dtim_period;
@@ -113,7 +90,7 @@ static int p54_beacon_format_ie_tim(struct sk_buff *skb)
 	memmove(tim, next, skb_tail_pointer(skb) - next);
 	tim = skb_tail_pointer(skb) - (dtim_len + 2);
 
-	/* add the dummy at the end */
+	
 	tim[0] = WLAN_EID_TIM;
 	tim[1] = 3;
 	tim[2] = 0;
@@ -139,15 +116,7 @@ static int p54_beacon_update(struct p54_common *priv,
 	if (ret)
 		return ret;
 
-	/*
-	 * During operation, the firmware takes care of beaconing.
-	 * The driver only needs to upload a new beacon template, once
-	 * the template was changed by the stack or userspace.
-	 *
-	 * LMAC API 3.2.2 also specifies that the driver does not need
-	 * to cancel the old beacon template by hand, instead the firmware
-	 * will release the previous one through the feedback mechanism.
-	 */
+	
 	WARN_ON(p54_tx_80211(priv->hw, beacon));
 	priv->tsf_high32 = 0;
 	priv->tsf_low32 = 0;
@@ -254,10 +223,7 @@ static void p54_remove_interface(struct ieee80211_hw *dev,
 	mutex_lock(&priv->conf_mutex);
 	priv->vif = NULL;
 
-	/*
-	 * LMAC API 3.2.2 states that any active beacon template must be
-	 * canceled by the driver before attempting a mode transition.
-	 */
+	
 	if (le32_to_cpu(priv->beacon_req_id) != 0) {
 		p54_tx_cancel(priv, priv->beacon_req_id);
 		wait_for_completion_interruptible_timeout(&priv->beacon_comp, HZ);
@@ -340,11 +306,7 @@ static void p54_work(struct work_struct *work)
 	if (unlikely(priv->mode == NL80211_IFTYPE_UNSPECIFIED))
 		return ;
 
-	/*
-	 * TODO: walk through tx_queue and do the following tasks
-	 * 	1. initiate bursts.
-	 *      2. cancel stuck frames / reset the device if necessary.
-	 */
+	
 
 	p54_fetch_statistics(priv);
 }
@@ -464,16 +426,9 @@ static int p54_set_key(struct ieee80211_hw *dev, enum set_key_cmd cmd,
 					       priv->rx_keycache_size, 0);
 
 		if (slot < 0) {
-			/*
-			 * The device supports the choosen algorithm, but the
-			 * firmware does not provide enough key slots to store
-			 * all of them.
-			 * But encryption offload for outgoing frames is always
-			 * possible, so we just pretend that the upload was
-			 * successful and do the decryption in software.
-			 */
+			
 
-			/* mark the key as invalid. */
+			
 			key->hw_key_idx = 0xff;
 			goto out_unlock;
 		}
@@ -481,7 +436,7 @@ static int p54_set_key(struct ieee80211_hw *dev, enum set_key_cmd cmd,
 		slot = key->hw_key_idx;
 
 		if (slot == 0xff) {
-			/* This key was not uploaded into the rx key cache. */
+			
 
 			goto out_unlock;
 		}
@@ -553,7 +508,7 @@ struct ieee80211_hw *p54_init_common(size_t priv_data_len)
 				      BIT(NL80211_IFTYPE_AP) |
 				      BIT(NL80211_IFTYPE_MESH_POINT);
 
-	dev->channel_change_time = 1000;	/* TODO: find actual value */
+	dev->channel_change_time = 1000;	
 	priv->beacon_req_id = cpu_to_le32(0);
 	priv->tx_stats[P54_QUEUE_BEACON].limit = 1;
 	priv->tx_stats[P54_QUEUE_FWSCAN].limit = 1;
@@ -562,23 +517,13 @@ struct ieee80211_hw *p54_init_common(size_t priv_data_len)
 	priv->tx_stats[P54_QUEUE_DATA].limit = 5;
 	dev->queues = 1;
 	priv->noise = -94;
-	/*
-	 * We support at most 8 tries no matter which rate they're at,
-	 * we cannot support max_rates * max_rate_tries as we set it
-	 * here, but setting it correctly to 4/2 or so would limit us
-	 * artificially if the RC algorithm wants just two rates, so
-	 * let's say 4/7, we'll redistribute it at TX time, see the
-	 * comments there.
-	 */
+	
 	dev->max_rates = 4;
 	dev->max_rate_tries = 7;
 	dev->extra_tx_headroom = sizeof(struct p54_hdr) + 4 +
 				 sizeof(struct p54_tx_data);
 
-	/*
-	 * For now, disable PS by default because it affects
-	 * link stability significantly.
-	 */
+	
 	dev->wiphy->ps_default = false;
 
 	mutex_init(&priv->conf_mutex);
@@ -606,7 +551,7 @@ int p54_register_common(struct ieee80211_hw *dev, struct device *pdev)
 	err = p54_init_leds(priv);
 	if (err)
 		return err;
-#endif /* CONFIG_P54_LEDS */
+#endif 
 
 	dev_info(pdev, "is registered as '%s'\n", wiphy_name(dev->wiphy));
 	return 0;
@@ -639,7 +584,7 @@ void p54_unregister_common(struct ieee80211_hw *dev)
 
 #ifdef CONFIG_P54_LEDS
 	p54_unregister_leds(priv);
-#endif /* CONFIG_P54_LEDS */
+#endif 
 
 	ieee80211_unregister_hw(dev);
 	mutex_destroy(&priv->conf_mutex);

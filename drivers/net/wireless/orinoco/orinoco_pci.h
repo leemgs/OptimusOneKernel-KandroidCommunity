@@ -1,18 +1,11 @@
-/* orinoco_pci.h
- *
- * Common code for all Orinoco drivers for PCI devices, including
- * both native PCI and PCMCIA-to-PCI bridges.
- *
- * Copyright (C) 2005, Pavel Roskin.
- * See main.c for license.
- */
+
 
 #ifndef _ORINOCO_PCI_H
 #define _ORINOCO_PCI_H
 
 #include <linux/netdevice.h>
 
-/* Driver specific data */
+
 struct orinoco_pci_card {
 	void __iomem *bridge_io;
 	void __iomem *attr_io;
@@ -65,4 +58,4 @@ static int orinoco_pci_resume(struct pci_dev *pdev)
 #define orinoco_pci_resume NULL
 #endif
 
-#endif /* _ORINOCO_PCI_H */
+#endif 

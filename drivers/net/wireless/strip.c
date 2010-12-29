@@ -1,72 +1,4 @@
-/*
- * Copyright 1996 The Board of Trustees of The Leland Stanford
- * Junior University. All Rights Reserved.
- *
- * Permission to use, copy, modify, and distribute this
- * software and its documentation for any purpose and without
- * fee is hereby granted, provided that the above copyright
- * notice appear in all copies.  Stanford University
- * makes no representations about the suitability of this
- * software for any purpose.  It is provided "as is" without
- * express or implied warranty.
- *
- * strip.c	This module implements Starmode Radio IP (STRIP)
- *		for kernel-based devices like TTY.  It interfaces between a
- *		raw TTY, and the kernel's INET protocol layers (via DDI).
- *
- * Version:	@(#)strip.c	1.3	July 1997
- *
- * Author:	Stuart Cheshire <cheshire@cs.stanford.edu>
- *
- * Fixes:	v0.9 12th Feb 1996 (SC)
- *		New byte stuffing (2+6 run-length encoding)
- *		New watchdog timer task
- *		New Protocol key (SIP0)
- *		
- *		v0.9.1 3rd March 1996 (SC)
- *		Changed to dynamic device allocation -- no more compile
- *		time (or boot time) limit on the number of STRIP devices.
- *		
- *		v0.9.2 13th March 1996 (SC)
- *		Uses arp cache lookups (but doesn't send arp packets yet)
- *		
- *		v0.9.3 17th April 1996 (SC)
- *		Fixed bug where STR_ERROR flag was getting set unneccessarily
- *		(causing otherwise good packets to be unneccessarily dropped)
- *		
- *		v0.9.4 27th April 1996 (SC)
- *		First attempt at using "&COMMAND" Starmode AT commands
- *		
- *		v0.9.5 29th May 1996 (SC)
- *		First attempt at sending (unicast) ARP packets
- *		
- *		v0.9.6 5th June 1996 (Elliot)
- *		Put "message level" tags in every "printk" statement
- *		
- *		v0.9.7 13th June 1996 (laik)
- *		Added support for the /proc fs
- *
- *              v0.9.8 July 1996 (Mema)
- *              Added packet logging
- *
- *              v1.0 November 1996 (SC)
- *              Fixed (severe) memory leaks in the /proc fs code
- *              Fixed race conditions in the logging code
- *
- *              v1.1 January 1997 (SC)
- *              Deleted packet logging (use tcpdump instead)
- *              Added support for Metricom Firmware v204 features
- *              (like message checksums)
- *
- *              v1.2 January 1997 (SC)
- *              Put portables list back in
- *
- *              v1.3 July 1997 (SC)
- *              Made STRIP driver set the radio's baud rate automatically.
- *              It is no longer necessarily to manually set the radio's
- *              rate permanently to 115200 -- the driver handles setting
- *              the rate automatically.
- */
+
 
 #ifdef MODULE
 static const char StripVersion[] = "1.3A-STUART.CHESHIRE-MODULAR";
@@ -78,8 +10,8 @@ static const char StripVersion[] = "1.3A-STUART.CHESHIRE";
 #define EXT_COUNTERS 1
 
 
-/************************************************************************/
-/* Header files								*/
+
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -114,57 +46,38 @@ static const char StripVersion[] = "1.3A-STUART.CHESHIRE";
 #include <linux/time.h>
 #include <linux/jiffies.h>
 
-/************************************************************************/
-/* Useful structures and definitions					*/
 
-/*
- * A MetricomKey identifies the protocol being carried inside a Metricom
- * Starmode packet.
- */
+
+
+
 
 typedef union {
 	__u8 c[4];
 	__u32 l;
 } MetricomKey;
 
-/*
- * An IP address can be viewed as four bytes in memory (which is what it is) or as
- * a single 32-bit long (which is convenient for assignment, equality testing etc.)
- */
+
 
 typedef union {
 	__u8 b[4];
 	__u32 l;
 } IPaddr;
 
-/*
- * A MetricomAddressString is used to hold a printable representation of
- * a Metricom address.
- */
+
 
 typedef struct {
 	__u8 c[24];
 } MetricomAddressString;
 
-/* Encapsulation can expand packet of size x to 65/64x + 1
- * Sent packet looks like "<CR>*<address>*<key><encaps payload><CR>"
- *                           1 1   1-18  1  4         ?         1
- * eg.                     <CR>*0000-1234*SIP0<encaps payload><CR>
- * We allow 31 bytes for the stars, the key, the address and the <CR>s
- */
+
 #define STRIP_ENCAP_SIZE(X) (32 + (X)*65L/64L)
 
-/*
- * A STRIP_Header is never really sent over the radio, but making a dummy
- * header for internal use within the kernel that looks like an Ethernet
- * header makes certain other software happier. For example, tcpdump
- * already understands Ethernet headers.
- */
+
 
 typedef struct {
-	MetricomAddress dst_addr;	/* Destination address, e.g. "0000-1234"   */
-	MetricomAddress src_addr;	/* Source address, e.g. "0000-5678"        */
-	unsigned short protocol;	/* The protocol type, using Ethernet codes */
+	MetricomAddress dst_addr;	
+	MetricomAddress src_addr;	
+	unsigned short protocol;	
 } STRIP_Header;
 
 typedef struct {
@@ -180,23 +93,17 @@ typedef struct {
 
 enum { FALSE = 0, TRUE = 1 };
 
-/*
- * Holds the radio's firmware version.
- */
+
 typedef struct {
 	char c[50];
 } FirmwareVersion;
 
-/*
- * Holds the radio's serial number.
- */
+
 typedef struct {
 	char c[18];
 } SerialNumber;
 
-/*
- * Holds the radio's battery voltage.
- */
+
 typedef struct {
 	char c[11];
 } BatteryVoltage;
@@ -206,185 +113,103 @@ typedef struct {
 } char8;
 
 enum {
-	NoStructure = 0,	/* Really old firmware */
-	StructuredMessages = 1,	/* Parsable AT response msgs */
-	ChecksummedMessages = 2	/* Parsable AT response msgs with checksums */
+	NoStructure = 0,	
+	StructuredMessages = 1,	
+	ChecksummedMessages = 2	
 };
 
 struct strip {
 	int magic;
-	/*
-	 * These are pointers to the malloc()ed frame buffers.
-	 */
+	
 
-	unsigned char *rx_buff;	/* buffer for received IP packet */
-	unsigned char *sx_buff;	/* buffer for received serial data */
-	int sx_count;		/* received serial data counter */
-	int sx_size;		/* Serial buffer size           */
-	unsigned char *tx_buff;	/* transmitter buffer           */
-	unsigned char *tx_head;	/* pointer to next byte to XMIT */
-	int tx_left;		/* bytes left in XMIT queue     */
-	int tx_size;		/* Serial buffer size           */
+	unsigned char *rx_buff;	
+	unsigned char *sx_buff;	
+	int sx_count;		
+	int sx_size;		
+	unsigned char *tx_buff;	
+	unsigned char *tx_head;	
+	int tx_left;		
+	int tx_size;		
 
-	/*
-	 * STRIP interface statistics.
-	 */
+	
 
-	unsigned long rx_packets;	/* inbound frames counter       */
-	unsigned long tx_packets;	/* outbound frames counter      */
-	unsigned long rx_errors;	/* Parity, etc. errors          */
-	unsigned long tx_errors;	/* Planned stuff                */
-	unsigned long rx_dropped;	/* No memory for skb            */
-	unsigned long tx_dropped;	/* When MTU change              */
-	unsigned long rx_over_errors;	/* Frame bigger than STRIP buf. */
+	unsigned long rx_packets;	
+	unsigned long tx_packets;	
+	unsigned long rx_errors;	
+	unsigned long tx_errors;	
+	unsigned long rx_dropped;	
+	unsigned long tx_dropped;	
+	unsigned long rx_over_errors;	
 
-	unsigned long pps_timer;	/* Timer to determine pps       */
-	unsigned long rx_pps_count;	/* Counter to determine pps     */
-	unsigned long tx_pps_count;	/* Counter to determine pps     */
-	unsigned long sx_pps_count;	/* Counter to determine pps     */
-	unsigned long rx_average_pps;	/* rx packets per second * 8    */
-	unsigned long tx_average_pps;	/* tx packets per second * 8    */
-	unsigned long sx_average_pps;	/* sent packets per second * 8  */
+	unsigned long pps_timer;	
+	unsigned long rx_pps_count;	
+	unsigned long tx_pps_count;	
+	unsigned long sx_pps_count;	
+	unsigned long rx_average_pps;	
+	unsigned long tx_average_pps;	
+	unsigned long sx_average_pps;	
 
 #ifdef EXT_COUNTERS
-	unsigned long rx_bytes;		/* total received bytes */
-	unsigned long tx_bytes;		/* total received bytes */
-	unsigned long rx_rbytes;	/* bytes thru radio i/f */
-	unsigned long tx_rbytes;	/* bytes thru radio i/f */
-	unsigned long rx_sbytes;	/* tot bytes thru serial i/f */
-	unsigned long tx_sbytes;	/* tot bytes thru serial i/f */
-	unsigned long rx_ebytes;	/* tot stat/err bytes */
-	unsigned long tx_ebytes;	/* tot stat/err bytes */
+	unsigned long rx_bytes;		
+	unsigned long tx_bytes;		
+	unsigned long rx_rbytes;	
+	unsigned long tx_rbytes;	
+	unsigned long rx_sbytes;	
+	unsigned long tx_sbytes;	
+	unsigned long rx_ebytes;	
+	unsigned long tx_ebytes;	
 #endif
 
-	/*
-	 * Internal variables.
-	 */
+	
 
-	struct list_head  list;		/* Linked list of devices */
+	struct list_head  list;		
 
-	int discard;			/* Set if serial error          */
-	int working;			/* Is radio working correctly?  */
-	int firmware_level;		/* Message structuring level    */
-	int next_command;		/* Next periodic command        */
-	unsigned int user_baud;		/* The user-selected baud rate  */
-	int mtu;			/* Our mtu (to spot changes!)   */
-	long watchdog_doprobe;		/* Next time to test the radio  */
-	long watchdog_doreset;		/* Time to do next reset        */
-	long gratuitous_arp;		/* Time to send next ARP refresh */
-	long arp_interval;		/* Next ARP interval            */
-	struct timer_list idle_timer;	/* For periodic wakeup calls    */
-	MetricomAddress true_dev_addr;	/* True address of radio        */
-	int manual_dev_addr;		/* Hack: See note below         */
+	int discard;			
+	int working;			
+	int firmware_level;		
+	int next_command;		
+	unsigned int user_baud;		
+	int mtu;			
+	long watchdog_doprobe;		
+	long watchdog_doreset;		
+	long gratuitous_arp;		
+	long arp_interval;		
+	struct timer_list idle_timer;	
+	MetricomAddress true_dev_addr;	
+	int manual_dev_addr;		
 
-	FirmwareVersion firmware_version;	/* The radio's firmware version */
-	SerialNumber serial_number;	/* The radio's serial number    */
-	BatteryVoltage battery_voltage;	/* The radio's battery voltage  */
+	FirmwareVersion firmware_version;	
+	SerialNumber serial_number;	
+	BatteryVoltage battery_voltage;	
 
-	/*
-	 * Other useful structures.
-	 */
+	
 
-	struct tty_struct *tty;		/* ptr to TTY structure         */
-	struct net_device *dev;		/* Our device structure         */
+	struct tty_struct *tty;		
+	struct net_device *dev;		
 
-	/*
-	 * Neighbour radio records
-	 */
+	
 
 	MetricomNodeTable portables;
 	MetricomNodeTable poletops;
 };
 
-/*
- * Note: manual_dev_addr hack
- * 
- * It is not possible to change the hardware address of a Metricom radio,
- * or to send packets with a user-specified hardware source address, thus
- * trying to manually set a hardware source address is a questionable
- * thing to do.  However, if the user *does* manually set the hardware
- * source address of a STRIP interface, then the kernel will believe it,
- * and use it in certain places. For example, the hardware address listed
- * by ifconfig will be the manual address, not the true one.
- * (Both addresses are listed in /proc/net/strip.)
- * Also, ARP packets will be sent out giving the user-specified address as
- * the source address, not the real address. This is dangerous, because
- * it means you won't receive any replies -- the ARP replies will go to
- * the specified address, which will be some other radio. The case where
- * this is useful is when that other radio is also connected to the same
- * machine. This allows you to connect a pair of radios to one machine,
- * and to use one exclusively for inbound traffic, and the other
- * exclusively for outbound traffic. Pretty neat, huh?
- * 
- * Here's the full procedure to set this up:
- * 
- * 1. "slattach" two interfaces, e.g. st0 for outgoing packets,
- *    and st1 for incoming packets
- * 
- * 2. "ifconfig" st0 (outbound radio) to have the hardware address
- *    which is the real hardware address of st1 (inbound radio).
- *    Now when it sends out packets, it will masquerade as st1, and
- *    replies will be sent to that radio, which is exactly what we want.
- * 
- * 3. Set the route table entry ("route add default ..." or
- *    "route add -net ...", as appropriate) to send packets via the st0
- *    interface (outbound radio). Do not add any route which sends packets
- *    out via the st1 interface -- that radio is for inbound traffic only.
- * 
- * 4. "ifconfig" st1 (inbound radio) to have hardware address zero.
- *    This tells the STRIP driver to "shut down" that interface and not
- *    send any packets through it. In particular, it stops sending the
- *    periodic gratuitous ARP packets that a STRIP interface normally sends.
- *    Also, when packets arrive on that interface, it will search the
- *    interface list to see if there is another interface who's manual
- *    hardware address matches its own real address (i.e. st0 in this
- *    example) and if so it will transfer ownership of the skbuff to
- *    that interface, so that it looks to the kernel as if the packet
- *    arrived on that interface. This is necessary because when the
- *    kernel sends an ARP packet on st0, it expects to get a reply on
- *    st0, and if it sees the reply come from st1 then it will ignore
- *    it (to be accurate, it puts the entry in the ARP table, but
- *    labelled in such a way that st0 can't use it).
- * 
- * Thanks to Petros Maniatis for coming up with the idea of splitting
- * inbound and outbound traffic between two interfaces, which turned
- * out to be really easy to implement, even if it is a bit of a hack.
- * 
- * Having set a manual address on an interface, you can restore it
- * to automatic operation (where the address is automatically kept
- * consistent with the real address of the radio) by setting a manual
- * address of all ones, e.g. "ifconfig st0 hw strip FFFFFFFFFFFF"
- * This 'turns off' manual override mode for the device address.
- * 
- * Note: The IEEE 802 headers reported in tcpdump will show the *real*
- * radio addresses the packets were sent and received from, so that you
- * can see what is really going on with packets, and which interfaces
- * they are really going through.
- */
 
 
-/************************************************************************/
-/* Constants								*/
 
-/*
- * CommandString1 works on all radios
- * Other CommandStrings are only used with firmware that provides structured responses.
- * 
- * ats319=1 Enables Info message for node additions and deletions
- * ats319=2 Enables Info message for a new best node
- * ats319=4 Enables checksums
- * ats319=8 Enables ACK messages
- */
+
+
+
+
 
 static const int MaxCommandStringLength = 32;
 static const int CompatibilityCommand = 1;
 
-static const char CommandString0[] = "*&COMMAND*ATS319=7";	/* Turn on checksums & info messages */
-static const char CommandString1[] = "*&COMMAND*ATS305?";	/* Query radio name */
-static const char CommandString2[] = "*&COMMAND*ATS325?";	/* Query battery voltage */
-static const char CommandString3[] = "*&COMMAND*ATS300?";	/* Query version information */
-static const char CommandString4[] = "*&COMMAND*ATS311?";	/* Query poletop list */
-static const char CommandString5[] = "*&COMMAND*AT~LA";		/* Query portables list */
+static const char CommandString0[] = "*&COMMAND*ATS319=7";	
+static const char CommandString1[] = "*&COMMAND*ATS305?";	
+static const char CommandString2[] = "*&COMMAND*ATS325?";	
+static const char CommandString3[] = "*&COMMAND*ATS300?";	
+static const char CommandString4[] = "*&COMMAND*ATS311?";	
+static const char CommandString5[] = "*&COMMAND*AT~LA";		
 typedef struct {
 	const char *string;
 	long length;
@@ -417,35 +242,28 @@ static const MetricomKey ACK_Key = { "ACK_" };
 static const MetricomKey INF_Key = { "INF_" };
 static const MetricomKey ERR_Key = { "ERR_" };
 
-static const long MaxARPInterval = 60 * HZ;	/* One minute */
+static const long MaxARPInterval = 60 * HZ;	
 
-/*
- * Maximum Starmode packet length is 1183 bytes. Allowing 4 bytes for
- * protocol key, 4 bytes for checksum, one byte for CR, and 65/64 expansion
- * for STRIP encoding, that translates to a maximum payload MTU of 1155.
- * Note: A standard NFS 1K data packet is a total of 0x480 (1152) bytes
- * long, including IP header, UDP header, and NFS header. Setting the STRIP
- * MTU to 1152 allows us to send default sized NFS packets without fragmentation.
- */
+
 static const unsigned short MAX_SEND_MTU = 1152;
-static const unsigned short MAX_RECV_MTU = 1500;	/* Hoping for Ethernet sized packets in the future! */
+static const unsigned short MAX_RECV_MTU = 1500;	
 static const unsigned short DEFAULT_STRIP_MTU = 1152;
 static const int STRIP_MAGIC = 0x5303;
 static const long LongTime = 0x7FFFFFFF;
 
-/************************************************************************/
-/* Global variables							*/
+
+
 
 static LIST_HEAD(strip_list);
 static DEFINE_SPINLOCK(strip_lock);
 
-/************************************************************************/
-/* Macros								*/
 
-/* Returns TRUE if text T begins with prefix P */
+
+
+
 #define has_prefix(T,L,P) (((L) >= sizeof(P)-1) && !strncmp((T), (P), sizeof(P)-1))
 
-/* Returns TRUE if text T of length L is equal to string S */
+
 #define text_equal(T,L,S) (((L) == sizeof(S)-1) && !strncmp((T), (S), sizeof(S)-1))
 
 #define READHEX(X) ((X)>='0' && (X)<='9' ? (X)-'0' :      \
@@ -461,8 +279,8 @@ static DEFINE_SPINLOCK(strip_lock);
 #define JIFFIE_TO_SEC(X) ((X) / HZ)
 
 
-/************************************************************************/
-/* Utility routines							*/
+
+
 
 static int arp_query(unsigned char *haddr, u32 paddr,
 		     struct net_device *dev)
@@ -2202,11 +2020,7 @@ static void process_message(struct strip *strip_info)
 
 	/*printk(KERN_INFO "%s: Got packet from \"%s\".\n", strip_info->dev->name, sendername); */
 
-	/*
-	 * Fill in (pseudo) source and destination addresses in the packet.
-	 * We assume that the destination address was our address (the radio does not
-	 * tell us this). If the radio supplies a source address, then we use it.
-	 */
+	
 	header.dst_addr = strip_info->true_dev_addr;
 	string_to_radio_address(&header.src_addr, sendername);
 
@@ -2254,12 +2068,7 @@ static void process_message(struct strip *strip_info)
                      (X) == TTY_PARITY  ? "Parity Error"     : \
                      (X) == TTY_OVERRUN ? "Hardware Overrun" : "Unknown Error")
 
-/*
- * Handle the 'receiver data ready' interrupt.
- * This function is called by the 'tty_io' module in the kernel when
- * a block of STRIP data has been received, which can now be decapsulated
- * and sent on to some IP layer for further processing.
- */
+
 
 static void strip_receive_buf(struct tty_struct *tty, const unsigned char *cp,
 		  char *fp, int count)
@@ -2286,20 +2095,20 @@ static void strip_receive_buf(struct tty_struct *tty, const unsigned char *cp,
 	strip_info->rx_sbytes += count;
 #endif
 
-	/* Read the characters out of the buffer */
+	
 	while (cp < end) {
 		if (fp && *fp)
 			printk(KERN_INFO "%s: %s on serial port\n",
 			       strip_info->dev->name, TTYERROR(*fp));
-		if (fp && *fp++ && !strip_info->discard) {	/* If there's a serial error, record it */
-			/* If we have some characters in the buffer, discard them */
+		if (fp && *fp++ && !strip_info->discard) {	
+			
 			strip_info->discard = strip_info->sx_count;
 			strip_info->rx_errors++;
 		}
 
-		/* Leading control characters (CR, NL, Tab, etc.) are ignored */
+		
 		if (strip_info->sx_count > 0 || *cp >= ' ') {
-			if (*cp == 0x0D) {	/* If end of packet, decide what to do with it */
+			if (*cp == 0x0D) {	
 				if (strip_info->sx_count > 3000)
 					printk(KERN_INFO
 					       "%s: Cut a %d byte packet (%zd bytes remaining)%s\n",
@@ -2327,7 +2136,7 @@ static void strip_receive_buf(struct tty_struct *tty, const unsigned char *cp,
 				strip_info->discard = 0;
 				strip_info->sx_count = 0;
 			} else {
-				/* Make sure we have space in the buffer */
+				
 				if (strip_info->sx_count <
 				    strip_info->sx_size)
 					strip_info->sx_buff[strip_info->
@@ -2342,18 +2151,13 @@ static void strip_receive_buf(struct tty_struct *tty, const unsigned char *cp,
 }
 
 
-/************************************************************************/
-/* General control routines						*/
+
+
 
 static int set_mac_address(struct strip *strip_info,
 			   MetricomAddress * addr)
 {
-	/*
-	 * We're using a manually specified address if the address is set
-	 * to anything other than all ones. Setting the address to all ones
-	 * disables manual mode and goes back to automatic address determination
-	 * (tracking the true address that the radio has).
-	 */
+	
 	strip_info->manual_dev_addr =
 	    memcmp(addr->c, broadcast_address.c,
 		   sizeof(broadcast_address));
@@ -2392,32 +2196,12 @@ static struct net_device_stats *strip_get_stats(struct net_device *dev)
 }
 
 
-/************************************************************************/
-/* Opening and closing							*/
 
-/*
- * Here's the order things happen:
- * When the user runs "slattach -p strip ..."
- *  1. The TTY module calls strip_open;;
- *  2. strip_open calls strip_alloc
- *  3.                  strip_alloc calls register_netdev
- *  4.                  register_netdev calls strip_dev_init
- *  5. then strip_open finishes setting up the strip_info
- *
- * When the user runs "ifconfig st<x> up address netmask ..."
- *  6. strip_open_low gets called
- *
- * When the user runs "ifconfig st<x> down"
- *  7. strip_close_low gets called
- *
- * When the user kills the slattach process
- *  8. strip_close gets called
- *  9. strip_close calls dev_close
- * 10. if the device is still up, then dev_close calls strip_close_low
- * 11. strip_close calls strip_free
- */
 
-/* Open the low-level part of the STRIP channel. Easy! */
+
+
+
+
 
 static int strip_open_low(struct net_device *dev)
 {
@@ -2448,9 +2232,7 @@ static int strip_open_low(struct net_device *dev)
 }
 
 
-/*
- * Close the low-level part of the STRIP channel. Easy!
- */
+
 
 static int strip_close_low(struct net_device *dev)
 {
@@ -2461,9 +2243,7 @@ static int strip_close_low(struct net_device *dev)
 	clear_bit(TTY_DO_WRITE_WAKEUP, &strip_info->tty->flags);
 	netif_stop_queue(dev);
 
-	/*
-	 * Free all STRIP frame buffers.
-	 */
+	
 	kfree(strip_info->rx_buff);
 	strip_info->rx_buff = NULL;
 	kfree(strip_info->sx_buff);
@@ -2490,27 +2270,20 @@ static const struct net_device_ops strip_netdev_ops = {
 	.ndo_change_mtu = strip_change_mtu,
 };
 
-/*
- * This routine is called by DDI when the
- * (dynamically assigned) device is registered
- */
+
 
 static void strip_dev_setup(struct net_device *dev)
 {
-	/*
-	 * Finish setting up the DEVICE info.
-	 */
+	
 
 	dev->trans_start = 0;
-	dev->tx_queue_len = 30;	/* Drop after 30 frames queued */
+	dev->tx_queue_len = 30;	
 
 	dev->flags = 0;
 	dev->mtu = DEFAULT_STRIP_MTU;
-	dev->type = ARPHRD_METRICOM;	/* dtang */
+	dev->type = ARPHRD_METRICOM;	
 	dev->hard_header_len = sizeof(STRIP_Header);
-	/*
-	 *  netdev_priv(dev) Already holds a pointer to our struct strip
-	 */
+	
 
 	*(MetricomAddress *)dev->broadcast = broadcast_address;
 	dev->dev_addr[0] = 0;
@@ -2520,9 +2293,7 @@ static void strip_dev_setup(struct net_device *dev)
 	dev->netdev_ops = &strip_netdev_ops;
 }
 
-/*
- * Free a STRIP channel.
- */
+
 
 static void strip_free(struct strip *strip_info)
 {
@@ -2536,9 +2307,7 @@ static void strip_free(struct strip *strip_info)
 }
 
 
-/*
- * Allocate a new free STRIP channel
- */
+
 static struct strip *strip_alloc(void)
 {
 	struct list_head *n;
@@ -2549,7 +2318,7 @@ static struct strip *strip_alloc(void)
 			   strip_dev_setup);
 
 	if (!dev)
-		return NULL;	/* If no more memory, return */
+		return NULL;	
 
 
 	strip_info = netdev_priv(dev);
@@ -2567,11 +2336,7 @@ static struct strip *strip_alloc(void)
 
 	spin_lock_bh(&strip_lock);
  rescan:
-	/*
-	 * Search the list to find where to put our new entry
-	 * (and in the process decide what channel number it is
-	 * going to be)
-	 */
+	
 	list_for_each(n, &strip_list) {
 		struct strip *s = hlist_entry(n, struct strip, list);
 
@@ -2589,42 +2354,27 @@ static struct strip *strip_alloc(void)
 	return strip_info;
 }
 
-/*
- * Open the high-level part of the STRIP channel.
- * This function is called by the TTY module when the
- * STRIP line discipline is called for.  Because we are
- * sure the tty line exists, we only have to link it to
- * a free STRIP channel...
- */
+
 
 static int strip_open(struct tty_struct *tty)
 {
 	struct strip *strip_info = tty->disc_data;
 
-	/*
-	 * First make sure we're not already connected.
-	 */
+	
 
 	if (strip_info && strip_info->magic == STRIP_MAGIC)
 		return -EEXIST;
 
-	/*
-	 * We need a write method.
-	 */
+	
 
 	if (tty->ops->write == NULL || tty->ops->set_termios == NULL)
 		return -EOPNOTSUPP;
 
-	/*
-	 * OK.  Find a free STRIP channel to use.
-	 */
+	
 	if ((strip_info = strip_alloc()) == NULL)
 		return -ENFILE;
 
-	/*
-	 * Register our newly created device so it can be ifconfig'd
-	 * strip_dev_init() will be called as a side-effect
-	 */
+	
 
 	if (register_netdev(strip_info->dev) != 0) {
 		printk(KERN_ERR "strip: register_netdev() failed.\n");
@@ -2638,43 +2388,30 @@ static int strip_open(struct tty_struct *tty)
 
 	tty_driver_flush_buffer(tty);
 
-	/*
-	 * Restore default settings
-	 */
+	
 
-	strip_info->dev->type = ARPHRD_METRICOM;	/* dtang */
+	strip_info->dev->type = ARPHRD_METRICOM;	
 
-	/*
-	 * Set tty options
-	 */
+	
 
-	tty->termios->c_iflag |= IGNBRK | IGNPAR;	/* Ignore breaks and parity errors. */
-	tty->termios->c_cflag |= CLOCAL;	/* Ignore modem control signals. */
-	tty->termios->c_cflag &= ~HUPCL;	/* Don't close on hup */
+	tty->termios->c_iflag |= IGNBRK | IGNPAR;	
+	tty->termios->c_cflag |= CLOCAL;	
+	tty->termios->c_cflag &= ~HUPCL;	
 
 	printk(KERN_INFO "STRIP: device \"%s\" activated\n",
 	       strip_info->dev->name);
 
-	/*
-	 * Done.  We have linked the TTY line to a channel.
-	 */
+	
 	return (strip_info->dev->base_addr);
 }
 
-/*
- * Close down a STRIP channel.
- * This means flushing out any pending queues, and then restoring the
- * TTY line discipline to what it was before it got hooked to STRIP
- * (which usually is TTY again).
- */
+
 
 static void strip_close(struct tty_struct *tty)
 {
 	struct strip *strip_info = tty->disc_data;
 
-	/*
-	 * First make sure we're connected.
-	 */
+	
 
 	if (!strip_info || strip_info->magic != STRIP_MAGIC)
 		return;
@@ -2690,17 +2427,15 @@ static void strip_close(struct tty_struct *tty)
 }
 
 
-/************************************************************************/
-/* Perform I/O control calls on an active STRIP channel.		*/
+
+
 
 static int strip_ioctl(struct tty_struct *tty, struct file *file,
 		       unsigned int cmd, unsigned long arg)
 {
 	struct strip *strip_info = tty->disc_data;
 
-	/*
-	 * First make sure we're connected.
-	 */
+	
 
 	if (!strip_info || strip_info->magic != STRIP_MAGIC)
 		return -EINVAL;
@@ -2713,7 +2448,7 @@ static int strip_ioctl(struct tty_struct *tty, struct file *file,
 	case SIOCSIFHWADDR:
 	{
 		MetricomAddress addr;
-		//printk(KERN_INFO "%s: SIOCSIFHWADDR\n", strip_info->dev->name);
+		
 		if(copy_from_user(&addr, (void __user *) arg, sizeof(MetricomAddress)))
 			return -EFAULT;
 		return set_mac_address(strip_info, &addr);
@@ -2726,8 +2461,8 @@ static int strip_ioctl(struct tty_struct *tty, struct file *file,
 }
 
 
-/************************************************************************/
-/* Initialization							*/
+
+
 
 static struct tty_ldisc_ops strip_ldisc = {
 	.magic = TTY_LDISC_MAGIC,
@@ -2740,11 +2475,7 @@ static struct tty_ldisc_ops strip_ldisc = {
 	.write_wakeup = strip_write_some_more,
 };
 
-/*
- * Initialize the STRIP driver.
- * This routine is called at boot time, to bootstrap the multi-channel
- * STRIP driver
- */
+
 
 static char signon[] __initdata =
     KERN_INFO "STRIP: Version %s (unlimited channels)\n";
@@ -2756,16 +2487,12 @@ static int __init strip_init_driver(void)
 	printk(signon, StripVersion);
 
 	
-	/*
-	 * Fill in our line protocol discipline, and register it
-	 */
+	
 	if ((status = tty_register_ldisc(N_STRIP, &strip_ldisc)))
 		printk(KERN_ERR "STRIP: can't register line discipline (err = %d)\n",
 		       status);
 
-	/*
-	 * Register the status file with /proc
-	 */
+	
 	proc_net_fops_create(&init_net, "strip", S_IFREG | S_IRUGO, &strip_seq_fops);
 
 	return status;
@@ -2781,13 +2508,13 @@ static void __exit strip_exit_driver(void)
 	int i;
 	struct list_head *p,*n;
 
-	/* module ref count rules assure that all entries are unregistered */
+	
 	list_for_each_safe(p, n, &strip_list) {
 		struct strip *s = list_entry(p, struct strip, list);
 		strip_free(s);
 	}
 
-	/* Unregister with the /proc/net file here. */
+	
 	proc_net_remove(&init_net, "strip");
 
 	if ((i = tty_unregister_ldisc(N_STRIP)))

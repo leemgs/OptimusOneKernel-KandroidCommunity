@@ -1,18 +1,4 @@
-/*
- * Copyright (c) 2009 Atheros Communications Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+
 
 #include "ath9k.h"
 
@@ -25,10 +11,7 @@ static const u16 ath_subsysid_tbl[] = {
 	AT9285_COEX3WIRE_DA_SUBSYSID
 };
 
-/*
- * Checks the subsystem id of the device to see if it
- * supports btcoex
- */
+
 bool ath_btcoex_supported(u16 subsysid)
 {
 	int i;
@@ -43,9 +26,7 @@ bool ath_btcoex_supported(u16 subsysid)
 	return false;
 }
 
-/*
- * Detects if there is any priority bt traffic
- */
+
 static void ath_detect_bt_priority(struct ath_softc *sc)
 {
 	struct ath_btcoex_info *btinfo = &sc->btcoex_info;
@@ -68,9 +49,7 @@ static void ath_detect_bt_priority(struct ath_softc *sc)
 	}
 }
 
-/*
- * Configures appropriate weight based on stomp type.
- */
+
 static void ath_btcoex_bt_stomp(struct ath_softc *sc,
 				struct ath_btcoex_info *btinfo,
 				int stomp_type)
@@ -97,11 +76,7 @@ static void ath_btcoex_bt_stomp(struct ath_softc *sc,
 	ath9k_hw_btcoex_enable(sc->sc_ah);
 }
 
-/*
- * This is the master bt coex timer which runs for every
- * 45ms, bt traffic will be given priority during 55% of this
- * period while wlan gets remaining 45%
- */
+
 
 static void ath_btcoex_period_timer(unsigned long data)
 {
@@ -132,10 +107,7 @@ static void ath_btcoex_period_timer(unsigned long data)
 				  msecs_to_jiffies(ATH_BTCOEX_DEF_BT_PERIOD));
 }
 
-/*
- * Generic tsf based hw timer which configures weight
- * registers to time slice between wlan and bt traffic
- */
+
 
 static void ath_btcoex_no_stomp_timer(void *arg)
 {
@@ -211,7 +183,7 @@ int ath9k_hw_btcoex_init(struct ath_hw *ah)
 	int ret = 0;
 
 	if (btcoex_info->btcoex_scheme == ATH_BTCOEX_CFG_2WIRE) {
-		/* connect bt_active to baseband */
+		
 		REG_CLR_BIT(ah, AR_GPIO_INPUT_EN_VAL,
 				(AR_GPIO_INPUT_EN_VAL_BT_PRIORITY_DEF |
 				 AR_GPIO_INPUT_EN_VAL_BT_FREQUENCY_DEF));
@@ -219,21 +191,20 @@ int ath9k_hw_btcoex_init(struct ath_hw *ah)
 		REG_SET_BIT(ah, AR_GPIO_INPUT_EN_VAL,
 				AR_GPIO_INPUT_EN_VAL_BT_ACTIVE_BB);
 
-		/* Set input mux for bt_active to gpio pin */
+		
 		REG_RMW_FIELD(ah, AR_GPIO_INPUT_MUX1,
 				AR_GPIO_INPUT_MUX1_BT_ACTIVE,
 				btcoex_info->btactive_gpio);
 
-		/* Configure the desired gpio port for input */
+		
 		ath9k_hw_cfg_gpio_input(ah, btcoex_info->btactive_gpio);
 	} else {
-		/* btcoex 3-wire */
+		
 		REG_SET_BIT(ah, AR_GPIO_INPUT_EN_VAL,
 				(AR_GPIO_INPUT_EN_VAL_BT_PRIORITY_BB |
 				 AR_GPIO_INPUT_EN_VAL_BT_ACTIVE_BB));
 
-		/* Set input mux for bt_prority_async and
-		 *                  bt_active_async to GPIO pins */
+		
 		REG_RMW_FIELD(ah, AR_GPIO_INPUT_MUX1,
 				AR_GPIO_INPUT_MUX1_BT_ACTIVE,
 				btcoex_info->btactive_gpio);
@@ -242,7 +213,7 @@ int ath9k_hw_btcoex_init(struct ath_hw *ah)
 				AR_GPIO_INPUT_MUX1_BT_PRIORITY,
 				btcoex_info->btpriority_gpio);
 
-		/* Configure the desired GPIO ports for input */
+		
 
 		ath9k_hw_cfg_gpio_input(ah, btcoex_info->btactive_gpio);
 		ath9k_hw_cfg_gpio_input(ah, btcoex_info->btpriority_gpio);
@@ -258,14 +229,11 @@ void ath9k_hw_btcoex_enable(struct ath_hw *ah)
 	struct ath_btcoex_info *btcoex_info = &ah->ah_sc->btcoex_info;
 
 	if (btcoex_info->btcoex_scheme == ATH_BTCOEX_CFG_2WIRE) {
-		/* Configure the desired GPIO port for TX_FRAME output */
+		
 		ath9k_hw_cfg_output(ah, btcoex_info->wlanactive_gpio,
 				AR_GPIO_OUTPUT_MUX_AS_TX_FRAME);
 	} else {
-		/*
-		 * Program coex mode and weight registers to
-		 * enable coex 3-wire
-		 */
+		
 		REG_WRITE(ah, AR_BT_COEX_MODE, btcoex_info->bt_coex_mode);
 		REG_WRITE(ah, AR_BT_COEX_WEIGHT, btcoex_info->bt_coex_weights);
 		REG_WRITE(ah, AR_BT_COEX_MODE2, btcoex_info->bt_coex_mode2);
@@ -304,9 +272,7 @@ void ath9k_hw_btcoex_disable(struct ath_hw *ah)
 	ah->ah_sc->sc_flags &= ~SC_OP_BTCOEX_ENABLED;
 }
 
-/*
- * Pause btcoex timer and bt duty cycle timer
- */
+
 void ath_btcoex_timer_pause(struct ath_softc *sc,
 			    struct ath_btcoex_info *btinfo)
 {
@@ -319,16 +285,14 @@ void ath_btcoex_timer_pause(struct ath_softc *sc,
 	btinfo->hw_timer_enabled = false;
 }
 
-/*
- * (Re)start btcoex timers
- */
+
 void ath_btcoex_timer_resume(struct ath_softc *sc,
 			     struct ath_btcoex_info *btinfo)
 {
 
 	DPRINTF(sc, ATH_DBG_BTCOEX, "Starting btcoex timers");
 
-	/* make sure duty cycle timer is also stopped when resuming */
+	
 	if (btinfo->hw_timer_enabled)
 		ath_gen_timer_stop(sc->sc_ah, btinfo->no_stomp_timer);
 

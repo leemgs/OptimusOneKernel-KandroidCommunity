@@ -1,28 +1,4 @@
-/******************************************************************************
- *
- * Copyright(c) 2008-2009 Intel Corporation. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of version 2 of the GNU General Public License as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
- *
- * The full GNU General Public License is included in this distribution in the
- * file called LICENSE.
- *
- * Contact Information:
- *  Intel Linux Wireless <ilw@linux.intel.com>
- * Intel Corporation, 5200 N.E. Elam Young Parkway, Hillsboro, OR 97124-6497
- *
- *****************************************************************************/
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -45,10 +21,10 @@
 #include "iwl-helpers.h"
 #include "iwl-5000-hw.h"
 
-/* Highest firmware API version supported */
+
 #define IWL1000_UCODE_API_MAX 3
 
-/* Lowest firmware API version supported */
+
 #define IWL1000_UCODE_API_MIN 1
 
 #define IWL1000_FW_PRE "iwlwifi-1000-"
@@ -56,30 +32,21 @@
 #define IWL1000_MODULE_FIRMWARE(api) _IWL1000_MODULE_FIRMWARE(api)
 
 
-/*
- * For 1000, use advance thermal throttling critical temperature threshold,
- * but legacy thermal management implementation for now.
- * This is for the reason of 1000 uCode using advance thermal throttling API
- * but not implement ct_kill_exit based on ct_kill exit temperature
- * so the thermal throttling will still based on legacy thermal throttling
- * management.
- * The code here need to be modified once 1000 uCode has the advanced thermal
- * throttling algorithm in place
- */
+
 static void iwl1000_set_ct_threshold(struct iwl_priv *priv)
 {
-	/* want Celsius */
+	
 	priv->hw_params.ct_kill_threshold = CT_KILL_THRESHOLD_LEGACY;
 	priv->hw_params.ct_kill_exit_threshold = CT_KILL_EXIT_THRESHOLD;
 }
 
-/* NIC configuration for 1000 series */
+
 static void iwl1000_nic_config(struct iwl_priv *priv)
 {
 	iwl5000_nic_config(priv);
 
-	/* Setting digital SVR for 1000 card to 1.32V */
-	/* locking is acquired in iwl_set_bits_mask_prph() function */
+	
+	
 	iwl_set_bits_mask_prph(priv, APMG_DIGITAL_SVR_REG,
 				APMG_SVR_DIGITAL_VOLTAGE_1_32,
 				~APMG_SVR_VOLTAGE_CONFIG_BIT_MSK);
@@ -161,6 +128,6 @@ struct iwl_cfg iwl1000_bgn_cfg = {
 	.max_ll_items = OTP_MAX_LL_ITEMS_1000,
 	.shadow_ram_support = false,
 	.ht_greenfield_support = true,
-	.use_rts_for_ht = true, /* use rts/cts protection */
+	.use_rts_for_ht = true, 
 };
 

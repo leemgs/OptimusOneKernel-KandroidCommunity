@@ -1,4 +1,4 @@
-/* Copyright (C) 2006, Red Hat, Inc. */
+
 
 #include <linux/types.h>
 #include <linux/etherdevice.h>
@@ -17,28 +17,11 @@ static const u8 bssid_any[ETH_ALEN]  __attribute__ ((aligned (2))) =
 static const u8 bssid_off[ETH_ALEN]  __attribute__ ((aligned (2))) =
 	{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
-/* The firmware needs the following bits masked out of the beacon-derived
- * capability field when associating/joining to a BSS:
- *  9 (QoS), 11 (APSD), 12 (unused), 14 (unused), 15 (unused)
- */
+
 #define CAPINFO_MASK	(~(0xda00))
 
 
-/**
- *  @brief This function finds common rates between rates and card rates.
- *
- * It will fill common rates in rates as output if found.
- *
- * NOTE: Setting the MSB of the basic rates need to be taken
- *   care, either before or after calling this function
- *
- *  @param priv     A pointer to struct lbs_private structure
- *  @param rates       the buffer which keeps input and output
- *  @param rates_size  the size of rates buffer; new size of buffer on return,
- *                     which will be less than or equal to original rates_size
- *
- *  @return            0 on success, or -1 on error
- */
+
 static int get_common_rates(struct lbs_private *priv,
 	u8 *rates,
 	u16 *rates_size)
@@ -50,7 +33,7 @@ static int get_common_rates(struct lbs_private *priv,
 
 	intersection_size = min_t(u16, *rates_size, ARRAY_SIZE(intersection));
 
-	/* Allow each rate from 'rates' that is supported by the hardware */
+	
 	for (i = 0; i < ARRAY_SIZE(lbs_bg_rates) && lbs_bg_rates[i]; i++) {
 		for (j = 0; j < intersection_size && rates[j]; j++) {
 			if (rates[j] == lbs_bg_rates[i])
@@ -82,14 +65,7 @@ done:
 }
 
 
-/**
- *  @brief Sets the MSB on basic rates as the firmware requires
- *
- * Scan through an array and set the MSB for basic data rates.
- *
- *  @param rates     buffer of data rates
- *  @param len       size of buffer
- */
+
 static void lbs_set_basic_rate_flags(u8 *rates, size_t len)
 {
 	int i;
@@ -115,17 +91,7 @@ static u8 iw_auth_to_ieee_auth(u8 auth)
 	return 0;
 }
 
-/**
- *  @brief This function prepares the authenticate command.  AUTHENTICATE only
- *  sets the authentication suite for future associations, as the firmware
- *  handles authentication internally during the ASSOCIATE command.
- *
- *  @param priv      A pointer to struct lbs_private structure
- *  @param bssid     The peer BSSID with which to authenticate
- *  @param auth      The authentication mode to use (from wireless.h)
- *
- *  @return         0 or -1
- */
+
 static int lbs_set_authentication(struct lbs_private *priv, u8 bssid[6], u8 auth)
 {
 	struct cmd_ds_802_11_authenticate cmd;
@@ -164,23 +130,7 @@ static int lbs_assoc_post(struct lbs_private *priv,
 	}
 	bss = &priv->in_progress_assoc_req->bss;
 
-	/*
-	 * Older FW versions map the IEEE 802.11 Status Code in the association
-	 * response to the following values returned in resp->statuscode:
-	 *
-	 *    IEEE Status Code                Marvell Status Code
-	 *    0                       ->      0x0000 ASSOC_RESULT_SUCCESS
-	 *    13                      ->      0x0004 ASSOC_RESULT_AUTH_REFUSED
-	 *    14                      ->      0x0004 ASSOC_RESULT_AUTH_REFUSED
-	 *    15                      ->      0x0004 ASSOC_RESULT_AUTH_REFUSED
-	 *    16                      ->      0x0004 ASSOC_RESULT_AUTH_REFUSED
-	 *    others                  ->      0x0003 ASSOC_RESULT_REFUSED
-	 *
-	 * Other response codes:
-	 *    0x0001 -> ASSOC_RESULT_INVALID_PARAMETERS (unused)
-	 *    0x0002 -> ASSOC_RESULT_TIMEOUT (internal timer expired waiting for
-	 *                                    association response from the AP)
-	 */
+	
 
 	status_code = le16_to_cpu(resp->statuscode);
 	if (priv->fwrelease < 0x09000000) {
@@ -208,7 +158,7 @@ static int lbs_assoc_post(struct lbs_private *priv,
 			break;
 		}
 	} else {
-		/* v9+ returns the AP's association response */
+		
 		lbs_deb_assoc("ASSOC_RESP: failure reason 0x%02x\n", status_code);
 	}
 
@@ -222,10 +172,10 @@ static int lbs_assoc_post(struct lbs_private *priv,
 		    (void *) (resp + sizeof (resp->hdr)),
 		    le16_to_cpu(resp->hdr.size) - sizeof (resp->hdr));
 
-	/* Send a Media Connected event, according to the Spec */
+	
 	priv->connect_status = LBS_CONNECTED;
 
-	/* Update current SSID and BSSID */
+	
 	memcpy(&priv->curbssparams.ssid, &bss->ssid, IW_ESSID_MAX_SIZE);
 	priv->curbssparams.ssid_len = bss->ssid_len;
 	memcpy(priv->curbssparams.bssid, bss->bssid, ETH_ALEN);
@@ -251,17 +201,7 @@ done:
 	return ret;
 }
 
-/**
- *  @brief This function prepares an association-class command.
- *
- *  @param priv      A pointer to struct lbs_private structure
- *  @param assoc_req The association request describing the BSS to associate
- *                   or reassociate with
- *  @param command   The actual command, either CMD_802_11_ASSOCIATE or
- *                   CMD_802_11_REASSOCIATE
- *
- *  @return         0 or -1
- */
+
 static int lbs_associate(struct lbs_private *priv,
 			 struct assoc_request *assoc_req,
 			 u16 command)
@@ -286,18 +226,18 @@ static int lbs_associate(struct lbs_private *priv,
 	memset(&cmd, 0, sizeof(cmd));
 	cmd.hdr.command = cpu_to_le16(command);
 
-	/* Fill in static fields */
+	
 	memcpy(cmd.bssid, bss->bssid, ETH_ALEN);
 	cmd.listeninterval = cpu_to_le16(MRVDRV_DEFAULT_LISTEN_INTERVAL);
 
-	/* Capability info */
+	
 	tmpcap = (bss->capability & CAPINFO_MASK);
 	if (bss->mode == IW_MODE_INFRA)
 		tmpcap |= WLAN_CAPABILITY_ESS;
 	cmd.capability = cpu_to_le16(tmpcap);
 	lbs_deb_assoc("ASSOC_CMD: capability 0x%04x\n", tmpcap);
 
-	/* SSID */
+	
 	ssid = (struct mrvl_ie_ssid_param_set *) pos;
 	ssid->header.type = cpu_to_le16(TLV_TYPE_SSID);
 	tmplen = bss->ssid_len;
@@ -315,7 +255,7 @@ static int lbs_associate(struct lbs_private *priv,
 	cf->header.type = cpu_to_le16(TLV_TYPE_CF);
 	tmplen = sizeof(*cf) - sizeof (cf->header);
 	cf->header.len = cpu_to_le16(tmplen);
-	/* IE payload should be zeroed, firmware fills it in for us */
+	
 	pos += sizeof(*cf);
 
 	rates = (struct mrvl_ie_rates_param_set *) pos;
@@ -330,16 +270,14 @@ static int lbs_associate(struct lbs_private *priv,
 	rates->header.len = cpu_to_le16(tmplen);
 	lbs_deb_assoc("ASSOC_CMD: num rates %u\n", tmplen);
 
-	/* Copy the infra. association rates into Current BSS state structure */
+	
 	memset(&priv->curbssparams.rates, 0, sizeof(priv->curbssparams.rates));
 	memcpy(&priv->curbssparams.rates, &rates->rates, tmplen);
 
-	/* Set MSB on basic rates as the firmware requires, but _after_
-	 * copying to current bss rates.
-	 */
+	
 	lbs_set_basic_rate_flags(rates->rates, tmplen);
 
-	/* Firmware v9+ indicate authentication suites as a TLV */
+	
 	if (priv->fwrelease >= 0x09000000) {
 		auth = (struct mrvl_ie_auth_type *) pos;
 		auth->header.type = cpu_to_le16(TLV_TYPE_AUTH_TYPE);
@@ -352,10 +290,10 @@ static int lbs_associate(struct lbs_private *priv,
 			bss->bssid, priv->secinfo.auth_mode);
 	}
 
-	/* WPA/WPA2 IEs */
+	
 	if (assoc_req->secinfo.WPAenabled || assoc_req->secinfo.WPA2enabled) {
 		rsn = (struct mrvl_ie_rsn_param_set *) pos;
-		/* WPA_IE or WPA2_IE */
+		
 		rsn->header.type = cpu_to_le16((u16) assoc_req->wpa_ie[0]);
 		tmplen = (u16) assoc_req->wpa_ie[1];
 		rsn->header.len = cpu_to_le16(tmplen);
@@ -368,7 +306,7 @@ static int lbs_associate(struct lbs_private *priv,
 	cmd.hdr.size = cpu_to_le16((sizeof(cmd) - sizeof(cmd.iebuf)) +
 				   (u16)(pos - (u8 *) &cmd.iebuf));
 
-	/* update curbssparams */
+	
 	priv->curbssparams.channel = bss->phy.ds.channel;
 
 	if (lbs_parse_dnld_countryinfo_11d(priv, bss)) {
@@ -387,14 +325,7 @@ done:
 	return ret;
 }
 
-/**
- *  @brief Associate to a specific BSS discovered in a scan
- *
- *  @param priv      A pointer to struct lbs_private structure
- *  @param assoc_req The association request describing the BSS to associate with
- *
- *  @return          0-success, otherwise fail
- */
+
 static int lbs_try_associate(struct lbs_private *priv,
 	struct assoc_request *assoc_req)
 {
@@ -403,9 +334,7 @@ static int lbs_try_associate(struct lbs_private *priv,
 
 	lbs_deb_enter(LBS_DEB_ASSOC);
 
-	/* FW v9 and higher indicate authentication suites as a TLV in the
-	 * association command, not as a separate authentication command.
-	 */
+	
 	if (priv->fwrelease < 0x09000000) {
 		ret = lbs_set_authentication(priv, assoc_req->bss.bssid,
 					     priv->secinfo.auth_mode);
@@ -413,7 +342,7 @@ static int lbs_try_associate(struct lbs_private *priv,
 			goto out;
 	}
 
-	/* Use short preamble only when both the BSS and firmware support it */
+	
 	if ((priv->capability & WLAN_CAPABILITY_SHORT_PREAMBLE) &&
 	    (assoc_req->bss.capability & WLAN_CAPABILITY_SHORT_PREAMBLE))
 		preamble = RADIO_PREAMBLE_SHORT;
@@ -449,9 +378,7 @@ static int lbs_adhoc_post(struct lbs_private *priv,
 	}
 	bss = &priv->in_progress_assoc_req->bss;
 
-	/*
-	 * Join result code 0 --> SUCCESS
-	 */
+	
 	if (result) {
 		lbs_deb_join("ADHOC_RESP: failed (result 0x%X)\n", result);
 		if (priv->connect_status == LBS_CONNECTED)
@@ -460,18 +387,18 @@ static int lbs_adhoc_post(struct lbs_private *priv,
 		goto done;
 	}
 
-	/* Send a Media Connected event, according to the Spec */
+	
 	priv->connect_status = LBS_CONNECTED;
 
 	if (command == CMD_RET(CMD_802_11_AD_HOC_START)) {
-		/* Update the created network descriptor with the new BSSID */
+		
 		memcpy(bss->bssid, resp->bssid, ETH_ALEN);
 	}
 
-	/* Set the BSSID from the joined/started descriptor */
+	
 	memcpy(&priv->curbssparams.bssid, bss->bssid, ETH_ALEN);
 
-	/* Set the new SSID to current SSID */
+	
 	memcpy(&priv->curbssparams.ssid, &bss->ssid, IW_ESSID_MAX_SIZE);
 	priv->curbssparams.ssid_len = bss->ssid_len;
 
@@ -494,14 +421,7 @@ done:
 	return ret;
 }
 
-/**
- *  @brief Join an adhoc network found in a previous scan
- *
- *  @param priv         A pointer to struct lbs_private structure
- *  @param assoc_req    The association request describing the BSS to join
- *
- *  @return             0 on success, error on failure
- */
+
 static int lbs_adhoc_join(struct lbs_private *priv,
 	struct assoc_request *assoc_req)
 {
@@ -522,7 +442,7 @@ static int lbs_adhoc_join(struct lbs_private *priv,
 		print_ssid(ssid, bss->ssid, bss->ssid_len),
 		bss->ssid_len);
 
-	/* check if the requested SSID is already joined */
+	
 	if (priv->curbssparams.ssid_len &&
 	    !lbs_ssid_cmp(priv->curbssparams.ssid,
 			priv->curbssparams.ssid_len,
@@ -534,9 +454,7 @@ static int lbs_adhoc_join(struct lbs_private *priv,
 		lbs_deb_join("ADHOC_J_CMD: New ad-hoc SSID is the same as "
 			"current, not attempting to re-join");
 
-		/* Send the re-association event though, because the association
-		 * request really was successful, even if just a null-op.
-		 */
+		
 		memset(&wrqu, 0, sizeof(wrqu));
 		memcpy(wrqu.ap_addr.sa_data, priv->curbssparams.bssid,
 		       ETH_ALEN);
@@ -545,7 +463,7 @@ static int lbs_adhoc_join(struct lbs_private *priv,
 		goto out;
 	}
 
-	/* Use short preamble only when both the BSS and firmware support it */
+	
 	if ((priv->capability & WLAN_CAPABILITY_SHORT_PREAMBLE) &&
 	    (bss->capability & WLAN_CAPABILITY_SHORT_PREAMBLE)) {
 		lbs_deb_join("AdhocJoin: Short preamble\n");
@@ -562,7 +480,7 @@ static int lbs_adhoc_join(struct lbs_private *priv,
 	priv->adhoccreate = 0;
 	priv->curbssparams.channel = bss->channel;
 
-	/* Build the join command */
+	
 	memset(&cmd, 0, sizeof(cmd));
 	cmd.hdr.size = cpu_to_le16(sizeof(cmd));
 
@@ -581,19 +499,19 @@ static int lbs_adhoc_join(struct lbs_private *priv,
 	lbs_deb_join("ADHOC_J_CMD: tmpcap=%4X CAPINFO_MASK=%4X\n",
 	       bss->capability, CAPINFO_MASK);
 
-	/* information on BSSID descriptor passed to FW */
+	
 	lbs_deb_join("ADHOC_J_CMD: BSSID = %pM, SSID = '%s'\n",
 			cmd.bss.bssid, cmd.bss.ssid);
 
-	/* Only v8 and below support setting these */
+	
 	if (priv->fwrelease < 0x09000000) {
-		/* failtimeout */
+		
 		cmd.failtimeout = cpu_to_le16(MRVDRV_ASSOCIATION_TIME_OUT);
-		/* probedelay */
+		
 		cmd.probedelay = cpu_to_le16(CMD_SCAN_PROBE_DELAY_TIME);
 	}
 
-	/* Copy Data rates from the rates recorded in scan response */
+	
 	memset(cmd.bss.rates, 0, sizeof(cmd.bss.rates));
 	ratesize = min_t(u16, ARRAY_SIZE(cmd.bss.rates), ARRAY_SIZE (bss->rates));
 	memcpy(cmd.bss.rates, bss->rates, ratesize);
@@ -603,13 +521,11 @@ static int lbs_adhoc_join(struct lbs_private *priv,
 		goto out;
 	}
 
-	/* Copy the ad-hoc creation rates into Current BSS state structure */
+	
 	memset(&priv->curbssparams.rates, 0, sizeof(priv->curbssparams.rates));
 	memcpy(&priv->curbssparams.rates, cmd.bss.rates, ratesize);
 
-	/* Set MSB on basic rates as the firmware requires, but _after_
-	 * copying to current bss rates.
-	 */
+	
 	lbs_set_basic_rate_flags(cmd.bss.rates, ratesize);
 
 	cmd.bss.ibss.atimwindow = bss->atimwindow;
@@ -623,7 +539,7 @@ static int lbs_adhoc_join(struct lbs_private *priv,
 	if (priv->psmode == LBS802_11POWERMODEMAX_PSP) {
 		__le32 local_ps_mode = cpu_to_le32(LBS802_11POWERMODECAM);
 
-		/* wake up first */
+		
 		ret = lbs_prepare_and_send_command(priv, CMD_802_11_PS_MODE,
 						   CMD_ACT_SET, 0, 0,
 						   &local_ps_mode);
@@ -649,14 +565,7 @@ out:
 	return ret;
 }
 
-/**
- *  @brief Start an Adhoc Network
- *
- *  @param priv         A pointer to struct lbs_private structure
- *  @param assoc_req    The association request describing the BSS to start
- *
- *  @return             0 on success, error on failure
- */
+
 static int lbs_adhoc_start(struct lbs_private *priv,
 	struct assoc_request *assoc_req)
 {
@@ -678,7 +587,7 @@ static int lbs_adhoc_start(struct lbs_private *priv,
 	if (ret)
 		goto out;
 
-	/* Build the start command */
+	
 	memset(&cmd, 0, sizeof(cmd));
 	cmd.hdr.size = cpu_to_le16(sizeof(cmd));
 
@@ -696,17 +605,17 @@ static int lbs_adhoc_start(struct lbs_private *priv,
 
 	WARN_ON(!assoc_req->channel);
 
-	/* set Physical parameter set */
+	
 	cmd.ds.header.id = WLAN_EID_DS_PARAMS;
 	cmd.ds.header.len = 1;
 	cmd.ds.channel = assoc_req->channel;
 
-	/* set IBSS parameter set */
+	
 	cmd.ibss.header.id = WLAN_EID_IBSS_PARAMS;
 	cmd.ibss.header.len = 2;
 	cmd.ibss.atimwindow = cpu_to_le16(0);
 
-	/* set capability info */
+	
 	tmpcap = WLAN_CAPABILITY_IBSS;
 	if (assoc_req->secinfo.wep_enabled ||
 	    assoc_req->secinfo.WPAenabled ||
@@ -718,20 +627,18 @@ static int lbs_adhoc_start(struct lbs_private *priv,
 
 	cmd.capability = cpu_to_le16(tmpcap);
 
-	/* Only v8 and below support setting probe delay */
+	
 	if (priv->fwrelease < 0x09000000)
 		cmd.probedelay = cpu_to_le16(CMD_SCAN_PROBE_DELAY_TIME);
 
 	ratesize = min(sizeof(cmd.rates), sizeof(lbs_bg_rates));
 	memcpy(cmd.rates, lbs_bg_rates, ratesize);
 
-	/* Copy the ad-hoc creating rates into Current BSS state structure */
+	
 	memset(&priv->curbssparams.rates, 0, sizeof(priv->curbssparams.rates));
 	memcpy(&priv->curbssparams.rates, &cmd.rates, ratesize);
 
-	/* Set MSB on basic rates as the firmware requires, but _after_
-	 * copying to current bss rates.
-	 */
+	
 	lbs_set_basic_rate_flags(cmd.rates, ratesize);
 
 	lbs_deb_join("ADHOC_START: rates=%02x %02x %02x %02x\n",
@@ -759,12 +666,7 @@ out:
 	return ret;
 }
 
-/**
- *  @brief Stop and Ad-Hoc network and exit Ad-Hoc mode
- *
- *  @param priv         A pointer to struct lbs_private structure
- *  @return             0 on success, or an error
- */
+
 int lbs_adhoc_stop(struct lbs_private *priv)
 {
 	struct cmd_ds_802_11_ad_hoc_stop cmd;
@@ -777,7 +679,7 @@ int lbs_adhoc_stop(struct lbs_private *priv)
 
 	ret = lbs_cmd_with_response(priv, CMD_802_11_AD_HOC_STOP, &cmd);
 
-	/* Clean up everything even if there was an error */
+	
 	lbs_mac_event_disconnected(priv);
 
 	lbs_deb_leave_args(LBS_DEB_ASSOC, "ret %d", ret);
@@ -813,8 +715,7 @@ static inline int match_bss_wpa(struct lbs_802_11_security *secinfo,
 {
 	if (!secinfo->wep_enabled && secinfo->WPAenabled
 	    && (match_bss->wpa_ie[0] == WLAN_EID_GENERIC)
-	    /* privacy bit may NOT be set in some APs like LinkSys WRT54G
-	    && (match_bss->capability & WLAN_CAPABILITY_PRIVACY) */
+	    
 	   )
 		return 1;
 	else
@@ -826,8 +727,7 @@ static inline int match_bss_wpa2(struct lbs_802_11_security *secinfo,
 {
 	if (!secinfo->wep_enabled && secinfo->WPA2enabled &&
 	    (match_bss->rsn_ie[0] == WLAN_EID_RSN)
-	    /* privacy bit may NOT be set in some APs like LinkSys WRT54G
-	    (match_bss->capability & WLAN_CAPABILITY_PRIVACY) */
+	    
 	   )
 		return 1;
 	else
@@ -847,25 +747,7 @@ static inline int match_bss_dynamic_wep(struct lbs_802_11_security *secinfo,
 		return 0;
 }
 
-/**
- *  @brief Check if a scanned network compatible with the driver settings
- *
- *   WEP     WPA     WPA2    ad-hoc  encrypt                      Network
- * enabled enabled  enabled   AES     mode   privacy  WPA  WPA2  Compatible
- *    0       0        0       0      NONE      0      0    0   yes No security
- *    1       0        0       0      NONE      1      0    0   yes Static WEP
- *    0       1        0       0       x        1x     1    x   yes WPA
- *    0       0        1       0       x        1x     x    1   yes WPA2
- *    0       0        0       1      NONE      1      0    0   yes Ad-hoc AES
- *    0       0        0       0     !=NONE     1      0    0   yes Dynamic WEP
- *
- *
- *  @param priv A pointer to struct lbs_private
- *  @param index   Index in scantable to check against current driver settings
- *  @param mode    Network mode: Infrastructure or IBSS
- *
- *  @return        Index in scantable, or error code if negative
- */
+
 static int is_network_compatible(struct lbs_private *priv,
 				 struct bss_descriptor *bss, uint8_t mode)
 {
@@ -913,7 +795,7 @@ static int is_network_compatible(struct lbs_private *priv,
 		goto done;
 	}
 
-	/* bss security settings don't match those configured on card */
+	
 	lbs_deb_scan("is_network_compatible() FAILED: wpa_ie 0x%x "
 		     "wpa2_ie 0x%x WEP %s WPA %s WPA2 %s privacy 0x%x\n",
 		     bss->wpa_ie[0], bss->rsn_ie[0],
@@ -927,17 +809,7 @@ done:
 	return matched;
 }
 
-/**
- *  @brief This function finds a specific compatible BSSID in the scan list
- *
- *  Used in association code
- *
- *  @param priv  A pointer to struct lbs_private
- *  @param bssid    BSSID to find in the scan list
- *  @param mode     Network mode: Infrastructure or IBSS
- *
- *  @return         index in BSSID list, or error return code (< 0)
- */
+
 static struct bss_descriptor *lbs_find_bssid_in_list(struct lbs_private *priv,
 					      uint8_t *bssid, uint8_t mode)
 {
@@ -951,14 +823,11 @@ static struct bss_descriptor *lbs_find_bssid_in_list(struct lbs_private *priv,
 
 	lbs_deb_hex(LBS_DEB_SCAN, "looking for", bssid, ETH_ALEN);
 
-	/* Look through the scan table for a compatible match.  The loop will
-	 *   continue past a matched bssid that is not compatible in case there
-	 *   is an AP with multiple SSIDs assigned to the same BSSID
-	 */
+	
 	mutex_lock(&priv->lock);
 	list_for_each_entry(iter_bss, &priv->network_list, list) {
 		if (compare_ether_addr(iter_bss->bssid, bssid))
-			continue; /* bssid doesn't match */
+			continue; 
 		switch (mode) {
 		case IW_MODE_INFRA:
 		case IW_MODE_ADHOC:
@@ -978,18 +847,7 @@ out:
 	return found_bss;
 }
 
-/**
- *  @brief This function finds ssid in ssid list.
- *
- *  Used in association code
- *
- *  @param priv  A pointer to struct lbs_private
- *  @param ssid     SSID to find in the list
- *  @param bssid    BSSID to qualify the SSID selection (if provided)
- *  @param mode     Network mode: Infrastructure or IBSS
- *
- *  @return         index in BSSID list
- */
+
 static struct bss_descriptor *lbs_find_ssid_in_list(struct lbs_private *priv,
 					     uint8_t *ssid, uint8_t ssid_len,
 					     uint8_t *bssid, uint8_t mode,
@@ -1011,11 +869,11 @@ static struct bss_descriptor *lbs_find_ssid_in_list(struct lbs_private *priv,
 
 		if (lbs_ssid_cmp(iter_bss->ssid, iter_bss->ssid_len,
 				 ssid, ssid_len) != 0)
-			continue; /* ssid doesn't match */
+			continue; 
 		if (bssid && compare_ether_addr(iter_bss->bssid, bssid) != 0)
-			continue; /* bssid doesn't match */
+			continue; 
 		if ((channel > 0) && (iter_bss->channel != channel))
-			continue; /* channel doesn't match */
+			continue; 
 
 		switch (mode) {
 		case IW_MODE_INFRA:
@@ -1024,7 +882,7 @@ static struct bss_descriptor *lbs_find_ssid_in_list(struct lbs_private *priv,
 				break;
 
 			if (bssid) {
-				/* Found requested BSSID */
+				
 				found_bss = iter_bss;
 				goto out;
 			}
@@ -1060,9 +918,7 @@ static int assoc_helper_essid(struct lbs_private *priv,
 
 	lbs_deb_enter(LBS_DEB_ASSOC);
 
-	/* FIXME: take channel into account when picking SSIDs if a channel
-	 * is set.
-	 */
+	
 
 	if (test_bit(ASSOC_FLAG_CHANNEL, &assoc_req->flags))
 		channel = assoc_req->channel;
@@ -1082,13 +938,11 @@ static int assoc_helper_essid(struct lbs_private *priv,
 			lbs_deb_assoc("SSID not found; cannot associate\n");
 		}
 	} else if (assoc_req->mode == IW_MODE_ADHOC) {
-		/* Scan for the network, do not save previous results.  Stale
-		 *   scan data will cause us to join a non-existant adhoc network
-		 */
+		
 		lbs_send_specific_ssid_scan(priv, assoc_req->ssid,
 			assoc_req->ssid_len);
 
-		/* Search for the requested SSID in the scan table */
+		
 		bss = lbs_find_ssid_in_list(priv, assoc_req->ssid,
 				assoc_req->ssid_len, NULL, IW_MODE_ADHOC, channel);
 		if (bss != NULL) {
@@ -1096,7 +950,7 @@ static int assoc_helper_essid(struct lbs_private *priv,
 			memcpy(&assoc_req->bss, bss, sizeof(struct bss_descriptor));
 			lbs_adhoc_join(priv, assoc_req);
 		} else {
-			/* else send START command */
+			
 			lbs_deb_assoc("SSID not found, creating adhoc network\n");
 			memcpy(&assoc_req->bss.ssid, &assoc_req->ssid,
 				IW_ESSID_MAX_SIZE);
@@ -1118,7 +972,7 @@ static int assoc_helper_bssid(struct lbs_private *priv,
 
 	lbs_deb_enter_args(LBS_DEB_ASSOC, "BSSID %pM", assoc_req->bssid);
 
-	/* Search for index position in list for requested MAC */
+	
 	bss = lbs_find_bssid_in_list(priv, assoc_req->bssid,
 			    assoc_req->mode);
 	if (bss == NULL) {
@@ -1149,7 +1003,7 @@ static int assoc_helper_associate(struct lbs_private *priv,
 
 	lbs_deb_enter(LBS_DEB_ASSOC);
 
-	/* If we're given and 'any' BSSID, try associating based on SSID */
+	
 
 	if (test_bit(ASSOC_FLAG_BSSID, &assoc_req->flags)) {
 		if (compare_ether_addr(bssid_any, assoc_req->bssid)
@@ -1209,9 +1063,7 @@ static int assoc_helper_channel(struct lbs_private *priv,
 		goto done;
 
 	if (priv->mesh_dev) {
-		/* Change mesh channel first; 21.p21 firmware won't let
-		   you change channel otherwise (even though it'll return
-		   an error to this */
+		
 		lbs_mesh_config(priv, CMD_ACT_MESH_CONFIG_STOP,
 				assoc_req->channel);
 	}
@@ -1223,9 +1075,7 @@ static int assoc_helper_channel(struct lbs_private *priv,
 	if (ret < 0)
 		lbs_deb_assoc("ASSOC: channel: error setting channel.\n");
 
-	/* FIXME: shouldn't need to grab the channel _again_ after setting
-	 * it since the firmware is supposed to return the new channel, but
-	 * whatever... */
+	
 	ret = lbs_update_channel(priv);
 	if (ret) {
 		lbs_deb_assoc("ASSOC: channel: error getting channel.\n");
@@ -1243,11 +1093,11 @@ static int assoc_helper_channel(struct lbs_private *priv,
 	       || assoc_req->wep_keys[1].len
 	       || assoc_req->wep_keys[2].len
 	       || assoc_req->wep_keys[3].len)) {
-		/* Make sure WEP keys are re-sent to firmware */
+		
 		set_bit(ASSOC_FLAG_WEP_KEYS, &assoc_req->flags);
 	}
 
-	/* Must restart/rejoin adhoc networks after channel change */
+	
  	set_bit(ASSOC_FLAG_SSID, &assoc_req->flags);
 
  restore_mesh:
@@ -1269,7 +1119,7 @@ static int assoc_helper_wep_keys(struct lbs_private *priv,
 
 	lbs_deb_enter(LBS_DEB_ASSOC);
 
-	/* Set or remove WEP keys */
+	
 	if (assoc_req->wep_keys[0].len || assoc_req->wep_keys[1].len ||
 	    assoc_req->wep_keys[2].len || assoc_req->wep_keys[3].len)
 		ret = lbs_cmd_802_11_set_wep(priv, CMD_ACT_ADD, assoc_req);
@@ -1279,7 +1129,7 @@ static int assoc_helper_wep_keys(struct lbs_private *priv,
 	if (ret)
 		goto out;
 
-	/* enable/disable the MAC's WEP packet filter */
+	
 	if (assoc_req->secinfo.wep_enabled)
 		priv->mac_control |= CMD_ACT_MAC_WEP_ENABLE;
 	else
@@ -1289,7 +1139,7 @@ static int assoc_helper_wep_keys(struct lbs_private *priv,
 
 	mutex_lock(&priv->lock);
 
-	/* Copy WEP keys into priv wep key fields */
+	
 	for (i = 0; i < 4; i++) {
 		memcpy(&priv->wep_keys[i], &assoc_req->wep_keys[i],
 		       sizeof(struct enc_key));
@@ -1317,24 +1167,21 @@ static int assoc_helper_secinfo(struct lbs_private *priv,
 
 	lbs_set_mac_control(priv);
 
-	/* If RSN is already enabled, don't try to enable it again, since
-	 * ENABLE_RSN resets internal state machines and will clobber the
-	 * 4-way WPA handshake.
-	 */
+	
 
-	/* Get RSN enabled/disabled */
+	
 	ret = lbs_cmd_802_11_enable_rsn(priv, CMD_ACT_GET, &rsn);
 	if (ret) {
 		lbs_deb_assoc("Failed to get RSN status: %d\n", ret);
 		goto out;
 	}
 
-	/* Don't re-enable RSN if it's already enabled */
+	
 	do_wpa = assoc_req->secinfo.WPAenabled || assoc_req->secinfo.WPA2enabled;
 	if (do_wpa == rsn)
 		goto out;
 
-	/* Set RSN enabled/disabled */
+	
 	ret = lbs_cmd_802_11_enable_rsn(priv, CMD_ACT_SET, &do_wpa);
 
 out:
@@ -1351,10 +1198,7 @@ static int assoc_helper_wpa_keys(struct lbs_private *priv,
 
 	lbs_deb_enter(LBS_DEB_ASSOC);
 
-	/* Work around older firmware bug where WPA unicast and multicast
-	 * keys must be set independently.  Seen in SDIO parts with firmware
-	 * version 5.0.11p0.
-	 */
+	
 
 	if (test_bit(ASSOC_FLAG_WPA_UCAST_KEY, &assoc_req->flags)) {
 		clear_bit(ASSOC_FLAG_WPA_MCAST_KEY, &assoc_req->flags);
@@ -1439,7 +1283,7 @@ static int should_deauth_infrastructure(struct lbs_private *priv,
 		goto out;
 	}
 
-	/* FIXME: deal with 'auto' mode somehow */
+	
 	if (test_bit(ASSOC_FLAG_MODE, &assoc_req->flags)) {
 		if (assoc_req->mode != IW_MODE_INFRA) {
 			lbs_deb_assoc("Deauthenticating due to leaving "
@@ -1468,7 +1312,7 @@ static int should_stop_adhoc(struct lbs_private *priv,
 	                      assoc_req->ssid, assoc_req->ssid_len) != 0)
 		return 1;
 
-	/* FIXME: deal with 'auto' mode somehow */
+	
 	if (test_bit(ASSOC_FLAG_MODE, &assoc_req->flags)) {
 		if (assoc_req->mode != IW_MODE_ADHOC)
 			return 1;
@@ -1484,16 +1328,7 @@ static int should_stop_adhoc(struct lbs_private *priv,
 }
 
 
-/**
- *  @brief This function finds the best SSID in the Scan List
- *
- *  Search the scan table for the best SSID that also matches the current
- *   adapter network preference (infrastructure or adhoc)
- *
- *  @param priv  A pointer to struct lbs_private
- *
- *  @return         index in BSSID list
- */
+
 static struct bss_descriptor *lbs_find_best_ssid_in_list(
 	struct lbs_private *priv, uint8_t mode)
 {
@@ -1531,16 +1366,7 @@ static struct bss_descriptor *lbs_find_best_ssid_in_list(
 	return best_bss;
 }
 
-/**
- *  @brief Find the best AP
- *
- *  Used from association worker.
- *
- *  @param priv         A pointer to struct lbs_private structure
- *  @param pSSID        A pointer to AP's ssid
- *
- *  @return             0--success, otherwise--fail
- */
+
 static int lbs_find_best_network_ssid(struct lbs_private *priv,
 	uint8_t *out_ssid, uint8_t *out_ssid_len, uint8_t preferred_mode,
 	uint8_t *out_mode)
@@ -1608,12 +1434,12 @@ void lbs_association_worker(struct work_struct *work)
 		assoc_req->secinfo.wep_enabled ? " WEP" : "",
 		assoc_req->secinfo.auth_mode);
 
-	/* If 'any' SSID was specified, find an SSID to associate with */
+	
 	if (test_bit(ASSOC_FLAG_SSID, &assoc_req->flags)
 	    && !assoc_req->ssid_len)
 		find_any_ssid = 1;
 
-	/* But don't use 'any' SSID if there's a valid locked BSSID to use */
+	
 	if (test_bit(ASSOC_FLAG_BSSID, &assoc_req->flags)) {
 		if (compare_ether_addr(assoc_req->bssid, bssid_any)
 		    && compare_ether_addr(assoc_req->bssid, bssid_off))
@@ -1631,17 +1457,14 @@ void lbs_association_worker(struct work_struct *work)
 			goto out;
 		}
 
-		/* Ensure we switch to the mode of the AP */
+		
 		if (assoc_req->mode == IW_MODE_AUTO) {
 			set_bit(ASSOC_FLAG_MODE, &assoc_req->flags);
 			assoc_req->mode = new_mode;
 		}
 	}
 
-	/*
-	 * Check if the attributes being changing require deauthentication
-	 * from the currently associated infrastructure access point.
-	 */
+	
 	if (priv->mode == IW_MODE_INFRA) {
 		if (should_deauth_infrastructure(priv, assoc_req)) {
 			ret = lbs_cmd_80211_deauthenticate(priv,
@@ -1665,7 +1488,7 @@ void lbs_association_worker(struct work_struct *work)
 		}
 	}
 
-	/* Send the various configuration bits to the firmware */
+	
 	if (test_bit(ASSOC_FLAG_MODE, &assoc_req->flags)) {
 		ret = assoc_helper_mode(priv, assoc_req);
 		if (ret)
@@ -1704,9 +1527,7 @@ void lbs_association_worker(struct work_struct *work)
 			goto out;
 	}
 
-	/* SSID/BSSID should be the _last_ config option set, because they
-	 * trigger the association attempt.
-	 */
+	
 	if (test_bit(ASSOC_FLAG_BSSID, &assoc_req->flags)
 	    || test_bit(ASSOC_FLAG_SSID, &assoc_req->flags)) {
 		int success = 1;
@@ -1751,9 +1572,7 @@ done:
 }
 
 
-/*
- * Caller MUST hold any necessary locks
- */
+
 struct assoc_request *lbs_get_association_request(struct lbs_private *priv)
 {
 	struct assoc_request * assoc_req;
@@ -1769,9 +1588,7 @@ struct assoc_request *lbs_get_association_request(struct lbs_private *priv)
 		}
 	}
 
-	/* Copy current configuration attributes to the association request,
-	 * but don't overwrite any that are already set.
-	 */
+	
 	assoc_req = priv->pending_assoc_req;
 	if (!test_bit(ASSOC_FLAG_SSID, &assoc_req->flags)) {
 		memcpy(&assoc_req->ssid, &priv->curbssparams.ssid,
@@ -1830,15 +1647,7 @@ struct assoc_request *lbs_get_association_request(struct lbs_private *priv)
 }
 
 
-/**
- *  @brief Deauthenticate from a specific BSS
- *
- *  @param priv        A pointer to struct lbs_private structure
- *  @param bssid       The specific BSS to deauthenticate from
- *  @param reason      The 802.11 sec. 7.3.1.7 Reason Code for deauthenticating
- *
- *  @return            0 on success, error on failure
- */
+
 int lbs_cmd_80211_deauthenticate(struct lbs_private *priv, u8 bssid[ETH_ALEN],
 				 u16 reason)
 {
@@ -1854,9 +1663,7 @@ int lbs_cmd_80211_deauthenticate(struct lbs_private *priv, u8 bssid[ETH_ALEN],
 
 	ret = lbs_cmd_with_response(priv, CMD_802_11_DEAUTHENTICATE, &cmd);
 
-	/* Clean up everything even if there was an error; can't assume that
-	 * we're still authenticated to the AP after trying to deauth.
-	 */
+	
 	lbs_mac_event_disconnected(priv);
 
 	lbs_deb_leave(LBS_DEB_JOIN);

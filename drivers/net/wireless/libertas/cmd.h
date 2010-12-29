@@ -1,4 +1,4 @@
-/* Copyright (C) 2007, Red Hat, Inc. */
+
 
 #ifndef _LBS_CMD_H_
 #define _LBS_CMD_H_
@@ -6,9 +6,7 @@
 #include "hostcmd.h"
 #include "dev.h"
 
-/* lbs_cmd() infers the size of the buffer to copy data back into, from
-   the size of the target of the pointer. Since the command to be sent 
-   may often be smaller, that size is set in cmd->size by the caller.*/
+
 #define lbs_cmd(priv, cmdnr, cmd, cb, cb_arg)	({		\
 	uint16_t __sz = le16_to_cpu((cmd)->hdr.size);		\
 	(cmd)->hdr.size = cpu_to_le16(sizeof(*(cmd)));		\
@@ -84,4 +82,4 @@ int lbs_set_snmp_mib(struct lbs_private *priv, u32 oid, u16 val);
 
 int lbs_get_snmp_mib(struct lbs_private *priv, u32 oid, u16 *out_val);
 
-#endif /* _LBS_CMD_H */
+#endif 

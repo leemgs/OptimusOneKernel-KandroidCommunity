@@ -23,11 +23,11 @@
 #define B43legacy_PIO_RXCTL_DATAAVAILABLE	(1 << 0)
 #define B43legacy_PIO_RXCTL_READY		(1 << 1)
 
-/* PIO constants */
+
 #define B43legacy_PIO_MAXTXDEVQPACKETS	31
 #define B43legacy_PIO_TXQADJUST		80
 
-/* PIO tuning knobs */
+
 #define B43legacy_PIO_MAXTXPACKETS	256
 
 
@@ -53,30 +53,22 @@ struct b43legacy_pioqueue {
 
 	bool tx_suspended;
 	bool tx_frozen;
-	bool need_workarounds; /* Workarounds needed for core.rev < 3 */
+	bool need_workarounds; 
 
-	/* Adjusted size of the device internal TX buffer. */
+	
 	u16 tx_devq_size;
-	/* Used octets of the device internal TX buffer. */
+	
 	u16 tx_devq_used;
-	/* Used packet slots in the device internal TX buffer. */
+	
 	u8 tx_devq_packets;
-	/* Packets from the txfree list can
-	 * be taken on incoming TX requests.
-	 */
+	
 	struct list_head txfree;
 	unsigned int nr_txfree;
-	/* Packets on the txqueue are queued,
-	 * but not completely written to the chip, yet.
-	 */
+	
 	struct list_head txqueue;
-	/* Packets on the txrunning queue are completely
-	 * posted to the device. We are waiting for the txstatus.
-	 */
+	
 	struct list_head txrunning;
-	/* Total number or packets sent.
-	 * (This counter can obviously wrap).
-	 */
+	
 	unsigned int nr_tx_packets;
 	struct tasklet_struct txtask;
 	struct b43legacy_pio_txpacket
@@ -110,14 +102,14 @@ void b43legacy_pio_get_tx_stats(struct b43legacy_wldev *dev,
 			      struct ieee80211_tx_queue_stats *stats);
 void b43legacy_pio_rx(struct b43legacy_pioqueue *queue);
 
-/* Suspend TX queue in hardware. */
+
 void b43legacy_pio_tx_suspend(struct b43legacy_pioqueue *queue);
 void b43legacy_pio_tx_resume(struct b43legacy_pioqueue *queue);
-/* Suspend (freeze) the TX tasklet (software level). */
+
 void b43legacy_pio_freeze_txqueues(struct b43legacy_wldev *dev);
 void b43legacy_pio_thaw_txqueues(struct b43legacy_wldev *dev);
 
-#else /* CONFIG_B43LEGACY_PIO */
+#else 
 
 static inline
 int b43legacy_pio_init(struct b43legacy_wldev *dev)
@@ -165,5 +157,5 @@ void b43legacy_pio_thaw_txqueues(struct b43legacy_wldev *dev)
 {
 }
 
-#endif /* CONFIG_B43LEGACY_PIO */
-#endif /* B43legacy_PIO_H_ */
+#endif 
+#endif 

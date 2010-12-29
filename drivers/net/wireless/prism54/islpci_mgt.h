@@ -1,21 +1,4 @@
-/*
- *  Copyright (C) 2002 Intersil Americas Inc.
- *  Copyright (C) 2003 Luis R. Rodriguez <mcgrof@ruslug.rutgers.edu>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- */
+
 
 #ifndef _ISLPCI_MGT_H
 #define _ISLPCI_MGT_H
@@ -23,23 +6,21 @@
 #include <linux/wireless.h>
 #include <linux/skbuff.h>
 
-/*
- *  Function definitions
- */
+
 
 #define K_DEBUG(f, m, args...) do { if(f & m) printk(KERN_DEBUG args); } while(0)
 #define DEBUG(f, args...) K_DEBUG(f, pc_debug, args)
 
 extern int pc_debug;
-#define init_wds 0	/* help compiler optimize away dead code */
+#define init_wds 0	
 
 
-/* General driver definitions */
+
 #define PCIDEVICE_LATENCY_TIMER_MIN		0x40
 #define PCIDEVICE_LATENCY_TIMER_VAL		0x50
 
-/* Debugging verbose definitions */
-#define SHOW_NOTHING                            0x00	/* overrules everything */
+
+#define SHOW_NOTHING                            0x00	
 #define SHOW_ANYTHING                           0xFF
 #define SHOW_ERROR_MESSAGES                     0x01
 #define SHOW_TRAPS                              0x02
@@ -50,7 +31,7 @@ extern int pc_debug;
 #define SHOW_BUFFER_CONTENTS                    0x40
 #define VERBOSE                                 0x01
 
-/* Default card definitions */
+
 #define CARD_DEFAULT_CHANNEL                    6
 #define CARD_DEFAULT_MODE                       INL_MODE_CLIENT
 #define CARD_DEFAULT_IW_MODE			IW_MODE_INFRA
@@ -71,7 +52,7 @@ extern int pc_debug;
 #define CARD_DEFAULT_PROFILE			DOT11_PROFILE_MIXED_G_WIFI
 #define CARD_DEFAULT_MAXFRAMEBURST		DOT11_MAXFRAMEBURST_MIXED_SAFE
 
-/* PIMFOR package definitions */
+
 #define PIMFOR_ETHERTYPE                        0x8828
 #define PIMFOR_HEADER_SIZE                      12
 #define PIMFOR_VERSION                          1
@@ -80,19 +61,14 @@ extern int pc_debug;
 #define PIMFOR_OP_RESPONSE                      2
 #define PIMFOR_OP_ERROR                         3
 #define PIMFOR_OP_TRAP                          4
-#define PIMFOR_OP_RESERVED                      5	/* till 255 */
+#define PIMFOR_OP_RESERVED                      5	
 #define PIMFOR_DEV_ID_MHLI_MIB                  0
 #define PIMFOR_FLAG_APPLIC_ORIGIN               0x01
 #define PIMFOR_FLAG_LITTLE_ENDIAN               0x02
 
 void display_buffer(char *, int);
 
-/*
- *  Type definition section
- *
- *  the structure defines only the header allowing copyless
- *  frame handling
- */
+
 typedef struct {
 	u8 version;
 	u8 operation;
@@ -103,15 +79,13 @@ typedef struct {
 } __attribute__ ((packed))
 pimfor_header_t;
 
-/* A received and interrupt-processed management frame, either for
- * schedule_work(prism54_process_trap) or for priv->mgmt_received,
- * processed by islpci_mgt_transaction(). */
+
 struct islpci_mgmtframe {
-	struct net_device *ndev;      /* pointer to network device */
-	pimfor_header_t *header;      /* payload header, points into buf */
-	void *data;		      /* payload ex header, points into buf */
-        struct work_struct ws;	      /* argument for schedule_work() */
-	char buf[0];		      /* fragment buffer */
+	struct net_device *ndev;      
+	pimfor_header_t *header;      
+	void *data;		      
+        struct work_struct ws;	      
+	char buf[0];		      
 };
 
 int
@@ -135,4 +109,4 @@ islpci_mgt_release(struct islpci_mgmtframe *frame)
         kfree(frame);
 }
 
-#endif				/* _ISLPCI_MGT_H */
+#endif				

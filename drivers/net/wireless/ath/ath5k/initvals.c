@@ -1,55 +1,32 @@
-/*
- * Initial register settings functions
- *
- * Copyright (c) 2004-2007 Reyk Floeter <reyk@openbsd.org>
- * Copyright (c) 2006-2009 Nick Kossifidis <mickflemm@gmail.com>
- * Copyright (c) 2007-2008 Jiri Slaby <jirislaby@gmail.com>
- *
- * Permission to use, copy, modify, and distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- *
- */
+
 
 #include "ath5k.h"
 #include "reg.h"
 #include "debug.h"
 #include "base.h"
 
-/*
- * Mode-independent initial register writes
- */
+
 
 struct ath5k_ini {
 	u16	ini_register;
 	u32	ini_value;
 
 	enum {
-		AR5K_INI_WRITE = 0,	/* Default */
-		AR5K_INI_READ = 1,	/* Cleared on read */
+		AR5K_INI_WRITE = 0,	
+		AR5K_INI_READ = 1,	
 	} ini_mode;
 };
 
-/*
- * Mode specific initial register values
- */
+
 
 struct ath5k_ini_mode {
 	u16	mode_register;
 	u32	mode_value[5];
 };
 
-/* Initial register settings for AR5210 */
+
 static const struct ath5k_ini ar5210_ini[] = {
-	/* PCU and MAC registers */
+	
 	{ AR5K_NOQCU_TXDP0,	0 },
 	{ AR5K_NOQCU_TXDP1,	0 },
 	{ AR5K_RXDP,		0 },
@@ -84,7 +61,7 @@ static const struct ath5k_ini ar5210_ini[] = {
 	{ AR5K_TIMER3_5210,	1 },
 	{ AR5K_CFP_DUR_5210,	0 },
 	{ AR5K_CFP_PERIOD_5210,	0 },
-	/* PHY registers */
+	
 	{ AR5K_PHY(0),	0x00000047 },
 	{ AR5K_PHY_AGC,	0x00000000 },
 	{ AR5K_PHY(3),	0x09848ea6 },
@@ -113,13 +90,13 @@ static const struct ath5k_ini ar5210_ini[] = {
 	{ AR5K_PHY(28),	0x0000000f },
 	{ AR5K_PHY(29),	0x00000080 },
 	{ AR5K_PHY(30),	0x00000004 },
-	{ AR5K_PHY(31),	0x00000018 }, 	/* 0x987c */
-	{ AR5K_PHY(64),	0x00000000 }, 	/* 0x9900 */
+	{ AR5K_PHY(31),	0x00000018 }, 	
+	{ AR5K_PHY(64),	0x00000000 }, 	
 	{ AR5K_PHY(65),	0x00000000 },
 	{ AR5K_PHY(66),	0x00000000 },
 	{ AR5K_PHY(67),	0x00800000 },
 	{ AR5K_PHY(68),	0x00000003 },
-	/* BB gain table (64bytes) */
+	
 	{ AR5K_BB_GAIN(0), 0x00000000 },
 	{ AR5K_BB_GAIN(1), 0x00000020 },
 	{ AR5K_BB_GAIN(2), 0x00000010 },
@@ -184,7 +161,7 @@ static const struct ath5k_ini ar5210_ini[] = {
 	{ AR5K_BB_GAIN(61), 0x0000002f },
 	{ AR5K_BB_GAIN(62), 0x0000002f },
 	{ AR5K_BB_GAIN(63), 0x0000002f },
-	/* 5110 RF gain table (64btes) */
+	
 	{ AR5K_RF_GAIN(0), 0x0000001d },
 	{ AR5K_RF_GAIN(1), 0x0000005d },
 	{ AR5K_RF_GAIN(2), 0x0000009d },
@@ -249,7 +226,7 @@ static const struct ath5k_ini ar5210_ini[] = {
 	{ AR5K_RF_GAIN(61), 0x00000006 },
 	{ AR5K_RF_GAIN(62), 0x00000006 },
 	{ AR5K_RF_GAIN(63), 0x00000006 },
-	/* PHY activation */
+	
 	{ AR5K_PHY(53), 0x00000020 },
 	{ AR5K_PHY(51), 0x00000004 },
 	{ AR5K_PHY(50), 0x00060106 },
@@ -259,7 +236,7 @@ static const struct ath5k_ini ar5210_ini[] = {
 	{ AR5K_PHY_ACT, AR5K_PHY_ACT_ENABLE },
 };
 
-/* Initial register settings for AR5211 */
+
 static const struct ath5k_ini ar5211_ini[] = {
 	{ AR5K_RXDP,		0x00000000 },
 	{ AR5K_RTSD0,		0x84849c9c },
@@ -298,7 +275,7 @@ static const struct ath5k_ini ar5211_ini[] = {
 	{ AR5K_DIAG_SW_5211,	0x00000000 },
 	{ AR5K_ADDAC_TEST,	0x00000000 },
 	{ AR5K_DEFAULT_ANTENNA,	0x00000000 },
-	/* PHY registers */
+	
 	{ AR5K_PHY_AGC,	0x00000000 },
 	{ AR5K_PHY(3),	0x2d849093 },
 	{ AR5K_PHY(4),	0x7d32e000 },
@@ -310,7 +287,7 @@ static const struct ath5k_ini ar5211_ini[] = {
 	{ AR5K_PHY(16),	0x206a017a },
 	{ AR5K_PHY(19),	0x1284613c },
 	{ AR5K_PHY(21),	0x00000859 },
-	{ AR5K_PHY(26),	0x409a4190 },	/* 0x9868 */
+	{ AR5K_PHY(26),	0x409a4190 },	
 	{ AR5K_PHY(27),	0x050cb081 },
 	{ AR5K_PHY(28),	0x0000000f },
 	{ AR5K_PHY(29),	0x00000080 },
@@ -326,9 +303,9 @@ static const struct ath5k_ini ar5211_ini[] = {
 	{ AR5K_PHY(74),	0x00000001 },
 	{ AR5K_PHY(75),	0x00000000 },
 	{ AR5K_PHY_PAPD_PROBE, 0x00000000 },
-	{ AR5K_PHY(77),	0x00000000 },	/* 0x9934 */
-	{ AR5K_PHY(78),	0x00000000 },	/* 0x9938 */
-	{ AR5K_PHY(79),	0x0000003f },	/* 0x993c */
+	{ AR5K_PHY(77),	0x00000000 },	
+	{ AR5K_PHY(78),	0x00000000 },	
+	{ AR5K_PHY(79),	0x0000003f },	
 	{ AR5K_PHY(80),	0x00000004 },
 	{ AR5K_PHY(82),	0x00000000 },
 	{ AR5K_PHY(83),	0x00000000 },
@@ -336,11 +313,7 @@ static const struct ath5k_ini ar5211_ini[] = {
 	{ AR5K_PHY_RADAR, 0x5d50f14c },
 	{ AR5K_PHY(86),	0x00000018 },
 	{ AR5K_PHY(87),	0x004b6a8e },
-	/* Initial Power table (32bytes)
-	 * common on all cards/modes.
-	 * Note: Table is rewritten during
-	 * txpower setup later using calibration
-	 * data etc. so next write is non-common */
+	
 	{ AR5K_PHY_PCDAC_TXPOWER(1), 0x06ff05ff },
 	{ AR5K_PHY_PCDAC_TXPOWER(2), 0x07ff07ff },
 	{ AR5K_PHY_PCDAC_TXPOWER(3), 0x08ff08ff },
@@ -385,13 +358,10 @@ static const struct ath5k_ini ar5211_ini[] = {
 	{ AR5K_PHY(651), 0x00000020 },
 };
 
-/* Initial mode-specific settings for AR5211
- * 5211 supports OFDM-only g (draft g) but we
- * need to test it !
- */
+
 static const struct ath5k_ini_mode ar5211_ini_mode[] = {
 	{ AR5K_TXCFG,
-	/*	  a	    aTurbo	  b	  g (OFDM)    */
+	
 	   { 0x00000015, 0x00000015, 0x0000001d, 0x00000015 } },
 	{ AR5K_QUEUE_DFS_LOCAL_IFS(0),
 	   { 0x002ffc0f, 0x002ffc0f, 0x002ffc1f, 0x002ffc0f } },
@@ -463,7 +433,7 @@ static const struct ath5k_ini_mode ar5211_ini_mode[] = {
 	   { 0x00000010, 0x00000014, 0x00000010, 0x00000010 } },
 };
 
-/* Initial register settings for AR5212 */
+
 static const struct ath5k_ini ar5212_ini_common_start[] = {
 	{ AR5K_RXDP,		0x00000000 },
 	{ AR5K_RXCFG,		0x00000005 },
@@ -485,40 +455,40 @@ static const struct ath5k_ini ar5212_ini_common_start[] = {
 	{ AR5K_QUEUE_TXDP(9),	0x00000000 },
 	{ AR5K_DCU_FP,		0x00000000 },
 	{ AR5K_DCU_TXP,		0x00000000 },
-	/* Tx filter table 0 (32 entries) */
-	{ AR5K_DCU_TX_FILTER_0(0),  0x00000000 }, /* DCU 0 */
+	
+	{ AR5K_DCU_TX_FILTER_0(0),  0x00000000 }, 
 	{ AR5K_DCU_TX_FILTER_0(1),  0x00000000 },
 	{ AR5K_DCU_TX_FILTER_0(2),  0x00000000 },
 	{ AR5K_DCU_TX_FILTER_0(3),  0x00000000 },
-	{ AR5K_DCU_TX_FILTER_0(4),  0x00000000 }, /* DCU 1 */
+	{ AR5K_DCU_TX_FILTER_0(4),  0x00000000 }, 
 	{ AR5K_DCU_TX_FILTER_0(5),  0x00000000 },
 	{ AR5K_DCU_TX_FILTER_0(6),  0x00000000 },
 	{ AR5K_DCU_TX_FILTER_0(7),  0x00000000 },
-	{ AR5K_DCU_TX_FILTER_0(8),  0x00000000 }, /* DCU 2 */
+	{ AR5K_DCU_TX_FILTER_0(8),  0x00000000 }, 
 	{ AR5K_DCU_TX_FILTER_0(9),  0x00000000 },
 	{ AR5K_DCU_TX_FILTER_0(10), 0x00000000 },
 	{ AR5K_DCU_TX_FILTER_0(11), 0x00000000 },
-	{ AR5K_DCU_TX_FILTER_0(12), 0x00000000 }, /* DCU 3 */
+	{ AR5K_DCU_TX_FILTER_0(12), 0x00000000 }, 
 	{ AR5K_DCU_TX_FILTER_0(13), 0x00000000 },
 	{ AR5K_DCU_TX_FILTER_0(14), 0x00000000 },
 	{ AR5K_DCU_TX_FILTER_0(15), 0x00000000 },
-	{ AR5K_DCU_TX_FILTER_0(16), 0x00000000 }, /* DCU 4 */
+	{ AR5K_DCU_TX_FILTER_0(16), 0x00000000 }, 
 	{ AR5K_DCU_TX_FILTER_0(17), 0x00000000 },
 	{ AR5K_DCU_TX_FILTER_0(18), 0x00000000 },
 	{ AR5K_DCU_TX_FILTER_0(19), 0x00000000 },
-	{ AR5K_DCU_TX_FILTER_0(20), 0x00000000 }, /* DCU 5 */
+	{ AR5K_DCU_TX_FILTER_0(20), 0x00000000 }, 
 	{ AR5K_DCU_TX_FILTER_0(21), 0x00000000 },
 	{ AR5K_DCU_TX_FILTER_0(22), 0x00000000 },
 	{ AR5K_DCU_TX_FILTER_0(23), 0x00000000 },
-	{ AR5K_DCU_TX_FILTER_0(24), 0x00000000 }, /* DCU 6 */
+	{ AR5K_DCU_TX_FILTER_0(24), 0x00000000 }, 
 	{ AR5K_DCU_TX_FILTER_0(25), 0x00000000 },
 	{ AR5K_DCU_TX_FILTER_0(26), 0x00000000 },
 	{ AR5K_DCU_TX_FILTER_0(27), 0x00000000 },
-	{ AR5K_DCU_TX_FILTER_0(28), 0x00000000 }, /* DCU 7 */
+	{ AR5K_DCU_TX_FILTER_0(28), 0x00000000 }, 
 	{ AR5K_DCU_TX_FILTER_0(29), 0x00000000 },
 	{ AR5K_DCU_TX_FILTER_0(30), 0x00000000 },
 	{ AR5K_DCU_TX_FILTER_0(31), 0x00000000 },
-	/* Tx filter table 1 (16 entries) */
+	
 	{ AR5K_DCU_TX_FILTER_1(0),  0x00000000 },
 	{ AR5K_DCU_TX_FILTER_1(1),  0x00000000 },
 	{ AR5K_DCU_TX_FILTER_1(2),  0x00000000 },
@@ -568,7 +538,7 @@ static const struct ath5k_ini ar5212_ini_common_start[] = {
 	{ AR5K_PROFCNT_RXCLR,	0x00000000 },
 	{ AR5K_PROFCNT_CYCLE,	0x00000000 },
 	{ AR5K_QUIET_CTL1,	0x00000088 },
-	/* Initial rate duration table (32 entries )*/
+	
 	{ AR5K_RATE_DUR(0),	0x00000000 },
 	{ AR5K_RATE_DUR(1),	0x0000008c },
 	{ AR5K_RATE_DUR(2),	0x000000e4 },
@@ -607,8 +577,7 @@ static const struct ath5k_ini ar5212_ini_common_start[] = {
 	{ AR5K_PHY_ERR_FIL,	0x00000000 },
 	{ AR5K_XRLAT_TX,	0x00000168 },
 	{ AR5K_ACKSIFS,		0x00000000 },
-	/* Rate -> db table
-	 * notice ...03<-02<-01<-00 ! */
+	
 	{ AR5K_RATE2DB(0),	0x03020100 },
 	{ AR5K_RATE2DB(1),	0x07060504 },
 	{ AR5K_RATE2DB(2),	0x0b0a0908 },
@@ -617,7 +586,7 @@ static const struct ath5k_ini ar5212_ini_common_start[] = {
 	{ AR5K_RATE2DB(5),	0x17161514 },
 	{ AR5K_RATE2DB(6),	0x1b1a1918 },
 	{ AR5K_RATE2DB(7),	0x1f1e1d1c },
-	/* Db -> Rate table */
+	
 	{ AR5K_DB2RATE(0),	0x03020100 },
 	{ AR5K_DB2RATE(1),	0x07060504 },
 	{ AR5K_DB2RATE(2),	0x0b0a0908 },
@@ -626,8 +595,7 @@ static const struct ath5k_ini ar5212_ini_common_start[] = {
 	{ AR5K_DB2RATE(5),	0x17161514 },
 	{ AR5K_DB2RATE(6),	0x1b1a1918 },
 	{ AR5K_DB2RATE(7),	0x1f1e1d1c },
-	/* PHY registers (Common settings
-	 * for all chips/modes) */
+	
 	{ AR5K_PHY(3),		0xad848e19 },
 	{ AR5K_PHY(4),		0x7d28e000 },
 	{ AR5K_PHY_TIMING_3,	0x9c0a9f6b },
@@ -639,7 +607,7 @@ static const struct ath5k_ini ar5212_ini_common_start[] = {
 	{ AR5K_PHY_BIN_MASK_3,	0x00000000 },
 	{ AR5K_PHY_BIN_MASK_CTL, 0x00800000 },
 	{ AR5K_PHY_ANT_CTL,	0x00000001 },
-	/*{ AR5K_PHY(71), 0x0000092a },*/ /* Old value */
+	 
 	{ AR5K_PHY_MAX_RX_LEN,	0x00000c80 },
 	{ AR5K_PHY_IQ,		0x05100000 },
 	{ AR5K_PHY_WARM_RESET,	0x00000001 },
@@ -649,35 +617,35 @@ static const struct ath5k_ini ar5212_ini_common_start[] = {
 	{ AR5K_PHY_TXPOWER_RATE_MAX, 0x0000003f },
 	{ AR5K_PHY(82),		0x9280b212 },
 	{ AR5K_PHY_RADAR,	0x5d50e188 },
-	/*{ AR5K_PHY(86), 0x000000ff },*/
+	
 	{ AR5K_PHY(87),		0x004b6a8e },
 	{ AR5K_PHY_NFTHRES,	0x000003ce },
 	{ AR5K_PHY_RESTART,	0x192fb515 },
 	{ AR5K_PHY(94),		0x00000001 },
 	{ AR5K_PHY_RFBUS_REQ,	0x00000000 },
-	/*{ AR5K_PHY(644), 0x0080a333 },*/ /* Old value */
-	/*{ AR5K_PHY(645), 0x00206c10 },*/ /* Old value */
+	 
+	 
 	{ AR5K_PHY(644),	0x00806333 },
 	{ AR5K_PHY(645),	0x00106c10 },
 	{ AR5K_PHY(646),	0x009c4060 },
-	/* { AR5K_PHY(647), 0x1483800a }, */
-	/* { AR5K_PHY(648), 0x01831061 }, */ /* Old value */
+	
+	 
 	{ AR5K_PHY(648),	0x018830c6 },
 	{ AR5K_PHY(649),	0x00000400 },
-	/*{ AR5K_PHY(650), 0x000001b5 },*/
+	
 	{ AR5K_PHY(651),	0x00000000 },
 	{ AR5K_PHY_TXPOWER_RATE3, 0x20202020 },
 	{ AR5K_PHY_TXPOWER_RATE4, 0x20202020 },
-	/*{ AR5K_PHY(655), 0x13c889af },*/
+	
 	{ AR5K_PHY(656),	0x38490a20 },
 	{ AR5K_PHY(657),	0x00007bb6 },
 	{ AR5K_PHY(658),	0x0fff3ffc },
 };
 
-/* Initial mode-specific settings for AR5212 (Written before ar5212_ini) */
+
 static const struct ath5k_ini_mode ar5212_ini_mode_start[] = {
 	{ AR5K_QUEUE_DFS_LOCAL_IFS(0),
-	/*	a/XR	   aTurbo	  b	   g (DYN)     gTurbo     */
+	
 	   { 0x002ffc0f, 0x002ffc0f, 0x002ffc1f, 0x002ffc0f, 0x002ffc0f } },
 	{ AR5K_QUEUE_DFS_LOCAL_IFS(1),
 	   { 0x002ffc0f, 0x002ffc0f, 0x002ffc1f, 0x002ffc0f, 0x002ffc0f } },
@@ -729,10 +697,10 @@ static const struct ath5k_ini_mode ar5212_ini_mode_start[] = {
 	   { 0x00000000, 0x00000000, 0x00000000, 0x00000108, 0x00000000 } },
 };
 
-/* Initial mode-specific settings for AR5212 + RF5111 (Written after ar5212_ini) */
+
 static const struct ath5k_ini_mode rf5111_ini_mode_end[] = {
 	{ AR5K_TXCFG,
-	/*	a/XR	   aTurbo	  b	   g (DYN)     gTurbo     */
+	
 	   { 0x00008015, 0x00008015, 0x00008015, 0x00008015, 0x00008015 } },
 	{ AR5K_USEC_5211,
 	   { 0x128d8fa7, 0x09880fcf, 0x04e00f95, 0x12e00fab, 0x09880fcf } },
@@ -779,10 +747,10 @@ static const struct ath5k_ini rf5111_ini_common_end[] = {
 	{ 0xa23c,		0x13c889af },
 };
 
-/* Initial mode-specific settings for AR5212 + RF5112 (Written after ar5212_ini) */
+
 static const struct ath5k_ini_mode rf5112_ini_mode_end[] = {
 	{ AR5K_TXCFG,
-	/*	a/XR	   aTurbo	  b	   g (DYN)     gTurbo     */
+	
 	   { 0x00008015, 0x00008015, 0x00008015, 0x00008015, 0x00008015 } },
 	{ AR5K_USEC_5211,
 	   { 0x128d93a7, 0x098813cf, 0x04e01395, 0x12e013ab, 0x098813cf } },
@@ -830,10 +798,10 @@ static const struct ath5k_ini rf5112_ini_common_end[] = {
 	{ 0xa23c,		0x13c889af },
 };
 
-/* Initial mode-specific settings for RF5413/5414 (Written after ar5212_ini) */
+
 static const struct ath5k_ini_mode rf5413_ini_mode_end[] = {
 	{ AR5K_TXCFG,
-	/*	a/XR	   aTurbo	  b	   g (DYN)     gTurbo     */
+	
 	   { 0x00000015, 0x00000015, 0x00000015, 0x00000015, 0x00000015 } },
 	{ AR5K_USEC_5211,
 	   { 0x128d93a7, 0x098813cf, 0x04e01395, 0x12e013ab, 0x098813cf } },
@@ -968,11 +936,11 @@ static const struct ath5k_ini rf5413_ini_common_end[] = {
 	{ 0xa384, 0xf3307ff0 },
 };
 
-/* Initial mode-specific settings for RF2413/2414 (Written after ar5212_ini) */
-/* XXX: a mode ? */
+
+
 static const struct ath5k_ini_mode rf2413_ini_mode_end[] = {
 	{ AR5K_TXCFG,
-	/*	a/XR	   aTurbo	  b	   g (DYN)     gTurbo     */
+	
 	   { 0x00000015, 0x00000015, 0x00000015, 0x00000015, 0x00000015 } },
 	{ AR5K_USEC_5211,
 	   { 0x128d93a7, 0x098813cf, 0x04e01395, 0x12e013ab, 0x098813cf } },
@@ -1090,11 +1058,11 @@ static const struct ath5k_ini rf2413_ini_common_end[] = {
 	{ 0xa384, 0xf3307ff0 },
 };
 
-/* Initial mode-specific settings for RF2425 (Written after ar5212_ini) */
-/* XXX: a mode ? */
+
+
 static const struct ath5k_ini_mode rf2425_ini_mode_end[] = {
 	{ AR5K_TXCFG,
-	/*	a/XR	   aTurbo	  b	   g (DYN)     gTurbo     */
+	
 	   { 0x00000015, 0x00000015, 0x00000015, 0x00000015, 0x00000015 } },
 	{ AR5K_USEC_5211,
 	   { 0x128d93a7, 0x098813cf, 0x04e01395, 0x12e013ab, 0x098813cf } },
@@ -1222,12 +1190,9 @@ static const struct ath5k_ini rf2425_ini_common_end[] = {
 	{ 0xa384, 0xf3307ff0 },
 };
 
-/*
- * Initial BaseBand Gain settings for RF5111/5112 (AR5210 comes with
- * RF5110 only so initial BB Gain settings are included in AR5K_AR5210_INI)
- */
 
-/* RF5111 Initial BaseBand Gain settings */
+
+
 static const struct ath5k_ini rf5111_ini_bbgain[] = {
 	{ AR5K_BB_GAIN(0), 0x00000000 },
 	{ AR5K_BB_GAIN(1), 0x00000020 },
@@ -1295,7 +1260,7 @@ static const struct ath5k_ini rf5111_ini_bbgain[] = {
 	{ AR5K_BB_GAIN(63), 0x00000016 },
 };
 
-/* RF5112 Initial BaseBand Gain settings (Same for RF5413/5414+) */
+
 static const struct ath5k_ini rf5112_ini_bbgain[] = {
 	{ AR5K_BB_GAIN(0), 0x00000000 },
 	{ AR5K_BB_GAIN(1), 0x00000001 },
@@ -1364,18 +1329,15 @@ static const struct ath5k_ini rf5112_ini_bbgain[] = {
 };
 
 
-/*
- * Write initial register dump
- */
+
 static void ath5k_hw_ini_registers(struct ath5k_hw *ah, unsigned int size,
 		const struct ath5k_ini *ini_regs, bool change_channel)
 {
 	unsigned int i;
 
-	/* Write initial registers */
+	
 	for (i = 0; i < size; i++) {
-		/* On channel change there is
-		 * no need to mess with PCU */
+		
 		if (change_channel &&
 				ini_regs[i].ini_register >= AR5K_PCU_MIN &&
 				ini_regs[i].ini_register <= AR5K_PCU_MAX)
@@ -1383,7 +1345,7 @@ static void ath5k_hw_ini_registers(struct ath5k_hw *ah, unsigned int size,
 
 		switch (ini_regs[i].ini_mode) {
 		case AR5K_INI_READ:
-			/* Cleared on read */
+			
 			ath5k_hw_reg_read(ah, ini_regs[i].ini_register);
 			break;
 		case AR5K_INI_WRITE:
@@ -1411,25 +1373,21 @@ static void ath5k_hw_ini_mode_registers(struct ath5k_hw *ah,
 
 int ath5k_hw_write_initvals(struct ath5k_hw *ah, u8 mode, bool change_channel)
 {
-	/*
-	 * Write initial register settings
-	 */
+	
 
-	/* For AR5212 and combatible */
+	
 	if (ah->ah_version == AR5K_AR5212) {
 
-		/* First set of mode-specific settings */
+		
 		ath5k_hw_ini_mode_registers(ah,
 			ARRAY_SIZE(ar5212_ini_mode_start),
 			ar5212_ini_mode_start, mode);
 
-		/*
-		 * Write initial settings common for all modes
-		 */
+		
 		ath5k_hw_ini_registers(ah, ARRAY_SIZE(ar5212_ini_common_start),
 				ar5212_ini_common_start, change_channel);
 
-		/* Second set of mode-specific settings */
+		
 		switch (ah->ah_radio) {
 		case AR5K_RF5111:
 
@@ -1441,7 +1399,7 @@ int ath5k_hw_write_initvals(struct ath5k_hw *ah, u8 mode, bool change_channel)
 					ARRAY_SIZE(rf5111_ini_common_end),
 					rf5111_ini_common_end, change_channel);
 
-			/* Baseband gain table */
+			
 			ath5k_hw_ini_registers(ah,
 					ARRAY_SIZE(rf5111_ini_bbgain),
 					rf5111_ini_bbgain, change_channel);
@@ -1488,7 +1446,7 @@ int ath5k_hw_write_initvals(struct ath5k_hw *ah, u8 mode, bool change_channel)
 					ARRAY_SIZE(rf2413_ini_common_end),
 					rf2413_ini_common_end, change_channel);
 
-			/* Override settings from rf2413_ini_common_end */
+			
 			if (ah->ah_radio == AR5K_RF2316) {
 				ath5k_hw_reg_write(ah, 0x00004000,
 							AR5K_PHY_AGC);
@@ -1520,32 +1478,30 @@ int ath5k_hw_write_initvals(struct ath5k_hw *ah, u8 mode, bool change_channel)
 
 		}
 
-	/* For AR5211 */
+	
 	} else if (ah->ah_version == AR5K_AR5211) {
 
-		/* AR5K_MODE_11B */
+		
 		if (mode > 2) {
 			ATH5K_ERR(ah->ah_sc,
 				"unsupported channel mode: %d\n", mode);
 			return -EINVAL;
 		}
 
-		/* Mode-specific settings */
+		
 		ath5k_hw_ini_mode_registers(ah, ARRAY_SIZE(ar5211_ini_mode),
 				ar5211_ini_mode, mode);
 
-		/*
-		 * Write initial settings common for all modes
-		 */
+		
 		ath5k_hw_ini_registers(ah, ARRAY_SIZE(ar5211_ini),
 				ar5211_ini, change_channel);
 
-		/* AR5211 only comes with 5111 */
+		
 
-		/* Baseband gain table */
+		
 		ath5k_hw_ini_registers(ah, ARRAY_SIZE(rf5111_ini_bbgain),
 				rf5111_ini_bbgain, change_channel);
-	/* For AR5210 (for mode settings check out ath5k_hw_reset_tx_queue) */
+	
 	} else if (ah->ah_version == AR5K_AR5210) {
 		ath5k_hw_ini_registers(ah, ARRAY_SIZE(ar5210_ini),
 				ar5210_ini, change_channel);

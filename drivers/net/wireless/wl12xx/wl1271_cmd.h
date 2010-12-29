@@ -1,26 +1,4 @@
-/*
- * This file is part of wl1271
- *
- * Copyright (C) 1998-2009 Texas Instruments. All rights reserved.
- * Copyright (C) 2009 Nokia Corporation
- *
- * Contact: Luciano Coelho <luciano.coelho@nokia.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #ifndef __WL1271_CMD_H__
 #define __WL1271_CMD_H__
@@ -52,8 +30,8 @@ int wl1271_cmd_set_key(struct wl1271 *wl, u16 action, u8 id, u8 key_type,
 		       u8 key_size, const u8 *key, const u8 *addr);
 
 enum wl1271_commands {
-	CMD_INTERROGATE     = 1,    /*use this to read information elements*/
-	CMD_CONFIGURE       = 2,    /*use this to write information elements*/
+	CMD_INTERROGATE     = 1,    
+	CMD_CONFIGURE       = 2,    
 	CMD_ENABLE_RX       = 3,
 	CMD_ENABLE_TX       = 4,
 	CMD_DISABLE_RX      = 5,
@@ -104,23 +82,21 @@ enum cmd_templ {
 	CMD_TEMPL_PS_POLL,
 	CMD_TEMPL_KLV,
 	CMD_TEMPL_DISCONNECT,
-	CMD_TEMPL_PROBE_REQ_2_4, /* for firmware internal use only */
-	CMD_TEMPL_PROBE_REQ_5,   /* for firmware internal use only */
-	CMD_TEMPL_BAR,           /* for firmware internal use only */
-	CMD_TEMPL_CTS,           /*
-				  * For CTS-to-self (FastCTS) mechanism
-				  * for BT/WLAN coexistence (SoftGemini). */
+	CMD_TEMPL_PROBE_REQ_2_4, 
+	CMD_TEMPL_PROBE_REQ_5,   
+	CMD_TEMPL_BAR,           
+	CMD_TEMPL_CTS,           
 	CMD_TEMPL_MAX = 0xff
 };
 
-/* unit ms */
+
 #define WL1271_COMMAND_TIMEOUT     2000
 #define WL1271_CMD_TEMPL_MAX_SIZE  252
 
 struct wl1271_cmd_header {
 	u16 id;
 	u16 status;
-	/* payload */
+	
 	u8 data[0];
 } __attribute__ ((packed));
 
@@ -144,43 +120,26 @@ enum {
 	CMD_STATUS_STA_TABLE_FULL		= 17,
 	CMD_STATUS_RADIO_ERROR		= 18,
 	CMD_STATUS_WRONG_NESTING		= 19,
-	CMD_STATUS_TIMEOUT		= 21, /* Driver internal use.*/
-	CMD_STATUS_FW_RESET		= 22, /* Driver internal use.*/
+	CMD_STATUS_TIMEOUT		= 21, 
+	CMD_STATUS_FW_RESET		= 22, 
 	MAX_COMMAND_STATUS		= 0xff
 };
 
 
-/*
- * CMD_READ_MEMORY
- *
- * The host issues this command to read the WiLink device memory/registers.
- *
- * Note: The Base Band address has special handling (16 bits registers and
- * addresses). For more information, see the hardware specification.
- */
-/*
- * CMD_WRITE_MEMORY
- *
- * The host issues this command to write the WiLink device memory/registers.
- *
- * The Base Band address has special handling (16 bits registers and
- * addresses). For more information, see the hardware specification.
- */
+
+
 #define MAX_READ_SIZE 256
 
 struct cmd_read_write_memory {
 	struct wl1271_cmd_header header;
 
-	/* The address of the memory to read from or write to.*/
+	
 	u32 addr;
 
-	/* The amount of data in bytes to read from or write to the WiLink
-	 * device.*/
+	
 	u32 size;
 
-	/* The actual value read from or written to the Wilink. The source
-	   of this field is the Host in WRITE command or the Wilink in READ
-	   command. */
+	
 	u8 value[MAX_READ_SIZE];
 };
 
@@ -194,7 +153,7 @@ enum {
 	MAX_BSS_TYPE = 0xFF
 };
 
-#define WL1271_JOIN_CMD_CTRL_TX_FLUSH     0x80 /* Firmware flushes all Tx */
+#define WL1271_JOIN_CMD_CTRL_TX_FLUSH     0x80 
 #define WL1271_JOIN_CMD_TX_SESSION_OFFSET 1
 
 struct wl1271_cmd_join {
@@ -202,31 +161,19 @@ struct wl1271_cmd_join {
 
 	u32 bssid_lsb;
 	u16 bssid_msb;
-	u16 beacon_interval; /* in TBTTs */
+	u16 beacon_interval; 
 	u32 rx_config_options;
 	u32 rx_filter_options;
 
-	/*
-	 * The target uses this field to determine the rate at
-	 * which to transmit control frame responses (such as
-	 * ACK or CTS frames).
-	 */
+	
 	u32 basic_rate_set;
 	u8 dtim_interval;
-	/*
-	 * bits 0-2: This bitwise field specifies the type
-	 * of BSS to start or join (BSS_TYPE_*).
-	 * bit 4: Band - The radio band in which to join
-	 * or start.
-	 *  0 - 2.4GHz band
-	 *  1 - 5GHz band
-	 * bits 3, 5-7: Reserved
-	 */
+	
 	u8 bss_type;
 	u8 channel;
 	u8 ssid_len;
 	u8 ssid[IW_ESSID_MAX_SIZE];
-	u8 ctrl; /* JOIN_CMD_CTRL_* */
+	u8 ctrl; 
 	u8 reserved[3];
 } __attribute__ ((packed));
 
@@ -242,7 +189,7 @@ struct wl1271_cmd_template_set {
 
 	u16 len;
 	u8 template_type;
-	u8 index;  /* relevant only for KLV_TEMPLATE type */
+	u8 index;  
 	u32 enabled_rates;
 	u8 short_retry_limit;
 	u8 long_retry_limit;
@@ -260,7 +207,7 @@ struct wl1271_tim {
 	u8 dtim_count;
 	u8 dtim_period;
 	u8 bitmap_ctrl;
-	u8 pvb_field[PARTIAL_VBM_MAX]; /* Partial Virtual Bitmap */
+	u8 pvb_field[PARTIAL_VBM_MAX]; 
 } __attribute__ ((packed));
 
 enum wl1271_cmd_ps_mode {
@@ -271,25 +218,22 @@ enum wl1271_cmd_ps_mode {
 struct wl1271_cmd_ps_params {
 	struct wl1271_cmd_header header;
 
-	u8 ps_mode; /* STATION_* */
-	u8 send_null_data; /* Do we have to send NULL data packet ? */
-	u8 retries; /* Number of retires for the initial NULL data packet */
+	u8 ps_mode; 
+	u8 send_null_data; 
+	u8 retries; 
 
-	 /*
-	  * TUs during which the target stays awake after switching
-	  * to power save mode.
-	  */
+	 
 	u8 hang_over_period;
 	u32 null_data_rate;
 } __attribute__ ((packed));
 
-/* HW encryption keys */
+
 #define NUM_ACCESS_CATEGORIES_COPY 4
 #define MAX_KEY_SIZE 32
 
-/* When set, disable HW encryption */
+
 #define DF_ENCRYPTION_DISABLE      0x01
-/* When set, disable HW decryption */
+
 #define DF_SNIFF_MODE_ENABLE       0x80
 
 enum wl1271_cmd_key_action {
@@ -307,30 +251,27 @@ enum wl1271_cmd_key_type {
 	KEY_GEM  = 4
 };
 
-/* FIXME: Add description for key-types */
+
 
 struct wl1271_cmd_set_keys {
 	struct wl1271_cmd_header header;
 
-	/* Ignored for default WEP key */
+	
 	u8 addr[ETH_ALEN];
 
-	/* key_action_e */
+	
 	u16 key_action;
 
 	u16 reserved_1;
 
-	/* key size in bytes */
+	
 	u8 key_size;
 
-	/* key_type_e */
+	
 	u8 key_type;
 	u8 ssid_profile;
 
-	/*
-	 * TKIP, AES: frame's key id field.
-	 * For WEP default key: key id;
-	 */
+	
 	u8 id;
 	u8 reserved_2[6];
 	u8 key[MAX_KEY_SIZE];
@@ -345,27 +286,26 @@ struct wl1271_cmd_set_keys {
 #define WL1271_SCAN_OPT_ACTIVE         0
 #define WL1271_SCAN_OPT_PASSIVE	       1
 #define WL1271_SCAN_OPT_PRIORITY_HIGH  4
-#define WL1271_SCAN_CHAN_MIN_DURATION  30000  /* TU */
-#define WL1271_SCAN_CHAN_MAX_DURATION  60000  /* TU */
+#define WL1271_SCAN_CHAN_MIN_DURATION  30000  
+#define WL1271_SCAN_CHAN_MAX_DURATION  60000  
 
 struct basic_scan_params {
 	u32 rx_config_options;
 	u32 rx_filter_options;
-	/* Scan option flags (WL1271_SCAN_OPT_*) */
+	
 	u16 scan_options;
-	/* Number of scan channels in the list (maximum 30) */
+	
 	u8 num_channels;
-	/* This field indicates the number of probe requests to send
-	   per channel for an active scan */
+	
 	u8 num_probe_requests;
-	/* Rate bit field for sending the probes */
+	
 	u32 tx_rate;
 	u8 tid_trigger;
 	u8 ssid_len;
-	/* in order to align */
+	
 	u8 padding1[2];
 	u8 ssid[IW_ESSID_MAX_SIZE];
-	/* Band to scan */
+	
 	u8 band;
 	u8 use_ssid_list;
 	u8 scan_tag;
@@ -373,7 +313,7 @@ struct basic_scan_params {
 } __attribute__ ((packed));
 
 struct basic_scan_channel_params {
-	/* Duration in TU to wait for frames on a channel for active scan */
+	
 	u32 min_duration;
 	u32 max_duration;
 	u32 bssid_lsb;
@@ -381,7 +321,7 @@ struct basic_scan_channel_params {
 	u8 early_termination;
 	u8 tx_power_att;
 	u8 channel;
-	/* FW internal use only! */
+	
 	u8 dfs_candidate;
 	u8 activity_detected;
 	u8 pad;
@@ -461,4 +401,4 @@ struct wl1271_cmd_cal_p2g {
 	u8  padding2;
 } __attribute__ ((packed));
 
-#endif /* __WL1271_CMD_H__ */
+#endif 
