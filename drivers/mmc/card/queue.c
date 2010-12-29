@@ -1,14 +1,4 @@
-/*
- *  linux/drivers/mmc/card/queue.c
- *
- *  Copyright (C) 2003 Russell King, All Rights Reserved.
- *  Copyright 2006-2007 Pierre Ossman
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 #include <linux/module.h>
 #include <linux/blkdev.h>
 #include <linux/freezer.h>
@@ -23,14 +13,10 @@
 
 #define MMC_QUEUE_SUSPENDED	(1 << 0)
 
-/*
- * Prepare a MMC request. This just filters out odd stuff.
- */
+
 static int mmc_prep_request(struct request_queue *q, struct request *req)
 {
-	/*
-	 * We only like normal block requests.
-	 */
+	
 	if (!blk_fs_request(req)) {
 		blk_dump_rq_flags(req, "MMC bad request");
 		return BLKPREP_KILL;
@@ -45,12 +31,20 @@ static int mmc_queue_thread(void *d)
 {
 	struct mmc_queue *mq = d;
 	struct request_queue *q = mq->queue;
+	struct request *req;
+
+#ifdef CONFIG_MMC_PERF_PROFILING
+	ktime_t start, diff;
+	struct mmc_host *host = mq->card->host;
+	unsigned long bytes_xfer;
+#endif
+
 
 	current->flags |= PF_MEMALLOC;
 
 	down(&mq->thread_sem);
 	do {
-		struct request *req = NULL;
+		req = NULL;	
 
 		spin_lock_irq(q->queue_lock);
 		set_current_state(TASK_INTERRUPTIBLE);
@@ -71,19 +65,33 @@ static int mmc_queue_thread(void *d)
 		}
 		set_current_state(TASK_RUNNING);
 
-		mq->issue_fn(mq, req);
+#ifdef CONFIG_MMC_PERF_PROFILING
+		bytes_xfer = blk_rq_bytes(req);
+		if (rq_data_dir(req) == READ) {
+			start = ktime_get();
+			mq->issue_fn(mq, req);
+			diff = ktime_sub(ktime_get(), start);
+			host->perf.rbytes_mmcq += bytes_xfer;
+			host->perf.rtime_mmcq =
+				ktime_add(host->perf.rtime_mmcq, diff);
+		} else {
+			start = ktime_get();
+			mq->issue_fn(mq, req);
+			diff = ktime_sub(ktime_get(), start);
+			host->perf.wbytes_mmcq += bytes_xfer;
+			host->perf.wtime_mmcq =
+				ktime_add(host->perf.wtime_mmcq, diff);
+		}
+#else
+			mq->issue_fn(mq, req);
+#endif
 	} while (1);
 	up(&mq->thread_sem);
 
 	return 0;
 }
 
-/*
- * Generic MMC request handler.  This is called for any queue on a
- * particular host.  When the host is not busy, we look for a request
- * on any queue on this host, and attempt to issue it.  This may
- * not be the queue we were asked to process.
- */
+
 static void mmc_request(struct request_queue *q)
 {
 	struct mmc_queue *mq = q->queuedata;
@@ -101,14 +109,7 @@ static void mmc_request(struct request_queue *q)
 		wake_up_process(mq->thread);
 }
 
-/**
- * mmc_init_queue - initialise a queue structure.
- * @mq: mmc queue
- * @card: mmc card to attach this queue
- * @lock: queue lock
- *
- * Initialise a MMC card request queue.
- */
+
 int mmc_init_queue(struct mmc_queue *mq, struct mmc_card *card, spinlock_t *lock)
 {
 	struct mmc_host *host = card->host;
@@ -224,13 +225,13 @@ void mmc_cleanup_queue(struct mmc_queue *mq)
 	struct request_queue *q = mq->queue;
 	unsigned long flags;
 
-	/* Make sure the queue isn't suspended, as that will deadlock */
+	
 	mmc_queue_resume(mq);
 
-	/* Then terminate our worker thread */
+	
 	kthread_stop(mq->thread);
 
-	/* Empty the queue */
+	
 	spin_lock_irqsave(q->queue_lock, flags);
 	q->queuedata = NULL;
 	blk_start_queue(q);
@@ -251,14 +252,7 @@ void mmc_cleanup_queue(struct mmc_queue *mq)
 }
 EXPORT_SYMBOL(mmc_cleanup_queue);
 
-/**
- * mmc_queue_suspend - suspend a MMC request queue
- * @mq: MMC queue to suspend
- *
- * Stop the block request queue, and wait for our thread to
- * complete any outstanding requests.  This ensures that we
- * won't suspend while a request is being processed.
- */
+
 void mmc_queue_suspend(struct mmc_queue *mq)
 {
 	struct request_queue *q = mq->queue;
@@ -275,10 +269,7 @@ void mmc_queue_suspend(struct mmc_queue *mq)
 	}
 }
 
-/**
- * mmc_queue_resume - resume a previously suspended MMC request queue
- * @mq: MMC queue to resume
- */
+
 void mmc_queue_resume(struct mmc_queue *mq)
 {
 	struct request_queue *q = mq->queue;
@@ -295,9 +286,7 @@ void mmc_queue_resume(struct mmc_queue *mq)
 	}
 }
 
-/*
- * Prepare the sg list(s) to be handed of to the host driver
- */
+
 unsigned int mmc_queue_map_sg(struct mmc_queue *mq)
 {
 	unsigned int sg_len;
@@ -323,10 +312,7 @@ unsigned int mmc_queue_map_sg(struct mmc_queue *mq)
 	return 1;
 }
 
-/*
- * If writing, bounce the data to the buffer before the request
- * is sent to the host driver
- */
+
 void mmc_queue_bounce_pre(struct mmc_queue *mq)
 {
 	unsigned long flags;
@@ -343,10 +329,7 @@ void mmc_queue_bounce_pre(struct mmc_queue *mq)
 	local_irq_restore(flags);
 }
 
-/*
- * If reading, bounce the data from the buffer after the request
- * has been handled by the host driver
- */
+
 void mmc_queue_bounce_post(struct mmc_queue *mq)
 {
 	unsigned long flags;

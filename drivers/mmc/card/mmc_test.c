@@ -1,13 +1,4 @@
-/*
- *  linux/drivers/mmc/card/mmc_test.c
- *
- *  Copyright 2007-2008 Pierre Ossman
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- */
+
 
 #include <linux/mmc/core.h>
 #include <linux/mmc/card.h>
@@ -34,13 +25,11 @@ struct mmc_test_card {
 #endif
 };
 
-/*******************************************************************/
-/*  General helper functions                                       */
-/*******************************************************************/
 
-/*
- * Configure correct block size in card
- */
+
+
+
+
 static int mmc_test_set_blksize(struct mmc_test_card *test, unsigned size)
 {
 	struct mmc_command cmd;
@@ -56,9 +45,7 @@ static int mmc_test_set_blksize(struct mmc_test_card *test, unsigned size)
 	return 0;
 }
 
-/*
- * Fill in the mmc_request structure given a set of transfer parameters.
- */
+
 static void mmc_test_prepare_mrq(struct mmc_test_card *test,
 	struct mmc_request *mrq, struct scatterlist *sg, unsigned sg_len,
 	unsigned dev_addr, unsigned blocks, unsigned blksz, int write)
@@ -93,9 +80,7 @@ static void mmc_test_prepare_mrq(struct mmc_test_card *test,
 	mmc_set_data_timeout(mrq->data, test->card);
 }
 
-/*
- * Wait for the card to finish the busy state
- */
+
 static int mmc_test_wait_busy(struct mmc_test_card *test)
 {
 	int ret, busy;
@@ -124,9 +109,7 @@ static int mmc_test_wait_busy(struct mmc_test_card *test)
 	return ret;
 }
 
-/*
- * Transfer a single sector of kernel addressable data
- */
+
 static int mmc_test_buffer_transfer(struct mmc_test_card *test,
 	u8 *buffer, unsigned addr, unsigned blksz, int write)
 {
@@ -166,14 +149,11 @@ static int mmc_test_buffer_transfer(struct mmc_test_card *test,
 	return 0;
 }
 
-/*******************************************************************/
-/*  Test preparation and cleanup                                   */
-/*******************************************************************/
 
-/*
- * Fill the first couple of sectors of the card with known data
- * so that bad reads/writes can be detected
- */
+
+
+
+
 static int __mmc_test_prepare(struct mmc_test_card *test, int write)
 {
 	int ret, i;
@@ -227,13 +207,11 @@ static int mmc_test_cleanup(struct mmc_test_card *test)
 	return 0;
 }
 
-/*******************************************************************/
-/*  Test execution helpers                                         */
-/*******************************************************************/
 
-/*
- * Modifies the mmc_request to perform the "short transfer" tests
- */
+
+
+
+
 static void mmc_test_prepare_broken_mrq(struct mmc_test_card *test,
 	struct mmc_request *mrq, int write)
 {
@@ -249,9 +227,7 @@ static void mmc_test_prepare_broken_mrq(struct mmc_test_card *test,
 	}
 }
 
-/*
- * Checks that a normal transfer didn't have any errors
- */
+
 static int mmc_test_check_result(struct mmc_test_card *test,
 	struct mmc_request *mrq)
 {
@@ -277,9 +253,7 @@ static int mmc_test_check_result(struct mmc_test_card *test,
 	return ret;
 }
 
-/*
- * Checks that a "short transfer" behaved as expected
- */
+
 static int mmc_test_check_broken_result(struct mmc_test_card *test,
 	struct mmc_request *mrq)
 {
@@ -311,9 +285,7 @@ static int mmc_test_check_broken_result(struct mmc_test_card *test,
 	return ret;
 }
 
-/*
- * Tests a basic transfer with certain parameters
- */
+
 static int mmc_test_simple_transfer(struct mmc_test_card *test,
 	struct scatterlist *sg, unsigned sg_len, unsigned dev_addr,
 	unsigned blocks, unsigned blksz, int write)
@@ -342,9 +314,7 @@ static int mmc_test_simple_transfer(struct mmc_test_card *test,
 	return mmc_test_check_result(test, &mrq);
 }
 
-/*
- * Tests a transfer where the card will fail completely or partly
- */
+
 static int mmc_test_broken_transfer(struct mmc_test_card *test,
 	unsigned blocks, unsigned blksz, int write)
 {
@@ -376,11 +346,7 @@ static int mmc_test_broken_transfer(struct mmc_test_card *test,
 	return mmc_test_check_broken_result(test, &mrq);
 }
 
-/*
- * Does a complete transfer test where data is also validated
- *
- * Note: mmc_test_prepare() must have been done before this call
- */
+
 static int mmc_test_transfer(struct mmc_test_card *test,
 	struct scatterlist *sg, unsigned sg_len, unsigned dev_addr,
 	unsigned blocks, unsigned blksz, int write)
@@ -453,9 +419,9 @@ static int mmc_test_transfer(struct mmc_test_card *test,
 	return 0;
 }
 
-/*******************************************************************/
-/*  Tests                                                          */
-/*******************************************************************/
+
+
+
 
 struct mmc_test_case {
 	const char *name;
@@ -889,7 +855,7 @@ static int mmc_test_multi_read_high(struct mmc_test_card *test)
 	return 0;
 }
 
-#endif /* CONFIG_HIGHMEM */
+#endif 
 
 static const struct mmc_test_case mmc_test_cases[] = {
 	{
@@ -1036,7 +1002,7 @@ static const struct mmc_test_case mmc_test_cases[] = {
 		.cleanup = mmc_test_cleanup,
 	},
 
-#endif /* CONFIG_HIGHMEM */
+#endif 
 
 };
 
