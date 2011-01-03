@@ -1,30 +1,4 @@
-/*
- * Copyright 2008 Advanced Micro Devices, Inc.
- * Copyright 2008 Red Hat Inc.
- * Copyright 2009 Jerome Glisse.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * Authors: Dave Airlie
- *          Alex Deucher
- *          Jerome Glisse
- */
+
 #include "drmP.h"
 #include "drm.h"
 #include "radeon_drm.h"
@@ -32,7 +6,7 @@
 
 int radeon_gem_object_init(struct drm_gem_object *obj)
 {
-	/* we do nothings here */
+	
 	return 0;
 }
 
@@ -61,7 +35,7 @@ int radeon_gem_object_create(struct radeon_device *rdev, int size,
 	if (!gobj) {
 		return -ENOMEM;
 	}
-	/* At least align on page size */
+	
 	if (alignment < PAGE_SIZE) {
 		alignment = PAGE_SIZE;
 	}
@@ -113,20 +87,20 @@ int radeon_gem_set_domain(struct drm_gem_object *gobj,
 	uint32_t domain;
 	int r;
 
-	/* FIXME: reeimplement */
+	
 	robj = gobj->driver_private;
-	/* work out where to validate the buffer to */
+	
 	domain = wdomain;
 	if (!domain) {
 		domain = rdomain;
 	}
 	if (!domain) {
-		/* Do nothings */
+		
 		printk(KERN_WARNING "Set domain withou domain !\n");
 		return 0;
 	}
 	if (domain == RADEON_GEM_DOMAIN_CPU) {
-		/* Asking for cpu access wait for object idle */
+		
 		r = radeon_object_wait(robj);
 		if (r) {
 			printk(KERN_ERR "Failed to wait for object !\n");
@@ -148,9 +122,7 @@ void radeon_gem_fini(struct radeon_device *rdev)
 }
 
 
-/*
- * GEM ioctls.
- */
+
 int radeon_gem_info_ioctl(struct drm_device *dev, void *data,
 			  struct drm_file *filp)
 {
@@ -158,7 +130,7 @@ int radeon_gem_info_ioctl(struct drm_device *dev, void *data,
 	struct drm_radeon_gem_info *args = data;
 
 	args->vram_size = rdev->mc.real_vram_size;
-	/* FIXME: report somethings that makes sense */
+	
 	args->vram_visible = rdev->mc.real_vram_size - (4 * 1024 * 1024);
 	args->gart_size = rdev->mc.gtt_size;
 	return 0;
@@ -167,7 +139,7 @@ int radeon_gem_info_ioctl(struct drm_device *dev, void *data,
 int radeon_gem_pread_ioctl(struct drm_device *dev, void *data,
 			   struct drm_file *filp)
 {
-	/* TODO: implement */
+	
 	DRM_ERROR("unimplemented %s\n", __func__);
 	return -ENOSYS;
 }
@@ -175,7 +147,7 @@ int radeon_gem_pread_ioctl(struct drm_device *dev, void *data,
 int radeon_gem_pwrite_ioctl(struct drm_device *dev, void *data,
 			    struct drm_file *filp)
 {
-	/* TODO: implement */
+	
 	DRM_ERROR("unimplemented %s\n", __func__);
 	return -ENOSYS;
 }
@@ -189,7 +161,7 @@ int radeon_gem_create_ioctl(struct drm_device *dev, void *data,
 	uint32_t handle;
 	int r;
 
-	/* create a gem object to contain this object in */
+	
 	args->size = roundup(args->size, PAGE_SIZE);
 	r = radeon_gem_object_create(rdev, args->size, args->alignment,
 				     args->initial_domain, false,
@@ -214,17 +186,15 @@ int radeon_gem_create_ioctl(struct drm_device *dev, void *data,
 int radeon_gem_set_domain_ioctl(struct drm_device *dev, void *data,
 				struct drm_file *filp)
 {
-	/* transition the BO to a domain -
-	 * just validate the BO into a certain domain */
+	
 	struct drm_radeon_gem_set_domain *args = data;
 	struct drm_gem_object *gobj;
 	struct radeon_object *robj;
 	int r;
 
-	/* for now if someone requests domain CPU -
-	 * just make sure the buffer is finished with */
+	
 
-	/* just do a BO wait for now */
+	
 	gobj = drm_gem_object_lookup(dev, filp, args->handle);
 	if (gobj == NULL) {
 		return -EINVAL;

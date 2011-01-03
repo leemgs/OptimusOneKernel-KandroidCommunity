@@ -1,29 +1,4 @@
-/*
- * Copyright 2008 Jerome Glisse.
- * All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * PRECISION INSIGHT AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
- *
- * Authors:
- *    Jerome Glisse <glisse@freedesktop.org>
- */
+
 #include "drmP.h"
 #include "radeon_drm.h"
 #include "radeon_reg.h"
@@ -43,7 +18,7 @@ int radeon_cs_parser_relocs(struct radeon_cs_parser *p)
 		return 0;
 	}
 	chunk = &p->chunks[p->chunk_relocs_idx];
-	/* FIXME: we assume that each relocs use 4 dwords */
+	
 	p->nrelocs = chunk->length_dw / 4;
 	p->relocs_ptr = kcalloc(p->nrelocs, sizeof(void *), GFP_KERNEL);
 	if (p->relocs_ptr == NULL) {
@@ -98,7 +73,7 @@ int radeon_cs_parser_init(struct radeon_cs_parser *p, void *data)
 	if (!cs->num_chunks) {
 		return 0;
 	}
-	/* get chunks */
+	
 	INIT_LIST_HEAD(&p->validated);
 	p->idx = 0;
 	p->chunk_ib_idx = -1;
@@ -136,7 +111,7 @@ int radeon_cs_parser_init(struct radeon_cs_parser *p, void *data)
 		}
 		if (p->chunks[i].chunk_id == RADEON_CHUNK_ID_IB) {
 			p->chunk_ib_idx = i;
-			/* zero length IB isn't useful */
+			
 			if (p->chunks[i].length_dw == 0)
 				return -EINVAL;
 		}
@@ -177,14 +152,7 @@ int radeon_cs_parser_init(struct radeon_cs_parser *p, void *data)
 	return 0;
 }
 
-/**
- * cs_parser_fini() - clean parser states
- * @parser:	parser structure holding parsing context.
- * @error:	error number
- *
- * If error is set than unvalidate buffer, otherwise just free memory
- * used by parsing context.
- **/
+
 static void radeon_cs_parser_fini(struct radeon_cs_parser *parser, int error)
 {
 	unsigned i;
@@ -226,7 +194,7 @@ int radeon_cs_ioctl(struct drm_device *dev, void *data, struct drm_file *filp)
 		mutex_unlock(&rdev->cs_mutex);
 		return -EINVAL;
 	}
-	/* initialize parser */
+	
 	memset(&parser, 0, sizeof(struct radeon_cs_parser));
 	parser.filp = filp;
 	parser.rdev = rdev;
@@ -251,9 +219,7 @@ int radeon_cs_ioctl(struct drm_device *dev, void *data, struct drm_file *filp)
 		mutex_unlock(&rdev->cs_mutex);
 		return r;
 	}
-	/* Copy the packet into the IB, the parser will read from the
-	 * input memory (cached) and write to the IB (which can be
-	 * uncached). */
+	
 	ib_chunk = &parser.chunks[parser.chunk_ib_idx];
 	parser.ib->length_dw = ib_chunk->length_dw;
 	r = radeon_cs_parse(&parser);
@@ -331,7 +297,7 @@ int radeon_cs_update_pages(struct radeon_cs_parser *p, int pg_idx)
 		return 0;
 	}
 
-	/* copy to IB here */
+	
 	memcpy((void *)(p->ib->ptr+(pg_idx*(PAGE_SIZE/4))), ibc->kpage[new_page], size);
 
 	ibc->last_copied_page = pg_idx;

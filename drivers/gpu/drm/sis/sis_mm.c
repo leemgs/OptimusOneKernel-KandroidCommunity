@@ -1,35 +1,6 @@
-/**************************************************************************
- *
- * Copyright 2006 Tungsten Graphics, Inc., Bismarck, ND., USA.
- * All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sub license, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice (including the
- * next paragraph) shall be included in all copies or substantial portions
- * of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL
- * THE COPYRIGHT HOLDERS, AUTHORS AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
- * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
- * USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *
- **************************************************************************/
 
-/*
- * Authors:
- *    Thomas Hellström <thomas-at-tungstengraphics-dot-com>
- */
+
+
 
 #include "drmP.h"
 #include "sis_drm.h"
@@ -42,7 +13,7 @@
 
 
 #if defined(CONFIG_FB_SIS) || defined(CONFIG_FB_SIS_MODULE)
-/* fb management via fb device */
+
 
 #define SIS_MM_ALIGN_SHIFT 0
 #define SIS_MM_ALIGN_MASK 0
@@ -75,12 +46,12 @@ static unsigned long sis_sman_mm_offset(void *private, void *ref)
 	return ~((unsigned long)ref);
 }
 
-#else /* CONFIG_FB_SIS[_MODULE] */
+#else 
 
 #define SIS_MM_ALIGN_SHIFT 4
 #define SIS_MM_ALIGN_MASK ( (1 << SIS_MM_ALIGN_SHIFT) - 1)
 
-#endif /* CONFIG_FB_SIS[_MODULE] */
+#endif 
 
 static int sis_fb_init(struct drm_device *dev, void *data, struct drm_file *file_priv)
 {
@@ -250,17 +221,12 @@ int sis_idle(struct drm_device *dev)
 		}
 	}
 
-	/*
-	 * Implement a device switch here if needed
-	 */
+	
 
 	if (dev_priv->chipset != SIS_CHIP_315)
 		return 0;
 
-	/*
-	 * Timeout after 3 seconds. We cannot use DRM_WAIT_ON here
-	 * because its polling frequency is too low.
-	 */
+	
 
 	end = jiffies + (DRM_HZ * 3);
 
@@ -277,10 +243,7 @@ int sis_idle(struct drm_device *dev)
 		dev_priv->idle_fault = 1;
 	}
 
-	/*
-	 * The caller never sees an error code. It gets trapped
-	 * in libdrm.
-	 */
+	
 
 	return 0;
 }

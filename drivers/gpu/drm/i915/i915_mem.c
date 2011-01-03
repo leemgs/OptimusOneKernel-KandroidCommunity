@@ -1,48 +1,12 @@
-/* i915_mem.c -- Simple agp/fb memory manager for i915 -*- linux-c -*-
- */
-/*
- * Copyright 2003 Tungsten Graphics, Inc., Cedar Park, Texas.
- * All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sub license, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice (including the
- * next paragraph) shall be included in all copies or substantial portions
- * of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
- * IN NO EVENT SHALL TUNGSTEN GRAPHICS AND/OR ITS SUPPLIERS BE LIABLE FOR
- * ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- */
+
+
 
 #include "drmP.h"
 #include "drm.h"
 #include "i915_drm.h"
 #include "i915_drv.h"
 
-/* This memory manager is integrated into the global/local lru
- * mechanisms used by the clients.  Specifically, it operates by
- * setting the 'in_use' fields of the global LRU to indicate whether
- * this region is privately allocated to a client.
- *
- * This does require the client to actually respect that field.
- *
- * Currently no effort is made to allocate 'private' memory in any
- * clever way - the LRU information isn't used to determine which
- * block to allocate, and the ring is drained prior to allocations --
- * in other words allocation is expensive.
- */
+
 static void mark_block(struct drm_device * dev, struct mem_block *p, int in_use)
 {
 	drm_i915_private_t *dev_priv = dev->dev_private;
@@ -64,20 +28,16 @@ static void mark_block(struct drm_device * dev, struct mem_block *p, int in_use)
 	age = ++sarea_priv->texAge;
 	list = sarea_priv->texList;
 
-	/* Mark the regions with the new flag and update their age.  Move
-	 * them to head of list to preserve LRU semantics.
-	 */
+	
 	for (i = start; i <= end; i++) {
 		list[i].in_use = in_use;
 		list[i].age = age;
 
-		/* remove_from_list(i)
-		 */
+		
 		list[(unsigned)list[i].next].prev = list[i].prev;
 		list[(unsigned)list[i].prev].next = list[i].next;
 
-		/* insert_at_head(list, i)
-		 */
+		
 		list[i].prev = nr;
 		list[i].next = list[nr].next;
 		list[(unsigned)list[nr].next].prev = i;
@@ -85,14 +45,12 @@ static void mark_block(struct drm_device * dev, struct mem_block *p, int in_use)
 	}
 }
 
-/* Very simple allocator for agp memory, working on a static range
- * already mapped into each client's address space.
- */
+
 
 static struct mem_block *split_block(struct mem_block *p, int start, int size,
 				     struct drm_file *file_priv)
 {
-	/* Maybe cut off the start of an existing block */
+	
 	if (start > p->start) {
 		struct mem_block *newblock = kmalloc(sizeof(*newblock),
 						     GFP_KERNEL);
@@ -109,7 +67,7 @@ static struct mem_block *split_block(struct mem_block *p, int start, int size,
 		p = newblock;
 	}
 
-	/* Maybe cut off the end of an existing block */
+	
 	if (size < p->size) {
 		struct mem_block *newblock = kmalloc(sizeof(*newblock),
 						     GFP_KERNEL);
@@ -126,7 +84,7 @@ static struct mem_block *split_block(struct mem_block *p, int start, int size,
 	}
 
       out:
-	/* Our block is in the middle */
+	
 	p->file_priv = file_priv;
 	return p;
 }
@@ -161,9 +119,7 @@ static void free_block(struct mem_block *p)
 {
 	p->file_priv = NULL;
 
-	/* Assumes a single contiguous range.  Needs a special file_priv in
-	 * 'heap' to stop it being subsumed.
-	 */
+	
 	if (p->next->file_priv == NULL) {
 		struct mem_block *q = p->next;
 		p->size += q->size;
@@ -181,8 +137,7 @@ static void free_block(struct mem_block *p)
 	}
 }
 
-/* Initialize.  How to check for an uninitialized heap?
- */
+
 static int init_heap(struct mem_block **heap, int start, int size)
 {
 	struct mem_block *blocks = kmalloc(sizeof(*blocks), GFP_KERNEL);
@@ -207,8 +162,7 @@ static int init_heap(struct mem_block **heap, int start, int size)
 	return 0;
 }
 
-/* Free all blocks associated with the releasing file.
- */
+
 void i915_mem_release(struct drm_device * dev, struct drm_file *file_priv,
 		      struct mem_block *heap)
 {
@@ -224,9 +178,7 @@ void i915_mem_release(struct drm_device * dev, struct drm_file *file_priv,
 		}
 	}
 
-	/* Assumes a single contiguous range.  Needs a special file_priv in
-	 * 'heap' to stop it being subsumed.
-	 */
+	
 	for (p = heap->next; p != heap; p = p->next) {
 		while (p->file_priv == NULL && p->next->file_priv == NULL) {
 			struct mem_block *q = p->next;
@@ -238,8 +190,7 @@ void i915_mem_release(struct drm_device * dev, struct drm_file *file_priv,
 	}
 }
 
-/* Shutdown.
- */
+
 void i915_mem_takedown(struct mem_block **heap)
 {
 	struct mem_block *p;
@@ -267,7 +218,7 @@ static struct mem_block **get_heap(drm_i915_private_t * dev_priv, int region)
 	}
 }
 
-/* IOCTL HANDLERS */
+
 
 int i915_mem_alloc(struct drm_device *dev, void *data,
 		   struct drm_file *file_priv)
@@ -285,9 +236,7 @@ int i915_mem_alloc(struct drm_device *dev, void *data,
 	if (!heap || !*heap)
 		return -EFAULT;
 
-	/* Make things easier on ourselves: all allocations at least
-	 * 4k aligned.
-	 */
+	
 	if (alloc->alignment < 12)
 		alloc->alignment = 12;
 

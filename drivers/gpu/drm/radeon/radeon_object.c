@@ -1,34 +1,5 @@
-/*
- * Copyright 2009 Jerome Glisse.
- * All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sub license, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL
- * THE COPYRIGHT HOLDERS, AUTHORS AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
- * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
- * USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- * The above copyright notice and this permission notice (including the
- * next paragraph) shall be included in all copies or substantial portions
- * of the Software.
- *
- */
-/*
- * Authors:
- *    Jerome Glisse <glisse@freedesktop.org>
- *    Thomas Hellstrom <thomas-at-tungstengraphics-dot-com>
- *    Dave Airlie
- */
+
+
 #include <linux/list.h>
 #include <drm/drmP.h>
 #include "radeon_drm.h"
@@ -52,10 +23,7 @@ struct radeon_object {
 int radeon_ttm_init(struct radeon_device *rdev);
 void radeon_ttm_fini(struct radeon_device *rdev);
 
-/*
- * To exclude mutual BO access we rely on bo_reserve exclusion, as all
- * function are calling it.
- */
+
 
 static int radeon_object_reserve(struct radeon_object *robj, bool interruptible)
 {
@@ -79,7 +47,7 @@ static void radeon_ttm_object_object_destroy(struct ttm_buffer_object *tobj)
 
 static inline void radeon_object_gpu_addr(struct radeon_object *robj)
 {
-	/* Default gpu address */
+	
 	robj->gpu_addr = 0xFFFFFFFFFFFFFFFFULL;
 	if (robj->tobj.mem.mm_node == NULL) {
 		return;
@@ -153,7 +121,7 @@ int radeon_object_create(struct radeon_device *rdev,
 				   0, 0, false, NULL, size,
 				   &radeon_ttm_object_object_destroy);
 	if (unlikely(r != 0)) {
-		/* ttm call radeon_ttm_object_object_destroy if error happen */
+		
 		DRM_ERROR("Failed to allocate TTM object (%ld, 0x%08X, %u)\n",
 			  size, flags, 0);
 		return r;
@@ -303,7 +271,7 @@ int radeon_object_wait(struct radeon_object *robj)
 {
 	int r = 0;
 
-	/* FIXME: should use block reservation instead */
+	
 	r = radeon_object_reserve(robj, true);
 	if (unlikely(r != 0)) {
 		DRM_ERROR("radeon: failed to reserve object for waiting.\n");
@@ -340,7 +308,7 @@ int radeon_object_busy_domain(struct radeon_object *robj, uint32_t *cur_placemen
 int radeon_object_evict_vram(struct radeon_device *rdev)
 {
 	if (rdev->flags & RADEON_IS_IGP) {
-		/* Useless to evict on IGP chips */
+		
 		return 0;
 	}
 	return ttm_bo_evict_mm(&rdev->mman.bdev, TTM_PL_VRAM);
@@ -371,7 +339,7 @@ void radeon_object_force_delete(struct radeon_device *rdev)
 
 int radeon_object_init(struct radeon_device *rdev)
 {
-	/* Add an MTRR for the VRAM */
+	
 	rdev->mc.vram_mtrr = mtrr_add(rdev->mc.aper_base, rdev->mc.aper_size,
 			MTRR_TYPE_WRCOMB, 1);
 	DRM_INFO("Detected VRAM RAM=%lluM, BAR=%lluM\n",
@@ -531,14 +499,14 @@ int radeon_object_get_surface_reg(struct radeon_object *robj)
 			steal = i;
 	}
 
-	/* if we are all out */
+	
 	if (i == RADEON_GEM_MAX_SURFACES) {
 		if (steal == -1)
 			return -ENOMEM;
-		/* find someone with a surface reg and nuke their BO */
+		
 		reg = &rdev->surface_regs[steal];
 		old_object = reg->robj;
-		/* blow away the mapping */
+		
 		DRM_DEBUG("stealing surface reg %d from %p\n", steal, old_object);
 		ttm_bo_unmap_virtual(&old_object->tobj);
 		old_object->surface_reg = -1;

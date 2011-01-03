@@ -1,32 +1,4 @@
-/*
- * Copyright (c) 2006-2009 Red Hat Inc.
- * Copyright (c) 2006-2008 Intel Corporation
- * Copyright (c) 2007 Dave Airlie <airlied@linux.ie>
- *
- * DRM framebuffer helper functions
- *
- * Permission to use, copy, modify, distribute, and sell this software and its
- * documentation for any purpose is hereby granted without fee, provided that
- * the above copyright notice appear in all copies and that both that copyright
- * notice and this permission notice appear in supporting documentation, and
- * that the name of the copyright holders not be used in advertising or
- * publicity pertaining to distribution of the software without specific,
- * written prior permission.  The copyright holders make no representations
- * about the suitability of this software for any purpose.  It is provided "as
- * is" without express or implied warranty.
- *
- * THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
- * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
- * EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
- * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
- * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
- * OF THIS SOFTWARE.
- *
- * Authors:
- *      Dave Airlie <airlied@linux.ie>
- *      Jesse Barnes <jesse.barnes@intel.com>
- */
+
 #include <linux/sysrq.h>
 #include <linux/fb.h>
 #include "drmP.h"
@@ -65,19 +37,7 @@ static int my_atoi(const char *name)
 	}
 }
 
-/**
- * drm_fb_helper_connector_parse_command_line - parse command line for connector
- * @connector - connector to parse line for
- * @mode_option - per connector mode option
- *
- * This parses the connector specific then generic command lines for
- * modes and options to configure the connector.
- *
- * This uses the same parameters as the fb modedb.c, except for extra
- *	<xres>x<yres>[M][R][-<bpp>][@<refresh>][i][m][eDd]
- *
- * enable/enable Digital/disable bit at the end
- */
+
 static bool drm_fb_helper_connector_parse_command_line(struct drm_connector *connector,
 						       const char *mode_option)
 {
@@ -224,7 +184,7 @@ int drm_fb_helper_parse_command_line(struct drm_device *dev)
 	list_for_each_entry(connector, &dev->mode_config.connector_list, head) {
 		char *option = NULL;
 
-		/* do something on return - turn off connector maybe */
+		
 		if (fb_get_options(drm_get_connector_name(connector), &option))
 			continue;
 
@@ -266,11 +226,7 @@ static struct notifier_block paniced = {
 	.notifier_call = drm_fb_helper_panic,
 };
 
-/**
- * drm_fb_helper_restore - restore the framebuffer console (kernel) config
- *
- * Restore's the kernel's fbcon mode, used for lastclose & panic paths.
- */
+
 void drm_fb_helper_restore(void)
 {
 	bool ret;
@@ -307,16 +263,13 @@ static void drm_fb_helper_on(struct fb_info *info)
 	struct drm_encoder *encoder;
 	int i;
 
-	/*
-	 * For each CRTC in this fb, turn the crtc on then,
-	 * find all associated encoders and turn them on.
-	 */
+	
 	for (i = 0; i < fb_helper->crtc_count; i++) {
 		list_for_each_entry(crtc, &dev->mode_config.crtc_list, head) {
 			struct drm_crtc_helper_funcs *crtc_funcs =
 				crtc->helper_private;
 
-			/* Only mess with CRTCs in this fb */
+			
 			if (crtc->base.id != fb_helper->crtc_info[i].crtc_id ||
 			    !crtc->enabled)
 				continue;
@@ -325,7 +278,7 @@ static void drm_fb_helper_on(struct fb_info *info)
 			crtc_funcs->dpms(crtc, DRM_MODE_DPMS_ON);
 			mutex_unlock(&dev->mode_config.mutex);
 
-			/* Found a CRTC on this fb, now find encoders */
+			
 			list_for_each_entry(encoder, &dev->mode_config.encoder_list, head) {
 				if (encoder->crtc == crtc) {
 					struct drm_encoder_helper_funcs *encoder_funcs;
@@ -348,21 +301,18 @@ static void drm_fb_helper_off(struct fb_info *info, int dpms_mode)
 	struct drm_encoder *encoder;
 	int i;
 
-	/*
-	 * For each CRTC in this fb, find all associated encoders
-	 * and turn them off, then turn off the CRTC.
-	 */
+	
 	for (i = 0; i < fb_helper->crtc_count; i++) {
 		list_for_each_entry(crtc, &dev->mode_config.crtc_list, head) {
 			struct drm_crtc_helper_funcs *crtc_funcs =
 				crtc->helper_private;
 
-			/* Only mess with CRTCs in this fb */
+			
 			if (crtc->base.id != fb_helper->crtc_info[i].crtc_id ||
 			    !crtc->enabled)
 				continue;
 
-			/* Found a CRTC on this fb, now find encoders */
+			
 			list_for_each_entry(encoder, &dev->mode_config.encoder_list, head) {
 				if (encoder->crtc == crtc) {
 					struct drm_encoder_helper_funcs *encoder_funcs;
@@ -464,7 +414,7 @@ static int setcolreg(struct drm_crtc *crtc, u16 red, u16 green,
 	if (info->fix.visual == FB_VISUAL_TRUECOLOR) {
 		u32 *palette;
 		u32 value;
-		/* place color in psuedopalette */
+		
 		if (regno > 16)
 			return -EINVAL;
 		palette = (u32 *)info->pseudo_palette;
@@ -602,7 +552,7 @@ int drm_fb_helper_check_var(struct fb_var_screeninfo *var,
 	if (var->pixclock != 0)
 		return -EINVAL;
 
-	/* Need to resize the fb object !!! */
+	
 	if (var->xres > fb->width || var->yres > fb->height) {
 		DRM_ERROR("Requested width/height is greater than current fb "
 			   "object %dx%d > %dx%d\n", var->xres, var->yres,
@@ -681,7 +631,7 @@ int drm_fb_helper_check_var(struct fb_var_screeninfo *var,
 }
 EXPORT_SYMBOL(drm_fb_helper_check_var);
 
-/* this will let fbcon do the mode init */
+
 int drm_fb_helper_set_par(struct fb_info *info)
 {
 	struct drm_fb_helper *fb_helper = info->par;
@@ -779,12 +729,11 @@ int drm_fb_helper_single_fb_probe(struct drm_device *dev,
 	struct drm_fb_helper *fb_helper;
 	uint32_t surface_depth = 24, surface_bpp = 32;
 
-	/* if driver picks 8 or 16 by default use that
-	   for both depth/bpp */
+	
 	if (preferred_bpp != surface_bpp) {
 		surface_depth = surface_bpp = preferred_bpp;
 	}
-	/* first up get a count of crtcs now in use and new min/maxes width/heights */
+	
 	list_for_each_entry(connector, &dev->mode_config.connector_list, head) {
 		struct drm_fb_helper_connector *fb_help_conn = connector->fb_helper_private;
 
@@ -839,12 +788,11 @@ int drm_fb_helper_single_fb_probe(struct drm_device *dev,
 	}
 
 	if (crtc_count == 0 || fb_width == -1 || fb_height == -1) {
-		/* hmm everyone went away - assume VGA cable just fell out
-		   and will come back later. */
+		
 		return 0;
 	}
 
-	/* do we have an fb already? */
+	
 	if (list_empty(&dev->mode_config.fb_kernel_list)) {
 		ret = (*fb_create)(dev, fb_width, fb_height, surface_width,
 				   surface_height, surface_depth, surface_bpp,
@@ -856,10 +804,7 @@ int drm_fb_helper_single_fb_probe(struct drm_device *dev,
 		fb = list_first_entry(&dev->mode_config.fb_kernel_list,
 				      struct drm_framebuffer, filp_head);
 
-		/* if someone hotplugs something bigger than we have already allocated, we are pwned.
-		   As really we can't resize an fbdev that is in the wild currently due to fbdev
-		   not really being designed for the lower layers moving stuff around under it.
-		   - so in the grand style of things - punt. */
+		
 		if ((fb->width < surface_width) ||
 		    (fb->height < surface_height)) {
 			DRM_ERROR("Framebuffer not large enough to scale console onto.\n");
@@ -871,7 +816,7 @@ int drm_fb_helper_single_fb_probe(struct drm_device *dev,
 	fb_helper = info->par;
 
 	crtc_count = 0;
-	/* okay we need to setup new connector sets in the crtcs */
+	
 	list_for_each_entry(crtc, &dev->mode_config.crtc_list, head) {
 		modeset = &fb_helper->crtc_info[crtc_count].mode_set;
 		modeset->fb = fb;
@@ -913,8 +858,8 @@ int drm_fb_helper_single_fb_probe(struct drm_device *dev,
 	printk(KERN_INFO "fb%d: %s frame buffer device\n", info->node,
 	       info->fix.id);
 
-	/* Switch back to kernel console on panic */
-	/* multi card linked list maybe */
+	
+	
 	if (list_empty(&kernel_fb_helper_list)) {
 		printk(KERN_INFO "registered panic notifier\n");
 		atomic_notifier_chain_register(&panic_notifier_list,
@@ -946,8 +891,8 @@ void drm_fb_helper_fill_fix(struct fb_info *info, uint32_t pitch,
 	info->fix.visual = depth == 8 ? FB_VISUAL_PSEUDOCOLOR :
 		FB_VISUAL_TRUECOLOR;
 	info->fix.type_aux = 0;
-	info->fix.xpanstep = 1; /* doing it in hw */
-	info->fix.ypanstep = 1; /* doing it in hw */
+	info->fix.xpanstep = 1; 
+	info->fix.ypanstep = 1; 
 	info->fix.ywrapstep = 0;
 	info->fix.accel = FB_ACCEL_NONE;
 	info->fix.type_aux = 0;
@@ -975,7 +920,7 @@ void drm_fb_helper_fill_var(struct fb_info *info, struct drm_framebuffer *fb,
 		info->var.red.offset = 0;
 		info->var.green.offset = 0;
 		info->var.blue.offset = 0;
-		info->var.red.length = 8; /* 8bit DAC */
+		info->var.red.length = 8; 
 		info->var.green.length = 8;
 		info->var.blue.length = 8;
 		info->var.transp.offset = 0;

@@ -1,32 +1,5 @@
-/**************************************************************************
- *
- * Copyright (c) 2007-2009 VMware, Inc., Palo Alto, CA., USA
- * All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sub license, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice (including the
- * next paragraph) shall be included in all copies or substantial portions
- * of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL
- * THE COPYRIGHT HOLDERS, AUTHORS AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
- * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
- * USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- **************************************************************************/
-/*
- * Authors: Thomas Hellstrom <thellstrom-at-vmware-dot-com>
- */
+
+
 
 #include "ttm/ttm_bo_driver.h"
 #include "ttm/ttm_placement.h"
@@ -291,20 +264,7 @@ static void ttm_transfered_destroy(struct ttm_buffer_object *bo)
 	kfree(bo);
 }
 
-/**
- * ttm_buffer_object_transfer
- *
- * @bo: A pointer to a struct ttm_buffer_object.
- * @new_obj: A pointer to a pointer to a newly created ttm_buffer_object,
- * holding the data of @bo with the old placement.
- *
- * This is a utility function that may be called after an accelerated move
- * has been scheduled. A new buffer object is created as a placeholder for
- * the old data while it's being copied. When that buffer object is idle,
- * it can be destroyed, releasing the space of the old placement.
- * Returns:
- * !0: Failure.
- */
+
 
 static int ttm_buffer_object_transfer(struct ttm_buffer_object *bo,
 				      struct ttm_buffer_object **new_obj)
@@ -319,10 +279,7 @@ static int ttm_buffer_object_transfer(struct ttm_buffer_object *bo,
 
 	*fbo = *bo;
 
-	/**
-	 * Fix up members that we shouldn't copy directly:
-	 * TODO: Explicit member copy would probably be better here.
-	 */
+	
 
 	spin_lock_init(&fbo->lock);
 	init_waitqueue_head(&fbo->event_queue);
@@ -407,28 +364,20 @@ static int ttm_bo_kmap_ttm(struct ttm_buffer_object *bo,
 
 	BUG_ON(!ttm);
 	if (num_pages == 1 && (mem->placement & TTM_PL_FLAG_CACHED)) {
-		/*
-		 * We're mapping a single page, and the desired
-		 * page protection is consistent with the bo.
-		 */
+		
 
 		map->bo_kmap_type = ttm_bo_map_kmap;
 		map->page = ttm_tt_get_page(ttm, start_page);
 		map->virtual = kmap(map->page);
 	} else {
-	    /*
-	     * Populate the part we're mapping;
-	     */
+	    
 		for (i = start_page; i < start_page + num_pages; ++i) {
 			d = ttm_tt_get_page(ttm, i);
 			if (!d)
 				return -ENOMEM;
 		}
 
-		/*
-		 * We need to use vmap to get the desired page protection
-		 * or to make the buffer object look contigous.
-		 */
+		
 		prot = (mem->placement & TTM_PL_FLAG_CACHED) ?
 			PAGE_KERNEL :
 			ttm_io_prot(mem->placement, PAGE_KERNEL);
@@ -563,13 +512,7 @@ int ttm_bo_move_accel_cleanup(struct ttm_buffer_object *bo,
 			bo->ttm = NULL;
 		}
 	} else {
-		/**
-		 * This should help pipeline ordinary buffer moves.
-		 *
-		 * Hang old buffer memory on a new buffer object,
-		 * and leave it to be released when the GPU
-		 * operation has completed.
-		 */
+		
 
 		set_bit(TTM_BO_PRIV_FLAG_MOVING, &bo->priv_flags);
 		spin_unlock(&bo->lock);
@@ -580,11 +523,7 @@ int ttm_bo_move_accel_cleanup(struct ttm_buffer_object *bo,
 		if (ret)
 			return ret;
 
-		/**
-		 * If we're not moving to fixed memory, the TTM object
-		 * needs to stay alive. Otherwhise hang it on the ghost
-		 * bo to be unbound and destroyed.
-		 */
+		
 
 		if (!(man->flags & TTM_MEMTYPE_FLAG_FIXED))
 			ghost_obj->ttm = NULL;

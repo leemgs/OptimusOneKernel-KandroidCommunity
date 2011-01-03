@@ -1,34 +1,5 @@
-/*
- * Copyright 2009 Jerome Glisse.
- * All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sub license, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL
- * THE COPYRIGHT HOLDERS, AUTHORS AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
- * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
- * USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- * The above copyright notice and this permission notice (including the
- * next paragraph) shall be included in all copies or substantial portions
- * of the Software.
- *
- */
-/*
- * Authors:
- *    Jerome Glisse <glisse@freedesktop.org>
- *    Thomas Hellstrom <thomas-at-tungstengraphics-dot-com>
- *    Dave Airlie
- */
+
+
 #include <ttm/ttm_bo_api.h>
 #include <ttm/ttm_bo_driver.h>
 #include <ttm/ttm_placement.h>
@@ -54,9 +25,7 @@ static struct radeon_device *radeon_get_rdev(struct ttm_bo_device *bdev)
 }
 
 
-/*
- * Global memory.
- */
+
 static int radeon_ttm_mem_global_init(struct ttm_global_reference *ref)
 {
 	return ttm_mem_global_init(ref->object);
@@ -144,7 +113,7 @@ static int radeon_init_mem_type(struct ttm_bo_device *bdev, uint32_t type,
 
 	switch (type) {
 	case TTM_PL_SYSTEM:
-		/* System memory */
+		
 		man->flags = TTM_MEMTYPE_FLAG_MAPPABLE;
 		man->available_caching = TTM_PL_MASK_CACHING;
 		man->default_caching = TTM_PL_FLAG_CACHED;
@@ -179,7 +148,7 @@ static int radeon_init_mem_type(struct ttm_bo_device *bdev, uint32_t type,
 		}
 		break;
 	case TTM_PL_VRAM:
-		/* "On-card" video ram */
+		
 		man->gpu_offset = 0;
 		man->flags = TTM_MEMTYPE_FLAG_FIXED |
 			     TTM_MEMTYPE_FLAG_NEEDS_IOREMAP |
@@ -269,7 +238,7 @@ static int radeon_move_blit(struct ttm_buffer_object *bo,
 		return -EINVAL;
 	}
 	r = radeon_copy(rdev, old_start, new_start, new_mem->num_pages, fence);
-	/* FIXME: handle copy error */
+	
 	r = ttm_bo_move_accel_cleanup(bo, (void *)fence, NULL,
 				      evict, no_wait, new_mem);
 	radeon_fence_unref(&fence);
@@ -378,12 +347,12 @@ static int radeon_bo_move(struct ttm_buffer_object *bo,
 	     new_mem->mem_type == TTM_PL_SYSTEM) ||
 	    (old_mem->mem_type == TTM_PL_SYSTEM &&
 	     new_mem->mem_type == TTM_PL_TT)) {
-		/* bind is enought */
+		
 		radeon_move_null(bo, new_mem);
 		return 0;
 	}
 	if (!rdev->cp.ready || rdev->asic->copy == NULL) {
-		/* use memcpy */
+		
 		goto memcpy;
 	}
 
@@ -473,7 +442,7 @@ int radeon_ttm_init(struct radeon_device *rdev)
 	if (r) {
 		return r;
 	}
-	/* No others user of address space so set it to 0 */
+	
 	r = ttm_bo_device_init(&rdev->mman.bdev,
 			       rdev->mman.bo_global_ref.ref.object,
 			       &radeon_bo_driver, DRM_FILE_PAGE_OFFSET,
@@ -580,9 +549,7 @@ int radeon_mmap(struct file *filp, struct vm_area_struct *vma)
 }
 
 
-/*
- * TTM backend functions.
- */
+
 struct radeon_ttm_backend {
 	struct ttm_backend		backend;
 	struct radeon_device		*rdev;

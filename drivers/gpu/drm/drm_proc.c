@@ -1,52 +1,13 @@
-/**
- * \file drm_proc.c
- * /proc support for DRM
- *
- * \author Rickard E. (Rik) Faith <faith@valinux.com>
- * \author Gareth Hughes <gareth@valinux.com>
- *
- * \par Acknowledgements:
- *    Matthew J Sottek <matthew.j.sottek@intel.com> sent in a patch to fix
- *    the problem with the proc files not outputting all their information.
- */
 
-/*
- * Created: Mon Jan 11 09:48:47 1999 by faith@valinux.com
- *
- * Copyright 1999 Precision Insight, Inc., Cedar Park, Texas.
- * Copyright 2000 VA Linux Systems, Inc., Sunnyvale, California.
- * All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * VA LINUX SYSTEMS AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
+
+
 
 #include <linux/seq_file.h>
 #include "drmP.h"
 
-/***************************************************
- * Initialization, etc.
- **************************************************/
 
-/**
- * Proc file list.
- */
+
+
 static struct drm_info_list drm_proc_list[] = {
 	{"name", drm_name_info, 0},
 	{"vm", drm_vm_info, 0},
@@ -77,18 +38,7 @@ static const struct file_operations drm_proc_fops = {
 };
 
 
-/**
- * Initialize a given set of proc files for a device
- *
- * \param files The array of files to create
- * \param count The number of files given
- * \param root DRI proc dir entry.
- * \param minor device minor number
- * \return Zero on success, non-zero on failure
- *
- * Create a given set of proc files represented by an array of
- * gdm_proc_lists in the given root directory.
- */
+
 int drm_proc_create_files(struct drm_info_list *files, int count,
 			  struct proc_dir_entry *root, struct drm_minor *minor)
 {
@@ -134,19 +84,7 @@ fail:
 	return ret;
 }
 
-/**
- * Initialize the DRI proc filesystem for a device
- *
- * \param dev DRM device
- * \param minor device minor number
- * \param root DRI proc dir entry.
- * \param dev_root resulting DRI device proc dir entry.
- * \return root entry pointer on success, or NULL on failure.
- *
- * Create the DRI proc root entry "/proc/dri", the device proc root entry
- * "/proc/dri/%minor%/", and each entry in proc_list as
- * "/proc/dri/%minor%/%name%".
- */
+
 int drm_proc_init(struct drm_minor *minor, int minor_id,
 		  struct proc_dir_entry *root)
 {
@@ -203,16 +141,7 @@ int drm_proc_remove_files(struct drm_info_list *files, int count,
 	return 0;
 }
 
-/**
- * Cleanup the proc filesystem resources.
- *
- * \param minor device minor number.
- * \param root DRI proc dir entry.
- * \param dev_root DRI device proc dir entry.
- * \return always zero.
- *
- * Remove all proc entries created by proc_init().
- */
+
 int drm_proc_cleanup(struct drm_minor *minor, struct proc_dir_entry *root)
 {
 	struct drm_device *dev = minor->dev;

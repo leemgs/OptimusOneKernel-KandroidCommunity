@@ -1,36 +1,10 @@
-/*
- * Copyright 2008 Advanced Micro Devices, Inc.
- * Copyright 2008 Red Hat Inc.
- * Copyright 2009 Jerome Glisse.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * Authors: Dave Airlie
- *          Alex Deucher
- *          Jerome Glisse
- */
+
 #include "drmP.h"
 #include "radeon.h"
 #include "atom.h"
 #include "r520d.h"
 
-/* This files gather functions specifics to: r520,rv530,rv560,rv570,r580 */
+
 
 static int r520_mc_wait_for_idle(struct radeon_device *rdev)
 {
@@ -38,7 +12,7 @@ static int r520_mc_wait_for_idle(struct radeon_device *rdev)
 	uint32_t tmp;
 
 	for (i = 0; i < rdev->usec_timeout; i++) {
-		/* read MC_STATUS */
+		
 		tmp = RREG32_MC(R520_MC_STATUS);
 		if (tmp & R520_MC_STATUS_IDLE) {
 			return 0;
@@ -54,27 +28,8 @@ static void r520_gpu_init(struct radeon_device *rdev)
 
 	r100_hdp_reset(rdev);
 	rv515_vga_render_disable(rdev);
-	/*
-	 * DST_PIPE_CONFIG		0x170C
-	 * GB_TILE_CONFIG		0x4018
-	 * GB_FIFO_SIZE			0x4024
-	 * GB_PIPE_SELECT		0x402C
-	 * GB_PIPE_SELECT2              0x4124
-	 *	Z_PIPE_SHIFT			0
-	 *	Z_PIPE_MASK			0x000000003
-	 * GB_FIFO_SIZE2                0x4128
-	 *	SC_SFIFO_SIZE_SHIFT		0
-	 *	SC_SFIFO_SIZE_MASK		0x000000003
-	 *	SC_MFIFO_SIZE_SHIFT		2
-	 *	SC_MFIFO_SIZE_MASK		0x00000000C
-	 *	FG_SFIFO_SIZE_SHIFT		4
-	 *	FG_SFIFO_SIZE_MASK		0x000000030
-	 *	ZB_MFIFO_SIZE_SHIFT		6
-	 *	ZB_MFIFO_SIZE_MASK		0x0000000C0
-	 * GA_ENHANCE			0x4274
-	 * SU_REG_DEST			0x42C8
-	 */
-	/* workaround for RV530 */
+	
+	
 	if (rdev->family == CHIP_RV530) {
 		WREG32(0x4128, 0xFF);
 	}
@@ -126,9 +81,7 @@ void r520_vram_info(struct radeon_device *rdev)
 	r520_vram_get_type(rdev);
 
 	r100_vram_init_sizes(rdev);
-	/* FIXME: we should enforce default clock in case GPU is not in
-	 * default setup
-	 */
+	
 	a.full = rfixed_const(100);
 	rdev->pm.sclk.full = rfixed_const(rdev->clock.default_sclk);
 	rdev->pm.sclk.full = rfixed_div(rdev->pm.sclk, a);
@@ -138,15 +91,15 @@ void r520_mc_program(struct radeon_device *rdev)
 {
 	struct rv515_mc_save save;
 
-	/* Stops all mc clients */
+	
 	rv515_mc_stop(rdev, &save);
 
-	/* Wait for mc idle */
+	
 	if (r520_mc_wait_for_idle(rdev))
 		dev_warn(rdev->dev, "Wait MC idle timeout before updating MC.\n");
-	/* Write VRAM size in case we are limiting it */
+	
 	WREG32(R_0000F8_CONFIG_MEMSIZE, rdev->mc.real_vram_size);
-	/* Program MC, should be a 32bits limited address space */
+	
 	WREG32_MC(R_000004_MC_FB_LOCATION,
 			S_000004_MC_FB_START(rdev->mc.vram_start >> 16) |
 			S_000004_MC_FB_TOP(rdev->mc.vram_end >> 16));
@@ -173,21 +126,20 @@ static int r520_startup(struct radeon_device *rdev)
 	int r;
 
 	r520_mc_program(rdev);
-	/* Resume clock */
+	
 	rv515_clock_startup(rdev);
-	/* Initialize GPU configuration (# pipes, ...) */
+	
 	r520_gpu_init(rdev);
-	/* Initialize GART (initialize after TTM so we can allocate
-	 * memory through TTM but finalize after TTM) */
+	
 	if (rdev->flags & RADEON_IS_PCIE) {
 		r = rv370_pcie_gart_enable(rdev);
 		if (r)
 			return r;
 	}
-	/* Enable IRQ */
+	
 	rdev->irq.sw_int = true;
 	rs600_irq_set(rdev);
-	/* 1M ring buffer */
+	
 	r = r100_cp_init(rdev, 1024 * 1024);
 	if (r) {
 		dev_err(rdev->dev, "failled initializing CP (%d).\n", r);
@@ -206,20 +158,20 @@ static int r520_startup(struct radeon_device *rdev)
 
 int r520_resume(struct radeon_device *rdev)
 {
-	/* Make sur GART are not working */
+	
 	if (rdev->flags & RADEON_IS_PCIE)
 		rv370_pcie_gart_disable(rdev);
-	/* Resume clock before doing reset */
+	
 	rv515_clock_startup(rdev);
-	/* Reset gpu before posting otherwise ATOM will enter infinite loop */
+	
 	if (radeon_gpu_reset(rdev)) {
 		dev_warn(rdev->dev, "GPU reset failed ! (0xE40=0x%08X, 0x7C0=0x%08X)\n",
 			RREG32(R_000E40_RBBM_STATUS),
 			RREG32(R_0007C0_CP_STAT));
 	}
-	/* post */
+	
 	atom_asic_init(rdev->mode_info.atom_context);
-	/* Resume clock after posting */
+	
 	rv515_clock_startup(rdev);
 	return r520_startup(rdev);
 }
@@ -228,12 +180,12 @@ int r520_init(struct radeon_device *rdev)
 {
 	int r;
 
-	/* Initialize scratch registers */
+	
 	radeon_scratch_init(rdev);
-	/* Initialize surface registers */
+	
 	radeon_surface_init(rdev);
-	/* TODO: disable VGA need to use VGA request */
-	/* BIOS*/
+	
+	
 	if (!radeon_get_bios(rdev)) {
 		if (ASIC_IS_AVIVO(rdev))
 			return -EINVAL;
@@ -246,37 +198,37 @@ int r520_init(struct radeon_device *rdev)
 		dev_err(rdev->dev, "Expecting atombios for RV515 GPU\n");
 		return -EINVAL;
 	}
-	/* Reset gpu before posting otherwise ATOM will enter infinite loop */
+	
 	if (radeon_gpu_reset(rdev)) {
 		dev_warn(rdev->dev,
 			"GPU reset failed ! (0xE40=0x%08X, 0x7C0=0x%08X)\n",
 			RREG32(R_000E40_RBBM_STATUS),
 			RREG32(R_0007C0_CP_STAT));
 	}
-	/* check if cards are posted or not */
+	
 	if (!radeon_card_posted(rdev) && rdev->bios) {
 		DRM_INFO("GPU not posted. posting now...\n");
 		atom_asic_init(rdev->mode_info.atom_context);
 	}
-	/* Initialize clocks */
+	
 	radeon_get_clock_info(rdev->ddev);
-	/* Initialize power management */
+	
 	radeon_pm_init(rdev);
-	/* Get vram informations */
+	
 	r520_vram_info(rdev);
-	/* Initialize memory controller (also test AGP) */
+	
 	r = r420_mc_init(rdev);
 	if (r)
 		return r;
 	rv515_debugfs(rdev);
-	/* Fence driver */
+	
 	r = radeon_fence_driver_init(rdev);
 	if (r)
 		return r;
 	r = radeon_irq_kms_init(rdev);
 	if (r)
 		return r;
-	/* Memory manager */
+	
 	r = radeon_object_init(rdev);
 	if (r)
 		return r;
@@ -287,7 +239,7 @@ int r520_init(struct radeon_device *rdev)
 	rdev->accel_working = true;
 	r = r520_startup(rdev);
 	if (r) {
-		/* Somethings want wront with the accel init stop accel */
+		
 		dev_err(rdev->dev, "Disabling GPU acceleration\n");
 		rv515_suspend(rdev);
 		r100_cp_fini(rdev);

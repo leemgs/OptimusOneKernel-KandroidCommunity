@@ -1,36 +1,9 @@
-/*
- * Copyright 2007-8 Advanced Micro Devices, Inc.
- * Copyright 2008 Red Hat Inc.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * Authors: Dave Airlie
- *          Alex Deucher
- */
+
 #include "drmP.h"
 #include "radeon_drm.h"
 #include "radeon.h"
 
-/**
- * radeon_ddc_probe
- *
- */
+
 bool radeon_ddc_probe(struct radeon_connector *radeon_connector)
 {
 	u8 out_buf[] = { 0x0, 0x0};
@@ -65,10 +38,7 @@ void radeon_i2c_do_lock(struct radeon_connector *radeon_connector, int lock_stat
 	uint32_t temp;
 	struct radeon_i2c_bus_rec *rec = &radeon_connector->ddc_bus->rec;
 
-	/* RV410 appears to have a bug where the hw i2c in reset
-	 * holds the i2c port in a bad state - switch hw i2c away before
-	 * doing DDC - do this for all r200s/r300s/r400s for safety sake
-	 */
+	
 	if ((rdev->family >= CHIP_R200) && !ASIC_IS_AVIVO(rdev)) {
 		if (rec->a_clk_reg == RADEON_GPIO_MONID) {
 			WREG32(RADEON_DVI_I2C_CNTL_0, (RADEON_I2C_SOFT_RST |
@@ -174,8 +144,7 @@ struct radeon_i2c_chan *radeon_i2c_create(struct drm_device *dev,
 	i2c->algo.getsda = get_data;
 	i2c->algo.getscl = get_clock;
 	i2c->algo.udelay = 20;
-	/* vesa says 2.2 ms is enough, 1 jiffy doesn't seem to always
-	 * make this, 2 jiffies is a lot more reliable */
+	
 	i2c->algo.timeout = 2;
 	i2c->algo.data = i2c;
 	i2c->rec = *rec;

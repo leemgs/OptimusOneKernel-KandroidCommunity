@@ -1,36 +1,8 @@
-/*
- * Copyright 2008 Advanced Micro Devices, Inc.
- * Copyright 2008 Red Hat Inc.
- * Copyright 2009 Jerome Glisse.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * Authors: Dave Airlie
- *          Alex Deucher
- *          Jerome Glisse
- */
+
 #ifndef __RADEON_ASIC_H__
 #define __RADEON_ASIC_H__
 
-/*
- * common functions
- */
+
 uint32_t radeon_legacy_get_engine_clock(struct radeon_device *rdev);
 void radeon_legacy_set_engine_clock(struct radeon_device *rdev, uint32_t eng_clock);
 void radeon_legacy_set_clock_gating(struct radeon_device *rdev, int enable);
@@ -41,9 +13,7 @@ uint32_t radeon_atom_get_memory_clock(struct radeon_device *rdev);
 void radeon_atom_set_memory_clock(struct radeon_device *rdev, uint32_t mem_clock);
 void radeon_atom_set_clock_gating(struct radeon_device *rdev, int enable);
 
-/*
- * r100,rv100,rs100,rv200,rs200,r200,rv250,rs300,rv280
- */
+
 extern int r100_init(struct radeon_device *rdev);
 extern void r100_fini(struct radeon_device *rdev);
 extern int r100_suspend(struct radeon_device *rdev);
@@ -110,9 +80,7 @@ static struct radeon_asic r100_asic = {
 };
 
 
-/*
- * r300,r350,rv350,rv380
- */
+
 extern int r300_init(struct radeon_device *rdev);
 extern void r300_fini(struct radeon_device *rdev);
 extern int r300_suspend(struct radeon_device *rdev);
@@ -164,9 +132,7 @@ static struct radeon_asic r300_asic = {
 	.bandwidth_update = &r100_bandwidth_update,
 };
 
-/*
- * r420,r423,rv410
- */
+
 extern int r420_init(struct radeon_device *rdev);
 extern void r420_fini(struct radeon_device *rdev);
 extern int r420_suspend(struct radeon_device *rdev);
@@ -204,9 +170,7 @@ static struct radeon_asic r420_asic = {
 };
 
 
-/*
- * rs400,rs480
- */
+
 extern int rs400_init(struct radeon_device *rdev);
 extern void rs400_fini(struct radeon_device *rdev);
 extern int rs400_suspend(struct radeon_device *rdev);
@@ -248,9 +212,7 @@ static struct radeon_asic rs400_asic = {
 };
 
 
-/*
- * rs600.
- */
+
 extern int rs600_init(struct radeon_device *rdev);
 extern void rs600_fini(struct radeon_device *rdev);
 extern int rs600_suspend(struct radeon_device *rdev);
@@ -294,9 +256,7 @@ static struct radeon_asic rs600_asic = {
 };
 
 
-/*
- * rs690,rs740
- */
+
 int rs690_init(struct radeon_device *rdev);
 void rs690_fini(struct radeon_device *rdev);
 int rs690_resume(struct radeon_device *rdev);
@@ -337,9 +297,7 @@ static struct radeon_asic rs690_asic = {
 };
 
 
-/*
- * rv515
- */
+
 int rv515_init(struct radeon_device *rdev);
 void rv515_fini(struct radeon_device *rdev);
 int rv515_gpu_reset(struct radeon_device *rdev);
@@ -384,9 +342,7 @@ static struct radeon_asic rv515_asic = {
 };
 
 
-/*
- * r520,rv530,rv560,rv570,r580
- */
+
 int r520_init(struct radeon_device *rdev);
 int r520_resume(struct radeon_device *rdev);
 static struct radeon_asic r520_asic = {
@@ -421,9 +377,7 @@ static struct radeon_asic r520_asic = {
 	.bandwidth_update = &rv515_bandwidth_update,
 };
 
-/*
- * r600,rv610,rv630,rv620,rv635,rv670,rs780,rs880
- */
+
 int r600_init(struct radeon_device *rdev);
 void r600_fini(struct radeon_device *rdev);
 int r600_suspend(struct radeon_device *rdev);
@@ -486,9 +440,7 @@ static struct radeon_asic r600_asic = {
 	.bandwidth_update = &rv515_bandwidth_update,
 };
 
-/*
- * rv770,rv730,rv710,rv740
- */
+
 int rv770_init(struct radeon_device *rdev);
 void rv770_fini(struct radeon_device *rdev);
 int rv770_suspend(struct radeon_device *rdev);

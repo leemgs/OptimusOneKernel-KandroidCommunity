@@ -1,34 +1,8 @@
-/*
- * Copyright 2008 Advanced Micro Devices, Inc.
- * Copyright 2008 Red Hat Inc.
- * Copyright 2009 Jerome Glisse.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * Authors: Dave Airlie
- *          Alex Deucher
- *          Jerome Glisse
- */
+
 #ifndef __RS600D_H__
 #define __RS600D_H__
 
-/* Registers */
+
 #define R_000040_GEN_INT_CNTL                        0x000040
 #define   S_000040_DISPLAY_INT_STATUS(x)               (((x) & 0x1) << 0)
 #define   G_000040_DISPLAY_INT_STATUS(x)               (((x) >> 0) & 0x1)
@@ -372,7 +346,7 @@
 #define   C_007EDC_LB_D2_VBLANK_INTERRUPT              0xFFFFFFDF
 
 
-/* MC registers */
+
 #define R_000000_MC_STATUS                           0x000000
 #define   S_000000_MC_IDLE(x)                          (((x) & 0x1) << 0)
 #define   G_000000_MC_IDLE(x)                          (((x) >> 0) & 0x1)
@@ -403,7 +377,7 @@
 #define   S_000009_ENABLE_PAGE_TABLES(x)               (((x) & 0x1) << 26)
 #define   G_000009_ENABLE_PAGE_TABLES(x)               (((x) >> 26) & 0x1)
 #define   C_000009_ENABLE_PAGE_TABLES                  0xFBFFFFFF
-/* FIXME don't know the various field size need feedback from AMD */
+
 #define R_000100_MC_PT0_CNTL                         0x000100
 #define   S_000100_ENABLE_PT(x)                        (((x) & 0x1) << 0)
 #define   G_000100_ENABLE_PT(x)                        (((x) >> 0) & 0x1)
@@ -428,7 +402,7 @@
 #define   G_000102_PAGE_TABLE_DEPTH(x)                 (((x) >> 1) & 0x3)
 #define   C_000102_PAGE_TABLE_DEPTH                    0xFFFFFFF9
 #define   V_000102_PAGE_TABLE_FLAT                     0
-/* R600 documentation suggest that this should be a number of pages */
+
 #define R_000112_MC_PT0_SYSTEM_APERTURE_LOW_ADDR     0x000112
 #define R_000114_MC_PT0_SYSTEM_APERTURE_HIGH_ADDR    0x000114
 #define R_00011C_MC_PT0_CONTEXT0_DEFAULT_READ_ADDR   0x00011C

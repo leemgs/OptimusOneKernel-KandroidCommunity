@@ -1,50 +1,10 @@
-/**
- * \file drm_auth.c
- * IOCTLs for authentication
- *
- * \author Rickard E. (Rik) Faith <faith@valinux.com>
- * \author Gareth Hughes <gareth@valinux.com>
- */
 
-/*
- * Created: Tue Feb  2 08:37:54 1999 by faith@valinux.com
- *
- * Copyright 1999 Precision Insight, Inc., Cedar Park, Texas.
- * Copyright 2000 VA Linux Systems, Inc., Sunnyvale, California.
- * All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * VA LINUX SYSTEMS AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
+
+
 
 #include "drmP.h"
 
-/**
- * Find the file with the given magic number.
- *
- * \param dev DRM device.
- * \param magic magic number.
- *
- * Searches in drm_device::magiclist within all files with the same hash key
- * the one with matching magic number, while holding the drm_device::struct_mutex
- * lock.
- */
+
 static struct drm_file *drm_find_file(struct drm_master *master, drm_magic_t magic)
 {
 	struct drm_file *retval = NULL;
@@ -61,17 +21,7 @@ static struct drm_file *drm_find_file(struct drm_master *master, drm_magic_t mag
 	return retval;
 }
 
-/**
- * Adds a magic number.
- *
- * \param dev DRM device.
- * \param priv file private data.
- * \param magic magic number.
- *
- * Creates a drm_magic_entry structure and appends to the linked list
- * associated the magic number hash key in drm_device::magiclist, while holding
- * the drm_device::struct_mutex lock.
- */
+
 static int drm_add_magic(struct drm_master *master, struct drm_file *priv,
 			 drm_magic_t magic)
 {
@@ -93,15 +43,7 @@ static int drm_add_magic(struct drm_master *master, struct drm_file *priv,
 	return 0;
 }
 
-/**
- * Remove a magic number.
- *
- * \param dev DRM device.
- * \param magic magic number.
- *
- * Searches and unlinks the entry in drm_device::magiclist with the magic
- * number hash key, while holding the drm_device::struct_mutex lock.
- */
+
 static int drm_remove_magic(struct drm_master *master, drm_magic_t magic)
 {
 	struct drm_magic_entry *pt;
@@ -125,33 +67,21 @@ static int drm_remove_magic(struct drm_master *master, drm_magic_t magic)
 	return 0;
 }
 
-/**
- * Get a unique magic number (ioctl).
- *
- * \param inode device inode.
- * \param file_priv DRM file private.
- * \param cmd command.
- * \param arg pointer to a resulting drm_auth structure.
- * \return zero on success, or a negative number on failure.
- *
- * If there is a magic number in drm_file::magic then use it, otherwise
- * searches an unique non-zero magic number and add it associating it with \p
- * file_priv.
- */
+
 int drm_getmagic(struct drm_device *dev, void *data, struct drm_file *file_priv)
 {
 	static drm_magic_t sequence = 0;
 	static DEFINE_SPINLOCK(lock);
 	struct drm_auth *auth = data;
 
-	/* Find unique magic */
+	
 	if (file_priv->magic) {
 		auth->magic = file_priv->magic;
 	} else {
 		do {
 			spin_lock(&lock);
 			if (!sequence)
-				++sequence;	/* reserve 0 */
+				++sequence;	
 			auth->magic = sequence++;
 			spin_unlock(&lock);
 		} while (drm_find_file(file_priv->master, auth->magic));
@@ -164,17 +94,7 @@ int drm_getmagic(struct drm_device *dev, void *data, struct drm_file *file_priv)
 	return 0;
 }
 
-/**
- * Authenticate with a magic.
- *
- * \param inode device inode.
- * \param file_priv DRM file private.
- * \param cmd command.
- * \param arg pointer to a drm_auth structure.
- * \return zero if authentication successed, or a negative number otherwise.
- *
- * Checks if \p file_priv is associated with the magic number passed in \arg.
- */
+
 int drm_authmagic(struct drm_device *dev, void *data,
 		  struct drm_file *file_priv)
 {

@@ -1,35 +1,6 @@
-/**
- * \file drm_agpsupport.c
- * DRM support for AGP/GART backend
- *
- * \author Rickard E. (Rik) Faith <faith@valinux.com>
- * \author Gareth Hughes <gareth@valinux.com>
- */
 
-/*
- * Copyright 1999 Precision Insight, Inc., Cedar Park, Texas.
- * Copyright 2000 VA Linux Systems, Inc., Sunnyvale, California.
- * All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * VA LINUX SYSTEMS AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
+
+
 
 #include "drmP.h"
 #include <linux/module.h>
@@ -38,18 +9,7 @@
 
 #include <asm/agp.h>
 
-/**
- * Get AGP information.
- *
- * \param inode device inode.
- * \param file_priv DRM file private.
- * \param cmd command.
- * \param arg pointer to a (output) drm_agp_info structure.
- * \return zero on success or a negative number on failure.
- *
- * Verifies the AGP device has been initialized and acquired and fills in the
- * drm_agp_info structure with the information in drm_agp_head::agp_info.
- */
+
 int drm_agp_info(struct drm_device *dev, struct drm_agp_info *info)
 {
 	DRM_AGP_KERN *kern;
@@ -86,15 +46,7 @@ int drm_agp_info_ioctl(struct drm_device *dev, void *data,
 	return 0;
 }
 
-/**
- * Acquire the AGP device.
- *
- * \param dev DRM device that is to acquire AGP.
- * \return zero on success or a negative number on failure.
- *
- * Verifies the AGP device hasn't been acquired before and calls
- * \c agp_backend_acquire.
- */
+
 int drm_agp_acquire(struct drm_device * dev)
 {
 	if (!dev->agp)
@@ -109,32 +61,14 @@ int drm_agp_acquire(struct drm_device * dev)
 
 EXPORT_SYMBOL(drm_agp_acquire);
 
-/**
- * Acquire the AGP device (ioctl).
- *
- * \param inode device inode.
- * \param file_priv DRM file private.
- * \param cmd command.
- * \param arg user argument.
- * \return zero on success or a negative number on failure.
- *
- * Verifies the AGP device hasn't been acquired before and calls
- * \c agp_backend_acquire.
- */
+
 int drm_agp_acquire_ioctl(struct drm_device *dev, void *data,
 			  struct drm_file *file_priv)
 {
 	return drm_agp_acquire((struct drm_device *) file_priv->minor->dev);
 }
 
-/**
- * Release the AGP device.
- *
- * \param dev DRM device that is to release AGP.
- * \return zero on success or a negative number on failure.
- *
- * Verifies the AGP device has been acquired and calls \c agp_backend_release.
- */
+
 int drm_agp_release(struct drm_device * dev)
 {
 	if (!dev->agp || !dev->agp->acquired)
@@ -151,16 +85,7 @@ int drm_agp_release_ioctl(struct drm_device *dev, void *data,
 	return drm_agp_release(dev);
 }
 
-/**
- * Enable the AGP bus.
- *
- * \param dev DRM device that has previously acquired AGP.
- * \param mode Requested AGP mode.
- * \return zero on success or a negative number on failure.
- *
- * Verifies the AGP device has been acquired but not enabled, and calls
- * \c agp_enable.
- */
+
 int drm_agp_enable(struct drm_device * dev, struct drm_agp_mode mode)
 {
 	if (!dev->agp || !dev->agp->acquired)
@@ -182,18 +107,7 @@ int drm_agp_enable_ioctl(struct drm_device *dev, void *data,
 	return drm_agp_enable(dev, *mode);
 }
 
-/**
- * Allocate AGP memory.
- *
- * \param inode device inode.
- * \param file_priv file private pointer.
- * \param cmd command.
- * \param arg pointer to a drm_agp_buffer structure.
- * \return zero on success or a negative number on failure.
- *
- * Verifies the AGP device is present and has been acquired, allocates the
- * memory via alloc_agp() and creates a drm_agp_mem entry for it.
- */
+
 int drm_agp_alloc(struct drm_device *dev, struct drm_agp_buffer *request)
 {
 	struct drm_agp_mem *entry;
@@ -237,15 +151,7 @@ int drm_agp_alloc_ioctl(struct drm_device *dev, void *data,
 	return drm_agp_alloc(dev, request);
 }
 
-/**
- * Search for the AGP memory entry associated with a handle.
- *
- * \param dev DRM device structure.
- * \param handle AGP memory handle.
- * \return pointer to the drm_agp_mem structure associated with \p handle.
- *
- * Walks through drm_agp_head::memory until finding a matching handle.
- */
+
 static struct drm_agp_mem *drm_agp_lookup_entry(struct drm_device * dev,
 					   unsigned long handle)
 {
@@ -258,18 +164,7 @@ static struct drm_agp_mem *drm_agp_lookup_entry(struct drm_device * dev,
 	return NULL;
 }
 
-/**
- * Unbind AGP memory from the GATT (ioctl).
- *
- * \param inode device inode.
- * \param file_priv DRM file private.
- * \param cmd command.
- * \param arg pointer to a drm_agp_binding structure.
- * \return zero on success or a negative number on failure.
- *
- * Verifies the AGP device is present and acquired, looks-up the AGP memory
- * entry and passes it to the unbind_agp() function.
- */
+
 int drm_agp_unbind(struct drm_device *dev, struct drm_agp_binding *request)
 {
 	struct drm_agp_mem *entry;
@@ -297,19 +192,7 @@ int drm_agp_unbind_ioctl(struct drm_device *dev, void *data,
 	return drm_agp_unbind(dev, request);
 }
 
-/**
- * Bind AGP memory into the GATT (ioctl)
- *
- * \param inode device inode.
- * \param file_priv DRM file private.
- * \param cmd command.
- * \param arg pointer to a drm_agp_binding structure.
- * \return zero on success or a negative number on failure.
- *
- * Verifies the AGP device is present and has been acquired and that no memory
- * is currently bound into the GATT. Looks-up the AGP memory entry and passes
- * it to bind_agp() function.
- */
+
 int drm_agp_bind(struct drm_device *dev, struct drm_agp_binding *request)
 {
 	struct drm_agp_mem *entry;
@@ -341,20 +224,7 @@ int drm_agp_bind_ioctl(struct drm_device *dev, void *data,
 	return drm_agp_bind(dev, request);
 }
 
-/**
- * Free AGP memory (ioctl).
- *
- * \param inode device inode.
- * \param file_priv DRM file private.
- * \param cmd command.
- * \param arg pointer to a drm_agp_buffer structure.
- * \return zero on success or a negative number on failure.
- *
- * Verifies the AGP device is present and has been acquired and looks up the
- * AGP memory entry. If the memory it's currently bound, unbind it via
- * unbind_agp(). Frees it via free_agp() as well as the entry itself
- * and unlinks from the doubly linked list it's inserted in.
- */
+
 int drm_agp_free(struct drm_device *dev, struct drm_agp_buffer *request)
 {
 	struct drm_agp_mem *entry;
@@ -384,15 +254,7 @@ int drm_agp_free_ioctl(struct drm_device *dev, void *data,
 	return drm_agp_free(dev, request);
 }
 
-/**
- * Initialize the AGP resources.
- *
- * \return pointer to a drm_agp_head structure.
- *
- * Gets the drm_agp_t structure which is made available by the agpgart module
- * via the inter_module_* functions. Creates and initializes a drm_agp_head
- * structure.
- */
+
 struct drm_agp_head *drm_agp_init(struct drm_device *dev)
 {
 	struct drm_agp_head *head = NULL;
@@ -422,14 +284,14 @@ struct drm_agp_head *drm_agp_init(struct drm_device *dev)
 	return head;
 }
 
-/** Calls agp_allocate_memory() */
+
 DRM_AGP_MEM *drm_agp_allocate_memory(struct agp_bridge_data * bridge,
 				     size_t pages, u32 type)
 {
 	return agp_allocate_memory(bridge, pages, type);
 }
 
-/** Calls agp_free_memory() */
+
 int drm_agp_free_memory(DRM_AGP_MEM * handle)
 {
 	if (!handle)
@@ -438,7 +300,7 @@ int drm_agp_free_memory(DRM_AGP_MEM * handle)
 	return 1;
 }
 
-/** Calls agp_bind_memory() */
+
 int drm_agp_bind_memory(DRM_AGP_MEM * handle, off_t start)
 {
 	if (!handle)
@@ -446,7 +308,7 @@ int drm_agp_bind_memory(DRM_AGP_MEM * handle, off_t start)
 	return agp_bind_memory(handle, start);
 }
 
-/** Calls agp_unbind_memory() */
+
 int drm_agp_unbind_memory(DRM_AGP_MEM * handle)
 {
 	if (!handle)
@@ -454,13 +316,7 @@ int drm_agp_unbind_memory(DRM_AGP_MEM * handle)
 	return agp_unbind_memory(handle);
 }
 
-/**
- * Binds a collection of pages into AGP memory at the given offset, returning
- * the AGP memory structure containing them.
- *
- * No reference is held on the pages during this time -- it is up to the
- * caller to handle that.
- */
+
 DRM_AGP_MEM *
 drm_agp_bind_pages(struct drm_device *dev,
 		   struct page **pages,
@@ -503,4 +359,4 @@ void drm_agp_chipset_flush(struct drm_device *dev)
 }
 EXPORT_SYMBOL(drm_agp_chipset_flush);
 
-#endif /* __OS_HAS_AGP */
+#endif 

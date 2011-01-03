@@ -1,30 +1,4 @@
-/*
- * Copyright 2006 Dave Airlie <airlied@linux.ie>
- * Copyright © 2006-2009 Intel Corporation
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
- *
- * Authors:
- *	Eric Anholt <eric@anholt.net>
- *	Jesse Barnes <jesse.barnes@intel.com>
- */
+
 
 #include <linux/i2c.h>
 #include <linux/delay.h>
@@ -79,9 +53,7 @@ static void intel_hdmi_dpms(struct drm_encoder *encoder, int mode)
 
 	temp = I915_READ(hdmi_priv->sdvox_reg);
 
-	/* HW workaround, need to toggle enable bit off and on for 12bpc, but
-	 * we do this anyway which shows more stable in testing.
-	 */
+	
 	if (IS_IGDNG(dev)) {
 		I915_WRITE(hdmi_priv->sdvox_reg, temp & ~SDVO_ENABLE);
 		POSTING_READ(hdmi_priv->sdvox_reg);
@@ -96,9 +68,7 @@ static void intel_hdmi_dpms(struct drm_encoder *encoder, int mode)
 	I915_WRITE(hdmi_priv->sdvox_reg, temp);
 	POSTING_READ(hdmi_priv->sdvox_reg);
 
-	/* HW workaround, need to write this twice for issue that may result
-	 * in first write getting masked.
-	 */
+	
 	if (IS_IGDNG(dev)) {
 		I915_WRITE(hdmi_priv->sdvox_reg, temp);
 		POSTING_READ(hdmi_priv->sdvox_reg);
@@ -175,9 +145,7 @@ static int intel_hdmi_get_modes(struct drm_connector *connector)
 {
 	struct intel_output *intel_output = to_intel_output(connector);
 
-	/* We should parse the EDID data and find out if it's an HDMI sink so
-	 * we can send audio to it.
-	 */
+	
 
 	return intel_ddc_get_modes(intel_output);
 }
@@ -250,7 +218,7 @@ void intel_hdmi_init(struct drm_device *dev, int sdvox_reg)
 	connector->doublescan_allowed = 0;
 	intel_output->crtc_mask = (1 << 0) | (1 << 1);
 
-	/* Set up the DDC bus. */
+	
 	if (sdvox_reg == SDVOB) {
 		intel_output->clone_mask = (1 << INTEL_HDMIB_CLONE_BIT);
 		intel_output->ddc_bus = intel_i2c_create(dev, GPIOE, "HDMIB");
@@ -289,10 +257,7 @@ void intel_hdmi_init(struct drm_device *dev, int sdvox_reg)
 					  &intel_output->enc);
 	drm_sysfs_connector_add(connector);
 
-	/* For G4X desktop chip, PEG_BAND_GAP_DATA 3:0 must first be written
-	 * 0xd.  Failure to do so will result in spurious interrupts being
-	 * generated on the port when a cable is not attached.
-	 */
+	
 	if (IS_G4X(dev) && !IS_GM45(dev)) {
 		u32 temp = I915_READ(PEG_BAND_GAP_DATA);
 		I915_WRITE(PEG_BAND_GAP_DATA, (temp & ~0xf) | 0xd);

@@ -1,28 +1,4 @@
-/*
- * Copyright 2007-8 Advanced Micro Devices, Inc.
- * Copyright 2008 Red Hat Inc.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * Authors: Dave Airlie
- *          Alex Deucher
- */
+
 #include "drmP.h"
 #include "drm_crtc_helper.h"
 #include "radeon_drm.h"
@@ -31,7 +7,7 @@
 
 extern int atom_debug;
 
-/* evil but including atombios.h is much worse */
+
 bool radeon_atom_get_tv_timings(struct radeon_device *rdev, int index,
 				struct drm_display_mode *mode);
 
@@ -48,7 +24,7 @@ radeon_get_encoder_id(struct drm_device *dev, uint32_t supported_device, uint8_t
 	case ATOM_DEVICE_CRT2_SUPPORT:
 	case ATOM_DEVICE_CV_SUPPORT:
 		switch (dac) {
-		case 1: /* dac a */
+		case 1: 
 			if ((rdev->family == CHIP_RS300) ||
 			    (rdev->family == CHIP_RS400) ||
 			    (rdev->family == CHIP_RS480))
@@ -58,17 +34,15 @@ radeon_get_encoder_id(struct drm_device *dev, uint32_t supported_device, uint8_t
 			else
 				ret = ENCODER_OBJECT_ID_INTERNAL_DAC1;
 			break;
-		case 2: /* dac b */
+		case 2: 
 			if (ASIC_IS_AVIVO(rdev))
 				ret = ENCODER_OBJECT_ID_INTERNAL_KLDSCP_DAC2;
 			else {
-				/*if (rdev->family == CHIP_R200)
-				  ret = ENCODER_OBJECT_ID_INTERNAL_DVO1;
-				  else*/
+				
 				ret = ENCODER_OBJECT_ID_INTERNAL_DAC2;
 			}
 			break;
-		case 3: /* external dac */
+		case 3: 
 			if (ASIC_IS_AVIVO(rdev))
 				ret = ENCODER_OBJECT_ID_INTERNAL_KLDSCP_DVO1;
 			else
@@ -119,7 +93,7 @@ radeon_link_encoder_connector(struct drm_device *dev)
 	struct drm_encoder *encoder;
 	struct radeon_encoder *radeon_encoder;
 
-	/* walk the list and link encoders to connectors */
+	
 	list_for_each_entry(connector, &dev->mode_config.connector_list, head) {
 		radeon_connector = to_radeon_connector(connector);
 		list_for_each_entry(encoder, &dev->mode_config.encoder_list, head) {
@@ -163,7 +137,7 @@ radeon_get_connector_for_encoder(struct drm_encoder *encoder)
 	return NULL;
 }
 
-/* used for both atom and legacy */
+
 void radeon_rmx_mode_fixup(struct drm_encoder *encoder,
 			   struct drm_display_mode *mode,
 			   struct drm_display_mode *adjusted_mode)
@@ -194,14 +168,14 @@ static bool radeon_atom_mode_fixup(struct drm_encoder *encoder,
 	struct drm_device *dev = encoder->dev;
 	struct radeon_device *rdev = dev->dev_private;
 
-	/* set the active encoder to connector routing */
+	
 	radeon_encoder_set_active_device(encoder);
 	drm_mode_set_crtcinfo(adjusted_mode, 0);
 
 	if (radeon_encoder->rmx_type != RMX_OFF)
 		radeon_rmx_mode_fixup(encoder, mode, adjusted_mode);
 
-	/* hw bug */
+	
 	if ((mode->flags & DRM_MODE_FLAG_INTERLACE)
 	    && (mode->crtc_vsync_start < (mode->crtc_vdisplay + 2)))
 		adjusted_mode->crtc_vsync_start = adjusted_mode->crtc_vdisplay + 2;
@@ -319,7 +293,7 @@ atombios_tv_setup(struct drm_encoder *encoder, int action)
 			args.sTVEncoder.ucTvStandard = ATOM_TV_NTSCJ;
 			break;
 		case TV_STD_SCART_PAL:
-			args.sTVEncoder.ucTvStandard = ATOM_TV_PAL; /* ??? */
+			args.sTVEncoder.ucTvStandard = ATOM_TV_PAL; 
 			break;
 		case TV_STD_SECAM:
 			args.sTVEncoder.ucTvStandard = ATOM_TV_SECAM;
@@ -357,7 +331,7 @@ atombios_external_tmds_setup(struct drm_encoder *encoder, int action)
 	if (radeon_encoder->pixel_clock > 165000)
 		args.sXTmdsEncoder.ucMisc = PANEL_ENCODER_MISC_DUAL;
 
-	/*if (pScrn->rgbBits == 8)*/
+	
 	args.sXTmdsEncoder.ucMisc |= (1 << 1);
 
 	atom_execute_table(rdev->mode_info.atom_context, index, (uint32_t *)&args);
@@ -462,7 +436,7 @@ atombios_digital_setup(struct drm_encoder *encoder, int action)
 					args.v1.ucMisc |= PANEL_ENCODER_MISC_TMDS_LINKB;
 				if (radeon_encoder->pixel_clock > 165000)
 					args.v1.ucMisc |= PANEL_ENCODER_MISC_DUAL;
-				/*if (pScrn->rgbBits == 8) */
+				
 				args.v1.ucMisc |= (1 << 1);
 			}
 			break;
@@ -531,7 +505,7 @@ atombios_get_encoder_mode(struct drm_encoder *encoder)
 
 	switch (connector->connector_type) {
 	case DRM_MODE_CONNECTOR_DVII:
-	case DRM_MODE_CONNECTOR_HDMIB: /* HDMI-B is basically DL-DVI; analog works fine */
+	case DRM_MODE_CONNECTOR_HDMIB: 
 		if (drm_detect_hdmi_monitor(radeon_connector->edid))
 			return ATOM_ENCODER_MODE_HDMI;
 		else if (radeon_connector->use_digital)
@@ -551,9 +525,7 @@ atombios_get_encoder_mode(struct drm_encoder *encoder)
 		return ATOM_ENCODER_MODE_LVDS;
 		break;
 	case DRM_MODE_CONNECTOR_DisplayPort:
-		/*if (radeon_output->MonType == MT_DP)
-		  return ATOM_ENCODER_MODE_DP;
-		  else*/
+		
 		if (drm_detect_hdmi_monitor(radeon_connector->edid))
 			return ATOM_ENCODER_MODE_HDMI;
 		else
@@ -566,9 +538,9 @@ atombios_get_encoder_mode(struct drm_encoder *encoder)
 	case CONNECTOR_STV:
 	case CONNECTOR_CTV:
 	case CONNECTOR_DIN:
-		/* fix me */
+		
 		return ATOM_ENCODER_MODE_TV;
-		/*return ATOM_ENCODER_MODE_CV;*/
+		
 		break;
 	}
 }
@@ -836,7 +808,7 @@ atombios_yuv_setup(struct drm_encoder *encoder, bool enable)
 	else
 		reg = RADEON_BIOS_3_SCRATCH;
 
-	/* XXX: fix up scratch reg handling */
+	
 	temp = RREG32(reg);
 	if (radeon_encoder->active_device & (ATOM_DEVICE_TV_SUPPORT))
 		WREG32(reg, (ATOM_S3_TV1_ACTIVE |
@@ -1072,7 +1044,7 @@ atombios_apply_encoder_quirks(struct drm_encoder *encoder,
 	struct radeon_encoder *radeon_encoder = to_radeon_encoder(encoder);
 	struct radeon_crtc *radeon_crtc = to_radeon_crtc(encoder->crtc);
 
-	/* Funky macbooks */
+	
 	if ((dev->pdev->device == 0x71C5) &&
 	    (dev->pdev->subsystem_vendor == 0x106b) &&
 	    (dev->pdev->subsystem_device == 0x0080)) {
@@ -1086,7 +1058,7 @@ atombios_apply_encoder_quirks(struct drm_encoder *encoder,
 		}
 	}
 
-	/* set scaler clears this on some chips */
+	
 	if (!(radeon_encoder->active_device & (ATOM_DEVICE_TV_SUPPORT))) {
 		if (ASIC_IS_AVIVO(rdev) && (mode->flags & DRM_MODE_FLAG_INTERLACE))
 			WREG32(AVIVO_D1MODE_DATA_FORMAT + radeon_crtc->crtc_offset,
@@ -1133,11 +1105,11 @@ radeon_atom_encoder_mode_set(struct drm_encoder *encoder,
 	case ENCODER_OBJECT_ID_INTERNAL_UNIPHY1:
 	case ENCODER_OBJECT_ID_INTERNAL_UNIPHY2:
 	case ENCODER_OBJECT_ID_INTERNAL_KLDSCP_LVTMA:
-		/* disable the encoder and transmitter */
+		
 		atombios_dig_transmitter_setup(encoder, ATOM_TRANSMITTER_ACTION_DISABLE);
 		atombios_dig_encoder_setup(encoder, ATOM_DISABLE);
 
-		/* setup and enable the encoder and transmitter */
+		
 		atombios_dig_encoder_setup(encoder, ATOM_ENABLE);
 		atombios_dig_transmitter_setup(encoder, ATOM_TRANSMITTER_ACTION_INIT);
 		atombios_dig_transmitter_setup(encoder, ATOM_TRANSMITTER_ACTION_SETUP);
@@ -1244,9 +1216,9 @@ radeon_atom_dac_detect(struct drm_encoder *encoder, struct drm_connector *connec
 	}
 	if (radeon_connector->devices & ATOM_DEVICE_TV1_SUPPORT) {
 		if (bios_0_scratch & (ATOM_S0_TV1_COMPOSITE | ATOM_S0_TV1_COMPOSITE_A))
-			return connector_status_connected; /* CTV */
+			return connector_status_connected; 
 		else if (bios_0_scratch & (ATOM_S0_TV1_SVIDEO | ATOM_S0_TV1_SVIDEO_A))
-			return connector_status_connected; /* STV */
+			return connector_status_connected; 
 	}
 	return connector_status_disconnected;
 }
@@ -1277,7 +1249,7 @@ static const struct drm_encoder_helper_funcs radeon_atom_dig_helper_funcs = {
 	.mode_set = radeon_atom_encoder_mode_set,
 	.commit = radeon_atom_encoder_commit,
 	.disable = radeon_atom_encoder_disable,
-	/* no detect for TMDS/LVDS yet */
+	
 };
 
 static const struct drm_encoder_helper_funcs radeon_atom_dac_helper_funcs = {
@@ -1321,7 +1293,7 @@ radeon_atombios_set_dig_info(struct radeon_encoder *radeon_encoder)
 	if (!dig)
 		return NULL;
 
-	/* coherent mode by default */
+	
 	dig->coherent_mode = true;
 
 	return dig;
@@ -1334,7 +1306,7 @@ radeon_add_atom_encoder(struct drm_device *dev, uint32_t encoder_id, uint32_t su
 	struct drm_encoder *encoder;
 	struct radeon_encoder *radeon_encoder;
 
-	/* see if we already added it */
+	
 	list_for_each_entry(encoder, &dev->mode_config.encoder_list, head) {
 		radeon_encoder = to_radeon_encoder(encoder);
 		if (radeon_encoder->encoder_id == encoder_id) {
@@ -1344,7 +1316,7 @@ radeon_add_atom_encoder(struct drm_device *dev, uint32_t encoder_id, uint32_t su
 
 	}
 
-	/* add a new one */
+	
 	radeon_encoder = kzalloc(sizeof(struct radeon_encoder), GFP_KERNEL);
 	if (!radeon_encoder)
 		return;

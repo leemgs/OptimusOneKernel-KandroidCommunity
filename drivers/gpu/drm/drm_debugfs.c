@@ -1,34 +1,6 @@
-/**
- * \file drm_debugfs.c
- * debugfs support for DRM
- *
- * \author Ben Gamari <bgamari@gmail.com>
- */
 
-/*
- * Created: Sun Dec 21 13:08:50 2008 by bgamari@gmail.com
- *
- * Copyright 2008 Ben Gamari <bgamari@gmail.com>
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * VA LINUX SYSTEMS AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
+
+
 
 #include <linux/debugfs.h>
 #include <linux/seq_file.h>
@@ -36,9 +8,7 @@
 
 #if defined(CONFIG_DEBUG_FS)
 
-/***************************************************
- * Initialization, etc.
- **************************************************/
+
 
 static struct drm_info_list drm_debugfs_list[] = {
 	{"name", drm_name_info, 0},
@@ -72,18 +42,7 @@ static const struct file_operations drm_debugfs_fops = {
 };
 
 
-/**
- * Initialize a given set of debugfs files for a device
- *
- * \param files The array of files to create
- * \param count The number of files given
- * \param root DRI debugfs dir entry.
- * \param minor device minor number
- * \return Zero on success, non-zero on failure
- *
- * Create a given set of debugfs files represented by an array of
- * gdm_debugfs_lists in the given root directory.
- */
+
 int drm_debugfs_create_files(struct drm_info_list *files, int count,
 			     struct dentry *root, struct drm_minor *minor)
 {
@@ -128,17 +87,7 @@ fail:
 }
 EXPORT_SYMBOL(drm_debugfs_create_files);
 
-/**
- * Initialize the DRI debugfs filesystem for a device
- *
- * \param dev DRM device
- * \param minor device minor number
- * \param root DRI debugfs dir entry.
- *
- * Create the DRI debugfs root entry "/sys/kernel/debug/dri", the device debugfs root entry
- * "/sys/kernel/debug/dri/%minor%/", and each entry in debugfs_list as
- * "/sys/kernel/debug/dri/%minor%/%name%".
- */
+
 int drm_debugfs_init(struct drm_minor *minor, int minor_id,
 		     struct dentry *root)
 {
@@ -175,16 +124,7 @@ int drm_debugfs_init(struct drm_minor *minor, int minor_id,
 }
 
 
-/**
- * Remove a list of debugfs files
- *
- * \param files The list of files
- * \param count The number of files
- * \param minor The minor of which we should remove the files
- * \return always zero.
- *
- * Remove all debugfs entries created by debugfs_init().
- */
+
 int drm_debugfs_remove_files(struct drm_info_list *files, int count,
 			     struct drm_minor *minor)
 {
@@ -206,14 +146,7 @@ int drm_debugfs_remove_files(struct drm_info_list *files, int count,
 }
 EXPORT_SYMBOL(drm_debugfs_remove_files);
 
-/**
- * Cleanup the debugfs filesystem resources.
- *
- * \param minor device minor number.
- * \return always zero.
- *
- * Remove all debugfs entries created by debugfs_init().
- */
+
 int drm_debugfs_cleanup(struct drm_minor *minor)
 {
 	struct drm_device *dev = minor->dev;
@@ -232,5 +165,5 @@ int drm_debugfs_cleanup(struct drm_minor *minor)
 	return 0;
 }
 
-#endif /* CONFIG_DEBUG_FS */
+#endif 
 

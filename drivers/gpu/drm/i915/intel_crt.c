@@ -1,28 +1,4 @@
-/*
- * Copyright © 2006-2007 Intel Corporation
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
- *
- * Authors:
- *	Eric Anholt <eric@anholt.net>
- */
+
 
 #include <linux/i2c.h>
 #include "drmP.h"
@@ -67,7 +43,7 @@ static void intel_crt_dpms(struct drm_encoder *encoder, int mode)
 
 	if (IS_IGD(dev)) {
 		if (mode == DRM_MODE_DPMS_OFF) {
-			/* turn off DAC */
+			
 			temp = I915_READ(PORT_HOTPLUG_EN);
 			temp &= ~CRT_EOS_INT_EN;
 			I915_WRITE(PORT_HOTPLUG_EN, temp);
@@ -77,11 +53,7 @@ static void intel_crt_dpms(struct drm_encoder *encoder, int mode)
 				I915_WRITE(PORT_HOTPLUG_STAT,
 					CRT_EOS_INT_STATUS);
 		} else {
-			/* turn on DAC. EOS interrupt must be enabled after DAC
-			 * is enabled, so it sounds not good to enable it in
-			 * i915_driver_irq_postinstall()
-			 * wait 12.5ms after DAC is enabled
-			 */
+			
 			msleep(13);
 			temp = I915_READ(PORT_HOTPLUG_STAT);
 			if (temp & CRT_EOS_INT_STATUS)
@@ -146,10 +118,7 @@ static void intel_crt_mode_set(struct drm_encoder *encoder,
 	else
 		adpa_reg = ADPA;
 
-	/*
-	 * Disable separate mode multiplier used when cloning SDVO to CRT
-	 * XXX this needs to be adjusted when we really are cloning
-	 */
+	
 	if (IS_I965G(dev) && !IS_IGDNG(dev)) {
 		dpll_md = I915_READ(dpll_md_reg);
 		I915_WRITE(dpll_md_reg,
@@ -185,14 +154,14 @@ static bool intel_igdng_crt_detect_hotplug(struct drm_connector *connector)
 	adpa = I915_READ(PCH_ADPA);
 
 	adpa &= ~ADPA_CRT_HOTPLUG_MASK;
-	/* disable HPD first */
+	
 	I915_WRITE(PCH_ADPA, adpa);
 	(void)I915_READ(PCH_ADPA);
 
 	adpa |= (ADPA_CRT_HOTPLUG_PERIOD_128 |
 			ADPA_CRT_HOTPLUG_WARMUP_10MS |
 			ADPA_CRT_HOTPLUG_SAMPLE_4S |
-			ADPA_CRT_HOTPLUG_VOLTAGE_50 | /* default */
+			ADPA_CRT_HOTPLUG_VOLTAGE_50 | 
 			ADPA_CRT_HOTPLUG_VOLREF_325MV |
 			ADPA_CRT_HOTPLUG_ENABLE |
 			ADPA_CRT_HOTPLUG_FORCE_TRIGGER);
@@ -203,7 +172,7 @@ static bool intel_igdng_crt_detect_hotplug(struct drm_connector *connector)
 	while ((I915_READ(PCH_ADPA) & ADPA_CRT_HOTPLUG_FORCE_TRIGGER) != 0)
 		;
 
-	/* Check the status to see if both blue and green are on now */
+	
 	adpa = I915_READ(PCH_ADPA);
 	adpa &= ADPA_CRT_HOTPLUG_MONITOR_MASK;
 	if ((adpa == ADPA_CRT_HOTPLUG_MONITOR_COLOR) ||
@@ -215,14 +184,7 @@ static bool intel_igdng_crt_detect_hotplug(struct drm_connector *connector)
 	return ret;
 }
 
-/**
- * Uses CRT_HOTPLUG_EN and CRT_HOTPLUG_STAT to detect CRT presence.
- *
- * Not for i915G/i915GM
- *
- * \return true if CRT is connected.
- * \return false if CRT is disconnected.
- */
+
 static bool intel_crt_detect_hotplug(struct drm_connector *connector)
 {
 	struct drm_device *dev = connector->dev;
@@ -233,10 +195,7 @@ static bool intel_crt_detect_hotplug(struct drm_connector *connector)
 	if (IS_IGDNG(dev))
 		return intel_igdng_crt_detect_hotplug(connector);
 
-	/*
-	 * On 4 series desktop, CRT detect sequence need to be done twice
-	 * to get a reliable result.
-	 */
+	
 
 	if (IS_G4X(dev) && !IS_GM45(dev))
 		tries = 2;
@@ -253,10 +212,10 @@ static bool intel_crt_detect_hotplug(struct drm_connector *connector)
 
 	for (i = 0; i < tries ; i++) {
 		unsigned long timeout;
-		/* turn on the FORCE_DETECT */
+		
 		I915_WRITE(PORT_HOTPLUG_EN, hotplug_en);
 		timeout = jiffies + msecs_to_jiffies(1000);
-		/* wait for FORCE_DETECT to go off */
+		
 		do {
 			if (!(I915_READ(PORT_HOTPLUG_EN) &
 					CRT_HOTPLUG_FORCE_DETECT))
@@ -276,7 +235,7 @@ static bool intel_crt_detect_ddc(struct drm_connector *connector)
 {
 	struct intel_output *intel_output = to_intel_output(connector);
 
-	/* CRT should always be at 0, but check anyway */
+	
 	if (intel_output->type != INTEL_OUTPUT_ANALOG)
 		return false;
 
@@ -332,14 +291,13 @@ intel_crt_load_detect(struct drm_crtc *crtc, struct intel_output *intel_output)
 	vblank_start = (vblank & 0xfff) + 1;
 	vblank_end = ((vblank >> 16) & 0xfff) + 1;
 
-	/* Set the border color to purple. */
+	
 	I915_WRITE(bclrpat_reg, 0x500050);
 
 	if (IS_I9XX(dev)) {
 		uint32_t pipeconf = I915_READ(pipeconf_reg);
 		I915_WRITE(pipeconf_reg, pipeconf | PIPECONF_FORCE_BORDER);
-		/* Wait for next Vblank to substitue
-		 * border color for Color info */
+		
 		intel_wait_for_vblank(dev);
 		st00 = I915_READ8(VGA_MSR_WRITE);
 		status = ((st00 & (1 << 4)) != 0) ?
@@ -351,10 +309,7 @@ intel_crt_load_detect(struct drm_crtc *crtc, struct intel_output *intel_output)
 		bool restore_vblank = false;
 		int count, detect;
 
-		/*
-		* If there isn't any border, add some.
-		* Yes, this will flicker
-		*/
+		
 		if (vblank_start <= vactive && vblank_end >= vtotal) {
 			uint32_t vsync = I915_READ(vsync_reg);
 			uint32_t vsync_start = (vsync & 0xffff) + 1;
@@ -365,47 +320,38 @@ intel_crt_load_detect(struct drm_crtc *crtc, struct intel_output *intel_output)
 				   ((vblank_end - 1) << 16));
 			restore_vblank = true;
 		}
-		/* sample in the vertical border, selecting the larger one */
+		
 		if (vblank_start - vactive >= vtotal - vblank_end)
 			vsample = (vblank_start + vactive) >> 1;
 		else
 			vsample = (vtotal + vblank_end) >> 1;
 
-		/*
-		 * Wait for the border to be displayed
-		 */
+		
 		while (I915_READ(pipe_dsl_reg) >= vactive)
 			;
 		while ((dsl = I915_READ(pipe_dsl_reg)) <= vsample)
 			;
-		/*
-		 * Watch ST00 for an entire scanline
-		 */
+		
 		detect = 0;
 		count = 0;
 		do {
 			count++;
-			/* Read the ST00 VGA status register */
+			
 			st00 = I915_READ8(VGA_MSR_WRITE);
 			if (st00 & (1 << 4))
 				detect++;
 		} while ((I915_READ(pipe_dsl_reg) == dsl));
 
-		/* restore vblank if necessary */
+		
 		if (restore_vblank)
 			I915_WRITE(vblank_reg, vblank);
-		/*
-		 * If more than 3/4 of the scanline detected a monitor,
-		 * then it is assumed to be present. This works even on i830,
-		 * where there isn't any way to force the border color across
-		 * the screen
-		 */
+		
 		status = detect * 4 > count * 3 ?
 			 connector_status_connected :
 			 connector_status_disconnected;
 	}
 
-	/* Restore previous settings */
+	
 	I915_WRITE(bclrpat_reg, save_bclrpat);
 
 	return status;
@@ -430,7 +376,7 @@ static enum drm_connector_status intel_crt_detect(struct drm_connector *connecto
 	if (intel_crt_detect_ddc(connector))
 		return connector_status_connected;
 
-	/* for pre-945g platforms use load detect */
+	
 	if (encoder->crtc && encoder->crtc->enabled) {
 		status = intel_crt_load_detect(encoder->crtc, intel_output);
 	} else {
@@ -469,7 +415,7 @@ static int intel_crt_get_modes(struct drm_connector *connector)
 		goto end;
 
 	ddcbus = intel_output->ddc_bus;
-	/* Try to probe digital port for output in DVI-I -> VGA mode. */
+	
 	intel_output->ddc_bus =
 		intel_i2c_create(connector->dev, GPIOD, "CRTDDC_D");
 
@@ -479,7 +425,7 @@ static int intel_crt_get_modes(struct drm_connector *connector)
 			   "DDC bus registration failed for CRTDDC_D.\n");
 		goto end;
 	}
-	/* Try to get modes by GPIOD port */
+	
 	ret = intel_ddc_get_modes(intel_output);
 	intel_i2c_destroy(ddcbus);
 
@@ -495,9 +441,7 @@ static int intel_crt_set_property(struct drm_connector *connector,
 	return 0;
 }
 
-/*
- * Routines for controlling stuff on the analog port
- */
+
 
 static const struct drm_encoder_helper_funcs intel_crt_helper_funcs = {
 	.dpms = intel_crt_dpms,
@@ -551,12 +495,12 @@ void intel_crt_init(struct drm_device *dev)
 	drm_mode_connector_attach_encoder(&intel_output->base,
 					  &intel_output->enc);
 
-	/* Set up the DDC bus. */
+	
 	if (IS_IGDNG(dev))
 		i2c_reg = PCH_GPIOA;
 	else {
 		i2c_reg = GPIOA;
-		/* Use VBT information for CRT DDC if available */
+		
 		if (dev_priv->crt_ddc_bus != -1)
 			i2c_reg = dev_priv->crt_ddc_bus;
 	}

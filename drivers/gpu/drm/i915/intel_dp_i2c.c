@@ -1,24 +1,4 @@
-/*
- * Copyright © 2009 Keith Packard
- *
- * Permission to use, copy, modify, distribute, and sell this software and its
- * documentation for any purpose is hereby granted without fee, provided that
- * the above copyright notice appear in all copies and that both that copyright
- * notice and this permission notice appear in supporting documentation, and
- * that the name of the copyright holders not be used in advertising or
- * publicity pertaining to distribution of the software without specific,
- * written prior permission.  The copyright holders make no representations
- * about the suitability of this software for any purpose.  It is provided "as
- * is" without express or implied warranty.
- *
- * THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
- * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
- * EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
- * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
- * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
- * OF THIS SOFTWARE.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -31,7 +11,7 @@
 #include "intel_dp.h"
 #include "drmP.h"
 
-/* Run a single AUX_CH I2C transaction, writing/reading data as necessary */
+
 
 #define MODE_I2C_START	1
 #define MODE_I2C_WRITE	2
@@ -50,7 +30,7 @@ i2c_algo_dp_aux_transaction(struct i2c_adapter *adapter, int mode,
 	int reply_bytes;
 	int ret;
 
-	/* Set up the command byte */
+	
 	if (mode & MODE_I2C_READ)
 		msg[0] = AUX_I2C_READ << 4;
 	else
@@ -108,15 +88,9 @@ i2c_algo_dp_aux_transaction(struct i2c_adapter *adapter, int mode,
 	}
 }
 
-/*
- * I2C over AUX CH
- */
 
-/*
- * Send the address. If the I2C link is running, this 'restarts'
- * the connection with the new address, this is used for doing
- * a write followed by a read (as needed for DDC)
- */
+
+
 static int
 i2c_algo_dp_aux_address(struct i2c_adapter *adapter, u16 address, bool reading)
 {
@@ -134,10 +108,7 @@ i2c_algo_dp_aux_address(struct i2c_adapter *adapter, u16 address, bool reading)
 	return ret;
 }
 
-/*
- * Stop the I2C transaction. This closes out the link, sending
- * a bare address packet with the MOT bit turned off
- */
+
 static void
 i2c_algo_dp_aux_stop(struct i2c_adapter *adapter, bool reading)
 {
@@ -154,10 +125,7 @@ i2c_algo_dp_aux_stop(struct i2c_adapter *adapter, bool reading)
 	}
 }
 
-/*
- * Write a single byte to the current I2C address, the
- * the I2C link must be running or this returns -EIO
- */
+
 static int
 i2c_algo_dp_aux_put_byte(struct i2c_adapter *adapter, u8 byte)
 {
@@ -171,10 +139,7 @@ i2c_algo_dp_aux_put_byte(struct i2c_adapter *adapter, u8 byte)
 	return ret;
 }
 
-/*
- * Read a single byte from the current I2C address, the
- * I2C link must be running or this returns -EIO
- */
+
 static int
 i2c_algo_dp_aux_get_byte(struct i2c_adapter *adapter, u8 *byte_ret)
 {

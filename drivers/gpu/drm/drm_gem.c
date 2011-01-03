@@ -1,29 +1,4 @@
-/*
- * Copyright © 2008 Intel Corporation
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
- *
- * Authors:
- *    Eric Anholt <eric@anholt.net>
- *
- */
+
 
 #include <linux/types.h>
 #include <linux/slab.h>
@@ -36,44 +11,21 @@
 #include <linux/pagemap.h>
 #include "drmP.h"
 
-/** @file drm_gem.c
- *
- * This file provides some of the base ioctls and library routines for
- * the graphics memory manager implemented by each device driver.
- *
- * Because various devices have different requirements in terms of
- * synchronization and migration strategies, implementing that is left up to
- * the driver, and all that the general API provides should be generic --
- * allocating objects, reading/writing data with the cpu, freeing objects.
- * Even there, platform-dependent optimizations for reading/writing data with
- * the CPU mean we'll likely hook those out to driver-specific calls.  However,
- * the DRI2 implementation wants to have at least allocate/mmap be generic.
- *
- * The goal was to have swap-backed object allocation managed through
- * struct file.  However, file descriptors as handles to a struct file have
- * two major failings:
- * - Process limits prevent more than 1024 or so being used at a time by
- *   default.
- * - Inability to allocate high fds will aggravate the X Server's select()
- *   handling, and likely that of many GL client applications as well.
- *
- * This led to a plan of using our own integer IDs (called handles, following
- * DRM terminology) to mimic fds, and implement the fd syscalls we need as
- * ioctls.  The objects themselves will still include the struct file so
- * that we can transition to fds if the required kernel infrastructure shows
- * up at a later date, and as our interface with shmfs for memory allocation.
- */
 
-/*
- * We make up offsets for buffer objects so we can recognize them at
- * mmap time.
- */
+
+
+
+
+
+#if BITS_PER_LONG == 64
 #define DRM_FILE_PAGE_OFFSET_START ((0xFFFFFFFFUL >> PAGE_SHIFT) + 1)
 #define DRM_FILE_PAGE_OFFSET_SIZE ((0xFFFFFFFFUL >> PAGE_SHIFT) * 16)
+#else
+#define DRM_FILE_PAGE_OFFSET_START ((0xFFFFFFFUL >> PAGE_SHIFT) + 1)
+#define DRM_FILE_PAGE_OFFSET_SIZE ((0xFFFFFFFUL >> PAGE_SHIFT) * 16)
+#endif
 
-/**
- * Initialize the GEM device fields
- */
+
 
 int
 drm_gem_init(struct drm_device *dev)
@@ -123,9 +75,7 @@ drm_gem_destroy(struct drm_device *dev)
 	dev->mm_private = NULL;
 }
 
-/**
- * Allocate a GEM object of the specified size with shmfs backing store
- */
+
 struct drm_gem_object *
 drm_gem_object_alloc(struct drm_device *dev, size_t size)
 {
@@ -160,27 +110,17 @@ free:
 }
 EXPORT_SYMBOL(drm_gem_object_alloc);
 
-/**
- * Removes the mapping from handle to filp for this object.
- */
+
 static int
 drm_gem_handle_delete(struct drm_file *filp, u32 handle)
 {
 	struct drm_device *dev;
 	struct drm_gem_object *obj;
 
-	/* This is gross. The idr system doesn't let us try a delete and
-	 * return an error code.  It just spews if you fail at deleting.
-	 * So, we have to grab a lock around finding the object and then
-	 * doing the delete on it and dropping the refcount, or the user
-	 * could race us to double-decrement the refcount and cause a
-	 * use-after-free later.  Given the frequency of our handle lookups,
-	 * we may want to use ida for number allocation and a hash table
-	 * for the pointers, anyway.
-	 */
+	
 	spin_lock(&filp->table_lock);
 
-	/* Check if we currently have a reference on the object */
+	
 	obj = idr_find(&filp->object_idr, handle);
 	if (obj == NULL) {
 		spin_unlock(&filp->table_lock);
@@ -188,7 +128,7 @@ drm_gem_handle_delete(struct drm_file *filp, u32 handle)
 	}
 	dev = obj->dev;
 
-	/* Release reference and decrement refcount. */
+	
 	idr_remove(&filp->object_idr, handle);
 	spin_unlock(&filp->table_lock);
 
@@ -199,11 +139,7 @@ drm_gem_handle_delete(struct drm_file *filp, u32 handle)
 	return 0;
 }
 
-/**
- * Create a handle for this object. This adds a handle reference
- * to the object, which includes a regular reference count. Callers
- * will likely want to dereference the object afterwards.
- */
+
 int
 drm_gem_handle_create(struct drm_file *file_priv,
 		       struct drm_gem_object *obj,
@@ -211,15 +147,13 @@ drm_gem_handle_create(struct drm_file *file_priv,
 {
 	int	ret;
 
-	/*
-	 * Get the user-visible handle using idr.
-	 */
+	
 again:
-	/* ensure there is space available to allocate a handle */
+	
 	if (idr_pre_get(&file_priv->object_idr, GFP_KERNEL) == 0)
 		return -ENOMEM;
 
-	/* do the allocation under our spinlock */
+	
 	spin_lock(&file_priv->table_lock);
 	ret = idr_get_new_above(&file_priv->object_idr, obj, 1, (int *)handlep);
 	spin_unlock(&file_priv->table_lock);
@@ -234,7 +168,7 @@ again:
 }
 EXPORT_SYMBOL(drm_gem_handle_create);
 
-/** Returns a reference to the object named by the handle. */
+
 struct drm_gem_object *
 drm_gem_object_lookup(struct drm_device *dev, struct drm_file *filp,
 		      u32 handle)
@@ -243,7 +177,7 @@ drm_gem_object_lookup(struct drm_device *dev, struct drm_file *filp,
 
 	spin_lock(&filp->table_lock);
 
-	/* Check if we currently have a reference on the object */
+	
 	obj = idr_find(&filp->object_idr, handle);
 	if (obj == NULL) {
 		spin_unlock(&filp->table_lock);
@@ -258,9 +192,7 @@ drm_gem_object_lookup(struct drm_device *dev, struct drm_file *filp,
 }
 EXPORT_SYMBOL(drm_gem_object_lookup);
 
-/**
- * Releases the handle to an mm object.
- */
+
 int
 drm_gem_close_ioctl(struct drm_device *dev, void *data,
 		    struct drm_file *file_priv)
@@ -276,12 +208,7 @@ drm_gem_close_ioctl(struct drm_device *dev, void *data,
 	return ret;
 }
 
-/**
- * Create a global name for an object, returning the name.
- *
- * Note that the name does not hold a reference; when the object
- * is freed, the name goes away.
- */
+
 int
 drm_gem_flink_ioctl(struct drm_device *dev, void *data,
 		    struct drm_file *file_priv)
@@ -316,7 +243,7 @@ again:
 		if (ret != 0)
 			goto err;
 
-		/* Allocate a reference for the name table.  */
+		
 		drm_gem_object_reference(obj);
 	} else {
 		args->name = (uint64_t) obj->name;
@@ -331,12 +258,7 @@ err:
 	return ret;
 }
 
-/**
- * Open an object using the global name, returning a handle and the size.
- *
- * This handle (of course) holds a reference to the object, so the object
- * will not go away until the handle is deleted.
- */
+
 int
 drm_gem_open_ioctl(struct drm_device *dev, void *data,
 		   struct drm_file *file_priv)
@@ -370,10 +292,7 @@ drm_gem_open_ioctl(struct drm_device *dev, void *data,
 	return 0;
 }
 
-/**
- * Called at device open time, sets up the structure for handling refcounting
- * of mm objects.
- */
+
 void
 drm_gem_open(struct drm_device *dev, struct drm_file *file_private)
 {
@@ -381,10 +300,7 @@ drm_gem_open(struct drm_device *dev, struct drm_file *file_private)
 	spin_lock_init(&file_private->table_lock);
 }
 
-/**
- * Called at device close to release the file's
- * handle references on objects.
- */
+
 static int
 drm_gem_object_release_handle(int id, void *ptr, void *data)
 {
@@ -395,11 +311,7 @@ drm_gem_object_release_handle(int id, void *ptr, void *data)
 	return 0;
 }
 
-/**
- * Called at close time when the filp is going away.
- *
- * Releases any remaining references on objects by this filp.
- */
+
 void
 drm_gem_release(struct drm_device *dev, struct drm_file *file_private)
 {
@@ -411,11 +323,7 @@ drm_gem_release(struct drm_device *dev, struct drm_file *file_private)
 	mutex_unlock(&dev->struct_mutex);
 }
 
-/**
- * Called after the last reference to the object has been lost.
- *
- * Frees the object
- */
+
 void
 drm_gem_object_free(struct kref *kref)
 {
@@ -434,13 +342,7 @@ drm_gem_object_free(struct kref *kref)
 }
 EXPORT_SYMBOL(drm_gem_object_free);
 
-/**
- * Called after the last handle to the object has been closed
- *
- * Removes any name for the object. Note that this must be
- * called before drm_gem_object_free or we'll be touching
- * freed memory
- */
+
 void
 drm_gem_object_handle_free(struct kref *kref)
 {
@@ -449,16 +351,13 @@ drm_gem_object_handle_free(struct kref *kref)
 						  handlecount);
 	struct drm_device *dev = obj->dev;
 
-	/* Remove any name for this object */
+	
 	spin_lock(&dev->object_name_lock);
 	if (obj->name) {
 		idr_remove(&dev->object_name_idr, obj->name);
 		obj->name = 0;
 		spin_unlock(&dev->object_name_lock);
-		/*
-		 * The object name held a reference to this object, drop
-		 * that now.
-		 */
+		
 		drm_gem_object_unreference(obj);
 	} else
 		spin_unlock(&dev->object_name_lock);
@@ -480,26 +379,14 @@ void drm_gem_vm_close(struct vm_area_struct *vma)
 	struct drm_device *dev = obj->dev;
 
 	mutex_lock(&dev->struct_mutex);
+	drm_vm_close_locked(vma);
 	drm_gem_object_unreference(obj);
 	mutex_unlock(&dev->struct_mutex);
 }
 EXPORT_SYMBOL(drm_gem_vm_close);
 
 
-/**
- * drm_gem_mmap - memory map routine for GEM objects
- * @filp: DRM file pointer
- * @vma: VMA for the area to be mapped
- *
- * If a driver supports GEM object mapping, mmap calls on the DRM file
- * descriptor will end up here.
- *
- * If we find the object based on the offset passed in (vma->vm_pgoff will
- * contain the fake offset we created when the GTT map ioctl was called on
- * the object), we set up the driver fault handler so that any accesses
- * to the object can be trapped, to perform migration, GTT binding, surface
- * register allocation, or performance monitoring.
- */
+
 int drm_gem_mmap(struct file *filp, struct vm_area_struct *vma)
 {
 	struct drm_file *priv = filp->private_data;
@@ -524,7 +411,7 @@ int drm_gem_mmap(struct file *filp, struct vm_area_struct *vma)
 		goto out_unlock;
 	}
 
-	/* Check for valid size. */
+	
 	if (map->size < vma->vm_end - vma->vm_start) {
 		ret = -EINVAL;
 		goto out_unlock;
@@ -541,15 +428,10 @@ int drm_gem_mmap(struct file *filp, struct vm_area_struct *vma)
 	vma->vm_private_data = map->handle;
 	vma->vm_page_prot =  pgprot_writecombine(vm_get_page_prot(vma->vm_flags));
 
-	/* Take a ref for this mapping of the object, so that the fault
-	 * handler can dereference the mmap offset's pointer to the object.
-	 * This reference is cleaned up by the corresponding vm_close
-	 * (which should happen whether the vma was created by this call, or
-	 * by a vm_open due to mremap or partial unmap or whatever).
-	 */
+	
 	drm_gem_object_reference(obj);
 
-	vma->vm_file = filp;	/* Needed for drm_vm_open() */
+	vma->vm_file = filp;	
 	drm_vm_open_locked(vma);
 
 out_unlock:

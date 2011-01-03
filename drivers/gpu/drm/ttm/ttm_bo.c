@@ -1,32 +1,5 @@
-/**************************************************************************
- *
- * Copyright (c) 2006-2009 VMware, Inc., Palo Alto, CA., USA
- * All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sub license, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice (including the
- * next paragraph) shall be included in all copies or substantial portions
- * of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL
- * THE COPYRIGHT HOLDERS, AUTHORS AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
- * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
- * USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- **************************************************************************/
-/*
- * Authors: Thomas Hellstrom <thellstrom-at-vmware-dot-com>
- */
+
+
 
 #include "ttm/ttm_module.h"
 #include "ttm/ttm_bo_driver.h"
@@ -146,9 +119,7 @@ static void ttm_bo_add_to_lru(struct ttm_buffer_object *bo)
 	}
 }
 
-/**
- * Call with the lru_lock held.
- */
+
 
 static int ttm_bo_del_from_lru(struct ttm_buffer_object *bo)
 {
@@ -163,10 +134,7 @@ static int ttm_bo_del_from_lru(struct ttm_buffer_object *bo)
 		++put_count;
 	}
 
-	/*
-	 * TODO: Add a driver hook to delete from
-	 * driver-specific LRU's here.
-	 */
+	
 
 	return put_count;
 }
@@ -244,9 +212,7 @@ void ttm_bo_unreserve(struct ttm_buffer_object *bo)
 }
 EXPORT_SYMBOL(ttm_bo_unreserve);
 
-/*
- * Call bo->mutex locked.
- */
+
 
 static int ttm_bo_add_ttm(struct ttm_buffer_object *bo, bool zero_alloc)
 {
@@ -308,9 +274,7 @@ static int ttm_bo_handle_move_mem(struct ttm_buffer_object *bo,
 	    ((mem->placement & bo->mem.placement & TTM_PL_MASK_CACHING) == 0))
 		ttm_bo_unmap_virtual(bo);
 
-	/*
-	 * Create and bind a ttm if required.
-	 */
+	
 
 	if (!(new_man->flags & TTM_MEMTYPE_FLAG_FIXED) && (bo->ttm == NULL)) {
 		ret = ttm_bo_add_ttm(bo, false);
@@ -385,12 +349,7 @@ out_err:
 	return ret;
 }
 
-/**
- * If bo idle, remove from delayed- and lru lists, and unref.
- * If not idle, and already on delayed list, do nothing.
- * If not idle, and not on delayed list, put on delayed list,
- *   up the list_kref and schedule a delayed list check.
- */
+
 
 static int ttm_bo_cleanup_refs(struct ttm_buffer_object *bo, bool remove_all)
 {
@@ -457,10 +416,7 @@ static int ttm_bo_cleanup_refs(struct ttm_buffer_object *bo, bool remove_all)
 	return ret;
 }
 
-/**
- * Traverse the delayed list, and call ttm_bo_cleanup_refs on all
- * encountered buffers.
- */
+
 
 static int ttm_bo_delayed_delete(struct ttm_bo_device *bdev, bool remove_all)
 {
@@ -474,10 +430,7 @@ static int ttm_bo_delayed_delete(struct ttm_bo_device *bdev, bool remove_all)
 		entry = list_entry(list, struct ttm_buffer_object, ddestroy);
 		nentry = NULL;
 
-		/*
-		 * Protect the next list entry from destruction while we
-		 * unlock the lru_lock.
-		 */
+		
 
 		if (next != &bdev->ddestroy) {
 			nentry = list_entry(next, struct ttm_buffer_object,
@@ -496,11 +449,7 @@ static int ttm_bo_delayed_delete(struct ttm_bo_device *bdev, bool remove_all)
 			spin_unlock(&glob->lru_lock);
 			kref_put(&nentry->list_kref, ttm_bo_release_list);
 			spin_lock(&glob->lru_lock);
-			/*
-			 * Someone might have raced us and removed the
-			 * next entry from the list. We don't bother restarting
-			 * list traversal.
-			 */
+			
 
 			if (!next_onlist)
 				break;
@@ -619,10 +568,7 @@ out:
 	return ret;
 }
 
-/**
- * Repeatedly evict memory from the LRU for @mem_type until we create enough
- * space, or we've evicted everything and there isn't enough space.
- */
+
 static int ttm_bo_mem_force_space(struct ttm_bo_device *bdev,
 				  struct ttm_mem_reg *mem,
 				  uint32_t mem_type,
@@ -706,9 +652,7 @@ static uint32_t ttm_bo_select_caching(struct ttm_mem_type_manager *man,
 	uint32_t caching = proposed_placement & TTM_PL_MASK_CACHING;
 	uint32_t result = proposed_placement & ~TTM_PL_MASK_CACHING;
 
-	/**
-	 * Keep current caching if possible.
-	 */
+	
 
 	if ((cur_placement & caching) != 0)
 		result |= (cur_placement & caching);
@@ -748,14 +692,7 @@ static bool ttm_bo_mt_compatible(struct ttm_mem_type_manager *man,
 	return true;
 }
 
-/**
- * Creates space for memory region @mem according to its type.
- *
- * This function first searches for free space in compatible memory types in
- * the priority order defined by the driver.  If free space isn't found, then
- * ttm_bo_mem_force_space is attempted in priority order to evict and find
- * space.
- */
+
 int ttm_bo_mem_space(struct ttm_buffer_object *bo,
 		     uint32_t proposed_placement,
 		     struct ttm_mem_reg *mem,
@@ -894,11 +831,7 @@ int ttm_bo_move_buffer(struct ttm_buffer_object *bo,
 
 	BUG_ON(!atomic_read(&bo->reserved));
 
-	/*
-	 * FIXME: It's possible to pipeline buffer moves.
-	 * Have the driver move function wait for idle when necessary,
-	 * instead of doing it here.
-	 */
+	
 
 	spin_lock(&bo->lock);
 	ret = ttm_bo_wait(bo, false, interruptible, no_wait);
@@ -911,9 +844,7 @@ int ttm_bo_move_buffer(struct ttm_buffer_object *bo,
 	mem.size = mem.num_pages << PAGE_SHIFT;
 	mem.page_alignment = bo->mem.page_alignment;
 
-	/*
-	 * Determine where to move the buffer.
-	 */
+	
 
 	ret = ttm_bo_mem_space(bo, proposed_placement, &mem,
 			       interruptible, no_wait);
@@ -955,9 +886,7 @@ int ttm_buffer_object_validate(struct ttm_buffer_object *bo,
 		  (unsigned long)proposed_placement,
 		  (unsigned long)bo->mem.placement);
 
-	/*
-	 * Check whether we need to move buffer.
-	 */
+	
 
 	if (!ttm_bo_mem_compat(bo->proposed_placement, &bo->mem)) {
 		ret = ttm_bo_move_buffer(bo, bo->proposed_placement,
@@ -976,20 +905,14 @@ int ttm_buffer_object_validate(struct ttm_buffer_object *bo,
 		}
 	}
 
-	/*
-	 * We might need to add a TTM.
-	 */
+	
 
 	if (bo->mem.mem_type == TTM_PL_SYSTEM && bo->ttm == NULL) {
 		ret = ttm_bo_add_ttm(bo, true);
 		if (ret)
 			return ret;
 	}
-	/*
-	 * Validation has succeeded, move the access and other
-	 * non-mapping-related flag bits from the proposed flags to
-	 * the active flags
-	 */
+	
 
 	ttm_flag_masked(&bo->mem.placement, bo->proposed_placement,
 			~TTM_PL_MASK_MEMTYPE);
@@ -1081,17 +1004,12 @@ int ttm_buffer_object_init(struct ttm_bo_device *bdev,
 	if (unlikely(ret != 0))
 		goto out_err;
 
-	/*
-	 * If no caching attributes are set, accept any form of caching.
-	 */
+	
 
 	if ((flags & TTM_PL_MASK_CACHING) == 0)
 		flags |= TTM_PL_MASK_CACHING;
 
-	/*
-	 * For ttm_bo_type_device buffers, allocate
-	 * address space from the device.
-	 */
+	
 
 	if (bo->type == ttm_bo_type_device) {
 		ret = ttm_bo_setup_vm(bo);
@@ -1197,9 +1115,7 @@ static int ttm_bo_force_list_clean(struct ttm_bo_device *bdev,
 	int ret;
 	int put_count;
 
-	/*
-	 * Can't use standard list traversal since we're unlocking.
-	 */
+	
 
 	spin_lock(&glob->lru_lock);
 
@@ -1459,10 +1375,7 @@ int ttm_bo_device_init(struct ttm_bo_device *bdev,
 
 	memset(bdev->man, 0, sizeof(bdev->man));
 
-	/*
-	 * Initialize the system memory buffer type.
-	 * Other types need to be driver / IOCTL initialized.
-	 */
+	
 	ret = ttm_bo_init_mm(bdev, TTM_PL_SYSTEM, 0, 0);
 	if (unlikely(ret != 0))
 		goto out_no_sys;
@@ -1491,9 +1404,7 @@ out_no_sys:
 }
 EXPORT_SYMBOL(ttm_bo_device_init);
 
-/*
- * buffer object vm functions.
- */
+
 
 bool ttm_mem_reg_is_pci(struct ttm_bo_device *bdev, struct ttm_mem_reg *mem)
 {
@@ -1570,16 +1481,7 @@ static void ttm_bo_vm_insert_rb(struct ttm_buffer_object *bo)
 	rb_insert_color(&bo->vm_rb, &bdev->addr_space_rb);
 }
 
-/**
- * ttm_bo_setup_vm:
- *
- * @bo: the buffer to allocate address space for
- *
- * Allocate address space in the drm device so that applications
- * can mmap the buffer and access the contents. This only
- * applies to ttm_bo_type_device objects as others are not
- * placed in the drm device address space.
- */
+
 
 static int ttm_bo_setup_vm(struct ttm_buffer_object *bo)
 {
@@ -1706,10 +1608,7 @@ int ttm_bo_synccpu_write_grab(struct ttm_buffer_object *bo, bool no_wait)
 {
 	int ret = 0;
 
-	/*
-	 * Using ttm_bo_reserve instead of ttm_bo_block_reservation
-	 * makes sure the lru lists are updated.
-	 */
+	
 
 	ret = ttm_bo_reserve(bo, true, no_wait, false, 0);
 	if (unlikely(ret != 0))
@@ -1729,10 +1628,7 @@ void ttm_bo_synccpu_write_release(struct ttm_buffer_object *bo)
 		wake_up_all(&bo->event_queue);
 }
 
-/**
- * A buffer object shrink method that tries to swap out the first
- * buffer object on the bo_global::swap_lru list.
- */
+
 
 static int ttm_bo_swapout(struct ttm_mem_shrink *shrink)
 {
@@ -1754,11 +1650,7 @@ static int ttm_bo_swapout(struct ttm_mem_shrink *shrink)
 				      struct ttm_buffer_object, swap);
 		kref_get(&bo->list_kref);
 
-		/**
-		 * Reserve buffer. Since we unlock while sleeping, we need
-		 * to re-check that nobody removed us from the swap-list while
-		 * we slept.
-		 */
+		
 
 		ret = ttm_bo_reserve_locked(bo, false, true, false, 0);
 		if (unlikely(ret == -EBUSY)) {
@@ -1776,9 +1668,7 @@ static int ttm_bo_swapout(struct ttm_mem_shrink *shrink)
 	while (put_count--)
 		kref_put(&bo->list_kref, ttm_bo_ref_bug);
 
-	/**
-	 * Wait for GPU, then move to system cached.
-	 */
+	
 
 	spin_lock(&bo->lock);
 	ret = ttm_bo_wait(bo, false, false, false);
@@ -1803,19 +1693,12 @@ static int ttm_bo_swapout(struct ttm_mem_shrink *shrink)
 
 	ttm_bo_unmap_virtual(bo);
 
-	/**
-	 * Swap out. Buffer will be swapped in again as soon as
-	 * anyone tries to access a ttm page.
-	 */
+	
 
 	ret = ttm_tt_swapout(bo->ttm, bo->persistant_swap_storage);
 out:
 
-	/**
-	 *
-	 * Unreserve without putting on LRU to avoid swapping out an
-	 * already swapped buffer.
-	 */
+	
 
 	atomic_set(&bo->reserved, 0);
 	wake_up_all(&bo->event_queue);

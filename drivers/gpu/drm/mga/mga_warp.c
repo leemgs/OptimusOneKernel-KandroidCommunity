@@ -1,31 +1,4 @@
-/* mga_warp.c -- Matrox G200/G400 WARP engine management -*- linux-c -*-
- * Created: Thu Jan 11 21:29:32 2001 by gareth@valinux.com
- *
- * Copyright 2000 VA Linux Systems, Inc., Sunnyvale, California.
- * All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * VA LINUX SYSTEMS AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * Authors:
- *    Gareth Hughes <gareth@valinux.com>
- */
+
 
 #include <linux/firmware.h>
 #include <linux/ihex.h>
@@ -42,7 +15,7 @@
 MODULE_FIRMWARE(FIRMWARE_G200);
 MODULE_FIRMWARE(FIRMWARE_G400);
 
-#define MGA_WARP_CODE_ALIGN		256	/* in bytes */
+#define MGA_WARP_CODE_ALIGN		256	
 
 #define WARP_UCODE_SIZE(size)		ALIGN(size, MGA_WARP_CODE_ALIGN)
 
@@ -137,8 +110,7 @@ int mga_warp_init(drm_mga_private_t * dev_priv)
 {
 	u32 wmisc;
 
-	/* FIXME: Get rid of these damned magic numbers...
-	 */
+	
 	switch (dev_priv->chipset) {
 	case MGA_CARD_TYPE_G400:
 	case MGA_CARD_TYPE_G550:

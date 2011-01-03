@@ -1,30 +1,4 @@
-/*
- * Copyright 2008 Advanced Micro Devices, Inc.
- * Copyright 2008 Red Hat Inc.
- * Copyright 2009 Jerome Glisse.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * Authors: Dave Airlie
- *          Alex Deucher
- *          Jerome Glisse
- */
+
 #include "drmP.h"
 #include "radeon.h"
 #include "r600d.h"
@@ -36,14 +10,7 @@ static int r600_cs_packet_next_reloc_nomm(struct radeon_cs_parser *p,
 typedef int (*next_reloc_t)(struct radeon_cs_parser*, struct radeon_cs_reloc**);
 static next_reloc_t r600_cs_packet_next_reloc = &r600_cs_packet_next_reloc_mm;
 
-/**
- * r600_cs_packet_parse() - parse cp packet and point ib index to next packet
- * @parser:	parser structure holding parsing context.
- * @pkt:	where to store packet informations
- *
- * Assume that chunk_ib_index is properly set. Will return -EINVAL
- * if packet is bigger than remaining ib size. or if packets is unknown.
- **/
+
 int r600_cs_packet_parse(struct radeon_cs_parser *p,
 			struct radeon_cs_packet *pkt,
 			unsigned idx)
@@ -83,17 +50,7 @@ int r600_cs_packet_parse(struct radeon_cs_parser *p,
 	return 0;
 }
 
-/**
- * r600_cs_packet_next_reloc_mm() - parse next packet which should be reloc packet3
- * @parser:		parser structure holding parsing context.
- * @data:		pointer to relocation data
- * @offset_start:	starting offset
- * @offset_mask:	offset mask (to align start offset on)
- * @reloc:		reloc informations
- *
- * Check next packet is relocation packet3, do bo validation and compute
- * GPU offset using the provided start.
- **/
+
 static int r600_cs_packet_next_reloc_mm(struct radeon_cs_parser *p,
 					struct radeon_cs_reloc **cs_reloc)
 {
@@ -124,22 +81,12 @@ static int r600_cs_packet_next_reloc_mm(struct radeon_cs_parser *p,
 			  idx, relocs_chunk->length_dw);
 		return -EINVAL;
 	}
-	/* FIXME: we assume reloc size is 4 dwords */
+	
 	*cs_reloc = p->relocs_ptr[(idx / 4)];
 	return 0;
 }
 
-/**
- * r600_cs_packet_next_reloc_nomm() - parse next packet which should be reloc packet3
- * @parser:		parser structure holding parsing context.
- * @data:		pointer to relocation data
- * @offset_start:	starting offset
- * @offset_mask:	offset mask (to align start offset on)
- * @reloc:		reloc informations
- *
- * Check next packet is relocation packet3, do bo validation and compute
- * GPU offset using the provided start.
- **/
+
 static int r600_cs_packet_next_reloc_nomm(struct radeon_cs_parser *p,
 					struct radeon_cs_reloc **cs_reloc)
 {
@@ -176,20 +123,7 @@ static int r600_cs_packet_next_reloc_nomm(struct radeon_cs_parser *p,
 	return 0;
 }
 
-/**
- * r600_cs_packet_next_vline() - parse userspace VLINE packet
- * @parser:		parser structure holding parsing context.
- *
- * Userspace sends a special sequence for VLINE waits.
- * PACKET0 - VLINE_START_END + value
- * PACKET3 - WAIT_REG_MEM poll vline status reg
- * RELOC (P3) - crtc_id in reloc.
- *
- * This function parses this and relocates the VLINE START END
- * and WAIT_REG_MEM packets to the correct crtc.
- * It also detects a switched off crtc and nulls out the
- * wait in that case.
- */
+
 static int r600_cs_packet_parse_vline(struct radeon_cs_parser *p)
 {
 	struct drm_mode_object *obj;
@@ -203,12 +137,12 @@ static int r600_cs_packet_parse_vline(struct radeon_cs_parser *p)
 
 	ib = p->ib->ptr;
 
-	/* parse the WAIT_REG_MEM */
+	
 	r = r600_cs_packet_parse(p, &wait_reg_mem, p->idx);
 	if (r)
 		return r;
 
-	/* check its a WAIT_REG_MEM */
+	
 	if (wait_reg_mem.type != PACKET_TYPE3 ||
 	    wait_reg_mem.opcode != PACKET3_WAIT_REG_MEM) {
 		DRM_ERROR("vline wait missing WAIT_REG_MEM segment\n");
@@ -217,13 +151,13 @@ static int r600_cs_packet_parse_vline(struct radeon_cs_parser *p)
 	}
 
 	wait_reg_mem_info = radeon_get_ib_value(p, wait_reg_mem.idx + 1);
-	/* bit 4 is reg (0) or mem (1) */
+	
 	if (wait_reg_mem_info & 0x10) {
 		DRM_ERROR("vline WAIT_REG_MEM waiting on MEM rather than REG\n");
 		r = -EINVAL;
 		return r;
 	}
-	/* waiting for value to be equal */
+	
 	if ((wait_reg_mem_info & 0x7) != 0x3) {
 		DRM_ERROR("vline WAIT_REG_MEM function not equal\n");
 		r = -EINVAL;
@@ -241,7 +175,7 @@ static int r600_cs_packet_parse_vline(struct radeon_cs_parser *p)
 		return r;
 	}
 
-	/* jump over the NOP */
+	
 	r = r600_cs_packet_parse(p, &p3reloc, p->idx + wait_reg_mem.count + 2);
 	if (r)
 		return r;
@@ -265,7 +199,7 @@ static int r600_cs_packet_parse_vline(struct radeon_cs_parser *p)
 	crtc_id = radeon_crtc->crtc_id;
 
 	if (!crtc->enabled) {
-		/* if the CRTC isn't enabled - we need to nop out the WAIT_REG_MEM */
+		
 		ib[h_idx + 2] = PACKET2(0);
 		ib[h_idx + 3] = PACKET2(0);
 		ib[h_idx + 4] = PACKET2(0);
@@ -399,7 +333,7 @@ static int r600_packet3_check(struct radeon_cs_parser *p,
 			DRM_ERROR("bad WAIT_REG_MEM\n");
 			return -EINVAL;
 		}
-		/* bit 4 is reg (0) or mem (1) */
+		
 		if (idx_value & 0x10) {
 			r = r600_cs_packet_next_reloc(p, &reloc);
 			if (r) {
@@ -415,7 +349,7 @@ static int r600_packet3_check(struct radeon_cs_parser *p,
 			DRM_ERROR("bad SURFACE_SYNC\n");
 			return -EINVAL;
 		}
-		/* 0xffffffff/0x0 is flush all cache flag */
+		
 		if (radeon_get_ib_value(p, idx + 1) != 0xffffffff ||
 		    radeon_get_ib_value(p, idx + 2) != 0) {
 			r = r600_cs_packet_next_reloc(p, &reloc);
@@ -484,7 +418,7 @@ static int r600_packet3_check(struct radeon_cs_parser *p,
 				ib[idx+1+i] += (u32)((reloc->lobj.gpu_offset >> 8) & 0xffffffff);
 				break;
 			case CP_COHER_BASE:
-				/* use PACKET3_SURFACE_SYNC */
+				
 				return -EINVAL;
 			default:
 				break;
@@ -528,7 +462,7 @@ static int r600_packet3_check(struct radeon_cs_parser *p,
 				break;
 			case VGT_DMA_BASE:
 			case VGT_DMA_BASE_HI:
-				/* These should be handled by DRAW_INDEX packet 3 */
+				
 			case VGT_STRMOUT_BASE_OFFSET_0:
 			case VGT_STRMOUT_BASE_OFFSET_1:
 			case VGT_STRMOUT_BASE_OFFSET_2:
@@ -545,7 +479,7 @@ static int r600_packet3_check(struct radeon_cs_parser *p,
 			case VGT_STRMOUT_BUFFER_OFFSET_1:
 			case VGT_STRMOUT_BUFFER_OFFSET_2:
 			case VGT_STRMOUT_BUFFER_OFFSET_3:
-				/* These should be handled by STRMOUT_BUFFER packet 3 */
+				
 				DRM_ERROR("bad context reg: 0x%08x\n", reg);
 				return -EINVAL;
 			default:
@@ -569,14 +503,14 @@ static int r600_packet3_check(struct radeon_cs_parser *p,
 		for (i = 0; i < (pkt->count / 7); i++) {
 			switch (G__SQ_VTX_CONSTANT_TYPE(radeon_get_ib_value(p, idx+(i*7)+6+1))) {
 			case SQ_TEX_VTX_VALID_TEXTURE:
-				/* tex base */
+				
 				r = r600_cs_packet_next_reloc(p, &reloc);
 				if (r) {
 					DRM_ERROR("bad SET_RESOURCE\n");
 					return -EINVAL;
 				}
 				ib[idx+1+(i*7)+2] += (u32)((reloc->lobj.gpu_offset >> 8) & 0xffffffff);
-				/* tex mip base */
+				
 				r = r600_cs_packet_next_reloc(p, &reloc);
 				if (r) {
 					DRM_ERROR("bad SET_RESOURCE\n");
@@ -585,7 +519,7 @@ static int r600_packet3_check(struct radeon_cs_parser *p,
 				ib[idx+1+(i*7)+3] += (u32)((reloc->lobj.gpu_offset >> 8) & 0xffffffff);
 				break;
 			case SQ_TEX_VTX_VALID_BUFFER:
-				/* vtx base */
+				
 				r = r600_cs_packet_next_reloc(p, &reloc);
 				if (r) {
 					DRM_ERROR("bad SET_RESOURCE\n");
@@ -724,14 +658,7 @@ static int r600_cs_parser_relocs_legacy(struct radeon_cs_parser *p)
 	return 0;
 }
 
-/**
- * cs_parser_fini() - clean parser states
- * @parser:	parser structure holding parsing context.
- * @error:	error number
- *
- * If error is set than unvalidate buffer, otherwise just free memory
- * used by parsing context.
- **/
+
 static void r600_cs_parser_fini(struct radeon_cs_parser *parser, int error)
 {
 	unsigned i;
@@ -754,7 +681,7 @@ int r600_cs_legacy(struct drm_device *dev, void *data, struct drm_file *filp,
 	struct radeon_ib	fake_ib;
 	int r;
 
-	/* initialize parser */
+	
 	memset(&parser, 0, sizeof(struct radeon_cs_parser));
 	parser.filp = filp;
 	parser.rdev = NULL;
@@ -773,9 +700,7 @@ int r600_cs_legacy(struct drm_device *dev, void *data, struct drm_file *filp,
 		r600_cs_parser_fini(&parser, r);
 		return r;
 	}
-	/* Copy the packet into the IB, the parser will read from the
-	 * input memory (cached) and write to the IB (which can be
-	 * uncached). */
+	
 	ib_chunk = &parser.chunks[parser.chunk_ib_idx];
 	parser.ib->length_dw = ib_chunk->length_dw;
 	*l = parser.ib->length_dw;

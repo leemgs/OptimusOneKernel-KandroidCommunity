@@ -1,27 +1,4 @@
-/*
- * Copyright (c) 2006 Dave Airlie <airlied@linux.ie>
- * Copyright (c) 2007-2008 Intel Corporation
- *   Jesse Barnes <jesse.barnes@intel.com>
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
- */
+
 #ifndef __INTEL_DRV_H__
 #define __INTEL_DRV_H__
 
@@ -32,22 +9,19 @@
 #include "drm_crtc.h"
 
 #include "drm_crtc_helper.h"
-/*
- * Display related stuff
- */
 
-/* store information about an Ixxx DVO */
-/* The i830->i865 use multiple DVOs with multiple i2cs */
-/* the i915, i945 have a single sDVO i2c bus - which is different */
+
+
+
+
 #define MAX_OUTPUTS 6
-/* maximum connectors per crtcs in the mode set */
+
 #define INTELFB_CONN_LIMIT 4
 
 #define INTEL_I2C_BUS_DVO 1
 #define INTEL_I2C_BUS_SDVO 2
 
-/* these are outputs from the chip - integrated only
-   external chips are via DVO or SDVO output */
+
 #define INTEL_OUTPUT_UNUSED 0
 #define INTEL_OUTPUT_ANALOG 1
 #define INTEL_OUTPUT_DVO 2
@@ -58,7 +32,7 @@
 #define INTEL_OUTPUT_DISPLAYPORT 7
 #define INTEL_OUTPUT_EDP 8
 
-/* Intel Pipe Clone Bit */
+
 #define INTEL_HDMIB_CLONE_BIT 1
 #define INTEL_HDMIC_CLONE_BIT 2
 #define INTEL_HDMID_CLONE_BIT 3
@@ -83,8 +57,8 @@
 #define INTEL_DVO_CHIP_TVOUT 4
 
 struct intel_i2c_chan {
-	struct drm_device *drm_dev; /* for getting at dev. private (mmio etc.) */
-	u32 reg; /* GPIO reg */
+	struct drm_device *drm_dev; 
+	u32 reg; 
 	struct i2c_adapter adapter;
 	struct i2c_algo_bit_data algo;
 };
@@ -118,7 +92,7 @@ struct intel_crtc {
 	uint32_t cursor_addr;
 	u8 lut_r[256], lut_g[256], lut_b[256];
 	int dpms_mode;
-	bool busy; /* is scanout buffer being updated frequently? */
+	bool busy; 
 	struct timer_list idle_timer;
 	bool lowfreq_avail;
 };
@@ -185,4 +159,4 @@ extern int intel_framebuffer_create(struct drm_device *dev,
 				    struct drm_framebuffer **fb,
 				    struct drm_gem_object *obj);
 
-#endif /* __INTEL_DRV_H__ */
+#endif 

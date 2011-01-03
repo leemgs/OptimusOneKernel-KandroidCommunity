@@ -1,28 +1,4 @@
-/*
- * Copyright 2007-8 Advanced Micro Devices, Inc.
- * Copyright 2008 Red Hat Inc.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * Authors: Dave Airlie
- *          Alex Deucher
- */
+
 #include <drm/drmP.h>
 #include <drm/drm_crtc_helper.h>
 #include <drm/radeon_drm.h>
@@ -60,8 +36,7 @@ static void radeon_legacy_rmx_mode_set(struct drm_crtc *crtc,
 	crtc_more_cntl = 0;
 	if ((rdev->family == CHIP_RS100) ||
 	    (rdev->family == CHIP_RS200)) {
-		/* This is to workaround the asic bug for RMX, some versions
-		   of BIOS dosen't have this register initialized correctly. */
+		
 		crtc_more_cntl |= RADEON_CRTC_H_CUTOFF_ACTIVE_EN;
 	}
 
@@ -197,7 +172,7 @@ static void radeon_legacy_rmx_mode_set(struct drm_crtc *crtc,
 
 void radeon_restore_common_regs(struct drm_device *dev)
 {
-	/* don't need this yet */
+	
 }
 
 static void radeon_pll_wait_for_read_update_complete(struct drm_device *dev)
@@ -205,10 +180,7 @@ static void radeon_pll_wait_for_read_update_complete(struct drm_device *dev)
 	struct radeon_device *rdev = dev->dev_private;
 	int i = 0;
 
-	/* FIXME: Certain revisions of R300 can't recover here.  Not sure of
-	   the cause yet, but this workaround will mask the problem for now.
-	   Other chips usually will pass at the very first test, so the
-	   workaround shouldn't have any effect on them. */
+	
 	for (i = 0;
 	     (i < 10000 &&
 	      RREG32_PLL(RADEON_PPLL_REF_DIV) & RADEON_PPLL_ATOMIC_UPDATE_R);
@@ -232,10 +204,7 @@ static void radeon_pll2_wait_for_read_update_complete(struct drm_device *dev)
 	int i = 0;
 
 
-	/* FIXME: Certain revisions of R300 can't recover here.  Not sure of
-	   the cause yet, but this workaround will mask the problem for now.
-	   Other chips usually will pass at the very first test, so the
-	   workaround shouldn't have any effect on them. */
+	
 	for (i = 0;
 	     (i < 10000 &&
 	      RREG32_PLL(RADEON_P2PLL_REF_DIV) & RADEON_P2PLL_ATOMIC_UPDATE_R);
@@ -263,24 +232,15 @@ static uint8_t radeon_compute_pll_gain(uint16_t ref_freq, uint16_t ref_div,
 
 	vcoFreq = ((unsigned)ref_freq & fb_div) / ref_div;
 
-	/*
-	 * This is horribly crude: the VCO frequency range is divided into
-	 * 3 parts, each part having a fixed PLL gain value.
-	 */
+	
 	if (vcoFreq >= 30000)
-		/*
-		 * [300..max] MHz : 7
-		 */
+		
 		return 7;
 	else if (vcoFreq >= 18000)
-		/*
-		 * [180..300) MHz : 4
-		 */
+		
 		return 4;
 	else
-		/*
-		 * [0..180) MHz : 1
-		 */
+		
 		return 1;
 }
 
@@ -328,7 +288,7 @@ void radeon_crtc_dpms(struct drm_crtc *crtc, int mode)
 	}
 }
 
-/* properly set crtc bpp when using atombios */
+
 void radeon_legacy_atom_set_surface(struct drm_crtc *crtc)
 {
 	struct drm_device *dev = crtc->dev;
@@ -343,16 +303,16 @@ void radeon_legacy_atom_set_surface(struct drm_crtc *crtc)
 	case 8:
 		format = 2;
 		break;
-	case 15:      /*  555 */
+	case 15:      
 		format = 3;
 		break;
-	case 16:      /*  565 */
+	case 16:      
 		format = 4;
 		break;
-	case 24:      /*  RGB */
+	case 24:      
 		format = 5;
 		break;
-	case 32:      /* xRGB */
+	case 32:      
 		format = 6;
 		break;
 	default:
@@ -414,16 +374,16 @@ int radeon_crtc_set_base(struct drm_crtc *crtc, int x, int y,
 	case 8:
 		format = 2;
 		break;
-	case 15:      /*  555 */
+	case 15:      
 		format = 3;
 		break;
-	case 16:      /*  565 */
+	case 16:      
 		format = 4;
 		break;
-	case 24:      /*  RGB */
+	case 24:      
 		format = 5;
 		break;
-	case 32:      /* xRGB */
+	case 32:      
 		format = 6;
 		break;
 	default:
@@ -434,8 +394,8 @@ int radeon_crtc_set_base(struct drm_crtc *crtc, int x, int y,
 	if (radeon_gem_object_pin(obj, RADEON_GEM_DOMAIN_VRAM, &base)) {
 		return -EINVAL;
 	}
-	/* if scanout was in GTT this really wouldn't work */
-	/* crtc offset is from display base addr not FB location */
+	
+	
 	radeon_crtc->legacy_display_base_addr = rdev->mc.vram_location;
 
 	base -= radeon_crtc->legacy_display_base_addr;
@@ -532,7 +492,7 @@ int radeon_crtc_set_base(struct drm_crtc *crtc, int x, int y,
 		radeon_gem_object_unpin(radeon_fb->obj);
 	}
 
-	/* Bytes per pixel may have changed */
+	
 	radeon_bandwidth_update(rdev);
 
 	return 0;
@@ -570,16 +530,16 @@ static bool radeon_set_crtc_timing(struct drm_crtc *crtc, struct drm_display_mod
 	case 8:
 		format = 2;
 		break;
-	case 15:      /*  555 */
+	case 15:      
 		format = 3;
 		break;
-	case 16:      /*  565 */
+	case 16:      
 		format = 4;
 		break;
-	case 24:      /*  RGB */
+	case 24:      
 		format = 5;
 		break;
-	case 32:      /* xRGB */
+	case 32:      
 		format = 6;
 		break;
 	default:
@@ -600,7 +560,7 @@ static bool radeon_set_crtc_timing(struct drm_crtc *crtc, struct drm_display_mod
 				   ? RADEON_CRTC_H_SYNC_POL
 				   : 0));
 
-	/* This works for double scan mode. */
+	
 	crtc_v_total_disp = (((mode->crtc_vtotal - 1) & 0xffff)
 			     | ((mode->crtc_vdisplay - 1) << 16));
 
@@ -614,7 +574,7 @@ static bool radeon_set_crtc_timing(struct drm_crtc *crtc, struct drm_display_mod
 				   ? RADEON_CRTC_V_SYNC_POL
 				   : 0));
 
-	/* TODO -> Dell Server */
+	
 	if (0) {
 		uint32_t disp_hw_debug = RREG32(RADEON_DISP_HW_DEBUG);
 		uint32_t tv_dac_cntl = RREG32(RADEON_TV_DAC_CNTL);
@@ -624,9 +584,7 @@ static bool radeon_set_crtc_timing(struct drm_crtc *crtc, struct drm_display_mod
 		dac2_cntl &= ~RADEON_DAC2_DAC_CLK_SEL;
 		dac2_cntl |= RADEON_DAC2_DAC2_CLK_SEL;
 
-		/* For CRT on DAC2, don't turn it on if BIOS didn't
-		   enable it, even it's detected.
-		*/
+		
 		disp_hw_debug |= RADEON_CRT2_DISP1_SEL;
 		tv_dac_cntl &= ~((1<<2) | (3<<8) | (7<<24) | (0xff<<16));
 		tv_dac_cntl |= (0x03 | (2<<8) | (0x58<<16));
@@ -641,7 +599,7 @@ static bool radeon_set_crtc_timing(struct drm_crtc *crtc, struct drm_display_mod
 		uint32_t crtc2_gen_cntl;
 		uint32_t disp2_merge_cntl;
 
-		/* check to see if TV DAC is enabled for another crtc and keep it enabled */
+		
 		if (RREG32(RADEON_CRTC2_GEN_CNTL) & RADEON_CRTC2_CRT2_ON)
 			crtc2_gen_cntl = RADEON_CRTC2_CRT2_ON;
 		else
@@ -729,7 +687,7 @@ static void radeon_set_pll(struct drm_crtc *crtc, struct drm_display_mode *mode)
 	uint8_t pll_gain;
 	int pll_flags = RADEON_PLL_LEGACY;
 	bool use_bios_divs = false;
-	/* PLL registers */
+	
 	uint32_t pll_ref_div = 0;
 	uint32_t pll_fb_post_div = 0;
 	uint32_t htotal_cntl = 0;
@@ -740,19 +698,15 @@ static void radeon_set_pll(struct drm_crtc *crtc, struct drm_display_mode *mode)
 		int divider;
 		int bitvalue;
 	} *post_div, post_divs[]   = {
-		/* From RAGE 128 VR/RAGE 128 GL Register
-		 * Reference Manual (Technical Reference
-		 * Manual P/N RRG-G04100-C Rev. 0.04), page
-		 * 3-17 (PLL_DIV_[3:0]).
-		 */
-		{  1, 0 },              /* VCLK_SRC                 */
-		{  2, 1 },              /* VCLK_SRC/2               */
-		{  4, 2 },              /* VCLK_SRC/4               */
-		{  8, 3 },              /* VCLK_SRC/8               */
-		{  3, 4 },              /* VCLK_SRC/3               */
-		{ 16, 5 },              /* VCLK_SRC/16              */
-		{  6, 6 },              /* VCLK_SRC/6               */
-		{ 12, 7 },              /* VCLK_SRC/12              */
+		
+		{  1, 0 },              
+		{  2, 1 },              
+		{  4, 2 },              
+		{  8, 3 },              
+		{  3, 4 },              
+		{ 16, 5 },              
+		{  6, 6 },              
+		{ 12, 7 },              
 		{  0, 0 }
 	};
 
@@ -761,7 +715,7 @@ static void radeon_set_pll(struct drm_crtc *crtc, struct drm_display_mode *mode)
 	else
 		pll = &rdev->clock.p1pll;
 
-	if (mode->clock > 200000) /* range limits??? */
+	if (mode->clock > 200000) 
 		pll_flags |= RADEON_PLL_PREFER_HIGH_FB_DIV;
 	else
 		pll_flags |= RADEON_PLL_PREFER_LOW_REF_DIV;
@@ -817,8 +771,8 @@ static void radeon_set_pll(struct drm_crtc *crtc, struct drm_display_mode *mode)
 			  post_divider);
 
 		pll_ref_div   = reference_div;
-#if defined(__powerpc__) && (0) /* TODO */
-		/* apparently programming this otherwise causes a hang??? */
+#if defined(__powerpc__) && (0) 
+		
 		if (info->MacModel == RADEON_MAC_IBOOK)
 			pll_fb_post_div = 0x000600ad;
 		else
@@ -890,7 +844,7 @@ static void radeon_set_pll(struct drm_crtc *crtc, struct drm_display_mode *mode)
 			  (unsigned)((pll_fb_post_div &
 				      RADEON_P2PLL_POST0_DIV_MASK) >> 16));
 
-		mdelay(50); /* Let the clock to lock */
+		mdelay(50); 
 
 		WREG32_PLL_P(RADEON_PIXCLKS_CNTL,
 			     RADEON_PIX2CLK_SRC_SEL_P2PLLCLK,
@@ -908,12 +862,7 @@ static void radeon_set_pll(struct drm_crtc *crtc, struct drm_display_mode *mode)
 		}
 
 		if (rdev->flags & RADEON_IS_MOBILITY) {
-			/* A temporal workaround for the occational blanking on certain laptop panels.
-			   This appears to related to the PLL divider registers (fail to lock?).
-			   It occurs even when all dividers are the same with their old settings.
-			   In this case we really don't need to fiddle with PLL registers.
-			   By doing this we can avoid the blanking problem with some panels.
-			*/
+			
 			if ((pll_ref_div == (RREG32_PLL(RADEON_PPLL_REF_DIV) & RADEON_PPLL_REF_DIV_MASK)) &&
 			    (pll_fb_post_div == (RREG32_PLL(RADEON_PPLL_DIV_3) &
 						 (RADEON_PPLL_POST3_DIV_MASK | RADEON_PPLL_FB3_DIV_MASK)))) {
@@ -948,14 +897,12 @@ static void radeon_set_pll(struct drm_crtc *crtc, struct drm_display_mode *mode)
 		    (rdev->family == CHIP_RS400) ||
 		    (rdev->family == CHIP_RS480)) {
 			if (pll_ref_div & R300_PPLL_REF_DIV_ACC_MASK) {
-				/* When restoring console mode, use saved PPLL_REF_DIV
-				 * setting.
-				 */
+				
 				WREG32_PLL_P(RADEON_PPLL_REF_DIV,
 					     pll_ref_div,
 					     0);
 			} else {
-				/* R300 uses ref_div_acc field as real ref divider */
+				
 				WREG32_PLL_P(RADEON_PPLL_REF_DIV,
 					     (pll_ref_div << R300_PPLL_REF_DIV_ACC_SHIFT),
 					     ~R300_PPLL_REF_DIV_ACC_MASK);
@@ -995,7 +942,7 @@ static void radeon_set_pll(struct drm_crtc *crtc, struct drm_display_mode *mode)
 			  pll_fb_post_div & RADEON_PPLL_FB3_DIV_MASK,
 			  (pll_fb_post_div & RADEON_PPLL_POST3_DIV_MASK) >> 16);
 
-		mdelay(50); /* Let the clock to lock */
+		mdelay(50); 
 
 		WREG32_PLL_P(RADEON_VCLK_ECP_CNTL,
 			     RADEON_VCLK_SRC_SEL_PPLLCLK,
@@ -1022,7 +969,7 @@ static int radeon_crtc_mode_set(struct drm_crtc *crtc,
 {
 	struct radeon_crtc *radeon_crtc = to_radeon_crtc(crtc);
 
-	/* TODO TV */
+	
 	radeon_crtc_set_base(crtc, x, y, old_fb);
 	radeon_set_crtc_timing(crtc, adjusted_mode);
 	radeon_set_pll(crtc, adjusted_mode);
@@ -1030,9 +977,7 @@ static int radeon_crtc_mode_set(struct drm_crtc *crtc,
 		radeon_legacy_rmx_mode_set(crtc, mode, adjusted_mode);
 	} else {
 		if (radeon_crtc->rmx_type != RMX_OFF) {
-			/* FIXME: only first crtc has rmx what should we
-			 * do ?
-			 */
+			
 			DRM_ERROR("Mode need scaling but only first crtc can do that.\n");
 		}
 	}

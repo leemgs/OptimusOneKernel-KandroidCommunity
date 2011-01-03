@@ -1,34 +1,4 @@
-/**
- * \file i915_ioc32.c
- *
- * 32-bit ioctl compatibility routines for the i915 DRM.
- *
- * \author Alan Hourihane <alanh@fairlite.demon.co.uk>
- *
- *
- * Copyright (C) Paul Mackerras 2005
- * Copyright (C) Alan Hourihane 2005
- * All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
- */
+
 #include <linux/compat.h>
 
 #include "drmP.h"
@@ -36,12 +6,12 @@
 #include "i915_drm.h"
 
 typedef struct _drm_i915_batchbuffer32 {
-	int start;		/* agp offset */
-	int used;		/* nr bytes in use */
-	int DR1;		/* hw flags for GFX_OP_DRAWRECT_INFO */
-	int DR4;		/* window origin for GFX_OP_DRAWRECT_INFO */
-	int num_cliprects;	/* mulitpass with multiple cliprects? */
-	u32 cliprects;		/* pointer to userspace cliprects */
+	int start;		
+	int used;		
+	int DR1;		
+	int DR4;		
+	int num_cliprects;	
+	u32 cliprects;		
 } drm_i915_batchbuffer32_t;
 
 static int compat_i915_batchbuffer(struct file *file, unsigned int cmd,
@@ -72,12 +42,12 @@ static int compat_i915_batchbuffer(struct file *file, unsigned int cmd,
 }
 
 typedef struct _drm_i915_cmdbuffer32 {
-	u32 buf;		/* pointer to userspace command buffer */
-	int sz;			/* nr bytes in buf */
-	int DR1;		/* hw flags for GFX_OP_DRAWRECT_INFO */
-	int DR4;		/* window origin for GFX_OP_DRAWRECT_INFO */
-	int num_cliprects;	/* mulitpass with multiple cliprects? */
-	u32 cliprects;		/* pointer to userspace cliprects */
+	u32 buf;		
+	int sz;			
+	int DR1;		
+	int DR4;		
+	int num_cliprects;	
+	u32 cliprects;		
 } drm_i915_cmdbuffer32_t;
 
 static int compat_i915_cmdbuffer(struct file *file, unsigned int cmd,
@@ -157,7 +127,7 @@ typedef struct drm_i915_mem_alloc32 {
 	int region;
 	int alignment;
 	int size;
-	u32 region_offset;	/* offset from start of fb or agp */
+	u32 region_offset;	
 } drm_i915_mem_alloc32_t;
 
 static int compat_i915_alloc(struct file *file, unsigned int cmd,
@@ -190,15 +160,7 @@ drm_ioctl_compat_t *i915_compat_ioctls[] = {
 	[DRM_I915_ALLOC] = compat_i915_alloc
 };
 
-/**
- * Called whenever a 32-bit process running under a 64-bit kernel
- * performs an ioctl on /dev/dri/card<n>.
- *
- * \param filp file pointer.
- * \param cmd command.
- * \param arg user argument.
- * \return zero on success or negative number on failure.
- */
+
 long i915_compat_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
 	unsigned int nr = DRM_IOCTL_NR(cmd);
@@ -211,7 +173,7 @@ long i915_compat_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	if (nr < DRM_COMMAND_BASE + DRM_ARRAY_SIZE(i915_compat_ioctls))
 		fn = i915_compat_ioctls[nr - DRM_COMMAND_BASE];
 
-	lock_kernel();		/* XXX for now */
+	lock_kernel();		
 	if (fn != NULL)
 		ret = (*fn) (filp, cmd, arg);
 	else

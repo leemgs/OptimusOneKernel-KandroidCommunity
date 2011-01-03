@@ -1,31 +1,5 @@
-/*
- * Copyright © 2007 David Airlie
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
- *
- * Authors:
- *     David Airlie
- */
-    /*
-     *  Modularization
-     */
+
+    
 
 #include <linux/module.h>
 #include <linux/fb.h>
@@ -58,13 +32,7 @@ static struct fb_ops radeonfb_ops = {
 	.fb_setcmap = drm_fb_helper_setcmap,
 };
 
-/**
- * Curretly it is assumed that the old framebuffer is reused.
- *
- * LOCKING
- * caller should hold the mode config lock.
- *
- */
+
 int radeonfb_resize(struct drm_device *dev, struct drm_crtc *crtc)
 {
 	struct fb_info *info;
@@ -91,7 +59,7 @@ int radeonfb_resize(struct drm_device *dev, struct drm_crtc *crtc)
 	info->var.vsync_len = mode->vsync_end - mode->vsync_start;
 	info->var.upper_margin = mode->vtotal - mode->vsync_end;
 	info->var.pixclock = 10000000 / mode->htotal * 1000 / mode->vtotal * 100;
-	/* avoid overflow */
+	
 	info->var.pixclock = info->var.pixclock * 1000 / mode->vrefresh;
 
 	return 0;
@@ -146,19 +114,19 @@ int radeonfb_create(struct drm_device *dev,
 	u64 fb_gpuaddr;
 	void *fbptr = NULL;
 	unsigned long tmp;
-	bool fb_tiled = false; /* useful for testing */
+	bool fb_tiled = false; 
 	u32 tiling_flags = 0;
 	int crtc_count;
 
 	mode_cmd.width = surface_width;
 	mode_cmd.height = surface_height;
 
-	/* avivo can't scanout real 24bpp */
+	
 	if ((surface_bpp == 24) && ASIC_IS_AVIVO(rdev))
 		surface_bpp = 32;
 
 	mode_cmd.bpp = surface_bpp;
-	/* need to align pitch with crtc limits */
+	
 	mode_cmd.pitch = radeon_align_pitch(rdev, mode_cmd.width, mode_cmd.bpp, fb_tiled) * ((mode_cmd.bpp + 1) / 8);
 	mode_cmd.depth = surface_depth;
 
@@ -259,7 +227,7 @@ int radeonfb_create(struct drm_device *dev,
 
 	drm_fb_helper_fill_var(info, fb, fb_width, fb_height);
 
-	/* setup aperture base/size for vesafb takeover */
+	
 	info->aperture_base = rdev->ddev->mode_config.fb_base;
 	info->aperture_size = rdev->mc.real_vram_size;
 

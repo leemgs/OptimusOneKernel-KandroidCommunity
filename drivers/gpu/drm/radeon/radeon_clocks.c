@@ -1,37 +1,11 @@
-/*
- * Copyright 2008 Advanced Micro Devices, Inc.
- * Copyright 2008 Red Hat Inc.
- * Copyright 2009 Jerome Glisse.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * Authors: Dave Airlie
- *          Alex Deucher
- *          Jerome Glisse
- */
+
 #include "drmP.h"
 #include "radeon_drm.h"
 #include "radeon_reg.h"
 #include "radeon.h"
 #include "atom.h"
 
-/* 10 khz */
+
 uint32_t radeon_legacy_get_engine_clock(struct radeon_device *rdev)
 {
 	struct radeon_pll *spll = &rdev->clock.spll;
@@ -57,7 +31,7 @@ uint32_t radeon_legacy_get_engine_clock(struct radeon_device *rdev)
 	return sclk;
 }
 
-/* 10 khz */
+
 static uint32_t radeon_legacy_get_memory_clock(struct radeon_device *rdev)
 {
 	struct radeon_pll *mpll = &rdev->clock.mpll;
@@ -112,7 +86,7 @@ void radeon_get_clock_info(struct drm_device *dev)
 			mpll->reference_div = spll->reference_div;
 	} else {
 		if (ASIC_IS_AVIVO(rdev)) {
-			/* TODO FALLBACK */
+			
 		} else {
 			DRM_INFO("Using generic clock info\n");
 
@@ -164,7 +138,7 @@ void radeon_get_clock_info(struct drm_device *dev)
 		}
 	}
 
-	/* pixel clocks */
+	
 	if (ASIC_IS_AVIVO(rdev)) {
 		p1pll->min_post_div = 2;
 		p1pll->max_post_div = 0x7f;
@@ -197,7 +171,7 @@ void radeon_get_clock_info(struct drm_device *dev)
 	p2pll->max_feedback_div = 0x7ff;
 	p2pll->best_vco = 0;
 
-	/* system clock */
+	
 	spll->min_post_div = 1;
 	spll->max_post_div = 1;
 	spll->min_ref_div = 2;
@@ -206,7 +180,7 @@ void radeon_get_clock_info(struct drm_device *dev)
 	spll->max_feedback_div = 0xff;
 	spll->best_vco = 0;
 
-	/* memory clock */
+	
 	mpll->min_post_div = 1;
 	mpll->max_post_div = 1;
 	mpll->min_ref_div = 2;
@@ -217,7 +191,7 @@ void radeon_get_clock_info(struct drm_device *dev)
 
 }
 
-/* 10 khz */
+
 static uint32_t calc_eng_mem_clock(struct radeon_device *rdev,
 				   uint32_t req_clock,
 				   int *fb_div, int *post_div)
@@ -256,14 +230,14 @@ static uint32_t calc_eng_mem_clock(struct radeon_device *rdev,
 	return req_clock;
 }
 
-/* 10 khz */
+
 void radeon_legacy_set_engine_clock(struct radeon_device *rdev,
 				    uint32_t eng_clock)
 {
 	uint32_t tmp;
 	int fb_div, post_div;
 
-	/* XXX: wait for idle */
+	
 
 	eng_clock = calc_eng_mem_clock(rdev, eng_clock, &fb_div, &post_div);
 
@@ -294,7 +268,7 @@ void radeon_legacy_set_engine_clock(struct radeon_device *rdev,
 	tmp |= (fb_div & RADEON_SPLL_FB_DIV_MASK) << RADEON_SPLL_FB_DIV_SHIFT;
 	WREG32_PLL(RADEON_M_SPLL_REF_FB_DIV, tmp);
 
-	/* XXX: verify on different asics */
+	
 	tmp = RREG32_PLL(RADEON_SPLL_CNTL);
 	tmp &= ~RADEON_SPLL_PVG_MASK;
 	if ((eng_clock * post_div) >= 90000)
@@ -480,13 +454,10 @@ void radeon_legacy_set_clock_gating(struct radeon_device *rdev, int enable)
 					 RADEON_FORCEON_YCLKB |
 					 RADEON_FORCEON_MC);
 
-				/* Some releases of vbios have set DISABLE_MC_MCLKA
-				   and DISABLE_MC_MCLKB bits in the vbios table.  Setting these
-				   bits will cause H/W hang when reading video memory with dynamic clocking
-				   enabled. */
+				
 				if ((tmp & R300_DISABLE_MC_MCLKA) &&
 				    (tmp & R300_DISABLE_MC_MCLKB)) {
-					/* If both bits are set, then check the active channels */
+					
 					tmp = RREG32_PLL(RADEON_MCLK_CNTL);
 					if (rdev->mc.vram_width == 64) {
 						if (RREG32(RADEON_MEM_CNTL) &
@@ -533,14 +504,12 @@ void radeon_legacy_set_clock_gating(struct radeon_device *rdev, int enable)
 			WREG32_PLL(RADEON_CLK_PIN_CNTL, tmp);
 			udelay(15000);
 
-			/* When DRI is enabled, setting DYN_STOP_LAT to zero can cause some R200
-			   to lockup randomly, leave them as set by BIOS.
-			 */
+			
 			tmp = RREG32_PLL(RADEON_SCLK_CNTL);
-			/*tmp &= RADEON_SCLK_SRC_SEL_MASK; */
+			
 			tmp &= ~RADEON_SCLK_FORCEON_MASK;
 
-			/*RAGE_6::A11 A12 A12N1 A13, RV250::A11 A12, R300 */
+			
 			if (((rdev->family == CHIP_RV250) &&
 			     ((RREG32(RADEON_CONFIG_CNTL) &
 			       RADEON_CFG_ATI_REV_ID_MASK) <
@@ -562,7 +531,7 @@ void radeon_legacy_set_clock_gating(struct radeon_device *rdev, int enable)
 				tmp = RREG32_PLL(RADEON_SCLK_MORE_CNTL);
 				tmp &= ~RADEON_SCLK_MORE_FORCEON;
 
-				/* RV200::A11 A12 RV250::A11 A12 */
+				
 				if (((rdev->family == CHIP_RV200) ||
 				     (rdev->family == CHIP_RV250)) &&
 				    ((RREG32(RADEON_CONFIG_CNTL) &
@@ -574,7 +543,7 @@ void radeon_legacy_set_clock_gating(struct radeon_device *rdev, int enable)
 				udelay(15000);
 			}
 
-			/* RV200::A11 A12, RV250::A11 A12 */
+			
 			if (((rdev->family == CHIP_RV200) ||
 			     (rdev->family == CHIP_RV250)) &&
 			    ((RREG32(RADEON_CONFIG_CNTL) &
@@ -586,7 +555,7 @@ void radeon_legacy_set_clock_gating(struct radeon_device *rdev, int enable)
 			}
 			udelay(15000);
 
-			/*enable dynamic mode for display clocks (PIXCLK and PIX2CLK) */
+			
 			tmp = RREG32_PLL(RADEON_PIXCLKS_CNTL);
 			tmp |= (RADEON_PIX2CLK_ALWAYS_ONb |
 				RADEON_PIX2CLK_DAC_ALWAYS_ONb |
@@ -607,7 +576,7 @@ void radeon_legacy_set_clock_gating(struct radeon_device *rdev, int enable)
 			udelay(15000);
 		}
 	} else {
-		/* Turn everything OFF (ForceON to everything) */
+		
 		if (rdev->flags & RADEON_SINGLE_CRTC) {
 			tmp = RREG32_PLL(RADEON_SCLK_CNTL);
 			tmp |= (RADEON_SCLK_FORCE_CP | RADEON_SCLK_FORCE_HDP |
@@ -658,7 +627,7 @@ void radeon_legacy_set_clock_gating(struct radeon_device *rdev, int enable)
 				 R300_DISP_DAC_PIXCLK_DAC2_BLANK_OFF);
 			WREG32_PLL(RADEON_PIXCLKS_CNTL, tmp);
 		} else if (rdev->family >= CHIP_RV350) {
-			/* for RV350/M10, no delays are required. */
+			
 			tmp = RREG32_PLL(R300_SCLK_CNTL2);
 			tmp |= (R300_SCLK_FORCE_TCL |
 				R300_SCLK_FORCE_GA | R300_SCLK_FORCE_CBA);
@@ -789,7 +758,7 @@ static void radeon_apply_clock_quirks(struct radeon_device *rdev)
 {
 	uint32_t tmp;
 
-	/* XXX make sure engine is idle */
+	
 
 	if (rdev->family < CHIP_RS600) {
 		tmp = RREG32_PLL(RADEON_SCLK_CNTL);
@@ -824,7 +793,7 @@ int radeon_static_clocks_init(struct drm_device *dev)
 {
 	struct radeon_device *rdev = dev->dev_private;
 
-	/* XXX make sure engine is idle */
+	
 
 	if (radeon_dynclks != -1) {
 		if (radeon_dynclks)

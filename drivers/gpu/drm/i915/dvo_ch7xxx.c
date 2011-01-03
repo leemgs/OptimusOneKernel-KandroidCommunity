@@ -1,37 +1,11 @@
-/**************************************************************************
 
-Copyright © 2006 Dave Airlie
-
-All Rights Reserved.
-
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sub license, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice (including the
-next paragraph) shall be included in all copies or substantial portions
-of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
-IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-**************************************************************************/
 
 #include "dvo.h"
 
 #define CH7xxx_REG_VID		0x4a
 #define CH7xxx_REG_DID		0x4b
 
-#define CH7011_VID		0x83 /* 7010 as well */
+#define CH7011_VID		0x83 
 #define CH7009A_VID		0x84
 #define CH7009B_VID		0x85
 #define CH7301_VID		0x95
@@ -78,9 +52,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define CH7301_SYNC_RGB_YUV	(1<<0)
 #define CH7301_SYNC_POL_DVI	(1<<5)
 
-/** @file
- * driver for the Chrontel 7xxx DVI chip over DVO.
- */
+
 
 static struct ch7xxx_id_struct {
 	uint8_t vid;
@@ -119,7 +91,7 @@ static char *ch7xxx_get_id(uint8_t vid)
 	return NULL;
 }
 
-/** Reads an 8 bit register */
+
 static bool ch7xxx_readb(struct intel_dvo_device *dvo, int addr, uint8_t *ch)
 {
 	struct ch7xxx_priv *ch7xxx= dvo->dev_priv;
@@ -158,7 +130,7 @@ static bool ch7xxx_readb(struct intel_dvo_device *dvo, int addr, uint8_t *ch)
 	return false;
 }
 
-/** Writes an 8 bit register */
+
 static bool ch7xxx_writeb(struct intel_dvo_device *dvo, int addr, uint8_t ch)
 {
 	struct ch7xxx_priv *ch7xxx = dvo->dev_priv;
@@ -189,7 +161,7 @@ static bool ch7xxx_writeb(struct intel_dvo_device *dvo, int addr, uint8_t ch)
 static bool ch7xxx_init(struct intel_dvo_device *dvo,
 			struct i2c_adapter *adapter)
 {
-	/* this will detect the CH7xxx chip on the specified i2c bus */
+	
 	struct ch7xxx_priv *ch7xxx;
 	uint8_t vendor, device;
 	char *name;
@@ -299,7 +271,7 @@ static void ch7xxx_mode_set(struct intel_dvo_device *dvo,
 	ch7xxx_writeb(dvo, CH7xxx_IDF, idf);
 }
 
-/* set the CH7xxx power state */
+
 static void ch7xxx_dpms(struct intel_dvo_device *dvo, int mode)
 {
 	if (mode == DRM_MODE_DPMS_ON)

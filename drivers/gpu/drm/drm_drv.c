@@ -1,50 +1,6 @@
-/**
- * \file drm_drv.c
- * Generic driver template
- *
- * \author Rickard E. (Rik) Faith <faith@valinux.com>
- * \author Gareth Hughes <gareth@valinux.com>
- *
- * To use this template, you must at least define the following (samples
- * given for the MGA driver):
- *
- * \code
- * #define DRIVER_AUTHOR	"VA Linux Systems, Inc."
- *
- * #define DRIVER_NAME		"mga"
- * #define DRIVER_DESC		"Matrox G200/G400"
- * #define DRIVER_DATE		"20001127"
- *
- * #define drm_x		mga_##x
- * \endcode
- */
 
-/*
- * Created: Thu Nov 23 03:10:50 2000 by gareth@valinux.com
- *
- * Copyright 1999, 2000 Precision Insight, Inc., Cedar Park, Texas.
- * Copyright 2000 VA Linux Systems, Inc., Sunnyvale, California.
- * All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * VA LINUX SYSTEMS AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
+
+
 
 #include <linux/debugfs.h>
 #include "drmP.h"
@@ -54,7 +10,7 @@
 static int drm_version(struct drm_device *dev, void *data,
 		       struct drm_file *file_priv);
 
-/** Ioctl table */
+
 static struct drm_ioctl_desc drm_ioctls[] = {
 	DRM_IOCTL_DEF(DRM_IOCTL_VERSION, drm_version, 0),
 	DRM_IOCTL_DEF(DRM_IOCTL_GET_UNIQUE, drm_getunique, 0),
@@ -100,7 +56,7 @@ static struct drm_ioctl_desc drm_ioctls[] = {
 	DRM_IOCTL_DEF(DRM_IOCTL_INFO_BUFS, drm_infobufs, DRM_AUTH),
 	DRM_IOCTL_DEF(DRM_IOCTL_MAP_BUFS, drm_mapbufs, DRM_AUTH),
 	DRM_IOCTL_DEF(DRM_IOCTL_FREE_BUFS, drm_freebufs, DRM_AUTH),
-	/* The DRM_IOCTL_DMA ioctl should be defined by the driver. */
+	
 	DRM_IOCTL_DEF(DRM_IOCTL_DMA, NULL, DRM_AUTH),
 
 	DRM_IOCTL_DEF(DRM_IOCTL_CONTROL, drm_control, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
@@ -149,15 +105,7 @@ static struct drm_ioctl_desc drm_ioctls[] = {
 
 #define DRM_CORE_IOCTL_COUNT	ARRAY_SIZE( drm_ioctls )
 
-/**
- * Take down the DRM device.
- *
- * \param dev DRM device structure.
- *
- * Frees every resource in \p dev.
- *
- * \sa drm_device
- */
+
 int drm_lastclose(struct drm_device * dev)
 {
 	struct drm_vma_entry *vma, *vma_temp;
@@ -174,17 +122,16 @@ int drm_lastclose(struct drm_device * dev)
 
 	mutex_lock(&dev->struct_mutex);
 
-	/* Free drawable information memory */
+	
 	drm_drawable_free_all(dev);
 	del_timer(&dev->timer);
 
-	/* Clear AGP information */
+	
 	if (drm_core_has_AGP(dev) && dev->agp &&
 			!drm_core_check_feature(dev, DRIVER_MODESET)) {
 		struct drm_agp_mem *entry, *tempe;
 
-		/* Remove AGP resources, but leave dev->agp
-		   intact until drv_cleanup is called. */
+		
 		list_for_each_entry_safe(entry, tempe, &dev->agp->memory, head) {
 			if (entry->bound)
 				drm_unbind_agp(entry->memory);
@@ -205,7 +152,7 @@ int drm_lastclose(struct drm_device * dev)
 		dev->sg = NULL;
 	}
 
-	/* Clear vma list (only built for debugging) */
+	
 	list_for_each_entry_safe(vma, vma_temp, &dev->vmalist, head) {
 		list_del(&vma->head);
 		kfree(vma);
@@ -232,55 +179,16 @@ int drm_lastclose(struct drm_device * dev)
 	return 0;
 }
 
-/**
- * Module initialization. Called via init_module at module load time, or via
- * linux/init/main.c (this is not currently supported).
- *
- * \return zero on success or a negative number on failure.
- *
- * Initializes an array of drm_device structures, and attempts to
- * initialize all available devices, using consecutive minors, registering the
- * stubs and initializing the AGP device.
- *
- * Expands the \c DRIVER_PREINIT and \c DRIVER_POST_INIT macros before and
- * after the initialization for driver customization.
- */
+
 int drm_init(struct drm_driver *driver)
 {
-	struct pci_dev *pdev = NULL;
-	const struct pci_device_id *pid;
-	int i;
-
 	DRM_DEBUG("\n");
-
 	INIT_LIST_HEAD(&driver->device_list);
 
-	if (driver->driver_features & DRIVER_MODESET)
-		return pci_register_driver(&driver->pci_driver);
-
-	/* If not using KMS, fall back to stealth mode manual scanning. */
-	for (i = 0; driver->pci_driver.id_table[i].vendor != 0; i++) {
-		pid = &driver->pci_driver.id_table[i];
-
-		/* Loop around setting up a DRM device for each PCI device
-		 * matching our ID and device class.  If we had the internal
-		 * function that pci_get_subsys and pci_get_class used, we'd
-		 * be able to just pass pid in instead of doing a two-stage
-		 * thing.
-		 */
-		pdev = NULL;
-		while ((pdev =
-			pci_get_subsys(pid->vendor, pid->device, pid->subvendor,
-				       pid->subdevice, pdev)) != NULL) {
-			if ((pdev->class & pid->class_mask) != pid->class)
-				continue;
-
-			/* stealth mode requires a manual probe */
-			pci_dev_get(pdev);
-			drm_get_dev(pdev, pid, driver);
-		}
-	}
-	return 0;
+	if (driver->driver_features & DRIVER_USE_PLATFORM_DEVICE)
+		return drm_platform_init(driver);
+	else
+		return drm_pci_init(driver);
 }
 
 EXPORT_SYMBOL(drm_init);
@@ -302,7 +210,7 @@ void drm_exit(struct drm_driver *driver)
 
 EXPORT_SYMBOL(drm_exit);
 
-/** File operations structure */
+
 static const struct file_operations drm_stub_fops = {
 	.owner = THIS_MODULE,
 	.open = drm_stub_open
@@ -365,17 +273,7 @@ static void __exit drm_core_exit(void)
 module_init(drm_core_init);
 module_exit(drm_core_exit);
 
-/**
- * Get version information
- *
- * \param inode device inode.
- * \param filp file pointer.
- * \param cmd command.
- * \param arg user argument, pointing to a drm_version structure.
- * \return zero on success or negative number on failure.
- *
- * Fills in the version information in \p arg.
- */
+
 static int drm_version(struct drm_device *dev, void *data,
 		       struct drm_file *file_priv)
 {
@@ -392,18 +290,7 @@ static int drm_version(struct drm_device *dev, void *data,
 	return 0;
 }
 
-/**
- * Called whenever a process performs an ioctl on /dev/drm.
- *
- * \param inode device inode.
- * \param file_priv DRM file private.
- * \param cmd command.
- * \param arg user argument.
- * \return zero on success or negative number on failure.
- *
- * Looks up the ioctl function in the ::ioctls table, checking for root
- * previleges if so required, and dispatches to the respective function.
- */
+
 int drm_ioctl(struct inode *inode, struct file *filp,
 	      unsigned int cmd, unsigned long arg)
 {
@@ -437,9 +324,9 @@ int drm_ioctl(struct inode *inode, struct file *filp,
 	} else
 		goto err_i1;
 
-	/* Do not trust userspace, use our own definition */
+	
 	func = ioctl->func;
-	/* is there a local override? */
+	
 	if ((nr == DRM_IOCTL_NR(DRM_IOCTL_DMA)) && dev->driver->dma_ioctl)
 		func = dev->driver->dma_ioctl;
 

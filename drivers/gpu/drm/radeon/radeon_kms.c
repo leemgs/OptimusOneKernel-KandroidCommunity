@@ -1,39 +1,11 @@
-/*
- * Copyright 2008 Advanced Micro Devices, Inc.
- * Copyright 2008 Red Hat Inc.
- * Copyright 2009 Jerome Glisse.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * Authors: Dave Airlie
- *          Alex Deucher
- *          Jerome Glisse
- */
+
 #include "drmP.h"
 #include "drm_sarea.h"
 #include "radeon.h"
 #include "radeon_drm.h"
 
 
-/*
- * Driver load/unload
- */
+
 int radeon_driver_load_kms(struct drm_device *dev, unsigned long flags)
 {
 	struct radeon_device *rdev;
@@ -45,7 +17,7 @@ int radeon_driver_load_kms(struct drm_device *dev, unsigned long flags)
 	}
 	dev->dev_private = (void *)rdev;
 
-	/* update BUS flag */
+	
 	if (drm_device_is_agp(dev)) {
 		flags |= RADEON_IS_AGP;
 	} else if (drm_device_is_pcie(dev)) {
@@ -54,21 +26,13 @@ int radeon_driver_load_kms(struct drm_device *dev, unsigned long flags)
 		flags |= RADEON_IS_PCI;
 	}
 
-	/* radeon_device_init should report only fatal error
-	 * like memory allocation failure or iomapping failure,
-	 * or memory manager initialization failure, it must
-	 * properly initialize the GPU MC controller and permit
-	 * VRAM allocation
-	 */
+	
 	r = radeon_device_init(rdev, dev, dev->pdev, flags);
 	if (r) {
 		DRM_ERROR("Fatal error while trying to initialize radeon.\n");
 		return r;
 	}
-	/* Again modeset_init should fail only on fatal error
-	 * otherwise it should provide enough functionalities
-	 * for shadowfb to run
-	 */
+	
 	r = radeon_modeset_init(rdev);
 	if (r) {
 		return r;
@@ -90,9 +54,7 @@ int radeon_driver_unload_kms(struct drm_device *dev)
 }
 
 
-/*
- * Userspace get informations ioctl
- */
+
 int radeon_info_ioctl(struct drm_device *dev, void *data, struct drm_file *filp)
 {
 	struct radeon_device *rdev = dev->dev_private;
@@ -127,9 +89,7 @@ int radeon_info_ioctl(struct drm_device *dev, void *data, struct drm_file *filp)
 }
 
 
-/*
- * Outdated mess for old drm with Xorg being in charge (void function now).
- */
+
 int radeon_driver_firstopen_kms(struct drm_device *dev)
 {
 	return 0;
@@ -156,9 +116,7 @@ void radeon_driver_preclose_kms(struct drm_device *dev,
 }
 
 
-/*
- * VBlank related functions.
- */
+
 u32 radeon_get_vblank_counter_kms(struct drm_device *dev, int crtc)
 {
 	struct radeon_device *rdev = dev->dev_private;
@@ -200,13 +158,11 @@ void radeon_disable_vblank_kms(struct drm_device *dev, int crtc)
 }
 
 
-/*
- * IOCTL.
- */
+
 int radeon_dma_ioctl_kms(struct drm_device *dev, void *data,
 			 struct drm_file *file_priv)
 {
-	/* Not valid in KMS. */
+	
 	return -EINVAL;
 }
 
@@ -217,9 +173,7 @@ int name(struct drm_device *dev, void *data, struct drm_file *file_priv)\
 	return -EINVAL;							\
 }
 
-/*
- * All these ioctls are invalid in kms world.
- */
+
 KMS_INVALID_IOCTL(radeon_cp_init_kms)
 KMS_INVALID_IOCTL(radeon_cp_start_kms)
 KMS_INVALID_IOCTL(radeon_cp_stop_kms)
@@ -277,7 +231,7 @@ struct drm_ioctl_desc radeon_ioctls_kms[] = {
 	DRM_IOCTL_DEF(DRM_RADEON_SETPARAM, radeon_cp_setparam_kms, DRM_AUTH),
 	DRM_IOCTL_DEF(DRM_RADEON_SURF_ALLOC, radeon_surface_alloc_kms, DRM_AUTH),
 	DRM_IOCTL_DEF(DRM_RADEON_SURF_FREE, radeon_surface_free_kms, DRM_AUTH),
-	/* KMS */
+	
 	DRM_IOCTL_DEF(DRM_RADEON_GEM_INFO, radeon_gem_info_ioctl, DRM_AUTH),
 	DRM_IOCTL_DEF(DRM_RADEON_GEM_CREATE, radeon_gem_create_ioctl, DRM_AUTH),
 	DRM_IOCTL_DEF(DRM_RADEON_GEM_MMAP, radeon_gem_mmap_ioctl, DRM_AUTH),

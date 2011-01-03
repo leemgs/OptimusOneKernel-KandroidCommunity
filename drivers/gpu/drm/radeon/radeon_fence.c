@@ -1,33 +1,5 @@
-/*
- * Copyright 2009 Jerome Glisse.
- * All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sub license, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL
- * THE COPYRIGHT HOLDERS, AUTHORS AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
- * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
- * USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- * The above copyright notice and this permission notice (including the
- * next paragraph) shall be included in all copies or substantial portions
- * of the Software.
- *
- */
-/*
- * Authors:
- *    Jerome Glisse <glisse@freedesktop.org>
- *    Dave Airlie
- */
+
+
 #include <linux/seq_file.h>
 #include <asm/atomic.h>
 #include <linux/wait.h>
@@ -49,9 +21,7 @@ int radeon_fence_emit(struct radeon_device *rdev, struct radeon_fence *fence)
 	}
 	fence->seq = atomic_add_return(1, &rdev->fence_drv.seq);
 	if (!rdev->cp.ready) {
-		/* FIXME: cp is not running assume everythings is done right
-		 * away
-		 */
+		
 		WREG32(rdev->fence_drv.scratch_reg, fence->seq);
 	} else
 		radeon_fence_ring_emit(rdev, fence);
@@ -87,7 +57,7 @@ static bool radeon_fence_poll_locked(struct radeon_device *rdev)
 			break;
 		}
 	}
-	/* all fence previous to this one are considered as signaled */
+	
 	if (n) {
 		i = n;
 		do {
@@ -152,7 +122,7 @@ bool radeon_fence_signaled(struct radeon_fence *fence)
 	}
 	write_lock_irqsave(&fence->rdev->fence_drv.lock, irq_flags);
 	signaled = fence->signaled;
-	/* if we are shuting down report all fence as signaled */
+	
 	if (fence->rdev->shutdown) {
 		signaled = true;
 	}
@@ -389,9 +359,7 @@ void radeon_fence_driver_fini(struct radeon_device *rdev)
 }
 
 
-/*
- * Fence debugfs
- */
+
 #if defined(CONFIG_DEBUG_FS)
 static int radeon_debugfs_fence_info(struct seq_file *m, void *data)
 {

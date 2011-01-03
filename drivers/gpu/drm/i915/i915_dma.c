@@ -1,30 +1,5 @@
-/* i915_dma.c -- DMA support for the I915 -*- linux-c -*-
- */
-/*
- * Copyright 2003 Tungsten Graphics, Inc., Cedar Park, Texas.
- * All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sub license, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice (including the
- * next paragraph) shall be included in all copies or substantial portions
- * of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
- * IN NO EVENT SHALL TUNGSTEN GRAPHICS AND/OR ITS SUPPLIERS BE LIABLE FOR
- * ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- */
+
+
 
 #include "drmP.h"
 #include "drm.h"
@@ -36,11 +11,7 @@
 #include "i915_trace.h"
 #include <linux/vgaarb.h>
 
-/* Really want an OS-independent resettable timer.  Would like to have
- * this loop run for (eg) 3 sec, but have the timer reset every time
- * the head pointer changes, so that EBUSY only happens if the ring
- * actually stalls for (eg) 3 seconds.
- */
+
 int i915_wait_ring(struct drm_device * dev, int n, const char *caller)
 {
 	drm_i915_private_t *dev_priv = dev->dev_private;
@@ -86,9 +57,7 @@ int i915_wait_ring(struct drm_device * dev, int n, const char *caller)
 	return -EBUSY;
 }
 
-/* As a ringbuffer is only allowed to wrap between instructions, fill
- * the tail with NOOPs.
- */
+
 int i915_wrap_ring(struct drm_device *dev)
 {
 	drm_i915_private_t *dev_priv = dev->dev_private;
@@ -114,14 +83,11 @@ int i915_wrap_ring(struct drm_device *dev)
 	return 0;
 }
 
-/**
- * Sets up the hardware status page for devices that need a physical address
- * in the register.
- */
+
 static int i915_init_phys_hws(struct drm_device *dev)
 {
 	drm_i915_private_t *dev_priv = dev->dev_private;
-	/* Program Hardware Status Page */
+	
 	dev_priv->status_page_dmah =
 		drm_pci_alloc(dev, PAGE_SIZE, PAGE_SIZE);
 
@@ -139,10 +105,7 @@ static int i915_init_phys_hws(struct drm_device *dev)
 	return 0;
 }
 
-/**
- * Frees the hardware status page, whether it's a physical address or a virtual
- * address set up by the X Server.
- */
+
 static void i915_free_hws(struct drm_device *dev)
 {
 	drm_i915_private_t *dev_priv = dev->dev_private;
@@ -156,7 +119,7 @@ static void i915_free_hws(struct drm_device *dev)
 		drm_core_ioremapfree(&dev_priv->hws_map, dev);
 	}
 
-	/* Need to rewrite hardware status page */
+	
 	I915_WRITE(HWS_PGA, 0x1ffff000);
 }
 
@@ -166,10 +129,7 @@ void i915_kernel_lost_context(struct drm_device * dev)
 	struct drm_i915_master_private *master_priv;
 	drm_i915_ring_buffer_t *ring = &(dev_priv->ring);
 
-	/*
-	 * We should never lose context on the ring with modesetting
-	 * as we don't expose it to userspace
-	 */
+	
 	if (drm_core_check_feature(dev, DRIVER_MODESET))
 		return;
 
@@ -190,10 +150,7 @@ void i915_kernel_lost_context(struct drm_device * dev)
 static int i915_dma_cleanup(struct drm_device * dev)
 {
 	drm_i915_private_t *dev_priv = dev->dev_private;
-	/* Make sure interrupts are disabled here because the uninstall ioctl
-	 * may not have been called from userspace and after dev_private
-	 * is freed, it's too late.
-	 */
+	
 	if (dev->irq_enabled)
 		drm_irq_uninstall(dev);
 
@@ -204,7 +161,7 @@ static int i915_dma_cleanup(struct drm_device * dev)
 		dev_priv->ring.map.size = 0;
 	}
 
-	/* Clear the HWS virtual address at teardown */
+	
 	if (I915_NEED_GFX_HWS(dev))
 		i915_free_hws(dev);
 
@@ -259,8 +216,7 @@ static int i915_initialize(struct drm_device * dev, drm_i915_init_t * init)
 	if (master_priv->sarea_priv)
 		master_priv->sarea_priv->pf_current_page = 0;
 
-	/* Allow hardware batchbuffers unless told otherwise.
-	 */
+	
 	dev_priv->allow_batchbuffer = 1;
 
 	return 0;
@@ -278,7 +234,7 @@ static int i915_dma_resume(struct drm_device * dev)
 		return -ENOMEM;
 	}
 
-	/* Program Hardware Status Page */
+	
 	if (!dev_priv->hw_status_page) {
 		DRM_ERROR("Can not find hardware status page\n");
 		return -EINVAL;
@@ -319,32 +275,24 @@ static int i915_dma_init(struct drm_device *dev, void *data,
 	return retcode;
 }
 
-/* Implement basically the same security restrictions as hardware does
- * for MI_BATCH_NON_SECURE.  These can be made stricter at any time.
- *
- * Most of the calculations below involve calculating the size of a
- * particular instruction.  It's important to get the size right as
- * that tells us where the next instruction to check is.  Any illegal
- * instruction detected will be given a size of zero, which is a
- * signal to abort the rest of the buffer.
- */
+
 static int do_validate_cmd(int cmd)
 {
 	switch (((cmd >> 29) & 0x7)) {
 	case 0x0:
 		switch ((cmd >> 23) & 0x3f) {
 		case 0x0:
-			return 1;	/* MI_NOOP */
+			return 1;	
 		case 0x4:
-			return 1;	/* MI_FLUSH */
+			return 1;	
 		default:
-			return 0;	/* disallow everything else */
+			return 0;	
 		}
 		break;
 	case 0x1:
-		return 0;	/* reserved */
+		return 0;	
 	case 0x2:
-		return (cmd & 0xff) + 2;	/* 2d commands */
+		return (cmd & 0xff) + 2;	
 	case 0x3:
 		if (((cmd >> 24) & 0x1f) <= 0x18)
 			return 1;
@@ -367,15 +315,15 @@ static int do_validate_cmd(int cmd)
 			else
 				return 1;
 		case 0x1f:
-			if ((cmd & (1 << 23)) == 0)	/* inline vertices */
+			if ((cmd & (1 << 23)) == 0)	
 				return (cmd & 0x1ffff) + 2;
-			else if (cmd & (1 << 17))	/* indirect random */
+			else if (cmd & (1 << 17))	
 				if ((cmd & 0xffff) == 0)
-					return 0;	/* unknown length, too hard */
+					return 0;	
 				else
 					return (((cmd & 0xffff) + 1) / 2) + 1;
 			else
-				return 2;	/* indirect sequential */
+				return 2;	
 		default:
 			return 0;
 		}
@@ -390,7 +338,7 @@ static int validate_cmd(int cmd)
 {
 	int ret = do_validate_cmd(cmd);
 
-/*	printk("validate_cmd( %x ): %d\n", cmd, ret); */
+
 
 	return ret;
 }
@@ -465,9 +413,7 @@ i915_emit_box(struct drm_device *dev,
 	return 0;
 }
 
-/* XXX: Emitting the counter should really be moved to part of the IRQ
- * emit. For now, do it in both places:
- */
+
 
 static void i915_emit_breadcrumb(struct drm_device *dev)
 {
@@ -845,7 +791,7 @@ static int i915_setparam(struct drm_device *dev, void *data,
 		if (param->value > dev_priv->num_fence_regs ||
 		    param->value < 0)
 			return -EINVAL;
-		/* Userspace can use first N regs */
+		
 		dev_priv->fence_reg_start = param->value;
 		break;
 	default:
@@ -917,16 +863,7 @@ static int i915_get_bridge_dev(struct drm_device *dev)
 	return 0;
 }
 
-/**
- * i915_probe_agp - get AGP bootup configuration
- * @pdev: PCI device
- * @aperture_size: returns AGP aperture configured size
- * @preallocated_size: returns size of BIOS preallocated AGP space
- *
- * Since Intel integrated graphics are UMA, the BIOS has to set aside
- * some RAM for the framebuffer at early boot.  This code figures out
- * how much was set aside so we can use it for our own purposes.
- */
+
 static int i915_probe_agp(struct drm_device *dev, uint32_t *aperture_size,
 			  uint32_t *preallocated_size,
 			  uint32_t *start)
@@ -936,7 +873,7 @@ static int i915_probe_agp(struct drm_device *dev, uint32_t *aperture_size,
 	unsigned long overhead;
 	unsigned long stolen;
 
-	/* Get the fb aperture size and "stolen" memory amount. */
+	
 	pci_read_config_word(dev_priv->bridge_dev, INTEL_GMCH_CTRL, &tmp);
 
 	*aperture_size = 1024 * 1024;
@@ -953,15 +890,12 @@ static int i915_probe_agp(struct drm_device *dev, uint32_t *aperture_size,
 			*aperture_size *= 128;
 		break;
 	default:
-		/* 9xx supports large sizes, just look at the length */
+		
 		*aperture_size = pci_resource_len(dev->pdev, 2);
 		break;
 	}
 
-	/*
-	 * Some of the preallocated space is taken by the GTT
-	 * and popup.  GTT is 1K per MB of aperture size, and popup is 4K.
-	 */
+	
 	if (IS_G4X(dev) || IS_IGD(dev) || IS_IGDNG(dev))
 		overhead = 4096;
 	else
@@ -1022,23 +956,14 @@ static int i915_probe_agp(struct drm_device *dev, uint32_t *aperture_size,
 }
 
 #define PTE_ADDRESS_MASK		0xfffff000
-#define PTE_ADDRESS_MASK_HIGH		0x000000f0 /* i915+ */
+#define PTE_ADDRESS_MASK_HIGH		0x000000f0 
 #define PTE_MAPPING_TYPE_UNCACHED	(0 << 1)
-#define PTE_MAPPING_TYPE_DCACHE		(1 << 1) /* i830 only */
+#define PTE_MAPPING_TYPE_DCACHE		(1 << 1) 
 #define PTE_MAPPING_TYPE_CACHED		(3 << 1)
 #define PTE_MAPPING_TYPE_MASK		(3 << 1)
 #define PTE_VALID			(1 << 0)
 
-/**
- * i915_gtt_to_phys - take a GTT address and turn it into a physical one
- * @dev: drm device
- * @gtt_addr: address to translate
- *
- * Some chip functions require allocations from stolen space but need the
- * physical address of the memory in question.  We use this routine
- * to get a physical address suitable for register programming from a given
- * GTT address.
- */
+
 static unsigned long i915_gtt_to_phys(struct drm_device *dev,
 				      unsigned long gtt_addr)
 {
@@ -1072,13 +997,13 @@ static unsigned long i915_gtt_to_phys(struct drm_device *dev,
 
 	DRM_DEBUG("GTT addr: 0x%08lx, PTE: 0x%08lx\n", gtt_addr, entry);
 
-	/* Mask out these reserved bits on this hardware. */
+	
 	if (!IS_I9XX(dev) || IS_I915G(dev) || IS_I915GM(dev) ||
 	    IS_I945G(dev) || IS_I945GM(dev)) {
 		entry &= ~PTE_ADDRESS_MASK_HIGH;
 	}
 
-	/* If it's not a mapping type we know, then bail. */
+	
 	if ((entry & PTE_MAPPING_TYPE_MASK) != PTE_MAPPING_TYPE_UNCACHED &&
 	    (entry & PTE_MAPPING_TYPE_MASK) != PTE_MAPPING_TYPE_CACHED)	{
 		iounmap(gtt);
@@ -1114,7 +1039,7 @@ static void i915_setup_compression(struct drm_device *dev, int size)
 	unsigned long cfb_base;
 	unsigned long ll_base = 0;
 
-	/* Leave 1M for line length buffer & misc. */
+	
 	compressed_fb = drm_mm_search_free(&dev_priv->vram, size, 4096, 0);
 	if (!compressed_fb) {
 		i915_warn_stolen(dev);
@@ -1170,7 +1095,7 @@ static void i915_setup_compression(struct drm_device *dev, int size)
 		  ll_base, size >> 20);
 }
 
-/* true = enable decode, false = disable decoder */
+
 static unsigned int i915_vga_set_decode(void *cookie, bool state)
 {
 	struct drm_device *dev = cookie;
@@ -1203,22 +1128,14 @@ static int i915_load_modeset_init(struct drm_device *dev,
 	if (IS_I965G(dev) || IS_G33(dev))
 		dev_priv->cursor_needs_physical = false;
 
-	/* Basic memrange allocator for stolen space (aka vram) */
+	
 	drm_mm_init(&dev_priv->vram, 0, prealloc_size);
 	DRM_INFO("set up %ldM of stolen space\n", prealloc_size / (1024*1024));
 
-	/* We're off and running w/KMS */
+	
 	dev_priv->mm.suspended = 0;
 
-	/* Let GEM Manage from end of prealloc space to end of aperture.
-	 *
-	 * However, leave one page at the end still bound to the scratch page.
-	 * There are a number of places where the hardware apparently
-	 * prefetches past the end of the object, and we've seen multiple
-	 * hangs with the GPU head pointer stuck in a batchbuffer bound
-	 * at the last page of the aperture.  One page should be enough to
-	 * keep any prefetching inside of the aperture.
-	 */
+	
 	i915_gem_do_init(dev, prealloc_size, agp_size - 4096);
 
 	mutex_lock(&dev->struct_mutex);
@@ -1227,27 +1144,26 @@ static int i915_load_modeset_init(struct drm_device *dev,
 	if (ret)
 		goto out;
 
-	/* Try to set up FBC with a reasonable compressed buffer size */
+	
 	if (I915_HAS_FBC(dev) && i915_powersave) {
 		int cfb_size;
 
-		/* Try to get an 8M buffer... */
+		
 		if (prealloc_size > (9*1024*1024))
 			cfb_size = 8*1024*1024;
-		else /* fall back to 7/8 of the stolen space */
+		else 
 			cfb_size = prealloc_size * 7 / 8;
 		i915_setup_compression(dev, cfb_size);
 	}
 
-	/* Allow hardware batchbuffers unless told otherwise.
-	 */
+	
 	dev_priv->allow_batchbuffer = 1;
 
 	ret = intel_init_bios(dev);
 	if (ret)
 		DRM_INFO("failed to find VBIOS tables\n");
 
-	/* if we have > 1 VGA cards, then disable the radeon VGA resources */
+	
 	ret = vga_client_register(dev->pdev, dev, NULL, i915_vga_set_decode);
 	if (ret)
 		goto destroy_ringbuffer;
@@ -1258,13 +1174,11 @@ static int i915_load_modeset_init(struct drm_device *dev,
 	if (ret)
 		goto destroy_ringbuffer;
 
-	/* Always safe in the mode setting case. */
-	/* FIXME: do pre/post-mode set stuff in core KMS code */
+	
+	
 	dev->vblank_disable_allowed = 1;
 
-	/*
-	 * Initialize the hardware status page IRQ location.
-	 */
+	
 
 	I915_WRITE(INSTPM, (1 << 5) | (1 << 21));
 
@@ -1314,16 +1228,16 @@ static void i915_get_mem_freq(struct drm_device *dev)
 
 	switch (tmp & CLKCFG_FSB_MASK) {
 	case CLKCFG_FSB_533:
-		dev_priv->fsb_freq = 533; /* 133*4 */
+		dev_priv->fsb_freq = 533; 
 		break;
 	case CLKCFG_FSB_800:
-		dev_priv->fsb_freq = 800; /* 200*4 */
+		dev_priv->fsb_freq = 800; 
 		break;
 	case CLKCFG_FSB_667:
-		dev_priv->fsb_freq =  667; /* 167*4 */
+		dev_priv->fsb_freq =  667; 
 		break;
 	case CLKCFG_FSB_400:
-		dev_priv->fsb_freq = 400; /* 100*4 */
+		dev_priv->fsb_freq = 400; 
 		break;
 	}
 
@@ -1340,17 +1254,7 @@ static void i915_get_mem_freq(struct drm_device *dev)
 	}
 }
 
-/**
- * i915_driver_load - setup chip and create an initial config
- * @dev: DRM device
- * @flags: startup flags
- *
- * The driver load routine has to do several things:
- *   - drive output discovery via intel_modeset_init()
- *   - initialize the memory manager
- *   - allocate initial config memory
- *   - setup the DRM framebuffer with the allocated memory
- */
+
 int i915_driver_load(struct drm_device *dev, unsigned long flags)
 {
 	struct drm_i915_private *dev_priv = dev->dev_private;
@@ -1358,7 +1262,7 @@ int i915_driver_load(struct drm_device *dev, unsigned long flags)
 	int ret = 0, mmio_bar = IS_I9XX(dev) ? 0 : 1;
 	uint32_t agp_size, prealloc_size, prealloc_start;
 
-	/* i915 has 4 more counters */
+	
 	dev->counters += 4;
 	dev->types[6] = _DRM_STAT_IRQ;
 	dev->types[7] = _DRM_STAT_PRIMARY;
@@ -1372,7 +1276,7 @@ int i915_driver_load(struct drm_device *dev, unsigned long flags)
 	dev->dev_private = (void *)dev_priv;
 	dev_priv->dev = dev;
 
-	/* Add register map (needed for suspend/resume) */
+	
 	base = drm_get_resource_start(dev, mmio_bar);
 	size = drm_get_resource_len(dev, mmio_bar);
 
@@ -1396,11 +1300,7 @@ int i915_driver_load(struct drm_device *dev, unsigned long flags)
 		goto out_rmmap;
 	}
 
-	/* Set up a WC MTRR for non-PAT systems.  This is more common than
-	 * one would think, because the kernel disables PAT on first
-	 * generation Core chips because WC PAT gets overridden by a UC
-	 * MTRR if present.  Even if a UC MTRR isn't present.
-	 */
+	
 	dev_priv->mm.gtt_mtrr = mtrr_add(dev->agp->base,
 					 dev->agp->agp_info.aper_size *
 					 1024 * 1024,
@@ -1421,7 +1321,7 @@ int i915_driver_load(struct drm_device *dev, unsigned long flags)
 		goto out_iomapfree;
 	}
 
-	/* enable GEM by default */
+	
 	dev_priv->has_gem = 1;
 
 	if (prealloc_size > agp_size * 3 / 4) {
@@ -1434,15 +1334,15 @@ int i915_driver_load(struct drm_device *dev, unsigned long flags)
 	}
 
 	dev->driver->get_vblank_counter = i915_get_vblank_counter;
-	dev->max_vblank_count = 0xffffff; /* only 24 bits of frame count */
+	dev->max_vblank_count = 0xffffff; 
 	if (IS_G4X(dev) || IS_IGDNG(dev)) {
-		dev->max_vblank_count = 0xffffffff; /* full 32 bit counter */
+		dev->max_vblank_count = 0xffffffff; 
 		dev->driver->get_vblank_counter = gm45_get_vblank_counter;
 	}
 
 	i915_gem_load(dev);
 
-	/* Init HWS */
+	
 	if (!I915_NEED_GFX_HWS(dev)) {
 		ret = i915_init_phys_hws(dev);
 		if (ret != 0)
@@ -1451,17 +1351,7 @@ int i915_driver_load(struct drm_device *dev, unsigned long flags)
 
 	i915_get_mem_freq(dev);
 
-	/* On the 945G/GM, the chipset reports the MSI capability on the
-	 * integrated graphics even though the support isn't actually there
-	 * according to the published specs.  It doesn't appear to function
-	 * correctly in testing on 945G.
-	 * This may be a side effect of MSI having been made available for PEG
-	 * and the registers being closely associated.
-	 *
-	 * According to chipset errata, on the 965GM, MSI interrupts may
-	 * be lost or delayed, but we use them anyways to avoid
-	 * stuck interrupts on some machines.
-	 */
+	
 	if (!IS_I945G(dev) && !IS_I945GM(dev))
 		pci_enable_msi(dev->pdev);
 
@@ -1477,7 +1367,7 @@ int i915_driver_load(struct drm_device *dev, unsigned long flags)
 		return ret;
 	}
 
-	/* Start out suspended */
+	
 	dev_priv->mm.suspended = 1;
 
 	if (drm_core_check_feature(dev, DRIVER_MODESET)) {
@@ -1489,8 +1379,8 @@ int i915_driver_load(struct drm_device *dev, unsigned long flags)
 		}
 	}
 
-	/* Must be done after probing outputs */
-	/* FIXME: verify on IGDNG */
+	
+	
 	if (!IS_IGDNG(dev))
 		intel_opregion_init(dev, 0);
 
@@ -1575,18 +1465,7 @@ int i915_driver_open(struct drm_device *dev, struct drm_file *file_priv)
 	return 0;
 }
 
-/**
- * i915_driver_lastclose - clean up after all DRM clients have exited
- * @dev: DRM device
- *
- * Take care of cleaning up after all DRM clients have exited.  In the
- * mode setting case, we want to restore the kernel's initial mode (just
- * in case the last client left us in a bad state).
- *
- * Additionally, in the non-mode setting case, we'll tear down the AGP
- * and DMA structures, since the kernel won't be using them, and clea
- * up any GEM state.
- */
+
 void i915_driver_lastclose(struct drm_device * dev)
 {
 	drm_i915_private_t *dev_priv = dev->dev_private;
@@ -1661,17 +1540,7 @@ struct drm_ioctl_desc i915_ioctls[] = {
 
 int i915_max_ioctl = DRM_ARRAY_SIZE(i915_ioctls);
 
-/**
- * Determine if the device really is AGP or not.
- *
- * All Intel graphics chipsets are treated as AGP, even if they are really
- * PCI-e.
- *
- * \param dev   The device to be tested.
- *
- * \returns
- * A value of 1 is always retured to indictate every i9x5 is AGP.
- */
+
 int i915_driver_device_is_agp(struct drm_device * dev)
 {
 	return 1;

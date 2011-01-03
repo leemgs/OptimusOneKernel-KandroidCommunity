@@ -1,34 +1,5 @@
-/* radeon_irq.c -- IRQ handling for radeon -*- linux-c -*- */
-/*
- * Copyright (C) The Weather Channel, Inc.  2002.  All Rights Reserved.
- *
- * The Weather Channel (TM) funded Tungsten Graphics to develop the
- * initial release of the Radeon 8500 driver under the XFree86 license.
- * This notice must be preserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * PRECISION INSIGHT AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
- *
- * Authors:
- *    Keith Whitwell <keith@tungstengraphics.com>
- *    Michel D�zer <michel@daenzer.net>
- */
+
+
 
 #include "drmP.h"
 #include "drm.h"
@@ -136,10 +107,10 @@ static inline u32 radeon_acknowledge_irqs(drm_radeon_private_t *dev_priv, u32 *r
 
 	*r500_disp_int = 0;
 	if ((dev_priv->flags & RADEON_FAMILY_MASK) >= CHIP_RS600) {
-		/* vbl interrupts in a different place */
+		
 
 		if (irqs & R500_DISPLAY_INT_STATUS) {
-			/* if a display interrupt */
+			
 			u32 disp_irq;
 
 			disp_irq = RADEON_READ(R500_DISP_INTERRUPT_STATUS);
@@ -162,23 +133,7 @@ static inline u32 radeon_acknowledge_irqs(drm_radeon_private_t *dev_priv, u32 *r
 	return irqs;
 }
 
-/* Interrupts - Used for device synchronization and flushing in the
- * following circumstances:
- *
- * - Exclusive FB access with hw idle:
- *    - Wait for GUI Idle (?) interrupt, then do normal flush.
- *
- * - Frame throttling, NV_fence:
- *    - Drop marker irq's into command stream ahead of time.
- *    - Wait on irq's with lock *not held*
- *    - Check each for termination condition
- *
- * - Internally in cp_getbuffer, etc:
- *    - as above, but wait with lock held???
- *
- * NOTE: These functions are misleadingly named -- the irq's aren't
- * tied to dma at all, this is just a hangover from dri prehistory.
- */
+
 
 irqreturn_t radeon_driver_irq_handler(DRM_IRQ_ARGS)
 {
@@ -191,20 +146,18 @@ irqreturn_t radeon_driver_irq_handler(DRM_IRQ_ARGS)
 	if ((dev_priv->flags & RADEON_FAMILY_MASK) >= CHIP_R600)
 		return IRQ_NONE;
 
-	/* Only consider the bits we're interested in - others could be used
-	 * outside the DRM
-	 */
+	
 	stat = radeon_acknowledge_irqs(dev_priv, &r500_disp_int);
 	if (!stat)
 		return IRQ_NONE;
 
 	stat &= dev_priv->irq_enable_reg;
 
-	/* SW interrupt */
+	
 	if (stat & RADEON_SW_INT_TEST)
 		DRM_WAKEUP(&dev_priv->swi_queue);
 
-	/* VBLANK interrupt */
+	
 	if ((dev_priv->flags & RADEON_FAMILY_MASK) >= CHIP_RS600) {
 		if (r500_disp_int & R500_D1_VBLANK_INTERRUPT)
 			drm_handle_vblank(dev, 0);
@@ -281,8 +234,7 @@ u32 radeon_get_vblank_counter(struct drm_device *dev, int crtc)
 	}
 }
 
-/* Needs the lock as it touches the ring.
- */
+
 int radeon_irq_emit(struct drm_device *dev, void *data, struct drm_file *file_priv)
 {
 	drm_radeon_private_t *dev_priv = dev->dev_private;
@@ -309,8 +261,7 @@ int radeon_irq_emit(struct drm_device *dev, void *data, struct drm_file *file_pr
 	return 0;
 }
 
-/* Doesn't need the hardware lock.
- */
+
 int radeon_irq_wait(struct drm_device *dev, void *data, struct drm_file *file_priv)
 {
 	drm_radeon_private_t *dev_priv = dev->dev_private;
@@ -327,8 +278,7 @@ int radeon_irq_wait(struct drm_device *dev, void *data, struct drm_file *file_pr
 	return radeon_wait_irq(dev, irqwait->irq_seq);
 }
 
-/* drm_dma.h hooks
-*/
+
 void radeon_driver_irq_preinstall(struct drm_device * dev)
 {
 	drm_radeon_private_t *dev_priv =
@@ -338,12 +288,12 @@ void radeon_driver_irq_preinstall(struct drm_device * dev)
 	if ((dev_priv->flags & RADEON_FAMILY_MASK) >= CHIP_R600)
 		return;
 
-	/* Disable *all* interrupts */
+	
 	if ((dev_priv->flags & RADEON_FAMILY_MASK) >= CHIP_RS600)
 		RADEON_WRITE(R500_DxMODE_INT_MASK, 0);
 	RADEON_WRITE(RADEON_GEN_INT_CNTL, 0);
 
-	/* Clear bits if they're already high */
+	
 	radeon_acknowledge_irqs(dev_priv, &dummy);
 }
 
@@ -377,7 +327,7 @@ void radeon_driver_irq_uninstall(struct drm_device * dev)
 
 	if ((dev_priv->flags & RADEON_FAMILY_MASK) >= CHIP_RS600)
 		RADEON_WRITE(R500_DxMODE_INT_MASK, 0);
-	/* Disable *all* interrupts */
+	
 	RADEON_WRITE(RADEON_GEN_INT_CNTL, 0);
 }
 

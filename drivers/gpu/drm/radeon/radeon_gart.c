@@ -1,38 +1,10 @@
-/*
- * Copyright 2008 Advanced Micro Devices, Inc.
- * Copyright 2008 Red Hat Inc.
- * Copyright 2009 Jerome Glisse.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * Authors: Dave Airlie
- *          Alex Deucher
- *          Jerome Glisse
- */
+
 #include "drmP.h"
 #include "radeon_drm.h"
 #include "radeon.h"
 #include "radeon_reg.h"
 
-/*
- * Common GART table functions.
- */
+
 int radeon_gart_table_ram_alloc(struct radeon_device *rdev)
 {
 	void *ptr;
@@ -126,9 +98,7 @@ void radeon_gart_table_vram_free(struct radeon_device *rdev)
 
 
 
-/*
- * Common gart functions.
- */
+
 void radeon_gart_unbind(struct radeon_device *rdev, unsigned offset,
 			int pages)
 {
@@ -173,13 +143,13 @@ int radeon_gart_bind(struct radeon_device *rdev, unsigned offset,
 	p = t / (PAGE_SIZE / RADEON_GPU_PAGE_SIZE);
 
 	for (i = 0; i < pages; i++, p++) {
-		/* we need to support large memory configurations */
-		/* assume that unbind have already been call on the range */
+		
+		
 		rdev->gart.pages_addr[p] = pci_map_page(rdev->pdev, pagelist[i],
 							0, PAGE_SIZE,
 							PCI_DMA_BIDIRECTIONAL);
 		if (pci_dma_mapping_error(rdev->pdev, rdev->gart.pages_addr[p])) {
-			/* FIXME: failed to map page (return -ENOMEM?) */
+			
 			radeon_gart_unbind(rdev, offset, pages);
 			return -ENOMEM;
 		}
@@ -200,17 +170,17 @@ int radeon_gart_init(struct radeon_device *rdev)
 	if (rdev->gart.pages) {
 		return 0;
 	}
-	/* We need PAGE_SIZE >= RADEON_GPU_PAGE_SIZE */
+	
 	if (PAGE_SIZE < RADEON_GPU_PAGE_SIZE) {
 		DRM_ERROR("Page size is smaller than GPU page size!\n");
 		return -EINVAL;
 	}
-	/* Compute table size */
+	
 	rdev->gart.num_cpu_pages = rdev->mc.gtt_size / PAGE_SIZE;
 	rdev->gart.num_gpu_pages = rdev->mc.gtt_size / RADEON_GPU_PAGE_SIZE;
 	DRM_INFO("GART: num cpu pages %u, num gpu pages %u\n",
 		 rdev->gart.num_cpu_pages, rdev->gart.num_gpu_pages);
-	/* Allocate pages table */
+	
 	rdev->gart.pages = kzalloc(sizeof(void *) * rdev->gart.num_cpu_pages,
 				   GFP_KERNEL);
 	if (rdev->gart.pages == NULL) {
@@ -229,7 +199,7 @@ int radeon_gart_init(struct radeon_device *rdev)
 void radeon_gart_fini(struct radeon_device *rdev)
 {
 	if (rdev->gart.pages && rdev->gart.pages_addr && rdev->gart.ready) {
-		/* unbind pages */
+		
 		radeon_gart_unbind(rdev, 0, rdev->gart.num_cpu_pages);
 	}
 	rdev->gart.ready = false;

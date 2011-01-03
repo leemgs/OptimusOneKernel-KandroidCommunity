@@ -12,7 +12,7 @@
 #define TRACE_SYSTEM_STRING __stringify(TRACE_SYSTEM)
 #define TRACE_INCLUDE_FILE i915_trace
 
-/* object tracking */
+
 
 TRACE_EVENT(i915_gem_object_create,
 
@@ -149,7 +149,7 @@ TRACE_EVENT(i915_gem_object_destroy,
 	    TP_printk("obj=%p", __entry->obj)
 );
 
-/* batch tracing */
+
 
 TRACE_EVENT(i915_gem_request_submit,
 
@@ -308,9 +308,9 @@ TRACE_EVENT(i915_ring_wait_end,
 	    TP_printk("dev=%u", __entry->dev)
 );
 
-#endif /* _I915_TRACE_H_ */
+#endif 
 
-/* This part must be outside protection */
+
 #undef TRACE_INCLUDE_PATH
 #define TRACE_INCLUDE_PATH ../../drivers/gpu/drm/i915
 #include <trace/define_trace.h>

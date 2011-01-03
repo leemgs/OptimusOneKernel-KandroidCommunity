@@ -1,30 +1,4 @@
-/**************************************************************************
 
-Copyright © 2006 Dave Airlie
-
-All Rights Reserved.
-
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sub license, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice (including the
-next paragraph) shall be included in all copies or substantial portions
-of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
-IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-**************************************************************************/
 
 #include "dvo.h"
 
@@ -65,7 +39,7 @@ struct sil164_save_rec {
 };
 
 struct sil164_priv {
-	//I2CDevRec d;
+	
 	bool quiet;
 	struct sil164_save_rec save_regs;
 	struct sil164_save_rec mode_regs;
@@ -138,11 +112,11 @@ static bool sil164_writeb(struct intel_dvo_device *dvo, int addr, uint8_t ch)
 	return false;
 }
 
-/* Silicon Image 164 driver for chip on i2c bus */
+
 static bool sil164_init(struct intel_dvo_device *dvo,
 			struct i2c_adapter *adapter)
 {
-	/* this will detect the SIL164 chip on the specified i2c bus */
+	
 	struct sil164_priv *sil;
 	unsigned char ch;
 
@@ -203,21 +177,14 @@ static void sil164_mode_set(struct intel_dvo_device *dvo,
 			    struct drm_display_mode *mode,
 			    struct drm_display_mode *adjusted_mode)
 {
-	/* As long as the basics are set up, since we don't have clock
-	 * dependencies in the mode setup, we can just leave the
-	 * registers alone and everything will work fine.
-	 */
-	/* recommended programming sequence from doc */
-	/*sil164_writeb(sil, 0x08, 0x30);
-	  sil164_writeb(sil, 0x09, 0x00);
-	  sil164_writeb(sil, 0x0a, 0x90);
-	  sil164_writeb(sil, 0x0c, 0x89);
-	  sil164_writeb(sil, 0x08, 0x31);*/
-	/* don't do much */
+	
+	
+	
+	
 	return;
 }
 
-/* set the SIL164 power state */
+
 static void sil164_dpms(struct intel_dvo_device *dvo, int mode)
 {
 	int ret;
@@ -272,7 +239,7 @@ static void sil164_restore(struct intel_dvo_device *dvo)
 {
 	struct sil164_priv *sil = dvo->dev_priv;
 
-	/* Restore it powered down initially */
+	
 	sil164_writeb(dvo, SIL164_REG8, sil->save_regs.reg8 & ~0x1);
 
 	sil164_writeb(dvo, SIL164_REG9, sil->save_regs.reg9);

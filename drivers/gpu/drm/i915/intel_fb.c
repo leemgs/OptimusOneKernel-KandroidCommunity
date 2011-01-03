@@ -1,28 +1,4 @@
-/*
- * Copyright © 2007 David Airlie
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
- *
- * Authors:
- *     David Airlie
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -69,13 +45,7 @@ static struct drm_fb_helper_funcs intel_fb_helper_funcs = {
 };
 
 
-/**
- * Curretly it is assumed that the old framebuffer is reused.
- *
- * LOCKING
- * caller should hold the mode config lock.
- *
- */
+
 int intelfb_resize(struct drm_device *dev, struct drm_crtc *crtc)
 {
 	struct fb_info *info;
@@ -102,7 +72,7 @@ int intelfb_resize(struct drm_device *dev, struct drm_crtc *crtc)
 	info->var.vsync_len = mode->vsync_end - mode->vsync_start;
 	info->var.upper_margin = mode->vtotal - mode->vsync_end;
 	info->var.pixclock = 10000000 / mode->htotal * 1000 / mode->vtotal * 100;
-	/* avoid overflow */
+	
 	info->var.pixclock = info->var.pixclock * 1000 / mode->vrefresh;
 
 	return 0;
@@ -125,7 +95,7 @@ static int intelfb_create(struct drm_device *dev, uint32_t fb_width,
 	struct device *device = &dev->pdev->dev;
 	int size, ret, mmio_bar = IS_I9XX(dev) ? 0 : 1;
 
-	/* we don't do packed 24bpp */
+	
 	if (surface_bpp == 24)
 		surface_bpp = 32;
 
@@ -154,7 +124,7 @@ static int intelfb_create(struct drm_device *dev, uint32_t fb_width,
 		goto out_unref;
 	}
 
-	/* Flush everything out, we'll be doing GTT only from now on */
+	
 	i915_gem_object_set_to_gtt_domain(fbo, 1);
 
 	ret = intel_framebuffer_create(dev, &mode_cmd, &fb, fbo);
@@ -190,7 +160,7 @@ static int intelfb_create(struct drm_device *dev, uint32_t fb_width,
 	info->fbops = &intelfb_ops;
 
 
-	/* setup aperture base/size for vesafb takeover */
+	
 	info->aperture_base = dev->mode_config.fb_base;
 	if (IS_I9XX(dev))
 		info->aperture_size = pci_resource_len(dev->pdev, 2);
@@ -210,12 +180,12 @@ static int intelfb_create(struct drm_device *dev, uint32_t fb_width,
 	}
 	info->screen_size = size;
 
-//	memset(info->screen_base, 0, size);
+
 
 	drm_fb_helper_fill_fix(info, fb->pitch, fb->depth);
 	drm_fb_helper_fill_var(info, fb, fb_width, fb_height);
 
-	/* FIXME: we really shouldn't expose mmio space at all */
+	
 	info->fix.mmio_start = pci_resource_start(dev->pdev, mmio_bar);
 	info->fix.mmio_len = pci_resource_len(dev->pdev, mmio_bar);
 
@@ -229,7 +199,7 @@ static int intelfb_create(struct drm_device *dev, uint32_t fb_width,
 
 	par->intel_fb = intel_fb;
 
-	/* To allow resizeing without swapping buffers */
+	
 	DRM_DEBUG("allocated %dx%d fb: 0x%08x, bo %p\n", intel_fb->base.width,
 		  intel_fb->base.height, obj_priv->gtt_offset, fbo);
 

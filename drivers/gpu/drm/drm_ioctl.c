@@ -1,54 +1,13 @@
-/**
- * \file drm_ioctl.c
- * IOCTL processing for DRM
- *
- * \author Rickard E. (Rik) Faith <faith@valinux.com>
- * \author Gareth Hughes <gareth@valinux.com>
- */
 
-/*
- * Created: Fri Jan  8 09:01:26 1999 by faith@valinux.com
- *
- * Copyright 1999 Precision Insight, Inc., Cedar Park, Texas.
- * Copyright 2000 VA Linux Systems, Inc., Sunnyvale, California.
- * All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * VA LINUX SYSTEMS AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
+
+
 
 #include "drmP.h"
 #include "drm_core.h"
 
 #include "linux/pci.h"
 
-/**
- * Get the bus id.
- *
- * \param inode device inode.
- * \param file_priv DRM file private.
- * \param cmd command.
- * \param arg user argument, pointing to a drm_unique structure.
- * \return zero on success or a negative number on failure.
- *
- * Copies the bus id from drm_device::unique into user space.
- */
+
 int drm_getunique(struct drm_device *dev, void *data,
 		  struct drm_file *file_priv)
 {
@@ -64,20 +23,7 @@ int drm_getunique(struct drm_device *dev, void *data,
 	return 0;
 }
 
-/**
- * Set the bus id.
- *
- * \param inode device inode.
- * \param file_priv DRM file private.
- * \param cmd command.
- * \param arg user argument, pointing to a drm_unique structure.
- * \return zero on success or a negative number on failure.
- *
- * Copies the bus id from userspace into drm_device::unique, and verifies that
- * it matches the device this DRM is attached to (EINVAL otherwise).  Deprecated
- * in interface version 1.1 and will return EBUSY when setversion has requested
- * version 1.1 or greater.
- */
+
 int drm_setunique(struct drm_device *dev, void *data,
 		  struct drm_file *file_priv)
 {
@@ -109,9 +55,7 @@ int drm_setunique(struct drm_device *dev, void *data,
 	sprintf(dev->devname, "%s@%s", dev->driver->pci_driver.name,
 		master->unique);
 
-	/* Return error if the busid submitted doesn't match the device's actual
-	 * busid.
-	 */
+	
 	ret = sscanf(master->unique, "PCI:%d:%d:%d", &bus, &slot, &func);
 	if (ret != 3)
 		return -EINVAL;
@@ -132,49 +76,62 @@ static int drm_set_busid(struct drm_device *dev, struct drm_file *file_priv)
 	struct drm_master *master = file_priv->master;
 	int len;
 
-	if (master->unique != NULL)
-		return -EBUSY;
+	if (drm_core_check_feature(dev, DRIVER_USE_PLATFORM_DEVICE)) {
+		master->unique_len = 10 + strlen(dev->platformdev->name);
+		master->unique = kmalloc(master->unique_len + 1, GFP_KERNEL);
 
-	master->unique_len = 40;
-	master->unique_size = master->unique_len;
-	master->unique = kmalloc(master->unique_size, GFP_KERNEL);
-	if (master->unique == NULL)
-		return -ENOMEM;
+		if (master->unique == NULL)
+			return -ENOMEM;
 
-	len = snprintf(master->unique, master->unique_len, "pci:%04x:%02x:%02x.%d",
-		       drm_get_pci_domain(dev),
-		       dev->pdev->bus->number,
-		       PCI_SLOT(dev->pdev->devfn),
-		       PCI_FUNC(dev->pdev->devfn));
-	if (len >= master->unique_len)
-		DRM_ERROR("buffer overflow");
-	else
-		master->unique_len = len;
+		len = snprintf(master->unique, master->unique_len,
+			"platform:%s", dev->platformdev->name);
 
-	dev->devname = kmalloc(strlen(dev->driver->pci_driver.name) +
-			       master->unique_len + 2, GFP_KERNEL);
-	if (dev->devname == NULL)
-		return -ENOMEM;
+		if (len > master->unique_len)
+			DRM_ERROR("Unique buffer overflowed\n");
 
-	sprintf(dev->devname, "%s@%s", dev->driver->pci_driver.name,
-		master->unique);
+		dev->devname =
+			kmalloc(strlen(dev->platformdev->name) +
+				master->unique_len + 2, GFP_KERNEL);
+
+		if (dev->devname == NULL)
+			return -ENOMEM;
+
+		sprintf(dev->devname, "%s@%s", dev->platformdev->name,
+			master->unique);
+
+	} else {
+		master->unique_len = 40;
+		master->unique_size = master->unique_len;
+		master->unique = kmalloc(master->unique_size, GFP_KERNEL);
+		if (master->unique == NULL)
+			return -ENOMEM;
+
+		len = snprintf(master->unique, master->unique_len,
+			"pci:%04x:%02x:%02x.%d",
+			drm_get_pci_domain(dev),
+			dev->pdev->bus->number,
+			PCI_SLOT(dev->pdev->devfn),
+			PCI_FUNC(dev->pdev->devfn));
+		if (len >= master->unique_len)
+			DRM_ERROR("buffer overflow");
+		else
+			master->unique_len = len;
+
+		dev->devname =
+			kmalloc(strlen(dev->driver->pci_driver.name) +
+				master->unique_len + 2, GFP_KERNEL);
+
+		if (dev->devname == NULL)
+			return -ENOMEM;
+
+		sprintf(dev->devname, "%s@%s", dev->driver->pci_driver.name,
+			master->unique);
+	}
 
 	return 0;
 }
 
-/**
- * Get a mapping information.
- *
- * \param inode device inode.
- * \param file_priv DRM file private.
- * \param cmd command.
- * \param arg user argument, pointing to a drm_map structure.
- *
- * \return zero on success or a negative number on failure.
- *
- * Searches for the mapping with the specified offset and copies its information
- * into userspace
- */
+
 int drm_getmap(struct drm_device *dev, void *data,
 	       struct drm_file *file_priv)
 {
@@ -216,19 +173,7 @@ int drm_getmap(struct drm_device *dev, void *data,
 	return 0;
 }
 
-/**
- * Get client information.
- *
- * \param inode device inode.
- * \param file_priv DRM file private.
- * \param cmd command.
- * \param arg user argument, pointing to a drm_client structure.
- *
- * \return zero on success or a negative number on failure.
- *
- * Searches for the client with the specified index and copies its information
- * into userspace
- */
+
 int drm_getclient(struct drm_device *dev, void *data,
 		  struct drm_file *file_priv)
 {
@@ -258,16 +203,7 @@ int drm_getclient(struct drm_device *dev, void *data,
 	return -EINVAL;
 }
 
-/**
- * Get statistics information.
- *
- * \param inode device inode.
- * \param file_priv DRM file private.
- * \param cmd command.
- * \param arg user argument, pointing to a drm_stats structure.
- *
- * \return zero on success or a negative number on failure.
- */
+
 int drm_getstats(struct drm_device *dev, void *data,
 		 struct drm_file *file_priv)
 {
@@ -294,17 +230,7 @@ int drm_getstats(struct drm_device *dev, void *data,
 	return 0;
 }
 
-/**
- * Setversion ioctl.
- *
- * \param inode device inode.
- * \param file_priv DRM file private.
- * \param cmd command.
- * \param arg user argument, pointing to a drm_lock structure.
- * \return zero on success or negative number on failure.
- *
- * Sets the requested interface version
- */
+
 int drm_setversion(struct drm_device *dev, void *data, struct drm_file *file_priv)
 {
 	struct drm_set_version *sv = data;
@@ -320,9 +246,7 @@ int drm_setversion(struct drm_device *dev, void *data, struct drm_file *file_pri
 					    sv->drm_di_minor);
 		dev->if_version = max(if_version, dev->if_version);
 		if (sv->drm_di_minor >= 1) {
-			/*
-			 * Version 1.1 includes tying of DRM to specific device
-			 */
+			
 			drm_set_busid(dev, file_priv);
 		}
 	}
@@ -348,7 +272,7 @@ done:
 	return retcode;
 }
 
-/** No-op ioctl. */
+
 int drm_noop(struct drm_device *dev, void *data,
 	     struct drm_file *file_priv)
 {

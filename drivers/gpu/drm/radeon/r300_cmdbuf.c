@@ -1,35 +1,4 @@
-/* r300_cmdbuf.c -- Command buffer emission for R300 -*- linux-c -*-
- *
- * Copyright (C) The Weather Channel, Inc.  2002.
- * Copyright (C) 2004 Nicolai Haehnle.
- * All Rights Reserved.
- *
- * The Weather Channel (TM) funded Tungsten Graphics to develop the
- * initial release of the Radeon 8500 driver under the XFree86 license.
- * This notice must be preserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * PRECISION INSIGHT AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
- *
- * Authors:
- *    Nicolai Haehnle <prefect_@gmx.net>
- */
+
 
 #include "drmP.h"
 #include "drm.h"
@@ -41,8 +10,7 @@
 
 #define R300_SIMULTANEOUS_CLIPRECTS		4
 
-/* Values for R300_RE_CLIPRECT_CNTL depending on the number of cliprects
- */
+
 static const int r300_cliprect_cntl[4] = {
 	0xAAAA,
 	0xEEEE,
@@ -50,10 +18,7 @@ static const int r300_cliprect_cntl[4] = {
 	0xFFFE
 };
 
-/**
- * Emit up to R300_SIMULTANEOUS_CLIPRECTS cliprects from the given command
- * buffer, starting with index n.
- */
+
 static int r300_emit_cliprects(drm_radeon_private_t *dev_priv,
 			       drm_radeon_kcmd_buffer_t *cmdbuf, int n)
 {
@@ -79,7 +44,7 @@ static int r300_emit_cliprects(drm_radeon_private_t *dev_priv,
 				return -EFAULT;
 			}
 
-			box.x2--; /* Hardware expects inclusive bottom-right corner */
+			box.x2--; 
 			box.y2--;
 
 			if ((dev_priv->flags & RADEON_FAMILY_MASK) >= CHIP_RV515) {
@@ -111,37 +76,19 @@ static int r300_emit_cliprects(drm_radeon_private_t *dev_priv,
 
 		OUT_RING_REG(R300_RE_CLIPRECT_CNTL, r300_cliprect_cntl[nr - 1]);
 
-		/* TODO/SECURITY: Force scissors to a safe value, otherwise the
-		 * client might be able to trample over memory.
-		 * The impact should be very limited, but I'd rather be safe than
-		 * sorry.
-		 */
+		
 		OUT_RING(CP_PACKET0(R300_RE_SCISSORS_TL, 1));
 		OUT_RING(0);
 		OUT_RING(R300_SCISSORS_X_MASK | R300_SCISSORS_Y_MASK);
 		ADVANCE_RING();
 	} else {
-		/* Why we allow zero cliprect rendering:
-		 * There are some commands in a command buffer that must be submitted
-		 * even when there are no cliprects, e.g. DMA buffer discard
-		 * or state setting (though state setting could be avoided by
-		 * simulating a loss of context).
-		 *
-		 * Now since the cmdbuf interface is so chaotic right now (and is
-		 * bound to remain that way for a bit until things settle down),
-		 * it is basically impossible to filter out the commands that are
-		 * necessary and those that aren't.
-		 *
-		 * So I choose the safe way and don't do any filtering at all;
-		 * instead, I simply set up the engine so that all rendering
-		 * can't produce any fragments.
-		 */
+		
 		BEGIN_RING(2);
 		OUT_RING_REG(R300_RE_CLIPRECT_CNTL, 0);
 		ADVANCE_RING();
 	}
 
-	/* flus cache and wait idle clean after cliprect change */
+	
 	BEGIN_RING(2);
 	OUT_RING(CP_PACKET0(R300_RB3D_DSTCACHE_CTLSTAT, 0));
 	OUT_RING(R300_RB3D_DC_FLUSH);
@@ -150,7 +97,7 @@ static int r300_emit_cliprects(drm_radeon_private_t *dev_priv,
 	OUT_RING(CP_PACKET0(RADEON_WAIT_UNTIL, 0));
 	OUT_RING(RADEON_WAIT_3D_IDLECLEAN);
 	ADVANCE_RING();
-	/* set flush flag */
+	
 	dev_priv->track_flush |= RADEON_FLUSH_EMITED;
 
 	return 0;
@@ -173,7 +120,7 @@ void r300_init_reg_flags(struct drm_device *dev)
 
 #define ADD_RANGE(reg, count)	ADD_RANGE_MARK(reg, count, MARK_SAFE)
 
-	/* these match cmducs() command in r300_driver/r300/r300_cmdbuf.c */
+	
 	ADD_RANGE(R300_SE_VPORT_XSCALE, 6);
 	ADD_RANGE(R300_VAP_CNTL, 1);
 	ADD_RANGE(R300_SE_VTE_CNTL, 2);
@@ -225,30 +172,30 @@ void r300_init_reg_flags(struct drm_device *dev)
 	ADD_RANGE(R300_RB3D_CBLEND, 2);
 	ADD_RANGE(R300_RB3D_COLORMASK, 1);
 	ADD_RANGE(R300_RB3D_BLEND_COLOR, 3);
-	ADD_RANGE_MARK(R300_RB3D_COLOROFFSET0, 1, MARK_CHECK_OFFSET);	/* check offset */
+	ADD_RANGE_MARK(R300_RB3D_COLOROFFSET0, 1, MARK_CHECK_OFFSET);	
 	ADD_RANGE(R300_RB3D_COLORPITCH0, 1);
 	ADD_RANGE(0x4E50, 9);
 	ADD_RANGE(0x4E88, 1);
 	ADD_RANGE(0x4EA0, 2);
 	ADD_RANGE(R300_ZB_CNTL, 3);
 	ADD_RANGE(R300_ZB_FORMAT, 4);
-	ADD_RANGE_MARK(R300_ZB_DEPTHOFFSET, 1, MARK_CHECK_OFFSET);	/* check offset */
+	ADD_RANGE_MARK(R300_ZB_DEPTHOFFSET, 1, MARK_CHECK_OFFSET);	
 	ADD_RANGE(R300_ZB_DEPTHPITCH, 1);
 	ADD_RANGE(R300_ZB_DEPTHCLEARVALUE, 1);
 	ADD_RANGE(R300_ZB_ZMASK_OFFSET, 13);
-	ADD_RANGE(R300_ZB_ZPASS_DATA, 2); /* ZB_ZPASS_DATA, ZB_ZPASS_ADDR */
+	ADD_RANGE(R300_ZB_ZPASS_DATA, 2); 
 
 	ADD_RANGE(R300_TX_FILTER_0, 16);
 	ADD_RANGE(R300_TX_FILTER1_0, 16);
 	ADD_RANGE(R300_TX_SIZE_0, 16);
 	ADD_RANGE(R300_TX_FORMAT_0, 16);
 	ADD_RANGE(R300_TX_PITCH_0, 16);
-	/* Texture offset is dangerous and needs more checking */
+	
 	ADD_RANGE_MARK(R300_TX_OFFSET_0, 16, MARK_CHECK_OFFSET);
 	ADD_RANGE(R300_TX_CHROMA_KEY_0, 16);
 	ADD_RANGE(R300_TX_BORDER_COLOR_0, 16);
 
-	/* Sporadic registers used as primitives are emitted */
+	
 	ADD_RANGE(R300_ZB_ZCACHE_CTLSTAT, 1);
 	ADD_RANGE(R300_RB3D_DSTCACHE_CTLSTAT, 1);
 	ADD_RANGE(R300_VAP_INPUT_ROUTE_0_0, 8);
@@ -342,12 +289,7 @@ static __inline__ int r300_emit_carefully_checked_packet0(drm_radeon_private_t *
 	return 0;
 }
 
-/**
- * Emits a packet0 setting arbitrary registers.
- * Called by r300_do_cp_cmdbuf.
- *
- * Note that checks are performed on contents and addresses of the registers
- */
+
 static __inline__ int r300_emit_packet0(drm_radeon_private_t *dev_priv,
 					drm_radeon_kcmd_buffer_t *cmdbuf,
 					drm_r300_cmd_header_t header)
@@ -372,11 +314,11 @@ static __inline__ int r300_emit_packet0(drm_radeon_private_t *dev_priv,
 	}
 
 	if (r300_check_range(reg, sz)) {
-		/* go and check everything */
+		
 		return r300_emit_carefully_checked_packet0(dev_priv, cmdbuf,
 							   header);
 	}
-	/* the rest of the data is safe to emit, whatever the values the user passed */
+	
 
 	BEGIN_RING(1 + sz);
 	OUT_RING(CP_PACKET0(reg, sz - 1));
@@ -389,11 +331,7 @@ static __inline__ int r300_emit_packet0(drm_radeon_private_t *dev_priv,
 	return 0;
 }
 
-/**
- * Uploads user-supplied vertex program instructions or parameters onto
- * the graphics card.
- * Called by r300_do_cp_cmdbuf.
- */
+
 static __inline__ int r300_emit_vpu(drm_radeon_private_t *dev_priv,
 				    drm_radeon_kcmd_buffer_t *cmdbuf,
 				    drm_r300_cmd_header_t header)
@@ -410,8 +348,7 @@ static __inline__ int r300_emit_vpu(drm_radeon_private_t *dev_priv,
 	if (sz * 16 > cmdbuf->bufsz)
 		return -EINVAL;
 
-	/* VAP is very sensitive so we purge cache before we program it
-	 * and we also flush its state before & after */
+	
 	BEGIN_RING(6);
 	OUT_RING(CP_PACKET0(R300_RB3D_DSTCACHE_CTLSTAT, 0));
 	OUT_RING(R300_RB3D_DC_FLUSH);
@@ -420,7 +357,7 @@ static __inline__ int r300_emit_vpu(drm_radeon_private_t *dev_priv,
 	OUT_RING(CP_PACKET0(R300_VAP_PVS_STATE_FLUSH_REG, 0));
 	OUT_RING(0);
 	ADVANCE_RING();
-	/* set flush flag */
+	
 	dev_priv->track_flush |= RADEON_FLUSH_EMITED;
 
 	BEGIN_RING(3 + sz * 4);
@@ -440,10 +377,7 @@ static __inline__ int r300_emit_vpu(drm_radeon_private_t *dev_priv,
 	return 0;
 }
 
-/**
- * Emit a clear packet from userspace.
- * Called by r300_emit_packet3.
- */
+
 static __inline__ int r300_emit_clear(drm_radeon_private_t *dev_priv,
 				      drm_radeon_kcmd_buffer_t *cmdbuf)
 {
@@ -465,7 +399,7 @@ static __inline__ int r300_emit_clear(drm_radeon_private_t *dev_priv,
 	OUT_RING(CP_PACKET0(RADEON_WAIT_UNTIL, 0));
 	OUT_RING(RADEON_WAIT_3D_IDLECLEAN);
 	ADVANCE_RING();
-	/* set flush flag */
+	
 	dev_priv->track_flush |= RADEON_FLUSH_EMITED;
 
 	cmdbuf->buf += 8 * 4;
@@ -494,13 +428,13 @@ static __inline__ int r300_emit_3d_load_vbpntr(drm_radeon_private_t *dev_priv,
 	memset(payload, 0, MAX_ARRAY_PACKET * 4);
 	memcpy(payload, cmdbuf->buf + 4, (count + 1) * 4);
 
-	/* carefully check packet contents */
+	
 
 	narrays = payload[0];
 	k = 0;
 	i = 1;
 	while ((k < narrays) && (i < (count + 1))) {
-		i++;		/* skip attribute field */
+		i++;		
 		if (!radeon_check_offset(dev_priv, payload[i])) {
 			DRM_ERROR
 			    ("Offset failed range check (k=%d i=%d) while processing 3D_LOAD_VBPNTR packet.\n",
@@ -511,7 +445,7 @@ static __inline__ int r300_emit_3d_load_vbpntr(drm_radeon_private_t *dev_priv,
 		i++;
 		if (k == narrays)
 			break;
-		/* have one more to process, they come in pairs */
+		
 		if (!radeon_check_offset(dev_priv, payload[i])) {
 			DRM_ERROR
 			    ("Offset failed range check (k=%d i=%d) while processing 3D_LOAD_VBPNTR packet.\n",
@@ -521,7 +455,7 @@ static __inline__ int r300_emit_3d_load_vbpntr(drm_radeon_private_t *dev_priv,
 		k++;
 		i++;
 	}
-	/* do the counts match what we expect ? */
+	
 	if ((k != narrays) || (i != (count + 1))) {
 		DRM_ERROR
 		    ("Malformed 3D_LOAD_VBPNTR packet (k=%d i=%d narrays=%d count+1=%d).\n",
@@ -529,7 +463,7 @@ static __inline__ int r300_emit_3d_load_vbpntr(drm_radeon_private_t *dev_priv,
 		return -EINVAL;
 	}
 
-	/* all clear, output packet */
+	
 
 	BEGIN_RING(count + 2);
 	OUT_RING(header);
@@ -672,13 +606,12 @@ static __inline__ int r300_emit_raw_packet3(drm_radeon_private_t *dev_priv,
 	if (4 > cmdbuf->bufsz)
 		return -EINVAL;
 
-	/* Fixme !! This simply emits a packet without much checking.
-	   We need to be smarter. */
+	
 
-	/* obtain first word - actual packet3 header */
+	
 	header = *(u32 *) cmdbuf->buf;
 
-	/* Is it packet 3 ? */
+	
 	if ((header >> 30) != 0x3) {
 		DRM_ERROR("Not a packet3 header (0x%08x)\n", header);
 		return -EINVAL;
@@ -686,7 +619,7 @@ static __inline__ int r300_emit_raw_packet3(drm_radeon_private_t *dev_priv,
 
 	count = (header >> 16) & 0x3fff;
 
-	/* Check again now that we know how much data to expect */
+	
 	if ((count + 2) * 4 > cmdbuf->bufsz) {
 		DRM_ERROR
 		    ("Expected packet3 of length %d but have only %d bytes left\n",
@@ -694,9 +627,9 @@ static __inline__ int r300_emit_raw_packet3(drm_radeon_private_t *dev_priv,
 		return -EINVAL;
 	}
 
-	/* Is it a packet type we know about ? */
+	
 	switch (header & 0xff00) {
-	case RADEON_3D_LOAD_VBPNTR:	/* load vertex array pointers */
+	case RADEON_3D_LOAD_VBPNTR:	
 		return r300_emit_3d_load_vbpntr(dev_priv, cmdbuf, header);
 
 	case RADEON_CNTL_BITBLT_MULTI:
@@ -706,21 +639,21 @@ static __inline__ int r300_emit_raw_packet3(drm_radeon_private_t *dev_priv,
 		DRM_ERROR("packet3 INDX_BUFFER without preceding 3D_DRAW_INDX_2 is illegal.\n");
 		return -EINVAL;
 	case RADEON_CP_3D_DRAW_IMMD_2:
-		/* triggers drawing using in-packet vertex data */
+		
 	case RADEON_CP_3D_DRAW_VBUF_2:
-		/* triggers drawing of vertex buffers setup elsewhere */
+		
 		dev_priv->track_flush &= ~(RADEON_FLUSH_EMITED |
 					   RADEON_PURGE_EMITED);
 		break;
 	case RADEON_CP_3D_DRAW_INDX_2:
-		/* triggers drawing using indices to vertex buffer */
-		/* whenever we send vertex we clear flush & purge */
+		
+		
 		dev_priv->track_flush &= ~(RADEON_FLUSH_EMITED |
 					   RADEON_PURGE_EMITED);
 		return r300_emit_draw_indx_2(dev_priv, cmdbuf);
 	case RADEON_WAIT_FOR_IDLE:
 	case RADEON_CP_NOP:
-		/* these packets are safe */
+		
 		break;
 	default:
 		DRM_ERROR("Unknown packet3 header (0x%08x)\n", header);
@@ -738,10 +671,7 @@ static __inline__ int r300_emit_raw_packet3(drm_radeon_private_t *dev_priv,
 	return 0;
 }
 
-/**
- * Emit a rendering packet3 from userspace.
- * Called by r300_do_cp_cmdbuf.
- */
+
 static __inline__ int r300_emit_packet3(drm_radeon_private_t *dev_priv,
 					drm_radeon_kcmd_buffer_t *cmdbuf,
 					drm_r300_cmd_header_t header)
@@ -751,9 +681,7 @@ static __inline__ int r300_emit_packet3(drm_radeon_private_t *dev_priv,
 	char *orig_buf = cmdbuf->buf;
 	int orig_bufsz = cmdbuf->bufsz;
 
-	/* This is a do-while-loop so that we run the interior at least once,
-	 * even if cmdbuf->nbox is 0. Compare r300_emit_cliprects for rationale.
-	 */
+	
 	n = 0;
 	do {
 		if (cmdbuf->nbox > R300_SIMULTANEOUS_CLIPRECTS) {
@@ -797,20 +725,9 @@ static __inline__ int r300_emit_packet3(drm_radeon_private_t *dev_priv,
 	return 0;
 }
 
-/* Some of the R300 chips seem to be extremely touchy about the two registers
- * that are configured in r300_pacify.
- * Among the worst offenders seems to be the R300 ND (0x4E44): When userspace
- * sends a command buffer that contains only state setting commands and a
- * vertex program/parameter upload sequence, this will eventually lead to a
- * lockup, unless the sequence is bracketed by calls to r300_pacify.
- * So we should take great care to *always* call r300_pacify before
- * *anything* 3D related, and again afterwards. This is what the
- * call bracket in r300_do_cp_cmdbuf is for.
- */
 
-/**
- * Emit the sequence to pacify R300.
- */
+
+
 static __inline__ void r300_pacify(drm_radeon_private_t *dev_priv)
 {
 	uint32_t cache_z, cache_3d, cache_2d;
@@ -820,28 +737,28 @@ static __inline__ void r300_pacify(drm_radeon_private_t *dev_priv)
 	cache_2d = R300_RB2D_DC_FLUSH;
 	cache_3d = R300_RB3D_DC_FLUSH;
 	if (!(dev_priv->track_flush & RADEON_PURGE_EMITED)) {
-		/* we can purge, primitive where draw since last purge */
+		
 		cache_z |= R300_ZC_FREE;
 		cache_2d |= R300_RB2D_DC_FREE;
 		cache_3d |= R300_RB3D_DC_FREE;
 	}
 
-	/* flush & purge zbuffer */
+	
 	BEGIN_RING(2);
 	OUT_RING(CP_PACKET0(R300_ZB_ZCACHE_CTLSTAT, 0));
 	OUT_RING(cache_z);
 	ADVANCE_RING();
-	/* flush & purge 3d */
+	
 	BEGIN_RING(2);
 	OUT_RING(CP_PACKET0(R300_RB3D_DSTCACHE_CTLSTAT, 0));
 	OUT_RING(cache_3d);
 	ADVANCE_RING();
-	/* flush & purge texture */
+	
 	BEGIN_RING(2);
 	OUT_RING(CP_PACKET0(R300_TX_INVALTAGS, 0));
 	OUT_RING(0);
 	ADVANCE_RING();
-	/* FIXME: is this one really needed ? */
+	
 	BEGIN_RING(2);
 	OUT_RING(CP_PACKET0(R300_RB3D_AARESOLVE_CTL, 0));
 	OUT_RING(0);
@@ -850,7 +767,7 @@ static __inline__ void r300_pacify(drm_radeon_private_t *dev_priv)
 	OUT_RING(CP_PACKET0(RADEON_WAIT_UNTIL, 0));
 	OUT_RING(RADEON_WAIT_3D_IDLECLEAN);
 	ADVANCE_RING();
-	/* flush & purge 2d through E2 as RB2D will trigger lockup */
+	
 	BEGIN_RING(4);
 	OUT_RING(CP_PACKET0(R300_DSTCACHE_CTLSTAT, 0));
 	OUT_RING(cache_2d);
@@ -858,15 +775,11 @@ static __inline__ void r300_pacify(drm_radeon_private_t *dev_priv)
 	OUT_RING(RADEON_WAIT_2D_IDLECLEAN |
 		 RADEON_WAIT_HOST_IDLECLEAN);
 	ADVANCE_RING();
-	/* set flush & purge flags */
+	
 	dev_priv->track_flush |= RADEON_FLUSH_EMITED | RADEON_PURGE_EMITED;
 }
 
-/**
- * Called by r300_do_cp_cmdbuf to update the internal buffer age and state.
- * The actual age emit is done by r300_do_cp_cmdbuf, which is why you must
- * be careful about how this function is called.
- */
+
 static void r300_discard_buffer(struct drm_device *dev, struct drm_master *master, struct drm_buf *buf)
 {
 	drm_radeon_buf_priv_t *buf_priv = buf->dev_private;
@@ -946,7 +859,7 @@ static int r300_scratch(drm_radeon_private_t *dev_priv,
 
 	for (i=0; i < header.scratch.n_bufs; i++) {
 		buf_idx = *(u32 *)cmdbuf->buf;
-		buf_idx *= 2; /* 8 bytes per buf */
+		buf_idx *= 2; 
 
 		if (DRM_COPY_TO_USER(ref_age_base + buf_idx, &dev_priv->scratch_ages[header.scratch.reg], sizeof(u32))) {
 			return -EINVAL;
@@ -978,11 +891,7 @@ static int r300_scratch(drm_radeon_private_t *dev_priv,
 	return 0;
 }
 
-/**
- * Uploads user-supplied vertex program instructions or parameters onto
- * the graphics card.
- * Called by r300_do_cp_cmdbuf.
- */
+
 static inline int r300_emit_r500fp(drm_radeon_private_t *dev_priv,
 				       drm_radeon_kcmd_buffer_t *cmdbuf,
 				       drm_r300_cmd_header_t header)
@@ -995,7 +904,7 @@ static inline int r300_emit_r500fp(drm_radeon_private_t *dev_priv,
 	RING_LOCALS;
 
 	sz = header.r500fp.count;
-	/* address is 9 bits 0 - 8, bit 1 of flags is part of address */
+	
 	addr = ((header.r500fp.adrhi_flags & 1) << 8) | header.r500fp.adrlo;
 
 	type = !!(header.r500fp.adrhi_flags & R500FP_CONSTANT_TYPE);
@@ -1026,11 +935,7 @@ static inline int r300_emit_r500fp(drm_radeon_private_t *dev_priv,
 }
 
 
-/**
- * Parses and validates a user-supplied command buffer and emits appropriate
- * commands on the DMA ring buffer.
- * Called by the ioctl handler function radeon_cp_cmdbuf.
- */
+
 int r300_do_cp_cmdbuf(struct drm_device *dev,
 		      struct drm_file *file_priv,
 		      drm_radeon_kcmd_buffer_t *cmdbuf)
@@ -1044,7 +949,7 @@ int r300_do_cp_cmdbuf(struct drm_device *dev,
 
 	DRM_DEBUG("\n");
 
-	/* pacify */
+	
 	r300_pacify(dev_priv);
 
 	if (cmdbuf->nbox <= R300_SIMULTANEOUS_CLIPRECTS) {
@@ -1092,26 +997,12 @@ int r300_do_cp_cmdbuf(struct drm_device *dev,
 
 		case R300_CMD_END3D:
 			DRM_DEBUG("R300_CMD_END3D\n");
-			/* TODO:
-			   Ideally userspace driver should not need to issue this call,
-			   i.e. the drm driver should issue it automatically and prevent
-			   lockups.
-
-			   In practice, we do not understand why this call is needed and what
-			   it does (except for some vague guesses that it has to do with cache
-			   coherence) and so the user space driver does it.
-
-			   Once we are sure which uses prevent lockups the code could be moved
-			   into the kernel and the userspace driver will not
-			   need to use this command.
-
-			   Note that issuing this command does not hurt anything
-			   except, possibly, performance */
+			
 			r300_pacify(dev_priv);
 			break;
 
 		case R300_CMD_CP_DELAY:
-			/* simple enough, we can do it here */
+			
 			DRM_DEBUG("R300_CMD_CP_DELAY\n");
 			{
 				int i;
@@ -1188,16 +1079,11 @@ int r300_do_cp_cmdbuf(struct drm_device *dev,
       cleanup:
 	r300_pacify(dev_priv);
 
-	/* We emit the vertex buffer age here, outside the pacifier "brackets"
-	 * for two reasons:
-	 *  (1) This may coalesce multiple age emissions into a single one and
-	 *  (2) more importantly, some chips lock up hard when scratch registers
-	 *      are written inside the pacifier bracket.
-	 */
+	
 	if (emit_dispatch_age) {
 		RING_LOCALS;
 
-		/* Emit the vertex buffer age */
+		
 		BEGIN_RING(2);
 		RADEON_DISPATCH_AGE(master_priv->sarea_priv->last_dispatch);
 		ADVANCE_RING();

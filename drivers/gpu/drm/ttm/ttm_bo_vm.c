@@ -1,32 +1,5 @@
-/**************************************************************************
- *
- * Copyright (c) 2006-2009 VMware, Inc., Palo Alto, CA., USA
- * All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sub license, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice (including the
- * next paragraph) shall be included in all copies or substantial portions
- * of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL
- * THE COPYRIGHT HOLDERS, AUTHORS AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
- * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
- * USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- **************************************************************************/
-/*
- * Authors: Thomas Hellstrom <thellstrom-at-vmware-dot-com>
- */
+
+
 
 #include <ttm/ttm_module.h>
 #include <ttm/ttm_bo_driver.h>
@@ -88,11 +61,7 @@ static int ttm_bo_vm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 	unsigned long address = (unsigned long)vmf->virtual_address;
 	int retval = VM_FAULT_NOPAGE;
 
-	/*
-	 * Work around locking order reversal in fault / nopfn
-	 * between mmap_sem and bo_reserve: Perform a trylock operation
-	 * for reserve, and if it fails, retry the fault after scheduling.
-	 */
+	
 
 	ret = ttm_bo_reserve(bo, true, true, false, 0);
 	if (unlikely(ret != 0)) {
@@ -104,10 +73,7 @@ static int ttm_bo_vm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 	if (bdev->driver->fault_reserve_notify)
 		bdev->driver->fault_reserve_notify(bo);
 
-	/*
-	 * Wait for buffer data in transit, due to a pipelined
-	 * move.
-	 */
+	
 
 	spin_lock(&bo->lock);
 	if (test_bit(TTM_BO_PRIV_FLAG_MOVING, &bo->priv_flags)) {
@@ -141,19 +107,7 @@ static int ttm_bo_vm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 		goto out_unlock;
 	}
 
-	/*
-	 * Strictly, we're not allowed to modify vma->vm_page_prot here,
-	 * since the mmap_sem is only held in read mode. However, we
-	 * modify only the caching bits of vma->vm_page_prot and
-	 * consider those bits protected by
-	 * the bo->mutex, as we should be the only writers.
-	 * There shouldn't really be any readers of these bits except
-	 * within vm_insert_mixed()? fork?
-	 *
-	 * TODO: Add a list of vmas to the bo, and change the
-	 * vma->vm_page_prot when the object changes caching policy, with
-	 * the correct locks held.
-	 */
+	
 
 	if (is_iomem) {
 		vma->vm_page_prot = ttm_io_prot(bo->mem.placement,
@@ -165,10 +119,7 @@ static int ttm_bo_vm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 		    ttm_io_prot(bo->mem.placement, vma->vm_page_prot);
 	}
 
-	/*
-	 * Speculatively prefault a number of pages. Only error on
-	 * first page.
-	 */
+	
 
 	for (i = 0; i < TTM_BO_VM_NUM_PREFAULT; ++i) {
 
@@ -187,10 +138,7 @@ static int ttm_bo_vm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 		}
 
 		ret = vm_insert_mixed(vma, address, pfn);
-		/*
-		 * Somebody beat us to this PTE or prefaulting to
-		 * an already populated PTE, or prefaulting error.
-		 */
+		
 
 		if (unlikely((ret == -EBUSY) || (ret != 0 && i > 0)))
 			break;
@@ -265,10 +213,7 @@ int ttm_bo_mmap(struct file *filp, struct vm_area_struct *vma,
 
 	vma->vm_ops = &ttm_bo_vm_ops;
 
-	/*
-	 * Note: We're transferring the bo reference to
-	 * vma->vm_private_data here.
-	 */
+	
 
 	vma->vm_private_data = bo;
 	vma->vm_flags |= VM_RESERVED | VM_IO | VM_MIXEDMAP | VM_DONTEXPAND;

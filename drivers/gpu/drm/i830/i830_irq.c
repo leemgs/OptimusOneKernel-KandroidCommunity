@@ -1,36 +1,10 @@
-/* i830_dma.c -- DMA support for the I830 -*- linux-c -*-
- *
- * Copyright 2002 Tungsten Graphics, Inc.
- * All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * TUNGSTEN GRAPHICS AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
- *
- * Authors: Keith Whitwell <keith@tungstengraphics.com>
- *
- */
+
 
 #include "drmP.h"
 #include "drm.h"
 #include "i830_drm.h"
 #include "i830_drv.h"
-#include <linux/interrupt.h>	/* For task queue support */
+#include <linux/interrupt.h>	
 #include <linux/delay.h>
 
 irqreturn_t i830_driver_irq_handler(DRM_IRQ_ARGS)
@@ -97,7 +71,7 @@ static int i830_wait_irq(struct drm_device * dev, int irq_nr)
 				  I830_READ16(I830REG_INT_ENABLE_R),
 				  I830_READ16(I830REG_HWSTAM));
 
-			ret = -EBUSY;	/* Lockup?  Missed irq? */
+			ret = -EBUSY;	
 			break;
 		}
 		schedule_timeout(HZ * 3);
@@ -112,8 +86,7 @@ static int i830_wait_irq(struct drm_device * dev, int irq_nr)
 	return ret;
 }
 
-/* Needs the lock as it touches the ring.
- */
+
 int i830_irq_emit(struct drm_device *dev, void *data,
 		  struct drm_file *file_priv)
 {
@@ -138,8 +111,7 @@ int i830_irq_emit(struct drm_device *dev, void *data,
 	return 0;
 }
 
-/* Doesn't need the hardware lock.
- */
+
 int i830_irq_wait(struct drm_device *dev, void *data,
 		  struct drm_file *file_priv)
 {
@@ -154,8 +126,7 @@ int i830_irq_wait(struct drm_device *dev, void *data,
 	return i830_wait_irq(dev, irqwait->irq_seq);
 }
 
-/* drm_dma.h hooks
-*/
+
 void i830_driver_irq_preinstall(struct drm_device * dev)
 {
 	drm_i830_private_t *dev_priv = (drm_i830_private_t *) dev->dev_private;

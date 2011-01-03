@@ -1,41 +1,10 @@
-/* i830_dma.c -- DMA support for the I830 -*- linux-c -*-
- * Created: Mon Dec 13 01:50:01 1999 by jhartmann@precisioninsight.com
- *
- * Copyright 1999 Precision Insight, Inc., Cedar Park, Texas.
- * Copyright 2000 VA Linux Systems, Inc., Sunnyvale, California.
- * All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * PRECISION INSIGHT AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
- *
- * Authors: Rickard E. (Rik) Faith <faith@valinux.com>
- *	    Jeff Hartmann <jhartmann@valinux.com>
- *	    Keith Whitwell <keith@tungstengraphics.com>
- *	    Abraham vd Merwe <abraham@2d3d.co.za>
- *
- */
+
 
 #include "drmP.h"
 #include "drm.h"
 #include "i830_drm.h"
 #include "i830_drv.h"
-#include <linux/interrupt.h>	/* For task queue support */
+#include <linux/interrupt.h>	
 #include <linux/pagemap.h>
 #include <linux/delay.h>
 #include <asm/uaccess.h>
@@ -53,12 +22,12 @@ static struct drm_buf *i830_freelist_get(struct drm_device * dev)
 	int i;
 	int used;
 
-	/* Linear search might not be the best solution */
+	
 
 	for (i = 0; i < dma->buf_count; i++) {
 		struct drm_buf *buf = dma->buflist[i];
 		drm_i830_buf_priv_t *buf_priv = buf->dev_private;
-		/* In use is already a pointer */
+		
 		used = cmpxchg(buf_priv->in_use, I830_BUF_FREE,
 			       I830_BUF_CLIENT);
 		if (used == I830_BUF_FREE) {
@@ -68,16 +37,14 @@ static struct drm_buf *i830_freelist_get(struct drm_device * dev)
 	return NULL;
 }
 
-/* This should only be called if the buffer is not sent to the hardware
- * yet, the hardware updates in use for us once its on the ring buffer.
- */
+
 
 static int i830_freelist_put(struct drm_device * dev, struct drm_buf * buf)
 {
 	drm_i830_buf_priv_t *buf_priv = buf->dev_private;
 	int used;
 
-	/* In use is already a pointer */
+	
 	used = cmpxchg(buf_priv->in_use, I830_BUF_CLIENT, I830_BUF_FREE);
 	if (used != I830_BUF_CLIENT) {
 		DRM_ERROR("Freeing buffer thats not in use : %d\n", buf->idx);
@@ -142,8 +109,8 @@ static int i830_map_buffer(struct drm_buf * buf, struct drm_file *file_priv)
 			  MAP_SHARED, buf->bus_address);
 	dev_priv->mmap_buffer = NULL;
 	file_priv->filp->f_op = old_fops;
-	if (IS_ERR((void *)virtual)) {	/* ugh */
-		/* Real error */
+	if (IS_ERR((void *)virtual)) {	
+		
 		DRM_ERROR("mmap error\n");
 		retcode = PTR_ERR((void *)virtual);
 		buf_priv->virtual = NULL;
@@ -209,10 +176,7 @@ static int i830_dma_cleanup(struct drm_device * dev)
 {
 	struct drm_device_dma *dma = dev->dma;
 
-	/* Make sure interrupts are disabled here because the uninstall ioctl
-	 * may not have been called from userspace and after dev_private
-	 * is freed, it's too late.
-	 */
+	
 	if (dev->irq_enabled)
 		drm_irq_uninstall(dev);
 
@@ -228,7 +192,7 @@ static int i830_dma_cleanup(struct drm_device * dev)
 			pci_free_consistent(dev->pdev, PAGE_SIZE,
 					    dev_priv->hw_status_page,
 					    dev_priv->dma_status_page);
-			/* Need to rewrite hardware status page */
+			
 			I830_WRITE(0x02080, 0x1ffff000);
 		}
 
@@ -302,7 +266,7 @@ static int i830_freelist_init(struct drm_device * dev, drm_i830_private_t * dev_
 	int i;
 
 	if (dma->buf_count > 1019) {
-		/* Not enough space in the status page for the freelist */
+		
 		return -EINVAL;
 	}
 
@@ -411,16 +375,14 @@ static int i830_dma_initialize(struct drm_device * dev,
 	DRM_DEBUG("pitch_bits %x\n", init->pitch_bits);
 
 	dev_priv->cpp = init->cpp;
-	/* We are using separate values as placeholders for mechanisms for
-	 * private backbuffer/depthbuffer usage.
-	 */
+	
 
 	dev_priv->back_pitch = init->back_pitch;
 	dev_priv->depth_pitch = init->depth_pitch;
 	dev_priv->do_boxes = 0;
 	dev_priv->use_mi_batchbuffer_start = 0;
 
-	/* Program Hardware Status Page */
+	
 	dev_priv->hw_status_page =
 	    pci_alloc_consistent(dev->pdev, PAGE_SIZE,
 				 &dev_priv->dma_status_page);
@@ -436,7 +398,7 @@ static int i830_dma_initialize(struct drm_device * dev,
 	I830_WRITE(0x02080, dev_priv->dma_status_page);
 	DRM_DEBUG("Enabled hardware status page\n");
 
-	/* Now we need to init our freelist */
+	
 	if (i830_freelist_init(dev, dev_priv) != 0) {
 		dev->dev_private = (void *)dev_priv;
 		i830_dma_cleanup(dev);
@@ -478,9 +440,7 @@ static int i830_dma_init(struct drm_device *dev, void *data,
 #define ST1_ENABLE               (1<<16)
 #define ST1_MASK                 (0xffff)
 
-/* Most efficient way to verify state for the i830 is as it is
- * emitted.  Non-conformant state is silently dropped.
- */
+
 static void i830EmitContextVerified(struct drm_device * dev, unsigned int *code)
 {
 	drm_i830_private_t *dev_priv = dev->dev_private;
@@ -539,12 +499,12 @@ static void i830EmitTexVerified(struct drm_device * dev, unsigned int *code)
 
 		BEGIN_LP_RING(I830_TEX_SETUP_SIZE);
 
-		OUT_RING(code[I830_TEXREG_MI0]);	/* TM0LI */
-		OUT_RING(code[I830_TEXREG_MI1]);	/* TM0S0 */
-		OUT_RING(code[I830_TEXREG_MI2]);	/* TM0S1 */
-		OUT_RING(code[I830_TEXREG_MI3]);	/* TM0S2 */
-		OUT_RING(code[I830_TEXREG_MI4]);	/* TM0S3 */
-		OUT_RING(code[I830_TEXREG_MI5]);	/* TM0S4 */
+		OUT_RING(code[I830_TEXREG_MI0]);	
+		OUT_RING(code[I830_TEXREG_MI1]);	
+		OUT_RING(code[I830_TEXREG_MI2]);	
+		OUT_RING(code[I830_TEXREG_MI3]);	
+		OUT_RING(code[I830_TEXREG_MI4]);	
+		OUT_RING(code[I830_TEXREG_MI5]);	
 
 		for (i = 6; i < I830_TEX_SETUP_SIZE; i++) {
 			tmp = code[i];
@@ -606,12 +566,10 @@ static void i830EmitTexPalette(struct drm_device * dev,
 		OUT_RING(palette[i]);
 	}
 	OUT_RING(0);
-	/* KW:  WHERE IS THE ADVANCE_LP_RING?  This is effectively a noop!
-	 */
+	
 }
 
-/* Need to do some additional checking when setting the dest buffer.
- */
+
 static void i830EmitDestVerified(struct drm_device * dev, unsigned int *code)
 {
 	drm_i830_private_t *dev_priv = dev->dev_private;
@@ -644,8 +602,7 @@ static void i830EmitDestVerified(struct drm_device * dev, unsigned int *code)
 			  tmp, dev_priv->front_di1, dev_priv->back_di1);
 	}
 
-	/* invarient:
-	 */
+	
 
 	OUT_RING(GFX_OP_DESTBUFFER_VARS);
 	OUT_RING(code[I830_DESTREG_DV1]);
@@ -656,7 +613,7 @@ static void i830EmitDestVerified(struct drm_device * dev, unsigned int *code)
 	OUT_RING(code[I830_DESTREG_DR3]);
 	OUT_RING(code[I830_DESTREG_DR4]);
 
-	/* Need to verify this */
+	
 	tmp = code[I830_DESTREG_SENABLE];
 	if ((tmp & ~0x3) == GFX_OP_SCISSOR_ENABLE) {
 		OUT_RING(tmp);
@@ -736,8 +693,7 @@ static void i830EmitState(struct drm_device * dev)
 			sarea_priv->dirty &= ~I830_UPLOAD_TEX_PALETTE_N(1);
 		}
 
-		/* 1.3:
-		 */
+		
 #if 0
 		if (dirty & I830_UPLOAD_TEX_PALETTE_N(2)) {
 			i830EmitTexPalette(dev, sarea_priv->Palette2[0], 0, 0);
@@ -750,8 +706,7 @@ static void i830EmitState(struct drm_device * dev)
 #endif
 	}
 
-	/* 1.3:
-	 */
+	
 	if (dirty & I830_UPLOAD_STIPPLE) {
 		i830EmitStippleVerified(dev, sarea_priv->StippleState);
 		sarea_priv->dirty &= ~I830_UPLOAD_STIPPLE;
@@ -783,9 +738,7 @@ static void i830EmitState(struct drm_device * dev)
 	}
 }
 
-/* ================================================================
- * Performance monitoring functions
- */
+
 
 static void i830_fill_box(struct drm_device * dev,
 			  int x, int y, int w, int h, int r, int g, int b)
@@ -829,34 +782,27 @@ static void i830_cp_performance_boxes(struct drm_device * dev)
 {
 	drm_i830_private_t *dev_priv = dev->dev_private;
 
-	/* Purple box for page flipping
-	 */
+	
 	if (dev_priv->sarea_priv->perf_boxes & I830_BOX_FLIP)
 		i830_fill_box(dev, 4, 4, 8, 8, 255, 0, 255);
 
-	/* Red box if we have to wait for idle at any point
-	 */
+	
 	if (dev_priv->sarea_priv->perf_boxes & I830_BOX_WAIT)
 		i830_fill_box(dev, 16, 4, 8, 8, 255, 0, 0);
 
-	/* Blue box: lost context?
-	 */
+	
 	if (dev_priv->sarea_priv->perf_boxes & I830_BOX_LOST_CONTEXT)
 		i830_fill_box(dev, 28, 4, 8, 8, 0, 0, 255);
 
-	/* Yellow box for texture swaps
-	 */
+	
 	if (dev_priv->sarea_priv->perf_boxes & I830_BOX_TEXTURE_LOAD)
 		i830_fill_box(dev, 40, 4, 8, 8, 255, 255, 0);
 
-	/* Green box if hardware never idles (as far as we can tell)
-	 */
+	
 	if (!(dev_priv->sarea_priv->perf_boxes & I830_BOX_RING_EMPTY))
 		i830_fill_box(dev, 64, 4, 8, 8, 0, 255, 0);
 
-	/* Draw bars indicating number of buffers allocated
-	 * (not a great measure, easily confused)
-	 */
+	
 	if (dev_priv->dma_used) {
 		int bar = dev_priv->dma_used / 10240;
 		if (bar > 100)
@@ -1239,7 +1185,7 @@ static int i830_flush_queue(struct drm_device * dev)
 	return ret;
 }
 
-/* Must be called with the lock held */
+
 static void i830_reclaim_buffers(struct drm_device * dev, struct drm_file *file_priv)
 {
 	struct drm_device_dma *dma = dev->dma;
@@ -1314,7 +1260,7 @@ static int i830_clear_bufs(struct drm_device *dev, void *data,
 
 	LOCK_TEST_WITH_RETURN(dev, file_priv);
 
-	/* GH: Someone's doing nasty things... */
+	
 	if (!dev->dev_private) {
 		return -EINVAL;
 	}
@@ -1336,8 +1282,7 @@ static int i830_swap_bufs(struct drm_device *dev, void *data,
 	return 0;
 }
 
-/* Not sure why this isn't set all the time:
- */
+
 static void i830_do_init_pageflip(struct drm_device * dev)
 {
 	drm_i830_private_t *dev_priv = dev->dev_private;
@@ -1417,7 +1362,7 @@ static int i830_getbuf(struct drm_device *dev, void *data,
 static int i830_copybuf(struct drm_device *dev, void *data,
 			struct drm_file *file_priv)
 {
-	/* Never copy - 2.4.x doesn't need it */
+	
 	return 0;
 }
 
@@ -1479,7 +1424,7 @@ static int i830_setparam(struct drm_device *dev, void *data,
 
 int i830_driver_load(struct drm_device *dev, unsigned long flags)
 {
-	/* i830 has 4 more counters */
+	
 	dev->counters += 4;
 	dev->types[6] = _DRM_STAT_IRQ;
 	dev->types[7] = _DRM_STAT_PRIMARY;
@@ -1534,17 +1479,7 @@ struct drm_ioctl_desc i830_ioctls[] = {
 
 int i830_max_ioctl = DRM_ARRAY_SIZE(i830_ioctls);
 
-/**
- * Determine if the device really is AGP or not.
- *
- * All Intel graphics chipsets are treated as AGP, even if they are really
- * PCI-e.
- *
- * \param dev   The device to be tested.
- *
- * \returns
- * A value of 1 is always retured to indictate every i8xx is AGP.
- */
+
 int i830_driver_device_is_agp(struct drm_device * dev)
 {
 	return 1;

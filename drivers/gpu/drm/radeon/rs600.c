@@ -1,40 +1,5 @@
-/*
- * Copyright 2008 Advanced Micro Devices, Inc.
- * Copyright 2008 Red Hat Inc.
- * Copyright 2009 Jerome Glisse.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * Authors: Dave Airlie
- *          Alex Deucher
- *          Jerome Glisse
- */
-/* RS600 / Radeon X1250/X1270 integrated GPU
- *
- * This file gather function specific to RS600 which is the IGP of
- * the X1250/X1270 family supporting intel CPU (while RS690/RS740
- * is the X1250/X1270 supporting AMD CPU). The display engine are
- * the avivo one, bios is an atombios, 3D block are the one of the
- * R4XX family. The GART is different from the RS400 one and is very
- * close to the one of the R600 family (R600 likely being an evolution
- * of the RS600 GART block).
- */
+
+
 #include "drmP.h"
 #include "radeon.h"
 #include "atom.h"
@@ -45,9 +10,7 @@
 void rs600_gpu_init(struct radeon_device *rdev);
 int rs600_mc_wait_for_idle(struct radeon_device *rdev);
 
-/*
- * GART.
- */
+
 void rs600_gart_tlb_flush(struct radeon_device *rdev)
 {
 	uint32_t tmp;
@@ -74,7 +37,7 @@ int rs600_gart_init(struct radeon_device *rdev)
 		WARN(1, "RS600 GART already initialized.\n");
 		return 0;
 	}
-	/* Initialize common gart structure */
+	
 	r = radeon_gart_init(rdev);
 	if (r) {
 		return r;
@@ -95,10 +58,10 @@ int rs600_gart_enable(struct radeon_device *rdev)
 	r = radeon_gart_table_vram_pin(rdev);
 	if (r)
 		return r;
-	/* Enable bus master */
+	
 	tmp = RREG32(R_00004C_BUS_CNTL) & C_00004C_BUS_MASTER_DIS;
 	WREG32(R_00004C_BUS_CNTL, tmp);
-	/* FIXME: setup default page */
+	
 	WREG32_MC(R_000100_MC_PT0_CNTL,
 		 (S_000100_EFFECTIVE_L2_CACHE_SIZE(6) |
 		  S_000100_EFFECTIVE_L2_QUEUE_SIZE(6)));
@@ -114,27 +77,27 @@ int rs600_gart_enable(struct radeon_device *rdev)
 			S_00016C_EFFECTIVE_L1_QUEUE_SIZE(1));
 	}
 
-	/* System context map to GART space */
+	
 	WREG32_MC(R_000112_MC_PT0_SYSTEM_APERTURE_LOW_ADDR, rdev->mc.gtt_start);
 	WREG32_MC(R_000114_MC_PT0_SYSTEM_APERTURE_HIGH_ADDR, rdev->mc.gtt_end);
 
-	/* enable first context */
+	
 	WREG32_MC(R_00013C_MC_PT0_CONTEXT0_FLAT_START_ADDR, rdev->mc.gtt_start);
 	WREG32_MC(R_00014C_MC_PT0_CONTEXT0_FLAT_END_ADDR, rdev->mc.gtt_end);
 	WREG32_MC(R_000102_MC_PT0_CONTEXT0_CNTL,
 			S_000102_ENABLE_PAGE_TABLE(1) |
 			S_000102_PAGE_TABLE_DEPTH(V_000102_PAGE_TABLE_FLAT));
-	/* disable all other contexts */
+	
 	for (i = 1; i < 8; i++) {
 		WREG32_MC(R_000102_MC_PT0_CONTEXT0_CNTL + i, 0);
 	}
 
-	/* setup the page table */
+	
 	WREG32_MC(R_00012C_MC_PT0_CONTEXT0_FLAT_BASE_ADDR,
 			rdev->gart.table_addr);
 	WREG32_MC(R_00011C_MC_PT0_CONTEXT0_DEFAULT_READ_ADDR, 0);
 
-	/* enable page tables */
+	
 	tmp = RREG32_MC(R_000100_MC_PT0_CNTL);
 	WREG32_MC(R_000100_MC_PT0_CNTL, (tmp | S_000100_ENABLE_PT(1)));
 	tmp = RREG32_MC(R_000009_MC_CNTL1);
@@ -148,7 +111,7 @@ void rs600_gart_disable(struct radeon_device *rdev)
 {
 	uint32_t tmp;
 
-	/* FIXME: disable out of gart access */
+	
 	WREG32_MC(R_000100_MC_PT0_CNTL, 0);
 	tmp = RREG32_MC(R_000009_MC_CNTL1);
 	WREG32_MC(R_000009_MC_CNTL1, tmp & C_000009_ENABLE_PAGE_TABLES);
@@ -235,7 +198,7 @@ void rs600_irq_disable(struct radeon_device *rdev)
 
 	WREG32(R_000040_GEN_INT_CNTL, 0);
 	WREG32(R_006540_DxMODE_INT_MASK, 0);
-	/* Wait and acknowledge irq */
+	
 	mdelay(1);
 	rs600_irq_ack(rdev, &tmp);
 }
@@ -250,10 +213,10 @@ int rs600_irq_process(struct radeon_device *rdev)
 		return IRQ_NONE;
 	}
 	while (status || r500_disp_int) {
-		/* SW interrupt */
+		
 		if (G_000040_SW_INT_EN(status))
 			radeon_fence_process(rdev);
-		/* Vertical blank interrupts */
+		
 		if (G_007EDC_LB_D1_VBLANK_INTERRUPT(r500_disp_int))
 			drm_handle_vblank(rdev->ddev, 0);
 		if (G_007EDC_LB_D2_VBLANK_INTERRUPT(r500_disp_int))
@@ -303,7 +266,7 @@ void rs600_gpu_init(struct radeon_device *rdev)
 {
 	r100_hdp_reset(rdev);
 	r420_pipes_init(rdev);
-	/* Wait for mc idle */
+	
 	if (rs600_mc_wait_for_idle(rdev))
 		dev_warn(rdev->dev, "Wait MC idle timeout before updating MC.\n");
 }
@@ -328,7 +291,7 @@ void rs600_vram_info(struct radeon_device *rdev)
 
 void rs600_bandwidth_update(struct radeon_device *rdev)
 {
-	/* FIXME: implement, should this be like rs690 ? */
+	
 }
 
 uint32_t rs600_mc_rreg(struct radeon_device *rdev, uint32_t reg)
@@ -361,18 +324,18 @@ static void rs600_mc_program(struct radeon_device *rdev)
 {
 	struct rv515_mc_save save;
 
-	/* Stops all mc clients */
+	
 	rv515_mc_stop(rdev, &save);
 
-	/* Wait for mc idle */
+	
 	if (rs600_mc_wait_for_idle(rdev))
 		dev_warn(rdev->dev, "Wait MC idle timeout before updating MC.\n");
 
-	/* FIXME: What does AGP means for such chipset ? */
+	
 	WREG32_MC(R_000005_MC_AGP_LOCATION, 0x0FFFFFFF);
 	WREG32_MC(R_000006_AGP_BASE, 0);
 	WREG32_MC(R_000007_AGP_BASE_2, 0);
-	/* Program MC */
+	
 	WREG32_MC(R_000004_MC_FB_LOCATION,
 			S_000004_MC_FB_START(rdev->mc.vram_start >> 16) |
 			S_000004_MC_FB_TOP(rdev->mc.vram_end >> 16));
@@ -387,19 +350,18 @@ static int rs600_startup(struct radeon_device *rdev)
 	int r;
 
 	rs600_mc_program(rdev);
-	/* Resume clock */
+	
 	rv515_clock_startup(rdev);
-	/* Initialize GPU configuration (# pipes, ...) */
+	
 	rs600_gpu_init(rdev);
-	/* Initialize GART (initialize after TTM so we can allocate
-	 * memory through TTM but finalize after TTM) */
+	
 	r = rs600_gart_enable(rdev);
 	if (r)
 		return r;
-	/* Enable IRQ */
+	
 	rdev->irq.sw_int = true;
 	rs600_irq_set(rdev);
-	/* 1M ring buffer */
+	
 	r = r100_cp_init(rdev, 1024 * 1024);
 	if (r) {
 		dev_err(rdev->dev, "failled initializing CP (%d).\n", r);
@@ -418,19 +380,19 @@ static int rs600_startup(struct radeon_device *rdev)
 
 int rs600_resume(struct radeon_device *rdev)
 {
-	/* Make sur GART are not working */
+	
 	rs600_gart_disable(rdev);
-	/* Resume clock before doing reset */
+	
 	rv515_clock_startup(rdev);
-	/* Reset gpu before posting otherwise ATOM will enter infinite loop */
+	
 	if (radeon_gpu_reset(rdev)) {
 		dev_warn(rdev->dev, "GPU reset failed ! (0xE40=0x%08X, 0x7C0=0x%08X)\n",
 			RREG32(R_000E40_RBBM_STATUS),
 			RREG32(R_0007C0_CP_STAT));
 	}
-	/* post */
+	
 	atom_asic_init(rdev->mode_info.atom_context);
-	/* Resume clock after posting */
+	
 	rv515_clock_startup(rdev);
 	return rs600_startup(rdev);
 }
@@ -464,13 +426,13 @@ int rs600_init(struct radeon_device *rdev)
 {
 	int r;
 
-	/* Disable VGA */
+	
 	rv515_vga_render_disable(rdev);
-	/* Initialize scratch registers */
+	
 	radeon_scratch_init(rdev);
-	/* Initialize surface registers */
+	
 	radeon_surface_init(rdev);
-	/* BIOS */
+	
 	if (!radeon_get_bios(rdev)) {
 		if (ASIC_IS_AVIVO(rdev))
 			return -EINVAL;
@@ -483,37 +445,37 @@ int rs600_init(struct radeon_device *rdev)
 		dev_err(rdev->dev, "Expecting atombios for RS600 GPU\n");
 		return -EINVAL;
 	}
-	/* Reset gpu before posting otherwise ATOM will enter infinite loop */
+	
 	if (radeon_gpu_reset(rdev)) {
 		dev_warn(rdev->dev,
 			"GPU reset failed ! (0xE40=0x%08X, 0x7C0=0x%08X)\n",
 			RREG32(R_000E40_RBBM_STATUS),
 			RREG32(R_0007C0_CP_STAT));
 	}
-	/* check if cards are posted or not */
+	
 	if (!radeon_card_posted(rdev) && rdev->bios) {
 		DRM_INFO("GPU not posted. posting now...\n");
 		atom_asic_init(rdev->mode_info.atom_context);
 	}
-	/* Initialize clocks */
+	
 	radeon_get_clock_info(rdev->ddev);
-	/* Initialize power management */
+	
 	radeon_pm_init(rdev);
-	/* Get vram informations */
+	
 	rs600_vram_info(rdev);
-	/* Initialize memory controller (also test AGP) */
+	
 	r = r420_mc_init(rdev);
 	if (r)
 		return r;
 	rs600_debugfs(rdev);
-	/* Fence driver */
+	
 	r = radeon_fence_driver_init(rdev);
 	if (r)
 		return r;
 	r = radeon_irq_kms_init(rdev);
 	if (r)
 		return r;
-	/* Memory manager */
+	
 	r = radeon_object_init(rdev);
 	if (r)
 		return r;
@@ -524,7 +486,7 @@ int rs600_init(struct radeon_device *rdev)
 	rdev->accel_working = true;
 	r = rs600_startup(rdev);
 	if (r) {
-		/* Somethings want wront with the accel init stop accel */
+		
 		dev_err(rdev->dev, "Disabling GPU acceleration\n");
 		rs600_suspend(rdev);
 		r100_cp_fini(rdev);

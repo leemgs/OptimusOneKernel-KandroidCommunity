@@ -1,29 +1,4 @@
-/*
- * Copyright © 2006 Intel Corporation
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- * Authors:
- *    Eric Anholt <eric@anholt.net>
- *
- */
+
 #include "drmP.h"
 #include "drm.h"
 #include "i915_drm.h"
@@ -41,11 +16,11 @@ find_section(struct bdb_header *bdb, int section_id)
 	u16 total, current_size;
 	u8 current_id;
 
-	/* skip to first section */
+	
 	index += bdb->header_size;
 	total = bdb->bdb_size;
 
-	/* walk the sections looking for section_id */
+	
 	while (index < total) {
 		current_id = *(base + index);
 		index++;
@@ -93,7 +68,7 @@ fill_detail_timing_data(struct drm_display_mode *panel_fixed_mode,
 	panel_fixed_mode->clock = dvo_timing->clock * 10;
 	panel_fixed_mode->type = DRM_MODE_TYPE_PREFERRED;
 
-	/* Some VBTs have bogus h/vtotal values */
+	
 	if (panel_fixed_mode->hsync_end > panel_fixed_mode->htotal)
 		panel_fixed_mode->htotal = panel_fixed_mode->hsync_end + 1;
 	if (panel_fixed_mode->vsync_end > panel_fixed_mode->vtotal)
@@ -102,7 +77,7 @@ fill_detail_timing_data(struct drm_display_mode *panel_fixed_mode,
 	drm_mode_set_name(panel_fixed_mode);
 }
 
-/* Try to find integrated panel data */
+
 static void
 parse_lfp_panel_data(struct drm_i915_private *dev_priv,
 			    struct bdb_header *bdb)
@@ -115,7 +90,7 @@ parse_lfp_panel_data(struct drm_i915_private *dev_priv,
 	struct drm_display_mode *panel_fixed_mode;
 	int lfp_data_size, dvo_timing_offset;
 
-	/* Defaults if we can't find VBT info */
+	
 	dev_priv->lvds_dither = 0;
 	dev_priv->lvds_vbt = 0;
 
@@ -145,11 +120,7 @@ parse_lfp_panel_data(struct drm_i915_private *dev_priv,
 	dvo_timing_offset = lvds_lfp_data_ptrs->ptr[0].dvo_timing_offset -
 		lvds_lfp_data_ptrs->ptr[0].fp_timing_offset;
 
-	/*
-	 * the size of fp_timing varies on the different platform.
-	 * So calculate the DVO timing relative offset in LVDS data
-	 * entry to get the DVO timing entry
-	 */
+	
 	dvo_timing = (struct lvds_dvo_timing *)
 			((unsigned char *)entry + dvo_timing_offset);
 
@@ -165,7 +136,7 @@ parse_lfp_panel_data(struct drm_i915_private *dev_priv,
 	return;
 }
 
-/* Try to find sdvo panel data */
+
 static void
 parse_sdvo_panel_data(struct drm_i915_private *dev_priv,
 		      struct bdb_header *bdb)
@@ -203,7 +174,7 @@ parse_general_features(struct drm_i915_private *dev_priv,
 {
 	struct bdb_general_features *general;
 
-	/* Set sensible defaults in case we can't find the general block */
+	
 	dev_priv->int_tv_support = 1;
 	dev_priv->int_crt_support = 1;
 
@@ -241,8 +212,7 @@ parse_general_definitions(struct drm_i915_private *dev_priv,
 		GPIOF,
 	};
 
-	/* Set sensible defaults in case we can't find the general block
-	   or it is the wrong chipset */
+	
 	dev_priv->crt_ddc_bus = -1;
 
 	general = find_section(bdb, BDB_GENERAL_DEFINITIONS);
@@ -277,39 +247,32 @@ parse_sdvo_device_mapping(struct drm_i915_private *dev_priv,
 		DRM_DEBUG("No general definition block is found\n");
 		return;
 	}
-	/* judge whether the size of child device meets the requirements.
-	 * If the child device size obtained from general definition block
-	 * is different with sizeof(struct child_device_config), skip the
-	 * parsing of sdvo device info
-	 */
+	
 	if (p_defs->child_dev_size != sizeof(*p_child)) {
-		/* different child dev size . Ignore it */
+		
 		DRM_DEBUG("different child size is found. Invalid.\n");
 		return;
 	}
-	/* get the block size of general definitions */
+	
 	block_size = get_blocksize(p_defs);
-	/* get the number of child device */
+	
 	child_device_num = (block_size - sizeof(*p_defs)) /
 				sizeof(*p_child);
 	count = 0;
 	for (i = 0; i < child_device_num; i++) {
 		p_child = &(p_defs->devices[i]);
 		if (!p_child->device_type) {
-			/* skip the device block if device type is invalid */
+			
 			continue;
 		}
 		if (p_child->slave_addr != SLAVE_ADDR1 &&
 			p_child->slave_addr != SLAVE_ADDR2) {
-			/*
-			 * If the slave address is neither 0x70 nor 0x72,
-			 * it is not a SDVO device. Skip it.
-			 */
+			
 			continue;
 		}
 		if (p_child->dvo_port != DEVICE_PORT_DVOB &&
 			p_child->dvo_port != DEVICE_PORT_DVOC) {
-			/* skip the incorrect SDVO port */
+			
 			DRM_DEBUG("Incorrect SDVO port. Skip it \n");
 			continue;
 		}
@@ -329,8 +292,8 @@ parse_sdvo_device_mapping(struct drm_i915_private *dev_priv,
 					 "two SDVO device.\n");
 		}
 		if (p_child->slave2_addr) {
-			/* Maybe this is a SDVO device with multiple inputs */
-			/* And the mapping info is not added */
+			
+			
 			DRM_DEBUG("there exists the slave2_addr. Maybe this "
 				"is a SDVO device with multiple inputs.\n");
 		}
@@ -338,7 +301,7 @@ parse_sdvo_device_mapping(struct drm_i915_private *dev_priv,
 	}
 
 	if (!count) {
-		/* No SDVO device info is found */
+		
 		DRM_DEBUG("No SDVO device info is found in VBT\n");
 	}
 	return;
@@ -366,20 +329,7 @@ parse_driver_features(struct drm_i915_private *dev_priv,
 		dev_priv->render_reclock_avail = true;
 }
 
-/**
- * intel_init_bios - initialize VBIOS settings & find VBT
- * @dev: DRM device
- *
- * Loads the Video BIOS and checks that the VBT exists.  Sets scratch registers
- * to appropriate values.
- *
- * VBT existence is a sanity check that is relied on by other i830_bios.c code.
- * Note that it would be better to use a BIOS call to get the VBT, as BIOSes may
- * feed an updated VBT back through that, compared to what we'll fetch using
- * this method of groping around in the BIOS data.
- *
- * Returns 0 on success, nonzero on failure.
- */
+
 bool
 intel_init_bios(struct drm_device *dev)
 {
@@ -395,7 +345,7 @@ intel_init_bios(struct drm_device *dev)
 	if (!bios)
 		return -1;
 
-	/* Scour memory looking for the VBT signature */
+	
 	for (i = 0; i + 4 < size; i++) {
 		if (!memcmp(bios + i, "$VBT", 4)) {
 			vbt = (struct vbt_header *)(bios + i);
@@ -411,7 +361,7 @@ intel_init_bios(struct drm_device *dev)
 
 	bdb = (struct bdb_header *)(bios + i + vbt->bdb_offset);
 
-	/* Grab useful general definitions */
+	
 	parse_general_features(dev_priv, bdb);
 	parse_general_definitions(dev_priv, bdb);
 	parse_lfp_panel_data(dev_priv, bdb);

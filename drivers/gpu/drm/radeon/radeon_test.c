@@ -1,33 +1,11 @@
-/*
- * Copyright 2009 VMware, Inc.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * Authors: Michel Dänzer
- */
+
 #include <drm/drmP.h>
 #include <drm/radeon_drm.h>
 #include "radeon_reg.h"
 #include "radeon.h"
 
 
-/* Test BO GTT->VRAM and VRAM->GTT GPU copies across the whole GTT aperture */
+
 void radeon_test_moves(struct radeon_device *rdev)
 {
 	struct radeon_object *vram_obj = NULL;
@@ -39,9 +17,7 @@ void radeon_test_moves(struct radeon_device *rdev)
 
 	size = 1024 * 1024;
 
-	/* Number of tests =
-	 * (Total GTT - IB pool - writeback page - ring buffer) / test size
-	 */
+	
 	n = ((u32)(rdev->mc.gtt_size - RADEON_IB_POOL_SIZE*64*1024 - RADEON_GPU_PAGE_SIZE -
 	     rdev->cp.ring_size)) / size;
 

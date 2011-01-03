@@ -1,30 +1,4 @@
-/*
- * Copyright 2008 Advanced Micro Devices, Inc.
- * Copyright 2008 Red Hat Inc.
- * Copyright 2009 Jerome Glisse.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * Authors: Dave Airlie
- *          Alex Deucher
- *          Jerome Glisse
- */
+
 #include <linux/seq_file.h>
 #include "drmP.h"
 #include "radeon_drm.h"
@@ -34,9 +8,7 @@
 
 int radeon_debugfs_ib_init(struct radeon_device *rdev);
 
-/*
- * IB.
- */
+
 int radeon_ib_get(struct radeon_device *rdev, struct radeon_ib **ib)
 {
 	struct radeon_fence *fence;
@@ -60,17 +32,17 @@ int radeon_ib_get(struct radeon_device *rdev, struct radeon_ib **ib)
 		goto out;
 	}
 	if (list_empty(&rdev->ib_pool.scheduled_ibs)) {
-		/* we go do nothings here */
+		
 		mutex_unlock(&rdev->ib_pool.mutex);
 		DRM_ERROR("all IB allocated none scheduled.\n");
 		r = -EINVAL;
 		goto out;
 	}
-	/* get the first ib on the scheduled list */
+	
 	nib = list_entry(rdev->ib_pool.scheduled_ibs.next,
 			 struct radeon_ib, list);
 	if (nib->fence == NULL) {
-		/* we go do nothings here */
+		
 		mutex_unlock(&rdev->ib_pool.mutex);
 		DRM_ERROR("IB %lu scheduled without a fence.\n", nib->idx);
 		r = -EINVAL;
@@ -89,7 +61,7 @@ int radeon_ib_get(struct radeon_device *rdev, struct radeon_ib **ib)
 
 	nib->length_dw = 0;
 
-	/* scheduled list is accessed here */
+	
 	mutex_lock(&rdev->ib_pool.mutex);
 	list_del(&nib->list);
 	INIT_LIST_HEAD(&nib->list);
@@ -115,7 +87,7 @@ void radeon_ib_free(struct radeon_device *rdev, struct radeon_ib **ib)
 	}
 	mutex_lock(&rdev->ib_pool.mutex);
 	if (!list_empty(&tmp->list) && !radeon_fence_signaled(tmp->fence)) {
-		/* IB is scheduled & not signaled don't do anythings */
+		
 		mutex_unlock(&rdev->ib_pool.mutex);
 		return;
 	}
@@ -134,12 +106,12 @@ int radeon_ib_schedule(struct radeon_device *rdev, struct radeon_ib *ib)
 	int r = 0;
 
 	if (!ib->length_dw || !rdev->cp.ready) {
-		/* TODO: Nothings in the ib we should report. */
+		
 		DRM_ERROR("radeon: couldn't schedule IB(%lu).\n", ib->idx);
 		return -EINVAL;
 	}
 
-	/* 64 dwords should be enough for fence too */
+	
 	r = radeon_ring_lock(rdev, 64);
 	if (r) {
 		DRM_ERROR("radeon: scheduling IB failled (%d).\n", r);
@@ -163,7 +135,7 @@ int radeon_ib_pool_init(struct radeon_device *rdev)
 
 	if (rdev->ib_pool.robj)
 		return 0;
-	/* Allocate 1M object buffer */
+	
 	INIT_LIST_HEAD(&rdev->ib_pool.scheduled_ibs);
 	r = radeon_object_create(rdev, NULL,  RADEON_IB_POOL_SIZE*64*1024,
 				 true, RADEON_GEM_DOMAIN_GTT,
@@ -217,16 +189,14 @@ void radeon_ib_pool_fini(struct radeon_device *rdev)
 }
 
 
-/*
- * Ring.
- */
+
 void radeon_ring_free_size(struct radeon_device *rdev)
 {
 	if (rdev->family >= CHIP_R600)
 		rdev->cp.rptr = RREG32(R600_CP_RB_RPTR);
 	else
 		rdev->cp.rptr = RREG32(RADEON_CP_RB_RPTR);
-	/* This works because ring_size is a power of 2 */
+	
 	rdev->cp.ring_free_dw = (rdev->cp.rptr + (rdev->cp.ring_size / 4));
 	rdev->cp.ring_free_dw -= rdev->cp.wptr;
 	rdev->cp.ring_free_dw &= rdev->cp.ptr_mask;
@@ -239,8 +209,7 @@ int radeon_ring_lock(struct radeon_device *rdev, unsigned ndw)
 {
 	int r;
 
-	/* Align requested size with padding so unlock_commit can
-	 * pad safely */
+	
 	ndw = (ndw + rdev->cp.align_mask) & ~rdev->cp.align_mask;
 	mutex_lock(&rdev->cp.mutex);
 	while (ndw > (rdev->cp.ring_free_dw - 1)) {
@@ -264,7 +233,7 @@ void radeon_ring_unlock_commit(struct radeon_device *rdev)
 	unsigned count_dw_pad;
 	unsigned i;
 
-	/* We pad to match fetch size */
+	
 	count_dw_pad = (rdev->cp.align_mask + 1) -
 		       (rdev->cp.wptr & rdev->cp.align_mask);
 	for (i = 0; i < count_dw_pad; i++) {
@@ -286,7 +255,7 @@ int radeon_ring_init(struct radeon_device *rdev, unsigned ring_size)
 	int r;
 
 	rdev->cp.ring_size = ring_size;
-	/* Allocate ring buffer */
+	
 	if (rdev->cp.ring_obj == NULL) {
 		r = radeon_object_create(rdev, NULL, rdev->cp.ring_size,
 					 true,
@@ -333,9 +302,7 @@ void radeon_ring_fini(struct radeon_device *rdev)
 }
 
 
-/*
- * Debugfs info
- */
+
 #if defined(CONFIG_DEBUG_FS)
 static int radeon_debugfs_ib_info(struct seq_file *m, void *data)
 {

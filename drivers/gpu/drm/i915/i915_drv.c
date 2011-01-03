@@ -1,31 +1,5 @@
-/* i915_drv.c -- i830,i845,i855,i865,i915 driver -*- linux-c -*-
- */
-/*
- *
- * Copyright 2003 Tungsten Graphics, Inc., Cedar Park, Texas.
- * All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sub license, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice (including the
- * next paragraph) shall be included in all copies or substantial portions
- * of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
- * IN NO EVENT SHALL TUNGSTEN GRAPHICS AND/OR ITS SUPPLIERS BE LIABLE FOR
- * ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- */
+
+
 
 #include <linux/device.h>
 #include "drmP.h"
@@ -71,7 +45,7 @@ static int i915_suspend(struct drm_device *dev, pm_message_t state)
 
 	pci_save_state(dev->pdev);
 
-	/* If KMS is active, we do the leavevt stuff here */
+	
 	if (drm_core_check_feature(dev, DRIVER_MODESET)) {
 		if (i915_gem_idle(dev))
 			dev_err(&dev->pdev->dev,
@@ -84,12 +58,12 @@ static int i915_suspend(struct drm_device *dev, pm_message_t state)
 	intel_opregion_free(dev, 1);
 
 	if (state.event == PM_EVENT_SUSPEND) {
-		/* Shut down the device */
+		
 		pci_disable_device(dev->pdev);
 		pci_set_power_state(dev->pdev, PCI_D3hot);
 	}
 
-	/* Modeset on resume, not lid events */
+	
 	dev_priv->modeset_on_lid = 0;
 
 	return 0;
@@ -108,7 +82,7 @@ static int i915_resume(struct drm_device *dev)
 
 	intel_opregion_init(dev, 1);
 
-	/* KMS EnterVT equivalent */
+	
 	if (drm_core_check_feature(dev, DRIVER_MODESET)) {
 		mutex_lock(&dev->struct_mutex);
 		dev_priv->mm.suspended = 0;
@@ -121,7 +95,7 @@ static int i915_resume(struct drm_device *dev)
 		drm_irq_install(dev);
 	}
 	if (drm_core_check_feature(dev, DRIVER_MODESET)) {
-		/* Resume the modeset for every activated CRTC */
+		
 		drm_helper_resume_force_mode(dev);
 	}
 
@@ -130,55 +104,31 @@ static int i915_resume(struct drm_device *dev)
 	return ret;
 }
 
-/**
- * i965_reset - reset chip after a hang
- * @dev: drm device to reset
- * @flags: reset domains
- *
- * Reset the chip.  Useful if a hang is detected. Returns zero on successful
- * reset or otherwise an error code.
- *
- * Procedure is fairly simple:
- *   - reset the chip using the reset reg
- *   - re-init context state
- *   - re-init hardware status page
- *   - re-init ring buffer
- *   - re-init interrupt state
- *   - re-init display
- */
+
 int i965_reset(struct drm_device *dev, u8 flags)
 {
 	drm_i915_private_t *dev_priv = dev->dev_private;
 	unsigned long timeout;
 	u8 gdrst;
-	/*
-	 * We really should only reset the display subsystem if we actually
-	 * need to
-	 */
+	
 	bool need_display = true;
 
 	mutex_lock(&dev->struct_mutex);
 
-	/*
-	 * Clear request list
-	 */
+	
 	i915_gem_retire_requests(dev);
 
 	if (need_display)
 		i915_save_display(dev);
 
 	if (IS_I965G(dev) || IS_G4X(dev)) {
-		/*
-		 * Set the domains we want to reset, then the reset bit (bit 0).
-		 * Clear the reset bit after a while and wait for hardware status
-		 * bit (bit 1) to be set
-		 */
+		
 		pci_read_config_byte(dev->pdev, GDRST, &gdrst);
 		pci_write_config_byte(dev->pdev, GDRST, gdrst | flags | ((flags == GDRST_FULL) ? 0x1 : 0x0));
 		udelay(50);
 		pci_write_config_byte(dev->pdev, GDRST, gdrst & 0xfe);
 
-		/* ...we don't want to loop forever though, 500ms should be plenty */
+		
 	       timeout = jiffies + msecs_to_jiffies(500);
 		do {
 			udelay(100);
@@ -195,20 +145,9 @@ int i965_reset(struct drm_device *dev, u8 flags)
 		return -ENODEV;
 	}
 
-	/* Ok, now get things going again... */
+	
 
-	/*
-	 * Everything depends on having the GTT running, so we need to start
-	 * there.  Fortunately we don't need to do this unless we reset the
-	 * chip at a PCI level.
-	 *
-	 * Next we need to restore the context, but we don't use those
-	 * yet either...
-	 *
-	 * Ring buffer needs to be re-initialized in the KMS case, or if X
-	 * was running at the time of the reset (i.e. we weren't VT
-	 * switched away).
-	 */
+	
 	if (drm_core_check_feature(dev, DRIVER_MODESET) ||
 	    !dev_priv->mm.suspended) {
 		drm_i915_ring_buffer_t *ring = &dev_priv->ring;
@@ -216,12 +155,12 @@ int i965_reset(struct drm_device *dev, u8 flags)
 		struct drm_i915_gem_object *obj_priv = obj->driver_private;
 		dev_priv->mm.suspended = 0;
 
-		/* Stop the ring if it's running. */
+		
 		I915_WRITE(PRB0_CTL, 0);
 		I915_WRITE(PRB0_TAIL, 0);
 		I915_WRITE(PRB0_HEAD, 0);
 
-		/* Initialize the ring. */
+		
 		I915_WRITE(PRB0_START, obj_priv->gtt_offset);
 		I915_WRITE(PRB0_CTL,
 			   ((obj->size - 4096) & RING_NR_PAGES) |
@@ -243,9 +182,7 @@ int i965_reset(struct drm_device *dev, u8 flags)
 		mutex_lock(&dev->struct_mutex);
 	}
 
-	/*
-	 * Display needs restore too...
-	 */
+	
 	if (need_display)
 		i915_restore_display(dev);
 
@@ -257,7 +194,7 @@ int i965_reset(struct drm_device *dev, u8 flags)
 static int __devinit
 i915_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 {
-	return drm_get_dev(pdev, ent, &driver);
+	return drm_get_pci_dev(pdev, ent, &driver);
 }
 
 static void
@@ -291,11 +228,9 @@ static struct vm_operations_struct i915_gem_vm_ops = {
 };
 
 static struct drm_driver driver = {
-	/* don't use mtrr's here, the Xserver or user space app should
-	 * deal with them for intel hardware.
-	 */
+	
 	.driver_features =
-	    DRIVER_USE_AGP | DRIVER_REQUIRE_AGP | /* DRIVER_USE_MTRR |*/
+	    DRIVER_USE_AGP | DRIVER_REQUIRE_AGP | 
 	    DRIVER_HAVE_IRQ | DRIVER_IRQ_SHARED | DRIVER_GEM,
 	.load = i915_driver_load,
 	.unload = i915_driver_unload,
@@ -363,15 +298,7 @@ static int __init i915_init(void)
 
 	i915_gem_shrinker_init();
 
-	/*
-	 * If CONFIG_DRM_I915_KMS is set, default to KMS unless
-	 * explicitly disabled with the module pararmeter.
-	 *
-	 * Otherwise, just follow the parameter (defaulting to off).
-	 *
-	 * Allow optional vga_text_mode_force boot option to override
-	 * the default behavior.
-	 */
+	
 #if defined(CONFIG_DRM_I915_KMS)
 	if (i915_modeset != 0)
 		driver.driver_features |= DRIVER_MODESET;

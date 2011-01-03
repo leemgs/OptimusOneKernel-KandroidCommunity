@@ -1,46 +1,11 @@
-/**
- * \file drm_info.c
- * DRM info file implementations
- *
- * \author Ben Gamari <bgamari@gmail.com>
- */
 
-/*
- * Created: Sun Dec 21 13:09:50 2008 by bgamari@gmail.com
- *
- * Copyright 1999 Precision Insight, Inc., Cedar Park, Texas.
- * Copyright 2000 VA Linux Systems, Inc., Sunnyvale, California.
- * Copyright 2008 Ben Gamari <bgamari@gmail.com>
- * All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * VA LINUX SYSTEMS AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
+
+
 
 #include <linux/seq_file.h>
 #include "drmP.h"
 
-/**
- * Called when "/proc/dri/.../name" is read.
- *
- * Prints the device name together with the bus id if available.
- */
+
 int drm_name_info(struct seq_file *m, void *data)
 {
 	struct drm_info_node *node = (struct drm_info_node *) m->private;
@@ -51,23 +16,30 @@ int drm_name_info(struct seq_file *m, void *data)
 	if (!master)
 		return 0;
 
-	if (master->unique) {
-		seq_printf(m, "%s %s %s\n",
-			   dev->driver->pci_driver.name,
-			   pci_name(dev->pdev), master->unique);
+	if (drm_core_check_feature(dev, DRIVER_USE_PLATFORM_DEVICE)) {
+		if (master->unique) {
+			seq_printf(m, "%s %s\n",
+					dev->driver->platform_device->name,
+					master->unique);
+		} else {
+			seq_printf(m, "%s\n",
+				dev->driver->platform_device->name);
+		}
 	} else {
-		seq_printf(m, "%s %s\n", dev->driver->pci_driver.name,
-			   pci_name(dev->pdev));
+		if (master->unique) {
+			seq_printf(m, "%s %s %s\n",
+				dev->driver->pci_driver.name,
+				pci_name(dev->pdev), master->unique);
+		} else {
+			seq_printf(m, "%s %s\n", dev->driver->pci_driver.name,
+				pci_name(dev->pdev));
+		}
 	}
 
 	return 0;
 }
 
-/**
- * Called when "/proc/dri/.../vm" is read.
- *
- * Prints information about all mappings in drm_device::maplist.
- */
+
 int drm_vm_info(struct seq_file *m, void *data)
 {
 	struct drm_info_node *node = (struct drm_info_node *) m->private;
@@ -75,9 +47,7 @@ int drm_vm_info(struct seq_file *m, void *data)
 	struct drm_local_map *map;
 	struct drm_map_list *r_list;
 
-	/* Hardcoded from _DRM_FRAME_BUFFER,
-	   _DRM_REGISTERS, _DRM_SHM, _DRM_AGP, and
-	   _DRM_SCATTER_GATHER and _DRM_CONSISTENT */
+	
 	const char *types[] = { "FB", "REG", "SHM", "AGP", "SG", "PCI" };
 	const char *type;
 	int i;
@@ -109,9 +79,7 @@ int drm_vm_info(struct seq_file *m, void *data)
 	return 0;
 }
 
-/**
- * Called when "/proc/dri/.../queues" is read.
- */
+
 int drm_queues_info(struct seq_file *m, void *data)
 {
 	struct drm_info_node *node = (struct drm_info_node *) m->private;
@@ -145,9 +113,7 @@ int drm_queues_info(struct seq_file *m, void *data)
 	return 0;
 }
 
-/**
- * Called when "/proc/dri/.../bufs" is read.
- */
+
 int drm_bufs_info(struct seq_file *m, void *data)
 {
 	struct drm_info_node *node = (struct drm_info_node *) m->private;
@@ -187,9 +153,7 @@ int drm_bufs_info(struct seq_file *m, void *data)
 	return 0;
 }
 
-/**
- * Called when "/proc/dri/.../vblank" is read.
- */
+
 int drm_vblank_info(struct seq_file *m, void *data)
 {
 	struct drm_info_node *node = (struct drm_info_node *) m->private;
@@ -211,10 +175,7 @@ int drm_vblank_info(struct seq_file *m, void *data)
 	return 0;
 }
 
-/**
- * Called when "/proc/dri/.../clients" is read.
- *
- */
+
 int drm_clients_info(struct seq_file *m, void *data)
 {
 	struct drm_info_node *node = (struct drm_info_node *) m->private;

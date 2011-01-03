@@ -1,29 +1,4 @@
-/**************************************************************************
- *
- * Copyright (c) 2006-2009 VMware, Inc., Palo Alto, CA., USA
- * All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sub license, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice (including the
- * next paragraph) shall be included in all copies or substantial portions
- * of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL
- * THE COPYRIGHT HOLDERS, AUTHORS AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
- * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
- * USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- **************************************************************************/
+
 
 #include "ttm/ttm_memory.h"
 #include "ttm/ttm_module.h"
@@ -200,12 +175,7 @@ static bool ttm_zones_above_swap_target(struct ttm_mem_global *glob,
 	return false;
 }
 
-/**
- * At this point we only support a single shrink callback.
- * Extend this if needed, perhaps using a linked list of callbacks.
- * Note that this function is reentrant:
- * many threads may try to swap out at any given time.
- */
+
 
 static void ttm_shrink(struct ttm_mem_global *glob, bool from_wq,
 		       uint64_t extra)
@@ -318,18 +288,12 @@ static int ttm_mem_init_dma32_zone(struct ttm_mem_global *glob,
 	mem = si->totalram;
 	mem *= si->mem_unit;
 
-	/**
-	 * No special dma32 zone needed.
-	 */
+	
 
 	if (mem <= ((uint64_t) 1ULL << 32))
 		return 0;
 
-	/*
-	 * Limit max dma32 memory to 4GB for now
-	 * until we can figure out how big this
-	 * zone really is.
-	 */
+	
 
 	mem = ((uint64_t) 1ULL << 32);
 	zone->name = "dma32";
@@ -525,10 +489,7 @@ static int ttm_mem_global_alloc_zone(struct ttm_mem_global *glob,
 int ttm_mem_global_alloc(struct ttm_mem_global *glob, uint64_t memory,
 			 bool no_wait, bool interruptible)
 {
-	/**
-	 * Normal allocations of kernel memory are registered in
-	 * all zones.
-	 */
+	
 
 	return ttm_mem_global_alloc_zone(glob, NULL, memory, no_wait,
 					 interruptible);
@@ -541,10 +502,7 @@ int ttm_mem_global_alloc_page(struct ttm_mem_global *glob,
 
 	struct ttm_mem_zone *zone = NULL;
 
-	/**
-	 * Page allocations may be registed in a single zone
-	 * only if highmem or !dma32.
-	 */
+	
 
 #ifdef CONFIG_HIGHMEM
 	if (PageHighMem(page) && glob->zone_highmem != NULL)

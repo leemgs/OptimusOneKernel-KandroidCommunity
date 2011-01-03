@@ -1037,7 +1037,7 @@ const u32 r7xx_default_state[] =
 	0x00000000,
 };
 
-/* same for r6xx/r7xx */
+
 const u32 r6xx_vs[] =
 {
 	0x00000004,

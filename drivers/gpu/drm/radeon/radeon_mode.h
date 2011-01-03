@@ -1,31 +1,4 @@
-/*
- * Copyright 2000 ATI Technologies Inc., Markham, Ontario, and
- *                VA Linux Systems Inc., Fremont, California.
- * Copyright 2008 Red Hat Inc.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * Original Authors:
- *   Kevin E. Martin, Rickard E. Faith, Alan Hourihane
- *
- * Kernel port Author: Dave Airlie
- */
+
 
 #ifndef RADEON_MODE_H
 #define RADEON_MODE_H
@@ -156,7 +129,7 @@ struct radeon_i2c_chan {
 	struct radeon_i2c_bus_rec rec;
 };
 
-/* mostly for macs, but really any system without connector tables */
+
 enum radeon_connector_table {
 	CT_NONE,
 	CT_GENERIC,
@@ -176,13 +149,13 @@ struct radeon_mode_info {
 	enum radeon_connector_table connector_table;
 	bool mode_config_initialized;
 	struct radeon_crtc *crtcs[2];
-	/* DVI-I properties */
+	
 	struct drm_property *coherent_mode_property;
-	/* DAC enable load detect */
+	
 	struct drm_property *load_detect_property;
-	/* TV standard load detect */
+	
 	struct drm_property *tv_std_property;
-	/* legacy TMDS PLL detect */
+	
 	struct drm_property *tmds_pll_property;
 
 };
@@ -190,8 +163,7 @@ struct radeon_mode_info {
 #define MAX_H_CODE_TIMING_LEN 32
 #define MAX_V_CODE_TIMING_LEN 32
 
-/* need to store these as reading
-   back code tables is excessive */
+
 struct radeon_tv_regs {
 	uint32_t tv_uv_adr;
 	uint32_t timing_cntl;
@@ -222,12 +194,12 @@ struct radeon_crtc {
 };
 
 struct radeon_encoder_primary_dac {
-	/* legacy primary dac */
+	
 	uint32_t ps2_pdac_adj;
 };
 
 struct radeon_encoder_lvds {
-	/* legacy lvds */
+	
 	uint16_t panel_vcc_delay;
 	uint8_t  panel_pwr_delay;
 	uint8_t  panel_digon_delay;
@@ -237,12 +209,12 @@ struct radeon_encoder_lvds {
 	uint16_t panel_fb_divider;
 	bool     use_bios_dividers;
 	uint32_t lvds_gen_cntl;
-	/* panel mode */
+	
 	struct drm_display_mode native_mode;
 };
 
 struct radeon_encoder_tv_dac {
-	/* legacy tv dac */
+	
 	uint32_t ps2_tvdac_adj;
 	uint32_t ntsc_tvdac_adj;
 	uint32_t pal_tvdac_adj;
@@ -257,11 +229,11 @@ struct radeon_encoder_tv_dac {
 };
 
 struct radeon_encoder_int_tmds {
-	/* legacy int tmds */
+	
 	struct radeon_tmds_pll tmds_pll[4];
 };
 
-/* spread spectrum */
+
 struct radeon_atom_ss {
 	uint16_t percentage;
 	uint8_t type;
@@ -272,14 +244,14 @@ struct radeon_atom_ss {
 };
 
 struct radeon_encoder_atom_dig {
-	/* atom dig */
+	
 	bool coherent_mode;
 	int dig_block;
-	/* atom lvds */
+	
 	uint32_t lvds_misc;
 	uint16_t panel_pwr_delay;
 	struct radeon_atom_ss *ss;
-	/* panel mode */
+	
 	struct drm_display_mode native_mode;
 };
 
@@ -309,11 +281,10 @@ struct radeon_connector {
 	uint32_t connector_id;
 	uint32_t devices;
 	struct radeon_i2c_chan *ddc_bus;
-	/* some systems have a an hdmi and vga port with a shared ddc line */
+	
 	bool shared_ddc;
 	bool use_digital;
-	/* we need to mind the EDID between detect
-	   and get modes due to analog/digital/tvencoder */
+	
 	struct edid *edid;
 	void *con_priv;
 	bool dac_load_detect;
@@ -445,7 +416,7 @@ bool radeon_crtc_scaling_mode_fixup(struct drm_crtc *crtc,
 					struct drm_display_mode *adjusted_mode);
 void atom_rv515_force_tv_scaler(struct radeon_device *rdev, struct radeon_crtc *radeon_crtc);
 
-/* legacy tv */
+
 void radeon_legacy_tv_adjust_crtc_reg(struct drm_encoder *encoder,
 				      uint32_t *h_total_disp, uint32_t *h_sync_strt_wid,
 				      uint32_t *v_total_disp, uint32_t *v_sync_strt_wid);

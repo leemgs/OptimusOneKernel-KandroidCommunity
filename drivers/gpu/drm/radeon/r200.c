@@ -1,30 +1,4 @@
-/*
- * Copyright 2008 Advanced Micro Devices, Inc.
- * Copyright 2008 Red Hat Inc.
- * Copyright 2009 Jerome Glisse.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * Authors: Dave Airlie
- *          Alex Deucher
- *          Jerome Glisse
- */
+
 #include "drmP.h"
 #include "drm.h"
 #include "radeon_drm.h"
@@ -44,7 +18,7 @@ static int r200_get_vtx_size_0(uint32_t vtx_fmt_0)
 		vtx_size++;
 	if (vtx_fmt_0 & R200_VTX_W0)
 		vtx_size++;
-	/* blend weight */
+	
 	if (vtx_fmt_0 & (0x7 << R200_VTX_WEIGHT_COUNT_SHIFT))
 		vtx_size += (vtx_fmt_0 >> R200_VTX_WEIGHT_COUNT_SHIFT) & 0x7;
 	if (vtx_fmt_0 & R200_VTX_PV_MATRIX_SEL)
@@ -119,8 +93,7 @@ int r200_packet0_check(struct radeon_cs_parser *p,
 			return r;
 		}
 		break;
-		/* FIXME: only allow PACKET3 blit? easier to check for out of
-		 * range access */
+		
 	case RADEON_DST_PITCH_OFFSET:
 	case RADEON_SRC_PITCH_OFFSET:
 		r = r100_reloc_pitch_offset(p, pkt, idx, reg);
@@ -304,7 +277,7 @@ int r200_packet0_check(struct radeon_cs_parser *p,
 		track->vap_vf_cntl = idx_value;
 		break;
 	case 0x210c:
-		/* VAP_VF_MAX_VTX_INDX */
+		
 		track->max_indx = idx_value & 0x00FFFFFFUL;
 		break;
 	case R200_SE_VTX_FMT_0:
@@ -365,7 +338,7 @@ int r200_packet0_check(struct radeon_cs_parser *p,
 		i = (reg - R200_PP_TXFORMAT_X_0) / 32;
 		track->textures[i].txdepth = idx_value & 0x7;
 		tmp = (idx_value >> 16) & 0x3;
-		/* 2D, 3D, CUBE */
+		
 		switch (tmp) {
 		case 0:
 		case 5:

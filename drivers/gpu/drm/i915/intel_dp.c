@@ -1,29 +1,4 @@
-/*
- * Copyright © 2008 Intel Corporation
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
- *
- * Authors:
- *    Keith Packard <keithp@keithp.com>
- *
- */
+
 
 #include <linux/i2c.h>
 #include "drmP.h"
@@ -122,7 +97,7 @@ intel_dp_link_clock(uint8_t link_bw)
 		return 162000;
 }
 
-/* I think this is a fiction */
+
 static int
 intel_dp_link_required(int pixel_clock)
 {
@@ -169,7 +144,7 @@ unpack_aux(uint32_t src, uint8_t *dst, int dst_bytes)
 		dst[i] = src >> ((3-i) * 8);
 }
 
-/* hrawclock is 1/4 the FSB frequency */
+
 static int
 intel_hrawclk(struct drm_device *dev)
 {
@@ -190,7 +165,7 @@ intel_hrawclk(struct drm_device *dev)
 		return 266;
 	case CLKCFG_FSB_1333:
 		return 333;
-	/* these two are just a guess; one of them might be right */
+	
 	case CLKCFG_FSB_1600:
 	case CLKCFG_FSB_1600_ALT:
 		return 400;
@@ -217,20 +192,17 @@ intel_dp_aux_ch(struct intel_output *intel_output,
 	uint32_t aux_clock_divider;
 	int try;
 
-	/* The clock divider is based off the hrawclk,
-	 * and would like to run at 2MHz. So, take the
-	 * hrawclk value and divide by 2 and use that
-	 */
+	
 	if (IS_eDP(intel_output))
-		aux_clock_divider = 225; /* eDP input clock at 450Mhz */
+		aux_clock_divider = 225; 
 	else if (IS_IGDNG(dev))
-		aux_clock_divider = 62; /* IGDNG: input clock fixed at 125Mhz */
+		aux_clock_divider = 62; 
 	else
 		aux_clock_divider = intel_hrawclk(dev) / 2;
 
-	/* Must try at least 3 times according to DP spec */
+	
 	for (try = 0; try < 5; try++) {
-		/* Load the send data into the aux channel data registers */
+		
 		for (i = 0; i < send_bytes; i += 4) {
 			uint32_t    d = pack_aux(send + i, send_bytes - i);
 	
@@ -246,7 +218,7 @@ intel_dp_aux_ch(struct intel_output *intel_output,
 		       DP_AUX_CH_CTL_TIME_OUT_ERROR |
 		       DP_AUX_CH_CTL_RECEIVE_ERROR);
 	
-		/* Send the command and wait for it to complete */
+		
 		I915_WRITE(ch_ctl, ctl);
 		(void) I915_READ(ch_ctl);
 		for (;;) {
@@ -256,7 +228,7 @@ intel_dp_aux_ch(struct intel_output *intel_output,
 				break;
 		}
 	
-		/* Clear done status and any errors */
+		
 		I915_WRITE(ch_ctl, (status |
 				DP_AUX_CH_CTL_DONE |
 				DP_AUX_CH_CTL_TIME_OUT_ERROR |
@@ -271,22 +243,19 @@ intel_dp_aux_ch(struct intel_output *intel_output,
 		return -EBUSY;
 	}
 
-	/* Check for timeout or receive error.
-	 * Timeouts occur when the sink is not connected
-	 */
+	
 	if (status & DP_AUX_CH_CTL_RECEIVE_ERROR) {
 		DRM_ERROR("dp_aux_ch receive error status 0x%08x\n", status);
 		return -EIO;
 	}
 
-	/* Timeouts occur when the device isn't connected, so they're
-	 * "normal" -- don't fill the kernel log with these */
+	
 	if (status & DP_AUX_CH_CTL_TIME_OUT_ERROR) {
 		DRM_DEBUG("dp_aux_ch timeout status 0x%08x\n", status);
 		return -ETIMEDOUT;
 	}
 
-	/* Unload any bytes sent back from the other side */
+	
 	recv_bytes = ((status & DP_AUX_CH_CTL_MESSAGE_SIZE_MASK) >>
 		      DP_AUX_CH_CTL_MESSAGE_SIZE_SHIFT);
 
@@ -302,7 +271,7 @@ intel_dp_aux_ch(struct intel_output *intel_output,
 	return recv_bytes;
 }
 
-/* Write data to the aux channel in native mode */
+
 static int
 intel_dp_aux_native_write(struct intel_output *intel_output,
 			  uint16_t address, uint8_t *send, int send_bytes)
@@ -334,7 +303,7 @@ intel_dp_aux_native_write(struct intel_output *intel_output,
 	return send_bytes;
 }
 
-/* Write a single byte to the aux channel in native mode */
+
 static int
 intel_dp_aux_native_write_1(struct intel_output *intel_output,
 			    uint16_t address, uint8_t byte)
@@ -342,7 +311,7 @@ intel_dp_aux_native_write_1(struct intel_output *intel_output,
 	return intel_dp_aux_native_write(intel_output, address, &byte, 1);
 }
 
-/* read bytes from a native aux channel */
+
 static int
 intel_dp_aux_native_read(struct intel_output *intel_output,
 			 uint16_t address, uint8_t *recv, int recv_bytes)
@@ -490,9 +459,7 @@ intel_dp_set_m_n(struct drm_crtc *crtc, struct drm_display_mode *mode,
 	int lane_count = 4;
 	struct intel_dp_m_n m_n;
 
-	/*
-	 * Find the lane count in the intel_output private
-	 */
+	
 	list_for_each_entry(connector, &mode_config->connector_list, head) {
 		struct intel_output *intel_output = to_intel_output(connector);
 		struct intel_dp_priv *dp_priv = intel_output->dev_priv;
@@ -506,11 +473,7 @@ intel_dp_set_m_n(struct drm_crtc *crtc, struct drm_display_mode *mode,
 		}
 	}
 
-	/*
-	 * Compute the GMCH and Link ratios. The '3' here is
-	 * the number of bytes_per_pixel post-LUT, which we always
-	 * set up for 8-bits of R/G/B, or 3 bytes total.
-	 */
+	
 	intel_dp_compute_m_n(3, lane_count,
 			     mode->clock, adjusted_mode->clock, &m_n);
 
@@ -584,10 +547,7 @@ intel_dp_mode_set(struct drm_encoder *encoder, struct drm_display_mode *mode,
 	dp_priv->link_configuration[0] = dp_priv->link_bw;
 	dp_priv->link_configuration[1] = dp_priv->lane_count;
 
-	/*
-	 * Check for DPCD version > 1.1,
-	 * enable enahanced frame stuff in that case
-	 */
+	
 	if (dp_priv->dpcd[0] >= 0x11) {
 		dp_priv->link_configuration[1] |= DP_LANE_COUNT_ENHANCED_FRAME_EN;
 		dp_priv->DP |= DP_ENHANCED_FRAMING;
@@ -597,7 +557,7 @@ intel_dp_mode_set(struct drm_encoder *encoder, struct drm_display_mode *mode,
 		dp_priv->DP |= DP_PIPEB_SELECT;
 
 	if (IS_eDP(intel_output)) {
-		/* don't miss out required setting for eDP */
+		
 		dp_priv->DP |= DP_PLL_ENABLE;
 		if (adjusted_mode->clock < 200000)
 			dp_priv->DP |= DP_PLL_FREQ_160MHZ;
@@ -653,10 +613,7 @@ intel_dp_dpms(struct drm_encoder *encoder, int mode)
 	dp_priv->dpms_mode = mode;
 }
 
-/*
- * Fetch AUX CH registers 0x202 - 0x207 which contain
- * link status information
- */
+
 static bool
 intel_dp_get_link_status(struct intel_output *intel_output,
 			 uint8_t link_status[DP_LINK_STATUS_SIZE])
@@ -731,10 +688,7 @@ static char	*link_train_names[] = {
 };
 #endif
 
-/*
- * These are source-specific values; current Intel hardware supports
- * a maximum voltage of 800mV and a maximum pre-emphasis of 6dB
- */
+
 #define I830_DP_VOLTAGE_MAX	    DP_TRAIN_VOLTAGE_SWING_800
 
 static uint8_t
@@ -832,7 +786,7 @@ intel_get_lane_status(uint8_t link_status[DP_LINK_STATUS_SIZE],
 	return (l >> s) & 0xf;
 }
 
-/* Check for clock recovery is done on all channels */
+
 static bool
 intel_clock_recovery_ok(uint8_t link_status[DP_LINK_STATUS_SIZE], int lane_count)
 {
@@ -847,7 +801,7 @@ intel_clock_recovery_ok(uint8_t link_status[DP_LINK_STATUS_SIZE], int lane_count
 	return true;
 }
 
-/* Check to see if channel eq is done on all channels */
+
 #define CHANNEL_EQ_BITS (DP_LANE_CR_DONE|\
 			 DP_LANE_CHANNEL_EQ_DONE|\
 			 DP_LANE_SYMBOL_LOCKED)
@@ -915,7 +869,7 @@ intel_dp_link_train(struct intel_output *intel_output, uint32_t DP,
 	bool first = true;
 	int tries;
 
-	/* Write the link configuration data */
+	
 	intel_dp_aux_native_write(intel_output, 0x100,
 				  link_configuration, DP_LINK_CONFIGURATION_SIZE);
 
@@ -926,7 +880,7 @@ intel_dp_link_train(struct intel_output *intel_output, uint32_t DP,
 	tries = 0;
 	clock_recovery = false;
 	for (;;) {
-		/* Use train_set[0] to set the voltage and pre emphasis values */
+		
 		uint32_t    signal_levels = intel_dp_signal_levels(train_set[0], dp_priv->lane_count);
 		DP = (DP & ~(DP_VOLTAGE_MASK|DP_PRE_EMPHASIS_MASK)) | signal_levels;
 
@@ -934,7 +888,7 @@ intel_dp_link_train(struct intel_output *intel_output, uint32_t DP,
 					     DP_TRAINING_PATTERN_1, train_set, first))
 			break;
 		first = false;
-		/* Set training pattern 1 */
+		
 
 		udelay(100);
 		if (!intel_dp_get_link_status(intel_output, link_status))
@@ -945,14 +899,14 @@ intel_dp_link_train(struct intel_output *intel_output, uint32_t DP,
 			break;
 		}
 
-		/* Check to see if we've tried the max voltage */
+		
 		for (i = 0; i < dp_priv->lane_count; i++)
 			if ((train_set[i] & DP_TRAIN_MAX_SWING_REACHED) == 0)
 				break;
 		if (i == dp_priv->lane_count)
 			break;
 
-		/* Check to see if we've tried the same voltage 5 times */
+		
 		if ((train_set[0] & DP_TRAIN_VOLTAGE_SWING_MASK) == voltage) {
 			++tries;
 			if (tries == 5)
@@ -961,19 +915,19 @@ intel_dp_link_train(struct intel_output *intel_output, uint32_t DP,
 			tries = 0;
 		voltage = train_set[0] & DP_TRAIN_VOLTAGE_SWING_MASK;
 
-		/* Compute new train_set as requested by target */
+		
 		intel_get_adjust_train(intel_output, link_status, dp_priv->lane_count, train_set);
 	}
 
-	/* channel equalization */
+	
 	tries = 0;
 	channel_eq = false;
 	for (;;) {
-		/* Use train_set[0] to set the voltage and pre emphasis values */
+		
 		uint32_t    signal_levels = intel_dp_signal_levels(train_set[0], dp_priv->lane_count);
 		DP = (DP & ~(DP_VOLTAGE_MASK|DP_PRE_EMPHASIS_MASK)) | signal_levels;
 
-		/* channel eq pattern */
+		
 		if (!intel_dp_set_link_train(intel_output, DP | DP_LINK_TRAIN_PAT_2,
 					     DP_TRAINING_PATTERN_2, train_set,
 					     false))
@@ -988,11 +942,11 @@ intel_dp_link_train(struct intel_output *intel_output, uint32_t DP,
 			break;
 		}
 
-		/* Try 5 times */
+		
 		if (tries > 5)
 			break;
 
-		/* Compute new train_set as requested by target */
+		
 		intel_get_adjust_train(intel_output, link_status, dp_priv->lane_count, train_set);
 		++tries;
 	}
@@ -1043,14 +997,7 @@ intel_dp_restore(struct drm_connector *connector)
 		intel_dp_link_down(intel_output,  dp_priv->save_DP);
 }
 
-/*
- * According to DP spec
- * 5.1.2:
- *  1. Read DPCD
- *  2. Configure link according to Receiver Capabilities
- *  3. Use Link Training from 2.5.3.3 and 3.5.1.3
- *  4. Check link status on receipt of hot-plug interrupt
- */
+
 
 static void
 intel_dp_check_link_status(struct intel_output *intel_output)
@@ -1088,12 +1035,7 @@ igdng_dp_detect(struct drm_connector *connector)
 	return status;
 }
 
-/**
- * Uses CRT_HOTPLUG_EN and CRT_HOTPLUG_STAT to detect DP connection.
- *
- * \return true if DP port is connected.
- * \return false if DP port is disconnected.
- */
+
 static enum drm_connector_status
 intel_dp_detect(struct drm_connector *connector)
 {
@@ -1156,14 +1098,13 @@ static int intel_dp_get_modes(struct drm_connector *connector)
 	struct drm_i915_private *dev_priv = dev->dev_private;
 	int ret;
 
-	/* We should parse the EDID data and find out if it has an audio sink
-	 */
+	
 
 	ret = intel_ddc_get_modes(intel_output);
 	if (ret)
 		return ret;
 
-	/* if eDP has no EDID, try to use fixed panel mode from VBT */
+	
 	if (IS_eDP(intel_output)) {
 		if (dev_priv->panel_fixed_mode != NULL) {
 			struct drm_display_mode *mode;
@@ -1283,7 +1224,7 @@ intel_dp_init(struct drm_device *dev, int output_reg)
 					  &intel_output->enc);
 	drm_sysfs_connector_add(connector);
 
-	/* Set up the DDC bus. */
+	
 	switch (output_reg) {
 		case DP_A:
 			name = "DPDDC-A";
@@ -1314,7 +1255,7 @@ intel_dp_init(struct drm_device *dev, int output_reg)
 	intel_output->hot_plug = intel_dp_hot_plug;
 
 	if (output_reg == DP_A) {
-		/* initialize panel mode from VBT if available for eDP */
+		
 		if (dev_priv->lfp_lvds_vbt_mode) {
 			dev_priv->panel_fixed_mode =
 				drm_mode_duplicate(dev, dev_priv->lfp_lvds_vbt_mode);
@@ -1325,10 +1266,7 @@ intel_dp_init(struct drm_device *dev, int output_reg)
 		}
 	}
 
-	/* For G4X desktop chip, PEG_BAND_GAP_DATA 3:0 must first be written
-	 * 0xd.  Failure to do so will result in spurious interrupts being
-	 * generated on the port when a cable is not attached.
-	 */
+	
 	if (IS_G4X(dev) && !IS_GM45(dev)) {
 		u32 temp = I915_READ(PEG_BAND_GAP_DATA);
 		I915_WRITE(PEG_BAND_GAP_DATA, (temp & ~0xf) | 0xd);

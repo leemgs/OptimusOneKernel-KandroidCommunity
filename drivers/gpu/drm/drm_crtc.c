@@ -1,34 +1,4 @@
-/*
- * Copyright (c) 2006-2008 Intel Corporation
- * Copyright (c) 2007 Dave Airlie <airlied@linux.ie>
- * Copyright (c) 2008 Red Hat Inc.
- *
- * DRM core CRTC related functions
- *
- * Permission to use, copy, modify, distribute, and sell this software and its
- * documentation for any purpose is hereby granted without fee, provided that
- * the above copyright notice appear in all copies and that both that copyright
- * notice and this permission notice appear in supporting documentation, and
- * that the name of the copyright holders not be used in advertising or
- * publicity pertaining to distribution of the software without specific,
- * written prior permission.  The copyright holders make no representations
- * about the suitability of this software for any purpose.  It is provided "as
- * is" without express or implied warranty.
- *
- * THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
- * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
- * EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
- * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
- * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
- * OF THIS SOFTWARE.
- *
- * Authors:
- *      Keith Packard
- *	Eric Anholt <eric@anholt.net>
- *      Dave Airlie <airlied@linux.ie>
- *      Jesse Barnes <jesse.barnes@intel.com>
- */
+
 #include <linux/list.h>
 #include "drm.h"
 #include "drmP.h"
@@ -39,7 +9,7 @@ struct drm_prop_enum_list {
 	char *name;
 };
 
-/* Avoid boilerplate.  I'm tired of typing. */
+
 #define DRM_ENUM_NAME_FN(fnname, list)				\
 	char *fnname(int val)					\
 	{							\
@@ -51,9 +21,7 @@ struct drm_prop_enum_list {
 		return "(unknown)";				\
 	}
 
-/*
- * Global properties
- */
+
 static struct drm_prop_enum_list drm_dpms_enum_list[] =
 {	{ DRM_MODE_DPMS_ON, "On" },
 	{ DRM_MODE_DPMS_STANDBY, "Standby" },
@@ -63,9 +31,7 @@ static struct drm_prop_enum_list drm_dpms_enum_list[] =
 
 DRM_ENUM_NAME_FN(drm_get_dpms_name, drm_dpms_enum_list)
 
-/*
- * Optional properties
- */
+
 static struct drm_prop_enum_list drm_scaling_mode_enum_list[] =
 {
 	{ DRM_MODE_SCALE_NONE, "None" },
@@ -80,23 +46,21 @@ static struct drm_prop_enum_list drm_dithering_mode_enum_list[] =
 	{ DRM_MODE_DITHERING_ON, "On" },
 };
 
-/*
- * Non-global properties, but "required" for certain connectors.
- */
+
 static struct drm_prop_enum_list drm_dvi_i_select_enum_list[] =
 {
-	{ DRM_MODE_SUBCONNECTOR_Automatic, "Automatic" }, /* DVI-I and TV-out */
-	{ DRM_MODE_SUBCONNECTOR_DVID,      "DVI-D"     }, /* DVI-I  */
-	{ DRM_MODE_SUBCONNECTOR_DVIA,      "DVI-A"     }, /* DVI-I  */
+	{ DRM_MODE_SUBCONNECTOR_Automatic, "Automatic" }, 
+	{ DRM_MODE_SUBCONNECTOR_DVID,      "DVI-D"     }, 
+	{ DRM_MODE_SUBCONNECTOR_DVIA,      "DVI-A"     }, 
 };
 
 DRM_ENUM_NAME_FN(drm_get_dvi_i_select_name, drm_dvi_i_select_enum_list)
 
 static struct drm_prop_enum_list drm_dvi_i_subconnector_enum_list[] =
 {
-	{ DRM_MODE_SUBCONNECTOR_Unknown,   "Unknown"   }, /* DVI-I and TV-out */
-	{ DRM_MODE_SUBCONNECTOR_DVID,      "DVI-D"     }, /* DVI-I  */
-	{ DRM_MODE_SUBCONNECTOR_DVIA,      "DVI-A"     }, /* DVI-I  */
+	{ DRM_MODE_SUBCONNECTOR_Unknown,   "Unknown"   }, 
+	{ DRM_MODE_SUBCONNECTOR_DVID,      "DVI-D"     }, 
+	{ DRM_MODE_SUBCONNECTOR_DVIA,      "DVI-A"     }, 
 };
 
 DRM_ENUM_NAME_FN(drm_get_dvi_i_subconnector_name,
@@ -104,22 +68,22 @@ DRM_ENUM_NAME_FN(drm_get_dvi_i_subconnector_name,
 
 static struct drm_prop_enum_list drm_tv_select_enum_list[] =
 {
-	{ DRM_MODE_SUBCONNECTOR_Automatic, "Automatic" }, /* DVI-I and TV-out */
-	{ DRM_MODE_SUBCONNECTOR_Composite, "Composite" }, /* TV-out */
-	{ DRM_MODE_SUBCONNECTOR_SVIDEO,    "SVIDEO"    }, /* TV-out */
-	{ DRM_MODE_SUBCONNECTOR_Component, "Component" }, /* TV-out */
-	{ DRM_MODE_SUBCONNECTOR_SCART,     "SCART"     }, /* TV-out */
+	{ DRM_MODE_SUBCONNECTOR_Automatic, "Automatic" }, 
+	{ DRM_MODE_SUBCONNECTOR_Composite, "Composite" }, 
+	{ DRM_MODE_SUBCONNECTOR_SVIDEO,    "SVIDEO"    }, 
+	{ DRM_MODE_SUBCONNECTOR_Component, "Component" }, 
+	{ DRM_MODE_SUBCONNECTOR_SCART,     "SCART"     }, 
 };
 
 DRM_ENUM_NAME_FN(drm_get_tv_select_name, drm_tv_select_enum_list)
 
 static struct drm_prop_enum_list drm_tv_subconnector_enum_list[] =
 {
-	{ DRM_MODE_SUBCONNECTOR_Unknown,   "Unknown"   }, /* DVI-I and TV-out */
-	{ DRM_MODE_SUBCONNECTOR_Composite, "Composite" }, /* TV-out */
-	{ DRM_MODE_SUBCONNECTOR_SVIDEO,    "SVIDEO"    }, /* TV-out */
-	{ DRM_MODE_SUBCONNECTOR_Component, "Component" }, /* TV-out */
-	{ DRM_MODE_SUBCONNECTOR_SCART,     "SCART"     }, /* TV-out */
+	{ DRM_MODE_SUBCONNECTOR_Unknown,   "Unknown"   }, 
+	{ DRM_MODE_SUBCONNECTOR_Composite, "Composite" }, 
+	{ DRM_MODE_SUBCONNECTOR_SVIDEO,    "SVIDEO"    }, 
+	{ DRM_MODE_SUBCONNECTOR_Component, "Component" }, 
+	{ DRM_MODE_SUBCONNECTOR_SCART,     "SCART"     }, 
 };
 
 DRM_ENUM_NAME_FN(drm_get_tv_subconnector_name,
@@ -131,9 +95,7 @@ struct drm_conn_prop_enum_list {
 	int count;
 };
 
-/*
- * Connector and encoder types.
- */
+
 static struct drm_conn_prop_enum_list drm_connector_enum_list[] =
 {	{ DRM_MODE_CONNECTOR_Unknown, "Unknown", 0 },
 	{ DRM_MODE_CONNECTOR_VGA, "VGA", 0 },
@@ -191,21 +153,7 @@ char *drm_get_connector_status_name(enum drm_connector_status status)
 		return "unknown";
 }
 
-/**
- * drm_mode_object_get - allocate a new identifier
- * @dev: DRM device
- * @ptr: object pointer, used to generate unique ID
- * @type: object type
- *
- * LOCKING:
- *
- * Create a unique identifier based on @ptr in @dev's identifier space.  Used
- * for tracking modes, CRTCs and connectors.
- *
- * RETURNS:
- * New unique (relative to other objects in @dev) integer identifier for the
- * object.
- */
+
 static int drm_mode_object_get(struct drm_device *dev,
 			       struct drm_mode_object *obj, uint32_t obj_type)
 {
@@ -229,16 +177,7 @@ again:
 	return 0;
 }
 
-/**
- * drm_mode_object_put - free an identifer
- * @dev: DRM device
- * @id: ID to free
- *
- * LOCKING:
- * Caller must hold DRM mode_config lock.
- *
- * Free @id from @dev's unique identifier pool.
- */
+
 static void drm_mode_object_put(struct drm_device *dev,
 				struct drm_mode_object *object)
 {
@@ -261,19 +200,7 @@ void *drm_mode_object_find(struct drm_device *dev, uint32_t id, uint32_t type)
 }
 EXPORT_SYMBOL(drm_mode_object_find);
 
-/**
- * drm_framebuffer_init - initialize a framebuffer
- * @dev: DRM device
- *
- * LOCKING:
- * Caller must hold mode config lock.
- *
- * Allocates an ID for the framebuffer's parent mode object, sets its mode
- * functions & device file and adds it to the master fd list.
- *
- * RETURNS:
- * Zero on success, error code on falure.
- */
+
 int drm_framebuffer_init(struct drm_device *dev, struct drm_framebuffer *fb,
 			 const struct drm_framebuffer_funcs *funcs)
 {
@@ -293,16 +220,7 @@ int drm_framebuffer_init(struct drm_device *dev, struct drm_framebuffer *fb,
 }
 EXPORT_SYMBOL(drm_framebuffer_init);
 
-/**
- * drm_framebuffer_cleanup - remove a framebuffer object
- * @fb: framebuffer to remove
- *
- * LOCKING:
- * Caller must hold mode config lock.
- *
- * Scans all the CRTCs in @dev's mode_config.  If they're using @fb, removes
- * it, setting it to NULL.
- */
+
 void drm_framebuffer_cleanup(struct drm_framebuffer *fb)
 {
 	struct drm_device *dev = fb->dev;
@@ -310,10 +228,10 @@ void drm_framebuffer_cleanup(struct drm_framebuffer *fb)
 	struct drm_mode_set set;
 	int ret;
 
-	/* remove from any CRTC */
+	
 	list_for_each_entry(crtc, &dev->mode_config.crtc_list, head) {
 		if (crtc->fb == fb) {
-			/* should turn off the crtc */
+			
 			memset(&set, 0, sizeof(struct drm_mode_set));
 			set.crtc = crtc;
 			set.fb = NULL;
@@ -329,17 +247,7 @@ void drm_framebuffer_cleanup(struct drm_framebuffer *fb)
 }
 EXPORT_SYMBOL(drm_framebuffer_cleanup);
 
-/**
- * drm_crtc_init - Initialise a new CRTC object
- * @dev: DRM device
- * @crtc: CRTC object to init
- * @funcs: callbacks for the new CRTC
- *
- * LOCKING:
- * Caller must hold mode config lock.
- *
- * Inits a new object created as base part of an driver crtc object.
- */
+
 void drm_crtc_init(struct drm_device *dev, struct drm_crtc *crtc,
 		   const struct drm_crtc_funcs *funcs)
 {
@@ -355,16 +263,7 @@ void drm_crtc_init(struct drm_device *dev, struct drm_crtc *crtc,
 }
 EXPORT_SYMBOL(drm_crtc_init);
 
-/**
- * drm_crtc_cleanup - Cleans up the core crtc usage.
- * @crtc: CRTC to cleanup
- *
- * LOCKING:
- * Caller must hold mode config lock.
- *
- * Cleanup @crtc. Removes from drm modesetting space
- * does NOT free object, caller does that.
- */
+
 void drm_crtc_cleanup(struct drm_crtc *crtc)
 {
 	struct drm_device *dev = crtc->dev;
@@ -380,16 +279,7 @@ void drm_crtc_cleanup(struct drm_crtc *crtc)
 }
 EXPORT_SYMBOL(drm_crtc_cleanup);
 
-/**
- * drm_mode_probed_add - add a mode to a connector's probed mode list
- * @connector: connector the new mode
- * @mode: mode data
- *
- * LOCKING:
- * Caller must hold mode config lock.
- *
- * Add @mode to @connector's mode list for later use.
- */
+
 void drm_mode_probed_add(struct drm_connector *connector,
 			 struct drm_display_mode *mode)
 {
@@ -397,16 +287,7 @@ void drm_mode_probed_add(struct drm_connector *connector,
 }
 EXPORT_SYMBOL(drm_mode_probed_add);
 
-/**
- * drm_mode_remove - remove and free a mode
- * @connector: connector list to modify
- * @mode: mode to remove
- *
- * LOCKING:
- * Caller must hold mode config lock.
- *
- * Remove @mode from @connector's mode list, then free it.
- */
+
 void drm_mode_remove(struct drm_connector *connector,
 		     struct drm_display_mode *mode)
 {
@@ -415,19 +296,7 @@ void drm_mode_remove(struct drm_connector *connector,
 }
 EXPORT_SYMBOL(drm_mode_remove);
 
-/**
- * drm_connector_init - Init a preallocated connector
- * @dev: DRM device
- * @connector: the connector to init
- * @funcs: callbacks for this connector
- * @name: user visible name of the connector
- *
- * LOCKING:
- * Caller must hold @dev's mode_config lock.
- *
- * Initialises a preallocated connector. Connectors should be
- * subclassed as part of driver connector objects.
- */
+
 void drm_connector_init(struct drm_device *dev,
 		     struct drm_connector *connector,
 		     const struct drm_connector_funcs *funcs,
@@ -440,7 +309,7 @@ void drm_connector_init(struct drm_device *dev,
 	drm_mode_object_get(dev, &connector->base, DRM_MODE_OBJECT_CONNECTOR);
 	connector->connector_type = connector_type;
 	connector->connector_type_id =
-		++drm_connector_enum_list[connector_type].count; /* TODO */
+		++drm_connector_enum_list[connector_type].count; 
 	INIT_LIST_HEAD(&connector->user_modes);
 	INIT_LIST_HEAD(&connector->probed_modes);
 	INIT_LIST_HEAD(&connector->modes);
@@ -459,15 +328,7 @@ void drm_connector_init(struct drm_device *dev,
 }
 EXPORT_SYMBOL(drm_connector_init);
 
-/**
- * drm_connector_cleanup - cleans up an initialised connector
- * @connector: connector to cleanup
- *
- * LOCKING:
- * Caller must hold @dev's mode_config lock.
- *
- * Cleans up the connector but doesn't free the object.
- */
+
 void drm_connector_cleanup(struct drm_connector *connector)
 {
 	struct drm_device *dev = connector->dev;
@@ -520,18 +381,7 @@ void drm_encoder_cleanup(struct drm_encoder *encoder)
 }
 EXPORT_SYMBOL(drm_encoder_cleanup);
 
-/**
- * drm_mode_create - create a new display mode
- * @dev: DRM device
- *
- * LOCKING:
- * Caller must hold DRM mode_config lock.
- *
- * Create a new drm_display_mode, give it an ID, and return it.
- *
- * RETURNS:
- * Pointer to new mode on success, NULL on error.
- */
+
 struct drm_display_mode *drm_mode_create(struct drm_device *dev)
 {
 	struct drm_display_mode *nmode;
@@ -545,16 +395,7 @@ struct drm_display_mode *drm_mode_create(struct drm_device *dev)
 }
 EXPORT_SYMBOL(drm_mode_create);
 
-/**
- * drm_mode_destroy - remove a mode
- * @dev: DRM device
- * @mode: mode to remove
- *
- * LOCKING:
- * Caller must hold mode config lock.
- *
- * Free @mode's unique identifier, then free it.
- */
+
 void drm_mode_destroy(struct drm_device *dev, struct drm_display_mode *mode)
 {
 	drm_mode_object_put(dev, &mode->base);
@@ -569,9 +410,7 @@ static int drm_mode_create_standard_connector_properties(struct drm_device *dev)
 	struct drm_property *dpms;
 	int i;
 
-	/*
-	 * Standard properties (apply to all connectors)
-	 */
+	
 	edid = drm_property_create(dev, DRM_MODE_PROP_BLOB |
 				   DRM_MODE_PROP_IMMUTABLE,
 				   "EDID", 0);
@@ -587,12 +426,7 @@ static int drm_mode_create_standard_connector_properties(struct drm_device *dev)
 	return 0;
 }
 
-/**
- * drm_mode_create_dvi_i_properties - create DVI-I specific connector properties
- * @dev: DRM device
- *
- * Called by a driver the first time a DVI-I connector is made.
- */
+
 int drm_mode_create_dvi_i_properties(struct drm_device *dev)
 {
 	struct drm_property *dvi_i_selector;
@@ -627,17 +461,7 @@ int drm_mode_create_dvi_i_properties(struct drm_device *dev)
 }
 EXPORT_SYMBOL(drm_mode_create_dvi_i_properties);
 
-/**
- * drm_create_tv_properties - create TV specific connector properties
- * @dev: DRM device
- * @num_modes: number of different TV formats (modes) supported
- * @modes: array of pointers to strings containing name of each format
- *
- * Called by a driver's TV initialization routine, this function creates
- * the TV specific connector properties for a given device.  Caller is
- * responsible for allocating a list of format names and passing them to
- * this routine.
- */
+
 int drm_mode_create_tv_properties(struct drm_device *dev, int num_modes,
 				  char *modes[])
 {
@@ -648,9 +472,7 @@ int drm_mode_create_tv_properties(struct drm_device *dev, int num_modes,
 	if (dev->mode_config.tv_select_subconnector_property)
 		return 0;
 
-	/*
-	 * Basic connector properties
-	 */
+	
 	tv_selector = drm_property_create(dev, DRM_MODE_PROP_ENUM,
 					  "select subconnector",
 					  ARRAY_SIZE(drm_tv_select_enum_list));
@@ -670,9 +492,7 @@ int drm_mode_create_tv_properties(struct drm_device *dev, int num_modes,
 				      drm_tv_subconnector_enum_list[i].name);
 	dev->mode_config.tv_subconnector_property = tv_subconnector;
 
-	/*
-	 * Other, TV specific properties: margins & TV modes.
-	 */
+	
 	dev->mode_config.tv_left_margin_property =
 		drm_property_create(dev, DRM_MODE_PROP_RANGE,
 				    "left margin", 2);
@@ -744,13 +564,7 @@ int drm_mode_create_tv_properties(struct drm_device *dev, int num_modes,
 }
 EXPORT_SYMBOL(drm_mode_create_tv_properties);
 
-/**
- * drm_mode_create_scaling_mode_property - create scaling mode property
- * @dev: DRM device
- *
- * Called by a driver the first time it's needed, must be attached to desired
- * connectors.
- */
+
 int drm_mode_create_scaling_mode_property(struct drm_device *dev)
 {
 	struct drm_property *scaling_mode;
@@ -773,13 +587,7 @@ int drm_mode_create_scaling_mode_property(struct drm_device *dev)
 }
 EXPORT_SYMBOL(drm_mode_create_scaling_mode_property);
 
-/**
- * drm_mode_create_dithering_property - create dithering property
- * @dev: DRM device
- *
- * Called by a driver the first time it's needed, must be attached to desired
- * connectors.
- */
+
 int drm_mode_create_dithering_property(struct drm_device *dev)
 {
 	struct drm_property *dithering_mode;
@@ -801,16 +609,7 @@ int drm_mode_create_dithering_property(struct drm_device *dev)
 }
 EXPORT_SYMBOL(drm_mode_create_dithering_property);
 
-/**
- * drm_mode_config_init - initialize DRM mode_configuration structure
- * @dev: DRM device
- *
- * LOCKING:
- * None, should happen single threaded at init time.
- *
- * Initialize @dev's mode_config structure, used for tracking the graphics
- * configuration of @dev.
- */
+
 void drm_mode_config_init(struct drm_device *dev)
 {
 	mutex_init(&dev->mode_config.mutex);
@@ -828,7 +627,7 @@ void drm_mode_config_init(struct drm_device *dev)
 	drm_mode_create_standard_connector_properties(dev);
 	mutex_unlock(&dev->mode_config.mutex);
 
-	/* Just to be sure */
+	
 	dev->mode_config.num_fb = 0;
 	dev->mode_config.num_connector = 0;
 	dev->mode_config.num_crtc = 0;
@@ -882,18 +681,7 @@ int drm_mode_group_init_legacy_group(struct drm_device *dev,
 	return 0;
 }
 
-/**
- * drm_mode_config_cleanup - free up DRM mode_config info
- * @dev: DRM device
- *
- * LOCKING:
- * Caller must hold mode config lock.
- *
- * Free up all the connectors and CRTCs associated with this DRM device, then
- * free up the framebuffers and associated buffer objects.
- *
- * FIXME: cleanup any dangling user buffer objects too
- */
+
 void drm_mode_config_cleanup(struct drm_device *dev)
 {
 	struct drm_connector *connector, *ot;
@@ -928,17 +716,7 @@ void drm_mode_config_cleanup(struct drm_device *dev)
 }
 EXPORT_SYMBOL(drm_mode_config_cleanup);
 
-/**
- * drm_crtc_convert_to_umode - convert a drm_display_mode into a modeinfo
- * @out: drm_mode_modeinfo struct to return to the user
- * @in: drm_display_mode to use
- *
- * LOCKING:
- * None.
- *
- * Convert a drm_display_mode into a drm_mode_modeinfo structure to return to
- * the user.
- */
+
 void drm_crtc_convert_to_umode(struct drm_mode_modeinfo *out,
 			       struct drm_display_mode *in)
 {
@@ -960,17 +738,7 @@ void drm_crtc_convert_to_umode(struct drm_mode_modeinfo *out,
 	out->name[DRM_DISPLAY_MODE_LEN-1] = 0;
 }
 
-/**
- * drm_crtc_convert_to_umode - convert a modeinfo into a drm_display_mode
- * @out: drm_display_mode to return to the user
- * @in: drm_mode_modeinfo to use
- *
- * LOCKING:
- * None.
- *
- * Convert a drm_mode_modeinfo into a drm_display_mode structure to return to
- * the caller.
- */
+
 void drm_crtc_convert_umode(struct drm_display_mode *out,
 			    struct drm_mode_modeinfo *in)
 {
@@ -992,24 +760,7 @@ void drm_crtc_convert_umode(struct drm_display_mode *out,
 	out->name[DRM_DISPLAY_MODE_LEN-1] = 0;
 }
 
-/**
- * drm_mode_getresources - get graphics configuration
- * @inode: inode from the ioctl
- * @filp: file * from the ioctl
- * @cmd: cmd from ioctl
- * @arg: arg from ioctl
- *
- * LOCKING:
- * Takes mode config lock.
- *
- * Construct a set of configuration description structures and return
- * them to the user, including CRTC, connector and framebuffer configuration.
- *
- * Called by the user via ioctl.
- *
- * RETURNS:
- * Zero on success, errno on failure.
- */
+
 int drm_mode_getresources(struct drm_device *dev, void *data,
 			  struct drm_file *file_priv)
 {
@@ -1033,10 +784,7 @@ int drm_mode_getresources(struct drm_device *dev, void *data,
 
 	mutex_lock(&dev->mode_config.mutex);
 
-	/*
-	 * For the non-control nodes we need to limit the list of resources
-	 * by IDs in the group list for this node
-	 */
+	
 	list_for_each(lh, &file_priv->fbs)
 		fb_count++;
 
@@ -1063,8 +811,8 @@ int drm_mode_getresources(struct drm_device *dev, void *data,
 	card_res->max_width = dev->mode_config.max_width;
 	card_res->min_width = dev->mode_config.min_width;
 
-	/* handle this in 4 parts */
-	/* FBs */
+	
+	
 	if (card_res->count_fbs >= fb_count) {
 		copied = 0;
 		fb_id = (uint32_t __user *)(unsigned long)card_res->fb_id_ptr;
@@ -1078,7 +826,7 @@ int drm_mode_getresources(struct drm_device *dev, void *data,
 	}
 	card_res->count_fbs = fb_count;
 
-	/* CRTCs */
+	
 	if (card_res->count_crtcs >= crtc_count) {
 		copied = 0;
 		crtc_id = (uint32_t __user *)(unsigned long)card_res->crtc_id_ptr;
@@ -1105,7 +853,7 @@ int drm_mode_getresources(struct drm_device *dev, void *data,
 	}
 	card_res->count_crtcs = crtc_count;
 
-	/* Encoders */
+	
 	if (card_res->count_encoders >= encoder_count) {
 		copied = 0;
 		encoder_id = (uint32_t __user *)(unsigned long)card_res->encoder_id_ptr;
@@ -1136,7 +884,7 @@ int drm_mode_getresources(struct drm_device *dev, void *data,
 	}
 	card_res->count_encoders = encoder_count;
 
-	/* Connectors */
+	
 	if (card_res->count_connectors >= connector_count) {
 		copied = 0;
 		connector_id = (uint32_t __user *)(unsigned long)card_res->connector_id_ptr;
@@ -1176,23 +924,7 @@ out:
 	return ret;
 }
 
-/**
- * drm_mode_getcrtc - get CRTC configuration
- * @inode: inode from the ioctl
- * @filp: file * from the ioctl
- * @cmd: cmd from ioctl
- * @arg: arg from ioctl
- *
- * LOCKING:
- * Caller? (FIXME)
- *
- * Construct a CRTC configuration structure to return to the user.
- *
- * Called by the user via ioctl.
- *
- * RETURNS:
- * Zero on success, errno on failure.
- */
+
 int drm_mode_getcrtc(struct drm_device *dev,
 		     void *data, struct drm_file *file_priv)
 {
@@ -1233,23 +965,7 @@ out:
 	return ret;
 }
 
-/**
- * drm_mode_getconnector - get connector configuration
- * @inode: inode from the ioctl
- * @filp: file * from the ioctl
- * @cmd: cmd from ioctl
- * @arg: arg from ioctl
- *
- * LOCKING:
- * Caller? (FIXME)
- *
- * Construct a connector configuration structure to return to the user.
- *
- * Called by the user via ioctl.
- *
- * RETURNS:
- * Zero on success, errno on failure.
- */
+
 int drm_mode_getconnector(struct drm_device *dev, void *data,
 			  struct drm_file *file_priv)
 {
@@ -1301,7 +1017,7 @@ int drm_mode_getconnector(struct drm_device *dev, void *data,
 					     dev->mode_config.max_height);
 	}
 
-	/* delayed so we get modes regardless of pre-fill_modes state */
+	
 	list_for_each_entry(mode, &connector->modes, head)
 		mode_count++;
 
@@ -1317,10 +1033,7 @@ int drm_mode_getconnector(struct drm_device *dev, void *data,
 	else
 		out_resp->encoder_id = 0;
 
-	/*
-	 * This ioctl is called twice, once to determine how much space is
-	 * needed, and the 2nd time to fill it.
-	 */
+	
 	if ((out_resp->count_modes >= mode_count) && mode_count) {
 		copied = 0;
 		mode_ptr = (struct drm_mode_modeinfo *)(unsigned long)out_resp->modes_ptr;
@@ -1411,23 +1124,7 @@ out:
 	return ret;
 }
 
-/**
- * drm_mode_setcrtc - set CRTC configuration
- * @inode: inode from the ioctl
- * @filp: file * from the ioctl
- * @cmd: cmd from ioctl
- * @arg: arg from ioctl
- *
- * LOCKING:
- * Caller? (FIXME)
- *
- * Build a new CRTC configuration based on user request.
- *
- * Called by the user via ioctl.
- *
- * RETURNS:
- * Zero on success, errno on failure.
- */
+
 int drm_mode_setcrtc(struct drm_device *dev, void *data,
 		     struct drm_file *file_priv)
 {
@@ -1454,8 +1151,8 @@ int drm_mode_setcrtc(struct drm_device *dev, void *data,
 	crtc = obj_to_crtc(obj);
 
 	if (crtc_req->mode_valid) {
-		/* If we have a mode we need a framebuffer. */
-		/* If we pass -1, set the mode with the currently bound fb */
+		
+		
 		if (crtc_req->fb_id == -1) {
 			list_for_each_entry(crtcfb,
 					    &dev->mode_config.crtc_list, head) {
@@ -1498,7 +1195,7 @@ int drm_mode_setcrtc(struct drm_device *dev, void *data,
 	if (crtc_req->count_connectors > 0) {
 		u32 out_id;
 
-		/* Avoid unbounded kernel memory allocation */
+		
 		if (crtc_req->count_connectors > config->num_connector) {
 			ret = -EINVAL;
 			goto out;
@@ -1576,7 +1273,7 @@ int drm_mode_cursor_ioctl(struct drm_device *dev,
 			ret = -ENXIO;
 			goto out;
 		}
-		/* Turns off the cursor if handle is 0 */
+		
 		ret = crtc->funcs->cursor_set(crtc, file_priv, req->handle,
 					      req->width, req->height);
 	}
@@ -1595,23 +1292,7 @@ out:
 	return ret;
 }
 
-/**
- * drm_mode_addfb - add an FB to the graphics configuration
- * @inode: inode from the ioctl
- * @filp: file * from the ioctl
- * @cmd: cmd from ioctl
- * @arg: arg from ioctl
- *
- * LOCKING:
- * Takes mode config lock.
- *
- * Add a new FB to the specified CRTC, given a user request.
- *
- * Called by the user via ioctl.
- *
- * RETURNS:
- * Zero on success, errno on failure.
- */
+
 int drm_mode_addfb(struct drm_device *dev,
 		   void *data, struct drm_file *file_priv)
 {
@@ -1631,8 +1312,8 @@ int drm_mode_addfb(struct drm_device *dev,
 
 	mutex_lock(&dev->mode_config.mutex);
 
-	/* TODO check buffer is sufficently large */
-	/* TODO setup destructor callback */
+	
+	
 
 	fb = dev->mode_config.funcs->fb_create(dev, file_priv, r);
 	if (!fb) {
@@ -1649,23 +1330,7 @@ out:
 	return ret;
 }
 
-/**
- * drm_mode_rmfb - remove an FB from the configuration
- * @inode: inode from the ioctl
- * @filp: file * from the ioctl
- * @cmd: cmd from ioctl
- * @arg: arg from ioctl
- *
- * LOCKING:
- * Takes mode config lock.
- *
- * Remove the FB specified by the user.
- *
- * Called by the user via ioctl.
- *
- * RETURNS:
- * Zero on success, errno on failure.
- */
+
 int drm_mode_rmfb(struct drm_device *dev,
 		   void *data, struct drm_file *file_priv)
 {
@@ -1678,7 +1343,7 @@ int drm_mode_rmfb(struct drm_device *dev,
 
 	mutex_lock(&dev->mode_config.mutex);
 	obj = drm_mode_object_find(dev, *id, DRM_MODE_OBJECT_FB);
-	/* TODO check that we realy get a framebuffer back. */
+	
 	if (!obj) {
 		DRM_ERROR("mode invalid framebuffer id\n");
 		ret = -EINVAL;
@@ -1696,8 +1361,8 @@ int drm_mode_rmfb(struct drm_device *dev,
 		goto out;
 	}
 
-	/* TODO release all crtc connected to the framebuffer */
-	/* TODO unhock the destructor from the buffer object */
+	
+	
 
 	list_del(&fb->filp_head);
 	fb->funcs->destroy(fb);
@@ -1707,23 +1372,7 @@ out:
 	return ret;
 }
 
-/**
- * drm_mode_getfb - get FB info
- * @inode: inode from the ioctl
- * @filp: file * from the ioctl
- * @cmd: cmd from ioctl
- * @arg: arg from ioctl
- *
- * LOCKING:
- * Caller? (FIXME)
- *
- * Lookup the FB given its ID and return info about it.
- *
- * Called by the user via ioctl.
- *
- * RETURNS:
- * Zero on success, errno on failure.
- */
+
 int drm_mode_getfb(struct drm_device *dev,
 		   void *data, struct drm_file *file_priv)
 {
@@ -1753,20 +1402,7 @@ out:
 	return ret;
 }
 
-/**
- * drm_fb_release - remove and free the FBs on this file
- * @filp: file * from the ioctl
- *
- * LOCKING:
- * Takes mode config lock.
- *
- * Destroy all the FBs associated with @filp.
- *
- * Called by the user via ioctl.
- *
- * RETURNS:
- * Zero on success, errno on failure.
- */
+
 void drm_fb_release(struct drm_file *priv)
 {
 	struct drm_device *dev = priv->minor->dev;
@@ -1780,14 +1416,7 @@ void drm_fb_release(struct drm_file *priv)
 	mutex_unlock(&dev->mode_config.mutex);
 }
 
-/**
- * drm_mode_attachmode - add a mode to the user mode list
- * @dev: DRM device
- * @connector: connector to add the mode to
- * @mode: mode to add
- *
- * Add @mode to @connector's user mode list.
- */
+
 static int drm_mode_attachmode(struct drm_device *dev,
 			       struct drm_connector *connector,
 			       struct drm_display_mode *mode)
@@ -1857,19 +1486,7 @@ int drm_mode_detachmode_crtc(struct drm_device *dev, struct drm_display_mode *mo
 }
 EXPORT_SYMBOL(drm_mode_detachmode_crtc);
 
-/**
- * drm_fb_attachmode - Attach a user mode to an connector
- * @inode: inode from the ioctl
- * @filp: file * from the ioctl
- * @cmd: cmd from ioctl
- * @arg: arg from ioctl
- *
- * This attaches a user specified mode to an connector.
- * Called by the user via ioctl.
- *
- * RETURNS:
- * Zero on success, errno on failure.
- */
+
 int drm_mode_attachmode_ioctl(struct drm_device *dev,
 			      void *data, struct drm_file *file_priv)
 {
@@ -1904,18 +1521,7 @@ out:
 }
 
 
-/**
- * drm_fb_detachmode - Detach a user specified mode from an connector
- * @inode: inode from the ioctl
- * @filp: file * from the ioctl
- * @cmd: cmd from ioctl
- * @arg: arg from ioctl
- *
- * Called by the user via ioctl.
- *
- * RETURNS:
- * Zero on success, errno on failure.
- */
+
 int drm_mode_detachmode_ioctl(struct drm_device *dev,
 			      void *data, struct drm_file *file_priv)
 {
@@ -2248,7 +1854,7 @@ int drm_mode_connector_update_edid_property(struct drm_connector *connector,
 	if (connector->edid_blob_ptr)
 		drm_property_destroy_blob(dev, connector->edid_blob_ptr);
 
-	/* Delete edid, when there is none. */
+	
 	if (!edid) {
 		connector->edid_blob_ptr = NULL;
 		ret = drm_connector_property_set_value(connector, dev->mode_config.edid_property, 0);
@@ -2320,7 +1926,7 @@ int drm_mode_connector_property_set_ioctl(struct drm_device *dev,
 		}
 	}
 
-	/* Do DPMS ourselves */
+	
 	if (property == connector->dev->mode_config.dpms_property) {
 		if (connector->funcs->dpms)
 			(*connector->funcs->dpms)(connector, (int) out_resp->value);
@@ -2328,7 +1934,7 @@ int drm_mode_connector_property_set_ioctl(struct drm_device *dev,
 	} else if (connector->funcs->set_property)
 		ret = connector->funcs->set_property(connector, property, out_resp->value);
 
-	/* store the property value if succesful */
+	
 	if (!ret)
 		drm_connector_property_set_value(connector, property, out_resp->value);
 out:
@@ -2399,7 +2005,7 @@ int drm_mode_gamma_set_ioctl(struct drm_device *dev,
 	}
 	crtc = obj_to_crtc(obj);
 
-	/* memcpy into gamma store */
+	
 	if (crtc_lut->gamma_size != crtc->gamma_size) {
 		ret = -EINVAL;
 		goto out;
@@ -2450,7 +2056,7 @@ int drm_mode_gamma_get_ioctl(struct drm_device *dev,
 	}
 	crtc = obj_to_crtc(obj);
 
-	/* memcpy into gamma store */
+	
 	if (crtc_lut->gamma_size != crtc->gamma_size) {
 		ret = -EINVAL;
 		goto out;

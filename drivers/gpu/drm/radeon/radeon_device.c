@@ -1,30 +1,4 @@
-/*
- * Copyright 2008 Advanced Micro Devices, Inc.
- * Copyright 2008 Red Hat Inc.
- * Copyright 2009 Jerome Glisse.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * Authors: Dave Airlie
- *          Alex Deucher
- *          Jerome Glisse
- */
+
 #include <linux/console.h>
 #include <drm/drmP.h>
 #include <drm/drm_crtc_helper.h>
@@ -35,12 +9,10 @@
 #include "radeon_asic.h"
 #include "atom.h"
 
-/*
- * Clear GPU surface registers.
- */
+
 void radeon_surface_init(struct radeon_device *rdev)
 {
-	/* FIXME: check this out */
+	
 	if (rdev->family < CHIP_R600) {
 		int i;
 
@@ -49,19 +21,17 @@ void radeon_surface_init(struct radeon_device *rdev)
 			       i * (RADEON_SURFACE1_INFO - RADEON_SURFACE0_INFO),
 			       0);
 		}
-		/* enable surfaces */
+		
 		WREG32(RADEON_SURFACE_CNTL, 0);
 	}
 }
 
-/*
- * GPU scratch registers helpers function.
- */
+
 void radeon_scratch_init(struct radeon_device *rdev)
 {
 	int i;
 
-	/* FIXME: check this out */
+	
 	if (rdev->family < CHIP_R300) {
 		rdev->scratch.num_reg = 5;
 	} else {
@@ -99,29 +69,16 @@ void radeon_scratch_free(struct radeon_device *rdev, uint32_t reg)
 	}
 }
 
-/*
- * MC common functions
- */
+
 int radeon_mc_setup(struct radeon_device *rdev)
 {
 	uint32_t tmp;
 
-	/* Some chips have an "issue" with the memory controller, the
-	 * location must be aligned to the size. We just align it down,
-	 * too bad if we walk over the top of system memory, we don't
-	 * use DMA without a remapped anyway.
-	 * Affected chips are rv280, all r3xx, and all r4xx, but not IGP
-	 */
-	/* FGLRX seems to setup like this, VRAM a 0, then GART.
-	 */
-	/*
-	 * Note: from R6xx the address space is 40bits but here we only
-	 * use 32bits (still have to see a card which would exhaust 4G
-	 * address space).
-	 */
+	
+	
+	
 	if (rdev->mc.vram_location != 0xFFFFFFFFUL) {
-		/* vram location was already setup try to put gtt after
-		 * if it fits */
+		
 		tmp = rdev->mc.vram_location + rdev->mc.mc_vram_size;
 		tmp = (tmp + rdev->mc.gtt_size - 1) & ~(rdev->mc.gtt_size - 1);
 		if ((0xFFFFFFFFUL - tmp) >= rdev->mc.gtt_size) {
@@ -135,8 +92,7 @@ int radeon_mc_setup(struct radeon_device *rdev)
 			rdev->mc.gtt_location = 0;
 		}
 	} else if (rdev->mc.gtt_location != 0xFFFFFFFFUL) {
-		/* gtt location was already setup try to put vram before
-		 * if it fits */
+		
 		if (rdev->mc.mc_vram_size < rdev->mc.gtt_location) {
 			rdev->mc.vram_location = 0;
 		} else {
@@ -173,14 +129,12 @@ int radeon_mc_setup(struct radeon_device *rdev)
 }
 
 
-/*
- * GPU helpers function.
- */
+
 bool radeon_card_posted(struct radeon_device *rdev)
 {
 	uint32_t reg;
 
-	/* first check CRTCs */
+	
 	if (ASIC_IS_AVIVO(rdev)) {
 		reg = RREG32(AVIVO_D1CRTC_CONTROL) |
 		      RREG32(AVIVO_D2CRTC_CONTROL);
@@ -195,7 +149,7 @@ bool radeon_card_posted(struct radeon_device *rdev)
 		}
 	}
 
-	/* then check MEM_SIZE, in case the crtcs are off */
+	
 	if (rdev->family >= CHIP_R600)
 		reg = RREG32(R600_CONFIG_MEMSIZE);
 	else
@@ -234,9 +188,7 @@ void radeon_dummy_page_fini(struct radeon_device *rdev)
 }
 
 
-/*
- * Registers accessors functions.
- */
+
 uint32_t radeon_invalid_rreg(struct radeon_device *rdev, uint32_t reg)
 {
 	DRM_ERROR("Invalid callback to read register 0x%04X\n", reg);
@@ -260,13 +212,13 @@ void radeon_register_accessor_init(struct radeon_device *rdev)
 	rdev->pciep_rreg = &radeon_invalid_rreg;
 	rdev->pciep_wreg = &radeon_invalid_wreg;
 
-	/* Don't change order as we are overridding accessor. */
+	
 	if (rdev->family < CHIP_RV515) {
 		rdev->pcie_reg_mask = 0xff;
 	} else {
 		rdev->pcie_reg_mask = 0x7ff;
 	}
-	/* FIXME: not sure here */
+	
 	if (rdev->family <= CHIP_R580) {
 		rdev->pll_rreg = &r100_pll_rreg;
 		rdev->pll_wreg = &r100_pll_wreg;
@@ -298,9 +250,7 @@ void radeon_register_accessor_init(struct radeon_device *rdev)
 }
 
 
-/*
- * ASIC
- */
+
 int radeon_asic_init(struct radeon_device *rdev)
 {
 	radeon_register_accessor_init(rdev);
@@ -369,16 +319,14 @@ int radeon_asic_init(struct radeon_device *rdev)
 		rdev->asic = &rv770_asic;
 		break;
 	default:
-		/* FIXME: not supported yet */
+		
 		return -EINVAL;
 	}
 	return 0;
 }
 
 
-/*
- * Wrapper around modesetting bits.
- */
+
 int radeon_clocks_init(struct radeon_device *rdev)
 {
 	int r;
@@ -395,7 +343,7 @@ void radeon_clocks_fini(struct radeon_device *rdev)
 {
 }
 
-/* ATOM accessor methods */
+
 static uint32_t cail_pll_read(struct card_info *info, uint32_t reg)
 {
 	struct radeon_device *rdev = info->dev->dev_private;
@@ -482,7 +430,7 @@ void radeon_combios_fini(struct radeon_device *rdev)
 {
 }
 
-/* if we get transitioned to only one device, tak VGA back */
+
 static unsigned int radeon_vga_set_decode(void *cookie, bool state)
 {
 	struct radeon_device *rdev = cookie;
@@ -516,9 +464,7 @@ void radeon_agp_disable(struct radeon_device *rdev)
 	}
 }
 
-/*
- * Radeon device.
- */
+
 int radeon_device_init(struct radeon_device *rdev,
 		       struct drm_device *ddev,
 		       struct pci_dev *pdev,
@@ -539,15 +485,14 @@ int radeon_device_init(struct radeon_device *rdev,
 	rdev->mc.gtt_size = radeon_gart_size * 1024 * 1024;
 	rdev->gpu_lockup = false;
 	rdev->accel_working = false;
-	/* mutex initialization are all done here so we
-	 * can recall function without having locking issues */
+	
 	mutex_init(&rdev->cs_mutex);
 	mutex_init(&rdev->ib_pool.mutex);
 	mutex_init(&rdev->cp.mutex);
 	rwlock_init(&rdev->fence_drv.lock);
 	INIT_LIST_HEAD(&rdev->gem.objects);
 
-	/* Set asic functions */
+	
 	r = radeon_asic_init(rdev);
 	if (r) {
 		return r;
@@ -557,12 +502,7 @@ int radeon_device_init(struct radeon_device *rdev,
 		radeon_agp_disable(rdev);
 	}
 
-	/* set DMA mask + need_dma32 flags.
-	 * PCIE - can handle 40-bits.
-	 * IGP - can handle 40-bits (in theory)
-	 * AGP - generally dma32 is safest
-	 * PCI - only dma32
-	 */
+	
 	rdev->need_dma32 = false;
 	if (rdev->flags & RADEON_IS_AGP)
 		rdev->need_dma32 = true;
@@ -575,8 +515,8 @@ int radeon_device_init(struct radeon_device *rdev,
 		printk(KERN_WARNING "radeon: No suitable DMA available.\n");
 	}
 
-	/* Registers mapping */
-	/* TODO: block userspace mapping of io register */
+	
+	
 	rdev->rmmio_base = drm_get_resource_start(rdev->ddev, 2);
 	rdev->rmmio_size = drm_get_resource_len(rdev->ddev, 2);
 	rdev->rmmio = ioremap(rdev->rmmio_base, rdev->rmmio_size);
@@ -586,9 +526,8 @@ int radeon_device_init(struct radeon_device *rdev,
 	DRM_INFO("register mmio base: 0x%08X\n", (uint32_t)rdev->rmmio_base);
 	DRM_INFO("register mmio size: %u\n", (unsigned)rdev->rmmio_size);
 
-	/* if we have > 1 VGA cards, then disable the radeon VGA resources */
-	/* this will fail for cards that aren't VGA class devices, just
-	 * ignore it */
+	
+	
 	vga_client_register(rdev->pdev, rdev, NULL, radeon_vga_set_decode);
 
 	r = radeon_init(rdev);
@@ -596,9 +535,7 @@ int radeon_device_init(struct radeon_device *rdev,
 		return r;
 
 	if (rdev->flags & RADEON_IS_AGP && !rdev->accel_working) {
-		/* Acceleration not working on AGP card try again
-		 * with fallback to PCI or PCIE GART
-		 */
+		
 		radeon_gpu_reset(rdev);
 		radeon_fini(rdev);
 		radeon_agp_disable(rdev);
@@ -626,9 +563,7 @@ void radeon_device_fini(struct radeon_device *rdev)
 }
 
 
-/*
- * Suspend & resume.
- */
+
 int radeon_suspend_kms(struct drm_device *dev, pm_message_t state)
 {
 	struct radeon_device *rdev = dev->dev_private;
@@ -640,7 +575,7 @@ int radeon_suspend_kms(struct drm_device *dev, pm_message_t state)
 	if (state.event == PM_EVENT_PRETHAW) {
 		return 0;
 	}
-	/* unpin the front buffers */
+	
 	list_for_each_entry(crtc, &dev->mode_config.crtc_list, head) {
 		struct radeon_framebuffer *rfb = to_radeon_framebuffer(crtc->fb);
 		struct radeon_object *robj;
@@ -653,20 +588,20 @@ int radeon_suspend_kms(struct drm_device *dev, pm_message_t state)
 			radeon_object_unpin(robj);
 		}
 	}
-	/* evict vram memory */
+	
 	radeon_object_evict_vram(rdev);
-	/* wait for gpu to finish processing current batch */
+	
 	radeon_fence_wait_last(rdev);
 
 	radeon_save_bios_scratch_regs(rdev);
 
 	radeon_suspend(rdev);
-	/* evict remaining vram memory */
+	
 	radeon_object_evict_vram(rdev);
 
 	pci_save_state(dev->pdev);
 	if (state.event == PM_EVENT_SUSPEND) {
-		/* Shut down the device */
+		
 		pci_disable_device(dev->pdev);
 		pci_set_power_state(dev->pdev, PCI_D3hot);
 	}
@@ -688,22 +623,20 @@ int radeon_resume_kms(struct drm_device *dev)
 		return -1;
 	}
 	pci_set_master(dev->pdev);
-	/* resume AGP if in use */
+	
 	radeon_agp_resume(rdev);
 	radeon_resume(rdev);
 	radeon_restore_bios_scratch_regs(rdev);
 	fb_set_suspend(rdev->fbdev_info, 0);
 	release_console_sem();
 
-	/* blat the mode back in */
+	
 	drm_helper_resume_force_mode(dev);
 	return 0;
 }
 
 
-/*
- * Debugfs
- */
+
 struct radeon_debugfs {
 	struct drm_info_list	*files;
 	unsigned		num_files;
@@ -719,7 +652,7 @@ int radeon_debugfs_add_files(struct radeon_device *rdev,
 
 	for (i = 0; i < _radeon_debugfs_count; i++) {
 		if (_radeon_debugfs[i].files == files) {
-			/* Already registered */
+			
 			return 0;
 		}
 	}

@@ -1,30 +1,4 @@
-/*
- * Copyright 2008 Advanced Micro Devices, Inc.
- * Copyright 2008 Red Hat Inc.
- * Copyright 2009 Jerome Glisse.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * Authors: Dave Airlie
- *          Alex Deucher
- *          Jerome Glisse
- */
+
 #include <linux/seq_file.h>
 #include "drmP.h"
 #include "radeon_reg.h"
@@ -36,7 +10,7 @@ int r420_mc_init(struct radeon_device *rdev)
 {
 	int r;
 
-	/* Setup GPU memory space */
+	
 	rdev->mc.vram_location = 0xFFFFFFFFUL;
 	rdev->mc.gtt_location = 0xFFFFFFFFUL;
 	if (rdev->flags & RADEON_IS_AGP) {
@@ -62,21 +36,21 @@ void r420_pipes_init(struct radeon_device *rdev)
 	unsigned gb_pipe_select;
 	unsigned num_pipes;
 
-	/* GA_ENHANCE workaround TCL deadlock issue */
+	
 	WREG32(0x4274, (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3));
-	/* add idle wait as per freedesktop.org bug 24041 */
+	
 	if (r100_gui_wait_for_idle(rdev)) {
 		printk(KERN_WARNING "Failed to wait GUI idle while "
 		       "programming pipes. Bad things might happen.\n");
 	}
-	/* get max number of pipes */
+	
 	gb_pipe_select = RREG32(0x402C);
 	num_pipes = ((gb_pipe_select >> 12) & 3) + 1;
 	rdev->num_gb_pipes = num_pipes;
 	tmp = 0;
 	switch (num_pipes) {
 	default:
-		/* force to 1 pipe */
+		
 		num_pipes = 1;
 	case 1:
 		tmp = (0 << 1);
@@ -92,7 +66,7 @@ void r420_pipes_init(struct radeon_device *rdev)
 		break;
 	}
 	WREG32(0x42C8, (1 << num_pipes) - 1);
-	/* Sub pixel 1/12 so we can have 4K rendering according to doc */
+	
 	tmp |= (1 << 4) | (1 << 0);
 	WREG32(0x4018, tmp);
 	if (r100_gui_wait_for_idle(rdev)) {
@@ -170,10 +144,9 @@ static int r420_startup(struct radeon_device *rdev)
 	int r;
 
 	r300_mc_program(rdev);
-	/* Resume clock */
+	
 	r420_clock_resume(rdev);
-	/* Initialize GART (initialize after TTM so we can allocate
-	 * memory through TTM but finalize after TTM) */
+	
 	if (rdev->flags & RADEON_IS_PCIE) {
 		r = rv370_pcie_gart_enable(rdev);
 		if (r)
@@ -185,10 +158,10 @@ static int r420_startup(struct radeon_device *rdev)
 			return r;
 	}
 	r420_pipes_init(rdev);
-	/* Enable IRQ */
+	
 	rdev->irq.sw_int = true;
 	r100_irq_set(rdev);
-	/* 1M ring buffer */
+	
 	r = r100_cp_init(rdev, 1024 * 1024);
 	if (r) {
 		dev_err(rdev->dev, "failled initializing CP (%d).\n", r);
@@ -208,26 +181,26 @@ static int r420_startup(struct radeon_device *rdev)
 
 int r420_resume(struct radeon_device *rdev)
 {
-	/* Make sur GART are not working */
+	
 	if (rdev->flags & RADEON_IS_PCIE)
 		rv370_pcie_gart_disable(rdev);
 	if (rdev->flags & RADEON_IS_PCI)
 		r100_pci_gart_disable(rdev);
-	/* Resume clock before doing reset */
+	
 	r420_clock_resume(rdev);
-	/* Reset gpu before posting otherwise ATOM will enter infinite loop */
+	
 	if (radeon_gpu_reset(rdev)) {
 		dev_warn(rdev->dev, "GPU reset failed ! (0xE40=0x%08X, 0x7C0=0x%08X)\n",
 			RREG32(R_000E40_RBBM_STATUS),
 			RREG32(R_0007C0_CP_STAT));
 	}
-	/* check if cards are posted or not */
+	
 	if (rdev->is_atom_bios) {
 		atom_asic_init(rdev->mode_info.atom_context);
 	} else {
 		radeon_combios_asic_init(rdev->ddev);
 	}
-	/* Resume clock after posting */
+	
 	r420_clock_resume(rdev);
 
 	return r420_startup(rdev);
@@ -272,12 +245,12 @@ int r420_init(struct radeon_device *rdev)
 {
 	int r;
 
-	/* Initialize scratch registers */
+	
 	radeon_scratch_init(rdev);
-	/* Initialize surface registers */
+	
 	radeon_surface_init(rdev);
-	/* TODO: disable VGA need to use VGA request */
-	/* BIOS*/
+	
+	
 	if (!radeon_get_bios(rdev)) {
 		if (ASIC_IS_AVIVO(rdev))
 			return -EINVAL;
@@ -293,14 +266,14 @@ int r420_init(struct radeon_device *rdev)
 			return r;
 		}
 	}
-	/* Reset gpu before posting otherwise ATOM will enter infinite loop */
+	
 	if (radeon_gpu_reset(rdev)) {
 		dev_warn(rdev->dev,
 			"GPU reset failed ! (0xE40=0x%08X, 0x7C0=0x%08X)\n",
 			RREG32(R_000E40_RBBM_STATUS),
 			RREG32(R_0007C0_CP_STAT));
 	}
-	/* check if cards are posted or not */
+	
 	if (!radeon_card_posted(rdev) && rdev->bios) {
 		DRM_INFO("GPU not posted. posting now...\n");
 		if (rdev->is_atom_bios) {
@@ -309,19 +282,19 @@ int r420_init(struct radeon_device *rdev)
 			radeon_combios_asic_init(rdev->ddev);
 		}
 	}
-	/* Initialize clocks */
+	
 	radeon_get_clock_info(rdev->ddev);
-	/* Initialize power management */
+	
 	radeon_pm_init(rdev);
-	/* Get vram informations */
+	
 	r300_vram_info(rdev);
-	/* Initialize memory controller (also test AGP) */
+	
 	r = r420_mc_init(rdev);
 	if (r) {
 		return r;
 	}
 	r420_debugfs(rdev);
-	/* Fence driver */
+	
 	r = radeon_fence_driver_init(rdev);
 	if (r) {
 		return r;
@@ -330,7 +303,7 @@ int r420_init(struct radeon_device *rdev)
 	if (r) {
 		return r;
 	}
-	/* Memory manager */
+	
 	r = radeon_object_init(rdev);
 	if (r) {
 		return r;
@@ -349,7 +322,7 @@ int r420_init(struct radeon_device *rdev)
 	rdev->accel_working = true;
 	r = r420_startup(rdev);
 	if (r) {
-		/* Somethings want wront with the accel init stop accel */
+		
 		dev_err(rdev->dev, "Disabling GPU acceleration\n");
 		r420_suspend(rdev);
 		r100_cp_fini(rdev);
@@ -366,9 +339,7 @@ int r420_init(struct radeon_device *rdev)
 	return 0;
 }
 
-/*
- * Debugfs info
- */
+
 #if defined(CONFIG_DEBUG_FS)
 static int r420_debugfs_pipes_info(struct seq_file *m, void *data)
 {

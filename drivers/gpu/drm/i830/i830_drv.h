@@ -1,39 +1,9 @@
-/* i830_drv.h -- Private header for the I830 driver -*- linux-c -*-
- * Created: Mon Dec 13 01:50:01 1999 by jhartmann@precisioninsight.com
- *
- * Copyright 1999 Precision Insight, Inc., Cedar Park, Texas.
- * Copyright 2000 VA Linux Systems, Inc., Sunnyvale, California.
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * PRECISION INSIGHT AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
- *
- * Authors: Rickard E. (Rik) Faith <faith@valinux.com>
- *	    Jeff Hartmann <jhartmann@valinux.com>
- *
- */
+
 
 #ifndef _I830_DRV_H_
 #define _I830_DRV_H_
 
-/* General customization:
- */
+
 
 #define DRIVER_AUTHOR		"VA Linux Systems Inc."
 
@@ -41,25 +11,13 @@
 #define DRIVER_DESC		"Intel 830M"
 #define DRIVER_DATE		"20021108"
 
-/* Interface history:
- *
- * 1.1: Original.
- * 1.2: ?
- * 1.3: New irq emit/wait ioctls.
- *      New pageflip ioctl.
- *      New getparam ioctl.
- *      State for texunits 3&4 in sarea.
- *      New (alternative) layout for texture state.
- */
+
 #define DRIVER_MAJOR		1
 #define DRIVER_MINOR		3
 #define DRIVER_PATCHLEVEL	2
 
-/* Driver will work either way: IRQ's save cpu time when waiting for
- * the card, but are subject to subtle interactions between bios,
- * hardware and the driver.
- */
-/* XXX: Add vblank support? */
+
+
 #define USE_IRQS 0
 
 typedef struct drm_i830_buf_priv {
@@ -125,7 +83,7 @@ typedef struct drm_i830_private {
 extern struct drm_ioctl_desc i830_ioctls[];
 extern int i830_max_ioctl;
 
-/* i830_irq.c */
+
 extern int i830_irq_emit(struct drm_device *dev, void *data,
 			 struct drm_file *file_priv);
 extern int i830_irq_wait(struct drm_device *dev, void *data,

@@ -1,28 +1,4 @@
-/*
- * Copyright 2007-8 Advanced Micro Devices, Inc.
- * Copyright 2008 Red Hat Inc.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * Authors: Dave Airlie
- *          Alex Deucher
- */
+
 #include "drmP.h"
 #include "radeon_drm.h"
 #include "radeon.h"
@@ -119,7 +95,7 @@ static void radeon_set_cursor(struct drm_crtc *crtc, struct drm_gem_object *obj,
 		WREG32(AVIVO_D1CUR_SURFACE_ADDRESS + radeon_crtc->crtc_offset, gpu_addr);
 	} else {
 		radeon_crtc->legacy_cursor_offset = gpu_addr - radeon_crtc->legacy_display_base_addr;
-		/* offset is from DISP(2)_BASE_ADDRESS */
+		
 		WREG32(RADEON_CUR_OFFSET + radeon_crtc->crtc_offset, radeon_crtc->legacy_cursor_offset);
 	}
 }
@@ -136,7 +112,7 @@ int radeon_crtc_cursor_set(struct drm_crtc *crtc,
 	int ret;
 
 	if (!handle) {
-		/* turn off cursor */
+		
 		radeon_hide_cursor(crtc);
 		obj = NULL;
 		goto unpin;
@@ -161,7 +137,7 @@ int radeon_crtc_cursor_set(struct drm_crtc *crtc,
 		goto fail;
 
 	radeon_lock_cursor(crtc, true);
-	/* XXX only 27 bit offset for legacy cursor */
+	
 	radeon_set_cursor(crtc, obj, gpu_addr);
 	radeon_show_cursor(crtc);
 	radeon_lock_cursor(crtc, false);
@@ -206,14 +182,12 @@ int radeon_crtc_cursor_move(struct drm_crtc *crtc,
 		int i = 0;
 		struct drm_crtc *crtc_p;
 
-		/* avivo cursor are offset into the total surface */
+		
 		x += crtc->x;
 		y += crtc->y;
 		DRM_DEBUG("x %d y %d c->x %d c->y %d\n", x, y, crtc->x, crtc->y);
 
-		/* avivo cursor image can't end on 128 pixel boundry or
-		 * go past the end of the frame if both crtcs are enabled
-		 */
+		
 		list_for_each_entry(crtc_p, &crtc->dev->mode_config.crtc_list, head) {
 			if (crtc_p->enabled)
 				i++;
@@ -253,7 +227,7 @@ int radeon_crtc_cursor_move(struct drm_crtc *crtc,
 		       (RADEON_CUR_LOCK
 			| ((xorigin ? 0 : x) << 16)
 			| (yorigin ? 0 : y)));
-		/* offset is from DISP(2)_BASE_ADDRESS */
+		
 		WREG32(RADEON_CUR_OFFSET + radeon_crtc->crtc_offset, (radeon_crtc->legacy_cursor_offset +
 								      (yorigin * 256)));
 	}

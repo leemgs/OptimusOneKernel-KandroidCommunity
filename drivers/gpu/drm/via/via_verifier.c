@@ -1,32 +1,4 @@
-/*
- * Copyright 2004 The Unichrome Project. All Rights Reserved.
- * Copyright 2005 Thomas Hellstrom. All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sub license,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the
- * next paragraph) shall be included in all copies or substantial portions
- * of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL
- * THE AUTHOR(S), AND/OR THE COPYRIGHT HOLDER(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
- *
- * Author: Thomas Hellstrom 2004, 2005.
- * This code was written using docs obtained under NDA from VIA Inc.
- *
- * Don't run this code directly on an AGP buffer. Due to cache problems it will
- * be very slow.
- */
+
 
 #include "via_3d_reg.h"
 #include "drmP.h"
@@ -74,12 +46,7 @@ typedef enum {
 	forbidden_command
 } hazard_t;
 
-/*
- * Associates each hazard above with a possible multi-command
- * sequence. For example an address that is split over multiple
- * commands and that needs to be checked at the first command
- * that does not include any part of the address.
- */
+
 
 static drm_via_sequence_t seqs[] = {
 	no_sequence,
@@ -245,9 +212,7 @@ eat_words(const uint32_t ** buf, const uint32_t * buf_end, unsigned num_words)
 	return 1;
 }
 
-/*
- * Partially stolen from drm_memory.h
- */
+
 
 static __inline__ drm_local_map_t *via_drm_lookup_agp_map(drm_via_state_t *seq,
 						    unsigned long offset,
@@ -277,14 +242,7 @@ static __inline__ drm_local_map_t *via_drm_lookup_agp_map(drm_via_state_t *seq,
 	return NULL;
 }
 
-/*
- * Require that all AGP texture levels reside in the same AGP map which should
- * be mappable by the client. This is not a big restriction.
- * FIXME: To actually enforce this security policy strictly, drm_rmmap
- * would have to wait for dma quiescent before removing an AGP map.
- * The via_drm_lookup_agp_map call in reality seems to take
- * very little CPU time.
- */
+
 
 static __inline__ int finish_current_sequence(drm_via_state_t * cur_seq)
 {
@@ -470,9 +428,7 @@ investigate_hazard(uint32_t cmd, hazard_t hz, drm_via_state_t * cur_seq)
 	case check_texture_addr5:
 	case check_texture_addr6:
 		cur_seq->unfinished = tex_address;
-		/*
-		 * Texture width. We don't care since we have the pitch.
-		 */
+		
 		return 0;
 	case check_texture_addr7:
 		cur_seq->unfinished = tex_address;
@@ -548,9 +504,7 @@ via_check_prim_list(uint32_t const **buffer, const uint32_t * buf_end,
 		    *buf++ | HC_HPLEND_MASK | HC_HPMValidN_MASK |
 		    HC_HE3Fire_MASK;
 
-		/*
-		 * How many dwords per vertex ?
-		 */
+		
 
 		if (cur_seq->agp && ((bcmd & (0xF << 11)) == 0)) {
 			DRM_ERROR("Illegal B command vertex data for AGP.\n");
@@ -679,10 +633,7 @@ via_check_header2(uint32_t const **buffer, const uint32_t * buf_end,
 		return state_error;
 	default:
 
-		/*
-		 * There are some unimplemented HC_ParaTypes here, that
-		 * need to be implemented if the Mesa driver is extended.
-		 */
+		
 
 		DRM_ERROR("Invalid or unimplemented HALCYON_HEADER2 "
 			  "DMA subcommand: 0x%x. Previous dword: 0x%x\n",

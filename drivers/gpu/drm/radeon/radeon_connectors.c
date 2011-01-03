@@ -1,28 +1,4 @@
-/*
- * Copyright 2007-8 Advanced Micro Devices, Inc.
- * Copyright 2008 Red Hat Inc.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * Authors: Dave Airlie
- *          Alex Deucher
- */
+
 #include "drmP.h"
 #include "drm_edid.h"
 #include "drm_crtc_helper.h"
@@ -115,7 +91,7 @@ struct drm_encoder *radeon_best_single_encoder(struct drm_connector *connector)
 	struct drm_mode_object *obj;
 	struct drm_encoder *encoder;
 
-	/* pick the encoder ids */
+	
 	if (enc_id) {
 		obj = drm_mode_object_find(connector->dev, enc_id, DRM_MODE_OBJECT_ENCODER);
 		if (!obj)
@@ -126,12 +102,7 @@ struct drm_encoder *radeon_best_single_encoder(struct drm_connector *connector)
 	return NULL;
 }
 
-/*
- * radeon_connector_analog_encoder_conflict_solve
- * - search for other connectors sharing this encoder
- *   if priority is true, then set them disconnected if this is connected
- *   if priority is false, set us disconnected if they are connected
- */
+
 static enum drm_connector_status
 radeon_connector_analog_encoder_conflict_solve(struct drm_connector *connector,
 					       struct drm_encoder *encoder,
@@ -150,7 +121,7 @@ radeon_connector_analog_encoder_conflict_solve(struct drm_connector *connector,
 			if (conflict->encoder_ids[i] == 0)
 				break;
 
-			/* if the IDs match */
+			
 			if (conflict->encoder_ids[i] == encoder->base.id) {
 				if (conflict->status != connector_status_connected)
 					continue;
@@ -254,7 +225,7 @@ int radeon_connector_set_property(struct drm_connector *connector, struct drm_pr
 	if (property == rdev->mode_info.coherent_mode_property) {
 		struct radeon_encoder_atom_dig *dig;
 
-		/* need to find digital encoder on connector */
+		
 		encoder = radeon_find_encoder(connector, DRM_MODE_ENCODER_TMDS);
 		if (!encoder)
 			return 0;
@@ -306,7 +277,7 @@ int radeon_connector_set_property(struct drm_connector *connector, struct drm_pr
 	if (property == rdev->mode_info.tmds_pll_property) {
 		struct radeon_encoder_int_tmds *tmds = NULL;
 		bool ret = false;
-		/* need to find digital encoder on connector */
+		
 		encoder = radeon_find_encoder(connector, DRM_MODE_ENCODER_TMDS);
 		if (!encoder)
 			return 0;
@@ -338,7 +309,7 @@ static void radeon_fixup_lvds_native_mode(struct drm_encoder *encoder,
 	struct radeon_encoder *radeon_encoder =	to_radeon_encoder(encoder);
 	struct drm_display_mode *native_mode = &radeon_encoder->native_mode;
 
-	/* Try to get native mode details from EDID if necessary */
+	
 	if (!native_mode->clock) {
 		struct drm_display_mode *t, *mode;
 
@@ -371,7 +342,7 @@ static int radeon_lvds_get_modes(struct drm_connector *connector)
 			encoder = radeon_best_single_encoder(connector);
 			if (encoder) {
 				radeon_fixup_lvds_native_mode(encoder, connector);
-				/* add scaled modes */
+				
 				radeon_add_common_modes(encoder, connector);
 			}
 			return ret;
@@ -382,12 +353,12 @@ static int radeon_lvds_get_modes(struct drm_connector *connector)
 	if (!encoder)
 		return 0;
 
-	/* we have no EDID modes */
+	
 	mode = radeon_fp_native_mode(encoder);
 	if (mode) {
 		ret = 1;
 		drm_mode_probed_add(connector, mode);
-		/* add scaled modes */
+		
 		radeon_add_common_modes(encoder, connector);
 	}
 
@@ -406,14 +377,12 @@ static int radeon_lvds_mode_valid(struct drm_connector *connector,
 		struct radeon_encoder *radeon_encoder = to_radeon_encoder(encoder);
 		struct drm_display_mode *native_mode = &radeon_encoder->native_mode;
 
-		/* AVIVO hardware supports downscaling modes larger than the panel
-		 * to the panel size, but I'm not sure this is desirable.
-		 */
+		
 		if ((mode->hdisplay > native_mode->hdisplay) ||
 		    (mode->vdisplay > native_mode->vdisplay))
 			return MODE_PANEL;
 
-		/* if scaling is disabled, block non-native modes */
+		
 		if (radeon_encoder->rmx_type == RMX_OFF) {
 			if ((mode->hdisplay != native_mode->hdisplay) ||
 			    (mode->vdisplay != native_mode->vdisplay))
@@ -434,13 +403,13 @@ static enum drm_connector_status radeon_lvds_detect(struct drm_connector *connec
 		struct radeon_encoder *radeon_encoder = to_radeon_encoder(encoder);
 		struct drm_display_mode *native_mode = &radeon_encoder->native_mode;
 
-		/* check if panel is valid */
+		
 		if (native_mode->hdisplay >= 320 && native_mode->vdisplay >= 240)
 			ret = connector_status_connected;
 
 	}
 
-	/* check for edid as well */
+	
 	if (radeon_connector->edid)
 		ret = connector_status_connected;
 	else {
@@ -453,7 +422,7 @@ static enum drm_connector_status radeon_lvds_detect(struct drm_connector *connec
 				ret = connector_status_connected;
 		}
 	}
-	/* check acpi lid status ??? */
+	
 
 	radeon_connector_update_scratch_regs(connector, ret);
 	return ret;
@@ -536,8 +505,8 @@ static int radeon_vga_get_modes(struct drm_connector *connector)
 static int radeon_vga_mode_valid(struct drm_connector *connector,
 				  struct drm_display_mode *mode)
 {
-	/* XXX check mode bandwidth */
-	/* XXX verify against max DAC output frequency */
+	
+	
 	return MODE_OK;
 }
 
@@ -572,9 +541,7 @@ static enum drm_connector_status radeon_vga_detect(struct drm_connector *connect
 		} else {
 			radeon_connector->use_digital = !!(radeon_connector->edid->input & DRM_EDID_INPUT_DIGITAL);
 
-			/* some oems have boards with separate digital and analog connectors
-			 * with a shared ddc line (often vga + hdmi)
-			 */
+			
 			if (radeon_connector->use_digital && radeon_connector->shared_ddc) {
 				kfree(radeon_connector->edid);
 				radeon_connector->edid = NULL;
@@ -620,12 +587,12 @@ static int radeon_tv_get_modes(struct drm_connector *connector)
 	if (!encoder)
 		return 0;
 
-	/* avivo chips can scale any mode */
+	
 	if (rdev->family >= CHIP_RS600)
-		/* add scaled modes */
+		
 		radeon_add_common_modes(encoder, connector);
 	else {
-		/* only 800x600 is supported right now on pre-avivo chips */
+		
 		tv_mode = drm_cvt_mode(dev, 800, 600, 60, false, false, false);
 		tv_mode->type = DRM_MODE_TYPE_DRIVER | DRM_MODE_TYPE_PREFERRED;
 		drm_mode_probed_add(connector, tv_mode);
@@ -687,17 +654,7 @@ static int radeon_dvi_get_modes(struct drm_connector *connector)
 	return ret;
 }
 
-/*
- * DVI is complicated
- * Do a DDC probe, if DDC probe passes, get the full EDID so
- * we can do analog/digital monitor detection at this point.
- * If the monitor is an analog monitor or we got no DDC,
- * we need to find the DAC encoder object for this connector.
- * If we got no DDC, we do load detection on the DAC encoder object.
- * If we got analog DDC or load detection passes on the DAC encoder
- * we have to check if this analog encoder is shared with anyone else (TV)
- * if its shared we have to set the other connector to disconnected.
- */
+
 static enum drm_connector_status radeon_dvi_detect(struct drm_connector *connector)
 {
 	struct radeon_connector *radeon_connector = to_radeon_connector(connector);
@@ -726,9 +683,7 @@ static enum drm_connector_status radeon_dvi_detect(struct drm_connector *connect
 		} else {
 			radeon_connector->use_digital = !!(radeon_connector->edid->input & DRM_EDID_INPUT_DIGITAL);
 
-			/* some oems have boards with separate digital and analog connectors
-			 * with a shared ddc line (often vga + hdmi)
-			 */
+			
 			if ((!radeon_connector->use_digital) && radeon_connector->shared_ddc) {
 				kfree(radeon_connector->edid);
 				radeon_connector->edid = NULL;
@@ -741,7 +696,7 @@ static enum drm_connector_status radeon_dvi_detect(struct drm_connector *connect
 	if ((ret == connector_status_connected) && (radeon_connector->use_digital == true))
 		goto out;
 
-	/* find analog encoder */
+	
 	if (radeon_connector->dac_load_detect) {
 		for (i = 0; i < DRM_CONNECTOR_MAX_ENCODER; i++) {
 			if (connector->encoder_ids[i] == 0)
@@ -774,12 +729,12 @@ static enum drm_connector_status radeon_dvi_detect(struct drm_connector *connect
 	}
 
 out:
-	/* updated in get modes as well since we need to know if it's analog or digital */
+	
 	radeon_connector_update_scratch_regs(connector, ret);
 	return ret;
 }
 
-/* okay need to be smart in here about which encoder to pick */
+
 struct drm_encoder *radeon_dvi_encoder(struct drm_connector *connector)
 {
 	int enc_id = connector->encoder_ids[0];
@@ -807,10 +762,10 @@ struct drm_encoder *radeon_dvi_encoder(struct drm_connector *connector)
 		}
 	}
 
-	/* see if we have a default encoder  TODO */
+	
 
-	/* then check use digitial */
-	/* pick the first one */
+	
+	
 	if (enc_id) {
 		obj = drm_mode_object_find(connector->dev, enc_id, DRM_MODE_OBJECT_ENCODER);
 		if (!obj)
@@ -835,7 +790,7 @@ static int radeon_dvi_mode_valid(struct drm_connector *connector,
 {
 	struct radeon_connector *radeon_connector = to_radeon_connector(connector);
 
-	/* XXX check mode bandwidth */
+	
 
 	if (radeon_connector->use_digital && (mode->clock > 165000)) {
 		if ((radeon_connector->connector_object_id == CONNECTOR_OBJECT_ID_DUAL_LINK_DVI_I) ||
@@ -881,11 +836,11 @@ radeon_add_atom_connector(struct drm_device *dev,
 	bool shared_ddc = false;
 	int ret;
 
-	/* fixme - tv/cv/din */
+	
 	if (connector_type == DRM_MODE_CONNECTOR_Unknown)
 		return;
 
-	/* see if we already added it */
+	
 	list_for_each_entry(connector, &dev->mode_config.connector_list, head) {
 		radeon_connector = to_radeon_connector(connector);
 		if (radeon_connector->connector_id == connector_id) {
@@ -1071,11 +1026,11 @@ radeon_add_legacy_connector(struct drm_device *dev,
 	uint32_t subpixel_order = SubPixelNone;
 	int ret;
 
-	/* fixme - tv/cv/din */
+	
 	if (connector_type == DRM_MODE_CONNECTOR_Unknown)
 		return;
 
-	/* see if we already added it */
+	
 	list_for_each_entry(connector, &dev->mode_config.connector_list, head) {
 		radeon_connector = to_radeon_connector(connector);
 		if (radeon_connector->connector_id == connector_id) {
@@ -1150,11 +1105,7 @@ radeon_add_legacy_connector(struct drm_device *dev,
 			if (ret)
 				goto failed;
 			radeon_connector->dac_load_detect = true;
-			/* RS400,RC410,RS480 chipset seems to report a lot
-			 * of false positive on load detect, we haven't yet
-			 * found a way to make load detect reliable on those
-			 * chipset, thus just disable it for TV.
-			 */
+			
 			if (rdev->family == CHIP_RS400 || rdev->family == CHIP_RS480)
 				radeon_connector->dac_load_detect = false;
 			drm_connector_attach_property(&radeon_connector->base,

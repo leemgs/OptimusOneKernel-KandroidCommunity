@@ -1,28 +1,4 @@
-/*
- * Copyright 2007-8 Advanced Micro Devices, Inc.
- * Copyright 2008 Red Hat Inc.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * Authors: Dave Airlie
- *          Alex Deucher
- */
+
 #include "drmP.h"
 #include "radeon_drm.h"
 #include "radeon.h"
@@ -30,7 +6,7 @@
 #include "atom.h"
 #include "atom-bits.h"
 
-/* from radeon_encoder.c */
+
 extern uint32_t
 radeon_get_encoder_id(struct drm_device *dev, uint32_t supported_device,
 		      uint8_t dac);
@@ -39,7 +15,7 @@ extern void
 radeon_add_atom_encoder(struct drm_device *dev, uint32_t encoder_id,
 			uint32_t supported_device);
 
-/* from radeon_connector.c */
+
 extern void
 radeon_add_atom_connector(struct drm_device *dev,
 			  uint32_t connector_id,
@@ -49,7 +25,7 @@ radeon_add_atom_connector(struct drm_device *dev,
 			  bool linkb, uint32_t igp_lane_info,
 			  uint16_t connector_object_id);
 
-/* from radeon_legacy_encoder.c */
+
 extern void
 radeon_add_legacy_encoder(struct drm_device *dev, uint32_t encoder_id,
 			  uint32_t supported_device);
@@ -108,7 +84,7 @@ static bool radeon_atom_apply_quirks(struct drm_device *dev,
 				     uint16_t *line_mux)
 {
 
-	/* Asus M2A-VM HDMI board lists the DVI port as HDMI */
+	
 	if ((dev->pdev->device == 0x791e) &&
 	    (dev->pdev->subsystem_vendor == 0x1043) &&
 	    (dev->pdev->subsystem_device == 0x826d)) {
@@ -117,7 +93,7 @@ static bool radeon_atom_apply_quirks(struct drm_device *dev,
 			*connector_type = DRM_MODE_CONNECTOR_DVID;
 	}
 
-	/* a-bit f-i90hd - ciaranm on #radeonhd - this board has no DVI */
+	
 	if ((dev->pdev->device == 0x7941) &&
 	    (dev->pdev->subsystem_vendor == 0x147b) &&
 	    (dev->pdev->subsystem_device == 0x2412)) {
@@ -125,7 +101,7 @@ static bool radeon_atom_apply_quirks(struct drm_device *dev,
 			return false;
 	}
 
-	/* Falcon NW laptop lists vga ddc line for LVDS */
+	
 	if ((dev->pdev->device == 0x5653) &&
 	    (dev->pdev->subsystem_vendor == 0x1462) &&
 	    (dev->pdev->subsystem_device == 0x0291)) {
@@ -135,7 +111,7 @@ static bool radeon_atom_apply_quirks(struct drm_device *dev,
 		}
 	}
 
-	/* HIS X1300 is DVI+VGA, not DVI+DVI */
+	
 	if ((dev->pdev->device == 0x7146) &&
 	    (dev->pdev->subsystem_vendor == 0x17af) &&
 	    (dev->pdev->subsystem_device == 0x2058)) {
@@ -143,7 +119,7 @@ static bool radeon_atom_apply_quirks(struct drm_device *dev,
 			return false;
 	}
 
-	/* Funky macbooks */
+	
 	if ((dev->pdev->device == 0x71C5) &&
 	    (dev->pdev->subsystem_vendor == 0x106b) &&
 	    (dev->pdev->subsystem_device == 0x0080)) {
@@ -152,7 +128,7 @@ static bool radeon_atom_apply_quirks(struct drm_device *dev,
 			return false;
 	}
 
-	/* ASUS HD 3600 XT board lists the DVI port as HDMI */
+	
 	if ((dev->pdev->device == 0x9598) &&
 	    (dev->pdev->subsystem_vendor == 0x1043) &&
 	    (dev->pdev->subsystem_device == 0x01da)) {
@@ -161,7 +137,7 @@ static bool radeon_atom_apply_quirks(struct drm_device *dev,
 		}
 	}
 
-	/* ASUS HD 3450 board lists the DVI port as HDMI */
+	
 	if ((dev->pdev->device == 0x95C5) &&
 	    (dev->pdev->subsystem_vendor == 0x1043) &&
 	    (dev->pdev->subsystem_device == 0x01e2)) {
@@ -170,9 +146,7 @@ static bool radeon_atom_apply_quirks(struct drm_device *dev,
 		}
 	}
 
-	/* some BIOSes seem to report DAC on HDMI - usually this is a board with
-	 * HDMI + VGA reporting as HDMI
-	 */
+	
 	if (*connector_type == DRM_MODE_CONNECTOR_HDMIA) {
 		if (supported_device & (ATOM_DEVICE_CRT_SUPPORT)) {
 			*connector_type = DRM_MODE_CONNECTOR_VGA;
@@ -205,9 +179,9 @@ const int supported_devices_connector_convert[] = {
 const uint16_t supported_devices_connector_object_id_convert[] = {
 	CONNECTOR_OBJECT_ID_NONE,
 	CONNECTOR_OBJECT_ID_VGA,
-	CONNECTOR_OBJECT_ID_DUAL_LINK_DVI_I, /* not all boards support DL */
-	CONNECTOR_OBJECT_ID_DUAL_LINK_DVI_D, /* not all boards support DL */
-	CONNECTOR_OBJECT_ID_VGA, /* technically DVI-A */
+	CONNECTOR_OBJECT_ID_DUAL_LINK_DVI_I, 
+	CONNECTOR_OBJECT_ID_DUAL_LINK_DVI_D, 
+	CONNECTOR_OBJECT_ID_VGA, 
 	CONNECTOR_OBJECT_ID_COMPOSITE,
 	CONNECTOR_OBJECT_ID_SVIDEO,
 	CONNECTOR_OBJECT_ID_LVDS,
@@ -298,12 +272,12 @@ bool radeon_get_atom_connector_info_from_object_table(struct drm_device *dev)
 			    (le16_to_cpu(path->usConnObjectId) &
 			     OBJECT_TYPE_MASK) >> OBJECT_TYPE_SHIFT;
 
-			/* TODO CV support */
+			
 			if (le16_to_cpu(path->usDeviceTag) ==
 				ATOM_DEVICE_CV_SUPPORT)
 				continue;
 
-			/* IGP chips */
+			
 			if ((rdev->flags & RADEON_IS_IGP) &&
 			    (con_obj_id ==
 			     CONNECTOR_OBJECT_ID_PCIE_CONNECTOR)) {
@@ -369,7 +343,7 @@ bool radeon_get_atom_connector_info_from_object_table(struct drm_device *dev)
 				    (le16_to_cpu(path->usGraphicObjIds[j]) &
 				     OBJECT_TYPE_MASK) >> OBJECT_TYPE_SHIFT;
 
-				/* FIXME: add support for router objects */
+				
 				if (enc_obj_type == GRAPH_OBJECT_TYPE_ENCODER) {
 					if (enc_obj_num == 2)
 						linkb = true;
@@ -385,7 +359,7 @@ bool radeon_get_atom_connector_info_from_object_table(struct drm_device *dev)
 				}
 			}
 
-			/* look up gpio for ddc */
+			
 			if ((le16_to_cpu(path->usDeviceTag) &
 			     (ATOM_DEVICE_TV_SUPPORT | ATOM_DEVICE_CV_SUPPORT))
 			    == 0) {
@@ -578,7 +552,7 @@ bool radeon_get_atom_connector_info_from_supported_devices_table(struct
 			bios_connectors[i].line_mux =
 			    ci.sucI2cId.sbfAccess.bfI2C_LineMux;
 
-		/* give tv unique connector ids */
+		
 		if (i == ATOM_DEVICE_TV1_INDEX) {
 			bios_connectors[i].ddc_bus.valid = false;
 			bios_connectors[i].line_mux = 50;
@@ -593,10 +567,7 @@ bool radeon_get_atom_connector_info_from_supported_devices_table(struct
 			    radeon_lookup_gpio(dev,
 					       bios_connectors[i].line_mux);
 
-		/* Always set the connector type to VGA for CRT1/CRT2. if they are
-		 * shared with a DVI port, we'll pick up the DVI connector when we
-		 * merge the outputs.  Some bioses incorrectly list VGA ports as DVI.
-		 */
+		
 		if (i == ATOM_DEVICE_CRT1_INDEX || i == ATOM_DEVICE_CRT2_INDEX)
 			bios_connectors[i].connector_type =
 			    DRM_MODE_CONNECTOR_VGA;
@@ -624,7 +595,7 @@ bool radeon_get_atom_connector_info_from_supported_devices_table(struct
 						  (1 << i));
 	}
 
-	/* combine shared connectors */
+	
 	for (i = 0; i < ATOM_MAX_SUPPORTED_DEVICE; i++) {
 		if (bios_connectors[i].valid) {
 			for (j = 0; j < ATOM_MAX_SUPPORTED_DEVICE; j++) {
@@ -660,7 +631,7 @@ bool radeon_get_atom_connector_info_from_supported_devices_table(struct
 		}
 	}
 
-	/* add the connectors */
+	
 	for (i = 0; i < ATOM_MAX_SUPPORTED_DEVICE; i++) {
 		if (bios_connectors[i].valid) {
 			uint16_t connector_object_id =
@@ -711,7 +682,7 @@ bool radeon_atom_get_clock_info(struct drm_device *dev)
 				    data_offset);
 
 	if (firmware_info) {
-		/* pixel clocks */
+		
 		p1pll->reference_freq =
 		    le16_to_cpu(firmware_info->info.usReferenceClock);
 		p1pll->reference_div = 0;
@@ -731,14 +702,7 @@ bool radeon_atom_get_clock_info(struct drm_device *dev)
 			else
 				p1pll->pll_out_min = 20000;
 		} else if (p1pll->pll_out_min > 64800) {
-			/* Limiting the pll output range is a good thing generally as
-			 * it limits the number of possible pll combinations for a given
-			 * frequency presumably to the ones that work best on each card.
-			 * However, certain duallink DVI monitors seem to like
-			 * pll combinations that would be limited by this at least on
-			 * pre-DCE 3.0 r6xx hardware.  This might need to be adjusted per
-			 * family.
-			 */
+			
 			p1pll->pll_out_min = 64800;
 		}
 
@@ -749,7 +713,7 @@ bool radeon_atom_get_clock_info(struct drm_device *dev)
 
 		*p2pll = *p1pll;
 
-		/* system clock */
+		
 		spll->reference_freq =
 		    le16_to_cpu(firmware_info->info.usReferenceClock);
 		spll->reference_div = 0;
@@ -759,7 +723,7 @@ bool radeon_atom_get_clock_info(struct drm_device *dev)
 		spll->pll_out_max =
 		    le32_to_cpu(firmware_info->info.ulMaxEngineClockPLL_Output);
 
-		/* ??? */
+		
 		if (spll->pll_out_min == 0) {
 			if (ASIC_IS_AVIVO(rdev))
 				spll->pll_out_min = 64800;
@@ -772,7 +736,7 @@ bool radeon_atom_get_clock_info(struct drm_device *dev)
 		spll->pll_in_max =
 		    le16_to_cpu(firmware_info->info.usMaxEngineClockPLL_Input);
 
-		/* memory clock */
+		
 		mpll->reference_freq =
 		    le16_to_cpu(firmware_info->info.usReferenceClock);
 		mpll->reference_div = 0;
@@ -782,7 +746,7 @@ bool radeon_atom_get_clock_info(struct drm_device *dev)
 		mpll->pll_out_max =
 		    le32_to_cpu(firmware_info->info.ulMaxMemoryClockPLL_Output);
 
-		/* ??? */
+		
 		if (mpll->pll_out_min == 0) {
 			if (ASIC_IS_AVIVO(rdev))
 				mpll->pll_out_min = 64800;
@@ -948,7 +912,7 @@ struct radeon_encoder_atom_dig *radeon_atombios_get_lvds_info(struct
 		lvds->panel_pwr_delay =
 		    le16_to_cpu(lvds_info->info.usOffDelayInMs);
 		lvds->lvds_misc = lvds_info->info.ucLVDS_Misc;
-		/* set crtc values */
+		
 		drm_mode_set_crtcinfo(&lvds->native_mode, CRTC_INTERLACE_HALVE_V);
 
 		lvds->ss = radeon_atombios_get_ss_info(encoder, lvds_info->info.ucSS_Id);
@@ -1036,7 +1000,7 @@ bool radeon_atom_get_tv_timings(struct radeon_device *rdev, int index,
 		mode->clock = le16_to_cpu(tv_info->aModeTimings[index].usPixelClock) * 10;
 
 		if (index == 1) {
-			/* PAL timings appear to have wrong values for totals */
+			
 			mode->crtc_htotal -= 1;
 			mode->crtc_vtotal -= 1;
 		}
@@ -1165,7 +1129,7 @@ void radeon_atom_set_engine_clock(struct radeon_device *rdev,
 	SET_ENGINE_CLOCK_PS_ALLOCATION args;
 	int index = GetIndexIntoMasterTable(COMMAND, SetEngineClock);
 
-	args.ulTargetEngineClock = eng_clock;	/* 10 khz */
+	args.ulTargetEngineClock = eng_clock;	
 
 	atom_execute_table(rdev->mode_info.atom_context, index, (uint32_t *)&args);
 }
@@ -1179,7 +1143,7 @@ void radeon_atom_set_memory_clock(struct radeon_device *rdev,
 	if (rdev->flags & RADEON_IS_IGP)
 		return;
 
-	args.ulTargetMemoryClock = mem_clock;	/* 10 khz */
+	args.ulTargetMemoryClock = mem_clock;	
 
 	atom_execute_table(rdev->mode_info.atom_context, index, (uint32_t *)&args);
 }
@@ -1197,10 +1161,10 @@ void radeon_atom_initialize_bios_scratch_regs(struct drm_device *dev)
 		bios_6_scratch = RREG32(RADEON_BIOS_6_SCRATCH);
 	}
 
-	/* let the bios control the backlight */
+	
 	bios_2_scratch &= ~ATOM_S2_VRI_BRIGHT_ENABLE;
 
-	/* tell the bios not to handle mode switching */
+	
 	bios_6_scratch |= (ATOM_S6_ACC_BLOCK_DISPLAY_SWITCH | ATOM_S6_ACC_MODE);
 
 	if (rdev->family >= CHIP_R600) {
@@ -1263,7 +1227,7 @@ void radeon_atom_output_lock(struct drm_encoder *encoder, bool lock)
 		WREG32(RADEON_BIOS_6_SCRATCH, bios_6_scratch);
 }
 
-/* at some point we may want to break this out into individual functions */
+
 void
 radeon_atombios_connected_scratch_regs(struct drm_connector *connector,
 				       struct drm_encoder *encoder,

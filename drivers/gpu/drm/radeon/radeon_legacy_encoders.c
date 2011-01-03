@@ -1,28 +1,4 @@
-/*
- * Copyright 2007-8 Advanced Micro Devices, Inc.
- * Copyright 2008 Red Hat Inc.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * Authors: Dave Airlie
- *          Alex Deucher
- */
+
 #include "drmP.h"
 #include "drm_crtc_helper.h"
 #include "radeon_drm.h"
@@ -190,7 +166,7 @@ static bool radeon_legacy_lvds_mode_fixup(struct drm_encoder *encoder,
 {
 	struct radeon_encoder *radeon_encoder = to_radeon_encoder(encoder);
 
-	/* set the active encoder to connector routing */
+	
 	radeon_encoder_set_active_device(encoder);
 	drm_mode_set_crtcinfo(adjusted_mode, 0);
 
@@ -218,7 +194,7 @@ static bool radeon_legacy_primary_dac_mode_fixup(struct drm_encoder *encoder,
 						 struct drm_display_mode *mode,
 						 struct drm_display_mode *adjusted_mode)
 {
-	/* set the active encoder to connector routing */
+	
 	radeon_encoder_set_active_device(encoder);
 	drm_mode_set_crtcinfo(adjusted_mode, 0);
 
@@ -322,7 +298,7 @@ static void radeon_legacy_primary_dac_mode_set(struct drm_encoder *encoder,
 
 	dac_cntl = (RADEON_DAC_MASK_ALL |
 		    RADEON_DAC_VGA_ADR_EN |
-		    /* TODO 6-bits */
+		    
 		    RADEON_DAC_8BIT_EN);
 
 	WREG32_P(RADEON_DAC_CNTL,
@@ -354,7 +330,7 @@ static enum drm_connector_status radeon_legacy_primary_dac_detect(struct drm_enc
 	enum drm_connector_status found = connector_status_disconnected;
 	bool color = true;
 
-	/* save the regs we need */
+	
 	vclk_ecp_cntl = RREG32_PLL(RADEON_VCLK_ECP_CNTL);
 	crtc_ext_cntl = RREG32(RADEON_CRTC_EXT_CNTL);
 	dac_ext_cntl = RREG32(RADEON_DAC_EXT_CNTL);
@@ -398,7 +374,7 @@ static enum drm_connector_status radeon_legacy_primary_dac_detect(struct drm_enc
 	if (RREG32(RADEON_DAC_CNTL) & RADEON_DAC_CMP_OUTPUT)
 		found = connector_status_connected;
 
-	/* restore the regs we used */
+	
 	WREG32(RADEON_DAC_CNTL, dac_cntl);
 	WREG32(RADEON_DAC_MACRO_CNTL, dac_macro_cntl);
 	WREG32(RADEON_DAC_EXT_CNTL, dac_ext_cntl);
@@ -498,7 +474,7 @@ static void radeon_legacy_tmds_int_mode_set(struct drm_encoder *encoder,
 	tmp = tmds_pll_cntl = RREG32(RADEON_TMDS_PLL_CNTL);
 	tmp &= 0xfffff;
 	if (rdev->family == CHIP_RV280) {
-		/* bit 22 of TMDS_PLL_CNTL is read-back inverted */
+		
 		tmp ^= (1 << 22);
 		tmds_pll_cntl ^= (1 << 22);
 	}
@@ -533,7 +509,7 @@ static void radeon_legacy_tmds_int_mode_set(struct drm_encoder *encoder,
 	rdev->family == CHIP_R100 ||
 	ASIC_IS_R300(rdev))
 	    tmds_transmitter_cntl &= ~(RADEON_TMDS_TRANSMITTER_PLLEN);
-    else /* RV chips got this bit reversed */
+    else 
 	    tmds_transmitter_cntl |= RADEON_TMDS_TRANSMITTER_PLLEN;
 
     fp_gen_cntl = (RREG32(RADEON_FP_GEN_CNTL) |
@@ -550,10 +526,10 @@ static void radeon_legacy_tmds_int_mode_set(struct drm_encoder *encoder,
 		     RADEON_FP_CRTC_USE_SHADOW_VEND |
 		     RADEON_FP_CRT_SYNC_ALT);
 
-    if (1) /*  FIXME rgbBits == 8 */
-	    fp_gen_cntl |= RADEON_FP_PANEL_FORMAT;  /* 24 bit format */
+    if (1) 
+	    fp_gen_cntl |= RADEON_FP_PANEL_FORMAT;  
     else
-	    fp_gen_cntl &= ~RADEON_FP_PANEL_FORMAT;/* 18 bit format */
+	    fp_gen_cntl &= ~RADEON_FP_PANEL_FORMAT;
 
     if (radeon_crtc->crtc_id == 0) {
 	    if (ASIC_IS_R300(rdev) || rdev->family == CHIP_R200) {
@@ -600,7 +576,7 @@ static bool radeon_legacy_tmds_ext_mode_fixup(struct drm_encoder *encoder,
 					      struct drm_display_mode *mode,
 					      struct drm_display_mode *adjusted_mode)
 {
-	/* set the active encoder to connector routing */
+	
 	radeon_encoder_set_active_device(encoder);
 	drm_mode_set_crtcinfo(adjusted_mode, 0);
 
@@ -676,26 +652,25 @@ static void radeon_legacy_tmds_ext_mode_set(struct drm_encoder *encoder,
 	} else {
 		fp2_gen_cntl = RREG32(RADEON_FP2_GEN_CNTL);
 
-		if (1) /*  FIXME rgbBits == 8 */
-			fp2_gen_cntl |= RADEON_FP2_PANEL_FORMAT; /* 24 bit format, */
+		if (1) 
+			fp2_gen_cntl |= RADEON_FP2_PANEL_FORMAT; 
 		else
-			fp2_gen_cntl &= ~RADEON_FP2_PANEL_FORMAT;/* 18 bit format, */
+			fp2_gen_cntl &= ~RADEON_FP2_PANEL_FORMAT;
 
 		fp2_gen_cntl &= ~(RADEON_FP2_ON |
 				  RADEON_FP2_DVO_EN |
 				  RADEON_FP2_DVO_RATE_SEL_SDR);
 
-		/* XXX: these are oem specific */
+		
 		if (ASIC_IS_R300(rdev)) {
 			if ((dev->pdev->device == 0x4850) &&
 			    (dev->pdev->subsystem_vendor == 0x1028) &&
-			    (dev->pdev->subsystem_device == 0x2001)) /* Dell Inspiron 8600 */
+			    (dev->pdev->subsystem_device == 0x2001)) 
 				fp2_gen_cntl |= R300_FP2_DVO_CLOCK_MODE_SINGLE;
 			else
 				fp2_gen_cntl |= RADEON_FP2_PAD_FLOP_EN | R300_FP2_DVO_CLOCK_MODE_SINGLE;
 
-			/*if (mode->clock > 165000)
-			  fp2_gen_cntl |= R300_FP2_DVO_DUAL_CHANNEL_EN;*/
+			
 		}
 	}
 
@@ -742,7 +717,7 @@ static bool radeon_legacy_tv_dac_mode_fixup(struct drm_encoder *encoder,
 					    struct drm_display_mode *mode,
 					    struct drm_display_mode *adjusted_mode)
 {
-	/* set the active encoder to connector routing */
+	
 	radeon_encoder_set_active_device(encoder);
 	drm_mode_set_crtcinfo(adjusted_mode, 0);
 
@@ -899,7 +874,7 @@ static void radeon_legacy_tv_dac_mode_set(struct drm_encoder *encoder,
 					RADEON_TV_DAC_BDACPD);
 		}
 
-		/*  FIXME TV */
+		
 		if (tv_dac) {
 			struct radeon_encoder_tv_dac *tv_dac = radeon_encoder->enc_priv;
 			tv_dac_cntl |= (RADEON_TV_DAC_NBLANK |
@@ -1020,7 +995,7 @@ static bool r300_legacy_tv_detect(struct drm_encoder *encoder,
 	uint32_t disp_output_cntl, gpiopad_a, tmp;
 	bool found = false;
 
-	/* save regs needed */
+	
 	gpiopad_a = RREG32(RADEON_GPIOPAD_A);
 	dac_cntl2 = RREG32(RADEON_DAC_CNTL2);
 	crtc2_gen_cntl = RREG32(RADEON_CRTC2_GEN_CNTL);
@@ -1172,13 +1147,13 @@ static enum drm_connector_status radeon_legacy_tv_dac_detect(struct drm_encoder 
 		return found;
 	}
 
-	/* don't probe if the encoder is being used for something else not CRT related */
+	
 	if (radeon_encoder->active_device && !(radeon_encoder->active_device & ATOM_DEVICE_CRT_SUPPORT)) {
 		DRM_INFO("not detecting due to %08x\n", radeon_encoder->active_device);
 		return connector_status_disconnected;
 	}
 
-	/* save the regs we need */
+	
 	pixclks_cntl = RREG32_PLL(RADEON_PIXCLKS_CNTL);
 	gpiopad_a = ASIC_IS_R300(rdev) ? RREG32(RADEON_GPIOPAD_A) : 0;
 	disp_output_cntl = ASIC_IS_R300(rdev) ? RREG32(RADEON_DISP_OUTPUT_CNTL) : 0;
@@ -1245,7 +1220,7 @@ static enum drm_connector_status radeon_legacy_tv_dac_detect(struct drm_encoder 
 			found = connector_status_connected;
 	}
 
-	/* restore regs we used */
+	
 	WREG32(RADEON_DAC_CNTL2, dac_cntl2);
 	WREG32(RADEON_DAC_EXT_CNTL, dac_ext_cntl);
 	WREG32(RADEON_TV_DAC_CNTL, tv_dac_cntl);
@@ -1309,7 +1284,7 @@ radeon_add_legacy_encoder(struct drm_device *dev, uint32_t encoder_id, uint32_t 
 	struct drm_encoder *encoder;
 	struct radeon_encoder *radeon_encoder;
 
-	/* see if we already added it */
+	
 	list_for_each_entry(encoder, &dev->mode_config.encoder_list, head) {
 		radeon_encoder = to_radeon_encoder(encoder);
 		if (radeon_encoder->encoder_id == encoder_id) {
@@ -1319,7 +1294,7 @@ radeon_add_legacy_encoder(struct drm_device *dev, uint32_t encoder_id, uint32_t 
 
 	}
 
-	/* add a new one */
+	
 	radeon_encoder = kzalloc(sizeof(struct radeon_encoder), GFP_KERNEL);
 	if (!radeon_encoder)
 		return;

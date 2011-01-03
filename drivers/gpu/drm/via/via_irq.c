@@ -1,39 +1,4 @@
-/* via_irq.c
- *
- * Copyright 2004 BEAM Ltd.
- * Copyright 2002 Tungsten Graphics, Inc.
- * Copyright 2005 Thomas Hellstrom.
- * All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * BEAM LTD, TUNGSTEN GRAPHICS  AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
- *
- * Authors:
- *    Terry Barnaby <terry1@beam.ltd.uk>
- *    Keith Whitwell <keith@tungstengraphics.com>
- *    Thomas Hellstrom <unichrome@shipmail.org>
- *
- * This code provides standard DRM access to the Via Unichrome / Pro Vertical blank
- * interrupt, as well as an infrastructure to handle other interrupts of the chip.
- * The refresh rate is also calculated for video playback sync purposes.
- */
+
 
 #include "drmP.h"
 #include "drm.h"
@@ -42,7 +7,7 @@
 
 #define VIA_REG_INTERRUPT       0x200
 
-/* VIA_REG_INTERRUPT */
+
 #define VIA_IRQ_GLOBAL	  (1 << 31)
 #define VIA_IRQ_VBLANK_ENABLE   (1 << 19)
 #define VIA_IRQ_VBLANK_PENDING  (1 << 3)
@@ -60,11 +25,7 @@
 #define VIA_IRQ_DMA1_TD_PENDING (1 << 7)
 
 
-/*
- * Device-specific IRQs go here. This type might need to be extended with
- * the register if there are multiple IRQ control registers.
- * Currently we activate the HQV interrupts of  Unichrome Pro group A.
- */
+
 
 static maskarray_t via_pro_group_a_irqs[] = {
 	{VIA_IRQ_HQV0_ENABLE, VIA_IRQ_HQV0_PENDING, 0x000003D0, 0x00008010,
@@ -150,7 +111,7 @@ irqreturn_t via_driver_irq_handler(DRM_IRQ_ARGS)
 		cur_irq++;
 	}
 
-	/* Acknowlege interrupts */
+	
 	VIA_WRITE(VIA_REG_INTERRUPT, status);
 
 
@@ -165,7 +126,7 @@ static __inline__ void viadrv_acknowledge_irqs(drm_via_private_t * dev_priv)
 	u32 status;
 
 	if (dev_priv) {
-		/* Acknowlege interrupts */
+		
 		status = VIA_READ(VIA_REG_INTERRUPT);
 		VIA_WRITE(VIA_REG_INTERRUPT, status |
 			  dev_priv->irq_pending_mask);
@@ -256,9 +217,7 @@ via_driver_irq_wait(struct drm_device * dev, unsigned int irq, int force_sequenc
 }
 
 
-/*
- * drm_dma.h hooks
- */
+
 
 void via_driver_irq_preinstall(struct drm_device * dev)
 {
@@ -299,12 +258,12 @@ void via_driver_irq_preinstall(struct drm_device * dev)
 
 		dev_priv->last_vblank_valid = 0;
 
-		/* Clear VSync interrupt regs */
+		
 		status = VIA_READ(VIA_REG_INTERRUPT);
 		VIA_WRITE(VIA_REG_INTERRUPT, status &
 			  ~(dev_priv->irq_enable_mask));
 
-		/* Clear bits if they're already high */
+		
 		viadrv_acknowledge_irqs(dev_priv);
 	}
 }
@@ -322,7 +281,7 @@ int via_driver_irq_postinstall(struct drm_device *dev)
 	VIA_WRITE(VIA_REG_INTERRUPT, status | VIA_IRQ_GLOBAL
 		  | dev_priv->irq_enable_mask);
 
-	/* Some magic, oh for some data sheets ! */
+	
 	VIA_WRITE8(0x83d4, 0x11);
 	VIA_WRITE8(0x83d5, VIA_READ8(0x83d5) | 0x30);
 
@@ -337,7 +296,7 @@ void via_driver_irq_uninstall(struct drm_device * dev)
 	DRM_DEBUG("\n");
 	if (dev_priv) {
 
-		/* Some more magic, oh for some data sheets ! */
+		
 
 		VIA_WRITE8(0x83d4, 0x11);
 		VIA_WRITE8(0x83d5, VIA_READ8(0x83d5) & ~0x30);

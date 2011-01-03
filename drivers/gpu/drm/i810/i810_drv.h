@@ -1,39 +1,9 @@
-/* i810_drv.h -- Private header for the Matrox g200/g400 driver -*- linux-c -*-
- * Created: Mon Dec 13 01:50:01 1999 by jhartmann@precisioninsight.com
- *
- * Copyright 1999 Precision Insight, Inc., Cedar Park, Texas.
- * Copyright 2000 VA Linux Systems, Inc., Sunnyvale, California.
- * All rights reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * PRECISION INSIGHT AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
- *
- * Authors: Rickard E. (Rik) Faith <faith@valinux.com>
- *	    Jeff Hartmann <jhartmann@valinux.com>
- *
- */
+
 
 #ifndef _I810_DRV_H_
 #define _I810_DRV_H_
 
-/* General customization:
- */
+
 
 #define DRIVER_AUTHOR		"VA Linux Systems Inc."
 
@@ -41,16 +11,7 @@
 #define DRIVER_DESC		"Intel i810"
 #define DRIVER_DATE		"20030605"
 
-/* Interface history
- *
- * 1.1   - XFree86 4.1
- * 1.2   - XvMC interfaces
- *       - XFree86 4.2
- * 1.2.1 - Disable copying code (leave stub ioctls for backwards compatibility)
- *       - Remove requirement for interrupt (leave stubs again)
- * 1.3   - Add page flipping.
- * 1.4   - fix DRM interface
- */
+
 #define DRIVER_MAJOR		1
 #define DRIVER_MINOR		4
 #define DRIVER_PATCHLEVEL	0
@@ -114,7 +75,7 @@ typedef struct drm_i810_private {
 	int front_offset;
 } drm_i810_private_t;
 
-				/* i810_dma.c */
+				
 extern int i810_driver_dma_quiescent(struct drm_device * dev);
 extern void i810_driver_reclaim_buffers_locked(struct drm_device * dev,
 					       struct drm_file *file_priv);

@@ -1,28 +1,4 @@
-/*
- * Copyright 2007-8 Advanced Micro Devices, Inc.
- * Copyright 2008 Red Hat Inc.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * Authors: Dave Airlie
- *          Alex Deucher
- */
+
 #include "drmP.h"
 #include "radeon_drm.h"
 #include "radeon.h"
@@ -106,7 +82,7 @@ void radeon_crtc_load_lut(struct drm_crtc *crtc)
 		legacy_crtc_load_lut(crtc);
 }
 
-/** Sets the color ramps on behalf of fbcon */
+
 void radeon_crtc_fb_gamma_set(struct drm_crtc *crtc, u16 red, u16 green,
 			      u16 blue, int regno)
 {
@@ -117,7 +93,7 @@ void radeon_crtc_fb_gamma_set(struct drm_crtc *crtc, u16 red, u16 green,
 	radeon_crtc->lut_b[regno] = blue >> 6;
 }
 
-/** Gets the color ramps on behalf of fbcon */
+
 void radeon_crtc_fb_gamma_get(struct drm_crtc *crtc, u16 *red, u16 *green,
 			      u16 *blue, int regno)
 {
@@ -138,7 +114,7 @@ static void radeon_crtc_gamma_set(struct drm_crtc *crtc, u16 *red, u16 *green,
 		return;
 	}
 
-	/* userspace palettes are always correct as is */
+	
 	for (i = 0; i < 256; i++) {
 		radeon_crtc->lut_r[i] = red[i] >> 6;
 		radeon_crtc->lut_g[i] = green[i] >> 6;
@@ -432,7 +408,7 @@ void radeon_compute_pll(struct radeon_pll *pll,
 		if ((flags & RADEON_PLL_NO_ODD_POST_DIV) && (post_div & 1))
 			continue;
 
-		/* legacy radeons only have a few post_divs */
+		
 		if (flags & RADEON_PLL_LEGACY) {
 			if ((post_div == 5) ||
 			    (post_div == 7) ||
@@ -713,12 +689,12 @@ int radeon_modeset_init(struct radeon_device *rdev)
 	if (rdev->flags & RADEON_SINGLE_CRTC)
 		num_crtc = 1;
 
-	/* allocate crtcs */
+	
 	for (i = 0; i < num_crtc; i++) {
 		radeon_crtc_init(rdev->ddev, i);
 	}
 
-	/* okay we should have all the bios connectors */
+	
 	ret = radeon_setup_enc_conn(rdev->ddev);
 	if (!ret) {
 		return ret;
@@ -757,12 +733,7 @@ bool radeon_crtc_scaling_mode_fixup(struct drm_crtc *crtc,
 			first = false;
 		} else {
 			if (radeon_crtc->rmx_type != radeon_encoder->rmx_type) {
-				/* WARNING: Right now this can't happen but
-				 * in the future we need to check that scaling
-				 * are consistent accross different encoder
-				 * (ie all encoder can work with the same
-				 *  scaling).
-				 */
+				
 				DRM_ERROR("Scaling not consistent accross encoder.\n");
 				return false;
 			}

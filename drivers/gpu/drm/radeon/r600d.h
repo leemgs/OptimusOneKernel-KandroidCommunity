@@ -1,29 +1,4 @@
-/*
- * Copyright 2009 Advanced Micro Devices, Inc.
- * Copyright 2009 Red Hat Inc.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * Authors: Dave Airlie
- *          Alex Deucher
- *          Jerome Glisse
- */
+
 #ifndef R600D_H
 #define R600D_H
 
@@ -44,14 +19,14 @@
 #define R6XX_MAX_PIPES				8
 #define R6XX_MAX_PIPES_MASK			0xff
 
-/* PTE flags */
+
 #define PTE_VALID				(1 << 0)
 #define PTE_SYSTEM				(1 << 1)
 #define PTE_SNOOPED				(1 << 2)
 #define PTE_READABLE				(1 << 5)
 #define PTE_WRITEABLE				(1 << 6)
 
-/* Registers */
+
 #define	ARB_POP						0x2418
 #define 	ENABLE_TC128					(1 << 30)
 #define	ARB_GDEC_RD_CNTL				0x246C
@@ -458,9 +433,7 @@
 
 
 
-/*
- * PM4
- */
+
 #define	PACKET_TYPE0	0
 #define	PACKET_TYPE1	1
 #define	PACKET_TYPE2	2
@@ -477,7 +450,7 @@
 			 (((op) & 0xFF) << 8) |				\
 			 ((n) & 0x3FFF) << 16)
 
-/* Packet 3 types */
+
 #define	PACKET3_NOP					0x10
 #define	PACKET3_INDIRECT_BUFFER_END			0x17
 #define	PACKET3_SET_PREDICATION				0x20

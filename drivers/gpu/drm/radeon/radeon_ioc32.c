@@ -1,32 +1,4 @@
-/**
- * \file radeon_ioc32.c
- *
- * 32-bit ioctl compatibility routines for the Radeon DRM.
- *
- * \author Paul Mackerras <paulus@samba.org>
- *
- * Copyright (C) Paul Mackerras 2005
- * All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
- */
+
 #include <linux/compat.h>
 
 #include "drmP.h"
@@ -101,7 +73,7 @@ typedef struct drm_radeon_clear32 {
 	unsigned int clear_color;
 	unsigned int clear_depth;
 	unsigned int color_mask;
-	unsigned int depth_mask;	/* misnamed field:  should be stencil */
+	unsigned int depth_mask;	
 	u32 depth_boxes;
 } drm_radeon_clear32_t;
 
@@ -154,7 +126,7 @@ static int compat_radeon_cp_stipple(struct file *file, unsigned int cmd,
 }
 
 typedef struct drm_radeon_tex_image32 {
-	unsigned int x, y;	/* Blit coordinates */
+	unsigned int x, y;	
 	unsigned int width, height;
 	u32 data;
 } drm_radeon_tex_image32_t;
@@ -163,7 +135,7 @@ typedef struct drm_radeon_texture32 {
 	unsigned int offset;
 	int pitch;
 	int format;
-	int width;		/* Texture image coordinates */
+	int width;		
 	int height;
 	u32 image;
 } drm_radeon_texture32_t;
@@ -209,8 +181,8 @@ static int compat_radeon_cp_texture(struct file *file, unsigned int cmd,
 }
 
 typedef struct drm_radeon_vertex2_32 {
-	int idx;		/* Index of vertex buffer */
-	int discard;		/* Client finished with buffer? */
+	int idx;		
+	int discard;		
 	int nr_states;
 	u32 state;
 	int nr_prims;
@@ -301,7 +273,7 @@ typedef struct drm_radeon_mem_alloc32 {
 	int region;
 	int alignment;
 	int size;
-	u32 region_offset;	/* offset from start of fb or GART */
+	u32 region_offset;	
 } drm_radeon_mem_alloc32_t;
 
 static int compat_radeon_mem_alloc(struct file *file, unsigned int cmd,
@@ -349,7 +321,7 @@ static int compat_radeon_irq_emit(struct file *file, unsigned int cmd,
 			 DRM_IOCTL_RADEON_IRQ_EMIT, (unsigned long)request);
 }
 
-/* The two 64-bit arches where alignof(u64)==4 in 32-bit code */
+
 #if defined (CONFIG_X86_64) || defined(CONFIG_IA64)
 typedef struct drm_radeon_setparam32 {
 	int param;
@@ -377,7 +349,7 @@ static int compat_radeon_cp_setparam(struct file *file, unsigned int cmd,
 }
 #else
 #define compat_radeon_cp_setparam NULL
-#endif /* X86_64 || IA64 */
+#endif 
 
 drm_ioctl_compat_t *radeon_compat_ioctls[] = {
 	[DRM_RADEON_CP_INIT] = compat_radeon_cp_init,
@@ -392,15 +364,7 @@ drm_ioctl_compat_t *radeon_compat_ioctls[] = {
 	[DRM_RADEON_IRQ_EMIT] = compat_radeon_irq_emit,
 };
 
-/**
- * Called whenever a 32-bit process running under a 64-bit kernel
- * performs an ioctl on /dev/dri/card<n>.
- *
- * \param filp file pointer.
- * \param cmd command.
- * \param arg user argument.
- * \return zero on success or negative number on failure.
- */
+
 long radeon_compat_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
 	unsigned int nr = DRM_IOCTL_NR(cmd);
@@ -413,7 +377,7 @@ long radeon_compat_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	if (nr < DRM_COMMAND_BASE + DRM_ARRAY_SIZE(radeon_compat_ioctls))
 		fn = radeon_compat_ioctls[nr - DRM_COMMAND_BASE];
 
-	lock_kernel();		/* XXX for now */
+	lock_kernel();		
 	if (fn != NULL)
 		ret = (*fn) (filp, cmd, arg);
 	else
@@ -431,7 +395,7 @@ long radeon_kms_compat_ioctl(struct file *filp, unsigned int cmd, unsigned long 
 	if (nr < DRM_COMMAND_BASE)
 		return drm_compat_ioctl(filp, cmd, arg);
 
-	lock_kernel();		/* XXX for now */
+	lock_kernel();		
 	ret = drm_ioctl(filp->f_path.dentry->d_inode, filp, cmd, arg);
 	unlock_kernel();
 

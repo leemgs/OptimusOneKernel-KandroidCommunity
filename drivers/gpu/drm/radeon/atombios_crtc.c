@@ -1,28 +1,4 @@
-/*
- * Copyright 2007-8 Advanced Micro Devices, Inc.
- * Copyright 2008 Red Hat Inc.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * Authors: Dave Airlie
- *          Alex Deucher
- */
+
 #include <drm/drmP.h>
 #include <drm/drm_crtc_helper.h>
 #include <drm/radeon_drm.h>
@@ -90,7 +66,7 @@ static void atombios_scaler_setup(struct drm_crtc *crtc)
 	ENABLE_SCALER_PS_ALLOCATION args;
 	int index = GetIndexIntoMasterTable(COMMAND, EnableScaler);
 
-	/* fixme - fill in enc_priv for atom dac */
+	
 	enum radeon_tv_std tv_std = TV_STD_NTSC;
 	bool is_tv = false, is_cv = false;
 	struct drm_encoder *encoder;
@@ -99,7 +75,7 @@ static void atombios_scaler_setup(struct drm_crtc *crtc)
 		return;
 
 	list_for_each_entry(encoder, &dev->mode_config.encoder_list, head) {
-		/* find tv std */
+		
 		if (encoder->crtc == crtc) {
 			struct radeon_encoder *radeon_encoder = to_radeon_encoder(encoder);
 			if (radeon_encoder->active_device & ATOM_DEVICE_TV_SUPPORT) {
@@ -133,7 +109,7 @@ static void atombios_scaler_setup(struct drm_crtc *crtc)
 			args.ucTVStandard = ATOM_TV_NTSCJ;
 			break;
 		case TV_STD_SCART_PAL:
-			args.ucTVStandard = ATOM_TV_PAL; /* ??? */
+			args.ucTVStandard = ATOM_TV_PAL; 
 			break;
 		case TV_STD_SECAM:
 			args.ucTVStandard = ATOM_TV_SECAM;
@@ -292,8 +268,8 @@ atombios_set_crtc_dtd_timing(struct drm_crtc *crtc,
 		cpu_to_le16(mode->crtc_vsync_start - mode->crtc_vdisplay);
 	args.usV_SyncWidth =
 		cpu_to_le16(mode->crtc_vsync_end - mode->crtc_vsync_start);
-	/*args.ucH_Border = mode->hborder;*/
-	/*args.ucV_Border = mode->vborder;*/
+	
+	
 
 	if (mode->flags & DRM_MODE_FLAG_NVSYNC)
 		misc |= ATOM_VSYNC_POLARITY;
@@ -370,7 +346,7 @@ static void atombios_set_ss(struct drm_crtc *crtc, int enable)
 	list_for_each_entry(encoder, &dev->mode_config.encoder_list, head) {
 		if (encoder->crtc == crtc) {
 			radeon_encoder = to_radeon_encoder(encoder);
-			/* only enable spread spectrum on LVDS */
+			
 			if (radeon_encoder->devices & (ATOM_DEVICE_LCD_SUPPORT)) {
 				dig = radeon_encoder->enc_priv;
 				if (dig && dig->ss) {
@@ -439,14 +415,14 @@ void atombios_crtc_set_pll(struct drm_crtc *crtc, struct drm_display_mode *mode)
 			pll_flags |= (RADEON_PLL_USE_FRAC_FB_DIV |
 				      RADEON_PLL_PREFER_CLOSEST_LOWER);
 
-		if (ASIC_IS_DCE32(rdev) && mode->clock > 200000)	/* range limits??? */
+		if (ASIC_IS_DCE32(rdev) && mode->clock > 200000)	
 			pll_flags |= RADEON_PLL_PREFER_HIGH_FB_DIV;
 		else
 			pll_flags |= RADEON_PLL_PREFER_LOW_REF_DIV;
 	} else {
 		pll_flags |= RADEON_PLL_LEGACY;
 
-		if (mode->clock > 200000)	/* range limits??? */
+		if (mode->clock > 200000)	
 			pll_flags |= RADEON_PLL_PREFER_HIGH_FB_DIV;
 		else
 			pll_flags |= RADEON_PLL_PREFER_LOW_REF_DIV;
@@ -469,10 +445,7 @@ void atombios_crtc_set_pll(struct drm_crtc *crtc, struct drm_display_mode *mode)
 		}
 	}
 
-	/* DCE3+ has an AdjustDisplayPll that will adjust the pixel clock
-	 * accordingly based on the encoder/transmitter to work around
-	 * special hw requirements.
-	 */
+	
 	if (ASIC_IS_DCE3(rdev)) {
 		ADJUST_DISPLAY_PLL_PS_ALLOCATION adjust_pll_args;
 
@@ -489,7 +462,7 @@ void atombios_crtc_set_pll(struct drm_crtc *crtc, struct drm_display_mode *mode)
 				   index, (uint32_t *)&adjust_pll_args);
 		adjusted_clock = le16_to_cpu(adjust_pll_args.usPixelClock) * 10;
 	} else {
-		/* DVO wants 2x pixel clock if the DVO chip is in 12 bit mode */
+		
 		if (ASIC_IS_AVIVO(rdev) &&
 		    (radeon_encoder->encoder_id == ENCODER_OBJECT_ID_INTERNAL_KLDSCP_DVO1))
 			adjusted_clock = mode->clock * 2;
@@ -679,7 +652,7 @@ int atombios_crtc_set_base(struct drm_crtc *crtc, int x, int y,
 		radeon_gem_object_unpin(radeon_fb->obj);
 	}
 
-	/* Bytes per pixel may have changed */
+	
 	radeon_bandwidth_update(rdev);
 
 	return 0;
@@ -694,7 +667,7 @@ int atombios_crtc_mode_set(struct drm_crtc *crtc,
 	struct drm_device *dev = crtc->dev;
 	struct radeon_device *rdev = dev->dev_private;
 
-	/* TODO color tiling */
+	
 
 	atombios_set_ss(crtc, 0);
 	atombios_crtc_set_pll(crtc, adjusted_mode);
