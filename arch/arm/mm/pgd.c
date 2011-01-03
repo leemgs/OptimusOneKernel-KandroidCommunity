@@ -1,12 +1,4 @@
-/*
- *  linux/arch/arm/mm/pgd.c
- *
- *  Copyright (C) 1998-2005 Russell King
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <linux/mm.h>
 #include <linux/highmem.h>
 
@@ -18,9 +10,7 @@
 
 #define FIRST_KERNEL_PGD_NR	(FIRST_USER_PGD_NR + USER_PTRS_PER_PGD)
 
-/*
- * need to get a 16k page for level 1
- */
+
 pgd_t *get_pgd_slow(struct mm_struct *mm)
 {
 	pgd_t *new_pgd, *init_pgd;
@@ -33,9 +23,7 @@ pgd_t *get_pgd_slow(struct mm_struct *mm)
 
 	memset(new_pgd, 0, FIRST_KERNEL_PGD_NR * sizeof(pgd_t));
 
-	/*
-	 * Copy over the kernel and IO PGD entries
-	 */
+	
 	init_pgd = pgd_offset_k(0);
 	memcpy(new_pgd + FIRST_KERNEL_PGD_NR, init_pgd + FIRST_KERNEL_PGD_NR,
 		       (PTRS_PER_PGD - FIRST_KERNEL_PGD_NR) * sizeof(pgd_t));
@@ -43,10 +31,7 @@ pgd_t *get_pgd_slow(struct mm_struct *mm)
 	clean_dcache_area(new_pgd, PTRS_PER_PGD * sizeof(pgd_t));
 
 	if (!vectors_high()) {
-		/*
-		 * On ARM, first page must always be allocated since it
-		 * contains the machine vectors.
-		 */
+		
 		new_pmd = pmd_alloc(mm, new_pgd, 0);
 		if (!new_pmd)
 			goto no_pmd;
@@ -80,7 +65,7 @@ void free_pgd_slow(struct mm_struct *mm, pgd_t *pgd)
 	if (!pgd)
 		return;
 
-	/* pgd is always present and good */
+	
 	pmd = pmd_off(pgd, 0);
 	if (pmd_none(*pmd))
 		goto free;

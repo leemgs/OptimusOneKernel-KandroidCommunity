@@ -1,16 +1,4 @@
-/*
- * arch/arm/mm/cache-feroceon-l2.c - Feroceon L2 cache controller support
- *
- * Copyright (C) 2008 Marvell Semiconductor
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2.  This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- *
- * References:
- * - Unified Layer 2 Cache for Feroceon CPU Cores,
- *   Document ID MV-S104858-00, Rev. A, October 23 2007.
- */
+
 
 #include <linux/init.h>
 #include <asm/cacheflush.h>
@@ -21,35 +9,12 @@
 #include <plat/cache-feroceon-l2.h>
 #include "mm.h"
 
-/*
- * Low-level cache maintenance operations.
- *
- * As well as the regular 'clean/invalidate/flush L2 cache line by
- * MVA' instructions, the Feroceon L2 cache controller also features
- * 'clean/invalidate L2 range by MVA' operations.
- *
- * Cache range operations are initiated by writing the start and
- * end addresses to successive cp15 registers, and process every
- * cache line whose first byte address lies in the inclusive range
- * [start:end].
- *
- * The cache range operations stall the CPU pipeline until completion.
- *
- * The range operations require two successive cp15 writes, in
- * between which we don't want to be preempted.
- */
+
 
 static inline unsigned long l2_start_va(unsigned long paddr)
 {
 #ifdef CONFIG_HIGHMEM
-	/*
-	 * Let's do our own fixmap stuff in a minimal way here.
-	 * Because range ops can't be done on physical addresses,
-	 * we simply install a virtual mapping for it only for the
-	 * TLB lookup to occur, hence no need to flush the untouched
-	 * memory mapping.  This is protected with the disabling of
-	 * interrupts by the caller.
-	 */
+	
 	unsigned long idx = KM_L2_CACHE + KM_TYPE_NR * smp_processor_id();
 	unsigned long vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
 	set_pte_ext(TOP_PTE(vaddr), pfn_pte(paddr >> PAGE_SHIFT, PAGE_KERNEL), 0);
@@ -69,11 +34,7 @@ static inline void l2_clean_pa_range(unsigned long start, unsigned long end)
 {
 	unsigned long va_start, va_end, flags;
 
-	/*
-	 * Make sure 'start' and 'end' reference the same page, as
-	 * L2 is PIPT and range operations only do a TLB lookup on
-	 * the start address.
-	 */
+	
 	BUG_ON((start ^ end) >> PAGE_SHIFT);
 
 	raw_local_irq_save(flags);
@@ -99,11 +60,7 @@ static inline void l2_inv_pa_range(unsigned long start, unsigned long end)
 {
 	unsigned long va_start, va_end, flags;
 
-	/*
-	 * Make sure 'start' and 'end' reference the same page, as
-	 * L2 is PIPT and range operations only do a TLB lookup on
-	 * the start address.
-	 */
+	
 	BUG_ON((start ^ end) >> PAGE_SHIFT);
 
 	raw_local_irq_save(flags);
@@ -120,13 +77,7 @@ static inline void l2_inv_all(void)
 	__asm__("mcr p15, 1, %0, c15, c11, 0" : : "r" (0));
 }
 
-/*
- * Linux primitives.
- *
- * Note that the end addresses passed to Linux primitives are
- * noninclusive, while the hardware cache range operations use
- * inclusive start and end addresses.
- */
+
 #define CACHE_LINE_SIZE		32
 #define MAX_RANGE_SIZE		1024
 
@@ -139,22 +90,14 @@ static unsigned long calc_range_end(unsigned long start, unsigned long end)
 	BUG_ON(start & (CACHE_LINE_SIZE - 1));
 	BUG_ON(end & (CACHE_LINE_SIZE - 1));
 
-	/*
-	 * Try to process all cache lines between 'start' and 'end'.
-	 */
+	
 	range_end = end;
 
-	/*
-	 * Limit the number of cache lines processed at once,
-	 * since cache range operations stall the CPU pipeline
-	 * until completion.
-	 */
+	
 	if (range_end > start + MAX_RANGE_SIZE)
 		range_end = start + MAX_RANGE_SIZE;
 
-	/*
-	 * Cache range operations can't straddle a page boundary.
-	 */
+	
 	if (range_end > (start | (PAGE_SIZE - 1)) + 1)
 		range_end = (start | (PAGE_SIZE - 1)) + 1;
 
@@ -163,25 +106,19 @@ static unsigned long calc_range_end(unsigned long start, unsigned long end)
 
 static void feroceon_l2_inv_range(unsigned long start, unsigned long end)
 {
-	/*
-	 * Clean and invalidate partial first cache line.
-	 */
+	
 	if (start & (CACHE_LINE_SIZE - 1)) {
 		l2_clean_inv_pa(start & ~(CACHE_LINE_SIZE - 1));
 		start = (start | (CACHE_LINE_SIZE - 1)) + 1;
 	}
 
-	/*
-	 * Clean and invalidate partial last cache line.
-	 */
+	
 	if (start < end && end & (CACHE_LINE_SIZE - 1)) {
 		l2_clean_inv_pa(end & ~(CACHE_LINE_SIZE - 1));
 		end &= ~(CACHE_LINE_SIZE - 1);
 	}
 
-	/*
-	 * Invalidate all full cache lines between 'start' and 'end'.
-	 */
+	
 	while (start < end) {
 		unsigned long range_end = calc_range_end(start, end);
 		l2_inv_pa_range(start, range_end - CACHE_LINE_SIZE);
@@ -193,10 +130,7 @@ static void feroceon_l2_inv_range(unsigned long start, unsigned long end)
 
 static void feroceon_l2_clean_range(unsigned long start, unsigned long end)
 {
-	/*
-	 * If L2 is forced to WT, the L2 will always be clean and we
-	 * don't need to do anything here.
-	 */
+	
 	if (!l2_wt_override) {
 		start &= ~(CACHE_LINE_SIZE - 1);
 		end = (end + CACHE_LINE_SIZE - 1) & ~(CACHE_LINE_SIZE - 1);
@@ -226,11 +160,7 @@ static void feroceon_l2_flush_range(unsigned long start, unsigned long end)
 }
 
 
-/*
- * Routines to disable and re-enable the D-cache and I-cache at run
- * time.  These are necessary because the L2 cache can only be enabled
- * or disabled while the L1 Dcache and Icache are both disabled.
- */
+
 static int __init flush_and_disable_dcache(void)
 {
 	u32 cr;
@@ -300,10 +230,7 @@ static void __init disable_l2_prefetch(void)
 {
 	u32 u;
 
-	/*
-	 * Read the CPU Extra Features register and verify that the
-	 * Disable L2 Prefetch bit is set.
-	 */
+	
 	u = read_extra_features();
 	if (!(u & 0x01000000)) {
 		printk(KERN_INFO "Feroceon L2: Disabling L2 prefetch.\n");

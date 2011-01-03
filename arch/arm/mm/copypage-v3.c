@@ -1,20 +1,8 @@
-/*
- *  linux/arch/arm/mm/copypage-v3.c
- *
- *  Copyright (C) 1995-1999 Russell King
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <linux/init.h>
 #include <linux/highmem.h>
 
-/*
- * ARMv3 optimised copy_user_highpage
- *
- * FIXME: do we need to handle cache stuff...
- */
+
 static void __naked
 v3_copy_user_page(void *kto, const void *kfrom)
 {
@@ -49,11 +37,7 @@ void v3_copy_user_highpage(struct page *to, struct page *from,
 	kunmap_atomic(kto, KM_USER0);
 }
 
-/*
- * ARMv3 optimised clear_user_page
- *
- * FIXME: do we need to handle cache stuff...
- */
+
 void v3_clear_user_highpage(struct page *page, unsigned long vaddr)
 {
 	void *ptr, *kaddr = kmap_atomic(page, KM_USER0);

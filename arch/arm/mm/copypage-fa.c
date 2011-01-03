@@ -1,22 +1,8 @@
-/*
- *  linux/arch/arm/lib/copypage-fa.S
- *
- *  Copyright (C) 2005 Faraday Corp.
- *  Copyright (C) 2008-2009 Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
- *
- * Based on copypage-v4wb.S:
- *  Copyright (C) 1995-1999 Russell King
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <linux/init.h>
 #include <linux/highmem.h>
 
-/*
- * Faraday optimised copy_user_page
- */
+
 static void __naked
 fa_copy_user_page(void *kto, const void *kfrom)
 {
@@ -51,11 +37,7 @@ void fa_copy_user_highpage(struct page *to, struct page *from,
 	kunmap_atomic(kto, KM_USER0);
 }
 
-/*
- * Faraday optimised clear_user_page
- *
- * Same story as above.
- */
+
 void fa_clear_user_highpage(struct page *page, unsigned long vaddr)
 {
 	void *ptr, *kaddr = kmap_atomic(page, KM_USER0);
