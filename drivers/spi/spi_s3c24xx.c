@@ -1,14 +1,4 @@
-/* linux/drivers/spi/spi_s3c24xx.c
- *
- * Copyright (c) 2006 Ben Dooks
- * Copyright (c) 2006 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
-*/
+
 
 #include <linux/init.h>
 #include <linux/spinlock.h>
@@ -28,13 +18,7 @@
 #include <plat/regs-spi.h>
 #include <mach/spi.h>
 
-/**
- * s3c24xx_spi_devstate - per device data
- * @hz: Last frequency calculated for @sppre field.
- * @mode: Last mode setting for the @spcon field.
- * @spcon: Value to write to the SPCON register.
- * @sppre: Value to write to the SPPRE register.
- */
+
 struct s3c24xx_spi_devstate {
 	unsigned int	hz;
 	unsigned int	mode;
@@ -43,7 +27,7 @@ struct s3c24xx_spi_devstate {
 };
 
 struct s3c24xx_spi {
-	/* bitbang has to be first */
+	
 	struct spi_bitbang	 bitbang;
 	struct completion	 done;
 
@@ -55,7 +39,7 @@ struct s3c24xx_spi {
 	void			(*set_cs)(struct s3c2410_spi_info *spi,
 					  int cs, int pol);
 
-	/* data buffers */
+	
 	const unsigned char	*tx;
 	unsigned char		*rx;
 
@@ -86,7 +70,7 @@ static void s3c24xx_spi_chipsel(struct spi_device *spi, int value)
 	struct s3c24xx_spi *hw = to_hw(spi);
 	unsigned int cspol = spi->mode & SPI_CS_HIGH ? 1 : 0;
 
-	/* change the chipselect state and the state of the spi engine clock */
+	
 
 	switch (value) {
 	case BITBANG_CS_INACTIVE:
@@ -176,7 +160,7 @@ static int s3c24xx_spi_setup(struct spi_device *spi)
 	struct s3c24xx_spi *hw = to_hw(spi);
 	int ret;
 
-	/* allocate settings on the first call */
+	
 	if (!cs) {
 		cs = kzalloc(sizeof(struct s3c24xx_spi_devstate), GFP_KERNEL);
 		if (!cs) {
@@ -189,7 +173,7 @@ static int s3c24xx_spi_setup(struct spi_device *spi)
 		spi->controller_state = cs;
 	}
 
-	/* initialise the state from the device */
+	
 	ret = s3c24xx_spi_update_state(spi, NULL);
 	if (ret)
 		return ret;
@@ -197,7 +181,7 @@ static int s3c24xx_spi_setup(struct spi_device *spi)
 	spin_lock(&hw->bitbang.lock);
 	if (!hw->bitbang.busy) {
 		hw->bitbang.chipselect(spi, BITBANG_CS_INACTIVE);
-		/* need to ndelay for 0.5 clocktick ? */
+		
 	}
 	spin_unlock(&hw->bitbang.lock);
 
@@ -228,7 +212,7 @@ static int s3c24xx_spi_txrx(struct spi_device *spi, struct spi_transfer *t)
 
 	init_completion(&hw->done);
 
-	/* send the first byte */
+	
 	writeb(hw_txbyte(hw, 0), hw->regs + S3C2410_SPTDAT);
 
 	wait_for_completion(&hw->done);
@@ -272,11 +256,11 @@ static irqreturn_t s3c24xx_spi_irq(int irq, void *dev)
 
 static void s3c24xx_spi_initialsetup(struct s3c24xx_spi *hw)
 {
-	/* for the moment, permanently enable the clock */
+	
 
 	clk_enable(hw->clk);
 
-	/* program defaults into the registers */
+	
 
 	writeb(0xff, hw->regs + S3C2410_SPPRE);
 	writeb(SPPIN_DEFAULT, hw->regs + S3C2410_SPPIN);
@@ -322,15 +306,15 @@ static int __init s3c24xx_spi_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, hw);
 	init_completion(&hw->done);
 
-	/* setup the master state. */
+	
 
-	/* the spi->mode bits understood by this driver: */
+	
 	master->mode_bits = SPI_CPOL | SPI_CPHA | SPI_CS_HIGH;
 
 	master->num_chipselect = hw->pdata->num_cs;
 	master->bus_num = pdata->bus_num;
 
-	/* setup the state for the bitbang driver */
+	
 
 	hw->bitbang.master         = hw->master;
 	hw->bitbang.setup_transfer = s3c24xx_spi_setupxfer;
@@ -342,7 +326,7 @@ static int __init s3c24xx_spi_probe(struct platform_device *pdev)
 
 	dev_dbg(hw->dev, "bitbang at %p\n", &hw->bitbang);
 
-	/* find and map our resources */
+	
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	if (res == NULL) {
@@ -387,7 +371,7 @@ static int __init s3c24xx_spi_probe(struct platform_device *pdev)
 		goto err_no_clk;
 	}
 
-	/* setup any gpio we can */
+	
 
 	if (!pdata->set_cs) {
 		if (pdata->pin_cs < 0) {
@@ -408,7 +392,7 @@ static int __init s3c24xx_spi_probe(struct platform_device *pdev)
 
 	s3c24xx_spi_initialsetup(hw);
 
-	/* register our spi controller */
+	
 
 	err = spi_bitbang_start(&hw->bitbang);
 	if (err) {
@@ -497,7 +481,7 @@ static struct dev_pm_ops s3c24xx_spi_pmops = {
 #define S3C24XX_SPI_PMOPS &s3c24xx_spi_pmops
 #else
 #define S3C24XX_SPI_PMOPS NULL
-#endif /* CONFIG_PM */
+#endif 
 
 MODULE_ALIAS("platform:s3c2410-spi");
 static struct platform_driver s3c24xx_spi_driver = {

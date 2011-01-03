@@ -1,25 +1,4 @@
-/*
- * OMAP2 McSPI controller driver
- *
- * Copyright (C) 2005, 2006 Nokia Corporation
- * Author:	Samuel Ortiz <samuel.ortiz@nokia.com> and
- *		Juha Yrjölä <juha.yrjola@nokia.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -41,7 +20,7 @@
 
 #define OMAP2_MCSPI_MAX_FREQ		48000000
 
-/* OMAP2 has 3 SPI controllers, while OMAP3 has 4 */
+
 #define OMAP2_MCSPI_MAX_CTRL 		4
 
 #define OMAP2_MCSPI_REVISION		0x00
@@ -53,14 +32,14 @@
 #define OMAP2_MCSPI_SYST		0x24
 #define OMAP2_MCSPI_MODULCTRL		0x28
 
-/* per-channel banks, 0x14 bytes each, first is: */
+
 #define OMAP2_MCSPI_CHCONF0		0x2c
 #define OMAP2_MCSPI_CHSTAT0		0x30
 #define OMAP2_MCSPI_CHCTRL0		0x34
 #define OMAP2_MCSPI_TX0			0x38
 #define OMAP2_MCSPI_RX0			0x3c
 
-/* per-register bitmasks: */
+
 
 #define OMAP2_MCSPI_SYSCONFIG_SMARTIDLE	BIT(4)
 #define OMAP2_MCSPI_SYSCONFIG_ENAWAKEUP	BIT(2)
@@ -97,7 +76,7 @@
 
 #define OMAP2_MCSPI_WAKEUPENABLE_WKEN	BIT(0)
 
-/* We have 2 DMA channels per CS, one for RX and one for TX */
+
 struct omap2_mcspi_dma {
 	int dma_tx_channel;
 	int dma_rx_channel;
@@ -109,24 +88,22 @@ struct omap2_mcspi_dma {
 	struct completion dma_rx_completion;
 };
 
-/* use PIO for small transfers, avoiding DMA setup/teardown overhead and
- * cache operations; better heuristics consider wordsize and bitrate.
- */
+
 #define DMA_MIN_BYTES			8
 
 
 struct omap2_mcspi {
 	struct work_struct	work;
-	/* lock protects queue and registers */
+	
 	spinlock_t		lock;
 	struct list_head	msg_queue;
 	struct spi_master	*master;
 	struct clk		*ick;
 	struct clk		*fck;
-	/* Virtual base address of the controller */
+	
 	void __iomem		*base;
 	unsigned long		phys;
-	/* SPI1 has 4 channels, while SPI2 has 2 */
+	
 	struct omap2_mcspi_dma	*dma_channels;
 };
 
@@ -135,13 +112,11 @@ struct omap2_mcspi_cs {
 	unsigned long		phys;
 	int			word_len;
 	struct list_head	node;
-	/* Context save and restore shadow register */
+	
 	u32			chconf0;
 };
 
-/* used for context save and restore, structure members to be updated whenever
- * corresponding registers are modified.
- */
+
 struct omap2_mcspi_regs {
 	u32 sysconfig;
 	u32 modulctrl;
@@ -212,7 +187,7 @@ static void omap2_mcspi_set_dma_req(const struct spi_device *spi,
 
 	l = mcspi_cached_chconf0(spi);
 
-	if (is_read) /* 1 is read, 0 write */
+	if (is_read) 
 		rw = OMAP2_MCSPI_CHCONF_DMAR;
 	else
 		rw = OMAP2_MCSPI_CHCONF_DMAW;
@@ -242,9 +217,7 @@ static void omap2_mcspi_set_master_mode(struct spi_master *master)
 {
 	u32 l;
 
-	/* setup when switching from (reset default) slave mode
-	 * to single-channel master mode
-	 */
+	
 	l = mcspi_read_reg(master, OMAP2_MCSPI_MODULCTRL);
 	MOD_REG_BIT(l, OMAP2_MCSPI_MODULCTRL_STEST, 0);
 	MOD_REG_BIT(l, OMAP2_MCSPI_MODULCTRL_MS, 0);
@@ -260,7 +233,7 @@ static void omap2_mcspi_restore_ctx(struct omap2_mcspi *mcspi)
 	struct omap2_mcspi_cs *cs;
 	spi_cntrl = mcspi->master;
 
-	/* McSPI: context restore */
+	
 	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_MODULCTRL,
 			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].modulctrl);
 
@@ -323,7 +296,7 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
 	} else if (word_len <= 16) {
 		data_type = OMAP_DMA_DATA_TYPE_S16;
 		element_count = count >> 1;
-	} else /* word_len <= 32 */ {
+	} else  {
 		data_type = OMAP_DMA_DATA_TYPE_S32;
 		element_count = count >> 2;
 	}
@@ -386,13 +359,13 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
 				((u8 *)xfer->rx_buf)[element_count - 1] = w;
 			else if (word_len <= 16)
 				((u16 *)xfer->rx_buf)[element_count - 1] = w;
-			else /* word_len <= 32 */
+			else 
 				((u32 *)xfer->rx_buf)[element_count - 1] = w;
 		} else {
 			dev_err(&spi->dev, "DMA RX last word empty");
 			count -= (word_len <= 8)  ? 1 :
 				 (word_len <= 16) ? 2 :
-			       /* word_len <= 32 */ 4;
+			        4;
 		}
 		omap2_mcspi_set_enable(spi, 1);
 	}
@@ -433,8 +406,7 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
 	l = mcspi_cached_chconf0(spi);
 	l &= ~OMAP2_MCSPI_CHCONF_TRM_MASK;
 
-	/* We store the pre-calculated register addresses on stack to speed
-	 * up the transfer loop. */
+	
 	tx_reg		= base + OMAP2_MCSPI_TX0;
 	rx_reg		= base + OMAP2_MCSPI_RX0;
 	chstat_reg	= base + OMAP2_MCSPI_CHSTAT0;
@@ -466,9 +438,7 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
 					dev_err(&spi->dev, "RXS timed out\n");
 					goto out;
 				}
-				/* prevent last RX_ONLY read from triggering
-				 * more word i/o: switch to rx+tx
-				 */
+				
 				if (c == 0 && tx == NULL)
 					mcspi_write_chconf0(spi, l);
 				*rx++ = __raw_readl(rx_reg);
@@ -504,9 +474,7 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
 					dev_err(&spi->dev, "RXS timed out\n");
 					goto out;
 				}
-				/* prevent last RX_ONLY read from triggering
-				 * more word i/o: switch to rx+tx
-				 */
+				
 				if (c == 0 && tx == NULL)
 					mcspi_write_chconf0(spi, l);
 				*rx++ = __raw_readl(rx_reg);
@@ -542,9 +510,7 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
 					dev_err(&spi->dev, "RXS timed out\n");
 					goto out;
 				}
-				/* prevent last RX_ONLY read from triggering
-				 * more word i/o: switch to rx+tx
-				 */
+				
 				if (c == 0 && tx == NULL)
 					mcspi_write_chconf0(spi, l);
 				*rx++ = __raw_readl(rx_reg);
@@ -556,7 +522,7 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
 		} while (c);
 	}
 
-	/* for TX_ONLY mode, be sure all words have shifted out */
+	
 	if (xfer->rx_buf == NULL) {
 		if (mcspi_wait_for_reg_bit(chstat_reg,
 				OMAP2_MCSPI_CHSTAT_TXS) < 0) {
@@ -569,7 +535,7 @@ out:
 	return count - c;
 }
 
-/* called only when no transfer is active to this device */
+
 static int omap2_mcspi_setup_transfer(struct spi_device *spi,
 		struct spi_transfer *t)
 {
@@ -596,27 +562,25 @@ static int omap2_mcspi_setup_transfer(struct spi_device *spi,
 
 	l = mcspi_cached_chconf0(spi);
 
-	/* standard 4-wire master mode:  SCK, MOSI/out, MISO/in, nCS
-	 * REVISIT: this controller could support SPI_3WIRE mode.
-	 */
+	
 	l &= ~(OMAP2_MCSPI_CHCONF_IS|OMAP2_MCSPI_CHCONF_DPE1);
 	l |= OMAP2_MCSPI_CHCONF_DPE0;
 
-	/* wordlength */
+	
 	l &= ~OMAP2_MCSPI_CHCONF_WL_MASK;
 	l |= (word_len - 1) << 7;
 
-	/* set chipselect polarity; manage with FORCE */
+	
 	if (!(spi->mode & SPI_CS_HIGH))
-		l |= OMAP2_MCSPI_CHCONF_EPOL;	/* active-low; normal */
+		l |= OMAP2_MCSPI_CHCONF_EPOL;	
 	else
 		l &= ~OMAP2_MCSPI_CHCONF_EPOL;
 
-	/* set clock divisor */
+	
 	l &= ~OMAP2_MCSPI_CHCONF_CLKD_MASK;
 	l |= div << 2;
 
-	/* set SPI mode 0..3 */
+	
 	if (spi->mode & SPI_CPOL)
 		l |= OMAP2_MCSPI_CHCONF_POL;
 	else
@@ -647,7 +611,7 @@ static void omap2_mcspi_dma_rx_callback(int lch, u16 ch_status, void *data)
 
 	complete(&mcspi_dma->dma_rx_completion);
 
-	/* We must disable the DMA RX request */
+	
 	omap2_mcspi_set_dma_req(spi, 1, 0);
 }
 
@@ -662,7 +626,7 @@ static void omap2_mcspi_dma_tx_callback(int lch, u16 ch_status, void *data)
 
 	complete(&mcspi_dma->dma_tx_completion);
 
-	/* We must disable the DMA TX request */
+	
 	omap2_mcspi_set_dma_req(spi, 0, 0);
 }
 
@@ -721,7 +685,7 @@ static int omap2_mcspi_setup(struct spi_device *spi)
 		cs->phys = mcspi->phys + spi->chip_select * 0x14;
 		cs->chconf0 = 0;
 		spi->controller_state = cs;
-		/* Link this to context save list */
+		
 		list_add_tail(&cs->node,
 			&omap2_mcspi_ctx[mcspi->master->bus_num - 1].cs);
 	}
@@ -751,7 +715,7 @@ static void omap2_mcspi_cleanup(struct spi_device *spi)
 	mcspi = spi_master_get_devdata(spi->master);
 	mcspi_dma = &mcspi->dma_channels[spi->chip_select];
 
-	/* Unlink controller state from context save list */
+	
 	cs = spi->controller_state;
 	list_del(&cs->node);
 
@@ -777,12 +741,7 @@ static void omap2_mcspi_work(struct work_struct *work)
 	if (omap2_mcspi_enable_clocks(mcspi))
 		goto out;
 
-	/* We only enable one channel at a time -- the one whose message is
-	 * at the head of the queue -- although this controller would gladly
-	 * arbitrate among multiple channels.  This corresponds to "single
-	 * channel" master mode.  As a side effect, we need to manage the
-	 * chipselect with the FORCE bit ... CS != channel enable.
-	 */
+	
 	while (!list_empty(&mcspi->msg_queue)) {
 		struct spi_message		*m;
 		struct spi_device		*spi;
@@ -833,7 +792,7 @@ static void omap2_mcspi_work(struct work_struct *work)
 			if (t->len) {
 				unsigned	count;
 
-				/* RX_ONLY mode needs dummy data in TX reg */
+				
 				if (t->tx_buf == NULL)
 					__raw_writel(0, cs->base
 							+ OMAP2_MCSPI_TX0);
@@ -853,14 +812,14 @@ static void omap2_mcspi_work(struct work_struct *work)
 			if (t->delay_usecs)
 				udelay(t->delay_usecs);
 
-			/* ignore the "leave it on after last xfer" hint */
+			
 			if (t->cs_change) {
 				omap2_mcspi_force_cs(spi, 0);
 				cs_active = 0;
 			}
 		}
 
-		/* Restore defaults if they were overriden */
+		
 		if (par_override) {
 			par_override = 0;
 			status = omap2_mcspi_setup_transfer(spi, NULL);
@@ -892,7 +851,7 @@ static int omap2_mcspi_transfer(struct spi_device *spi, struct spi_message *m)
 	m->actual_length = 0;
 	m->status = 0;
 
-	/* reject invalid messages and transfers */
+	
 	if (list_empty(&m->transfers) || !m->complete)
 		return -EINVAL;
 	list_for_each_entry(t, &m->transfers, transfer_list) {
@@ -923,11 +882,7 @@ static int omap2_mcspi_transfer(struct spi_device *spi, struct spi_message *m)
 		if (m->is_dma_mapped || len < DMA_MIN_BYTES)
 			continue;
 
-		/* Do DMA mapping "early" for better error reporting and
-		 * dcache use.  Note that if dma_unmap_single() ever starts
-		 * to do real work on ARM, we'd need to clean up mappings
-		 * for previous transfers on *ALL* exits of this loop...
-		 */
+		
 		if (tx_buf != NULL) {
 			t->tx_dma = dma_map_single(&spi->dev, (void *) tx_buf,
 					len, DMA_TO_DEVICE);
@@ -1082,7 +1037,7 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
 		return -ENOMEM;
 	}
 
-	/* the spi->mode bits understood by this driver: */
+	
 	master->mode_bits = SPI_CPOL | SPI_CPHA | SPI_CS_HIGH;
 
 	if (pdev->id != -1)
@@ -1200,7 +1155,7 @@ static int __exit omap2_mcspi_remove(struct platform_device *pdev)
 	return 0;
 }
 
-/* work with hotplug and coldplug */
+
 MODULE_ALIAS("platform:omap2_mcspi");
 
 static struct platform_driver omap2_mcspi_driver = {

@@ -1,13 +1,4 @@
-/*
- * tle62x0.c -- support Infineon TLE62x0 driver chips
- *
- * Copyright (c) 2007 Simtec Electronics
- *	Ben Dooks, <ben@simtec.co.uk>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/device.h>
 #include <linux/kernel.h>
@@ -277,7 +268,7 @@ static int __devinit tle62x0_probe(struct spi_device *spi)
 		}
 	}
 
-	/* tle62x0_write(st); */
+	
 	spi_set_drvdata(spi, st);
 	return 0;
 

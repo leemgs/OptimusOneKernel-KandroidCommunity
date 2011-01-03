@@ -1,13 +1,4 @@
-/*
- * orion_spi.c -- Marvell Orion SPI controller driver
- *
- * Author: Shadi Ammouri <shadi@marvell.com>
- * Copyright (C) 2007-2008 Marvell Ltd.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/interrupt.h>
@@ -21,8 +12,8 @@
 
 #define DRIVER_NAME			"orion_spi"
 
-#define ORION_NUM_CHIPSELECTS		1 /* only one slave is supported*/
-#define ORION_SPI_WAIT_RDY_MAX_LOOP	2000 /* in usec */
+#define ORION_NUM_CHIPSELECTS		1 
+#define ORION_SPI_WAIT_RDY_MAX_LOOP	2000 
 
 #define ORION_SPI_IF_CTRL_REG		0x00
 #define ORION_SPI_IF_CONFIG_REG		0x04
@@ -36,7 +27,7 @@
 struct orion_spi {
 	struct work_struct	work;
 
-	/* Lock access to transfer list.	*/
+	
 	spinlock_t		lock;
 
 	struct list_head	msg_queue;
@@ -105,21 +96,18 @@ static int orion_spi_baudrate_set(struct spi_device *spi, unsigned int speed)
 
 	tclk_hz = orion_spi->spi_info->tclk;
 
-	/*
-	 * the supported rates are: 4,6,8...30
-	 * round up as we look for equal or less speed
-	 */
+	
 	rate = DIV_ROUND_UP(tclk_hz, speed);
 	rate = roundup(rate, 2);
 
-	/* check if requested speed is too small */
+	
 	if (rate > 30)
 		return -EINVAL;
 
 	if (rate < 4)
 		rate = 4;
 
-	/* Convert the rate to SPI clock divisor value.	*/
+	
 	prescale = 0x10 + rate/2;
 
 	reg = readl(spi_reg(orion_spi, ORION_SPI_IF_CONFIG_REG));
@@ -129,9 +117,7 @@ static int orion_spi_baudrate_set(struct spi_device *spi, unsigned int speed)
 	return 0;
 }
 
-/*
- * called only when no transfer is active on the bus
- */
+
 static int
 orion_spi_setup_transfer(struct spi_device *spi, struct spi_transfer *t)
 {
@@ -189,7 +175,7 @@ orion_spi_write_read_8bit(struct spi_device *spi,
 	rx_reg = spi_reg(orion_spi, ORION_SPI_DATA_IN_REG);
 	int_reg = spi_reg(orion_spi, ORION_SPI_INT_CAUSE_REG);
 
-	/* clear the interrupt cause register */
+	
 	writel(0x0, int_reg);
 
 	if (tx_buf && *tx_buf)
@@ -220,7 +206,7 @@ orion_spi_write_read_16bit(struct spi_device *spi,
 	rx_reg = spi_reg(orion_spi, ORION_SPI_DATA_IN_REG);
 	int_reg = spi_reg(orion_spi, ORION_SPI_INT_CAUSE_REG);
 
-	/* clear the interrupt cause register */
+	
 	writel(0x0, int_reg);
 
 	if (tx_buf && *tx_buf)
@@ -297,7 +283,7 @@ static void orion_spi_work(struct work_struct *work)
 
 		spi = m->spi;
 
-		/* Load defaults */
+		
 		status = orion_spi_setup_transfer(spi, NULL);
 
 		if (status < 0)
@@ -346,7 +332,7 @@ msg_done:
 
 static int __init orion_spi_reset(struct orion_spi *orion_spi)
 {
-	/* Verify that the CS is deasserted */
+	
 	orion_spi_set_cs(orion_spi, 0);
 
 	return 0;
@@ -358,7 +344,7 @@ static int orion_spi_setup(struct spi_device *spi)
 
 	orion_spi = spi_master_get_devdata(spi->master);
 
-	/* Fix ac timing if required.   */
+	
 	if (orion_spi->spi_info->enable_clock_fix)
 		orion_spi_setbits(orion_spi, ORION_SPI_IF_CONFIG_REG,
 				  (1 << 14));
@@ -373,9 +359,7 @@ static int orion_spi_setup(struct spi_device *spi)
 		return -EINVAL;
 	}
 
-	/*
-	 * baudrate & width will be set orion_spi_setup_transfer
-	 */
+	
 	return 0;
 }
 
@@ -388,7 +372,7 @@ static int orion_spi_transfer(struct spi_device *spi, struct spi_message *m)
 	m->actual_length = 0;
 	m->status = 0;
 
-	/* reject invalid messages and transfers */
+	
 	if (list_empty(&m->transfers) || !m->complete)
 		return -EINVAL;
 
@@ -414,7 +398,7 @@ static int orion_spi_transfer(struct spi_device *spi, struct spi_message *m)
 				bits_per_word);
 			goto msg_rejected;
 		}
-		/*make sure buffer length is even when working in 16 bit mode*/
+		
 		if ((t != NULL) && (t->bits_per_word == 16) && (t->len & 1)) {
 			dev_err(&spi->dev,
 				"message rejected : "
@@ -441,7 +425,7 @@ static int orion_spi_transfer(struct spi_device *spi, struct spi_message *m)
 
 	return 0;
 msg_rejected:
-	/* Message rejected and not queued */
+	
 	m->status = -EINVAL;
 	if (m->complete)
 		m->complete(m->context);
@@ -467,7 +451,7 @@ static int __init orion_spi_probe(struct platform_device *pdev)
 	if (pdev->id != -1)
 		master->bus_num = pdev->id;
 
-	/* we support only mode 0, and no options */
+	
 	master->mode_bits = 0;
 
 	master->setup = orion_spi_setup;

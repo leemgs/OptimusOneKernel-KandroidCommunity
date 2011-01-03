@@ -1,22 +1,4 @@
-/*
- * Copyright 2004-2007 Freescale Semiconductor, Inc. All Rights Reserved.
- * Copyright (C) 2008 Juergen Beisert
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the
- * Free Software Foundation
- * 51 Franklin Street, Fifth Floor
- * Boston, MA  02110-1301, USA.
- */
+
 
 #include <linux/clk.h>
 #include <linux/completion.h>
@@ -44,9 +26,9 @@
 #define MXC_CSPIINT		0x0c
 #define MXC_RESET		0x1c
 
-/* generic defines to abstract from the different register layouts */
-#define MXC_INT_RR	(1 << 0) /* Receive data ready interrupt */
-#define MXC_INT_TE	(1 << 1) /* Transmit FIFO empty interrupt */
+
+#define MXC_INT_RR	(1 << 0) 
+#define MXC_INT_TE	(1 << 1) 
 
 struct spi_imx_config {
 	unsigned int speed_hz;
@@ -70,9 +52,9 @@ struct spi_imx_data {
 	void (*rx)(struct spi_imx_data *);
 	void *rx_buf;
 	const void *tx_buf;
-	unsigned int txfifo; /* number of words pushed in tx FIFO */
+	unsigned int txfifo; 
 
-	/* SoC specific functions */
+	
 	void (*intctrl)(struct spi_imx_data *, int);
 	int (*config)(struct spi_imx_data *, struct spi_imx_config *);
 	void (*trigger)(struct spi_imx_data *);
@@ -112,13 +94,11 @@ MXC_SPI_BUF_TX(u16)
 MXC_SPI_BUF_RX(u32)
 MXC_SPI_BUF_TX(u32)
 
-/* First entry is reserved, second entry is valid only if SDHC_SPIEN is set
- * (which is currently not the case in this driver)
- */
+
 static int mxc_clkdivs[] = {0, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192,
 	256, 384, 512, 768, 1024};
 
-/* MX21, MX27 */
+
 static unsigned int spi_imx_clkdiv_1(unsigned int fin,
 		unsigned int fspi)
 {
@@ -136,7 +116,7 @@ static unsigned int spi_imx_clkdiv_1(unsigned int fin,
 	return max;
 }
 
-/* MX1, MX31, MX35 */
+
 static unsigned int spi_imx_clkdiv_2(unsigned int fin,
 		unsigned int fspi)
 {
@@ -170,10 +150,7 @@ static unsigned int spi_imx_clkdiv_2(unsigned int fin,
 #define MX31_CSPISTATUS		0x14
 #define MX31_STATUS_RR		(1 << 3)
 
-/* These functions also work for the i.MX35, but be aware that
- * the i.MX35 has a slightly different register layout for bits
- * we do not use here.
- */
+
 static void mx31_intctrl(struct spi_imx_data *spi_imx, int enable)
 {
 	unsigned int val = 0;
@@ -391,9 +368,7 @@ static irqreturn_t spi_imx_isr(int irq, void *dev_id)
 	}
 
 	if (spi_imx->txfifo) {
-		/* No data left to push, but still waiting for rx data,
-		 * enable receive data available interrupt.
-		 */
+		
 		spi_imx->intctrl(spi_imx, MXC_INT_RR);
 		return IRQ_HANDLED;
 	}
@@ -422,7 +397,7 @@ static int spi_imx_setupxfer(struct spi_device *spi,
 	if (!config.speed_hz)
 		config.speed_hz = spi->max_speed_hz;
 
-	/* Initialize the functions for transfer */
+	
 	if (config.bpw <= 8) {
 		spi_imx->rx = spi_imx_buf_rx_u8;
 		spi_imx->tx = spi_imx_buf_tx_u8;

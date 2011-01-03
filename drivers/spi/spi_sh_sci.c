@@ -1,17 +1,4 @@
-/*
- * SH SCI SPI interface
- *
- * Copyright (c) 2008 Magnus Damm
- *
- * Based on S3C24XX GPIO based SPI driver, which is:
- *   Copyright (c) 2006 Ben Dooks
- *   Copyright (c) 2006 Simtec Electronics
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -43,13 +30,7 @@ struct sh_sci_spi {
 
 static inline void setbits(struct sh_sci_spi *sp, int bits, int on)
 {
-	/*
-	 * We are the only user of SCSPTR so no locking is required.
-	 * Reading bit 2 and 0 in SCSPTR gives pin state as input.
-	 * Writing the same bits sets the output value.
-	 * This makes regular read-modify-write difficult so we
-	 * use sp->val to keep track of the latest register value.
-	 */
+	
 
 	if (on)
 		sp->val |= bits;
@@ -132,7 +113,7 @@ static int sh_sci_spi_probe(struct platform_device *dev)
 	platform_set_drvdata(dev, sp);
 	sp->info = dev->dev.platform_data;
 
-	/* setup spi bitbang adaptor */
+	
 	sp->bitbang.master = spi_master_get(master);
 	sp->bitbang.master->bus_num = sp->info->bus_num;
 	sp->bitbang.master->num_chipselect = sp->info->num_chipselect;

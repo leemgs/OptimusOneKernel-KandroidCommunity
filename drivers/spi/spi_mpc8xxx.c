@@ -1,15 +1,4 @@
-/*
- * MPC8xxx SPI controller driver.
- *
- * Maintainer: Kumar Gala
- *
- * Copyright (C) 2006 Polycom, Inc.
- *
- * This program is free software; you can redistribute  it and/or modify it
- * under  the terms of  the GNU General  Public License as published by the
- * Free Software Foundation;  either version 2 of the  License, or (at your
- * option) any later version.
- */
+
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/types.h>
@@ -36,7 +25,7 @@
 #include <sysdev/fsl_soc.h>
 #include <asm/irq.h>
 
-/* SPI Controller registers */
+
 struct mpc8xxx_spi_reg {
 	u8 res1[0x20];
 	__be32 mode;
@@ -47,7 +36,7 @@ struct mpc8xxx_spi_reg {
 	__be32 receive;
 };
 
-/* SPI Controller mode register definitions */
+
 #define	SPMODE_LOOP		(1 << 30)
 #define	SPMODE_CI_INACTIVEHIGH	(1 << 29)
 #define	SPMODE_CP_BEGIN_EDGECLK	(1 << 28)
@@ -60,41 +49,38 @@ struct mpc8xxx_spi_reg {
 #define	SPMODE_OP		(1 << 14)
 #define	SPMODE_CG(x)		((x) << 7)
 
-/*
- * Default for SPI Mode:
- * 	SPI MODE 0 (inactive low, phase middle, MSB, 8-bit length, slow clk
- */
+
 #define	SPMODE_INIT_VAL (SPMODE_CI_INACTIVEHIGH | SPMODE_DIV16 | SPMODE_REV | \
 			 SPMODE_MS | SPMODE_LEN(7) | SPMODE_PM(0xf))
 
-/* SPIE register values */
-#define	SPIE_NE		0x00000200	/* Not empty */
-#define	SPIE_NF		0x00000100	/* Not full */
 
-/* SPIM register values */
-#define	SPIM_NE		0x00000200	/* Not empty */
-#define	SPIM_NF		0x00000100	/* Not full */
+#define	SPIE_NE		0x00000200	
+#define	SPIE_NF		0x00000100	
 
-/* SPI Controller driver's private data. */
+
+#define	SPIM_NE		0x00000200	
+#define	SPIM_NF		0x00000100	
+
+
 struct mpc8xxx_spi {
 	struct mpc8xxx_spi_reg __iomem *base;
 
-	/* rx & tx bufs from the spi_transfer */
+	
 	const void *tx;
 	void *rx;
 
-	/* functions to deal with different sized buffers */
+	
 	void (*get_rx) (u32 rx_data, struct mpc8xxx_spi *);
 	u32(*get_tx) (struct mpc8xxx_spi *);
 
 	unsigned int count;
 	unsigned int irq;
 
-	unsigned nsecs;		/* (clock cycle time)/2 */
+	unsigned nsecs;		
 
-	u32 spibrg;		/* SPIBRG input clock */
-	u32 rx_shift;		/* RX data reg shift when in qe mode */
-	u32 tx_shift;		/* TX data reg shift when in qe mode */
+	u32 spibrg;		
+	u32 rx_shift;		
+	u32 tx_shift;		
 
 	bool qe_mode;
 
@@ -108,12 +94,12 @@ struct mpc8xxx_spi {
 };
 
 struct spi_mpc8xxx_cs {
-	/* functions to deal with different sized buffers */
+	
 	void (*get_rx) (u32 rx_data, struct mpc8xxx_spi *);
 	u32 (*get_tx) (struct mpc8xxx_spi *);
-	u32 rx_shift;		/* RX data reg shift when in qe mode */
-	u32 tx_shift;		/* TX data reg shift when in qe mode */
-	u32 hw_mode;		/* Holds HW mode register settings */
+	u32 rx_shift;		
+	u32 tx_shift;		
+	u32 hw_mode;		
 };
 
 static inline void mpc8xxx_spi_write_reg(__be32 __iomem *reg, u32 val)
@@ -180,11 +166,9 @@ static void mpc8xxx_spi_chipselect(struct spi_device *spi, int value)
 			__be32 __iomem *mode = &mpc8xxx_spi->base->mode;
 
 			regval = cs->hw_mode;
-			/* Turn off IRQs locally to minimize time that
-			 * SPI is disabled
-			 */
+			
 			local_irq_save(flags);
-			/* Turn off SPI unit prior changing mode */
+			
 			mpc8xxx_spi_write_reg(mode, regval & ~SPMODE_ENABLE);
 			mpc8xxx_spi_write_reg(mode, regval);
 			local_irq_restore(flags);
@@ -213,11 +197,11 @@ int mpc8xxx_spi_setup_transfer(struct spi_device *spi, struct spi_transfer *t)
 		hz = 0;
 	}
 
-	/* spi_transfer level calls that work per-word */
+	
 	if (!bits_per_word)
 		bits_per_word = spi->bits_per_word;
 
-	/* Make sure its a bit width we support [4..16, 32] */
+	
 	if ((bits_per_word < 4)
 	    || ((bits_per_word > 16) && (bits_per_word != 32)))
 		return -EINVAL;
@@ -265,7 +249,7 @@ int mpc8xxx_spi_setup_transfer(struct spi_device *spi, struct spi_transfer *t)
 	else
 		bits_per_word = bits_per_word - 1;
 
-	/* mask out bits we are going to set */
+	
 	cs->hw_mode &= ~(SPMODE_LEN(0xF) | SPMODE_DIV16
 				  | SPMODE_PM(0xF));
 
@@ -292,11 +276,9 @@ int mpc8xxx_spi_setup_transfer(struct spi_device *spi, struct spi_transfer *t)
 		__be32 __iomem *mode = &mpc8xxx_spi->base->mode;
 
 		regval = cs->hw_mode;
-		/* Turn off IRQs locally to minimize time
-		 * that SPI is disabled
-		 */
+		
 		local_irq_save(flags);
-		/* Turn off SPI unit prior changing mode */
+		
 		mpc8xxx_spi_write_reg(mode, regval & ~SPMODE_ENABLE);
 		mpc8xxx_spi_write_reg(mode, regval);
 		local_irq_restore(flags);
@@ -318,13 +300,13 @@ static int mpc8xxx_spi_bufs(struct spi_device *spi, struct spi_transfer *t)
 		bits_per_word = t->bits_per_word;
 	len = t->len;
 	if (bits_per_word > 8) {
-		/* invalid length? */
+		
 		if (len & 1)
 			return -EINVAL;
 		len /= 2;
 	}
 	if (bits_per_word > 16) {
-		/* invalid length? */
+		
 		if (len & 1)
 			return -EINVAL;
 		len /= 2;
@@ -333,16 +315,16 @@ static int mpc8xxx_spi_bufs(struct spi_device *spi, struct spi_transfer *t)
 
 	INIT_COMPLETION(mpc8xxx_spi->done);
 
-	/* enable rx ints */
+	
 	mpc8xxx_spi_write_reg(&mpc8xxx_spi->base->mask, SPIM_NE);
 
-	/* transmit word */
+	
 	word = mpc8xxx_spi->get_tx(mpc8xxx_spi);
 	mpc8xxx_spi_write_reg(&mpc8xxx_spi->base->transmit, word);
 
 	wait_for_completion(&mpc8xxx_spi->done);
 
-	/* disable rx ints */
+	
 	mpc8xxx_spi_write_reg(&mpc8xxx_spi->base->mask, 0);
 
 	return mpc8xxx_spi->count;
@@ -360,7 +342,7 @@ static void mpc8xxx_spi_do_one_msg(struct spi_message *m)
 	status = 0;
 	list_for_each_entry(t, &m->transfers, transfer_list) {
 		if (t->bits_per_word || t->speed_hz) {
-			/* Don't allow changes if CS is active */
+			
 			status = -EINVAL;
 
 			if (cs_change)
@@ -441,9 +423,9 @@ static int mpc8xxx_spi_setup(struct spi_device *spi)
 	}
 	mpc8xxx_spi = spi_master_get_devdata(spi->master);
 
-	hw_mode = cs->hw_mode; /* Save orginal settings */
+	hw_mode = cs->hw_mode; 
 	cs->hw_mode = mpc8xxx_spi_read_reg(&mpc8xxx_spi->base->mode);
-	/* mask out bits we are going to set */
+	
 	cs->hw_mode &= ~(SPMODE_CP_BEGIN_EDGECLK | SPMODE_CI_INACTIVEHIGH
 			 | SPMODE_REV | SPMODE_LOOP);
 
@@ -458,7 +440,7 @@ static int mpc8xxx_spi_setup(struct spi_device *spi)
 
 	retval = mpc8xxx_spi_setup_transfer(spi, NULL);
 	if (retval < 0) {
-		cs->hw_mode = hw_mode; /* Restore settings */
+		cs->hw_mode = hw_mode; 
 		return retval;
 	}
 	return 0;
@@ -470,10 +452,10 @@ static irqreturn_t mpc8xxx_spi_irq(s32 irq, void *context_data)
 	u32 event;
 	irqreturn_t ret = IRQ_NONE;
 
-	/* Get interrupt events(tx/rx) */
+	
 	event = mpc8xxx_spi_read_reg(&mpc8xxx_spi->base->event);
 
-	/* We need handle RX first */
+	
 	if (event & SPIE_NE) {
 		u32 rx_data = mpc8xxx_spi_read_reg(&mpc8xxx_spi->base->receive);
 
@@ -484,7 +466,7 @@ static irqreturn_t mpc8xxx_spi_irq(s32 irq, void *context_data)
 	}
 
 	if ((event & SPIE_NF) == 0)
-		/* spin until TX is done */
+		
 		while (((event =
 			 mpc8xxx_spi_read_reg(&mpc8xxx_spi->base->event)) &
 						SPIE_NF) == 0)
@@ -498,7 +480,7 @@ static irqreturn_t mpc8xxx_spi_irq(s32 irq, void *context_data)
 		complete(&mpc8xxx_spi->done);
 	}
 
-	/* Clear the events */
+	
 	mpc8xxx_spi_write_reg(&mpc8xxx_spi->base->event, event);
 
 	return ret;
@@ -543,7 +525,7 @@ mpc8xxx_spi_probe(struct device *dev, struct resource *mem, unsigned int irq)
 
 	dev_set_drvdata(dev, master);
 
-	/* the spi->mode bits understood by this driver: */
+	
 	master->mode_bits = SPI_CPOL | SPI_CPHA | SPI_CS_HIGH
 			| SPI_LSB_FIRST | SPI_LOOP;
 
@@ -574,7 +556,7 @@ mpc8xxx_spi_probe(struct device *dev, struct resource *mem, unsigned int irq)
 
 	mpc8xxx_spi->irq = irq;
 
-	/* Register for SPI Interrupt */
+	
 	ret = request_irq(mpc8xxx_spi->irq, mpc8xxx_spi_irq,
 			  0, "mpc8xxx_spi", mpc8xxx_spi);
 
@@ -584,13 +566,13 @@ mpc8xxx_spi_probe(struct device *dev, struct resource *mem, unsigned int irq)
 	master->bus_num = pdata->bus_num;
 	master->num_chipselect = pdata->max_chipselect;
 
-	/* SPI controller initializations */
+	
 	mpc8xxx_spi_write_reg(&mpc8xxx_spi->base->mode, 0);
 	mpc8xxx_spi_write_reg(&mpc8xxx_spi->base->mask, 0);
 	mpc8xxx_spi_write_reg(&mpc8xxx_spi->base->command, 0);
 	mpc8xxx_spi_write_reg(&mpc8xxx_spi->base->event, 0xffffffff);
 
-	/* Enable SPI interface */
+	
 	regval = pdata->initial_spmode | SPMODE_INIT_VAL | SPMODE_ENABLE;
 	if (pdata->qe_mode)
 		regval |= SPMODE_OP;
@@ -682,10 +664,7 @@ static int of_mpc8xxx_spi_get_chipselects(struct device *dev)
 
 	ngpios = of_gpio_count(np);
 	if (!ngpios) {
-		/*
-		 * SPI w/o chip-select line. One SPI device is still permitted
-		 * though.
-		 */
+		
 		pdata->max_chipselect = 1;
 		return 0;
 	}
@@ -789,10 +768,10 @@ static int __devinit of_mpc8xxx_spi_probe(struct of_device *ofdev,
 	pdata = &pinfo->pdata;
 	dev->platform_data = pdata;
 
-	/* Allocate bus num dynamically. */
+	
 	pdata->bus_num = -1;
 
-	/* SPI controller is either clocked from QE or SoC clock. */
+	
 	pdata->sysclk = get_brgfreq();
 	if (pdata->sysclk == -1) {
 		pdata->sysclk = fsl_get_sys_freq();
@@ -862,13 +841,7 @@ static struct of_platform_driver of_mpc8xxx_spi_driver = {
 };
 
 #ifdef CONFIG_MPC832x_RDB
-/*
- * 				XXX XXX XXX
- * This is "legacy" platform driver, was used by the MPC8323E-RDB boards
- * only. The driver should go away soon, since newer MPC8323E-RDB's device
- * tree can work with OpenFirmware driver. But for now we support old trees
- * as well.
- */
+
 static int __devinit plat_mpc8xxx_spi_probe(struct platform_device *pdev)
 {
 	struct resource *mem;
@@ -923,7 +896,7 @@ static void __exit legacy_driver_unregister(void)
 #else
 static void __init legacy_driver_register(void) {}
 static void __exit legacy_driver_unregister(void) {}
-#endif /* CONFIG_MPC832x_RDB */
+#endif 
 
 static int __init mpc8xxx_spi_init(void)
 {

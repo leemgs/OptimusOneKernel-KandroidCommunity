@@ -1,15 +1,4 @@
-/* linux/drivers/spi/spi_s3c24xx_gpio.c
- *
- * Copyright (c) 2006 Ben Dooks
- * Copyright (c) 2006 Simtec Electronics
- *
- * S3C24XX GPIO based SPI driver
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -113,10 +102,10 @@ static int s3c2410_spigpio_probe(struct platform_device *dev)
 
 	platform_set_drvdata(dev, sp);
 
-	/* copy in the plkatform data */
+	
 	info = sp->info = dev->dev.platform_data;
 
-	/* setup spi bitbang adaptor */
+	
 	sp->bitbang.master = spi_master_get(master);
 	sp->bitbang.master->bus_num = info->bus_num;
 	sp->bitbang.master->num_chipselect = info->num_chipselect;
@@ -127,8 +116,7 @@ static int s3c2410_spigpio_probe(struct platform_device *dev)
 	sp->bitbang.txrx_word[SPI_MODE_2] = s3c2410_spigpio_txrx_mode2;
 	sp->bitbang.txrx_word[SPI_MODE_3] = s3c2410_spigpio_txrx_mode3;
 
-	/* set state of spi pins, always assume that the clock is
-	 * available, but do check the MOSI and MISO. */
+	
 	s3c2410_gpio_setpin(info->pin_clk, 0);
 	s3c2410_gpio_cfgpin(info->pin_clk, S3C2410_GPIO_OUTPUT);
 
@@ -163,14 +151,12 @@ static int s3c2410_spigpio_remove(struct platform_device *dev)
 	return 0;
 }
 
-/* all gpio should be held over suspend/resume, so we should
- * not need to deal with this
-*/
+
 
 #define s3c2410_spigpio_suspend NULL
 #define s3c2410_spigpio_resume NULL
 
-/* work with hotplug and coldplug */
+
 MODULE_ALIAS("platform:spi_s3c24xx_gpio");
 
 static struct platform_driver s3c2410_spigpio_drv = {
