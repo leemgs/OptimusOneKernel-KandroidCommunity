@@ -1,24 +1,4 @@
-/*
- * OMAP2 Remote Frame Buffer Interface support
- *
- * Copyright (C) 2005 Nokia Corporation
- * Author: Juha Yrjölä <juha.yrjola@nokia.com>
- *	   Imre Deak <imre.deak@nokia.com>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
+
 #include <linux/module.h>
 #include <linux/delay.h>
 #include <linux/i2c.h>
@@ -31,7 +11,7 @@
 
 #include "dispc.h"
 
-/* To work around an RFBI transfer rate limitation */
+
 #define OMAP_RFBI_RATE_LIMIT	1
 
 #define RFBI_BASE		0x48050800
@@ -178,7 +158,7 @@ static int ps_to_rfbi_ticks(int time, int div)
 	unsigned long tick_ps;
 	int ret;
 
-	/* Calculate in picosecs to yield more exact results */
+	
 	tick_ps = 1000000000 / (rfbi.l4_khz) * div;
 
 	ret = (time + tick_ps - 1) / tick_ps;
@@ -193,29 +173,24 @@ static unsigned long rfbi_get_max_tx_rate(void)
 	int		min_l4_ticks = 0;
 	int		i;
 
-	/* According to TI this can't be calculated so make the
-	 * adjustments for a couple of known frequencies and warn for
-	 * others.
-	 */
+	
 	static const struct {
-		unsigned long l4_clk;		/* HZ */
-		unsigned long dss1_clk;		/* HZ */
+		unsigned long l4_clk;		
+		unsigned long dss1_clk;		
 		unsigned long min_l4_ticks;
 	} ftab[] = {
-		{ 55,	132,	7, },		/* 7.86 MPix/s */
-		{ 110,	110,	12, },		/* 9.16 MPix/s */
-		{ 110,	132,	10, },		/* 11   Mpix/s */
-		{ 120,	120,	10, },		/* 12   Mpix/s */
-		{ 133,	133,	10, },		/* 13.3 Mpix/s */
+		{ 55,	132,	7, },		
+		{ 110,	110,	12, },		
+		{ 110,	132,	10, },		
+		{ 120,	120,	10, },		
+		{ 133,	133,	10, },		
 	};
 
 	l4_rate = rfbi.l4_khz / 1000;
 	dss1_rate = clk_get_rate(rfbi.dss1_fck) / 1000000;
 
 	for (i = 0; i < ARRAY_SIZE(ftab); i++) {
-		/* Use a window instead of an exact match, to account
-		 * for different DPLL multiplier / divider pairs.
-		 */
+		
 		if (abs(ftab[i].l4_clk - l4_rate) < 3 &&
 		    abs(ftab[i].dss1_clk - dss1_rate) < 3) {
 			min_l4_ticks = ftab[i].min_l4_ticks;
@@ -223,10 +198,7 @@ static unsigned long rfbi_get_max_tx_rate(void)
 		}
 	}
 	if (i == ARRAY_SIZE(ftab)) {
-		/* Can't be sure, return anyway the maximum not
-		 * rate-limited. This might cause a problem only for the
-		 * tearing synchronisation.
-		 */
+		
 		dev_err(rfbi.fbdev->dev,
 			"can't determine maximum RFBI transfer rate\n");
 		return rfbi.l4_khz * 1000;
@@ -251,10 +223,7 @@ static int rfbi_convert_timings(struct extif_timings *t)
 	if (div <= 0 || div > 2)
 		return -1;
 
-	/* Make sure that after conversion it still holds that:
-	 * weoff > weon, reoff > reon, recyc >= reoff, wecyc >= weoff,
-	 * csoff > cson, csoff >= max(weoff, reoff), actim > reon
-	 */
+	
 	weon = ps_to_rfbi_ticks(t->we_on_time, div);
 	weoff = ps_to_rfbi_ticks(t->we_off_time, div);
 	if (weoff <= weon)
@@ -470,9 +439,9 @@ static void rfbi_transfer_area(int width, int height,
 	rfbi_write_reg(RFBI_PIXEL_CNT, width * height);
 
 	w = rfbi_read_reg(RFBI_CONTROL);
-	w |= 1;				/* enable */
+	w |= 1;				
 	if (!rfbi.tearsync_mode)
-		w |= 1 << 4;		/* internal trigger, reset by HW */
+		w |= 1 << 4;		
 	rfbi_write_reg(RFBI_CONTROL, w);
 
 	omap_dispc_enable_lcd_out(1);
@@ -533,16 +502,16 @@ static int rfbi_init(struct omapfb_device *fbdev)
 
 	rfbi.l4_khz = clk_get_rate(rfbi.dss_ick) / 1000;
 
-	/* Reset */
+	
 	rfbi_write_reg(RFBI_SYSCONFIG, 1 << 1);
 	while (!(rfbi_read_reg(RFBI_SYSSTATUS) & (1 << 0)));
 
 	l = rfbi_read_reg(RFBI_SYSCONFIG);
-	/* Enable autoidle and smart-idle */
+	
 	l |= (1 << 0) | (2 << 3);
 	rfbi_write_reg(RFBI_SYSCONFIG, l);
 
-	/* 16-bit interface, ITE trigger mode, 16-bit data */
+	
 	l = (0x03 << 0) | (0x00 << 2) | (0x01 << 5) | (0x02 << 7);
 	l |= (0 << 9) | (1 << 20) | (1 << 21);
 	rfbi_write_reg(RFBI_CONFIG0, l);
@@ -550,7 +519,7 @@ static int rfbi_init(struct omapfb_device *fbdev)
 	rfbi_write_reg(RFBI_DATA_CYCLE1_0, 0x00000010);
 
 	l = rfbi_read_reg(RFBI_CONTROL);
-	/* Select CS0, clear bypass mode */
+	
 	l = (0x01 << 2);
 	rfbi_write_reg(RFBI_CONTROL, l);
 

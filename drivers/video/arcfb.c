@@ -1,38 +1,4 @@
-/*
- * linux/drivers/video/arcfb.c -- FB driver for Arc monochrome LCD board
- *
- * Copyright (C) 2005, Jaya Kumar <jayalk@intworks.biz>
- * http://www.intworks.biz/arclcd
- *
- * This file is subject to the terms and conditions of the GNU General Public
- * License. See the file COPYING in the main directory of this archive for
- * more details.
- *
- * Layout is based on skeletonfb.c by James Simmons and Geert Uytterhoeven.
- *
- * This driver was written to be used with the Arc LCD board. Arc uses a
- * set of KS108 chips that control individual 64x64 LCD matrices. The board
- * can be paneled in a variety of setups such as 2x1=128x64, 4x4=256x256 and
- * so on. The interface between the board and the host is TTL based GPIO. The
- * GPIO requirements are 8 writable data lines and 4+n lines for control. On a
- * GPIO-less system, the board can be tested by connecting the respective sigs
- * up to a parallel port connector. The driver requires the IO addresses for
- * data and control GPIO at load time. It is unable to probe for the
- * existence of the LCD so it must be told at load time whether it should
- * be enabled or not.
- *
- * Todo:
- * - testing with 4x4
- * - testing with interrupt hw
- *
- * General notes:
- * - User must set tuhold. It's in microseconds. According to the 108 spec,
- *   the hold time is supposed to be at least 1 microsecond.
- * - User must set num_cols=x num_rows=y, eg: x=2 means 128
- * - User must set arcfb_enable=1 to enable it
- * - User must set dio_addr=0xIOADDR cio_addr=0xIOADDR
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -56,7 +22,7 @@
 #define ceil64(a) (a|0x3F)
 #define ceilXres(a,xres) (a|(xres - 1))
 
-/* ks108 chipset specific defines and code */
+
 
 #define KS_SET_DPY_START_LINE 	0xC0
 #define KS_SET_PAGE_NUM 	0xB8
@@ -179,7 +145,7 @@ static void ks108_clear_lcd(struct arcfb_par *par, unsigned int chipindex)
 	}
 }
 
-/* main arcfb functions */
+
 
 static int arcfb_open(struct fb_info *info, int user)
 {
@@ -226,7 +192,7 @@ static irqreturn_t arcfb_interrupt(int vec, void *dev_instance)
 
 	ctl2status = ks108_readb_ctl2(par);
 
-	if (!(ctl2status & KS_INTACK)) /* not arc generated interrupt */
+	if (!(ctl2status & KS_INTACK)) 
 		return IRQ_NONE;
 
 	ks108_writeb_mainctl(par, KS_CLRINT);
@@ -240,12 +206,7 @@ static irqreturn_t arcfb_interrupt(int vec, void *dev_instance)
 	return IRQ_HANDLED;
 }
 
-/*
- * here we handle a specific page on the lcd. the complexity comes from
- * the fact that the fb is laidout in 8xX vertical columns. we extract
- * each write of 8 vertical pixels. then we shift out as we move along
- * X. That's what rightshift does. bitmask selects the desired input bit.
- */
+
 static void arcfb_lcd_update_page(struct arcfb_par *par, unsigned int upper,
 		unsigned int left, unsigned int right, unsigned int distance)
 {
@@ -292,12 +253,7 @@ static void arcfb_lcd_update_page(struct arcfb_par *par, unsigned int upper,
 	}
 }
 
-/*
- * here we handle the entire vertical page of the update. we write across
- * lcd chips. update_page uses the upper/left values to decide which
- * chip to select for the right. upper is needed for setting the page
- * desired for the write.
- */
+
 static void arcfb_lcd_update_vert(struct arcfb_par *par, unsigned int top,
 		unsigned int bottom, unsigned int left, unsigned int right)
 {
@@ -315,11 +271,7 @@ static void arcfb_lcd_update_vert(struct arcfb_par *par, unsigned int top,
 	}
 }
 
-/*
- * here we handle horizontal blocks for the update. update_vert will
- * handle spaning multiple pages. we break out each horizontal
- * block in to individual blocks no taller than 64 pixels.
- */
+
 static void arcfb_lcd_update_horiz(struct arcfb_par *par, unsigned int left,
 			unsigned int right, unsigned int top, unsigned int h)
 {
@@ -337,17 +289,13 @@ static void arcfb_lcd_update_horiz(struct arcfb_par *par, unsigned int left,
 	}
 }
 
-/*
- * here we start the process of spliting out the fb update into
- * individual blocks of pixels. we end up spliting into 64x64 blocks
- * and finally down to 64x8 pages.
- */
+
 static void arcfb_lcd_update(struct arcfb_par *par, unsigned int dx,
 			unsigned int dy, unsigned int w, unsigned int h)
 {
 	unsigned int left, right, distance, y;
 
-	/* align the request first */
+	
 	y = floor8(dy);
 	h += dy - y;
 	h = iceil8(h);
@@ -371,7 +319,7 @@ static void arcfb_fillrect(struct fb_info *info,
 
 	sys_fillrect(info, rect);
 
-	/* update the physical lcd */
+	
 	arcfb_lcd_update(par, rect->dx, rect->dy, rect->width, rect->height);
 }
 
@@ -382,7 +330,7 @@ static void arcfb_copyarea(struct fb_info *info,
 
 	sys_copyarea(info, area);
 
-	/* update the physical lcd */
+	
 	arcfb_lcd_update(par, area->dx, area->dy, area->width, area->height);
 }
 
@@ -392,7 +340,7 @@ static void arcfb_imageblit(struct fb_info *info, const struct fb_image *image)
 
 	sys_imageblit(info, image);
 
-	/* update the physical lcd */
+	
 	arcfb_lcd_update(par, image->dx, image->dy, image->width,
 				image->height);
 }
@@ -408,12 +356,11 @@ static int arcfb_ioctl(struct fb_info *info,
 		case FBIO_WAITEVENT:
 		{
 			DEFINE_WAIT(wait);
-			/* illegal to wait on arc if no irq will occur */
+			
 			if (!par->irq)
 				return -EINVAL;
 
-			/* wait until the Arc has generated an interrupt
-			 * which will wake us up */
+			
 			spin_lock_irqsave(&par->lock, flags);
 			prepare_to_wait(&arcfb_waitq, &wait,
 					TASK_INTERRUPTIBLE);
@@ -435,15 +382,11 @@ static int arcfb_ioctl(struct fb_info *info,
 	}
 }
 
-/*
- * this is the access path from userspace. they can seek and write to
- * the fb. it's inefficient for them to do anything less than 64*8
- * writes since we update the lcd in each write() anyway.
- */
+
 static ssize_t arcfb_write(struct fb_info *info, const char __user *buf,
 			   size_t count, loff_t *ppos)
 {
-	/* modded from epson 1355 */
+	
 
 	unsigned long p;
 	int err=-EINVAL;
@@ -515,8 +458,7 @@ static int __init arcfb_probe(struct platform_device *dev)
 
 	videomemorysize = (((64*64)*num_cols)*num_rows)/8;
 
-	/* We need a flat backing store for the Arc's
-	   less-flat actual paged framebuffer */
+	
 	if (!(videomemory = vmalloc(videomemorysize)))
 		return retval;
 
@@ -562,7 +504,7 @@ static int __init arcfb_probe(struct platform_device *dev)
 	       "fb%d: Arc frame buffer device, using %dK of video memory\n",
 	       info->node, videomemorysize >> 10);
 
-	/* this inits the lcd but doesn't clear dirty pixels */
+	
 	for (i = 0; i < num_cols * num_rows; i++) {
 		ks108_writeb_ctl(par, i, KS_DPY_OFF);
 		ks108_set_start_line(par, i, 0);
@@ -571,7 +513,7 @@ static int __init arcfb_probe(struct platform_device *dev)
 		ks108_writeb_ctl(par, i, KS_DPY_ON);
 	}
 
-	/* if we were told to splash the screen, we just clear it */
+	
 	if (!nosplash) {
 		for (i = 0; i < num_cols * num_rows; i++) {
 			printk(KERN_INFO "fb%d: splashing lcd %d\n",

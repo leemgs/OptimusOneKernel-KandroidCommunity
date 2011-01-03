@@ -1,23 +1,4 @@
-/*
- * Copyright 1998-2008 VIA Technologies, Inc. All Rights Reserved.
- * Copyright 2001-2008 S3 Graphics, Inc. All Rights Reserved.
 
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public
- * License as published by the Free Software Foundation;
- * either version 2, or (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTIES OR REPRESENTATIONS; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE.See the GNU General Public License
- * for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc.,
- * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
 
 #include "global.h"
 
@@ -124,9 +105,9 @@ bool viafb_lcd_get_support_expand_state(u32 xres, u32 yres)
 	return support_state;
 }
 
-/*====================================================================*/
-/*                      Gamma Function Implementation*/
-/*====================================================================*/
+
+
+
 
 void viafb_set_gamma_table(int bpp, unsigned int *gamma_table)
 {
@@ -140,11 +121,11 @@ void viafb_set_gamma_table(int bpp, unsigned int *gamma_table)
 		device_status >>= 1;
 	}
 
-	/* 8 bpp mode can't adjust gamma */
+	
 	if (bpp == 8)
 		return ;
 
-	/* Enable Gamma */
+	
 	switch (viaparinfo->chip_info->gfx_chip_name) {
 	case UNICHROME_CLE266:
 	case UNICHROME_K400:
@@ -164,7 +145,7 @@ void viafb_set_gamma_table(int bpp, unsigned int *gamma_table)
 	sr1a = (unsigned int)viafb_read_reg(VIASR, SR1A);
 	viafb_write_reg_mask(SR1A, VIASR, 0x0, BIT0);
 
-	/* Fill IGA1 Gamma Table */
+	
 	outb(0, LUT_INDEX_WRITE);
 	for (i = 0; i < 256; i++) {
 		outb(gamma_table[i] >> 16, LUT_DATA);
@@ -172,9 +153,8 @@ void viafb_set_gamma_table(int bpp, unsigned int *gamma_table)
 		outb(gamma_table[i] & 0xFF, LUT_DATA);
 	}
 
-	/* If adjust Gamma value in SAMM, fill IGA1,
-	   IGA2 Gamma table simultanous. */
-	/* Switch to IGA2 Gamma Table */
+	
+	
 	if ((active_device_amount > 1) &&
 		!((viaparinfo->chip_info->gfx_chip_name ==
 		UNICHROME_CLE266) &&
@@ -182,7 +162,7 @@ void viafb_set_gamma_table(int bpp, unsigned int *gamma_table)
 		viafb_write_reg_mask(SR1A, VIASR, 0x01, BIT0);
 		viafb_write_reg_mask(CR6A, VIACR, 0x02, BIT1);
 
-		/* Fill IGA2 Gamma Table */
+		
 		outb(0, LUT_INDEX_WRITE);
 		for (i = 0; i < 256; i++) {
 			outb(gamma_table[i] >> 16, LUT_DATA);
@@ -199,7 +179,7 @@ void viafb_get_gamma_table(unsigned int *gamma_table)
 	unsigned char sr1a = 0;
 	int i;
 
-	/* Enable Gamma */
+	
 	switch (viaparinfo->chip_info->gfx_chip_name) {
 	case UNICHROME_CLE266:
 	case UNICHROME_K400:
@@ -219,7 +199,7 @@ void viafb_get_gamma_table(unsigned int *gamma_table)
 	sr1a = viafb_read_reg(VIASR, SR1A);
 	viafb_write_reg_mask(SR1A, VIASR, 0x0, BIT0);
 
-	/* Reading gamma table to get color value */
+	
 	outb(0, LUT_INDEX_READ);
 	for (i = 0; i < 256; i++) {
 		color_r = inb(LUT_DATA);

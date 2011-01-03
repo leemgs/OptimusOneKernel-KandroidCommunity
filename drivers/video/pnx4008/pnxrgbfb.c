@@ -1,17 +1,4 @@
-/*
- * drivers/video/pnx4008/pnxrgbfb.c
- *
- * PNX4008's framebuffer support
- *
- * Author: Grigory Tolstolytkin <gtolstolytkin@ru.mvista.com>
- * Based on Philips Semiconductors's code
- *
- * Copyrght (c) 2005 MontaVista Software, Inc.
- * Copyright (c) 2005 Philips Semiconductors
- * This file is licensed under the terms of the GNU General Public License
- * version 2. This program is licensed "as is" without any warranty of any
- * kind, whether express or implied.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>

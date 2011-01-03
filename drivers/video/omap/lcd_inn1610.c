@@ -1,23 +1,4 @@
-/*
- * LCD panel support for the TI OMAP1610 Innovator board
- *
- * Copyright (C) 2004 Nokia Corporation
- * Author: Imre Deak <imre.deak@nokia.com>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/platform_device.h>
@@ -43,7 +24,7 @@ static int innovator1610_panel_init(struct lcd_panel *panel,
 		r = -1;
 		goto exit;
 	}
-	/* configure GPIO(14, 15) as outputs */
+	
 	gpio_direction_output(14, 0);
 	gpio_direction_output(15, 0);
 exit:
@@ -58,7 +39,7 @@ static void innovator1610_panel_cleanup(struct lcd_panel *panel)
 
 static int innovator1610_panel_enable(struct lcd_panel *panel)
 {
-	/* set GPIO14 and GPIO15 high */
+	
 	gpio_set_value(14, 1);
 	gpio_set_value(15, 1);
 	return 0;
@@ -66,7 +47,7 @@ static int innovator1610_panel_enable(struct lcd_panel *panel)
 
 static void innovator1610_panel_disable(struct lcd_panel *panel)
 {
-	/* set GPIO13, GPIO14 and GPIO15 low */
+	
 	gpio_set_value(14, 0);
 	gpio_set_value(15, 0);
 }

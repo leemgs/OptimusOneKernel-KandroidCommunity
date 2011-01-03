@@ -1,14 +1,4 @@
-/*
- * linux/drivers/video/backlight/adx.c
- *
- * Copyright (C) 2009 Avionic Design GmbH
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * Written by Thierry Reding <thierry.reding@avionic-design.de>
- */
+
 
 #include <linux/backlight.h>
 #include <linux/fb.h>
@@ -16,7 +6,7 @@
 #include <linux/module.h>
 #include <linux/platform_device.h>
 
-/* register definitions */
+
 #define ADX_BACKLIGHT_CONTROL		0x00
 #define ADX_BACKLIGHT_CONTROL_ENABLE	(1 << 0)
 #define ADX_BACKLIGHT_BRIGHTNESS	0x08

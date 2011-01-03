@@ -1,15 +1,4 @@
-/*
- *  Backlight Driver for the KB3886 Backlight
- *
- *  Copyright (c) 2007-2008 Claudio Nieder
- *
- *  Based on corgi_bl.c by Richard Purdie and kb3886 driver by Robert Woerle
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -67,9 +56,7 @@ static struct platform_device *devices[] __initdata = {
 	&kb3886bl_device,
 };
 
-/*
- * Back to driver
- */
+
 
 static int kb3886bl_intensity;
 static struct backlight_device *kb3886_backlight_device;

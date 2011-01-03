@@ -1,19 +1,4 @@
-/* drivers/video/msm_fb/mddi_client_nt35399.c
- *
- * Support for Novatek NT35399 MDDI client of Sapphire
- *
- * Copyright (C) 2008 HTC Incorporated
- * Author: Solomon Chiu (solomon_chiu@htc.com)
- *
- * This software is licensed under the terms of the GNU General Public
- * License version 2, as published by the Free Software Foundation, and
- * may be copied, distributed, and modified under those terms.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -46,7 +31,7 @@ nt35399_request_vsync(struct msm_panel_data *panel_data,
 	panel->fb_callback = callback;
 	if (panel->nt35399_got_int) {
 		panel->nt35399_got_int = 0;
-		client_data->activate_link(client_data); /* clears interrupt */
+		client_data->activate_link(client_data); 
 	}
 }
 
@@ -58,7 +43,7 @@ static void nt35399_wait_vsync(struct msm_panel_data *panel_data)
 
 	if (panel->nt35399_got_int) {
 		panel->nt35399_got_int = 0;
-		client_data->activate_link(client_data); /* clears interrupt */
+		client_data->activate_link(client_data); 
 	}
 
 	if (wait_event_timeout(nt35399_vsync_wait, panel->nt35399_got_int,
@@ -66,7 +51,7 @@ static void nt35399_wait_vsync(struct msm_panel_data *panel_data)
 		printk(KERN_ERR "timeout waiting for VSYNC\n");
 
 	panel->nt35399_got_int = 0;
-	/* interrupt clears when screen dma starts */
+	
 }
 
 static int nt35399_suspend(struct msm_panel_data *panel_data)

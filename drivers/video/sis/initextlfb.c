@@ -1,29 +1,4 @@
-/*
- * SiS 300/540/630[S]/730[S]
- * SiS 315[E|PRO]/550/[M]65x/[M]66x[F|M|G]X/[M]74x[GX]/330/[M]76x[GX]
- * XGI V3XT/V5/V8, Z7
- * frame buffer driver for Linux kernels >= 2.4.14 and >=2.6.3
- *
- * Linux kernel specific extensions to init.c/init301.c
- *
- * Copyright (C) 2001-2005 Thomas Winischhofer, Vienna, Austria.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the named License,
- * or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA
- *
- * Author:	Thomas Winischhofer <thomas@winischhofer.net>
- */
+
 
 #include "osdef.h"
 #include "initdef.h"
@@ -75,7 +50,7 @@ sisfb_mode_rate_to_dclock(struct SiS_Private *SiS_Pr, unsigned char modeno,
 
     if(SiS_Pr->SiS_RefIndex[RRTI].Ext_InfoFlag & HaveWideTiming) {
        if(SiS_Pr->SiS_UseWide == 1) {
-	  /* Wide screen: Ignore rateindex */
+	  
 	  ClockIndex = SiS_Pr->SiS_RefIndex[RRTI].Ext_CRTVCLK_WIDE;
        } else {
 	  RRTI += rateindex;
@@ -115,7 +90,7 @@ sisfb_mode_rate_to_ddata(struct SiS_Private *SiS_Pr, unsigned char modeno,
     RRTI = SiS_Pr->SiS_EModeIDTable[ModeIdIndex].REFindex;
     if(SiS_Pr->SiS_RefIndex[RRTI].Ext_InfoFlag & HaveWideTiming) {
        if(SiS_Pr->SiS_UseWide == 1) {
-	  /* Wide screen: Ignore rateindex */
+	  
 	  index = SiS_Pr->SiS_RefIndex[RRTI].Ext_CRT1CRTC_WIDE;
        } else {
 	  RRTI += rateindex;
@@ -160,7 +135,7 @@ sisfb_mode_rate_to_ddata(struct SiS_Private *SiS_Pr, unsigned char modeno,
     }
 
     if((var->vmode & FB_VMODE_MASK) == FB_VMODE_INTERLACED) {
-#if 0  /* Do this? */
+#if 0  
        var->upper_margin <<= 1;
        var->lower_margin <<= 1;
        var->vsync_len <<= 1;
@@ -199,7 +174,7 @@ sisfb_gettotalfrommode(struct SiS_Private *SiS_Pr, unsigned char modeno, int *ht
     RRTI = SiS_Pr->SiS_EModeIDTable[ModeIdIndex].REFindex;
     if(SiS_Pr->SiS_RefIndex[RRTI].Ext_InfoFlag & HaveWideTiming) {
        if(SiS_Pr->SiS_UseWide == 1) {
-	  /* Wide screen: Ignore rateindex */
+	  
 	  CRT1Index = SiS_Pr->SiS_RefIndex[RRTI].Ext_CRT1CRTC_WIDE;
        } else {
 	  RRTI += rateindex;

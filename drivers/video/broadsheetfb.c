@@ -1,20 +1,4 @@
-/*
- * broadsheetfb.c -- FB driver for E-Ink Broadsheet controller
- *
- * Copyright (C) 2008, Jaya Kumar
- *
- * This file is subject to the terms and conditions of the GNU General Public
- * License. See the file COPYING in the main directory of this archive for
- * more details.
- *
- * Layout is based on skeletonfb.c by James Simmons and Geert Uytterhoeven.
- *
- * This driver is written to be used with the Broadsheet display controller.
- *
- * It is intended to be architecture independent. A board specific driver
- * must be used to perform all the physical IO interactions.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -33,7 +17,7 @@
 
 #include <video/broadsheetfb.h>
 
-/* Display specific information */
+
 #define DPY_W 800
 #define DPY_H 600
 
@@ -61,7 +45,7 @@ static struct fb_var_screeninfo broadsheetfb_var __devinitdata = {
 	.transp =	{ 0, 0, 0 },
 };
 
-/* main broadsheetfb functions */
+
 static void broadsheet_issue_data(struct broadsheetfb_par *par, u16 data)
 {
 	par->board->set_ctl(par, BS_WR, 0);
@@ -124,17 +108,17 @@ static void broadsheet_burst_write(struct broadsheetfb_par *par, int size,
 static u16 broadsheet_get_data(struct broadsheetfb_par *par)
 {
 	u16 res;
-	/* wait for ready to go hi. (lo is busy) */
+	
 	par->board->wait_for_rdy(par);
 
-	/* cs lo, dc lo for cmd, we lo for each data, db as usual */
+	
 	par->board->set_ctl(par, BS_DC, 1);
 	par->board->set_ctl(par, BS_CS, 0);
 	par->board->set_ctl(par, BS_WR, 0);
 
 	res = par->board->get_hdb(par);
 
-	/* strobe wr */
+	
 	par->board->set_ctl(par, BS_WR, 1);
 	par->board->set_ctl(par, BS_CS, 1);
 
@@ -144,10 +128,10 @@ static u16 broadsheet_get_data(struct broadsheetfb_par *par)
 static void broadsheet_write_reg(struct broadsheetfb_par *par, u16 reg,
 					u16 data)
 {
-	/* wait for ready to go hi. (lo is busy) */
+	
 	par->board->wait_for_rdy(par);
 
-	/* cs lo, dc lo for cmd, we lo for each data, db as usual */
+	
 	par->board->set_ctl(par, BS_CS, 0);
 
 	broadsheet_issue_cmd(par, BS_CMD_WR_REG);
@@ -173,22 +157,22 @@ static void __devinit broadsheet_init_display(struct broadsheetfb_par *par)
 
 	args[0] = DPY_W;
 	args[1] = DPY_H;
-	args[2] = (100 | (1 << 8) | (1 << 9)); /* sdcfg */
-	args[3] = 2; /* gdrv cfg */
-	args[4] = (4 | (1 << 7)); /* lut index format */
+	args[2] = (100 | (1 << 8) | (1 << 9)); 
+	args[3] = 2; 
+	args[4] = (4 | (1 << 7)); 
 	broadsheet_send_cmdargs(par, BS_CMD_INIT_DSPE_CFG, 5, args);
 
-	/* did the controller really set it? */
+	
 	broadsheet_send_cmdargs(par, BS_CMD_INIT_DSPE_CFG, 5, args);
 
-	args[0] = 4; /* fsync len */
-	args[1] = (10 << 8) | 4; /* fend/fbegin len */
-	args[2] = 10; /* line sync len */
-	args[3] = (100 << 8) | 4; /* line end/begin len */
-	args[4] = 6; /* pixel clock cfg */
+	args[0] = 4; 
+	args[1] = (10 << 8) | 4; 
+	args[2] = 10; 
+	args[3] = (100 << 8) | 4; 
+	args[4] = 6; 
 	broadsheet_send_cmdargs(par, BS_CMD_INIT_DSPE_TMG, 5, args);
 
-	/* setup waveform */
+	
 	args[0] = 0x886;
 	args[1] = 0;
 	broadsheet_send_cmdargs(par, BS_CMD_RD_WFM_INFO, 2, args);
@@ -225,7 +209,7 @@ static void __devinit broadsheet_init_display(struct broadsheetfb_par *par)
 static void __devinit broadsheet_init(struct broadsheetfb_par *par)
 {
 	broadsheet_send_command(par, BS_CMD_INIT_SYS_RUN);
-	/* the controller needs a second */
+	
 	msleep(1000);
 	broadsheet_init_display(par);
 }
@@ -236,9 +220,9 @@ static void broadsheetfb_dpy_update_pages(struct broadsheetfb_par *par,
 	u16 args[5];
 	unsigned char *buf = (unsigned char *)par->info->screen_base;
 
-	/* y1 must be a multiple of 4 so drop the lower bits */
+	
 	y1 &= 0xFFFC;
-	/* y2 must be a multiple of 4 , but - 1 so up the lower bits */
+	
 	y2 |= 0x0003;
 
 	args[0] = 0x3 << 4;
@@ -293,7 +277,7 @@ static void broadsheetfb_dpy_update(struct broadsheetfb_par *par)
 
 }
 
-/* this is called back from the deferred io workqueue */
+
 static void broadsheetfb_dpy_deferred_io(struct fb_info *info,
 				struct list_head *pagelist)
 {
@@ -305,31 +289,31 @@ static void broadsheetfb_dpy_deferred_io(struct fb_info *info,
 	u16 yres = info->var.yres;
 	u16 xres = info->var.xres;
 
-	/* height increment is fixed per page */
+	
 	h_inc = DIV_ROUND_UP(PAGE_SIZE , xres);
 
-	/* walk the written page list and swizzle the data */
+	
 	list_for_each_entry(cur, &fbdefio->pagelist, lru) {
 		if (prev_index < 0) {
-			/* just starting so assign first page */
+			
 			y1 = (cur->index << PAGE_SHIFT) / xres;
 			h = h_inc;
 		} else if ((prev_index + 1) == cur->index) {
-			/* this page is consecutive so increase our height */
+			
 			h += h_inc;
 		} else {
-			/* page not consecutive, issue previous update first */
+			
 			broadsheetfb_dpy_update_pages(info->par, y1, y1 + h);
-			/* start over with our non consecutive page */
+			
 			y1 = (cur->index << PAGE_SHIFT) / xres;
 			h = h_inc;
 		}
 		prev_index = cur->index;
 	}
 
-	/* if we still have any pages to update we do so now */
+	
 	if (h >= yres) {
-		/* its a full screen update, just do it */
+		
 		broadsheetfb_dpy_update(info->par);
 	} else {
 		broadsheetfb_dpy_update_pages(info->par, y1,
@@ -367,10 +351,7 @@ static void broadsheetfb_imageblit(struct fb_info *info,
 	broadsheetfb_dpy_update(par);
 }
 
-/*
- * this is the slow path from userspace. they can seek and write to
- * the fb. it's inefficient to do anything less than a full screen draw
- */
+
 static ssize_t broadsheetfb_write(struct fb_info *info, const char __user *buf,
 				size_t count, loff_t *ppos)
 {
@@ -437,12 +418,12 @@ static int __devinit broadsheetfb_probe(struct platform_device *dev)
 	struct broadsheetfb_par *par;
 	int i;
 
-	/* pick up board specific routines */
+	
 	board = dev->dev.platform_data;
 	if (!board)
 		return -EINVAL;
 
-	/* try to count device specific driver, if can't, platform recalls */
+	
 	if (!try_module_get(board->owner))
 		return -ENODEV;
 
@@ -481,7 +462,7 @@ static int __devinit broadsheetfb_probe(struct platform_device *dev)
 		goto err_vfree;
 	}
 
-	/* set cmap */
+	
 	for (i = 0; i < 16; i++)
 		info->cmap.red[i] = (((2*i)+1)*(0xFFFF))/32;
 	memcpy(info->cmap.green, info->cmap.red, sizeof(u16)*16);
@@ -491,7 +472,7 @@ static int __devinit broadsheetfb_probe(struct platform_device *dev)
 	if (retval < 0)
 		goto err_cmap;
 
-	/* this inits the dpy */
+	
 	retval = board->init(par);
 	if (retval < 0)
 		goto err_free_irq;

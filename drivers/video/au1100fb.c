@@ -1,46 +1,4 @@
-/*
- * BRIEF MODULE DESCRIPTION
- *	Au1100 LCD Driver.
- *
- * Rewritten for 2.6 by Embedded Alley Solutions
- * 	<source@embeddedalley.com>, based on submissions by
- *  	Karl Lessard <klessard@sunrisetelecom.com>
- *  	<c.pellegrin@exadron.com>
- *
- * PM support added by Rodolfo Giometti <giometti@linux.it>
- * Cursor enable/disable by Rodolfo Giometti <giometti@linux.it>
- *
- * Copyright 2002 MontaVista Software
- * Author: MontaVista Software, Inc.
- *		ppopov@mvista.com or source@mvista.com
- *
- * Copyright 2002 Alchemy Semiconductor
- * Author: Alchemy Semiconductor
- *
- * Based on:
- * linux/drivers/video/skeletonfb.c -- Skeleton for a frame buffer device
- *  Created 28 Dec 1997 by Geert Uytterhoeven
- *
- *  This program is free software; you can redistribute	 it and/or modify it
- *  under  the terms of	 the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the	License, or (at your
- *  option) any later version.
- *
- *  THIS  SOFTWARE  IS PROVIDED	  ``AS	IS'' AND   ANY	EXPRESS OR IMPLIED
- *  WARRANTIES,	  INCLUDING, BUT NOT  LIMITED  TO, THE IMPLIED WARRANTIES OF
- *  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN
- *  NO	EVENT  SHALL   THE AUTHOR  BE	 LIABLE FOR ANY	  DIRECT, INDIRECT,
- *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- *  NOT LIMITED	  TO, PROCUREMENT OF  SUBSTITUTE GOODS	OR SERVICES; LOSS OF
- *  USE, DATA,	OR PROFITS; OR	BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- *  ANY THEORY OF LIABILITY, WHETHER IN	 CONTRACT, STRICT LIABILITY, OR TORT
- *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- *  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- *  You should have received a copy of the  GNU General Public License along
- *  with this program; if not, write  to the Free Software Foundation, Inc.,
- *  675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/errno.h>
@@ -59,10 +17,7 @@
 
 #include "au1100fb.h"
 
-/*
- * Sanity check. If this is a new Au1100 based board, search for
- * the PB1100 ifdefs to make sure you modify the code accordingly.
- */
+
 #if defined(CONFIG_MIPS_PB1100)
   #include <asm/mach-pb1x00/pb1100.h>
 #elif defined(CONFIG_MIPS_DB1100)
@@ -77,20 +32,17 @@
 #define to_au1100fb_device(_info) \
 	  (_info ? container_of(_info, struct au1100fb_device, info) : NULL);
 
-/* Bitfields format supported by the controller. Note that the order of formats
- * SHOULD be the same as in the LCD_CONTROL_SBPPF field, so we can retrieve the
- * right pixel format by doing rgb_bitfields[LCD_CONTROL_SBPPF_XXX >> LCD_CONTROL_SBPPF]
- */
+
 struct fb_bitfield rgb_bitfields[][4] =
 {
-  	/*     Red, 	   Green, 	 Blue, 	     Transp   */
+  	
 	{ { 10, 6, 0 }, { 5, 5, 0 }, { 0, 5, 0 }, { 0, 0, 0 } },
 	{ { 11, 5, 0 }, { 5, 6, 0 }, { 0, 5, 0 }, { 0, 0, 0 } },
 	{ { 11, 5, 0 }, { 6, 5, 0 }, { 0, 6, 0 }, { 0, 0, 0 } },
 	{ { 10, 5, 0 }, { 5, 5, 0 }, { 0, 5, 0 }, { 15, 1, 0 } },
 	{ { 11, 5, 0 }, { 6, 5, 0 }, { 1, 5, 0 }, { 0, 1, 0 } },
 
-	/* The last is used to describe 12bpp format */
+	
 	{ { 8, 4, 0 },  { 4, 4, 0 }, { 0, 4, 0 }, { 0, 0, 0 } },
 };
 
@@ -115,10 +67,7 @@ static int nocursor = 0;
 module_param(nocursor, int, 0644);
 MODULE_PARM_DESC(nocursor, "cursor enable/disable");
 
-/* fb_blank
- * Blank the screen. Depending on the mode, the screen will be
- * activated with the backlight color, or desactivated
- */
+
 static int au1100fb_fb_blank(int blank_mode, struct fb_info *fbi)
 {
 	struct au1100fb_device *fbdev = to_au1100fb_device(fbi);
@@ -128,7 +77,7 @@ static int au1100fb_fb_blank(int blank_mode, struct fb_info *fbi)
 	switch (blank_mode) {
 
 	case VESA_NO_BLANKING:
-			/* Turn on panel */
+			
 			fbdev->regs->lcd_control |= LCD_CONTROL_GO;
 #ifdef CONFIG_MIPS_PB1100
 			if (drv_info.panel_idx == 1) {
@@ -143,7 +92,7 @@ static int au1100fb_fb_blank(int blank_mode, struct fb_info *fbi)
 	case VESA_VSYNC_SUSPEND:
 	case VESA_HSYNC_SUSPEND:
 	case VESA_POWERDOWN:
-			/* Turn off panel */
+			
 			fbdev->regs->lcd_control &= ~LCD_CONTROL_GO;
 #ifdef CONFIG_MIPS_PB1100
 			if (drv_info.panel_idx == 1) {
@@ -161,10 +110,7 @@ static int au1100fb_fb_blank(int blank_mode, struct fb_info *fbi)
 	return 0;
 }
 
-/*
- * Set hardware with var settings. This will enable the controller with a specific
- * mode, normally validated with the fb_check_var method
-	 */
+
 int au1100fb_setmode(struct au1100fb_device *fbdev)
 {
 	struct fb_info *info = &fbdev->info;
@@ -174,10 +120,10 @@ int au1100fb_setmode(struct au1100fb_device *fbdev)
 	if (!fbdev)
 		return -EINVAL;
 
-	/* Update var-dependent FB info */
+	
 	if (panel_is_active(fbdev->panel) || panel_is_color(fbdev->panel)) {
 		if (info->var.bits_per_pixel <= 8) {
-			/* palettized */
+			
 			info->var.red.offset    = 0;
 			info->var.red.length    = info->var.bits_per_pixel;
 			info->var.red.msb_right = 0;
@@ -198,7 +144,7 @@ int au1100fb_setmode(struct au1100fb_device *fbdev)
 			info->fix.line_length = info->var.xres_virtual /
 							(8/info->var.bits_per_pixel);
 		} else {
-			/* non-palettized */
+			
 			index = (fbdev->panel->control_base & LCD_CONTROL_SBPPF_MASK) >> LCD_CONTROL_SBPPF_BIT;
 			info->var.red = rgb_bitfields[index][0];
 			info->var.green = rgb_bitfields[index][1];
@@ -206,10 +152,10 @@ int au1100fb_setmode(struct au1100fb_device *fbdev)
 			info->var.transp = rgb_bitfields[index][3];
 
 			info->fix.visual = FB_VISUAL_TRUECOLOR;
-			info->fix.line_length = info->var.xres_virtual << 1; /* depth=16 */
+			info->fix.line_length = info->var.xres_virtual << 1; 
 		}
 	} else {
-		/* mono */
+		
 		info->fix.visual = FB_VISUAL_MONO10;
 		info->fix.line_length = info->var.xres_virtual / 8;
 	}
@@ -218,7 +164,7 @@ int au1100fb_setmode(struct au1100fb_device *fbdev)
 	info->var.rotate = ((fbdev->panel->control_base&LCD_CONTROL_SM_MASK) \
 				>> LCD_CONTROL_SM_BIT) * 90;
 
-	/* Determine BPP mode and format */
+	
 	fbdev->regs->lcd_control = fbdev->panel->control_base;
 	fbdev->regs->lcd_horztiming = fbdev->panel->horztiming;
 	fbdev->regs->lcd_verttiming = fbdev->panel->verttiming;
@@ -228,8 +174,7 @@ int au1100fb_setmode(struct au1100fb_device *fbdev)
 	fbdev->regs->lcd_dmaaddr0 = LCD_DMA_SA_N(fbdev->fb_phys);
 
 	if (panel_is_dual(fbdev->panel)) {
-		/* Second panel display seconf half of screen if possible,
-		 * otherwise display the same as the first panel */
+		
 		if (info->var.yres_virtual >= (info->var.yres << 1)) {
 			fbdev->regs->lcd_dmaaddr1 = LCD_DMA_SA_N(fbdev->fb_phys +
 							  (info->fix.line_length *
@@ -242,8 +187,8 @@ int au1100fb_setmode(struct au1100fb_device *fbdev)
 	words = info->fix.line_length / sizeof(u32);
 	if (!info->var.rotate || (info->var.rotate == 180)) {
 		words *= info->var.yres_virtual;
-		if (info->var.rotate /* 180 */) {
-			words -= (words % 8); /* should be divisable by 8 */
+		if (info->var.rotate ) {
+			words -= (words % 8); 
 		}
 	}
 	fbdev->regs->lcd_words = LCD_WRD_WRDS_N(words);
@@ -251,7 +196,7 @@ int au1100fb_setmode(struct au1100fb_device *fbdev)
 	fbdev->regs->lcd_pwmdiv = 0;
 	fbdev->regs->lcd_pwmhi = 0;
 
-	/* Resume controller */
+	
 	fbdev->regs->lcd_control |= LCD_CONTROL_GO;
 	mdelay(10);
 	au1100fb_fb_blank(VESA_NO_BLANKING, info);
@@ -259,9 +204,7 @@ int au1100fb_setmode(struct au1100fb_device *fbdev)
 	return 0;
 }
 
-/* fb_setcolreg
- * Set color in LCD palette.
- */
+
 int au1100fb_fb_setcolreg(unsigned regno, unsigned red, unsigned green, unsigned blue, unsigned transp, struct fb_info *fbi)
 {
 	struct au1100fb_device *fbdev;
@@ -275,13 +218,13 @@ int au1100fb_fb_setcolreg(unsigned regno, unsigned red, unsigned green, unsigned
 		return -EINVAL;
 
 	if (fbi->var.grayscale) {
-		/* Convert color to grayscale */
+		
 		red = green = blue =
 			(19595 * red + 38470 * green + 7471 * blue) >> 16;
 	}
 
 	if (fbi->fix.visual == FB_VISUAL_TRUECOLOR) {
-		/* Place color in the pseudopalette */
+		
 		if (regno > 16)
 			return -EINVAL;
 
@@ -297,18 +240,18 @@ int au1100fb_fb_setcolreg(unsigned regno, unsigned red, unsigned green, unsigned
 		value &= 0xFFFF;
 
 	} else if (panel_is_active(fbdev->panel)) {
-		/* COLOR TFT PALLETTIZED (use RGB 565) */
+		
 		value = (red & 0xF800)|((green >> 5) & 0x07E0)|((blue >> 11) & 0x001F);
 		value &= 0xFFFF;
 
 	} else if (panel_is_color(fbdev->panel)) {
-		/* COLOR STN MODE */
+		
 		value = (((panel_swap_rgb(fbdev->panel) ? blue : red) >> 12) & 0x000F) |
 			((green >> 8) & 0x00F0) |
 			(((panel_swap_rgb(fbdev->panel) ? red : blue) >> 4) & 0x0F00);
 		value &= 0xFFF;
 	} else {
-		/* MONOCHROME MODE */
+		
 		value = (green >> 12) & 0x000F;
 		value &= 0xF;
 	}
@@ -318,9 +261,7 @@ int au1100fb_fb_setcolreg(unsigned regno, unsigned red, unsigned green, unsigned
 	return 0;
 }
 
-/* fb_pan_display
- * Pan display in x and/or y as specified
- */
+
 int au1100fb_fb_pan_display(struct fb_var_screeninfo *var, struct fb_info *fbi)
 {
 	struct au1100fb_device *fbdev;
@@ -335,7 +276,7 @@ int au1100fb_fb_pan_display(struct fb_var_screeninfo *var, struct fb_info *fbi)
 	}
 
 	if (var->xoffset - fbi->var.xoffset) {
-		/* No support for X panning for now! */
+		
 		return -EINVAL;
 	}
 
@@ -350,7 +291,7 @@ int au1100fb_fb_pan_display(struct fb_var_screeninfo *var, struct fb_info *fbi)
 		dmaaddr = fbdev->regs->lcd_dmaaddr0;
 		dmaaddr += (fbi->fix.line_length * dy);
 
-		/* TODO: Wait for current frame to finished */
+		
 		fbdev->regs->lcd_dmaaddr0 = LCD_DMA_SA_N(dmaaddr);
 
 		if (panel_is_dual(fbdev->panel)) {
@@ -364,10 +305,7 @@ int au1100fb_fb_pan_display(struct fb_var_screeninfo *var, struct fb_info *fbi)
 	return 0;
 }
 
-/* fb_rotate
- * Rotate the display of this angle. This doesn't seems to be used by the core,
- * but as our hardware supports it, so why not implementing it...
- */
+
 void au1100fb_fb_rotate(struct fb_info *fbi, int angle)
 {
 	struct au1100fb_device *fbdev = to_au1100fb_device(fbi);
@@ -385,10 +323,7 @@ void au1100fb_fb_rotate(struct fb_info *fbi, int angle)
 	}
 }
 
-/* fb_mmap
- * Map video memory in user space. We don't use the generic fb_mmap method mainly
- * to allow the use of the TLB streaming flag (CCA=6)
- */
+
 int au1100fb_fb_mmap(struct fb_info *fbi, struct vm_area_struct *vma)
 {
 	struct au1100fb_device *fbdev;
@@ -414,7 +349,7 @@ int au1100fb_fb_mmap(struct fb_info *fbi, struct vm_area_struct *vma)
 	vma->vm_pgoff = off >> PAGE_SHIFT;
 
 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-	pgprot_val(vma->vm_page_prot) |= (6 << 9); //CCA=6
+	pgprot_val(vma->vm_page_prot) |= (6 << 9); 
 
 	vma->vm_flags |= VM_IO;
 
@@ -427,15 +362,13 @@ int au1100fb_fb_mmap(struct fb_info *fbi, struct vm_area_struct *vma)
 	return 0;
 }
 
-/* fb_cursor
- * Used to disable cursor drawing...
- */
+
 int au1100fb_fb_cursor(struct fb_info *info, struct fb_cursor *cursor)
 {
 	if (nocursor)
 		return 0;
 	else
-		return -EINVAL;	/* just to force soft_cursor() call */
+		return -EINVAL;	
 }
 
 static struct fb_ops au1100fb_ops =
@@ -453,9 +386,9 @@ static struct fb_ops au1100fb_ops =
 };
 
 
-/*-------------------------------------------------------------------------*/
 
-/* AU1100 LCD controller device driver */
+
+
 
 static int __init au1100fb_drv_probe(struct platform_device *dev)
 {
@@ -467,7 +400,7 @@ static int __init au1100fb_drv_probe(struct platform_device *dev)
 	if (!dev)
 			return -EINVAL;
 
-	/* Allocate new device private */
+	
 	if (!(fbdev = kzalloc(sizeof(struct au1100fb_device), GFP_KERNEL))) {
 		print_err("fail to allocate device private record");
 		return -ENOMEM;
@@ -477,7 +410,7 @@ static int __init au1100fb_drv_probe(struct platform_device *dev)
 
 	platform_set_drvdata(dev, (void *)fbdev);
 
-	/* Allocate region for our registers and map them */
+	
 	if (!(regs_res = platform_get_resource(to_platform_device(dev),
 					IORESOURCE_MEM, 0))) {
 		print_err("fail to retrieve registers resource");
@@ -501,7 +434,7 @@ static int __init au1100fb_drv_probe(struct platform_device *dev)
 
 
 
-	/* Allocate the framebuffer to the maximum screen size * nbr of video buffers */
+	
 	fbdev->fb_len = fbdev->panel->xres * fbdev->panel->yres *
 		  	(fbdev->panel->bpp >> 3) * AU1100FB_NBR_VIDEO_BUFFERS;
 
@@ -516,10 +449,7 @@ static int __init au1100fb_drv_probe(struct platform_device *dev)
 	au1100fb_fix.smem_start = fbdev->fb_phys;
 	au1100fb_fix.smem_len = fbdev->fb_len;
 
-	/*
-	 * Set page reserved so that mmap will work. This is necessary
-	 * since we'll be remapping normal memory.
-	 */
+	
 	for (page = (unsigned long)fbdev->fb_mem;
 	     page < PAGE_ALIGN((unsigned long)fbdev->fb_mem + fbdev->fb_len);
 	     page += PAGE_SIZE) {
@@ -533,11 +463,11 @@ static int __init au1100fb_drv_probe(struct platform_device *dev)
 	print_dbg("Framebuffer memory map at %p", fbdev->fb_mem);
 	print_dbg("phys=0x%08x, size=%dK", fbdev->fb_phys, fbdev->fb_len / 1024);
 
-	/* Setup LCD clock to AUX (48 MHz) */
+	
 	sys_clksrc = au_readl(SYS_CLKSRC) & ~(SYS_CS_ML_MASK | SYS_CS_DL | SYS_CS_CL);
 	au_writel((sys_clksrc | (1 << SYS_CS_ML_BIT)), SYS_CLKSRC);
 
-	/* load the panel info into the var struct */
+	
 	au1100fb_var.bits_per_pixel = fbdev->panel->bpp;
 	au1100fb_var.xres = fbdev->panel->xres;
 	au1100fb_var.xres_virtual = au1100fb_var.xres;
@@ -561,10 +491,10 @@ static int __init au1100fb_drv_probe(struct platform_device *dev)
 
 	fbdev->info.var = au1100fb_var;
 
-	/* Set h/w registers */
+	
 	au1100fb_setmode(fbdev);
 
-	/* Register new framebuffer */
+	
 	if (register_framebuffer(&fbdev->info) < 0) {
 		print_err("cannot register new framebuffer");
 		goto failed;
@@ -602,7 +532,7 @@ int au1100fb_drv_remove(struct platform_device *dev)
 #endif
 	fbdev->regs->lcd_control &= ~LCD_CONTROL_GO;
 
-	/* Clean up all probe data */
+	
 	unregister_framebuffer(&fbdev->info);
 
 	release_mem_region(fbdev->regs_phys, fbdev->regs_len);
@@ -627,13 +557,13 @@ int au1100fb_drv_suspend(struct platform_device *dev, pm_message_t state)
 	if (!fbdev)
 		return 0;
 
-	/* Save the clock source state */
+	
 	sys_clksrc = au_readl(SYS_CLKSRC);
 
-	/* Blank the LCD */
+	
 	au1100fb_fb_blank(VESA_POWERDOWN, &fbdev->info);
 
-	/* Stop LCD clocking */
+	
 	au_writel(sys_clksrc & ~SYS_CS_ML_MASK, SYS_CLKSRC);
 
 	memcpy(&fbregs, fbdev->regs, sizeof(struct au1100fb_regs));
@@ -650,10 +580,10 @@ int au1100fb_drv_resume(struct platform_device *dev)
 
 	memcpy(fbdev->regs, &fbregs, sizeof(struct au1100fb_regs));
 
-	/* Restart LCD clocking */
+	
 	au_writel(sys_clksrc, SYS_CLKSRC);
 
-	/* Unblank the LCD */
+	
 	au1100fb_fb_blank(VESA_NO_BLANKING, &fbdev->info);
 
 	return 0;
@@ -674,9 +604,9 @@ static struct platform_driver au1100fb_driver = {
         .resume		= au1100fb_drv_resume,
 };
 
-/*-------------------------------------------------------------------------*/
 
-/* Kernel driver */
+
+
 
 int au1100fb_setup(char *options)
 {
@@ -692,7 +622,7 @@ int au1100fb_setup(char *options)
 
 	if (options) {
 		while ((this_opt = strsep(&options,",")) != NULL) {
-			/* Panel option */
+			
 			if (!strncmp(this_opt, "panel:", 6)) {
 				int i;
 				this_opt += 6;
@@ -713,7 +643,7 @@ int au1100fb_setup(char *options)
 				nocursor = 1;
 				print_info("Cursor disabled");
 			}
-			/* Mode option (only option that start with digit) */
+			
 			else if (isdigit(this_opt[0])) {
 				mode = kstrdup(this_opt, GFP_KERNEL);
 				if (!mode) {
@@ -721,7 +651,7 @@ int au1100fb_setup(char *options)
 					return -ENOMEM;
 				}
 			}
-			/* Unsupported option */
+			
 			else {
 				print_warn("Unsupported option \"%s\"", this_opt);
 			}
@@ -750,7 +680,7 @@ int __init au1100fb_init(void)
 	if (fb_get_options(DRIVER_NAME, &options))
 		return -ENODEV;
 
-	/* Setup driver with options */
+	
 	ret = au1100fb_setup(options);
 	if (ret < 0) {
 		print_err("Fail to setup driver");

@@ -1,19 +1,4 @@
-/* drivers/video/msm_fb/mddi_client_toshiba.c
- *
- * Support for Toshiba TC358720XBG mddi client devices which require no
- * special initialization code.
- *
- * Copyright (C) 2007 Google Incorporated
- *
- * This software is licensed under the terms of the GNU General Public
- * License version 2, as published by the Free Software Foundation, and
- * may be copied, distributed, and modified under those terms.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -93,13 +78,13 @@ static void toshiba_wait_vsync(struct msm_panel_data *panel_data)
 
 	if (panel->toshiba_got_int) {
 		panel->toshiba_got_int = 0;
-		client_data->activate_link(client_data); /* clears interrupt */
+		client_data->activate_link(client_data); 
 	}
 	if (wait_event_timeout(toshiba_vsync_wait, panel->toshiba_got_int,
 				HZ/2) == 0)
 		printk(KERN_ERR "timeout waiting for VSYNC\n");
 	panel->toshiba_got_int = 0;
-	/* interrupt clears when screen dma starts */
+	
 }
 
 static int toshiba_suspend(struct msm_panel_data *panel_data)
@@ -227,7 +212,7 @@ static int mddi_toshiba_probe(struct platform_device *pdev)
 		return -ENOMEM;
 	platform_set_drvdata(pdev, panel);
 
-	/* mddi_remote_write(mddi, 0, WAKEUP); */
+	
 	client_data->remote_write(client_data, GPIOSEL_VWAKEINT, GPIOSEL);
 	client_data->remote_write(client_data, INTMASK_VWAKEOUT, INTMASK);
 

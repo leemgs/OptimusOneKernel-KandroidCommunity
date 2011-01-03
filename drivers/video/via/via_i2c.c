@@ -1,23 +1,4 @@
-/*
- * Copyright 1998-2008 VIA Technologies, Inc. All Rights Reserved.
- * Copyright 2001-2008 S3 Graphics, Inc. All Rights Reserved.
 
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public
- * License as published by the Free Software Foundation;
- * either version 2, or (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTIES OR REPRESENTATIONS; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE.See the GNU General Public License
- * for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc.,
- * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
 
 #include "global.h"
 
@@ -152,7 +133,7 @@ int viafb_create_i2c_bus(void *viapar)
 
 	i2c_set_adapdata(&i2c_stuff->adapter, i2c_stuff);
 
-	/* Raise SCL and SDA */
+	
 	i2c_stuff->i2c_port = I2CPORTINDEX;
 	via_i2c_setsda(i2c_stuff, 1);
 	via_i2c_setscl(i2c_stuff, 1);

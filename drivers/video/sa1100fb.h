@@ -1,19 +1,6 @@
-/*
- * linux/drivers/video/sa1100fb.h
- *    -- StrongARM 1100 LCD Controller Frame Buffer Device
- *
- *  Copyright (C) 1999 Eric A. Thomas
- *   Based on acornfb.c Copyright (C) Russell King.
- *  
- * This file is subject to the terms and conditions of the GNU General Public
- * License.  See the file COPYING in the main directory of this archive
- * for more details.
- */
 
-/*
- * These are the bitfields for each
- * display depth that we support.
- */
+
+
 struct sa1100fb_rgb {
 	struct fb_bitfield	red;
 	struct fb_bitfield	green;
@@ -21,9 +8,7 @@ struct sa1100fb_rgb {
 	struct fb_bitfield	transp;
 };
 
-/*
- * This structure describes the machine which we are running on.
- */
+
 struct sa1100fb_mach_info {
 	u_long		pixclock;
 
@@ -49,7 +34,7 @@ struct sa1100fb_mach_info {
 	u_int		lccr3;
 };
 
-/* Shadows for LCD controller registers */
+
 struct sa1100fb_lcd_reg {
 	unsigned long lccr0;
 	unsigned long lccr1;
@@ -71,10 +56,7 @@ struct sa1100fb_info {
 	u_int			max_xres;
 	u_int			max_yres;
 
-	/*
-	 * These are the addresses we mapped
-	 * the framebuffer memory region to.
-	 */
+	
 	dma_addr_t		map_dma;
 	u_char *		map_cpu;
 	u_int			map_size;
@@ -115,9 +97,7 @@ struct sa1100fb_info {
 
 #define SA1100_PALETTE_MODE_VAL(bpp)    (((bpp) & 0x018) << 9)
 
-/*
- * These are the actions for set_ctrlr_state
- */
+
 #define C_DISABLE		(0)
 #define C_ENABLE		(1)
 #define C_DISABLE_CLKCHANGE	(2)
@@ -129,18 +109,14 @@ struct sa1100fb_info {
 
 #define SA1100_NAME	"SA1100"
 
-/*
- *  Debug macros 
- */
+
 #if DEBUG
 #  define DPRINTK(fmt, args...)	printk("%s: " fmt, __func__ , ## args)
 #else
 #  define DPRINTK(fmt, args...)
 #endif
 
-/*
- * Minimum X and Y resolutions
- */
+
 #define MIN_XRES	64
 #define MIN_YRES	64
 

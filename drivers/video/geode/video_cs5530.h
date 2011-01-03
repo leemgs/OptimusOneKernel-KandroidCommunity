@@ -1,23 +1,10 @@
-/*
- * drivers/video/geode/video_cs5530.h
- *   -- CS5530 video device
- *
- * Copyright (C) 2005 Arcom Control Systems Ltd.
- *
- * Based on AMD's original 2.4 driver:
- *   Copyright (C) 2004 Advanced Micro Devices, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
+
 #ifndef __VIDEO_CS5530_H__
 #define __VIDEO_CS5530_H__
 
 extern struct geode_vid_ops cs5530_vid_ops;
 
-/* CS5530 Video device registers */
+
 
 #define CS5530_VIDEO_CONFIG	0x0000
 #  define CS5530_VCFG_VID_EN			0x00000001
@@ -72,4 +59,4 @@ extern struct geode_vid_ops cs5530_vid_ops;
 #define CS5530_DOT_CLK_CONFIG	0x0024
 #define CS5530_CRCSIG_TFT_TV	0x0028
 
-#endif /* !__VIDEO_CS5530_H__ */
+#endif 

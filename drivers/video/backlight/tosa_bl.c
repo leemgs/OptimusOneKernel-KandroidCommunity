@@ -1,14 +1,4 @@
-/*
- *  LCD / Backlight control code for Sharp SL-6000x (tosa)
- *
- *  Copyright (c) 2005		Dirk Opfer
- *  Copyright (c) 2007,2008	Dmitry Baryshkov
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -41,10 +31,10 @@ static void tosa_bl_set_backlight(struct tosa_bl_data *data, int brightness)
 
 	i2c_smbus_write_byte_data(data->i2c, DAC_CH1, data->comadj);
 
-	/* SetBacklightDuty */
+	
 	i2c_smbus_write_byte_data(data->i2c, DAC_CH2, (u8)(brightness & 0xff));
 
-	/* SetBacklightVR */
+	
 	gpio_set_value(TOSA_GPIO_BL_C20MA, brightness & 0x100);
 
 	tosa_bl_enable(spi, brightness);

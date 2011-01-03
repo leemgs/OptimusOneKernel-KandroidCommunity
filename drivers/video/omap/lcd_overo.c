@@ -1,23 +1,4 @@
-/*
- * LCD panel support for the Gumstix Overo
- *
- * Author: Steve Sakoman <steve@sakoman.com>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/platform_device.h>
@@ -71,7 +52,7 @@ struct lcd_panel overo_panel = {
 
 #if defined CONFIG_FB_OMAP_031M3R
 
-	/* 640 x 480 @ 60 Hz  Reduced blanking VESA CVT 0.31M3-R */
+	
 	.x_res		= 640,
 	.y_res		= 480,
 	.hfp		= 48,
@@ -84,7 +65,7 @@ struct lcd_panel overo_panel = {
 
 #elif defined CONFIG_FB_OMAP_048M3R
 
-	/* 800 x 600 @ 60 Hz  Reduced blanking VESA CVT 0.48M3-R */
+	
 	.x_res		= 800,
 	.y_res		= 600,
 	.hfp		= 48,
@@ -97,7 +78,7 @@ struct lcd_panel overo_panel = {
 
 #elif defined CONFIG_FB_OMAP_079M3R
 
-	/* 1024 x 768 @ 60 Hz  Reduced blanking VESA CVT 0.79M3-R */
+	
 	.x_res		= 1024,
 	.y_res		= 768,
 	.hfp		= 48,
@@ -110,7 +91,7 @@ struct lcd_panel overo_panel = {
 
 #elif defined CONFIG_FB_OMAP_092M9R
 
-	/* 1280 x 720 @ 60 Hz  Reduced blanking VESA CVT 0.92M9-R */
+	
 	.x_res		= 1280,
 	.y_res		= 720,
 	.hfp		= 48,
@@ -123,8 +104,8 @@ struct lcd_panel overo_panel = {
 
 #else
 
-	/* use 640 x 480 if no config option */
-	/* 640 x 480 @ 60 Hz  Reduced blanking VESA CVT 0.31M3-R */
+	
+	
 	.x_res		= 640,
 	.y_res		= 480,
 	.hfp		= 48,
@@ -152,7 +133,7 @@ static int overo_panel_probe(struct platform_device *pdev)
 
 static int overo_panel_remove(struct platform_device *pdev)
 {
-	/* omapfb does not have unregister_panel */
+	
 	return 0;
 }
 

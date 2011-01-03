@@ -1,24 +1,4 @@
-/*
- * LCD panel support for the TI OMAP3 Beagle board
- *
- * Author: Koen Kooi <koen@openembedded.org>
- *
- * Derived from drivers/video/omap/lcd-omap3evm.c
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/platform_device.h>
@@ -67,12 +47,12 @@ struct lcd_panel omap3beagle_panel = {
 	.data_lines	= 24,
 	.x_res		= 1024,
 	.y_res		= 768,
-	.hsw		= 3,		/* hsync_len (4) - 1 */
-	.hfp		= 3,		/* right_margin (4) - 1 */
-	.hbp		= 39,		/* left_margin (40) - 1 */
-	.vsw		= 1,		/* vsync_len (2) - 1 */
-	.vfp		= 2,		/* lower_margin */
-	.vbp		= 7,		/* upper_margin (8) - 1 */
+	.hsw		= 3,		
+	.hfp		= 3,		
+	.hbp		= 39,		
+	.vsw		= 1,		
+	.vfp		= 2,		
+	.vbp		= 7,		
 
 	.pixel_clock	= 64000,
 

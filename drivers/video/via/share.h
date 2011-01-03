@@ -1,28 +1,9 @@
-/*
- * Copyright 1998-2008 VIA Technologies, Inc. All Rights Reserved.
- * Copyright 2001-2008 S3 Graphics, Inc. All Rights Reserved.
 
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public
- * License as published by the Free Software Foundation;
- * either version 2, or (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTIES OR REPRESENTATIONS; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE.See the GNU General Public License
- * for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc.,
- * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
 
 #ifndef __SHARE_H__
 #define __SHARE_H__
 
-/* Define Return Value */
+
 #define FAIL        -1
 #define OK          1
 
@@ -30,7 +11,7 @@
 #define NULL 0
 #endif
 
-/* Define Bit Field */
+
 #define BIT0    0x01
 #define BIT1    0x02
 #define BIT2    0x04
@@ -40,11 +21,10 @@
 #define BIT6    0x40
 #define BIT7    0x80
 
-/* Video Memory Size */
+
 #define VIDEO_MEMORY_SIZE_16M    0x1000000
 
-/* Definition Mode Index
-*/
+
 #define     VIA_RES_640X480                 	0
 #define     VIA_RES_800X600                 	1
 #define     VIA_RES_1024X768                	2
@@ -87,7 +67,7 @@
 #define     VIA_RES_2048X1536              	39
 #define     VIA_RES_480X640                  	40
 
-/*Reduce Blanking*/
+
 #define     VIA_RES_1360X768_RB          	131
 #define     VIA_RES_1440X900_RB          	133
 #define     VIA_RES_1400X1050_RB        	111
@@ -98,8 +78,7 @@
 
 #define     VIA_RES_INVALID                 	255
 
-/* standard VGA IO port
-*/
+
 #define VIARMisc    0x3CC
 #define VIAWMisc    0x3C2
 #define VIAStatus   0x3DA
@@ -115,12 +94,12 @@
 
 #define PatchCR     11
 
-/* Display path */
+
 #define IGA1        1
 #define IGA2        2
 #define IGA1_IGA2   3
 
-/* Define Color Depth  */
+
 #define MODE_8BPP       1
 #define MODE_16BPP      2
 #define MODE_32BPP      4
@@ -129,7 +108,7 @@
 #define GR21    0x21
 #define GR22    0x22
 
-/* Sequencer Registers */
+
 #define SR01    0x01
 #define SR10    0x10
 #define SR12    0x12
@@ -174,7 +153,7 @@
 #define SR5E    0x5E
 #define SR65    0x65
 
-/* CRT Controller Registers */
+
 #define CR00    0x00
 #define CR01    0x01
 #define CR02    0x02
@@ -201,7 +180,7 @@
 #define CR17    0x17
 #define CR18    0x18
 
-/* Extend CRT Controller Registers */
+
 #define CR30    0x30
 #define CR31    0x31
 #define CR32    0x32
@@ -322,18 +301,18 @@
 #define CRD3    0xD3
 #define CRD4    0xD4
 
-/* LUT Table*/
-#define LUT_DATA             0x3C9	/* DACDATA */
-#define LUT_INDEX_READ       0x3C7	/* DACRX */
-#define LUT_INDEX_WRITE      0x3C8	/* DACWX */
+
+#define LUT_DATA             0x3C9	
+#define LUT_INDEX_READ       0x3C7	
+#define LUT_INDEX_WRITE      0x3C8	
 #define DACMASK              0x3C6
 
-/* Definition Device */
+
 #define DEVICE_CRT  0x01
 #define DEVICE_DVI  0x03
 #define DEVICE_LCD  0x04
 
-/* Device output interface */
+
 #define INTERFACE_NONE          0x00
 #define INTERFACE_ANALOG_RGB    0x01
 #define INTERFACE_DVP0          0x02
@@ -352,7 +331,7 @@
 #define HW_LAYOUT_LCD1_LCD2     0x04
 #define HW_LAYOUT_LCD_EXTERNAL_LCD2 0x10
 
-/* Definition Refresh Rate */
+
 #define REFRESH_50      50
 #define REFRESH_60      60
 #define REFRESH_75      75
@@ -360,333 +339,297 @@
 #define REFRESH_100     100
 #define REFRESH_120     120
 
-/* Definition Sync Polarity*/
+
 #define NEGATIVE        1
 #define POSITIVE        0
 
-/*480x640@60 Sync Polarity (GTF)
-*/
+
 #define M480X640_R60_HSP        NEGATIVE
 #define M480X640_R60_VSP        POSITIVE
 
-/*640x480@60 Sync Polarity (VESA Mode)
-*/
+
 #define M640X480_R60_HSP        NEGATIVE
 #define M640X480_R60_VSP        NEGATIVE
 
-/*640x480@75 Sync Polarity (VESA Mode)
-*/
+
 #define M640X480_R75_HSP        NEGATIVE
 #define M640X480_R75_VSP        NEGATIVE
 
-/*640x480@85 Sync Polarity (VESA Mode)
-*/
+
 #define M640X480_R85_HSP        NEGATIVE
 #define M640X480_R85_VSP        NEGATIVE
 
-/*640x480@100 Sync Polarity (GTF Mode)
-*/
+
 #define M640X480_R100_HSP       NEGATIVE
 #define M640X480_R100_VSP       POSITIVE
 
-/*640x480@120 Sync Polarity (GTF Mode)
-*/
+
 #define M640X480_R120_HSP       NEGATIVE
 #define M640X480_R120_VSP       POSITIVE
 
-/*720x480@60 Sync Polarity  (GTF Mode)
-*/
+
 #define M720X480_R60_HSP        NEGATIVE
 #define M720X480_R60_VSP        POSITIVE
 
-/*720x576@60 Sync Polarity  (GTF Mode)
-*/
+
 #define M720X576_R60_HSP        NEGATIVE
 #define M720X576_R60_VSP        POSITIVE
 
-/*800x600@60 Sync Polarity (VESA Mode)
-*/
+
 #define M800X600_R60_HSP        POSITIVE
 #define M800X600_R60_VSP        POSITIVE
 
-/*800x600@75 Sync Polarity (VESA Mode)
-*/
+
 #define M800X600_R75_HSP        POSITIVE
 #define M800X600_R75_VSP        POSITIVE
 
-/*800x600@85 Sync Polarity (VESA Mode)
-*/
+
 #define M800X600_R85_HSP        POSITIVE
 #define M800X600_R85_VSP        POSITIVE
 
-/*800x600@100 Sync Polarity (GTF Mode)
-*/
+
 #define M800X600_R100_HSP       NEGATIVE
 #define M800X600_R100_VSP       POSITIVE
 
-/*800x600@120 Sync Polarity (GTF Mode)
-*/
+
 #define M800X600_R120_HSP       NEGATIVE
 #define M800X600_R120_VSP       POSITIVE
 
-/*800x480@60 Sync Polarity  (CVT Mode)
-*/
+
 #define M800X480_R60_HSP        NEGATIVE
 #define M800X480_R60_VSP        POSITIVE
 
-/*848x480@60 Sync Polarity  (CVT Mode)
-*/
+
 #define M848X480_R60_HSP        NEGATIVE
 #define M848X480_R60_VSP        POSITIVE
 
-/*852x480@60 Sync Polarity  (GTF Mode)
-*/
+
 #define M852X480_R60_HSP        NEGATIVE
 #define M852X480_R60_VSP        POSITIVE
 
-/*1024x512@60 Sync Polarity (GTF Mode)
-*/
+
 #define M1024X512_R60_HSP       NEGATIVE
 #define M1024X512_R60_VSP       POSITIVE
 
-/*1024x600@60 Sync Polarity (GTF Mode)
-*/
+
 #define M1024X600_R60_HSP       NEGATIVE
 #define M1024X600_R60_VSP       POSITIVE
 
-/*1024x768@60 Sync Polarity (VESA Mode)
-*/
+
 #define M1024X768_R60_HSP       NEGATIVE
 #define M1024X768_R60_VSP       NEGATIVE
 
-/*1024x768@75 Sync Polarity (VESA Mode)
-*/
+
 #define M1024X768_R75_HSP       POSITIVE
 #define M1024X768_R75_VSP       POSITIVE
 
-/*1024x768@85 Sync Polarity (VESA Mode)
-*/
+
 #define M1024X768_R85_HSP       POSITIVE
 #define M1024X768_R85_VSP       POSITIVE
 
-/*1024x768@100 Sync Polarity (GTF Mode)
-*/
+
 #define M1024X768_R100_HSP      NEGATIVE
 #define M1024X768_R100_VSP      POSITIVE
 
-/*1152x864@75 Sync Polarity (VESA Mode)
-*/
+
 #define M1152X864_R75_HSP       POSITIVE
 #define M1152X864_R75_VSP       POSITIVE
 
-/*1280x720@60 Sync Polarity  (GTF Mode)
-*/
+
 #define M1280X720_R60_HSP       NEGATIVE
 #define M1280X720_R60_VSP       POSITIVE
 
-/* 1280x768@50 Sync Polarity  (GTF Mode) */
+
 #define M1280X768_R50_HSP       NEGATIVE
 #define M1280X768_R50_VSP       POSITIVE
 
-/*1280x768@60 Sync Polarity  (GTF Mode)
-*/
+
 #define M1280X768_R60_HSP       NEGATIVE
 #define M1280X768_R60_VSP       POSITIVE
 
-/*1280x800@60 Sync Polarity  (CVT Mode)
-*/
+
 #define M1280X800_R60_HSP       NEGATIVE
 #define M1280X800_R60_VSP       POSITIVE
 
-/*1280x960@60 Sync Polarity (VESA Mode)
-*/
+
 #define M1280X960_R60_HSP       POSITIVE
 #define M1280X960_R60_VSP       POSITIVE
 
-/*1280x1024@60 Sync Polarity (VESA Mode)
-*/
+
 #define M1280X1024_R60_HSP      POSITIVE
 #define M1280X1024_R60_VSP      POSITIVE
 
-/* 1360x768@60 Sync Polarity (CVT Mode) */
+
 #define M1360X768_R60_HSP       POSITIVE
 #define M1360X768_R60_VSP       POSITIVE
 
-/* 1360x768@60 Sync Polarity (CVT Reduce Blanking Mode) */
+
 #define M1360X768_RB_R60_HSP       POSITIVE
 #define M1360X768_RB_R60_VSP       NEGATIVE
 
-/* 1368x768@50 Sync Polarity (GTF Mode) */
+
 #define M1368X768_R50_HSP       NEGATIVE
 #define M1368X768_R50_VSP       POSITIVE
 
-/* 1368x768@60 Sync Polarity (VESA Mode) */
+
 #define M1368X768_R60_HSP       NEGATIVE
 #define M1368X768_R60_VSP       POSITIVE
 
-/*1280x1024@75 Sync Polarity (VESA Mode)
-*/
+
 #define M1280X1024_R75_HSP      POSITIVE
 #define M1280X1024_R75_VSP      POSITIVE
 
-/*1280x1024@85 Sync Polarity (VESA Mode)
-*/
+
 #define M1280X1024_R85_HSP      POSITIVE
 #define M1280X1024_R85_VSP      POSITIVE
 
-/*1440x1050@60 Sync Polarity (GTF Mode)
-*/
+
 #define M1440X1050_R60_HSP      NEGATIVE
 #define M1440X1050_R60_VSP      POSITIVE
 
-/*1600x1200@60 Sync Polarity (VESA Mode)
-*/
+
 #define M1600X1200_R60_HSP      POSITIVE
 #define M1600X1200_R60_VSP      POSITIVE
 
-/*1600x1200@75 Sync Polarity (VESA Mode)
-*/
+
 #define M1600X1200_R75_HSP      POSITIVE
 #define M1600X1200_R75_VSP      POSITIVE
 
-/* 1680x1050@60 Sync Polarity (CVT Mode) */
+
 #define M1680x1050_R60_HSP      NEGATIVE
 #define M1680x1050_R60_VSP      NEGATIVE
 
-/* 1680x1050@60 Sync Polarity (CVT Reduce Blanking Mode) */
+
 #define M1680x1050_RB_R60_HSP      POSITIVE
 #define M1680x1050_RB_R60_VSP      NEGATIVE
 
-/* 1680x1050@75 Sync Polarity (CVT Mode) */
+
 #define M1680x1050_R75_HSP      NEGATIVE
 #define M1680x1050_R75_VSP      POSITIVE
 
-/*1920x1080@60 Sync Polarity (CVT Mode)
-*/
+
 #define M1920X1080_R60_HSP      NEGATIVE
 #define M1920X1080_R60_VSP      POSITIVE
 
-/* 1920x1080@60 Sync Polarity (CVT Reduce Blanking Mode) */
+
 #define M1920X1080_RB_R60_HSP  POSITIVE
 #define M1920X1080_RB_R60_VSP  NEGATIVE
 
-/*1920x1440@60 Sync Polarity (VESA Mode)
-*/
+
 #define M1920X1440_R60_HSP      NEGATIVE
 #define M1920X1440_R60_VSP      POSITIVE
 
-/*1920x1440@75 Sync Polarity (VESA Mode)
-*/
+
 #define M1920X1440_R75_HSP      NEGATIVE
 #define M1920X1440_R75_VSP      POSITIVE
 
 #if 0
-/* 1400x1050@60 Sync Polarity (VESA Mode) */
+
 #define M1400X1050_R60_HSP      NEGATIVE
 #define M1400X1050_R60_VSP      NEGATIVE
 #endif
 
-/* 1400x1050@60 Sync Polarity (CVT Mode) */
+
 #define M1400X1050_R60_HSP      NEGATIVE
 #define M1400X1050_R60_VSP      POSITIVE
 
-/* 1400x1050@60 Sync Polarity (CVT Reduce Blanking Mode) */
+
 #define M1400X1050_RB_R60_HSP      POSITIVE
 #define M1400X1050_RB_R60_VSP      NEGATIVE
 
-/* 1400x1050@75 Sync Polarity (CVT Mode) */
+
 #define M1400X1050_R75_HSP      NEGATIVE
 #define M1400X1050_R75_VSP      POSITIVE
 
-/* 960x600@60 Sync Polarity (CVT Mode) */
+
 #define M960X600_R60_HSP        NEGATIVE
 #define M960X600_R60_VSP        POSITIVE
 
-/* 1000x600@60 Sync Polarity (GTF Mode) */
+
 #define M1000X600_R60_HSP       NEGATIVE
 #define M1000X600_R60_VSP       POSITIVE
 
-/* 1024x576@60 Sync Polarity (GTF Mode) */
+
 #define M1024X576_R60_HSP       NEGATIVE
 #define M1024X576_R60_VSP       POSITIVE
 
-/*1024x600@60 Sync Polarity (GTF Mode)*/
+
 #define M1024X600_R60_HSP       NEGATIVE
 #define M1024X600_R60_VSP       POSITIVE
 
-/* 1088x612@60 Sync Polarity (CVT Mode) */
+
 #define M1088X612_R60_HSP       NEGATIVE
 #define M1088X612_R60_VSP       POSITIVE
 
-/* 1152x720@60 Sync Polarity (CVT Mode) */
+
 #define M1152X720_R60_HSP       NEGATIVE
 #define M1152X720_R60_VSP       POSITIVE
 
-/* 1200x720@60 Sync Polarity (GTF Mode) */
+
 #define M1200X720_R60_HSP       NEGATIVE
 #define M1200X720_R60_VSP       POSITIVE
 
-/* 1280x600@60 Sync Polarity (GTF Mode) */
+
 #define M1280x600_R60_HSP       NEGATIVE
 #define M1280x600_R60_VSP       POSITIVE
 
-/* 1280x720@50 Sync Polarity  (GTF Mode) */
+
 #define M1280X720_R50_HSP       NEGATIVE
 #define M1280X720_R50_VSP       POSITIVE
 
-/* 1280x720@60 Sync Polarity  (CEA Mode) */
+
 #define M1280X720_CEA_R60_HSP       POSITIVE
 #define M1280X720_CEA_R60_VSP       POSITIVE
 
-/* 1440x900@60 Sync Polarity (CVT Mode) */
+
 #define M1440X900_R60_HSP       NEGATIVE
 #define M1440X900_R60_VSP       POSITIVE
 
-/* 1440x900@75 Sync Polarity (CVT Mode) */
+
 #define M1440X900_R75_HSP       NEGATIVE
 #define M1440X900_R75_VSP       POSITIVE
 
-/* 1440x900@60 Sync Polarity (CVT Reduce Blanking Mode) */
+
 #define M1440X900_RB_R60_HSP       POSITIVE
 #define M1440X900_RB_R60_VSP       NEGATIVE
 
-/* 1600x900@60 Sync Polarity (CVT Mode) */
+
 #define M1600X900_R60_HSP       NEGATIVE
 #define M1600X900_R60_VSP       POSITIVE
 
-/* 1600x900@60 Sync Polarity (CVT Reduce Blanking Mode) */
+
 #define M1600X900_RB_R60_HSP       POSITIVE
 #define M1600X900_RB_R60_VSP       NEGATIVE
 
-/* 1600x1024@60 Sync Polarity (GTF Mode) */
+
 #define M1600X1024_R60_HSP      NEGATIVE
 #define M1600X1024_R60_VSP      POSITIVE
 
-/* 1792x1344@60 Sync Polarity (DMT Mode) */
+
 #define M1792x1344_R60_HSP      NEGATIVE
 #define M1792x1344_R60_VSP      POSITIVE
 
-/* 1856x1392@60 Sync Polarity (DMT Mode) */
+
 #define M1856x1392_R60_HSP      NEGATIVE
 #define M1856x1392_R60_VSP      POSITIVE
 
-/* 1920x1200@60 Sync Polarity (CVT Mode) */
+
 #define M1920X1200_R60_HSP      NEGATIVE
 #define M1920X1200_R60_VSP      POSITIVE
 
-/* 1920x1200@60 Sync Polarity (CVT Reduce Blanking Mode) */
+
 #define M1920X1200_RB_R60_HSP  POSITIVE
 #define M1920X1200_RB_R60_VSP  NEGATIVE
 
-/* 1920x1080@60 Sync Polarity  (CEA Mode) */
+
 #define M1920X1080_CEA_R60_HSP       POSITIVE
 #define M1920X1080_CEA_R60_VSP       POSITIVE
 
-/* 2048x1536@60 Sync Polarity (CVT Mode) */
+
 #define M2048x1536_R60_HSP      NEGATIVE
 #define M2048x1536_R60_VSP      POSITIVE
 
-/* define PLL index: */
+
 #define CLK_25_175M     25175000
 #define CLK_26_880M     26880000
 #define CLK_29_581M     29581000
@@ -698,7 +641,7 @@
 #define CLK_40_000M     40000000
 #define CLK_41_291M     41291000
 #define CLK_43_163M     43163000
-#define CLK_45_250M     45250000	/* 45.46MHz */
+#define CLK_45_250M     45250000	
 #define CLK_46_000M     46000000
 #define CLK_46_996M     46996000
 #define CLK_48_000M     48000000
@@ -711,7 +654,7 @@
 #define CLK_61_500M     61500000
 #define CLK_65_000M     65000000
 #define CLK_65_178M     65178000
-#define CLK_66_750M     66750000	/* 67.116MHz */
+#define CLK_66_750M     66750000	
 #define CLK_68_179M     68179000
 #define CLK_69_924M     69924000
 #define CLK_70_159M     70159000
@@ -721,7 +664,7 @@
 #define CLK_80_136M     80136000
 #define CLK_83_375M     83375000
 #define CLK_83_950M     83950000
-#define CLK_84_750M     84750000	/* 84.537Mhz */
+#define CLK_84_750M     84750000	
 #define CLK_85_860M     85860000
 #define CLK_88_750M     88750000
 #define CLK_94_500M     94500000
@@ -732,7 +675,7 @@
 #define CLK_113_309M    113309000
 #define CLK_118_840M    118840000
 #define CLK_119_000M    119000000
-#define CLK_121_750M    121750000	/* 121.704MHz */
+#define CLK_121_750M    121750000	
 #define CLK_125_104M    125104000
 #define CLK_133_308M    133308000
 #define CLK_135_000M    135000000
@@ -757,8 +700,7 @@
 #define CLK_172_798M    172798000
 #define CLK_122_614M    122614000
 
-/* CLE266 PLL value
-*/
+
 #define CLE266_PLL_25_175M     0x0000C763
 #define CLE266_PLL_26_880M     0x0000440F
 #define CLE266_PLL_29_581M     0x00008421
@@ -770,7 +712,7 @@
 #define CLE266_PLL_40_000M     0x0000C459
 #define CLE266_PLL_41_291M     0x00004417
 #define CLE266_PLL_43_163M     0x0000C579
-#define CLE266_PLL_45_250M     0x0000C57F	/* 45.46MHz */
+#define CLE266_PLL_45_250M     0x0000C57F	
 #define CLE266_PLL_46_000M     0x0000875A
 #define CLE266_PLL_46_996M     0x0000C4E9
 #define CLE266_PLL_48_000M     0x00001443
@@ -783,7 +725,7 @@
 #define CLE266_PLL_61_500M     0x00001456
 #define CLE266_PLL_65_000M     0x000086ED
 #define CLE266_PLL_65_178M     0x0000855B
-#define CLE266_PLL_66_750M     0x0000844B	/* 67.116MHz */
+#define CLE266_PLL_66_750M     0x0000844B	
 #define CLE266_PLL_68_179M     0x00000413
 #define CLE266_PLL_69_924M     0x00001153
 #define CLE266_PLL_70_159M     0x00001462
@@ -793,18 +735,18 @@
 #define CLE266_PLL_80_136M     0x0000051C
 #define CLE266_PLL_83_375M     0x0000C25D
 #define CLE266_PLL_83_950M     0x00000729
-#define CLE266_PLL_84_750M     0x00008576	/* 84.537MHz */
+#define CLE266_PLL_84_750M     0x00008576	
 #define CLE266_PLL_85_860M     0x00004754
 #define CLE266_PLL_88_750M     0x0000051F
 #define CLE266_PLL_94_500M     0x00000521
 #define CLE266_PLL_97_750M     0x00004652
 #define CLE266_PLL_101_000M    0x0000497F
-#define CLE266_PLL_106_500M    0x00008477	/* 106.491463 MHz */
+#define CLE266_PLL_106_500M    0x00008477	
 #define CLE266_PLL_108_000M    0x00008479
 #define CLE266_PLL_113_309M    0x00000C5F
 #define CLE266_PLL_118_840M    0x00004553
 #define CLE266_PLL_119_000M    0x00000D6C
-#define CLE266_PLL_121_750M    0x00004555	/* 121.704MHz */
+#define CLE266_PLL_121_750M    0x00004555	
 #define CLE266_PLL_125_104M    0x000006B5
 #define CLE266_PLL_133_308M    0x0000465F
 #define CLE266_PLL_135_000M    0x0000455E
@@ -828,8 +770,7 @@
 #define CLE266_PLL_172_798M    0x00004579
 #define CLE266_PLL_122_614M    0x0000073C
 
-/* K800 PLL value
-*/
+
 #define K800_PLL_25_175M     0x00539001
 #define K800_PLL_26_880M     0x001C8C80
 #define K800_PLL_29_581M     0x00409080
@@ -841,7 +782,7 @@
 #define K800_PLL_40_000M     0x00578C02
 #define K800_PLL_41_291M     0x00438C01
 #define K800_PLL_43_163M     0x00778C03
-#define K800_PLL_45_250M     0x007D8C83	/* 45.46MHz */
+#define K800_PLL_45_250M     0x007D8C83	
 #define K800_PLL_46_000M     0x00658C02
 #define K800_PLL_46_996M     0x00818C83
 #define K800_PLL_48_000M     0x00848C83
@@ -854,7 +795,7 @@
 #define K800_PLL_61_500M     0x00AA8C83
 #define K800_PLL_65_000M     0x006B8C01
 #define K800_PLL_65_178M     0x00B48C83
-#define K800_PLL_66_750M     0x00948C82	/* 67.116MHz */
+#define K800_PLL_66_750M     0x00948C82	
 #define K800_PLL_68_179M     0x00708C01
 #define K800_PLL_69_924M     0x00C18C83
 #define K800_PLL_70_159M     0x00C28C83
@@ -864,18 +805,18 @@
 #define K800_PLL_80_136M     0x00428801
 #define K800_PLL_83_375M     0x005B0882
 #define K800_PLL_83_950M     0x00738803
-#define K800_PLL_84_750M     0x00748883	/* 84.477MHz */
+#define K800_PLL_84_750M     0x00748883	
 #define K800_PLL_85_860M     0x00768883
 #define K800_PLL_88_750M     0x007A8883
 #define K800_PLL_94_500M     0x00828803
 #define K800_PLL_97_750M     0x00878883
 #define K800_PLL_101_000M    0x008B8883
-#define K800_PLL_106_500M    0x00758882	/* 106.491463 MHz */
+#define K800_PLL_106_500M    0x00758882	
 #define K800_PLL_108_000M    0x00778882
 #define K800_PLL_113_309M    0x005D8881
 #define K800_PLL_118_840M    0x00A48883
 #define K800_PLL_119_000M    0x00838882
-#define K800_PLL_121_750M    0x00A88883	/* 121.704MHz */
+#define K800_PLL_121_750M    0x00A88883	
 #define K800_PLL_125_104M    0x00688801
 #define K800_PLL_133_308M    0x005D8801
 #define K800_PLL_135_000M    0x001A4081
@@ -899,7 +840,7 @@
 #define K800_PLL_172_798M    0x00778483
 #define K800_PLL_122_614M    0x00878882
 
-/* PLL for VT3324 */
+
 #define CX700_25_175M     0x008B1003
 #define CX700_26_719M     0x00931003
 #define CX700_26_880M     0x00941003
@@ -912,7 +853,7 @@
 #define CX700_40_000M     0x006E0C03
 #define CX700_41_291M     0x00710C03
 #define CX700_43_163M     0x00770C03
-#define CX700_45_250M     0x007D0C03	/* 45.46MHz */
+#define CX700_45_250M     0x007D0C03	
 #define CX700_46_000M     0x007F0C03
 #define CX700_46_996M     0x00818C83
 #define CX700_48_000M     0x00840C03
@@ -925,7 +866,7 @@
 #define CX700_61_500M     0x00AA0C03
 #define CX700_65_000M     0x006B0C01
 #define CX700_65_178M     0x006B0C01
-#define CX700_66_750M     0x00940C02	/*67.116MHz */
+#define CX700_66_750M     0x00940C02	
 #define CX700_68_179M     0x00BC0C03
 #define CX700_69_924M     0x00C10C03
 #define CX700_70_159M     0x00C20C03
@@ -936,7 +877,7 @@
 #define CX700_80_136M     0x006E0803
 #define CX700_83_375M     0x005B0882
 #define CX700_83_950M     0x00730803
-#define CX700_84_750M     0x00740803	/* 84.537Mhz */
+#define CX700_84_750M     0x00740803	
 #define CX700_85_860M     0x00760803
 #define CX700_88_750M     0x00AC8885
 #define CX700_94_500M     0x00820803
@@ -947,7 +888,7 @@
 #define CX700_113_309M    0x005D0801
 #define CX700_118_840M    0x00A40803
 #define CX700_119_000M    0x00830802
-#define CX700_121_750M    0x00420800	/* 121.704MHz */
+#define CX700_121_750M    0x00420800	
 #define CX700_125_104M    0x00AD0803
 #define CX700_133_308M    0x00930802
 #define CX700_135_000M    0x00950802
@@ -970,7 +911,7 @@
 #define CX700_297_500M    0x00CE0403
 #define CX700_122_614M    0x00870802
 
-/* PLL for VX855 */
+
 #define VX855_22_000M     0x007B1005
 #define VX855_25_175M     0x008D1005
 #define VX855_26_719M     0x00961005
@@ -986,7 +927,7 @@
 #define VX855_40_000M     0x00700C05
 #define VX855_41_291M     0x00730C05
 #define VX855_43_163M     0x00790C05
-#define VX855_45_250M     0x007F0C05      /* 45.46MHz */
+#define VX855_45_250M     0x007F0C05      
 #define VX855_46_000M     0x00670C04
 #define VX855_46_996M     0x00690C04
 #define VX855_48_000M     0x00860C05
@@ -999,7 +940,7 @@
 #define VX855_61_500M     0x00AC0C05
 #define VX855_65_000M     0x006D0C03
 #define VX855_65_178M     0x00B60C05
-#define VX855_66_750M     0x00700C03    /*67.116MHz */
+#define VX855_66_750M     0x00700C03    
 #define VX855_67_295M     0x00BC0C05
 #define VX855_68_179M     0x00BF0C05
 #define VX855_68_369M     0x00BF0C05
@@ -1016,8 +957,8 @@
 #define VX855_83_527M     0x00750805
 #define VX855_83_950M     0x00750805
 #define VX855_84_537M     0x00760805
-#define VX855_84_750M     0x00760805     /* 84.537Mhz */
-#define VX855_85_500M     0x00760805        /* 85.909080 MHz*/
+#define VX855_84_750M     0x00760805     
+#define VX855_85_500M     0x00760805        
 #define VX855_85_860M     0x00760805
 #define VX855_85_909M     0x00760805
 #define VX855_88_750M     0x007C0805
@@ -1034,10 +975,10 @@
 #define VX855_115_000M    0x00A10805
 #define VX855_118_840M    0x00A60805
 #define VX855_119_000M    0x00A70805
-#define VX855_121_750M    0x00AA0805       /* 121.704MHz */
+#define VX855_121_750M    0x00AA0805       
 #define VX855_122_614M    0x00AC0805
 #define VX855_126_266M    0x00B10805
-#define VX855_130_250M    0x00B60805      /* 130.250 */
+#define VX855_130_250M    0x00B60805      
 #define VX855_135_000M    0x00BD0805
 #define VX855_136_700M    0x00BF0805
 #define VX855_137_750M    0x00C10805
@@ -1064,7 +1005,7 @@
 #define VX855_340_772M    0x00770005
 
 
-/* Definition CRTC Timing Index */
+
 #define H_TOTAL_INDEX               0
 #define H_ADDR_INDEX                1
 #define H_BLANK_START_INDEX         2
@@ -1086,8 +1027,7 @@
 #define V_SYNC_SATRT_SHADOW_INDEX   18
 #define V_SYNC_END_SHADOW_INDEX     19
 
-/* Definition Video Mode Pixel Clock (picoseconds)
-*/
+
 #define RES_480X640_60HZ_PIXCLOCK    39722
 #define RES_640X480_60HZ_PIXCLOCK    39722
 #define RES_640X480_75HZ_PIXCLOCK    31747
@@ -1158,18 +1098,15 @@
 #define RES_1920X1080_RB_60HZ_PIXCLOCK 7225
 #define RES_1920X1200_RB_60HZ_PIXCLOCK 6497
 
-/* LCD display method
-*/
+
 #define     LCD_EXPANDSION              0x00
 #define     LCD_CENTERING               0x01
 
-/* LCD mode
-*/
+
 #define     LCD_OPENLDI               0x00
 #define     LCD_SPWG                  0x01
 
-/* Define display timing
-*/
+
 struct display_timing {
 	u16 hor_total;
 	u16 hor_addr;
@@ -1200,4 +1137,4 @@ struct io_reg {
 	u8 value;
 };
 
-#endif /* __SHARE_H__ */
+#endif 

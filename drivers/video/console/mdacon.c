@@ -1,30 +1,4 @@
-/*
- *  linux/drivers/video/mdacon.c -- Low level MDA based console driver
- *
- *	(c) 1998 Andrew Apted <ajapted@netspace.net.au>
- *
- *      including portions (c) 1995-1998 Patrick Caulfield.
- *
- *      slight improvements (c) 2000 Edward Betts <edward@debian.org>
- *
- *  This file is based on the VGA console driver (vgacon.c):
- *	
- *	Created 28 Sep 1997 by Geert Uytterhoeven
- *
- *	Rewritten by Martin Mares <mj@ucw.cz>, July 1998
- *
- *  and on the old console.c, vga.c and vesa_blank.c drivers:
- *
- *	Copyright (C) 1991, 1992  Linus Torvalds
- *			    1995  Jay Estabrook
- *
- *  This file is subject to the terms and conditions of the GNU General Public
- *  License.  See the file COPYING in the main directory of this archive for
- *  more details.
- *
- *  Changelog:
- *  Paul G. (03/2001) Fix mdacon= boot prompt to use __setup().
- */
+
 
 #include <linux/types.h>
 #include <linux/fs.h>
@@ -47,20 +21,20 @@
 
 static DEFINE_SPINLOCK(mda_lock);
 
-/* description of the hardware layout */
 
-static unsigned long	mda_vram_base;		/* Base of video memory */
-static unsigned long	mda_vram_len;		/* Size of video memory */
-static unsigned int	mda_num_columns;	/* Number of text columns */
-static unsigned int	mda_num_lines;		/* Number of text lines */
 
-static unsigned int	mda_index_port;		/* Register select port */
-static unsigned int	mda_value_port;		/* Register value port */
-static unsigned int	mda_mode_port;		/* Mode control port */
-static unsigned int	mda_status_port;	/* Status and Config port */
-static unsigned int	mda_gfx_port;		/* Graphics control port */
+static unsigned long	mda_vram_base;		
+static unsigned long	mda_vram_len;		
+static unsigned int	mda_num_columns;	
+static unsigned int	mda_num_lines;		
 
-/* current hardware state */
+static unsigned int	mda_index_port;		
+static unsigned int	mda_value_port;		
+static unsigned int	mda_mode_port;		
+static unsigned int	mda_status_port;	
+static unsigned int	mda_gfx_port;		
+
+
 
 static int	mda_cursor_loc=-1;
 static int	mda_cursor_size_from=-1;
@@ -69,7 +43,7 @@ static int	mda_cursor_size_to=-1;
 static enum { TYPE_MDA, TYPE_HERC, TYPE_HERCPLUS, TYPE_HERCCOLOR } mda_type;
 static char *mda_type_name;
 
-/* console information */
+
 
 static int	mda_first_vc = 13;
 static int	mda_last_vc  = 16;
@@ -81,8 +55,7 @@ MODULE_PARM_DESC(mda_first_vc, "First virtual console. Default: 13");
 module_param(mda_last_vc, int, 0);
 MODULE_PARM_DESC(mda_last_vc, "Last virtual console. Default: 16");
 
-/* MDA register values
- */
+
 
 #define MDA_CURSOR_BLINKING	0x00
 #define MDA_CURSOR_OFF		0x20
@@ -102,9 +75,7 @@ MODULE_PARM_DESC(mda_last_vc, "Last virtual console. Default: 16");
 #define MDA_GFX_PAGE_EN		0x02
 
 
-/*
- * MDA could easily be classified as "pre-dinosaur hardware".
- */
+
 
 static void write_mda_b(unsigned int val, unsigned char reg)
 {
@@ -163,10 +134,10 @@ static inline void mda_set_cursor_size(int from, int to)
 		return;
 	
 	if (from > to) {
-		write_mda_b(MDA_CURSOR_OFF, 0x0a);	/* disable cursor */
+		write_mda_b(MDA_CURSOR_OFF, 0x0a);	
 	} else {
-		write_mda_b(from, 0x0a);	/* cursor start */
-		write_mda_b(to,   0x0b);	/* cursor end */
+		write_mda_b(from, 0x0a);	
+		write_mda_b(to,   0x0b);	
 	}
 
 	mda_cursor_size_from = from;
@@ -177,7 +148,7 @@ static inline void mda_set_cursor_size(int from, int to)
 #ifndef MODULE
 static int __init mdacon_setup(char *str)
 {
-	/* command line format: mdacon=<first>,<last> */
+	
 
 	int ints[3];
 
@@ -204,7 +175,7 @@ static int mda_detect(void)
 	u16 *p, p_save;
 	u16 *q, q_save;
 
-	/* do a memory check */
+	
 
 	p = (u16 *) mda_vram_base;
 	q = (u16 *) (mda_vram_base + 0x01000);
@@ -219,7 +190,7 @@ static int mda_detect(void)
 		return 0;
 	}
 
-	/* check if we have 4K or 8K */
+	
 
 	scr_writew(0xA55A, q); scr_writew(0x0000, p);
 	if (scr_readw(q) == 0xA55A) count++;
@@ -233,28 +204,23 @@ static int mda_detect(void)
 		mda_vram_len = 0x02000;
 	}
 	
-	/* Ok, there is definitely a card registering at the correct
-	 * memory location, so now we do an I/O port test.
-	 */
+	
 
 #ifdef TEST_MDA_B
-	/* Edward: These two mess `tests' mess up my cursor on bootup */
+	
 
-	/* cursor low register */
+	
 	if (! test_mda_b(0x66, 0x0f)) {
 		return 0;
 	}
 
-	/* cursor low register */
+	
 	if (! test_mda_b(0x99, 0x0f)) {
 		return 0;
 	}
 #endif
 
-	/* See if the card is a Hercules, by checking whether the vsync
-	 * bit of the status register is changing.  This test lasts for
-	 * approximately 1/10th of a second.
-	 */
+	
 	
 	p_save = q_save = inb_p(mda_status_port) & MDA_STATUS_VSYNC;
 
@@ -285,23 +251,23 @@ static int mda_detect(void)
 
 static void mda_initialize(void)
 {
-	write_mda_b(97, 0x00);		/* horizontal total */
-	write_mda_b(80, 0x01);		/* horizontal displayed */
-	write_mda_b(82, 0x02);		/* horizontal sync pos */
-	write_mda_b(15, 0x03);		/* horizontal sync width */
+	write_mda_b(97, 0x00);		
+	write_mda_b(80, 0x01);		
+	write_mda_b(82, 0x02);		
+	write_mda_b(15, 0x03);		
 
-	write_mda_b(25, 0x04);		/* vertical total */
-	write_mda_b(6,  0x05);		/* vertical total adjust */
-	write_mda_b(25, 0x06);		/* vertical displayed */
-	write_mda_b(25, 0x07);		/* vertical sync pos */
+	write_mda_b(25, 0x04);		
+	write_mda_b(6,  0x05);		
+	write_mda_b(25, 0x06);		
+	write_mda_b(25, 0x07);		
 
-	write_mda_b(2,  0x08);		/* interlace mode */
-	write_mda_b(13, 0x09);		/* maximum scanline */
-	write_mda_b(12, 0x0a);		/* cursor start */
-	write_mda_b(13, 0x0b);		/* cursor end */
+	write_mda_b(2,  0x08);		
+	write_mda_b(13, 0x09);		
+	write_mda_b(12, 0x0a);		
+	write_mda_b(13, 0x0b);		
 
-	write_mda_w(0x0000, 0x0c);	/* start address */
-	write_mda_w(0x0000, 0x0e);	/* cursor location */
+	write_mda_w(0x0000, 0x0c);	
+	write_mda_w(0x0000, 0x0e);	
 
 	outb_p(MDA_MODE_VIDEO_EN | MDA_MODE_BLINK_EN, mda_mode_port);
 	outb_p(0x00, mda_status_port);
@@ -334,7 +300,7 @@ static const char *mdacon_startup(void)
 		mda_initialize();
 	}
 
-	/* cursor looks ugly during boot-up, so turn it off */
+	
 	mda_set_cursor(mda_vram_len - 1);
 
 	printk("mdacon: %s with %ldK of memory detected.\n",
@@ -345,7 +311,7 @@ static const char *mdacon_startup(void)
 
 static void mdacon_init(struct vc_data *c, int init)
 {
-	c->vc_complement_mask = 0x0800;	 /* reverse video */
+	c->vc_complement_mask = 0x0800;	 
 	c->vc_display_fg = &mda_display_fg;
 
 	if (init) {
@@ -354,7 +320,7 @@ static void mdacon_init(struct vc_data *c, int init)
 	} else
 		vc_resize(c, mda_num_columns, mda_num_lines);
 
-	/* make the first MDA console visible */
+	
 
 	if (mda_display_fg == NULL)
 		mda_display_fg = c;
@@ -362,7 +328,7 @@ static void mdacon_init(struct vc_data *c, int init)
 
 static void mdacon_deinit(struct vc_data *c)
 {
-	/* con_set_default_unimap(c->vc_num); */
+	
 
 	if (mda_display_fg == c)
 		mda_display_fg = NULL;
@@ -372,29 +338,20 @@ static inline u16 mda_convert_attr(u16 ch)
 {
 	u16 attr = 0x0700;
 
-	/* Underline and reverse-video are mutually exclusive on MDA.
-	 * Since reverse-video is used for cursors and selected areas,
-	 * it takes precedence. 
-	 */
+	
 
-	if (ch & 0x0800)	attr = 0x7000;	/* reverse */
-	else if (ch & 0x0400)	attr = 0x0100;	/* underline */
+	if (ch & 0x0800)	attr = 0x7000;	
+	else if (ch & 0x0400)	attr = 0x0100;	
 
-	return ((ch & 0x0200) << 2) | 		/* intensity */ 
-		(ch & 0x8000) |			/* blink */ 
+	return ((ch & 0x0200) << 2) | 		 
+		(ch & 0x8000) |			 
 		(ch & 0x00ff) | attr;
 }
 
 static u8 mdacon_build_attr(struct vc_data *c, u8 color, u8 intensity, 
 			    u8 blink, u8 underline, u8 reverse, u8 italic)
 {
-	/* The attribute is just a bit vector:
-	 *
-	 *	Bit 0..1 : intensity (0..2)
-	 *	Bit 2    : underline
-	 *	Bit 3    : reverse
-	 *	Bit 7    : blink
-	 */
+	
 
 	return (intensity & 3) |
 		((underline & 1) << 2) |
@@ -479,7 +436,7 @@ static void mdacon_bmove(struct vc_data *c, int sy, int sx,
 
 static int mdacon_switch(struct vc_data *c)
 {
-	return 1;	/* redrawing needed */
+	return 1;	
 }
 
 static int mdacon_set_palette(struct vc_data *c, unsigned char *table)
@@ -494,11 +451,11 @@ static int mdacon_blank(struct vc_data *c, int blank, int mode_switch)
 			scr_memsetw((void *)mda_vram_base, 
 				mda_convert_attr(c->vc_video_erase_char),
 				c->vc_screenbuf_size);
-		/* Tell console.c that it has to restore the screen itself */
+		
 		return 1;
 	} else {
 		if (blank)
-			outb_p(0x00, mda_mode_port);	/* disable video */
+			outb_p(0x00, mda_mode_port);	
 		else
 			outb_p(MDA_MODE_VIDEO_EN | MDA_MODE_BLINK_EN, 
 				mda_mode_port);
@@ -538,7 +495,7 @@ static int mdacon_scroll(struct vc_data *c, int t, int b, int dir, int lines)
 	if (!lines)
 		return 0;
 
-	if (lines > c->vc_rows)   /* maximum realistic size */
+	if (lines > c->vc_rows)   
 		lines = c->vc_rows;
 
 	switch (dir) {
@@ -561,9 +518,7 @@ static int mdacon_scroll(struct vc_data *c, int t, int b, int dir, int lines)
 }
 
 
-/*
- *  The console `switch' structure for the MDA based console
- */
+
 
 static const struct consw mda_con = {
 	.owner =		THIS_MODULE,

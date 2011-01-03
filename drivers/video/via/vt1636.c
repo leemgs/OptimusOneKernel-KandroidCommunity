@@ -1,23 +1,4 @@
-/*
- * Copyright 1998-2008 VIA Technologies, Inc. All Rights Reserved.
- * Copyright 2001-2008 S3 Graphics, Inc. All Rights Reserved.
 
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public
- * License as published by the Free Software Foundation;
- * either version 2, or (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTIES OR REPRESENTATIONS; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE.See the GNU General Public License
- * for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc.,
- * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
 
 #include "global.h"
 
@@ -54,7 +35,7 @@ void viafb_init_lvds_vt1636(struct lvds_setting_information
 {
 	int reg_num, i;
 
-	/* Common settings: */
+	
 	reg_num = ARRAY_SIZE(COMMON_INIT_TBL_VT1636);
 
 	for (i = 0; i < reg_num; i++) {
@@ -63,7 +44,7 @@ void viafb_init_lvds_vt1636(struct lvds_setting_information
 					 COMMON_INIT_TBL_VT1636[i]);
 	}
 
-	/* Input Data Mode Select */
+	
 	if (plvds_setting_info->device_lcd_dualedge) {
 		viafb_gpio_i2c_write_mask_lvds(plvds_setting_info,
 					 plvds_chip_info,
@@ -93,7 +74,7 @@ void viafb_enable_lvds_vt1636(struct lvds_setting_information
 	viafb_gpio_i2c_write_mask_lvds(plvds_setting_info, plvds_chip_info,
 				 VDD_ON_TBL_VT1636[0]);
 
-	/* Pad on: */
+	
 	switch (plvds_chip_info->output_interface) {
 	case INTERFACE_DVP0:
 		{
@@ -130,7 +111,7 @@ void viafb_disable_lvds_vt1636(struct lvds_setting_information
 	viafb_gpio_i2c_write_mask_lvds(plvds_setting_info, plvds_chip_info,
 				 VDD_OFF_TBL_VT1636[0]);
 
-	/* Pad off: */
+	
 	switch (plvds_chip_info->output_interface) {
 	case INTERFACE_DVP0:
 		{
@@ -165,11 +146,11 @@ bool viafb_lvds_identify_vt1636(void)
 
 	DEBUG_MSG(KERN_INFO "viafb_lvds_identify_vt1636.\n");
 
-	/* Sense VT1636 LVDS Transmiter */
+	
 	viaparinfo->chip_info->lvds_chip_info.lvds_chip_slave_addr =
 	VT1636_LVDS_I2C_ADDR;
 
-	/* Check vendor ID first: */
+	
 	viafb_i2c_readbyte((u8) viaparinfo->chip_info->lvds_chip_info.
 	lvds_chip_slave_addr,
 		    0x00, &Buffer[0]);
@@ -180,7 +161,7 @@ bool viafb_lvds_identify_vt1636(void)
 	if (!((Buffer[0] == 0x06) && (Buffer[1] == 0x11)))
 		return false;
 
-	/* Check Chip ID: */
+	
 	viafb_i2c_readbyte((u8) viaparinfo->chip_info->lvds_chip_info.
 	lvds_chip_slave_addr,
 		    0x02, &Buffer[0]);
@@ -255,12 +236,12 @@ void viafb_vt1636_patch_skew_on_vt3324(
 
 	DEBUG_MSG(KERN_INFO "viafb_vt1636_patch_skew_on_vt3324.\n");
 
-	/* Graphics DPA settings: */
+	
 	index = get_clk_range_index(plvds_setting_info->vclk);
 	viafb_set_dpa_gfx(plvds_chip_info->output_interface,
 		    &GFX_DPA_SETTING_TBL_VT3324[index]);
 
-	/* LVDS Transmitter DPA settings: */
+	
 	size = ARRAY_SIZE(VT1636_DPA_SETTING_TBL_VT3324);
 	index =
 	    get_lvds_dpa_setting_index(plvds_setting_info->lcd_panel_id,
@@ -277,12 +258,12 @@ void viafb_vt1636_patch_skew_on_vt3327(
 
 	DEBUG_MSG(KERN_INFO "viafb_vt1636_patch_skew_on_vt3327.\n");
 
-	/* Graphics DPA settings: */
+	
 	index = get_clk_range_index(plvds_setting_info->vclk);
 	viafb_set_dpa_gfx(plvds_chip_info->output_interface,
 		    &GFX_DPA_SETTING_TBL_VT3327[index]);
 
-	/* LVDS Transmitter DPA settings: */
+	
 	size = ARRAY_SIZE(VT1636_DPA_SETTING_TBL_VT3327);
 	index =
 	    get_lvds_dpa_setting_index(plvds_setting_info->lcd_panel_id,
@@ -299,7 +280,7 @@ void viafb_vt1636_patch_skew_on_vt3364(
 
 	DEBUG_MSG(KERN_INFO "viafb_vt1636_patch_skew_on_vt3364.\n");
 
-	/* Graphics DPA settings: */
+	
 	index = get_clk_range_index(plvds_setting_info->vclk);
 	viafb_set_dpa_gfx(plvds_chip_info->output_interface,
 		    &GFX_DPA_SETTING_TBL_VT3364[index]);

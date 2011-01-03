@@ -1,25 +1,4 @@
-/*
- * LCD panel support for the TI 2430SDP board
- *
- * Copyright (C) 2007 MontaVista
- * Author: Hunyue Yau <hyau@mvista.com>
- *
- * Derived from drivers/video/omap/lcd-apollon.c
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/platform_device.h>
@@ -39,7 +18,7 @@
 static unsigned backlight_gpio;
 static unsigned enable_gpio;
 
-#define LCD_PIXCLOCK_MAX		5400 /* freq 5.4 MHz */
+#define LCD_PIXCLOCK_MAX		5400 
 #define PM_RECEIVER             TWL4030_MODULE_PM_RECEIVER
 #define ENABLE_VAUX2_DEDICATED  0x09
 #define ENABLE_VAUX2_DEV_GRP    0x20
@@ -65,8 +44,8 @@ static int sdp2430_panel_init(struct lcd_panel *panel,
 		backlight_gpio = SDP2430_LCD_PANEL_BACKLIGHT_GPIO;
 	}
 
-	gpio_request(enable_gpio, "LCD enable");	/* LCD panel */
-	gpio_request(backlight_gpio, "LCD bl");		/* LCD backlight */
+	gpio_request(enable_gpio, "LCD enable");	
+	gpio_request(backlight_gpio, "LCD bl");		
 	gpio_direction_output(enable_gpio, 0);
 	gpio_direction_output(backlight_gpio, 0);
 
@@ -139,12 +118,12 @@ struct lcd_panel sdp2430_panel = {
 	.data_lines	= 16,
 	.x_res		= 240,
 	.y_res		= 320,
-	.hsw		= 3,		/* hsync_len (4) - 1 */
-	.hfp		= 3,		/* right_margin (4) - 1 */
-	.hbp		= 39,		/* left_margin (40) - 1 */
-	.vsw		= 1,		/* vsync_len (2) - 1 */
-	.vfp		= 2,		/* lower_margin */
-	.vbp		= 7,		/* upper_margin (8) - 1 */
+	.hsw		= 3,		
+	.hfp		= 3,		
+	.hbp		= 39,		
+	.vsw		= 1,		
+	.vfp		= 2,		
+	.vbp		= 7,		
 
 	.pixel_clock	= LCD_PIXCLOCK_MAX,
 

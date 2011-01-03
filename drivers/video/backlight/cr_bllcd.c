@@ -1,31 +1,4 @@
-/*
- * Copyright (c) Intel Corp. 2007.
- * All Rights Reserved.
- *
- * Intel funded Tungsten Graphics (http://www.tungstengraphics.com) to
- * develop this driver.
- *
- * This file is part of the Carillo Ranch video subsystem driver.
- * The Carillo Ranch video subsystem driver is free software;
- * you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * The Carillo Ranch video subsystem driver is distributed
- * in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this driver; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * Authors:
- *   Thomas Hellstrom <thomas-at-tungstengraphics-dot-com>
- *   Alan Hourihane <alanh-at-tungstengraphics-dot-com>
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -37,9 +10,7 @@
 #include <linux/lcd.h>
 #include <linux/pci.h>
 
-/* The LVDS- and panel power controls sits on the
- * GPIO port of the ISA bridge.
- */
+
 
 #define CRVML_DEVICE_LPC    0x27B8
 #define CRVML_REG_GPIOBAR   0x48
@@ -50,7 +21,7 @@
 #define CRVML_PANEL_ON      0x00000002
 #define CRVML_BACKLIGHT_OFF 0x00000004
 
-/* The PLL Clock register sits on Host bridge */
+
 #define CRVML_DEVICE_MCH   0x5001
 #define CRVML_REG_MCHBAR   0x44
 #define CRVML_REG_MCHEN    0x54
@@ -83,13 +54,13 @@ static int cr_backlight_set_intensity(struct backlight_device *bd)
 	if (bd->props.fb_blank == FB_BLANK_POWERDOWN)
 		intensity = FB_BLANK_POWERDOWN;
 
-	if (intensity == FB_BLANK_UNBLANK) { /* FULL ON */
+	if (intensity == FB_BLANK_UNBLANK) { 
 		cur &= ~CRVML_BACKLIGHT_OFF;
 		outl(cur, addr);
-	} else if (intensity == FB_BLANK_POWERDOWN) { /* OFF */
+	} else if (intensity == FB_BLANK_POWERDOWN) { 
 		cur |= CRVML_BACKLIGHT_OFF;
 		outl(cur, addr);
-	} /* anything else, don't bother */
+	} 
 
 	return 0;
 }
@@ -119,18 +90,18 @@ static void cr_panel_on(void)
 	u32 cur = inl(addr);
 
 	if (!(cur & CRVML_PANEL_ON)) {
-		/* Make sure LVDS controller is down. */
+		
 		if (cur & 0x00000001) {
 			cur &= ~CRVML_LVDS_ON;
 			outl(cur, addr);
 		}
-		/* Power up Panel */
+		
 		schedule_timeout(HZ / 10);
 		cur |= CRVML_PANEL_ON;
 		outl(cur, addr);
 	}
 
-	/* Power up LVDS controller */
+	
 
 	if (!(cur & CRVML_LVDS_ON)) {
 		schedule_timeout(HZ / 10);
@@ -143,7 +114,7 @@ static void cr_panel_off(void)
 	u32 addr = gpio_bar + CRVML_PANEL_PORT;
 	u32 cur = inl(addr);
 
-	/* Power down LVDS controller first to avoid high currents */
+	
 	if (cur & CRVML_LVDS_ON) {
 		cur &= ~CRVML_LVDS_ON;
 		outl(cur, addr);

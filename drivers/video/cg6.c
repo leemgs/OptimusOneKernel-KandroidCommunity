@@ -1,12 +1,4 @@
-/* cg6.c: CGSIX (GX, GXplus, TGX) frame buffer driver
- *
- * Copyright (C) 2003, 2006 David S. Miller (davem@davemloft.net)
- * Copyright (C) 1996,1998 Jakub Jelinek (jj@ultra.linux.cz)
- * Copyright (C) 1996 Miguel de Icaza (miguel@nuclecu.unam.mx)
- * Copyright (C) 1996 Eddie C. Dost (ecd@skynet.be)
- *
- * Driver layout based loosely on tgafb.c, see that file for credits.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -24,9 +16,7 @@
 
 #include "sbuslib.h"
 
-/*
- * Local functions.
- */
+
 
 static int cg6_setcolreg(unsigned, unsigned, unsigned, unsigned,
 			 unsigned, struct fb_info *);
@@ -40,9 +30,7 @@ static int cg6_mmap(struct fb_info *, struct vm_area_struct *);
 static int cg6_ioctl(struct fb_info *, unsigned int, unsigned long);
 static int cg6_pan_display(struct fb_var_screeninfo *, struct fb_info *);
 
-/*
- *  Frame buffer operations
- */
+
 
 static struct fb_ops cg6_ops = {
 	.owner			= THIS_MODULE,
@@ -60,13 +48,8 @@ static struct fb_ops cg6_ops = {
 #endif
 };
 
-/* Offset of interesting structures in the OBIO space */
-/*
- * Brooktree is the video dac and is funny to program on the cg6.
- * (it's even funnier on the cg3)
- * The FBC could be the frame buffer control
- * The FHC could is the frame buffer hardware control.
- */
+
+
 #define CG6_ROM_OFFSET			0x0UL
 #define CG6_BROOKTREE_OFFSET		0x200000UL
 #define CG6_DHC_OFFSET			0x240000UL
@@ -77,7 +60,7 @@ static struct fb_ops cg6_ops = {
 #define CG6_TEC_OFFSET			0x701000UL
 #define CG6_RAM_OFFSET			0x800000UL
 
-/* FHC definitions */
+
 #define CG6_FHC_FBID_SHIFT		24
 #define CG6_FHC_FBID_MASK		255
 #define CG6_FHC_REV_SHIFT		20
@@ -103,7 +86,7 @@ static struct fb_ops cg6_ops = {
 #define CG6_FHC_TEST_Y_SHIFT		0
 #define CG6_FHC_TEST_Y_MASK		15
 
-/* FBC mode definitions */
+
 #define CG6_FBC_BLIT_IGNORE		0x00000000
 #define CG6_FBC_BLIT_NOSRC		0x00100000
 #define CG6_FBC_BLIT_SRC		0x00200000
@@ -151,7 +134,7 @@ static struct fb_ops cg6_ops = {
 #define CG6_FBC_INDEX_MOD		0x00000040
 #define CG6_FBC_INDEX_MASK		0x00000030
 
-/* THC definitions */
+
 #define CG6_THC_MISC_REV_SHIFT		16
 #define CG6_THC_MISC_REV_MASK		15
 #define CG6_THC_MISC_RESET		(1 << 12)
@@ -165,7 +148,7 @@ static struct fb_ops cg6_ops = {
 #define CG6_THC_MISC_INIT		0x9f
 #define CG6_THC_CURSOFF			((65536-32) | ((65536-32) << 16))
 
-/* The contents are unknown */
+
 struct cg6_tec {
 	int tec_matrix;
 	int tec_clip;
@@ -174,17 +157,17 @@ struct cg6_tec {
 
 struct cg6_thc {
 	u32	thc_pad0[512];
-	u32	thc_hs;		/* hsync timing */
+	u32	thc_hs;		
 	u32	thc_hsdvs;
 	u32	thc_hd;
-	u32	thc_vs;		/* vsync timing */
+	u32	thc_vs;		
 	u32	thc_vd;
 	u32	thc_refresh;
 	u32	thc_misc;
 	u32	thc_pad1[56];
-	u32	thc_cursxy;	/* cursor x,y position (16 bits each) */
-	u32	thc_cursmask[32];	/* cursor mask bits */
-	u32	thc_cursbits[32];	/* what to show where mask enabled */
+	u32	thc_cursxy;	
+	u32	thc_cursmask[32];	
+	u32	thc_cursbits[32];	
 };
 
 struct cg6_fbc {
@@ -288,7 +271,7 @@ static void cg6_switch_from_graph(struct cg6_par *par)
 
 	spin_lock_irqsave(&par->lock, flags);
 
-	/* Hide the cursor. */
+	
 	sbus_writel(CG6_THC_CURSOFF, &thc->thc_cursxy);
 
 	spin_unlock_irqrestore(&par->lock, flags);
@@ -298,9 +281,7 @@ static int cg6_pan_display(struct fb_var_screeninfo *var, struct fb_info *info)
 {
 	struct cg6_par *par = (struct cg6_par *)info->par;
 
-	/* We just use this to catch switches out of
-	 * graphics mode.
-	 */
+	
 	cg6_switch_from_graph(par);
 
 	if (var->xoffset || var->yoffset || var->vmode)
@@ -308,12 +289,7 @@ static int cg6_pan_display(struct fb_var_screeninfo *var, struct fb_info *info)
 	return 0;
 }
 
-/**
- *	cg6_fillrect -	Draws a rectangle on the screen.
- *
- *	@info: frame buffer structure that represents a single frame buffer
- *	@rect: structure defining the rectagle and operation.
- */
+
 static void cg6_fillrect(struct fb_info *info, const struct fb_fillrect *rect)
 {
 	struct cg6_par *par = (struct cg6_par *)info->par;
@@ -321,7 +297,7 @@ static void cg6_fillrect(struct fb_info *info, const struct fb_fillrect *rect)
 	unsigned long flags;
 	s32 val;
 
-	/* CG6 doesn't handle ROP_XOR */
+	
 
 	spin_lock_irqsave(&par->lock, flags);
 
@@ -343,16 +319,7 @@ static void cg6_fillrect(struct fb_info *info, const struct fb_fillrect *rect)
 	spin_unlock_irqrestore(&par->lock, flags);
 }
 
-/**
- *	cg6_copyarea - Copies one area of the screen to another area.
- *
- *	@info: frame buffer structure that represents a single frame buffer
- *	@area: Structure providing the data to copy the framebuffer contents
- *		from one region to another.
- *
- *	This drawing operation copies a rectangular area from one area of the
- *	screen to another area.
- */
+
 static void cg6_copyarea(struct fb_info *info, const struct fb_copyarea *area)
 {
 	struct cg6_par *par = (struct cg6_par *)info->par;
@@ -385,12 +352,7 @@ static void cg6_copyarea(struct fb_info *info, const struct fb_copyarea *area)
 	spin_unlock_irqrestore(&par->lock, flags);
 }
 
-/**
- *	cg6_imageblit -	Copies a image from system memory to the screen.
- *
- *	@info: frame buffer structure that represents a single frame buffer
- *	@image: structure defining the image.
- */
+
 static void cg6_imageblit(struct fb_info *info, const struct fb_image *image)
 {
 	struct cg6_par *par = (struct cg6_par *)info->par;
@@ -471,16 +433,7 @@ static void cg6_imageblit(struct fb_info *info, const struct fb_image *image)
 	spin_unlock_irqrestore(&par->lock, flags);
 }
 
-/**
- *	cg6_setcolreg - Sets a color register.
- *
- *	@regno: boolean, 0 copy local, 1 get_user() function
- *	@red: frame buffer colormap structure
- *	@green: The green value which can be up to 16 bits wide
- *	@blue:  The blue value which can be up to 16 bits wide.
- *	@transp: If supported the alpha value which can be up to 16 bits wide.
- *	@info: frame buffer info structure
- */
+
 static int cg6_setcolreg(unsigned regno,
 			 unsigned red, unsigned green, unsigned blue,
 			 unsigned transp, struct fb_info *info)
@@ -508,12 +461,7 @@ static int cg6_setcolreg(unsigned regno,
 	return 0;
 }
 
-/**
- *	cg6_blank - Blanks the display.
- *
- *	@blank_mode: the blank mode we want.
- *	@info: frame buffer structure that represents a single frame buffer
- */
+
 static int cg6_blank(int blank, struct fb_info *info)
 {
 	struct cg6_par *par = (struct cg6_par *)info->par;
@@ -525,15 +473,15 @@ static int cg6_blank(int blank, struct fb_info *info)
 	val = sbus_readl(&thc->thc_misc);
 
 	switch (blank) {
-	case FB_BLANK_UNBLANK: /* Unblanking */
+	case FB_BLANK_UNBLANK: 
 		val |= CG6_THC_MISC_VIDEO;
 		par->flags &= ~CG6_FLAG_BLANKED;
 		break;
 
-	case FB_BLANK_NORMAL: /* Normal blanking */
-	case FB_BLANK_VSYNC_SUSPEND: /* VESA blank (vsync off) */
-	case FB_BLANK_HSYNC_SUSPEND: /* VESA blank (hsync off) */
-	case FB_BLANK_POWERDOWN: /* Poweroff */
+	case FB_BLANK_NORMAL: 
+	case FB_BLANK_VSYNC_SUSPEND: 
+	case FB_BLANK_HSYNC_SUSPEND: 
+	case FB_BLANK_POWERDOWN: 
 		val &= ~CG6_THC_MISC_VIDEO;
 		par->flags |= CG6_FLAG_BLANKED;
 		break;
@@ -604,9 +552,7 @@ static int cg6_ioctl(struct fb_info *info, unsigned int cmd, unsigned long arg)
 				   FBTYPE_SUNFAST_COLOR, 8, info->fix.smem_len);
 }
 
-/*
- *  Initialisation
- */
+
 
 static void __devinit cg6_init_fix(struct fb_info *info, int linebytes)
 {
@@ -649,16 +595,16 @@ static void __devinit cg6_init_fix(struct fb_info *info, int linebytes)
 	info->fix.accel = FB_ACCEL_SUN_CGSIX;
 }
 
-/* Initialize Brooktree DAC */
+
 static void __devinit cg6_bt_init(struct cg6_par *par)
 {
 	struct bt_regs __iomem *bt = par->bt;
 
-	sbus_writel(0x04 << 24, &bt->addr);	 /* color planes */
+	sbus_writel(0x04 << 24, &bt->addr);	 
 	sbus_writel(0xff << 24, &bt->control);
 	sbus_writel(0x05 << 24, &bt->addr);
 	sbus_writel(0x00 << 24, &bt->control);
-	sbus_writel(0x06 << 24, &bt->addr);	 /* overlay plane */
+	sbus_writel(0x06 << 24, &bt->addr);	 
 	sbus_writel(0x73 << 24, &bt->control);
 	sbus_writel(0x07 << 24, &bt->addr);
 	sbus_writel(0x00 << 24, &bt->control);
@@ -673,15 +619,15 @@ static void __devinit cg6_chip_init(struct fb_info *info)
 	u32 rev, conf, mode;
 	int i;
 
-	/* Hide the cursor. */
+	
 	sbus_writel(CG6_THC_CURSOFF, &thc->thc_cursxy);
 
-	/* Turn off stuff in the Transform Engine. */
+	
 	sbus_writel(0, &tec->tec_matrix);
 	sbus_writel(0, &tec->tec_clip);
 	sbus_writel(0, &tec->tec_vdc);
 
-	/* Take care of bugs in old revisions. */
+	
 	rev = (sbus_readl(par->fhc) >> CG6_FHC_REV_SHIFT) & CG6_FHC_REV_MASK;
 	if (rev < 5) {
 		conf = (sbus_readl(par->fhc) & CG6_FHC_RES_MASK) |
@@ -693,9 +639,7 @@ static void __devinit cg6_chip_init(struct fb_info *info)
 		sbus_writel(conf, par->fhc);
 	}
 
-	/* Set things in the FBC. Bad things appear to happen if we do
-	 * back to back store/loads on the mode register, so copy it
-	 * out instead. */
+	
 	mode = sbus_readl(&fbc->mode);
 	do {
 		i = sbus_readl(&fbc->s);

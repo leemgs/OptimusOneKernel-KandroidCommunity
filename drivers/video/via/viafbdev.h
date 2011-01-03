@@ -1,23 +1,4 @@
-/*
- * Copyright 1998-2008 VIA Technologies, Inc. All Rights Reserved.
- * Copyright 2001-2008 S3 Graphics, Inc. All Rights Reserved.
 
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public
- * License as published by the Free Software Foundation;
- * either version 2, or (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTIES OR REPRESENTATIONS; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE.See the GNU General Public License
- * for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc.,
- * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
 
 #ifndef __VIAFBDEV_H__
 #define __VIAFBDEV_H__
@@ -32,28 +13,28 @@
 #include "via_i2c.h"
 
 #define VERSION_MAJOR       2
-#define VERSION_KERNEL      6	/* For kernel 2.6 */
+#define VERSION_KERNEL      6	
 
-#define VERSION_OS          0	/* 0: for 32 bits OS, 1: for 64 bits OS */
+#define VERSION_OS          0	
 #define VERSION_MINOR       4
 
 struct viafb_shared {
-	struct proc_dir_entry *proc_entry;	/*viafb proc entry */
+	struct proc_dir_entry *proc_entry;	
 
-	/* I2C stuff */
+	
 	struct via_i2c_stuff i2c_stuff;
 
-	/* All the information will be needed to set engine */
+	
 	struct tmds_setting_information tmds_setting_info;
 	struct crt_setting_information crt_setting_info;
 	struct lvds_setting_information lvds_setting_info;
 	struct lvds_setting_information lvds_setting_info2;
 	struct chip_information chip_info;
 
-	/* hardware acceleration stuff */
+	
 	void __iomem *engine_mmio;
 	u32 cursor_vram_addr;
-	u32 vq_vram_addr;	/* virtual queue address in video ram */
+	u32 vq_vram_addr;	
 	int (*hw_bitblt)(void __iomem *engine, u8 op, u32 width, u32 height,
 		u8 dst_bpp, u32 dst_addr, u32 dst_pitch, u32 dst_x, u32 dst_y,
 		u32 *src_mem, u32 src_addr, u32 src_pitch, u32 src_x, u32 src_y,
@@ -64,16 +45,16 @@ struct viafb_par {
 	u8 depth;
 	u32 vram_addr;
 
-	unsigned int fbmem;	/*framebuffer physical memory address */
-	unsigned int memsize;	/*size of fbmem */
-	u32 fbmem_free;		/* Free FB memory */
-	u32 fbmem_used;		/* Use FB memory size */
+	unsigned int fbmem;	
+	unsigned int memsize;	
+	u32 fbmem_free;		
+	u32 fbmem_used;		
 	u32 iga_path;
 
 	struct viafb_shared *shared;
 
-	/* All the information will be needed to set engine */
-	/* depreciated, use the ones in shared directly */
+	
+	
 	struct tmds_setting_information *tmds_setting_info;
 	struct crt_setting_information *crt_setting_info;
 	struct lvds_setting_information *lvds_setting_info;
@@ -105,4 +86,4 @@ u8 viafb_gpio_i2c_read_lvds(struct lvds_setting_information
 void viafb_gpio_i2c_write_mask_lvds(struct lvds_setting_information
 			      *plvds_setting_info, struct lvds_chip_information
 			      *plvds_chip_info, struct IODATA io_data);
-#endif /* __VIAFBDEV_H__ */
+#endif 

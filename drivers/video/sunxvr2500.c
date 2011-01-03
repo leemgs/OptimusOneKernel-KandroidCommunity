@@ -1,7 +1,4 @@
-/* s3d.c: Sun 3DLABS XVR-2500 et al. driver for sparc64 systems
- *
- * Copyright (C) 2007 David S. Miller (davem@davemloft.net)
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -83,7 +80,7 @@ static int __devinit s3d_set_fbinfo(struct s3d_info *sp)
 
 	info->pseudo_palette = sp->pseudo_palette;
 
-	/* Fill fix common fields */
+	
 	strlcpy(info->fix.id, "s3d", sizeof(info->fix.id));
         info->fix.smem_start = sp->fb_base_phys;
         info->fix.smem_len = sp->fb_size;
@@ -161,10 +158,7 @@ static int __devinit s3d_pci_register(struct pci_dev *pdev,
 	if (err)
 		goto err_release_pci;
 
-	/* XXX 'linebytes' is often wrong, it is equal to the width
-	 * XXX with depth of 32 on my XVR-2500 which is clearly not
-	 * XXX right.  So we don't try to use it.
-	 */
+	
 	switch (sp->depth) {
 	case 8:
 		info->fix.line_length = sp->width;

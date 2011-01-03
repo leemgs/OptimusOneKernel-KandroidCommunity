@@ -1,13 +1,4 @@
- /*-*- linux-c -*-
- *  linux/drivers/video/i810-i2c.c -- Intel 810/815 I2C support
- *
- *      Copyright (C) 2004 Antonino Daplas<adaplas@pol.net>
- *      All Rights Reserved
- *
- *  This file is subject to the terms and conditions of the GNU General Public
- *  License. See the file COPYING in the main directory of this archive for
- *  more details.
- */
+ 
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/delay.h>
@@ -18,7 +9,7 @@
 #include "i810_main.h"
 #include "../edid.h"
 
-/* bit locations in the registers */
+
 #define SCL_DIR_MASK		0x0001
 #define SCL_DIR			0x0002
 #define SCL_VAL_MASK		0x0004
@@ -30,7 +21,7 @@
 #define SDA_VAL_OUT		0x0800
 #define SDA_VAL_IN		0x1000
 
-#define DEBUG  /* define this for verbose EDID parsing output */
+#define DEBUG  
 
 #ifdef DEBUG
 #define DPRINTK(fmt, args...) printk(fmt,## args)
@@ -46,7 +37,7 @@ static void i810i2c_setscl(void *data, int state)
 
 	i810_writel(mmio, chan->ddc_base, (state ? SCL_VAL_OUT : 0) | SCL_DIR |
 		    SCL_DIR_MASK | SCL_VAL_MASK);
-	i810_readl(mmio, chan->ddc_base);	/* flush posted write */
+	i810_readl(mmio, chan->ddc_base);	
 }
 
 static void i810i2c_setsda(void *data, int state)
@@ -57,7 +48,7 @@ static void i810i2c_setsda(void *data, int state)
 
  	i810_writel(mmio, chan->ddc_base, (state ? SDA_VAL_OUT : 0) | SDA_DIR |
 		    SDA_DIR_MASK | SDA_VAL_MASK);
-	i810_readl(mmio, chan->ddc_base);	/* flush posted write */
+	i810_readl(mmio, chan->ddc_base);	
 }
 
 static int i810i2c_getscl(void *data)
@@ -100,7 +91,7 @@ static int i810_setup_i2c_bus(struct i810fb_i2c_chan *chan, const char *name)
 
         i2c_set_adapdata(&chan->adapter, chan);
 
-        /* Raise SCL and SDA */
+        
         chan->algo.setsda(chan, 1);
         chan->algo.setscl(chan, 1);
         udelay(20);

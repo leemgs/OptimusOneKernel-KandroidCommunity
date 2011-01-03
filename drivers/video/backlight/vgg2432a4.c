@@ -1,15 +1,4 @@
-/* drivers/video/backlight/vgg2432a4.c
- *
- * VGG2432A4 (ILI9320) LCD controller driver.
- *
- * Copyright 2007 Simtec Electronics
- *	http://armlinux.simtec.co.uk/
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/delay.h>
 #include <linux/err.h>
@@ -24,7 +13,7 @@
 
 #include "ili9320.h"
 
-/* Device initialisation sequences */
+
 
 static struct ili9320_reg vgg_init1[] = {
 	{
@@ -91,7 +80,7 @@ static struct ili9320_reg vgg_gamma[] = {
 
 static struct ili9320_reg vgg_init0[] = {
 	[0]	= {
-		/* set direction and scan mode gate */
+		
 		.address = ILI9320_DRIVER,
 		.value	 = ILI9320_DRIVER_SS,
 	}, {
@@ -114,17 +103,17 @@ static int vgg2432a4_lcd_init(struct ili9320 *lcd,
 	unsigned int addr;
 	int ret;
 
-	/* Set VCore before anything else (VGG243237-6UFLWA) */
+	
 	ret = ili9320_write(lcd, 0x00e5, 0x8000);
 	if (ret)
 		goto err_initial;
 
-	/* Start the oscillator up before we can do anything else. */
+	
 	ret = ili9320_write(lcd, ILI9320_OSCILATION, ILI9320_OSCILATION_OSC);
 	if (ret)
 		goto err_initial;
 
-	/* must wait at-lesat 10ms after starting */
+	
 	mdelay(15);
 
 	ret = ili9320_write_regs(lcd, vgg_init0, ARRAY_SIZE(vgg_init0));
@@ -225,7 +214,7 @@ static struct ili9320_client vgg2432a4_client = {
 	.init	= vgg2432a4_lcd_init,
 };
 
-/* Device probe */
+
 
 static int __devinit vgg2432a4_probe(struct spi_device *spi)
 {
@@ -262,7 +251,7 @@ static struct spi_driver vgg2432a4_driver = {
 	.resume		= vgg2432a4_resume,
 };
 
-/* Device driver initialisation */
+
 
 static int __init vgg2432a4_init(void)
 {

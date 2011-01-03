@@ -1,10 +1,4 @@
-/*
- * Backlight driver for Analog Devices ADP5520/ADP5501 MFD PMICs
- *
- * Copyright 2009 Analog Devices Inc.
- *
- * Licensed under the GPL-2 or later.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -30,15 +24,12 @@ static int adp5520_bl_set(struct backlight_device *bl, int brightness)
 
 	if (data->pdata->en_ambl_sens) {
 		if ((brightness > 0) && (brightness < ADP5020_MAX_BRIGHTNESS)) {
-			/* Disable Ambient Light auto adjust */
+			
 			ret |= adp5520_clr_bits(master, BL_CONTROL,
 					BL_AUTO_ADJ);
 			ret |= adp5520_write(master, DAYLIGHT_MAX, brightness);
 		} else {
-			/*
-			 * MAX_BRIGHTNESS -> Enable Ambient Light auto adjust
-			 * restore daylight l3 sysfs brightness
-			 */
+			
 			ret |= adp5520_write(master, DAYLIGHT_MAX,
 					 data->cached_daylight_max);
 			ret |= adp5520_set_bits(master, BL_CONTROL,

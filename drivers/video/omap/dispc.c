@@ -1,23 +1,4 @@
-/*
- * OMAP2 display controller support
- *
- * Copyright (C) 2005 Nokia Corporation
- * Author: Imre Deak <imre.deak@nokia.com>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
+
 #include <linux/kernel.h>
 #include <linux/dma-mapping.h>
 #include <linux/mm.h>
@@ -38,7 +19,7 @@
 
 #define DISPC_BASE			0x48050400
 
-/* DISPC common */
+
 #define DISPC_REVISION			0x0000
 #define DISPC_SYSCONFIG			0x0010
 #define DISPC_SYSSTATUS			0x0014
@@ -64,7 +45,7 @@
 #define DISPC_DATA_CYCLE2		0x01D8
 #define DISPC_DATA_CYCLE3		0x01DC
 
-/* DISPC GFX plane */
+
 #define DISPC_GFX_BA0			0x0080
 #define DISPC_GFX_BA1			0x0084
 #define DISPC_GFX_POSITION		0x0088
@@ -77,11 +58,11 @@
 #define DISPC_GFX_WINDOW_SKIP		0x00B4
 #define DISPC_GFX_TABLE_BA		0x00B8
 
-/* DISPC Video plane 1/2 */
+
 #define DISPC_VID1_BASE			0x00BC
 #define DISPC_VID2_BASE			0x014C
 
-/* Offsets into DISPC_VID1/2_BASE */
+
 #define DISPC_VID_BA0			0x0000
 #define DISPC_VID_BA1			0x0004
 #define DISPC_VID_POSITION		0x0008
@@ -96,11 +77,11 @@
 #define DISPC_VID_ACCU0			0x002C
 #define DISPC_VID_ACCU1			0x0030
 
-/* 8 elements in 8 byte increments */
+
 #define DISPC_VID_FIR_COEF_H0		0x0034
-/* 8 elements in 8 byte increments */
+
 #define DISPC_VID_FIR_COEF_HV0		0x0038
-/* 5 elements in 4 byte increments */
+
 #define DISPC_VID_CONV_COEF0		0x0074
 
 #define DISPC_IRQ_FRAMEMASK		0x0001
@@ -136,10 +117,10 @@
 	dispc_write_reg((reg), (dispc_read_reg(reg) & ~(mask)) | (val));
 
 #define OMAP2_SRAM_START		0x40200000
-/* Maximum size, in reality this is smaller if SRAM is partially locked. */
-#define OMAP2_SRAM_SIZE			0xa0000		/* 640k */
 
-/* We support the SDRAM / SRAM types. See OMAPFB_PLANE_MEMTYPE_* in omapfb.h */
+#define OMAP2_SRAM_SIZE			0xa0000		
+
+
 #define DISPC_MEMTYPE_NUM		2
 
 #define RESMAP_SIZE(_page_cnt)						\
@@ -201,21 +182,21 @@ static u32 inline dispc_read_reg(int idx)
 	return l;
 }
 
-/* Select RFBI or bypass mode */
+
 static void enable_rfbi_mode(int enable)
 {
 	u32 l;
 
 	l = dispc_read_reg(DISPC_CONTROL);
-	/* Enable RFBI, GPIO0/1 */
+	
 	l &= ~((1 << 11) | (1 << 15) | (1 << 16));
 	l |= enable ? (1 << 11) : 0;
-	/* RFBI En: GPIO0/1=10  RFBI Dis: GPIO0/1=11 */
+	
 	l |= 1 << 15;
 	l |= enable ? 0 : (1 << 16);
 	dispc_write_reg(DISPC_CONTROL, l);
 
-	/* Set bypass mode in RFBI module */
+	
 	l = __raw_readl(OMAP2_IO_ADDRESS(RFBI_CONTROL));
 	l |= enable ? 0 : (1 << 1);
 	__raw_writel(l, OMAP2_IO_ADDRESS(RFBI_CONTROL));
@@ -429,7 +410,7 @@ static inline int _setup_plane(int plane, int channel_out,
 			((height - 1) << 16) | (width - 1));
 
 	if (set_vsize) {
-		/* Set video size if set_scale hasn't set it */
+		
 		if (!dispc.fir_vinc[plane])
 			MOD_REG_FLD(vs_reg[plane],
 				FLD_MASK(16, 11), (height - 1) << 16);
@@ -529,10 +510,7 @@ static int omap_dispc_set_scale(int plane,
 
 	enable_lcd_clocks(1);
 	if (orig_width < out_width) {
-		/*
-		 * Upsampling.
-		 * Currently you can only scale both dimensions in one way.
-		 */
+		
 		if (orig_height > out_height ||
 		    orig_width * 8 < out_width ||
 		    orig_height * 8 < out_height) {
@@ -541,8 +519,7 @@ static int omap_dispc_set_scale(int plane,
 		}
 		set_upsampling_coef_table(plane);
 	} else if (orig_width > out_width) {
-		/* Downsampling not yet supported
-		*/
+		
 
 		enable_lcd_clocks(0);
 		return -EINVAL;
@@ -808,7 +785,7 @@ static void set_lcd_timings(void)
 	l |= (lck_div << 16) | (pck_div << 0);
 	dispc_write_reg(DISPC_DIVISOR, l);
 
-	/* update panel info with the exact clock */
+	
 	fck = clk_get_rate(dispc.dss1_fck);
 	panel->pixel_clock = fck / lck_div / pck_div / 1000;
 }
@@ -1069,7 +1046,7 @@ static int omap_dispc_mmap_user(struct fb_info *info,
 	if (io_remap_pfn_range(vma, vma->vm_start, off >> PAGE_SHIFT,
 			     vma->vm_end - vma->vm_start, vma->vm_page_prot))
 		return -EAGAIN;
-	/* vm_ops.open won't be called for mmap itself. */
+	
 	atomic_inc(&dispc.map_count[plane->idx]);
 	return 0;
 }
@@ -1229,9 +1206,7 @@ static unsigned long resmap_alloc_region(int mtype, size_t size)
 	return start;
 }
 
-/* Note that this will only work for user mappings, we don't deal with
- * kernel mappings here, so fbcon will keep using the old region.
- */
+
 static int omap_dispc_setup_mem(int plane, size_t size, int mem_type,
 				unsigned long *paddr)
 {
@@ -1254,7 +1229,7 @@ static int omap_dispc_setup_mem(int plane, size_t size, int mem_type,
 	if (size != 0) {
 		new_addr = resmap_alloc_region(mem_type, size);
 		if (!new_addr) {
-			/* Reallocate old region. */
+			
 			resmap_reserve_region(rg->paddr, rg->size);
 			return -ENOMEM;
 		}
@@ -1323,10 +1298,7 @@ static int setup_fbmem(struct omapfb_mem_desc *req_md)
 		r = -ENOMEM;
 		if (dispc.res_map[i] == NULL)
 			goto fail;
-		/* Initial state is that everything is reserved. This
-		 * includes possible holes as well, which will never be
-		 * freed.
-		 */
+		
 		resmap_reserve_region(start, size);
 	}
 
@@ -1391,7 +1363,7 @@ static int omap_dispc_init(struct omapfb_device *fbdev, int ext_mode,
 
 #ifdef CONFIG_FB_OMAP_BOOTLOADER_INIT
 	l = dispc_read_reg(DISPC_CONTROL);
-	/* LCD enabled ? */
+	
 	if (l & 1) {
 		pr_info("omapfb: skipping hardware initialization\n");
 		skip_init = 1;
@@ -1399,10 +1371,10 @@ static int omap_dispc_init(struct omapfb_device *fbdev, int ext_mode,
 #endif
 
 	if (!skip_init) {
-		/* Reset monitoring works only w/ the 54M clk */
+		
 		enable_digit_clocks(1);
 
-		/* Soft reset */
+		
 		MOD_REG_FLD(DISPC_SYSCONFIG, 1 << 1, 1 << 1);
 
 		while (!(dispc_read_reg(DISPC_SYSSTATUS) & 1)) {
@@ -1417,14 +1389,14 @@ static int omap_dispc_init(struct omapfb_device *fbdev, int ext_mode,
 		enable_digit_clocks(0);
 	}
 
-	/* Enable smart standby/idle, autoidle and wakeup */
+	
 	l = dispc_read_reg(DISPC_SYSCONFIG);
 	l &= ~((3 << 12) | (3 << 3));
 	l |= (2 << 12) | (2 << 3) | (1 << 2) | (1 << 0);
 	dispc_write_reg(DISPC_SYSCONFIG, l);
 	omap_writel(1 << 0, DSS_BASE + DSS_SYSCONFIG);
 
-	/* Set functional clock autogating */
+	
 	l = dispc_read_reg(DISPC_CONFIG);
 	l |= 1 << 9;
 	dispc_write_reg(DISPC_CONFIG, l);
@@ -1440,7 +1412,7 @@ static int omap_dispc_init(struct omapfb_device *fbdev, int ext_mode,
 		goto fail1;
 	}
 
-	/* L3 firewall setting: enable access to OCM RAM */
+	
 	__raw_writel(0x402000b0, OMAP2_IO_ADDRESS(0x680050a0));
 
 	if ((r = alloc_palette_ram()) < 0)
@@ -1455,7 +1427,7 @@ static int omap_dispc_init(struct omapfb_device *fbdev, int ext_mode,
 				dispc.mem_desc.region[i].size);
 		}
 
-		/* Set logic clock to fck, pixel clock to fck/2 for now */
+		
 		MOD_REG_FLD(DISPC_DIVISOR, FLD_MASK(16, 8), 1 << 16);
 		MOD_REG_FLD(DISPC_DIVISOR, FLD_MASK(0, 8), 2 << 0);
 
@@ -1500,7 +1472,7 @@ static void omap_dispc_cleanup(void)
 	int i;
 
 	omap_dispc_set_update_mode(OMAPFB_UPDATE_DISABLED);
-	/* This will also disable clocks that are on */
+	
 	for (i = 0; i < dispc.mem_desc.region_cnt; i++)
 		omap_dispc_enable_plane(i, 0);
 	cleanup_fbmem();

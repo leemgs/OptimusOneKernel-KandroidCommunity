@@ -1,20 +1,4 @@
-/*
- *  Backlight Driver for Nvidia 8600 in Macbook Pro
- *
- *  Copyright (c) Red Hat <mjg@redhat.com>
- *  Based on code from Pommed:
- *  Copyright (C) 2006 Nicolas Boichat <nicolas @boichat.ch>
- *  Copyright (C) 2006 Felipe Alfaro Solana <felipe_alfaro @linuxmail.org>
- *  Copyright (C) 2007 Julien BLACHE <jb@jblache.org>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- *
- *  This driver triggers SMIs which cause the firmware to change the
- *  backlight brightness. This is icky in many ways, but it's impractical to
- *  get at the firmware code in order to figure out what it's actually doing.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -27,23 +11,21 @@
 
 static struct backlight_device *mbp_backlight_device;
 
-/* Structure to be passed to the DMI_MATCH function. */
+
 struct dmi_match_data {
-	/* I/O resource to allocate. */
+	
 	unsigned long iostart;
 	unsigned long iolen;
-	/* Backlight operations structure. */
+	
 	struct backlight_ops backlight_ops;
 };
 
-/* Module parameters. */
+
 static int debug;
 module_param_named(debug, debug, int, 0644);
 MODULE_PARM_DESC(debug, "Set to one to enable debugging messages.");
 
-/*
- * Implementation for MacBooks with Intel chipset.
- */
+
 static int intel_chipset_send_intensity(struct backlight_device *bd)
 {
 	int intensity = bd->props.brightness;
@@ -82,9 +64,7 @@ static const struct dmi_match_data intel_chipset_data = {
 	}
 };
 
-/*
- * Implementation for MacBooks with Nvidia chipset.
- */
+
 static int nvidia_chipset_send_intensity(struct backlight_device *bd)
 {
 	int intensity = bd->props.brightness;
@@ -123,10 +103,8 @@ static const struct dmi_match_data nvidia_chipset_data = {
 	}
 };
 
-/*
- * DMI matching.
- */
-static /* const */ struct dmi_match_data *driver_data;
+
+static  struct dmi_match_data *driver_data;
 
 static int mbp_dmi_match(const struct dmi_system_id *id)
 {

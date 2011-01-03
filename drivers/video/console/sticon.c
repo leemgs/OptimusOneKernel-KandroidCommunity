@@ -1,39 +1,4 @@
-/*
- *  linux/drivers/video/console/sticon.c - console driver using HP's STI firmware
- *
- *	Copyright (C) 2000 Philipp Rumpf <prumpf@tux.org>
- *	Copyright (C) 2002 Helge Deller <deller@gmx.de>
- *
- *  Based on linux/drivers/video/vgacon.c and linux/drivers/video/fbcon.c,
- *  which were
- *
- *	Created 28 Sep 1997 by Geert Uytterhoeven
- *	Rewritten by Martin Mares <mj@ucw.cz>, July 1998
- *	Copyright (C) 1991, 1992  Linus Torvalds
- *			    1995  Jay Estabrook
- *	Copyright (C) 1995 Geert Uytterhoeven
- *	Copyright (C) 1993 Bjoern Brauel
- *			   Roman Hodek
- *	Copyright (C) 1993 Hamish Macdonald
- *			   Greg Harp
- *	Copyright (C) 1994 David Carter [carter@compsci.bristol.ac.uk]
- *
- *	      with work by William Rucklidge (wjr@cs.cornell.edu)
- *			   Geert Uytterhoeven
- *			   Jes Sorensen (jds@kom.auc.dk)
- *			   Martin Apel
- *	      with work by Guenther Kelleter
- *			   Martin Schaller
- *			   Andreas Schwab
- *			   Emmanuel Marty (core@ggi-project.org)
- *			   Jakub Jelinek (jj@ultra.linux.cz)
- *			   Martin Mares <mj@ucw.cz>
- *
- *  This file is subject to the terms and conditions of the GNU General Public
- *  License.  See the file COPYING in the main directory of this archive for
- *  more details.
- *
- */
+
 
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -48,20 +13,20 @@
 
 #include "../sticore.h"
 
-/* switching to graphics mode */
+
 #define BLANK 0
 static int vga_is_gfx;
 
-/* this is the sti_struct used for this console */
+
 static struct sti_struct *sticon_sti;
 
-/* Software scrollback */
+
 static unsigned long softback_buf, softback_curr;
 static unsigned long softback_in;
-static unsigned long /* softback_top, */ softback_end;
+static unsigned long  softback_end;
 static int softback_lines;
 
-/* software cursor */
+
 static int cursor_drawn;
 #define CURSOR_DRAW_DELAY		(1)
 #define DEFAULT_CURSOR_BLINK_RATE	(20)
@@ -192,7 +157,7 @@ static void sticon_bmove(struct vc_data *conp, int sy, int sx,
 	(sx <= p->cursor_x) && (p->cursor_x < sx+width)) ||
 	((dy <= p->cursor_y) && (p->cursor_y < dy+height) &&
 	(dx <= p->cursor_x) && (p->cursor_x < dx+width)))
-		sticon_cursor(p, CM_ERASE /*|CM_SOFTBACK*/);
+		sticon_cursor(p, CM_ERASE );
 #endif
 
     sti_bmove(sticon_sti, sy, sx, dy, dx, height, width);
@@ -212,10 +177,10 @@ static void sticon_init(struct vc_data *c, int init)
 	c->vc_cols = vc_cols;
 	c->vc_rows = vc_rows;
     } else {
-	/* vc_rows = (c->vc_rows > vc_rows) ? vc_rows : c->vc_rows; */
-	/* vc_cols = (c->vc_cols > vc_cols) ? vc_cols : c->vc_cols; */
+	
+	
 	vc_resize(c, vc_cols, vc_rows);
-/*	vc_resize_con(vc_rows, vc_cols, c->vc_num); */
+
     }
 }
 
@@ -234,7 +199,7 @@ static void sticon_clear(struct vc_data *conp, int sy, int sx, int height,
 
 static int sticon_switch(struct vc_data *conp)
 {
-    return 1;	/* needs refreshing */
+    return 1;	
 }
 
 static int sticon_set_origin(struct vc_data *conp)
@@ -304,7 +269,7 @@ static unsigned long sticon_getxy(struct vc_data *conp, unsigned long pos,
 	if (ret == softback_in)
 	    ret = conp->vc_origin;
     } else {
-    	/* Should not happen */
+    	
     	x = y = 0;
     	ret = conp->vc_origin;
     }
@@ -327,7 +292,7 @@ static u8 sticon_build_attr(struct vc_data *conp, u8 color, u8 intens,
 
 static void sticon_invert_region(struct vc_data *conp, u16 *p, int count)
 {
-    int col = 1; /* vga_can_do_color; */
+    int col = 1; 
 
     while (count--) {
 	u16 a = scr_readw(p);
@@ -372,7 +337,7 @@ static const struct consw sti_con = {
 
 static int __init sticonsole_init(void)
 {
-    /* already initialized ? */
+    
     if (sticon_sti)
 	 return 0;
 

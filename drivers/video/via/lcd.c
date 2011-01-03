@@ -1,59 +1,40 @@
-/*
- * Copyright 1998-2008 VIA Technologies, Inc. All Rights Reserved.
- * Copyright 2001-2008 S3 Graphics, Inc. All Rights Reserved.
 
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public
- * License as published by the Free Software Foundation;
- * either version 2, or (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTIES OR REPRESENTATIONS; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE.See the GNU General Public License
- * for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc.,
- * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
 
 #include "global.h"
 #include "lcdtbl.h"
 
 static struct iga2_shadow_crtc_timing iga2_shadow_crtc_reg = {
-	/* IGA2 Shadow Horizontal Total */
+	
 	{IGA2_SHADOW_HOR_TOTAL_REG_NUM, {{CR6D, 0, 7}, {CR71, 3, 3} } },
-	/* IGA2 Shadow Horizontal Blank End */
+	
 	{IGA2_SHADOW_HOR_BLANK_END_REG_NUM, {{CR6E, 0, 7} } },
-	/* IGA2 Shadow Vertical Total */
+	
 	{IGA2_SHADOW_VER_TOTAL_REG_NUM, {{CR6F, 0, 7}, {CR71, 0, 2} } },
-	/* IGA2 Shadow Vertical Addressable Video */
+	
 	{IGA2_SHADOW_VER_ADDR_REG_NUM, {{CR70, 0, 7}, {CR71, 4, 6} } },
-	/* IGA2 Shadow Vertical Blank Start */
+	
 	{IGA2_SHADOW_VER_BLANK_START_REG_NUM,
 	 {{CR72, 0, 7}, {CR74, 4, 6} } },
-	/* IGA2 Shadow Vertical Blank End */
+	
 	{IGA2_SHADOW_VER_BLANK_END_REG_NUM, {{CR73, 0, 7}, {CR74, 0, 2} } },
-	/* IGA2 Shadow Vertical Sync Start */
+	
 	{IGA2_SHADOW_VER_SYNC_START_REG_NUM, {{CR75, 0, 7}, {CR76, 4, 6} } },
-	/* IGA2 Shadow Vertical Sync End */
+	
 	{IGA2_SHADOW_VER_SYNC_END_REG_NUM, {{CR76, 0, 3} } }
 };
 
 static struct _lcd_scaling_factor lcd_scaling_factor = {
-	/* LCD Horizontal Scaling Factor Register */
+	
 	{LCD_HOR_SCALING_FACTOR_REG_NUM,
 	 {{CR9F, 0, 1}, {CR77, 0, 7}, {CR79, 4, 5} } },
-	/* LCD Vertical Scaling Factor Register */
+	
 	{LCD_VER_SCALING_FACTOR_REG_NUM,
 	 {{CR79, 3, 3}, {CR78, 0, 7}, {CR79, 6, 7} } }
 };
 static struct _lcd_scaling_factor lcd_scaling_factor_CLE = {
-	/* LCD Horizontal Scaling Factor Register */
+	
 	{LCD_HOR_SCALING_FACTOR_REG_NUM_CLE, {{CR77, 0, 7}, {CR79, 4, 5} } },
-	/* LCD Vertical Scaling Factor Register */
+	
 	{LCD_VER_SCALING_FACTOR_REG_NUM_CLE, {{CR78, 0, 7}, {CR79, 6, 7} } }
 };
 
@@ -165,9 +146,8 @@ void viafb_init_lcd_size(void)
 static bool lvds_identify_integratedlvds(void)
 {
 	if (viafb_display_hardware_layout == HW_LAYOUT_LCD_EXTERNAL_LCD2) {
-		/* Two dual channel LCD (Internal LVDS + External LVDS): */
-		/* If we have an external LVDS, such as VT1636, we should
-		   have its chip ID already. */
+		
+		
 		if (viaparinfo->chip_info->lvds_chip_info.lvds_chip_name) {
 			viaparinfo->chip_info->lvds_chip_info2.lvds_chip_name =
 			    INTEGRATED_LVDS;
@@ -180,7 +160,7 @@ static bool lvds_identify_integratedlvds(void)
 				  so can't support two dual channel LVDS!\n");
 		}
 	} else if (viafb_display_hardware_layout == HW_LAYOUT_LCD1_LCD2) {
-		/* Two single channel LCD (Internal LVDS + Internal LVDS): */
+		
 		viaparinfo->chip_info->lvds_chip_info.lvds_chip_name =
 		INTEGRATED_LVDS;
 		viaparinfo->chip_info->lvds_chip_info2.lvds_chip_name =
@@ -188,8 +168,7 @@ static bool lvds_identify_integratedlvds(void)
 		DEBUG_MSG(KERN_INFO "Support two single channel LVDS!\
 			  (Internal LVDS + Internal LVDS)\n");
 	} else if (viafb_display_hardware_layout != HW_LAYOUT_DVI_ONLY) {
-		/* If we have found external LVDS, just use it,
-		   otherwise, we will use internal LVDS as default. */
+		
 		if (!viaparinfo->chip_info->lvds_chip_info.lvds_chip_name) {
 			viaparinfo->chip_info->lvds_chip_info.lvds_chip_name =
 			    INTEGRATED_LVDS;
@@ -227,7 +206,7 @@ int viafb_lvds_trasmitter_identify(void)
 
 	if (viaparinfo->chip_info->lvds_chip_info.lvds_chip_name)
 		return true;
-	/* Check for VT1631: */
+	
 	viaparinfo->chip_info->lvds_chip_info.lvds_chip_name = VT1631_LVDS;
 	viaparinfo->chip_info->lvds_chip_info.lvds_chip_slave_addr =
 		VT1631_LVDS_I2C_ADDR;
@@ -486,7 +465,7 @@ static void load_lcd_scaling(int set_hres, int set_vres, int panel_hres,
 
 	DEBUG_MSG(KERN_INFO "load_lcd_scaling()!!\n");
 
-	/* LCD Scaling Enable */
+	
 	viafb_write_reg_mask(CR79, VIACR, 0x07, BIT0 + BIT1 + BIT2);
 	if (UNICHROME_P4M900 == viaparinfo->chip_info->gfx_chip_name) {
 		viafb_load_scaling_factor_for_p4m900(set_hres, set_vres,
@@ -494,9 +473,9 @@ static void load_lcd_scaling(int set_hres, int set_vres, int panel_hres,
 		return;
 	}
 
-	/* Check if expansion for horizontal */
+	
 	if (set_hres != panel_hres) {
-		/* Load Horizontal Scaling Factor */
+		
 		switch (viaparinfo->chip_info->gfx_chip_name) {
 		case UNICHROME_CLE266:
 		case UNICHROME_K400:
@@ -517,7 +496,7 @@ static void load_lcd_scaling(int set_hres, int set_vres, int panel_hres,
 		case UNICHROME_P4M890:
 			reg_value =
 			    K800_LCD_HOR_SCF_FORMULA(set_hres, panel_hres);
-			/* Horizontal scaling enabled */
+			
 			viafb_write_reg_mask(CRA2, VIACR, 0xC0, BIT7 + BIT6);
 			viafb_load_reg_num =
 			    lcd_scaling_factor.lcd_hor_scaling_factor.reg_num;
@@ -529,13 +508,13 @@ static void load_lcd_scaling(int set_hres, int set_vres, int panel_hres,
 
 		DEBUG_MSG(KERN_INFO "Horizontal Scaling value = %d", reg_value);
 	} else {
-		/* Horizontal scaling disabled */
+		
 		viafb_write_reg_mask(CRA2, VIACR, 0x00, BIT7);
 	}
 
-	/* Check if expansion for vertical */
+	
 	if (set_vres != panel_vres) {
-		/* Load Vertical Scaling Factor */
+		
 		switch (viaparinfo->chip_info->gfx_chip_name) {
 		case UNICHROME_CLE266:
 		case UNICHROME_K400:
@@ -556,7 +535,7 @@ static void load_lcd_scaling(int set_hres, int set_vres, int panel_hres,
 		case UNICHROME_P4M890:
 			reg_value =
 			    K800_LCD_VER_SCF_FORMULA(set_vres, panel_vres);
-			/* Vertical scaling enabled */
+			
 			viafb_write_reg_mask(CRA2, VIACR, 0x08, BIT3);
 			viafb_load_reg_num =
 			    lcd_scaling_factor.lcd_ver_scaling_factor.reg_num;
@@ -568,7 +547,7 @@ static void load_lcd_scaling(int set_hres, int set_vres, int panel_hres,
 
 		DEBUG_MSG(KERN_INFO "Vertical Scaling value = %d", reg_value);
 	} else {
-		/* Vertical scaling disabled */
+		
 		viafb_write_reg_mask(CRA2, VIACR, 0x00, BIT3);
 	}
 }
@@ -582,7 +561,7 @@ static void load_lcd_k400_patch_tbl(int set_hres, int set_vres,
 
 	vmode_index = viafb_get_mode_index(set_hres, set_vres);
 	switch (panel_id) {
-		/* LCD 800x600 */
+		
 	case LCD_PANEL_ID1_800X600:
 		switch (vmode_index) {
 		case VIA_RES_640X400:
@@ -598,7 +577,7 @@ static void load_lcd_k400_patch_tbl(int set_hres, int set_vres,
 		}
 		break;
 
-		/* LCD 1024x768 */
+		
 	case LCD_PANEL_ID2_1024X768:
 		switch (vmode_index) {
 		case VIA_RES_640X400:
@@ -618,7 +597,7 @@ static void load_lcd_k400_patch_tbl(int set_hres, int set_vres,
 		}
 		break;
 
-		/* LCD 1280x1024 */
+		
 	case LCD_PANEL_ID4_1280X1024:
 		switch (vmode_index) {
 		case VIA_RES_640X400:
@@ -643,7 +622,7 @@ static void load_lcd_k400_patch_tbl(int set_hres, int set_vres,
 		}
 		break;
 
-		/* LCD 1400x1050 */
+		
 	case LCD_PANEL_ID5_1400X1050:
 		switch (vmode_index) {
 		case VIA_RES_640X480:
@@ -668,7 +647,7 @@ static void load_lcd_k400_patch_tbl(int set_hres, int set_vres,
 		}
 		break;
 
-		/* LCD 1600x1200 */
+		
 	case LCD_PANEL_ID6_1600X1200:
 		switch (vmode_index) {
 		case VIA_RES_640X400:
@@ -699,7 +678,7 @@ static void load_lcd_k400_patch_tbl(int set_hres, int set_vres,
 		}
 		break;
 
-		/* LCD 1366x768 */
+		
 	case LCD_PANEL_ID7_1366X768:
 		switch (vmode_index) {
 		case VIA_RES_640X480:
@@ -729,24 +708,24 @@ static void load_lcd_k400_patch_tbl(int set_hres, int set_vres,
 		}
 		break;
 
-		/* LCD 1360x768 */
+		
 	case LCD_PANEL_IDB_1360X768:
 		break;
 	}
 	if (reg_num != 0) {
-		/* H.W. Reset : ON */
+		
 		viafb_write_reg_mask(CR17, VIACR, 0x00, BIT7);
 
 		viafb_write_regx(lcd_patch_reg, reg_num);
 
-		/* H.W. Reset : OFF */
+		
 		viafb_write_reg_mask(CR17, VIACR, 0x80, BIT7);
 
-		/* Reset PLL */
+		
 		viafb_write_reg_mask(SR40, VIASR, 0x02, BIT1);
 		viafb_write_reg_mask(SR40, VIASR, 0x00, BIT1);
 
-		/* Fire! */
+		
 		outb(inb(VIARMisc) | (BIT2 + BIT3), VIAWMisc);
 	}
 }
@@ -804,19 +783,19 @@ static void load_lcd_p880_patch_tbl(int set_hres, int set_vres,
 
 	}
 	if (reg_num != 0) {
-		/* H.W. Reset : ON */
+		
 		viafb_write_reg_mask(CR17, VIACR, 0x00, BIT7);
 
 		viafb_write_regx(lcd_patch_reg, reg_num);
 
-		/* H.W. Reset : OFF */
+		
 		viafb_write_reg_mask(CR17, VIACR, 0x80, BIT7);
 
-		/* Reset PLL */
+		
 		viafb_write_reg_mask(SR40, VIASR, 0x02, BIT1);
 		viafb_write_reg_mask(SR40, VIASR, 0x00, BIT1);
 
-		/* Fire! */
+		
 		outb(inb(VIARMisc) | (BIT2 + BIT3), VIAWMisc);
 	}
 }
@@ -830,7 +809,7 @@ static void load_lcd_patch_regs(int set_hres, int set_vres,
 
 	viafb_unlock_crt();
 
-	/* Patch for simultaneous & Expansion */
+	
 	if ((set_iga == IGA1_IGA2) &&
 		(viaparinfo->lvds_setting_info->display_method ==
 	    LCD_EXPANDSION)) {
@@ -874,7 +853,7 @@ static void via_pitch_alignment_patch_lcd(
 				viafb_write_reg(CR67, VIACR, cr67);
 			}
 
-			/* Fetch Count */
+			
 			cr67 = viafb_read_reg(VIACR, CR67) & 0xF3;
 			cr67 |= (unsigned char)((dwScreenPitch & 0x600) >> 7);
 			viafb_write_reg(CR67, VIACR, cr67);
@@ -944,7 +923,7 @@ static void lcd_patch_skew(struct lvds_setting_information
 	}
 }
 
-/* LCD Set Mode */
+
 void viafb_lcd_set_mode(struct crt_mode_table *mode_crt_table,
 		  struct lvds_setting_information *plvds_setting_info,
 		  struct lvds_chip_information *plvds_chip_info)
@@ -961,9 +940,9 @@ void viafb_lcd_set_mode(struct crt_mode_table *mode_crt_table,
 	struct VideoModeTable *vmode_tbl = NULL;
 
 	DEBUG_MSG(KERN_INFO "viafb_lcd_set_mode!!\n");
-	/* Get mode table */
+	
 	mode_crt_reg = mode_crt_table->crtc;
-	/* Get panel table Pointer */
+	
 	vmode_tbl = viafb_get_modetbl_pointer(video_index);
 	panel_crt_table = vmode_tbl->crtc;
 	panel_crt_reg = panel_crt_table->crtc;
@@ -976,34 +955,33 @@ void viafb_lcd_set_mode(struct crt_mode_table *mode_crt_table,
 		viafb_init_lvds_vt1636(plvds_setting_info, plvds_chip_info);
 	plvds_setting_info->vclk = panel_crt_table->clk;
 	if (set_iga == IGA1) {
-		/* IGA1 doesn't have LCD scaling, so set it as centering. */
+		
 		viafb_load_crtc_timing(lcd_centering_timging
 				 (mode_crt_reg, panel_crt_reg), IGA1);
 	} else {
-		/* Expansion */
+		
 		if ((plvds_setting_info->display_method ==
 		     LCD_EXPANDSION) & ((set_hres != panel_hres)
 					|| (set_vres != panel_vres))) {
-			/* expansion timing IGA2 loaded panel set timing*/
+			
 			viafb_load_crtc_timing(panel_crt_reg, IGA2);
 			DEBUG_MSG(KERN_INFO "viafb_load_crtc_timing!!\n");
 			load_lcd_scaling(set_hres, set_vres, panel_hres,
 					 panel_vres);
 			DEBUG_MSG(KERN_INFO "load_lcd_scaling!!\n");
-		} else {	/* Centering */
-			/* centering timing IGA2 always loaded panel
-			   and mode releative timing */
+		} else {	
+			
 			viafb_load_crtc_timing(lcd_centering_timging
 					 (mode_crt_reg, panel_crt_reg), IGA2);
 			viafb_write_reg_mask(CR79, VIACR, 0x00,
 				BIT0 + BIT1 + BIT2);
-			/* LCD scaling disabled */
+			
 		}
 	}
 
 	if (set_iga == IGA1_IGA2) {
 		load_crtc_shadow_timing(mode_crt_reg, panel_crt_reg);
-		/* Fill shadow registers */
+		
 
 		switch (plvds_setting_info->lcd_panel_id) {
 		case LCD_PANEL_ID0_640X480:
@@ -1034,13 +1012,13 @@ void viafb_lcd_set_mode(struct crt_mode_table *mode_crt_table,
 			break;
 		}
 
-		/* Offset for simultaneous */
+		
 		viafb_set_secondary_pitch(offset << 3);
 		DEBUG_MSG(KERN_INFO "viafb_load_reg!!\n");
 		viafb_load_fetch_count_reg(set_hres, 4, IGA2);
-		/* Fetch count for simultaneous */
-	} else {		/* SAMM */
-		/* Fetch count for IGA2 only */
+		
+	} else {		
+		
 		viafb_load_fetch_count_reg(set_hres, mode_bpp / 8, set_iga);
 
 		if ((viaparinfo->chip_info->gfx_chip_name != UNICHROME_CLE266)
@@ -1060,7 +1038,7 @@ void viafb_lcd_set_mode(struct crt_mode_table *mode_crt_table,
 		plvds_chip_info->output_interface);
 	lcd_patch_skew(plvds_setting_info, plvds_chip_info);
 
-	/* If K8M800, enable LCD Prefetch Mode. */
+	
 	if ((viaparinfo->chip_info->gfx_chip_name == UNICHROME_K800)
 	    || (UNICHROME_K8M890 == viaparinfo->chip_info->gfx_chip_name))
 		viafb_write_reg_mask(CR6A, VIACR, 0x01, BIT0);
@@ -1070,7 +1048,7 @@ void viafb_lcd_set_mode(struct crt_mode_table *mode_crt_table,
 
 	DEBUG_MSG(KERN_INFO "load_lcd_patch_regs!!\n");
 
-	/* Patch for non 32bit alignment mode */
+	
 	via_pitch_alignment_patch_lcd(plvds_setting_info, plvds_chip_info);
 }
 
@@ -1087,28 +1065,28 @@ static void integrated_lvds_disable(struct lvds_setting_information
 	if (INTERFACE_LVDS1 == plvds_chip_info->output_interface)
 		turn_off_second_powersequence = true;
 	if (turn_off_second_powersequence) {
-		/* Use second power sequence control: */
+		
 
-		/* Turn off power sequence. */
+		
 		viafb_write_reg_mask(CRD4, VIACR, 0, BIT1);
 
-		/* Turn off back light. */
+		
 		viafb_write_reg_mask(CRD3, VIACR, 0xC0, BIT6 + BIT7);
 	}
 	if (turn_off_first_powersequence) {
-		/* Use first power sequence control: */
+		
 
-		/* Turn off power sequence. */
+		
 		viafb_write_reg_mask(CR6A, VIACR, 0, BIT3);
 
-		/* Turn off back light. */
+		
 		viafb_write_reg_mask(CR91, VIACR, 0xC0, BIT6 + BIT7);
 	}
 
-	/* Turn DFP High/Low Pad off. */
+	
 	viafb_write_reg_mask(SR2A, VIASR, 0, BIT0 + BIT1 + BIT2 + BIT3);
 
-	/* Power off LVDS channel. */
+	
 	switch (plvds_chip_info->output_interface) {
 	case INTERFACE_LVDS0:
 		{
@@ -1151,34 +1129,34 @@ static void integrated_lvds_enable(struct lvds_setting_information
 		turn_on_second_powersequence = true;
 
 	if (turn_on_second_powersequence) {
-		/* Use second power sequence control: */
+		
 
-		/* Use hardware control power sequence. */
+		
 		viafb_write_reg_mask(CRD3, VIACR, 0, BIT0);
 
-		/* Turn on back light. */
+		
 		viafb_write_reg_mask(CRD3, VIACR, 0, BIT6 + BIT7);
 
-		/* Turn on hardware power sequence. */
+		
 		viafb_write_reg_mask(CRD4, VIACR, 0x02, BIT1);
 	}
 	if (turn_on_first_powersequence) {
-		/* Use first power sequence control: */
+		
 
-		/* Use hardware control power sequence. */
+		
 		viafb_write_reg_mask(CR91, VIACR, 0, BIT0);
 
-		/* Turn on back light. */
+		
 		viafb_write_reg_mask(CR91, VIACR, 0, BIT6 + BIT7);
 
-		/* Turn on hardware power sequence. */
+		
 		viafb_write_reg_mask(CR6A, VIACR, 0x08, BIT3);
 	}
 
-	/* Turn DFP High/Low pad on. */
+	
 	viafb_write_reg_mask(SR2A, VIASR, 0x0F, BIT0 + BIT1 + BIT2 + BIT3);
 
-	/* Power on LVDS channel. */
+	
 	switch (plvds_chip_info->output_interface) {
 	case INTERFACE_LVDS0:
 		{
@@ -1205,7 +1183,7 @@ void viafb_lcd_disable(void)
 
 	if (viaparinfo->chip_info->gfx_chip_name == UNICHROME_CLE266) {
 		lcd_powersequence_off();
-		/* DI1 pad off */
+		
 		viafb_write_reg_mask(SR1E, VIASR, 0x00, 0x30);
 	} else if (viaparinfo->chip_info->gfx_chip_name == UNICHROME_CX700) {
 		if (viafb_LCD2_ON
@@ -1226,23 +1204,23 @@ void viafb_lcd_disable(void)
 		viafb_disable_lvds_vt1636(viaparinfo->lvds_setting_info,
 				    &viaparinfo->chip_info->lvds_chip_info);
 	} else {
-		/* DFP-HL pad off          */
+		
 		viafb_write_reg_mask(SR2A, VIASR, 0x00, 0x0F);
-		/* Backlight off           */
+		
 		viafb_write_reg_mask(SR3D, VIASR, 0x00, 0x20);
-		/* 24 bit DI data paht off */
+		
 		viafb_write_reg_mask(CR91, VIACR, 0x80, 0x80);
-		/* Simultaneout disabled   */
+		
 		viafb_write_reg_mask(CR6B, VIACR, 0x00, 0x08);
 	}
 
-	/* Disable expansion bit   */
+	
 	viafb_write_reg_mask(CR79, VIACR, 0x00, 0x01);
-	/* CRT path set to IGA1    */
+	
 	viafb_write_reg_mask(SR16, VIASR, 0x00, 0x40);
-	/* Simultaneout disabled   */
+	
 	viafb_write_reg_mask(CR6B, VIACR, 0x00, 0x08);
-	/* IGA2 path disabled      */
+	
 	viafb_write_reg_mask(CR6A, VIACR, 0x00, 0x80);
 
 }
@@ -1250,7 +1228,7 @@ void viafb_lcd_disable(void)
 void viafb_lcd_enable(void)
 {
 	if (viaparinfo->chip_info->gfx_chip_name == UNICHROME_CLE266) {
-		/* DI1 pad on */
+		
 		viafb_write_reg_mask(SR1E, VIASR, 0x30, 0x30);
 		lcd_powersequence_on();
 	} else if (viaparinfo->chip_info->gfx_chip_name == UNICHROME_CX700) {
@@ -1272,37 +1250,37 @@ void viafb_lcd_enable(void)
 		viafb_enable_lvds_vt1636(viaparinfo->lvds_setting_info,
 				   &viaparinfo->chip_info->lvds_chip_info);
 	} else {
-		/* DFP-HL pad on           */
+		
 		viafb_write_reg_mask(SR2A, VIASR, 0x0F, 0x0F);
-		/* Backlight on            */
+		
 		viafb_write_reg_mask(SR3D, VIASR, 0x20, 0x20);
-		/* 24 bit DI data paht on  */
+		
 		viafb_write_reg_mask(CR91, VIACR, 0x00, 0x80);
 
-		/* Set data source selection bit by iga path */
+		
 		if (viaparinfo->lvds_setting_info->iga_path == IGA1) {
-			/* DFP-H set to IGA1       */
+			
 			viafb_write_reg_mask(CR97, VIACR, 0x00, 0x10);
-			/* DFP-L set to IGA1       */
+			
 			viafb_write_reg_mask(CR99, VIACR, 0x00, 0x10);
 		} else {
-			/* DFP-H set to IGA2       */
+			
 			viafb_write_reg_mask(CR97, VIACR, 0x10, 0x10);
-			/* DFP-L set to IGA2       */
+			
 			viafb_write_reg_mask(CR99, VIACR, 0x10, 0x10);
 		}
-		/* LCD enabled             */
+		
 		viafb_write_reg_mask(CR6A, VIACR, 0x48, 0x48);
 	}
 
 	if ((viaparinfo->lvds_setting_info->iga_path == IGA1)
 	    || (viaparinfo->lvds_setting_info->iga_path == IGA1_IGA2)) {
-		/* CRT path set to IGA2    */
+		
 		viafb_write_reg_mask(SR16, VIASR, 0x40, 0x40);
-		/* IGA2 path disabled      */
+		
 		viafb_write_reg_mask(CR6A, VIACR, 0x00, 0x80);
-		/* IGA2 path enabled       */
-	} else {		/* IGA2 */
+		
+	} else {		
 		viafb_write_reg_mask(CR6A, VIACR, 0x80, 0x80);
 	}
 
@@ -1312,7 +1290,7 @@ static void lcd_powersequence_off(void)
 {
 	int i, mask, data;
 
-	/* Software control power sequence */
+	
 	viafb_write_reg_mask(CR91, VIACR, 0x11, 0x11);
 
 	for (i = 0; i < 3; i++) {
@@ -1322,7 +1300,7 @@ static void lcd_powersequence_off(void)
 		udelay(PowerSequenceOff[2][i]);
 	}
 
-	/* Disable LCD */
+	
 	viafb_write_reg_mask(CR6A, VIACR, 0x00, 0x08);
 }
 
@@ -1330,10 +1308,10 @@ static void lcd_powersequence_on(void)
 {
 	int i, mask, data;
 
-	/* Software control power sequence */
+	
 	viafb_write_reg_mask(CR91, VIACR, 0x11, 0x11);
 
-	/* Enable LCD */
+	
 	viafb_write_reg_mask(CR6A, VIACR, 0x08, 0x08);
 
 	for (i = 0; i < 3; i++) {
@@ -1354,7 +1332,7 @@ static void fill_lcd_format(void)
 		bdual = BIT4;
 	if (viaparinfo->lvds_setting_info->LCDDithering)
 		bdithering = BIT0;
-	/* Dual & Dithering */
+	
 	viafb_write_reg_mask(CR88, VIACR, (bdithering | bdual), BIT4 + BIT0);
 }
 
@@ -1363,7 +1341,7 @@ static void check_diport_of_integrated_lvds(
 				     struct lvds_setting_information
 				     *plvds_setting_info)
 {
-	/* Determine LCD DI Port by hardware layout. */
+	
 	switch (viafb_display_hardware_layout) {
 	case HW_LAYOUT_LCD_ONLY:
 		{
@@ -1417,7 +1395,7 @@ void viafb_init_lvds_output_interface(struct lvds_chip_information
 				*plvds_setting_info)
 {
 	if (INTERFACE_NONE != plvds_chip_info->output_interface) {
-		/*Do nothing, lcd port is specified by module parameter */
+		
 		return;
 	}
 
@@ -1497,7 +1475,7 @@ static void load_crtc_shadow_timing(struct display_timing mode_timing,
 	int reg_value = 0;
 
 	if (viaparinfo->lvds_setting_info->display_method == LCD_EXPANDSION) {
-		/* Expansion */
+		
 		for (i = 12; i < 20; i++) {
 			switch (i) {
 			case H_TOTAL_SHADOW_INDEX:
@@ -1589,7 +1567,7 @@ static void load_crtc_shadow_timing(struct display_timing mode_timing,
 			viafb_load_reg(reg_value,
 				viafb_load_reg_Num, reg, VIACR);
 		}
-	} else {		/* Centering */
+	} else {		
 		for (i = 12; i < 20; i++) {
 			switch (i) {
 			case H_TOTAL_SHADOW_INDEX:
@@ -1697,28 +1675,27 @@ bool viafb_lcd_get_mobile_state(bool *mobile)
 	unsigned char *romptr, *tableptr;
 	u8 core_base;
 	unsigned char *biosptr;
-	/* Rom address */
+	
 	u32 romaddr = 0x000C0000;
 	u16 start_pattern = 0;
 
 	biosptr = ioremap(romaddr, 0x10000);
 
 	memcpy(&start_pattern, biosptr, 2);
-	/* Compare pattern */
+	
 	if (start_pattern == 0xAA55) {
-		/* Get the start of Table */
-		/* 0x1B means BIOS offset position */
+		
+		
 		romptr = biosptr + 0x1B;
 		tableptr = biosptr + *((u16 *) romptr);
 
-		/* Get the start of biosver structure */
-		/* 18 means BIOS version position. */
+		
+		
 		romptr = tableptr + 18;
 		romptr = biosptr + *((u16 *) romptr);
 
-		/* The offset should be 44, but the
-		   actual image is less three char. */
-		/* pRom += 44; */
+		
+		
 		romptr += 41;
 
 		core_base = *romptr++;
@@ -1727,7 +1704,7 @@ bool viafb_lcd_get_mobile_state(bool *mobile)
 			*mobile = false;
 		else
 			*mobile = true;
-		/* release memory */
+		
 		iounmap(biosptr);
 
 		return true;
@@ -1747,52 +1724,52 @@ static void viafb_load_scaling_factor_for_p4m900(int set_hres,
 	u8 cr78 = 0;
 	u8 cr79 = 0;
 	u8 cr9f = 0;
-	/* Check if expansion for horizontal */
+	
 	if (set_hres < panel_hres) {
-		/* Load Horizontal Scaling Factor */
+		
 
-		/* For VIA_K8M800 or later chipsets. */
+		
 		h_scaling_factor =
 		    K800_LCD_HOR_SCF_FORMULA(set_hres, panel_hres);
-		/* HSCaleFactor[1:0] at CR9F[1:0] */
+		
 		cr9f = h_scaling_factor & 0x0003;
-		/* HSCaleFactor[9:2] at CR77[7:0] */
+		
 		cr77 = (h_scaling_factor & 0x03FC) >> 2;
-		/* HSCaleFactor[11:10] at CR79[5:4] */
+		
 		cr79 = (h_scaling_factor & 0x0C00) >> 10;
 		cr79 <<= 4;
 
-		/* Horizontal scaling enabled */
+		
 		cra2 = 0xC0;
 
 		DEBUG_MSG(KERN_INFO "Horizontal Scaling value = %d\n",
 			  h_scaling_factor);
 	} else {
-		/* Horizontal scaling disabled */
+		
 		cra2 = 0x00;
 	}
 
-	/* Check if expansion for vertical */
+	
 	if (set_vres < panel_vres) {
-		/* Load Vertical Scaling Factor */
+		
 
-		/* For VIA_K8M800 or later chipsets. */
+		
 		v_scaling_factor =
 		    K800_LCD_VER_SCF_FORMULA(set_vres, panel_vres);
 
-		/* Vertical scaling enabled */
+		
 		cra2 |= 0x08;
-		/* VSCaleFactor[0] at CR79[3] */
+		
 		cr79 |= ((v_scaling_factor & 0x0001) << 3);
-		/* VSCaleFactor[8:1] at CR78[7:0] */
+		
 		cr78 |= (v_scaling_factor & 0x01FE) >> 1;
-		/* VSCaleFactor[10:9] at CR79[7:6] */
+		
 		cr79 |= ((v_scaling_factor & 0x0600) >> 9) << 6;
 
 		DEBUG_MSG(KERN_INFO "Vertical Scaling value = %d\n",
 			  v_scaling_factor);
 	} else {
-		/* Vertical scaling disabled */
+		
 		cra2 |= 0x00;
 	}
 

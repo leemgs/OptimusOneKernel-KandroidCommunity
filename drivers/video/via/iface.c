@@ -1,33 +1,14 @@
-/*
- * Copyright 1998-2008 VIA Technologies, Inc. All Rights Reserved.
- * Copyright 2001-2008 S3 Graphics, Inc. All Rights Reserved.
 
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public
- * License as published by the Free Software Foundation;
- * either version 2, or (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTIES OR REPRESENTATIONS; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE.See the GNU General Public License
- * for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc.,
- * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
 
 #include "global.h"
 
-/* Get frame buffer size from VGA BIOS */
+
 
 unsigned int viafb_get_memsize(void)
 {
 	unsigned int m;
 
-	/* If memory size provided by user */
+	
 	if (viafb_memsize)
 		m = viafb_memsize * Mb;
 	else {
@@ -41,7 +22,7 @@ unsigned int viafb_get_memsize(void)
 	return m;
 }
 
-/* Get Video Buffer Starting Physical Address(back door)*/
+
 
 unsigned long viafb_get_videobuf_addr(void)
 {
@@ -50,7 +31,7 @@ unsigned long viafb_get_videobuf_addr(void)
 	unsigned char video_mem;
 	unsigned long sys_mem_size;
 	unsigned long video_mem_size;
-	/*system memory = 256 MB, video memory 64 MB */
+	
 	unsigned long vmem_starting_adr = 0x0C000000;
 
 	pdev =

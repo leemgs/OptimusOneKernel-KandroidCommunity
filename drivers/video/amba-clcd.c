@@ -1,15 +1,4 @@
-/*
- *  linux/drivers/video/amba-clcd.c
- *
- * Copyright (C) 2001 ARM Limited, by David A Rusling
- * Updated to 2.5, Deep Blue Solutions Ltd.
- *
- * This file is subject to the terms and conditions of the GNU General Public
- * License.  See the file COPYING in the main directory of this archive
- * for more details.
- *
- *  ARM PrimeCell PL110 Color LCD Controller
- */
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/errno.h>
@@ -30,13 +19,10 @@
 
 #define to_clcd(info)	container_of(info, struct clcd_fb, fb)
 
-/* This is limited to 16 characters when displayed by X startup */
+
 static const char *clcd_name = "CLCD FB";
 
-/*
- * Unfortunately, the enable/disable functions may be called either from
- * process or IRQ context, and we _need_ to delay.  This is _not_ good.
- */
+
 static inline void clcdfb_sleep(unsigned int ms)
 {
 	if (in_atomic()) {
@@ -77,36 +63,26 @@ static void clcdfb_disable(struct clcd_fb *fb)
 		writel(val, fb->regs + CLCD_CNTL);
 	}
 
-	/*
-	 * Disable CLCD clock source.
-	 */
+	
 	clk_disable(fb->clk);
 }
 
 static void clcdfb_enable(struct clcd_fb *fb, u32 cntl)
 {
-	/*
-	 * Enable the CLCD clock source.
-	 */
+	
 	clk_enable(fb->clk);
 
-	/*
-	 * Bring up by first enabling..
-	 */
+	
 	cntl |= CNTL_LCDEN;
 	writel(cntl, fb->regs + CLCD_CNTL);
 
 	clcdfb_sleep(20);
 
-	/*
-	 * and now apply power.
-	 */
+	
 	cntl |= CNTL_LCDPWR;
 	writel(cntl, fb->regs + CLCD_CNTL);
 
-	/*
-	 * finally, enable the interface.
-	 */
+	
 	if (fb->board->enable)
 		fb->board->enable(fb);
 }
@@ -137,10 +113,7 @@ clcdfb_set_bitfields(struct clcd_fb *fb, struct fb_var_screeninfo *var)
 	case 16:
 		var->red.length = 5;
 		var->blue.length = 5;
-		/*
-		 * Green length can be 5 or 6 depending whether
-		 * we're operating in RGB555 or RGB565 mode.
-		 */
+		
 		if (var->green.length != 5 && var->green.length != 6)
 			var->green.length = 6;
 		break;
@@ -156,11 +129,7 @@ clcdfb_set_bitfields(struct clcd_fb *fb, struct fb_var_screeninfo *var)
 		break;
 	}
 
-	/*
-	 * >= 16bpp displays have separate colour component bitfields
-	 * encoded in the pixel data.  Calculate their position from
-	 * the bitfield length defined above.
-	 */
+	
 	if (ret == 0 && var->bits_per_pixel >= 16) {
 		if (fb->panel->cntl & CNTL_BGR) {
 			var->blue.offset = 0;
@@ -246,10 +215,7 @@ static inline u32 convert_bitfield(int val, struct fb_bitfield *bf)
 	return (val >> (16 - bf->length) & mask) << bf->offset;
 }
 
-/*
- *  Set a single color register. The values supplied have a 16 bit
- *  magnitude.  Return != 0 for invalid regno.
- */
+
 static int
 clcdfb_setcolreg(unsigned int regno, unsigned int red, unsigned int green,
 		 unsigned int blue, unsigned int transp, struct fb_info *info)
@@ -270,10 +236,7 @@ clcdfb_setcolreg(unsigned int regno, unsigned int red, unsigned int green,
 		newval |= (green >> 6) & 0x03e0;
 		newval |= (blue >> 1)  & 0x7c00;
 
-		/*
-		 * 3.2.11: if we're configured for big endian
-		 * byte order, the palette entries are swapped.
-		 */
+		
 		if (fb->clcd_cntl & CNTL_BEBO)
 			regno ^= 1;
 
@@ -291,16 +254,7 @@ clcdfb_setcolreg(unsigned int regno, unsigned int red, unsigned int green,
 	return regno > 255;
 }
 
-/*
- *  Blank the screen if blank_mode != 0, else unblank. If blank == NULL
- *  then the caller blanks by setting the CLUT (Color Look Up Table) to all
- *  black. Return 0 if blanking succeeded, != 0 if un-/blanking failed due
- *  to e.g. a video mode which doesn't support it. Implements VESA suspend
- *  and powerdown modes on hardware that supports disabling hsync/vsync:
- *    blank_mode == 2: suspend vsync
- *    blank_mode == 3: suspend hsync
- *    blank_mode == 4: powerdown
- */
+
 static int clcdfb_blank(int blank_mode, struct fb_info *info)
 {
 	struct clcd_fb *fb = to_clcd(info);
@@ -401,21 +355,15 @@ static int clcdfb_register(struct clcd_fb *fb)
 	fb->fb.monspecs.dclkmin = 1000000;
 	fb->fb.monspecs.dclkmax	= 100000000;
 
-	/*
-	 * Make sure that the bitfields are set appropriately.
-	 */
+	
 	clcdfb_set_bitfields(fb, &fb->fb.var);
 
-	/*
-	 * Allocate colourmap.
-	 */
+	
 	ret = fb_alloc_cmap(&fb->fb.cmap, 256, 0);
 	if (ret)
 		goto unmap;
 
-	/*
-	 * Ensure interrupts are disabled.
-	 */
+	
 	writel(0, fb->regs + CLCD_IENB);
 
 	fb_set_var(&fb->fb, &fb->fb.var);

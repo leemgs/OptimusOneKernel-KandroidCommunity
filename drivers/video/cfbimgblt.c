@@ -1,34 +1,4 @@
-/*
- *  Generic BitBLT function for frame buffer with packed pixels of any depth.
- *
- *      Copyright (C)  June 1999 James Simmons
- *
- *  This file is subject to the terms and conditions of the GNU General Public
- *  License.  See the file COPYING in the main directory of this archive for
- *  more details.
- *
- * NOTES:
- *
- *    This function copys a image from system memory to video memory. The
- *  image can be a bitmap where each 0 represents the background color and
- *  each 1 represents the foreground color. Great for font handling. It can
- *  also be a color image. This is determined by image_depth. The color image
- *  must be laid out exactly in the same format as the framebuffer. Yes I know
- *  their are cards with hardware that coverts images of various depths to the
- *  framebuffer depth. But not every card has this. All images must be rounded
- *  up to the nearest byte. For example a bitmap 12 bits wide must be two 
- *  bytes width. 
- *
- *  Tony: 
- *  Incorporate mask tables similar to fbcon-cfb*.c in 2.4 API.  This speeds 
- *  up the code significantly.
- *  
- *  Code for depths not multiples of BITS_PER_LONG is still kludgy, which is
- *  still processed a bit at a time.   
- *
- *  Also need to add code to deal with cards endians that are different than
- *  the native cpu endians. I also need to deal with MSB position in the word.
- */
+
 #include <linux/module.h>
 #include <linux/string.h>
 #include <linux/fb.h>
@@ -77,7 +47,7 @@ static inline void color_imageblit(const struct fb_image *image,
 				   u32 start_index,
 				   u32 pitch_index)
 {
-	/* Draw the penguin */
+	
 	u32 __iomem *dst, *dst2;
 	u32 color = 0, val, shift;
 	int i, n, bpp = p->var.bits_per_pixel;
@@ -160,7 +130,7 @@ static inline void slow_imageblit(const struct fb_image *image, struct fb_info *
 		dst = (u32 __iomem *) dst1;
 		s = src;
 
-		/* write leading bits */
+		
 		if (start_index) {
 			u32 start_mask = ~fb_shifted_pixels_mask_u32(p,
 						start_index, bswapmask);
@@ -173,7 +143,7 @@ static inline void slow_imageblit(const struct fb_image *image, struct fb_info *
 			color = (*s & (1 << l)) ? fgcolor : bgcolor;
 			val |= FB_SHIFT_HIGH(p, color, shift ^ bswapmask);
 			
-			/* Did the bitshift spill bits to the next long? */
+			
 			if (shift >= null_bits) {
 				FB_WRITEL(val, dst++);
 				val = (shift == null_bits) ? 0 :
@@ -184,7 +154,7 @@ static inline void slow_imageblit(const struct fb_image *image, struct fb_info *
 			if (!l) { l = 8; s++; };
 		}
 
-		/* write trailing bits */
+		
  		if (shift) {
 			u32 end_mask = fb_shifted_pixels_mask_u32(p, shift,
 						bswapmask);
@@ -204,14 +174,7 @@ static inline void slow_imageblit(const struct fb_image *image, struct fb_info *
 	}
 }
 
-/*
- * fast_imageblit - optimized monochrome color expansion
- *
- * Only if:  bits_per_pixel == 8, 16, or 32
- *           image->width is divisible by pixel/dword (ppw);
- *           fix->line_legth is divisible by 4;
- *           beginning and end of a scanline is dword aligned
- */
+
 static inline void fast_imageblit(const struct fb_image *image, struct fb_info *p, 
 				  u8 __iomem *dst1, u32 fgcolor, 
 				  u32 bgcolor) 

@@ -1,23 +1,4 @@
-/*
- * Copyright 1998-2008 VIA Technologies, Inc. All Rights Reserved.
- * Copyright 2001-2008 S3 Graphics, Inc. All Rights Reserved.
 
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public
- * License as published by the Free Software Foundation;
- * either version 2, or (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTIES OR REPRESENTATIONS; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE.See the GNU General Public License
- * for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc.,
- * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
 
 #include <linux/module.h>
 #include <linux/seq_file.h>
@@ -30,16 +11,16 @@ static struct fb_var_screeninfo default_var;
 static char *viafb_name = "Via";
 static u32 pseudo_pal[17];
 
-/* video mode */
+
 static char *viafb_mode = "640x480";
 static char *viafb_mode1 = "640x480";
 
 static int viafb_accel = 1;
 
-/* Added for specifying active devices.*/
+
 char *viafb_active_dev = "";
 
-/*Added for specify lcd output port*/
+
 char *viafb_lcd_port = "";
 char *viafb_dvi_port = "";
 
@@ -79,7 +60,7 @@ static void viafb_setup_fixinfo(struct fb_fix_screeninfo *fix,
 	fix->xpanstep = fix->ywrapstep = 0;
 	fix->ypanstep = 1;
 
-	/* Just tell the accel name */
+	
 	viafbinfo->fix.accel = FB_ACCEL_VIA_UNICHROME;
 }
 static int viafb_open(struct fb_info *info, int user)
@@ -102,8 +83,8 @@ static int viafb_check_var(struct fb_var_screeninfo *var,
 	u32 long_refresh;
 
 	DEBUG_MSG(KERN_INFO "viafb_check_var!\n");
-	/* Sanity check */
-	/* HW neither support interlacte nor double-scaned mode */
+	
+	
 	if (var->vmode & FB_VMODE_INTERLACED || var->vmode & FB_VMODE_DOUBLE)
 		return -EINVAL;
 
@@ -123,15 +104,13 @@ static int viafb_check_var(struct fb_var_screeninfo *var,
 		return -EINVAL;
 
 	if ((var->xres_virtual * (var->bits_per_pixel >> 3)) & 0x1F)
-		/*32 pixel alignment */
+		
 		var->xres_virtual = (var->xres_virtual + 31) & ~31;
 	if (var->xres_virtual * var->yres_virtual * var->bits_per_pixel / 8 >
 		ppar->memsize)
 		return -EINVAL;
 
-	/* Based on var passed in to calculate the refresh,
-	 * because our driver use some modes special.
-	 */
+	
 	htotal = var->xres + var->left_margin +
 	var->right_margin + var->hsync_len;
 	vtotal = var->yres + var->upper_margin +
@@ -141,7 +120,7 @@ static int viafb_check_var(struct fb_var_screeninfo *var,
 
 	viafb_refresh = viafb_get_refresh(var->xres, var->yres, long_refresh);
 
-	/* Adjust var according to our driver's own table */
+	
 	viafb_fill_var_timing_info(var, viafb_refresh, vmode_index);
 	if (info->var.accel_flags & FB_ACCELF_TEXT &&
 		!ppar->shared->engine_mmio)
@@ -192,7 +171,7 @@ static int viafb_set_par(struct fb_info *info)
 	return 0;
 }
 
-/* Set one color register */
+
 static int viafb_setcolreg(unsigned regno, unsigned red, unsigned green,
 unsigned blue, unsigned transp, struct fb_info *info)
 {
@@ -202,9 +181,7 @@ unsigned blue, unsigned transp, struct fb_info *info)
 	if (regno >= cmap_entries)
 		return 1;
 	if (UNICHROME_CLE266 == viaparinfo->chip_info->gfx_chip_name) {
-		/*
-		 * Read PCI bus 0,dev 0,function 0,index 0xF6 to get chip rev.
-		 */
+		
 		outl(0x80000000 | (0xf6 & ~3), (unsigned long)0xCF8);
 		rev = (inl((unsigned long)0xCFC) >> ((0xf6 & 3) * 8)) & 0xff;
 	}
@@ -219,26 +196,26 @@ unsigned blue, unsigned transp, struct fb_info *info)
 		outb(0x6A, 0x3D4);
 		cr6a = inb(0x3D5);
 
-		/* Map the 3C6/7/8/9 to the IGA2 */
+		
 		outb(0x1A, 0x3C4);
 		outb(sr1a | 0x01, 0x3C5);
-		/* Second Display Engine colck always on */
+		
 		outb(0x1B, 0x3C4);
 		outb(sr1b | 0x80, 0x3C5);
-		/* Second Display Color Depth 8 */
+		
 		outb(0x67, 0x3D4);
 		outb(cr67 & 0x3F, 0x3D5);
 		outb(0x6A, 0x3D4);
-		/* Second Display Channel Reset CR6A[6]) */
+		
 		outb(cr6a & 0xBF, 0x3D5);
-		/* Second Display Channel Enable CR6A[7] */
+		
 		outb(cr6a | 0x80, 0x3D5);
-		/* Second Display Channel stop reset) */
+		
 		outb(cr6a | 0x40, 0x3D5);
 
-		/* Bit mask of palette */
+		
 		outb(0xFF, 0x3c6);
-		/* Write one register of IGA2 */
+		
 		outb(regno, 0x3C8);
 		if (UNICHROME_CLE266 == viaparinfo->chip_info->gfx_chip_name &&
 			rev >= 15) {
@@ -254,12 +231,12 @@ unsigned blue, unsigned transp, struct fb_info *info)
 		outb(green >> shift, 0x3C9);
 		outb(blue >> shift, 0x3C9);
 
-		/* Map the 3C6/7/8/9 to the IGA1 */
+		
 		outb(0x1A, 0x3C4);
 		outb(sr1a & 0xFE, 0x3C5);
-		/* Bit mask of palette */
+		
 		outb(0xFF, 0x3c6);
-		/* Write one register of IGA1 */
+		
 		outb(regno, 0x3C8);
 		outb(red >> shift, 0x3C9);
 		outb(green >> shift, 0x3C9);
@@ -290,10 +267,10 @@ unsigned blue, unsigned transp, struct fb_info *info)
 
 }
 
-/*CALLED BY: fb_set_cmap */
-/*           fb_set_var, pass 256 colors */
-/*CALLED BY: fb_set_cmap */
-/*           fbcon_set_palette, pass 16 colors */
+
+
+
+
 static int viafb_setcmap(struct fb_cmap *cmap, struct fb_info *info)
 {
 	u32 len = cmap->len;
@@ -306,10 +283,7 @@ static int viafb_setcmap(struct fb_cmap *cmap, struct fb_info *info)
 	if (len > 256)
 		return 1;
 	if (UNICHROME_CLE266 == viaparinfo->chip_info->gfx_chip_name) {
-		/*
-		 * Read PCI bus 0, dev 0, function 0, index 0xF6 to get chip
-		 * rev.
-		 */
+		
 		outl(0x80000000 | (0xf6 & ~3), (unsigned long)0xCF8);
 		rev = (inl((unsigned long)0xCFC) >> ((0xf6 & 3) * 8)) & 0xff;
 	}
@@ -323,24 +297,24 @@ static int viafb_setcmap(struct fb_cmap *cmap, struct fb_info *info)
 		cr67 = inb(0x3D5);
 		outb(0x6A, 0x3D4);
 		cr6a = inb(0x3D5);
-		/* Map the 3C6/7/8/9 to the IGA2 */
+		
 		outb(0x1A, 0x3C4);
 		outb(sr1a | 0x01, 0x3C5);
 		outb(0x1B, 0x3C4);
-		/* Second Display Engine colck always on */
+		
 		outb(sr1b | 0x80, 0x3C5);
 		outb(0x67, 0x3D4);
-		/* Second Display Color Depth 8 */
+		
 		outb(cr67 & 0x3F, 0x3D5);
 		outb(0x6A, 0x3D4);
-		/* Second Display Channel Reset CR6A[6]) */
+		
 		outb(cr6a & 0xBF, 0x3D5);
-		/* Second Display Channel Enable CR6A[7] */
+		
 		outb(cr6a | 0x80, 0x3D5);
-		/* Second Display Channel stop reset) */
+		
 		outb(cr6a | 0xC0, 0x3D5);
 
-		/* Bit mask of palette */
+		
 		outb(0xFF, 0x3c6);
 		outb(0x00, 0x3C8);
 		if (UNICHROME_CLE266 == viaparinfo->chip_info->gfx_chip_name &&
@@ -360,9 +334,9 @@ static int viafb_setcmap(struct fb_cmap *cmap, struct fb_info *info)
 		}
 
 		outb(0x1A, 0x3C4);
-		/* Map the 3C6/7/8/9 to the IGA1 */
+		
 		outb(sr1a & 0xFE, 0x3C5);
-		/* Bit mask of palette */
+		
 		outb(0xFF, 0x3c6);
 		outb(0x00, 0x3C8);
 		for (i = 0; i < len; i++) {
@@ -382,7 +356,7 @@ static int viafb_setcmap(struct fb_cmap *cmap, struct fb_info *info)
 		break;
 	case 16:
 		if (len > 17)
-			return 0;	/* Because static u32 pseudo_pal[17]; */
+			return 0;	
 		for (i = 0; i < len; i++)
 			((u32 *) info->pseudo_palette)[i] =
 			    (*(pred + i) & 0xF800) |
@@ -430,27 +404,27 @@ static int viafb_pan_display(struct fb_var_screeninfo *var,
 static int viafb_blank(int blank_mode, struct fb_info *info)
 {
 	DEBUG_MSG(KERN_INFO "viafb_blank!\n");
-	/* clear DPMS setting */
+	
 
 	switch (blank_mode) {
 	case FB_BLANK_UNBLANK:
-		/* Screen: On, HSync: On, VSync: On */
-		/* control CRT monitor power management */
+		
+		
 		viafb_write_reg_mask(CR36, VIACR, 0x00, BIT4 + BIT5);
 		break;
 	case FB_BLANK_HSYNC_SUSPEND:
-		/* Screen: Off, HSync: Off, VSync: On */
-		/* control CRT monitor power management */
+		
+		
 		viafb_write_reg_mask(CR36, VIACR, 0x10, BIT4 + BIT5);
 		break;
 	case FB_BLANK_VSYNC_SUSPEND:
-		/* Screen: Off, HSync: On, VSync: Off */
-		/* control CRT monitor power management */
+		
+		
 		viafb_write_reg_mask(CR36, VIACR, 0x20, BIT4 + BIT5);
 		break;
 	case FB_BLANK_POWERDOWN:
-		/* Screen: Off, HSync: Off, VSync: Off */
-		/* control CRT monitor power management */
+		
+		
 		viafb_write_reg_mask(CR36, VIACR, 0x30, BIT4 + BIT5);
 		break;
 	}
@@ -1035,7 +1009,7 @@ static void check_available_device_to_enable(int device_id)
 {
 	int device_num = 0;
 
-	/* Initialize: */
+	
 	viafb_CRT_ON = STATE_OFF;
 	viafb_DVI_ON = STATE_OFF;
 	viafb_LCD_ON = STATE_OFF;
@@ -1067,7 +1041,7 @@ static void check_available_device_to_enable(int device_id)
 	}
 
 	if (viafb_DeviceStatus == None_Device) {
-		/* Use CRT as default active device: */
+		
 		viafb_CRT_ON = STATE_ON;
 		viafb_DeviceStatus = CRT_Device;
 	}
@@ -1076,7 +1050,7 @@ static void check_available_device_to_enable(int device_id)
 
 static void viafb_set_device(struct device_t active_dev)
 {
-	/* Check available device to enable: */
+	
 	int device_id = None_Device;
 	if (active_dev.crt)
 		device_id |= CRT_Device;
@@ -1087,7 +1061,7 @@ static void viafb_set_device(struct device_t active_dev)
 
 	check_available_device_to_enable(device_id);
 
-	/* Check property of LCD: */
+	
 	if (viafb_LCD_ON) {
 		if (active_dev.lcd_dsp_cent) {
 			viaparinfo->lvds_setting_info->display_method =
@@ -1111,7 +1085,7 @@ static void viafb_set_device(struct device_t active_dev)
 		}
 	}
 
-	/* Check property of mode: */
+	
 	if (!active_dev.xres1)
 		viafb_second_xres = 640;
 	else
@@ -1140,7 +1114,7 @@ static void viafb_set_device(struct device_t active_dev)
 static int get_primary_device(void)
 {
 	int primary_device = 0;
-	/* Rule: device on iga1 path are the primary device. */
+	
 	if (viafb_SAMM_ON) {
 		if (viafb_CRT_ON) {
 			if (viaparinfo->crt_setting_info->iga_path == IGA1) {
@@ -1188,8 +1162,8 @@ static void apply_second_mode_setting(struct fb_var_screeninfo
 	vtotal = sec_var->yres + sec_var->upper_margin +
 		sec_var->lower_margin + sec_var->vsync_len;
 	if ((sec_var->xres_virtual * (sec_var->bits_per_pixel >> 3)) & 0x1F) {
-		/*Is 32 bytes alignment? */
-		/*32 pixel alignment */
+		
+		
 		sec_var->xres_virtual = (sec_var->xres_virtual + 31) & ~31;
 	}
 
@@ -1220,21 +1194,20 @@ static int apply_device_setting(struct viafb_ioctl_setting setting_info,
 		check_available_device_to_enable(setting_info.device_status);
 	}
 
-	/* Unlock LCD's operation according to LCD flag
-	   and check if the setting value is valid. */
-	/* If the value is valid, apply the new setting value to the device. */
+	
+	
 	if (viafb_LCD_ON) {
 		if (setting_info.lcd_operation_flag & OP_LCD_CENTERING) {
 			need_set_mode = 1;
 			if (setting_info.lcd_attributes.display_center) {
-				/* Centering */
+				
 				viaparinfo->lvds_setting_info->display_method =
 				    LCD_CENTERING;
 				viafb_lcd_dsp_method = LCD_CENTERING;
 				viaparinfo->lvds_setting_info2->display_method =
 				    viafb_lcd_dsp_method = LCD_CENTERING;
 			} else {
-				/* expandsion */
+				
 				viaparinfo->lvds_setting_info->display_method =
 				    LCD_EXPANDSION;
 				viafb_lcd_dsp_method = LCD_EXPANDSION;
@@ -1299,7 +1272,7 @@ static void retrieve_device_setting(struct viafb_ioctl_setting
 	*setting_info)
 {
 
-	/* get device status */
+	
 	if (viafb_CRT_ON == 1)
 		setting_info->device_status = CRT_Device;
 	if (viafb_DVI_ON == 1)
@@ -1323,7 +1296,7 @@ static void retrieve_device_setting(struct viafb_ioctl_setting
 	setting_info->second_dev_hor_res = viafb_second_xres;
 	setting_info->second_dev_ver_res = viafb_second_yres;
 
-	/* Get lcd attributes */
+	
 	setting_info->lcd_attributes.display_center = viafb_lcd_dsp_method;
 	setting_info->lcd_attributes.panel_id = viafb_lcd_panel_id;
 	setting_info->lcd_attributes.lcd_mode = viafb_lcd_mode;
@@ -1335,38 +1308,36 @@ static void parse_active_dev(void)
 	viafb_DVI_ON = STATE_OFF;
 	viafb_LCD_ON = STATE_OFF;
 	viafb_LCD2_ON = STATE_OFF;
-	/* 1. Modify the active status of devices. */
-	/* 2. Keep the order of devices, so we can set corresponding
-	   IGA path to devices in SAMM case. */
-	/*    Note: The previous of active_dev is primary device,
-	   and the following is secondary device. */
+	
+	
+	
 	if (!strncmp(viafb_active_dev, "CRT+DVI", 7)) {
-		/* CRT+DVI */
+		
 		viafb_CRT_ON = STATE_ON;
 		viafb_DVI_ON = STATE_ON;
 		viafb_primary_dev = CRT_Device;
 	} else if (!strncmp(viafb_active_dev, "DVI+CRT", 7)) {
-		/* DVI+CRT */
+		
 		viafb_CRT_ON = STATE_ON;
 		viafb_DVI_ON = STATE_ON;
 		viafb_primary_dev = DVI_Device;
 	} else if (!strncmp(viafb_active_dev, "CRT+LCD", 7)) {
-		/* CRT+LCD */
+		
 		viafb_CRT_ON = STATE_ON;
 		viafb_LCD_ON = STATE_ON;
 		viafb_primary_dev = CRT_Device;
 	} else if (!strncmp(viafb_active_dev, "LCD+CRT", 7)) {
-		/* LCD+CRT */
+		
 		viafb_CRT_ON = STATE_ON;
 		viafb_LCD_ON = STATE_ON;
 		viafb_primary_dev = LCD_Device;
 	} else if (!strncmp(viafb_active_dev, "DVI+LCD", 7)) {
-		/* DVI+LCD */
+		
 		viafb_DVI_ON = STATE_ON;
 		viafb_LCD_ON = STATE_ON;
 		viafb_primary_dev = DVI_Device;
 	} else if (!strncmp(viafb_active_dev, "LCD+DVI", 7)) {
-		/* LCD+DVI */
+		
 		viafb_DVI_ON = STATE_ON;
 		viafb_LCD_ON = STATE_ON;
 		viafb_primary_dev = LCD_Device;
@@ -1379,15 +1350,15 @@ static void parse_active_dev(void)
 		viafb_LCD2_ON = STATE_ON;
 		viafb_primary_dev = LCD2_Device;
 	} else if (!strncmp(viafb_active_dev, "CRT", 3)) {
-		/* CRT only */
+		
 		viafb_CRT_ON = STATE_ON;
 		viafb_SAMM_ON = STATE_OFF;
 	} else if (!strncmp(viafb_active_dev, "DVI", 3)) {
-		/* DVI only */
+		
 		viafb_DVI_ON = STATE_ON;
 		viafb_SAMM_ON = STATE_OFF;
 	} else if (!strncmp(viafb_active_dev, "LCD", 3)) {
-		/* LCD only */
+		
 		viafb_LCD_ON = STATE_ON;
 		viafb_SAMM_ON = STATE_OFF;
 	} else {
@@ -1417,7 +1388,7 @@ static void parse_lcd_port(void)
 {
 	parse_port(viafb_lcd_port, &viaparinfo->chip_info->lvds_chip_info.
 		output_interface);
-	/*Initialize to avoid unexpected behavior */
+	
 	viaparinfo->chip_info->lvds_chip_info2.output_interface =
 	INTERFACE_NONE;
 
@@ -1436,12 +1407,7 @@ static void parse_dvi_port(void)
 		  output_interface);
 }
 
-/*
- * The proc filesystem read/write function, a simple proc implement to
- * get/set the value of DPA  DVP0,   DVP0DataDriving,  DVP0ClockDriving, DVP1,
- * DVP1Driving, DFPHigh, DFPLow CR96,   SR2A[5], SR1B[1], SR2A[4], SR1E[2],
- * CR9B,    SR65,    CR97,    CR99
- */
+
 static int viafb_dvp0_proc_show(struct seq_file *m, void *v)
 {
 	u8 dvp0_data_dri = 0, dvp0_clk_dri = 0, dvp0 = 0;
@@ -1472,7 +1438,7 @@ static ssize_t viafb_dvp0_proc_write(struct file *file,
 	length = count > 20 ? 20 : count;
 	if (copy_from_user(&buf[0], buffer, length))
 		return -EFAULT;
-	buf[length - 1] = '\0';	/*Ensure end string */
+	buf[length - 1] = '\0';	
 	pbuf = &buf[0];
 	for (i = 0; i < 3; i++) {
 		value = strsep(&pbuf, " ");
@@ -1542,7 +1508,7 @@ static ssize_t viafb_dvp1_proc_write(struct file *file,
 	length = count > 20 ? 20 : count;
 	if (copy_from_user(&buf[0], buffer, length))
 		return -EFAULT;
-	buf[length - 1] = '\0';	/*Ensure end string */
+	buf[length - 1] = '\0';	
 	pbuf = &buf[0];
 	for (i = 0; i < 3; i++) {
 		value = strsep(&pbuf, " ");
@@ -1604,7 +1570,7 @@ static ssize_t viafb_dfph_proc_write(struct file *file,
 	length = count > 20 ? 20 : count;
 	if (copy_from_user(&buf[0], buffer, length))
 		return -EFAULT;
-	buf[length - 1] = '\0';	/*Ensure end string */
+	buf[length - 1] = '\0';	
 	strict_strtoul(&buf[0], 0, (unsigned long *)&reg_val);
 	viafb_write_reg_mask(CR97, VIACR, reg_val, 0x0f);
 	return count;
@@ -1643,7 +1609,7 @@ static ssize_t viafb_dfpl_proc_write(struct file *file,
 	length = count > 20 ? 20 : count;
 	if (copy_from_user(&buf[0], buffer, length))
 		return -EFAULT;
-	buf[length - 1] = '\0';	/*Ensure end string */
+	buf[length - 1] = '\0';	
 	strict_strtoul(&buf[0], 0, (unsigned long *)&reg_val);
 	viafb_write_reg_mask(CR99, VIACR, reg_val, 0x0f);
 	return count;
@@ -1706,7 +1672,7 @@ static ssize_t viafb_vt1636_proc_write(struct file *file,
 	length = count > 30 ? 30 : count;
 	if (copy_from_user(&buf[0], buffer, length))
 		return -EFAULT;
-	buf[length - 1] = '\0';	/*Ensure end string */
+	buf[length - 1] = '\0';	
 	pbuf = &buf[0];
 	switch (viaparinfo->chip_info->lvds_chip_info.lvds_chip_name) {
 	case VT1636_LVDS:
@@ -1812,8 +1778,8 @@ static void viafb_init_proc(struct proc_dir_entry **viafb_entry)
 }
 static void viafb_remove_proc(struct proc_dir_entry *viafb_entry)
 {
-	/* no problem if it was not registered */
-	remove_proc_entry("dvp0", viafb_entry);/* parent dir */
+	
+	remove_proc_entry("dvp0", viafb_entry);
 	remove_proc_entry("dvp1", viafb_entry);
 	remove_proc_entry("dfph", viafb_entry);
 	remove_proc_entry("dfpl", viafb_entry);
@@ -1853,9 +1819,7 @@ static int __devinit via_pci_probe(struct pci_dev *pdev,
 
 	viafb_par_length = ALIGN(sizeof(struct viafb_par), BITS_PER_LONG/8);
 
-	/* Allocate fb_info and ***_par here, also including some other needed
-	 * variables
-	*/
+	
 	viafbinfo = framebuffer_alloc(viafb_par_length +
 		ALIGN(sizeof(struct viafb_shared), BITS_PER_LONG/8),
 		&pdev->dev);
@@ -1880,11 +1844,11 @@ static int __devinit via_pci_probe(struct pci_dev *pdev,
 	parse_lcd_port();
 	parse_dvi_port();
 
-	/* for dual-fb must viafb_SAMM_ON=1 and viafb_dual_fb=1 */
+	
 	if (!viafb_SAMM_ON)
 		viafb_dual_fb = 0;
 
-	/* Set up I2C bus stuff */
+	
 	viafb_create_i2c_bus(viaparinfo);
 
 	viafb_init_chip_info(pdev, ent);

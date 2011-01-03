@@ -1,23 +1,4 @@
-/*
- * LCD panel support for the TI OMAP H3 board
- *
- * Copyright (C) 2004 Nokia Corporation
- * Author: Imre Deak <imre.deak@nokia.com>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/platform_device.h>
@@ -41,7 +22,7 @@ static int h3_panel_enable(struct lcd_panel *panel)
 {
 	int r = 0;
 
-	/* GPIO1 and GPIO2 of TPS65010 send LCD_ENBKL and LCD_ENVDD signals */
+	
 	r = tps65010_set_gpio_out_value(GPIO1, HIGH);
 	if (!r)
 		r = tps65010_set_gpio_out_value(GPIO2, HIGH);
@@ -55,7 +36,7 @@ static void h3_panel_disable(struct lcd_panel *panel)
 {
 	int r = 0;
 
-	/* GPIO1 and GPIO2 of TPS65010 send LCD_ENBKL and LCD_ENVDD signals */
+	
 	r = tps65010_set_gpio_out_value(GPIO1, LOW);
 	if (!r)
 		tps65010_set_gpio_out_value(GPIO2, LOW);

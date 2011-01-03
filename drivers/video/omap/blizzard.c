@@ -1,25 +1,4 @@
-/*
- * Epson Blizzard LCD controller driver
- *
- * Copyright (C) 2004-2005 Nokia Corporation
- * Authors:     Juha Yrjola   <juha.yrjola@nokia.com>
- *	        Imre Deak     <imre.deak@nokia.com>
- * YUV support: Jussi Laako   <jussi.laako@nokia.com>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
+
 #include <linux/module.h>
 #include <linux/mm.h>
 #include <linux/fb.h>
@@ -60,25 +39,25 @@
 #define BLIZZARD_POWER_SAVE			0xE6
 #define BLIZZARD_NDISP_CTRL_STATUS		0xE8
 
-/* Data source select */
-/* For S1D13745 */
+
+
 #define BLIZZARD_SRC_WRITE_LCD_BACKGROUND	0x00
 #define BLIZZARD_SRC_WRITE_LCD_DESTRUCTIVE	0x01
 #define BLIZZARD_SRC_WRITE_OVERLAY_ENABLE	0x04
 #define BLIZZARD_SRC_DISABLE_OVERLAY		0x05
-/* For S1D13744 */
+
 #define BLIZZARD_SRC_WRITE_LCD			0x00
 #define BLIZZARD_SRC_BLT_LCD			0x06
 
 #define BLIZZARD_COLOR_RGB565			0x01
 #define BLIZZARD_COLOR_YUV420			0x09
 
-#define BLIZZARD_VERSION_S1D13745		0x01	/* Hailstorm */
-#define BLIZZARD_VERSION_S1D13744		0x02	/* Blizzard */
+#define BLIZZARD_VERSION_S1D13745		0x01	
+#define BLIZZARD_VERSION_S1D13744		0x02	
 
 #define BLIZZARD_AUTO_UPDATE_TIME		(HZ / 20)
 
-/* Reserve 4 request slots for requests in irq context */
+
 #define REQ_POOL_SIZE			24
 #define IRQ_REQ_POOL_SIZE		4
 
@@ -92,26 +71,26 @@ struct blizzard_reg_list {
 	int	end;
 };
 
-/* These need to be saved / restored separately from the rest. */
+
 static const struct blizzard_reg_list blizzard_pll_regs[] = {
 	{
-		.start	= 0x04,		/* Don't save PLL ctrl (0x0C) */
+		.start	= 0x04,		
 		.end	= 0x0a,
 	},
 	{
-		.start	= 0x0e,		/* Clock configuration */
+		.start	= 0x0e,		
 		.end	= 0x0e,
 	},
 };
 
 static const struct blizzard_reg_list blizzard_gen_regs[] = {
 	{
-		.start	= 0x18,		/* SDRAM control */
+		.start	= 0x18,		
 		.end	= 0x20,
 	},
 	{
-		.start	= 0x28,		/* LCD Panel configuration */
-		.end	= 0x5a,		/* HSSI interface, TV configuration */
+		.start	= 0x28,		
+		.end	= 0x5a,		
 	},
 };
 
@@ -242,9 +221,7 @@ static void blizzard_stop_sdram(void)
 	blizzard_write_reg(BLIZZARD_MEM_BANK0_ACTIVATE, 0);
 }
 
-/* Wait until the last window was completely written into the controllers
- * SDRAM and we can start transferring the next window.
- */
+
 static void blizzard_wait_line_buffer(void)
 {
 	unsigned long tmo = jiffies + msecs_to_jiffies(30);
@@ -259,7 +236,7 @@ static void blizzard_wait_line_buffer(void)
 	}
 }
 
-/* Wait until the YYC color space converter is idle. */
+
 static void blizzard_wait_yyc(void)
 {
 	unsigned long tmo = jiffies + msecs_to_jiffies(30);
@@ -509,9 +486,7 @@ static int do_full_screen_update(struct blizzard_request *req)
 	blizzard.zoom_on = 0;
 
 	blizzard.extif->set_bits_per_cycle(16);
-	/* set_window_regs has left the register index at the right
-	 * place, so no need to set it here.
-	 */
+	
 	blizzard.extif->transfer_area(blizzard.screen_width,
 				      blizzard.screen_height,
 				      request_complete, req);
@@ -525,7 +500,7 @@ static int check_1d_intersect(int a1, int a2, int b1, int b2)
 	return 1;
 }
 
-/* Setup all planes with an overlapping area with the update window. */
+
 static int do_partial_update(struct blizzard_request *req, int plane,
 			     int x, int y, int w, int h,
 			     int x_out, int y_out, int w_out, int h_out,
@@ -539,7 +514,7 @@ static int do_partial_update(struct blizzard_request *req, int plane,
 	int zoom_off;
 	int have_zoom_for_this_update = 0;
 
-	/* Global coordinates, relative to pixel 0,0 of the LCD */
+	
 	gx1 = x + blizzard.plane[plane].pos_x;
 	gy1 = y + blizzard.plane[plane].pos_y;
 	gx2 = gx1 + w;
@@ -571,12 +546,9 @@ static int do_partial_update(struct blizzard_request *req, int plane,
 			blizzard.int_ctrl->enable_plane(i, 0);
 			continue;
 		}
-		/* Plane coordinates */
+		
 		if (i == plane) {
-			/* Plane in which we are doing the update.
-			 * Local coordinates are the one in the update
-			 * request.
-			 */
+			
 			px1 = x;
 			py1 = y;
 			px2 = x + w;
@@ -584,7 +556,7 @@ static int do_partial_update(struct blizzard_request *req, int plane,
 			pposx = 0;
 			pposy = 0;
 		} else {
-			/* Check if this plane has an overlapping part */
+			
 			px1 = gx1 - p->pos_x;
 			py1 = gy1 - p->pos_y;
 			px2 = gx2 - p->pos_x;
@@ -594,9 +566,7 @@ static int do_partial_update(struct blizzard_request *req, int plane,
 				blizzard.int_ctrl->enable_plane(i, 0);
 				continue;
 			}
-			/* Calculate the coordinates for the overlapping
-			 * part in the plane's local coordinates.
-			 */
+			
 			pposx = -px1;
 			pposy = -py1;
 			if (px1 < 0)
@@ -616,10 +586,7 @@ static int do_partial_update(struct blizzard_request *req, int plane,
 		ph = py2 - py1;
 		offset = p->offset + (p->scr_width * py1 + px1) * p->bpp / 8;
 		if (wnd_color_mode)
-			/* Window embedded in the plane with a differing
-			 * color mode / bpp. Calculate the number of DMA
-			 * transfer elements in terms of the plane's bpp.
-			 */
+			
 			pw = (pw + 1) * bpp / p->bpp;
 #ifdef VERBOSE
 		dev_dbg(blizzard.fbdev->dev,
@@ -639,10 +606,7 @@ static int do_partial_update(struct blizzard_request *req, int plane,
 	switch (wnd_color_mode) {
 	case OMAPFB_COLOR_YUV420:
 		color_mode = BLIZZARD_COLOR_YUV420;
-		/* Currently only the 16 bits/pixel cycle format is
-		 * supported on the external interface. Adjust the number
-		 * of transfer elements per line for 12bpp format.
-		 */
+		
 		w = (w + 1) * 3 / 4;
 		break;
 	default:
@@ -666,8 +630,7 @@ static int do_partial_update(struct blizzard_request *req, int plane,
 	    (gy2_out - gy1_out) != (gy2 - gy1))
 		have_zoom_for_this_update = 1;
 
-	/* 'background' type of screen update (as opposed to 'destructive')
-	   can be used to disable scaling if scaling is active */
+	
 	zoom_off = blizzard.zoom_on && !have_zoom_for_this_update &&
 	    (gx1_out == 0) && (gx2_out == blizzard.screen_width) &&
 	    (gy1_out == 0) && (gy2_out == blizzard.screen_height) &&
@@ -678,12 +641,7 @@ static int do_partial_update(struct blizzard_request *req, int plane,
 			       gx1_out, gx2_out) &&
 	    check_1d_intersect(blizzard.zoom_area_gy1, blizzard.zoom_area_gy2,
 			       gy1_out, gy2_out)) {
-		/* Previous screen update was using scaling, current update
-		 * is not using it. Additionally, current screen update is
-		 * going to overlap with the scaled area. Scaling needs to be
-		 * disabled in order to avoid 'magnifying glass' effect.
-		 * Dummy setup of background window can be used for this.
-		 */
+		
 		set_window_regs(0, 0, blizzard.screen_width,
 				blizzard.screen_height,
 				0, 0, blizzard.screen_width,
@@ -692,7 +650,7 @@ static int do_partial_update(struct blizzard_request *req, int plane,
 		blizzard.zoom_on = 0;
 	}
 
-	/* remember scaling settings if we have scaled update */
+	
 	if (have_zoom_for_this_update) {
 		blizzard.zoom_on = 1;
 		blizzard.zoom_area_gx1 = gx1_out;
@@ -707,9 +665,7 @@ static int do_partial_update(struct blizzard_request *req, int plane,
 		blizzard.zoom_on = 0;
 
 	blizzard.extif->set_bits_per_cycle(16);
-	/* set_window_regs has left the register index at the right
-	 * place, so no need to set it here.
-	 */
+	
 	blizzard.extif->transfer_area(w, h, request_complete, req);
 
 	return REQ_PENDING;
@@ -791,16 +747,16 @@ static void create_req_list(int plane_idx,
 	color_mode = win->format & OMAPFB_FORMAT_MASK;
 	switch (color_mode) {
 	case OMAPFB_COLOR_YUV420:
-		/* Embedded window with different color mode */
+		
 		bpp = 12;
-		/* X, Y, height must be aligned at 2, width at 4 pixels */
+		
 		x &= ~1;
 		y &= ~1;
 		height = yspan = height & ~1;
 		width = width & ~3;
 		break;
 	default:
-		/* Same as the plane color mode */
+		
 		bpp = blizzard.plane[plane_idx].bpp;
 		break;
 	}
@@ -1095,14 +1051,7 @@ static int calc_reg_timing(unsigned long sysclk, int div)
 	struct extif_timings *t;
 	unsigned long systim;
 
-	/* CSOnTime 0, WEOnTime 2 ns, REOnTime 2 ns,
-	 * AccessTime 2 ns + 12.2 ns (regs),
-	 * WEOffTime = WEOnTime + 1 ns,
-	 * REOffTime = REOnTime + 12 ns (regs),
-	 * CSOffTime = REOffTime + 1 ns
-	 * ReadCycle = 2ns + 2*SYSCLK  (regs),
-	 * WriteCycle = 2*SYSCLK + 2 ns,
-	 * CSPulseWidth = 10 ns */
+	
 
 	systim = 1000000000 / (sysclk / 1000);
 	dev_dbg(blizzard.fbdev->dev,
@@ -1145,14 +1094,7 @@ static int calc_lut_timing(unsigned long sysclk, int div)
 	struct extif_timings *t;
 	unsigned long systim;
 
-	/* CSOnTime 0, WEOnTime 2 ns, REOnTime 2 ns,
-	 * AccessTime 2 ns + 4 * SYSCLK + 26 (lut),
-	 * WEOffTime = WEOnTime + 1 ns,
-	 * REOffTime = REOnTime + 4*SYSCLK + 26 ns (lut),
-	 * CSOffTime = REOffTime + 1 ns
-	 * ReadCycle = 2ns + 4*SYSCLK + 26 ns (lut),
-	 * WriteCycle = 2*SYSCLK + 2 ns,
-	 * CSPulseWidth = 10 ns */
+	
 
 	systim = 1000000000 / (sysclk / 1000);
 	dev_dbg(blizzard.fbdev->dev,
@@ -1236,16 +1178,16 @@ static void calc_blizzard_clk_rates(unsigned long ext_clk,
 	pix_clk_src = blizzard_read_reg(BLIZZARD_CLK_SRC);
 	pix_div = ((pix_clk_src >> 3) & 0x1f) + 1;
 	if ((pix_clk_src & (0x3 << 1)) == 0) {
-		/* Source is the PLL */
+		
 		sys_div = (blizzard_read_reg(BLIZZARD_PLL_DIV) & 0x3f) + 1;
 		sys_mul = blizzard_read_reg(BLIZZARD_PLL_CLOCK_SYNTH_0);
 		sys_mul |= ((blizzard_read_reg(BLIZZARD_PLL_CLOCK_SYNTH_1)
 				& 0x0f)	<< 11);
 		*sys_clk = ext_clk * sys_mul / sys_div;
-	} else	/* else source is ext clk, or oscillator */
+	} else	
 		*sys_clk = ext_clk;
 
-	*pix_clk = *sys_clk / pix_div;			/* HZ */
+	*pix_clk = *sys_clk / pix_div;			
 	dev_dbg(blizzard.fbdev->dev,
 		"ext_clk %ld pix_src %d pix_div %d sys_div %d sys_mul %d\n",
 		ext_clk, pix_clk_src & (0x3 << 1), pix_div, sys_div, sys_mul);
@@ -1277,44 +1219,39 @@ static int setup_tearsync(unsigned long pix_clk, int extif_div)
 	hndp = blizzard_read_reg(BLIZZARD_HNDP) & 0x3f;
 	vndp = blizzard_read_reg(BLIZZARD_VNDP);
 
-	/* time to transfer one pixel (16bpp) in ps */
+	
 	blizzard.pix_tx_time = blizzard.reg_timings.we_cycle_time;
 	if (blizzard.extif->get_max_tx_rate != NULL) {
-		/* The external interface might have a rate limitation,
-		 * if so, we have to maximize our transfer rate.
-		 */
+		
 		unsigned long min_tx_time;
 		unsigned long max_tx_rate = blizzard.extif->get_max_tx_rate();
 
 		dev_dbg(blizzard.fbdev->dev, "max_tx_rate %ld HZ\n",
 			max_tx_rate);
-		min_tx_time = 1000000000 / (max_tx_rate / 1000);  /* ps */
+		min_tx_time = 1000000000 / (max_tx_rate / 1000);  
 		if (blizzard.pix_tx_time < min_tx_time)
 			blizzard.pix_tx_time = min_tx_time;
 	}
 
-	/* time to update one line in ps */
+	
 	blizzard.line_upd_time = (hdisp + hndp) * 1000000 / (pix_clk / 1000);
 	blizzard.line_upd_time *= 1000;
 	if (hdisp * blizzard.pix_tx_time > blizzard.line_upd_time)
-		/* transfer speed too low, we might have to use both
-		 * HS and VS */
+		
 		use_hsvs = 1;
 	else
-		/* decent transfer speed, we'll always use only VS */
+		
 		use_hsvs = 0;
 
 	if (use_hsvs && (hs_pol_inv || vs_pol_inv)) {
-		/* HS or'ed with VS doesn't work, use the active high
-		 * TE signal based on HNDP / VNDP */
+		
 		use_ndp = 1;
 		hs_pol_inv = 0;
 		vs_pol_inv = 0;
 		hs = hndp;
 		vs = vndp;
 	} else {
-		/* Use HS or'ed with VS as a TE signal if both are needed
-		 * or VNDP if only vsync is needed. */
+		
 		use_ndp = 0;
 		hs = hsw;
 		vs = vsw;
@@ -1324,17 +1261,17 @@ static int setup_tearsync(unsigned long pix_clk, int extif_div)
 		}
 	}
 
-	hs = hs * 1000000 / (pix_clk / 1000);		  /* ps */
+	hs = hs * 1000000 / (pix_clk / 1000);		  
 	hs *= 1000;
 
-	vs = vs * (hdisp + hndp) * 1000000 / (pix_clk / 1000); /* ps */
+	vs = vs * (hdisp + hndp) * 1000000 / (pix_clk / 1000); 
 	vs *= 1000;
 
 	if (vs <= hs)
 		return -EDOM;
-	/* set VS to 120% of HS to minimize VS detection time */
+	
 	vs = hs * 12 / 10;
-	/* minimize HS too */
+	
 	if (hs > 10000)
 		hs = 10000;
 
@@ -1420,7 +1357,7 @@ static void blizzard_suspend(void)
 		blizzard_sync();
 	}
 	blizzard.update_mode_before_suspend = blizzard.update_mode;
-	/* the following will disable clocks as well */
+	
 	blizzard_set_update_mode(OMAPFB_UPDATE_DISABLED);
 
 	blizzard_save_all_regs();
@@ -1428,7 +1365,7 @@ static void blizzard_suspend(void)
 	blizzard_stop_sdram();
 
 	l = blizzard_read_reg(BLIZZARD_POWER_SAVE);
-	/* Standby, Sleep. We assume we use an external clock. */
+	
 	l |= 0x03;
 	blizzard_write_reg(BLIZZARD_POWER_SAVE, l);
 
@@ -1439,7 +1376,7 @@ static void blizzard_suspend(void)
 				"s1d1374x: sleep timeout, stopping PLL manually\n");
 			l = blizzard_read_reg(BLIZZARD_PLL_MODE);
 			l &= ~0x03;
-			/* Disable PLL, counter function */
+			
 			l |= 0x2;
 			blizzard_write_reg(BLIZZARD_PLL_MODE, l);
 			break;
@@ -1459,14 +1396,14 @@ static void blizzard_resume(void)
 		blizzard.power_up(blizzard.fbdev->dev);
 
 	l = blizzard_read_reg(BLIZZARD_POWER_SAVE);
-	/* Standby, Sleep */
+	
 	l &= ~0x03;
 	blizzard_write_reg(BLIZZARD_POWER_SAVE, l);
 
 	blizzard_restore_pll_regs();
 	l = blizzard_read_reg(BLIZZARD_PLL_MODE);
 	l &= ~0x03;
-	/* Enable PLL, counter function */
+	
 	l |= 0x1;
 	blizzard_write_reg(BLIZZARD_PLL_MODE, l);
 
@@ -1477,13 +1414,13 @@ static void blizzard_resume(void)
 
 	blizzard_restore_gen_regs();
 
-	/* Enable display */
+	
 	blizzard_write_reg(BLIZZARD_DISPLAY_MODE, 0x01);
 
-	/* the following will enable clocks as necessary */
+	
 	blizzard_set_update_mode(blizzard.update_mode_before_suspend);
 
-	/* Force a background update */
+	
 	blizzard.zoom_on = 1;
 	update_full_screen();
 	blizzard_sync();

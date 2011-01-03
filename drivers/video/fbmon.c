@@ -1,31 +1,4 @@
-/*
- * linux/drivers/video/fbmon.c
- *
- * Copyright (C) 2002 James Simmons <jsimmons@users.sf.net>
- *
- * Credits:
- *
- * The EDID Parser is a conglomeration from the following sources:
- *
- *   1. SciTech SNAP Graphics Architecture
- *      Copyright (C) 1991-2002 SciTech Software, Inc. All rights reserved.
- *
- *   2. XFree86 4.3.0, interpret_edid.c
- *      Copyright 1998 by Egbert Eich <Egbert.Eich@Physik.TU-Darmstadt.DE>
- *
- *   3. John Fremlin <vii@users.sourceforge.net> and
- *      Ani Joshi <ajoshi@unixbox.com>
- *
- * Generalized Timing Formula is derived from:
- *
- *      GTF Spreadsheet by Andy Morrish (1/5/97)
- *      available at http://www.vesa.org
- *
- * This file is subject to the terms and conditions of the GNU General Public
- * License.  See the file COPYING in the main directory of this archive
- * for more details.
- *
- */
+
 #include <linux/fb.h>
 #include <linux/module.h>
 #include <linux/pci.h>
@@ -36,11 +9,9 @@
 #endif
 #include "edid.h"
 
-/*
- * EDID parser
- */
 
-#undef DEBUG  /* define this for verbose EDID parsing output */
+
+#undef DEBUG  
 
 #ifdef DEBUG
 #define DPRINTK(fmt, args...) printk(fmt,## args)
@@ -60,19 +31,19 @@ struct broken_edid {
 };
 
 static const struct broken_edid brokendb[] = {
-	/* DEC FR-PCXAV-YZ */
+	
 	{
 		.manufacturer = "DEC",
 		.model        = 0x073a,
 		.fix          = FBMON_FIX_HEADER,
 	},
-	/* ViewSonic PF775a */
+	
 	{
 		.manufacturer = "VSC",
 		.model        = 0x5a44,
 		.fix          = FBMON_FIX_INPUT,
 	},
-	/* Sharp UXGA? */
+	
 	{
 		.manufacturer = "SHP",
 		.model        = 0x138e,
@@ -176,8 +147,7 @@ static int check_edid(unsigned char *edid)
 		break;
 	case FBMON_FIX_INPUT:
 		b = edid + EDID_STRUCT_DISPLAY;
-		/* Only if display is GTF capable will
-		   the input type be reset to analog */
+		
 		if (b[4] & 0x01 && b[0] & 0x80)
 			ret = fix;
 		break;
@@ -234,12 +204,12 @@ static void fix_edid(unsigned char *edid, int fix)
 				b[2] = 0x00;
 				b[3] = 0xfd;
 				b[4] = 0x00;
-				b[5] = 60;   /* vfmin */
-				b[6] = 60;   /* vfmax */
-				b[7] = 30;   /* hfmin */
-				b[8] = 75;   /* hfmax */
-				b[9] = 17;   /* pixclock - 170 MHz*/
-				b[10] = 0;   /* GTF */
+				b[5] = 60;   
+				b[6] = 60;   
+				b[7] = 30;   
+				b[8] = 75;   
+				b[9] = 17;   
+				b[10] = 0;   
 				break;
 			}
 
@@ -268,7 +238,7 @@ static int edid_checksum(unsigned char *edid)
 	}
 
 	if (csum == 0x00 && all_null) {
-		/* checksum passed, everything's good */
+		
 		err = 1;
 	}
 
@@ -329,7 +299,7 @@ static void get_chroma(unsigned char *block, struct fb_monspecs *specs)
 	int tmp;
 
 	DPRINTK("      Chroma\n");
-	/* Chromaticity data */
+	
 	tmp = ((block[5] & (3 << 6)) >> 6) | (block[0x7] << 2);
 	tmp *= 1000;
 	tmp += 512;
@@ -582,17 +552,7 @@ static void get_detailed_timing(unsigned char *block,
 	       (VSYNC_POSITIVE) ? "+" : "-");
 }
 
-/**
- * fb_create_modedb - create video mode database
- * @edid: EDID data
- * @dbsize: database size
- *
- * RETURNS: struct fb_videomode, @dbsize contains length of database
- *
- * DESCRIPTION:
- * This function builds a mode database using the contents of the EDID
- * data
- */
+
 static struct fb_videomode *fb_create_modedb(unsigned char *edid, int *dbsize)
 {
 	struct fb_videomode *mode, *m;
@@ -639,7 +599,7 @@ static struct fb_videomode *fb_create_modedb(unsigned char *edid, int *dbsize)
 			num += get_dst_timing(block + 5, &mode[num]);
 	}
 
-	/* Yikes, EDID data is totally useless */
+	
 	if (!num) {
 		kfree(mode);
 		return NULL;
@@ -654,13 +614,7 @@ static struct fb_videomode *fb_create_modedb(unsigned char *edid, int *dbsize)
 	return m;
 }
 
-/**
- * fb_destroy_modedb - destroys mode database
- * @modedb: mode database to destroy
- *
- * DESCRIPTION:
- * Destroy mode database created by fb_create_modedb
- */
+
 void fb_destroy_modedb(struct fb_videomode *modedb)
 {
 	kfree(modedb);
@@ -689,7 +643,7 @@ static int fb_get_monitor_limits(unsigned char *edid, struct fb_monspecs *specs)
 		}
 	}
 
-	/* estimate monitor limits based on modes supported */
+	
 	if (retval) {
 		struct fb_videomode *modes, *mode;
 		int num_modes, hz, hscan, pixclock;
@@ -954,11 +908,7 @@ void fb_edid_to_monspecs(unsigned char *edid, struct fb_monspecs *specs)
 
 	specs->modedb = fb_create_modedb(edid, &specs->modedb_len);
 
-	/*
-	 * Workaround for buggy EDIDs that sets that the first
-	 * detailed timing is preferred but has not detailed
-	 * timing specified
-	 */
+	
 	for (i = 0; i < specs->modedb_len; i++) {
 		if (specs->modedb[i].flag & FB_MODE_IS_DETAILED) {
 			found = 1;
@@ -972,9 +922,7 @@ void fb_edid_to_monspecs(unsigned char *edid, struct fb_monspecs *specs)
 	DPRINTK("========================================\n");
 }
 
-/*
- * VESA Generalized Timing Formula (GTF)
- */
+
 
 #define FLYBACK                     550
 #define V_FRONTPORCH                1
@@ -997,21 +945,7 @@ struct __fb_timings {
 	u32 vtotal;
 };
 
-/**
- * fb_get_vblank - get vertical blank time
- * @hfreq: horizontal freq
- *
- * DESCRIPTION:
- * vblank = right_margin + vsync_len + left_margin
- *
- *    given: right_margin = 1 (V_FRONTPORCH)
- *           vsync_len    = 3
- *           flyback      = 550
- *
- *                          flyback * hfreq
- *           left_margin  = --------------- - vsync_len
- *                           1000000
- */
+
 static u32 fb_get_vblank(u32 hfreq)
 {
 	u32 vblank;
@@ -1021,26 +955,7 @@ static u32 fb_get_vblank(u32 hfreq)
 	return (vblank + V_FRONTPORCH);
 }
 
-/**
- * fb_get_hblank_by_freq - get horizontal blank time given hfreq
- * @hfreq: horizontal freq
- * @xres: horizontal resolution in pixels
- *
- * DESCRIPTION:
- *
- *           xres * duty_cycle
- * hblank = ------------------
- *           100 - duty_cycle
- *
- * duty cycle = percent of htotal assigned to inactive display
- * duty cycle = C - (M/Hfreq)
- *
- * where: C = ((offset - scale factor) * blank_scale)
- *            -------------------------------------- + scale factor
- *                        256
- *        M = blank_scale * gradient
- *
- */
+
 static u32 fb_get_hblank_by_hfreq(u32 hfreq, u32 xres)
 {
 	u32 c_val, m_val, duty_cycle, hblank;
@@ -1054,27 +969,7 @@ static u32 fb_get_hblank_by_hfreq(u32 hfreq, u32 xres)
 	return (hblank);
 }
 
-/**
- * fb_get_hblank_by_dclk - get horizontal blank time given pixelclock
- * @dclk: pixelclock in Hz
- * @xres: horizontal resolution in pixels
- *
- * DESCRIPTION:
- *
- *           xres * duty_cycle
- * hblank = ------------------
- *           100 - duty_cycle
- *
- * duty cycle = percent of htotal assigned to inactive display
- * duty cycle = C - (M * h_period)
- *
- * where: h_period = SQRT(100 - C + (0.4 * xres * M)/dclk) + C - 100
- *                   -----------------------------------------------
- *                                    2 * M
- *        M = 300;
- *        C = 30;
 
- */
 static u32 fb_get_hblank_by_dclk(u32 dclk, u32 xres)
 {
 	u32 duty_cycle, h_period, hblank;
@@ -1096,18 +991,7 @@ static u32 fb_get_hblank_by_dclk(u32 dclk, u32 xres)
 	return (hblank);
 }
 
-/**
- * fb_get_hfreq - estimate hsync
- * @vfreq: vertical refresh rate
- * @yres: vertical resolution
- *
- * DESCRIPTION:
- *
- *          (yres + front_port) * vfreq * 1000000
- * hfreq = -------------------------------------
- *          (1000000 - (vfreq * FLYBACK)
- *
- */
+
 
 static u32 fb_get_hfreq(u32 vfreq, u32 yres)
 {
@@ -1151,40 +1035,7 @@ static void fb_timings_dclk(struct __fb_timings *timings)
 	timings->vfreq = timings->hfreq/timings->vtotal;
 }
 
-/*
- * fb_get_mode - calculates video mode using VESA GTF
- * @flags: if: 0 - maximize vertical refresh rate
- *             1 - vrefresh-driven calculation;
- *             2 - hscan-driven calculation;
- *             3 - pixelclock-driven calculation;
- * @val: depending on @flags, ignored, vrefresh, hsync or pixelclock
- * @var: pointer to fb_var_screeninfo
- * @info: pointer to fb_info
- *
- * DESCRIPTION:
- * Calculates video mode based on monitor specs using VESA GTF.
- * The GTF is best for VESA GTF compliant monitors but is
- * specifically formulated to work for older monitors as well.
- *
- * If @flag==0, the function will attempt to maximize the
- * refresh rate.  Otherwise, it will calculate timings based on
- * the flag and accompanying value.
- *
- * If FB_IGNOREMON bit is set in @flags, monitor specs will be
- * ignored and @var will be filled with the calculated timings.
- *
- * All calculations are based on the VESA GTF Spreadsheet
- * available at VESA's public ftp (http://www.vesa.org).
- *
- * NOTES:
- * The timings generated by the GTF will be different from VESA
- * DMT.  It might be a good idea to keep a table of standard
- * VESA modes as well.  The GTF may also not work for some displays,
- * such as, and especially, analog TV.
- *
- * REQUIRES:
- * A valid info->monspecs, otherwise 'safe numbers' will be used.
- */
+
 int fb_get_mode(int flags, u32 val, struct fb_var_screeninfo *var, struct fb_info *info)
 {
 	struct __fb_timings *timings;
@@ -1197,10 +1048,7 @@ int fb_get_mode(int flags, u32 val, struct fb_var_screeninfo *var, struct fb_inf
 	if (!timings)
 		return -ENOMEM;
 
-	/*
-	 * If monspecs are invalid, use values that are enough
-	 * for 640x480@60
-	 */
+	
 	if (!info || !info->monspecs.hfmax || !info->monspecs.vfmax ||
 	    !info->monspecs.dclkmax ||
 	    info->monspecs.hfmax < info->monspecs.hfmin ||
@@ -1230,7 +1078,7 @@ int fb_get_mode(int flags, u32 val, struct fb_var_screeninfo *var, struct fb_inf
 	}
 
 	switch (flags & ~FB_IGNOREMON) {
-	case FB_MAXTIMINGS: /* maximize refresh rate */
+	case FB_MAXTIMINGS: 
 		timings->hfreq = hfmax;
 		fb_timings_hfreq(timings);
 		if (timings->vfreq > vfmax) {
@@ -1242,15 +1090,15 @@ int fb_get_mode(int flags, u32 val, struct fb_var_screeninfo *var, struct fb_inf
 			fb_timings_dclk(timings);
 		}
 		break;
-	case FB_VSYNCTIMINGS: /* vrefresh driven */
+	case FB_VSYNCTIMINGS: 
 		timings->vfreq = val;
 		fb_timings_vfreq(timings);
 		break;
-	case FB_HSYNCTIMINGS: /* hsync driven */
+	case FB_HSYNCTIMINGS: 
 		timings->hfreq = val;
 		fb_timings_hfreq(timings);
 		break;
-	case FB_DCLKTIMINGS: /* pixelclock driven */
+	case FB_DCLKTIMINGS: 
 		timings->dclk = PICOS2KHZ(val) * 1000;
 		fb_timings_dclk(timings);
 		break;
@@ -1296,29 +1144,15 @@ int fb_get_mode(int flags, u32 val, struct fb_var_screeninfo *var,
 {
 	return -EINVAL;
 }
-#endif /* CONFIG_FB_MODE_HELPERS */
+#endif 
 
-/*
- * fb_validate_mode - validates var against monitor capabilities
- * @var: pointer to fb_var_screeninfo
- * @info: pointer to fb_info
- *
- * DESCRIPTION:
- * Validates video mode against monitor capabilities specified in
- * info->monspecs.
- *
- * REQUIRES:
- * A valid info->monspecs.
- */
+
 int fb_validate_mode(const struct fb_var_screeninfo *var, struct fb_info *info)
 {
 	u32 hfreq, vfreq, htotal, vtotal, pixclock;
 	u32 hfmin, hfmax, vfmin, vfmax, dclkmin, dclkmax;
 
-	/*
-	 * If monspecs are invalid, use values that are enough
-	 * for 640x480@60
-	 */
+	
 	if (!info->monspecs.hfmax || !info->monspecs.vfmax ||
 	    !info->monspecs.dclkmax ||
 	    info->monspecs.hfmax < info->monspecs.hfmin ||
@@ -1363,10 +1197,7 @@ int fb_validate_mode(const struct fb_var_screeninfo *var, struct fb_info *info)
 
 #if defined(CONFIG_FIRMWARE_EDID) && defined(CONFIG_X86)
 
-/*
- * We need to ensure that the EDID block is only returned for
- * the primary graphics adapter.
- */
+
 
 const unsigned char *fb_firmware_edid(struct device *device)
 {

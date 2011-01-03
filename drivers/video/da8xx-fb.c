@@ -1,24 +1,4 @@
-/*
- * Copyright (C) 2008-2009 MontaVista Software Inc.
- * Copyright (C) 2008-2009 Texas Instruments Inc
- *
- * Based on the LCD driver for TI Avalanche processors written by
- * Ajay Singh and Shalom Hai.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option)any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- */
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/fb.h>
@@ -32,12 +12,12 @@
 
 #define DRIVER_NAME "da8xx_lcdc"
 
-/* LCD Status Register */
+
 #define LCD_END_OF_FRAME0		BIT(8)
 #define LCD_FIFO_UNDERFLOW		BIT(5)
 #define LCD_SYNC_LOST			BIT(2)
 
-/* LCD DMA Control Register */
+
 #define LCD_DMA_BURST_SIZE(x)		((x) << 4)
 #define LCD_DMA_BURST_1			0x0
 #define LCD_DMA_BURST_2			0x1
@@ -47,11 +27,11 @@
 #define LCD_END_OF_FRAME_INT_ENA	BIT(2)
 #define LCD_DUAL_FRAME_BUFFER_ENABLE	BIT(0)
 
-/* LCD Control Register */
+
 #define LCD_CLK_DIVISOR(x)		((x) << 8)
 #define LCD_RASTER_MODE			0x01
 
-/* LCD Raster Control Register */
+
 #define LCD_PALETTE_LOAD_MODE(x)	((x) << 20)
 #define PALETTE_AND_DATA		0x00
 #define PALETTE_ONLY			0x01
@@ -65,7 +45,7 @@
 #define LCD_TFT_ALT_ENABLE		BIT(23)
 #define LCD_STN_565_ENABLE		BIT(24)
 
-/* LCD Raster Timing 2 Register */
+
 #define LCD_AC_BIAS_TRANSITIONS_PER_INT(x)	((x) << 16)
 #define LCD_AC_BIAS_FREQUENCY(x)		((x) << 8)
 #define LCD_SYNC_CTRL				BIT(25)
@@ -74,7 +54,7 @@
 #define LCD_INVERT_LINE_CLOCK			BIT(21)
 #define LCD_INVERT_FRAME_CLOCK			BIT(20)
 
-/* LCD Block */
+
 #define  LCD_CTRL_REG				0x4
 #define  LCD_STAT_REG				0x8
 #define  LCD_RASTER_CTRL_REG			0x28
@@ -115,7 +95,7 @@ struct da8xx_fb_par {
 	unsigned int palette_sz;
 };
 
-/* Variable Screen Information */
+
 static struct fb_var_screeninfo da8xx_fb_var __devinitdata = {
 	.xoffset = 0,
 	.yoffset = 0,
@@ -124,7 +104,7 @@ static struct fb_var_screeninfo da8xx_fb_var __devinitdata = {
 	.activate = 0,
 	.height = -1,
 	.width = -1,
-	.pixclock = 46666,	/* 46us - AUO display */
+	.pixclock = 46666,	
 	.accel_flags = 0,
 	.left_margin = LEFT_MARGIN,
 	.right_margin = RIGHT_MARGIN,
@@ -146,21 +126,21 @@ static struct fb_fix_screeninfo da8xx_fb_fix __devinitdata = {
 };
 
 struct da8xx_panel {
-	const char	name[25];	/* Full name <vendor>_<model> */
+	const char	name[25];	
 	unsigned short	width;
 	unsigned short	height;
-	int		hfp;		/* Horizontal front porch */
-	int		hbp;		/* Horizontal back porch */
-	int		hsw;		/* Horizontal Sync Pulse Width */
-	int		vfp;		/* Vertical front porch */
-	int		vbp;		/* Vertical back porch */
-	int		vsw;		/* Vertical Sync Pulse Width */
-	int		pxl_clk;	/* Pixel clock */
-	unsigned char	invert_pxl_clk;	/* Invert Pixel clock */
+	int		hfp;		
+	int		hbp;		
+	int		hsw;		
+	int		vfp;		
+	int		vbp;		
+	int		vsw;		
+	int		pxl_clk;	
+	unsigned char	invert_pxl_clk;	
 };
 
 static struct da8xx_panel known_lcd_panels[] = {
-	/* Sharp LCD035Q3DG01 */
+	
 	[0] = {
 		.name = "Sharp_LCD035Q3DG01",
 		.width = 320,
@@ -174,7 +154,7 @@ static struct da8xx_panel known_lcd_panels[] = {
 		.pxl_clk = 0x10,
 		.invert_pxl_clk = 1,
 	},
-	/* Sharp LK043T1DG01 */
+	
 	[1] = {
 		.name = "Sharp_LK043T1DG01",
 		.width = 480,
@@ -190,7 +170,7 @@ static struct da8xx_panel known_lcd_panels[] = {
 	},
 };
 
-/* Disable the Raster Engine of the LCD Controller */
+
 static void lcd_disable_raster(struct da8xx_fb_par *par)
 {
 	u32 reg;
@@ -205,11 +185,11 @@ static void lcd_blit(int load_mode, struct da8xx_fb_par *par)
 	u32 tmp = par->p_palette_base + par->databuf_sz - 4;
 	u32 reg;
 
-	/* Update the databuf in the hw. */
+	
 	lcdc_write(par->p_palette_base, LCD_DMA_FRM_BUF_BASE_ADDR_0_REG);
 	lcdc_write(tmp, LCD_DMA_FRM_BUF_CEILING_ADDR_0_REG);
 
-	/* Start the DMA. */
+	
 	reg = lcdc_read(LCD_RASTER_CTRL_REG);
 	reg &= ~(3 << 20);
 	if (load_mode == LOAD_DATA)
@@ -220,7 +200,7 @@ static void lcd_blit(int load_mode, struct da8xx_fb_par *par)
 	lcdc_write(reg, LCD_RASTER_CTRL_REG);
 }
 
-/* Configure the Burst Size of DMA */
+
 static int lcd_cfg_dma(int burst_size)
 {
 	u32 reg;
@@ -254,7 +234,7 @@ static void lcd_cfg_ac_bias(int period, int transitions_per_int)
 {
 	u32 reg;
 
-	/* Set the AC Bias Period and Number of Transisitons per Interrupt */
+	
 	reg = lcdc_read(LCD_RASTER_TIMING_2_REG) & 0xFFF00000;
 	reg |= LCD_AC_BIAS_FREQUENCY(period) |
 		LCD_AC_BIAS_TRANSITIONS_PER_INT(transitions_per_int);
@@ -314,7 +294,7 @@ static int lcd_cfg_display(const struct lcd_ctrl_config *cfg)
 		return -EINVAL;
 	}
 
-	/* enable additional interrupts here */
+	
 	reg |= LCD_UNDERFLOW_INT_ENA;
 
 	lcdc_write(reg, LCD_RASTER_CTRL_REG);
@@ -351,25 +331,25 @@ static int lcd_cfg_frame_buffer(struct da8xx_fb_par *par, u32 width, u32 height,
 {
 	u32 bpl, reg;
 
-	/* Disable Dual Frame Buffer. */
+	
 	reg = lcdc_read(LCD_DMA_CTRL_REG);
 	lcdc_write(reg & ~LCD_DUAL_FRAME_BUFFER_ENABLE,
 						LCD_DMA_CTRL_REG);
-	/* Set the Panel Width */
-	/* Pixels per line = (PPL + 1)*16 */
-	/*0x3F in bits 4..9 gives max horisontal resolution = 1024 pixels*/
+	
+	
+	
 	width &= 0x3f0;
 	reg = lcdc_read(LCD_RASTER_TIMING_0_REG);
 	reg &= 0xfffffc00;
 	reg |= ((width >> 4) - 1) << 4;
 	lcdc_write(reg, LCD_RASTER_TIMING_0_REG);
 
-	/* Set the Panel Height */
+	
 	reg = lcdc_read(LCD_RASTER_TIMING_1_REG);
 	reg = ((height - 1) & 0x3ff) | (reg & 0xfffffc00);
 	lcdc_write(reg, LCD_RASTER_TIMING_1_REG);
 
-	/* Set the Raster Order of the Frame Buffer */
+	
 	reg = lcdc_read(LCD_RASTER_CTRL_REG) & ~(1 << 8);
 	if (raster_order)
 		reg |= LCD_RASTER_ORDER;
@@ -442,11 +422,11 @@ static int fb_setcolreg(unsigned regno, unsigned red, unsigned green,
 
 static void lcd_reset(struct da8xx_fb_par *par)
 {
-	/* Disable the Raster if previously Enabled */
+	
 	if (lcdc_read(LCD_RASTER_CTRL_REG) & LCD_RASTER_ENABLE)
 		lcd_disable_raster(par);
 
-	/* DMA has to be disabled */
+	
 	lcdc_write(0, LCD_DMA_CTRL_REG);
 	lcdc_write(0, LCD_RASTER_CTRL_REG);
 }
@@ -459,7 +439,7 @@ static int lcd_init(struct da8xx_fb_par *par, const struct lcd_ctrl_config *cfg,
 
 	lcd_reset(par);
 
-	/* Configure the LCD clock divisor. */
+	
 	lcdc_write(LCD_CLK_DIVISOR(panel->pxl_clk) |
 			(LCD_RASTER_MODE & 0x1), LCD_CTRL_REG);
 
@@ -470,19 +450,19 @@ static int lcd_init(struct da8xx_fb_par *par, const struct lcd_ctrl_config *cfg,
 		lcdc_write((lcdc_read(LCD_RASTER_TIMING_2_REG) &
 			~LCD_INVERT_PIXEL_CLOCK), LCD_RASTER_TIMING_2_REG);
 
-	/* Configure the DMA burst size. */
+	
 	ret = lcd_cfg_dma(cfg->dma_burst_sz);
 	if (ret < 0)
 		return ret;
 
-	/* Configure the AC bias properties. */
+	
 	lcd_cfg_ac_bias(cfg->ac_bias, cfg->ac_bias_intrpt);
 
-	/* Configure the vertical and horizontal sync properties. */
+	
 	lcd_cfg_vertical_sync(panel->vbp, panel->vsw, panel->vfp);
 	lcd_cfg_horizontal_sync(panel->hbp, panel->hsw, panel->hfp);
 
-	/* Configure for disply */
+	
 	ret = lcd_cfg_display(cfg);
 	if (ret < 0)
 		return ret;
@@ -503,7 +483,7 @@ static int lcd_init(struct da8xx_fb_par *par, const struct lcd_ctrl_config *cfg,
 	if (ret < 0)
 		return ret;
 
-	/* Configure FDD */
+	
 	lcdc_write((lcdc_read(LCD_RASTER_CTRL_REG) & 0xfff00fff) |
 		       (cfg->fdd << 12), LCD_RASTER_CTRL_REG);
 
@@ -553,7 +533,7 @@ static int fb_check_var(struct fb_var_screeninfo *var,
 		var->transp.offset = 0;
 		var->transp.length = 0;
 		break;
-	case 16:		/* RGB 565 */
+	case 16:		
 		var->red.offset = 11;
 		var->red.length = 5;
 		var->green.offset = 5;
@@ -585,7 +565,7 @@ static int __devexit fb_remove(struct platform_device *dev)
 			lcd_disable_raster(par);
 		lcdc_write(0, LCD_RASTER_CTRL_REG);
 
-		/* disable DMA  */
+		
 		lcdc_write(0, LCD_DMA_CTRL_REG);
 
 		unregister_framebuffer(info);
@@ -728,7 +708,7 @@ static int __init fb_probe(struct platform_device *device)
 		goto err_release_fb;
 	}
 
-	/* allocate frame buffer */
+	
 	da8xx_fb_info->screen_base = dma_alloc_coherent(NULL,
 					par->databuf_sz + PAGE_SIZE,
 					(resource_size_t *)
@@ -742,13 +722,13 @@ static int __init fb_probe(struct platform_device *device)
 		goto err_release_fb;
 	}
 
-	/* move palette base pointer by (PAGE_SIZE - palette_sz) bytes */
+	
 	par->v_palette_base = da8xx_fb_info->screen_base +
 				(PAGE_SIZE - par->palette_sz);
 	par->p_palette_base = da8xx_fb_info->fix.smem_start +
 				(PAGE_SIZE - par->palette_sz);
 
-	/* the rest of the frame buffer is pixel data */
+	
 	da8xx_fb_info->screen_base = par->v_palette_base + par->palette_sz;
 	da8xx_fb_fix.smem_start = par->p_palette_base + par->palette_sz;
 	da8xx_fb_fix.smem_len = par->databuf_sz - par->palette_sz;
@@ -766,7 +746,7 @@ static int __init fb_probe(struct platform_device *device)
 	if (ret)
 		goto err_release_fb_mem;
 
-	/* Initialize par */
+	
 	da8xx_fb_info->var.bits_per_pixel = lcd_cfg->bpp;
 
 	da8xx_fb_var.xres = lcdc_info->width;
@@ -782,7 +762,7 @@ static int __init fb_probe(struct platform_device *device)
 	da8xx_fb_var.hsync_len = lcdc_info->hsw;
 	da8xx_fb_var.vsync_len = lcdc_info->vsw;
 
-	/* Initialize fbinfo */
+	
 	da8xx_fb_info->flags = FBINFO_FLAG_DEFAULT;
 	da8xx_fb_info->fix = da8xx_fb_fix;
 	da8xx_fb_info->var = da8xx_fb_var;
@@ -795,18 +775,18 @@ static int __init fb_probe(struct platform_device *device)
 	if (ret)
 		goto err_free_irq;
 
-	/* First palette_sz byte of the frame buffer is the palette */
+	
 	da8xx_fb_info->cmap.len = par->palette_sz;
 
-	/* Flush the buffer to the screen. */
+	
 	lcd_blit(LOAD_DATA, par);
 
-	/* initialize var_screeninfo */
+	
 	da8xx_fb_var.activate = FB_ACTIVATE_FORCE;
 	fb_set_var(da8xx_fb_info, &da8xx_fb_var);
 
 	dev_set_drvdata(&device->dev, da8xx_fb_info);
-	/* Register the Frame Buffer  */
+	
 	if (register_framebuffer(da8xx_fb_info) < 0) {
 		dev_err(&device->dev,
 			"GLCD: Frame Buffer Registration Failed!\n");
@@ -814,7 +794,7 @@ static int __init fb_probe(struct platform_device *device)
 		goto err_dealloc_cmap;
 	}
 
-	/* enable raster engine */
+	
 	lcdc_write(lcdc_read(LCD_RASTER_CTRL_REG) |
 			LCD_RASTER_ENABLE, LCD_RASTER_CTRL_REG);
 

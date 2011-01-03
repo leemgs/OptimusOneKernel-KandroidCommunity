@@ -1,12 +1,4 @@
-/*
- * SuperH Mobile LCDC Framebuffer
- *
- * Copyright (c) 2008 Magnus Damm
- *
- * This file is subject to the terms and conditions of the GNU General Public
- * License.  See the file "COPYING" in the main directory of this archive
- * for more details.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -26,7 +18,7 @@
 #define SIDE_B_OFFSET 0x1000
 #define MIRROR_OFFSET 0x2000
 
-/* shared registers */
+
 #define _LDDCKR 0x410
 #define _LDDCKSTPR 0x414
 #define _LDINTR 0x468
@@ -40,7 +32,7 @@
 #define _LDDWAR 0x900
 #define _LDDRAR 0x904
 
-/* shared registers and their order for context save/restore */
+
 static int lcdc_shared_regs[] = {
 	_LDDCKR,
 	_LDDCKSTPR,
@@ -51,7 +43,7 @@ static int lcdc_shared_regs[] = {
 };
 #define NR_SHARED_REGS ARRAY_SIZE(lcdc_shared_regs)
 
-/* per-channel registers */
+
 enum { LDDCKPAT1R, LDDCKPAT2R, LDMT1R, LDMT2R, LDMT3R, LDDFR, LDSM1R,
        LDSM2R, LDSA1R, LDMLSR, LDHCNR, LDHSYNR, LDVLNR, LDVSYNR, LDPMR,
        NR_CH_REGS };
@@ -112,7 +104,7 @@ struct sh_mobile_lcdc_chan {
 	struct sh_mobile_lcdc_priv *lcdc;
 	unsigned long *reg_offs;
 	unsigned long ldmt1r_value;
-	unsigned long enabled; /* ME and SE in LDCNT2R */
+	unsigned long enabled; 
 	struct sh_mobile_lcdc_chan_cfg cfg;
 	u32 pseudo_palette[PALETTE_NR];
 	unsigned long saved_ch_regs[NR_CH_REGS];
@@ -283,13 +275,13 @@ static void sh_mobile_lcdc_deferred_io(struct fb_info *info,
 	struct sh_mobile_lcdc_chan *ch = info->par;
 	unsigned int nr_pages;
 
-	/* enable clocks before accessing hardware */
+	
 	sh_mobile_lcdc_clk_on(ch->lcdc);
 
 	nr_pages = sh_mobile_lcdc_sginit(info, pagelist);
 	dma_map_sg(info->dev, ch->sglist, nr_pages, DMA_TO_DEVICE);
 
-	/* trigger panel update */
+	
 	lcdc_write_chan(ch, LDSM2R, 1);
 
 	dma_unmap_sg(info->dev, ch->sglist, nr_pages, DMA_TO_DEVICE);
@@ -312,26 +304,23 @@ static irqreturn_t sh_mobile_lcdc_irq(int irq, void *data)
 	int is_sub;
 	int k;
 
-	/* acknowledge interrupt */
+	
 	ldintr = tmp = lcdc_read(priv, _LDINTR);
-	/*
-	 * disable further VSYNC End IRQs, preserve all other enabled IRQs,
-	 * write 0 to bits 0-6 to ack all triggered IRQs.
-	 */
+	
 	tmp &= 0xffffff00 & ~LDINTR_VEE;
 	lcdc_write(priv, _LDINTR, tmp);
 
-	/* figure out if this interrupt is for main or sub lcd */
+	
 	is_sub = (lcdc_read(priv, _LDSR) & (1 << 10)) ? 1 : 0;
 
-	/* wake up channel and disable clocks */
+	
 	for (k = 0; k < ARRAY_SIZE(priv->ch); k++) {
 		ch = &priv->ch[k];
 
 		if (!ch->enabled)
 			continue;
 
-		/* Frame Start */
+		
 		if (ldintr & LDINTR_FS) {
 			if (is_sub == lcdc_chan_is_sublcd(ch)) {
 				ch->frame_end = 1;
@@ -341,10 +330,10 @@ static irqreturn_t sh_mobile_lcdc_irq(int irq, void *data)
 			}
 		}
 
-		/* VSYNC End */
+		
 		if (ldintr & LDINTR_VES) {
 			unsigned long ldrcntr = lcdc_read(priv, _LDRCNTR);
-			/* Set the source address for the next refresh */
+			
 			lcdc_write_chan_mirror(ch, LDSA1R, ch->dma_handle +
 					       ch->new_pan_offset);
 			if (lcdc_chan_is_sublcd(ch))
@@ -366,13 +355,13 @@ static void sh_mobile_lcdc_start_stop(struct sh_mobile_lcdc_priv *priv,
 	unsigned long tmp = lcdc_read(priv, _LDCNT2R);
 	int k;
 
-	/* start or stop the lcdc */
+	
 	if (start)
 		lcdc_write(priv, _LDCNT2R, tmp | START_LCDC);
 	else
 		lcdc_write(priv, _LDCNT2R, tmp & ~START_LCDC);
 
-	/* wait until power is applied/stopped on all channels */
+	
 	for (k = 0; k < ARRAY_SIZE(priv->ch); k++)
 		if (lcdc_read(priv, _LDCNT2R) & priv->ch[k].enabled)
 			while (1) {
@@ -385,7 +374,7 @@ static void sh_mobile_lcdc_start_stop(struct sh_mobile_lcdc_priv *priv,
 			}
 
 	if (!start)
-		lcdc_write(priv, _LDDCKSTPR, 1); /* stop dotclock */
+		lcdc_write(priv, _LDDCKSTPR, 1); 
 }
 
 static int sh_mobile_lcdc_start(struct sh_mobile_lcdc_priv *priv)
@@ -397,28 +386,28 @@ static int sh_mobile_lcdc_start(struct sh_mobile_lcdc_priv *priv)
 	int k, m;
 	int ret = 0;
 
-	/* enable clocks before accessing the hardware */
+	
 	for (k = 0; k < ARRAY_SIZE(priv->ch); k++)
 		if (priv->ch[k].enabled)
 			sh_mobile_lcdc_clk_on(priv);
 
-	/* reset */
+	
 	lcdc_write(priv, _LDCNT2R, lcdc_read(priv, _LDCNT2R) | LCDC_RESET);
 	lcdc_wait_bit(priv, _LDCNT2R, LCDC_RESET, 0);
 
-	/* enable LCDC channels */
+	
 	tmp = lcdc_read(priv, _LDCNT2R);
 	tmp |= priv->ch[0].enabled;
 	tmp |= priv->ch[1].enabled;
 	lcdc_write(priv, _LDCNT2R, tmp);
 
-	/* read data from external memory, avoid using the BEU for now */
+	
 	lcdc_write(priv, _LDCNT2R, lcdc_read(priv, _LDCNT2R) & ~DISPLAY_BEU);
 
-	/* stop the lcdc first */
+	
 	sh_mobile_lcdc_start_stop(priv, 0);
 
-	/* configure clocks */
+	
 	tmp = priv->lddckr;
 	for (k = 0; k < ARRAY_SIZE(priv->ch); k++) {
 		ch = &priv->ch[k];
@@ -440,11 +429,11 @@ static int sh_mobile_lcdc_start(struct sh_mobile_lcdc_priv *priv)
 
 	lcdc_write(priv, _LDDCKR, tmp);
 
-	/* start dotclock again */
+	
 	lcdc_write(priv, _LDDCKSTPR, 0);
 	lcdc_wait_bit(priv, _LDDCKSTPR, ~0, 0);
 
-	/* interrupts are disabled to begin with */
+	
 	lcdc_write(priv, _LDINTR, 0);
 
 	for (k = 0; k < ARRAY_SIZE(priv->ch); k++) {
@@ -464,37 +453,37 @@ static int sh_mobile_lcdc_start(struct sh_mobile_lcdc_priv *priv)
 		tmp |= (ch->cfg.flags & LCDC_FLAGS_DWCNT) ? 1 << 16 : 0;
 		lcdc_write_chan(ch, LDMT1R, tmp);
 
-		/* setup SYS bus */
+		
 		lcdc_write_chan(ch, LDMT2R, ch->cfg.sys_bus_cfg.ldmt2r);
 		lcdc_write_chan(ch, LDMT3R, ch->cfg.sys_bus_cfg.ldmt3r);
 
-		/* horizontal configuration */
+		
 		tmp = lcd_cfg->xres + lcd_cfg->hsync_len;
 		tmp += lcd_cfg->left_margin;
 		tmp += lcd_cfg->right_margin;
-		tmp /= 8; /* HTCN */
-		tmp |= (lcd_cfg->xres / 8) << 16; /* HDCN */
+		tmp /= 8; 
+		tmp |= (lcd_cfg->xres / 8) << 16; 
 		lcdc_write_chan(ch, LDHCNR, tmp);
 
 		tmp = lcd_cfg->xres;
 		tmp += lcd_cfg->right_margin;
-		tmp /= 8; /* HSYNP */
-		tmp |= (lcd_cfg->hsync_len / 8) << 16; /* HSYNW */
+		tmp /= 8; 
+		tmp |= (lcd_cfg->hsync_len / 8) << 16; 
 		lcdc_write_chan(ch, LDHSYNR, tmp);
 
-		/* power supply */
+		
 		lcdc_write_chan(ch, LDPMR, 0);
 
-		/* vertical configuration */
+		
 		tmp = lcd_cfg->yres + lcd_cfg->vsync_len;
 		tmp += lcd_cfg->upper_margin;
-		tmp += lcd_cfg->lower_margin; /* VTLN */
-		tmp |= lcd_cfg->yres << 16; /* VDLN */
+		tmp += lcd_cfg->lower_margin; 
+		tmp |= lcd_cfg->yres << 16; 
 		lcdc_write_chan(ch, LDVLNR, tmp);
 
 		tmp = lcd_cfg->yres;
-		tmp += lcd_cfg->lower_margin; /* VSYNP */
-		tmp |= lcd_cfg->vsync_len << 16; /* VSYNW */
+		tmp += lcd_cfg->lower_margin; 
+		tmp |= lcd_cfg->vsync_len << 16; 
 		lcdc_write_chan(ch, LDVSYNR, tmp);
 
 		board_cfg = &ch->cfg.board_cfg;
@@ -505,7 +494,7 @@ static int sh_mobile_lcdc_start(struct sh_mobile_lcdc_priv *priv)
 			return ret;
 	}
 
-	/* word and long word swap */
+	
 	lcdc_write(priv, _LDDDSR, lcdc_read(priv, _LDDDSR) | 6);
 
 	for (k = 0; k < ARRAY_SIZE(priv->ch); k++) {
@@ -514,19 +503,19 @@ static int sh_mobile_lcdc_start(struct sh_mobile_lcdc_priv *priv)
 		if (!priv->ch[k].enabled)
 			continue;
 
-		/* set bpp format in PKF[4:0] */
+		
 		tmp = lcdc_read_chan(ch, LDDFR);
 		tmp &= ~(0x0001001f);
 		tmp |= (ch->info->var.bits_per_pixel == 16) ? 3 : 0;
 		lcdc_write_chan(ch, LDDFR, tmp);
 
-		/* point out our frame buffer */
+		
 		lcdc_write_chan(ch, LDSA1R, ch->info->fix.smem_start);
 
-		/* set line size */
+		
 		lcdc_write_chan(ch, LDMLSR, ch->info->fix.line_length);
 
-		/* setup deferred io if SYS bus */
+		
 		tmp = ch->cfg.sys_bus_cfg.deferred_io_msec;
 		if (ch->ldmt1r_value & (1 << 12) && tmp) {
 			ch->defio.deferred_io = sh_mobile_lcdc_deferred_io;
@@ -534,26 +523,26 @@ static int sh_mobile_lcdc_start(struct sh_mobile_lcdc_priv *priv)
 			ch->info->fbdefio = &ch->defio;
 			fb_deferred_io_init(ch->info);
 
-			/* one-shot mode */
+			
 			lcdc_write_chan(ch, LDSM1R, 1);
 
-			/* enable "Frame End Interrupt Enable" bit */
+			
 			lcdc_write(priv, _LDINTR, LDINTR_FE);
 
 		} else {
-			/* continuous read mode */
+			
 			lcdc_write_chan(ch, LDSM1R, 0);
 		}
 	}
 
-	/* display output */
+	
 	lcdc_write(priv, _LDCNT1R, LCDC_ENABLE);
 
-	/* start the lcdc */
+	
 	sh_mobile_lcdc_start_stop(priv, 1);
 	priv->started = 1;
 
-	/* tell the board code to enable the panel */
+	
 	for (k = 0; k < ARRAY_SIZE(priv->ch); k++) {
 		ch = &priv->ch[k];
 		if (!ch->enabled)
@@ -573,16 +562,13 @@ static void sh_mobile_lcdc_stop(struct sh_mobile_lcdc_priv *priv)
 	struct sh_mobile_lcdc_board_cfg	*board_cfg;
 	int k;
 
-	/* clean up deferred io and ask board code to disable panel */
+	
 	for (k = 0; k < ARRAY_SIZE(priv->ch); k++) {
 		ch = &priv->ch[k];
 		if (!ch->enabled)
 			continue;
 
-		/* deferred io mode:
-		 * flush frame, and wait for frame end interrupt
-		 * clean up deferred io and enable clock
-		 */
+		
 		if (ch->info->fbdefio) {
 			ch->frame_end = 0;
 			schedule_delayed_work(&ch->info->deferred_work, 0);
@@ -597,13 +583,13 @@ static void sh_mobile_lcdc_stop(struct sh_mobile_lcdc_priv *priv)
 			board_cfg->display_off(board_cfg->board_data);
 	}
 
-	/* stop the lcdc */
+	
 	if (priv->started) {
 		sh_mobile_lcdc_start_stop(priv, 0);
 		priv->started = 0;
 	}
 
-	/* stop clocks */
+	
 	for (k = 0; k < ARRAY_SIZE(priv->ch); k++)
 		if (priv->ch[k].enabled)
 			sh_mobile_lcdc_clk_off(priv);
@@ -635,7 +621,7 @@ static int sh_mobile_lcdc_check_interface(struct sh_mobile_lcdc_chan *ch)
 	default: goto bad;
 	}
 
-	/* SUBLCD only supports SYS interface */
+	
 	if (lcdc_chan_is_sublcd(ch)) {
 		if (ifm == 0)
 			goto bad;
@@ -675,10 +661,7 @@ static int sh_mobile_lcdc_setup_clocks(struct platform_device *pdev,
 	}
 	atomic_set(&priv->hw_usecnt, -1);
 
-	/* Runtime PM support involves two step for this driver:
-	 * 1) Enable Runtime PM
-	 * 2) Force Runtime PM Resume since hardware is accessed from probe()
-	 */
+	
 	pm_runtime_enable(priv->dev);
 	pm_runtime_resume(priv->dev);
 	return 0;
@@ -693,7 +676,7 @@ static int sh_mobile_lcdc_setcolreg(u_int regno,
 	if (regno >= PALETTE_NR)
 		return -EINVAL;
 
-	/* only FB_VISUAL_TRUECOLOR supported */
+	
 
 	red >>= 16 - info->var.red.length;
 	green >>= 16 - info->var.green.length;
@@ -746,7 +729,7 @@ static int sh_mobile_fb_pan_display(struct fb_var_screeninfo *var,
 
 	if (info->var.xoffset == var->xoffset &&
 	    info->var.yoffset == var->yoffset)
-		return 0;	/* No change, do nothing */
+		return 0;	
 
 	ch->new_pan_offset = (var->yoffset * info->fix.line_length) +
 		(var->xoffset * (info->var.bits_per_pixel / 8));
@@ -776,7 +759,7 @@ static struct fb_ops sh_mobile_lcdc_ops = {
 static int sh_mobile_lcdc_set_bpp(struct fb_var_screeninfo *var, int bpp)
 {
 	switch (bpp) {
-	case 16: /* PKF[4:0] = 00011 - RGB 565 */
+	case 16: 
 		var->red.offset = 11;
 		var->red.length = 5;
 		var->green.offset = 5;
@@ -787,10 +770,7 @@ static int sh_mobile_lcdc_set_bpp(struct fb_var_screeninfo *var, int bpp)
 		var->transp.length = 0;
 		break;
 
-	case 32: /* PKF[4:0] = 00000 - RGB 888
-		  * sh7722 pdf says 00RRGGBB but reality is GGBB00RR
-		  * this may be because LDDDSR has word swap enabled..
-		  */
+	case 32: 
 		var->red.offset = 0;
 		var->red.length = 8;
 		var->green.offset = 24;
@@ -833,7 +813,7 @@ static int sh_mobile_lcdc_runtime_suspend(struct device *dev)
 	struct sh_mobile_lcdc_chan *ch;
 	int k, n;
 
-	/* save per-channel registers */
+	
 	for (k = 0; k < ARRAY_SIZE(p->ch); k++) {
 		ch = &p->ch[k];
 		if (!ch->enabled)
@@ -842,11 +822,11 @@ static int sh_mobile_lcdc_runtime_suspend(struct device *dev)
 			ch->saved_ch_regs[n] = lcdc_read_chan(ch, n);
 	}
 
-	/* save shared registers */
+	
 	for (n = 0; n < NR_SHARED_REGS; n++)
 		p->saved_shared_regs[n] = lcdc_read(p, lcdc_shared_regs[n]);
 
-	/* turn off LCDC hardware */
+	
 	lcdc_write(p, _LDCNT1R, 0);
 	return 0;
 }
@@ -858,7 +838,7 @@ static int sh_mobile_lcdc_runtime_resume(struct device *dev)
 	struct sh_mobile_lcdc_chan *ch;
 	int k, n;
 
-	/* restore per-channel registers */
+	
 	for (k = 0; k < ARRAY_SIZE(p->ch); k++) {
 		ch = &p->ch[k];
 		if (!ch->enabled)
@@ -867,7 +847,7 @@ static int sh_mobile_lcdc_runtime_resume(struct device *dev)
 			lcdc_write_chan(ch, n, ch->saved_ch_regs[n]);
 	}
 
-	/* restore shared registers */
+	
 	for (n = 0; n < NR_SHARED_REGS; n++)
 		lcdc_write(p, lcdc_shared_regs[n], p->saved_shared_regs[n]);
 
@@ -983,7 +963,7 @@ static int __init sh_mobile_lcdc_probe(struct platform_device *pdev)
 		info->fbops = &sh_mobile_lcdc_ops;
 		info->var.xres = info->var.xres_virtual = cfg->lcd_cfg.xres;
 		info->var.yres = cfg->lcd_cfg.yres;
-		/* Default Y virtual resolution is 2x panel size */
+		
 		info->var.yres_virtual = info->var.yres * 2;
 		info->var.width = cfg->lcd_size_cfg.width;
 		info->var.height = cfg->lcd_size_cfg.height;
@@ -1059,7 +1039,7 @@ static int __init sh_mobile_lcdc_probe(struct platform_device *pdev)
 			 (int) ch->cfg.lcd_cfg.yres,
 			 ch->cfg.bpp);
 
-		/* deferred io mode: disable clock to save power */
+		
 		if (info->fbdefio)
 			sh_mobile_lcdc_clk_off(priv);
 	}

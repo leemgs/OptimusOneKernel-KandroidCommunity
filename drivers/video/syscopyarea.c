@@ -1,17 +1,4 @@
-/*
- *  Generic Bit Block Transfer for frame buffers located in system RAM with
- *  packed pixels of any depth.
- *
- *  Based almost entirely from cfbcopyarea.c (which is based almost entirely
- *  on Geert Uytterhoeven's copyarea routine)
- *
- *      Copyright (C)  2007 Antonino Daplas <adaplas@pol.net>
- *
- *  This file is subject to the terms and conditions of the GNU General Public
- *  License.  See the file COPYING in the main directory of this archive for
- *  more details.
- *
- */
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/string.h>
@@ -21,9 +8,7 @@
 #include <asm/io.h>
 #include "fb_draw.h"
 
-    /*
-     *  Generic bitwise copy algorithm
-     */
+    
 
 static void
 bitcpy(struct fb_info *p, unsigned long *dst, int dst_idx,
@@ -37,15 +22,15 @@ bitcpy(struct fb_info *p, unsigned long *dst, int dst_idx,
 	last = ~(FB_SHIFT_HIGH(p, ~0UL, (dst_idx+n) % bits));
 
 	if (!shift) {
-		/* Same alignment for source and dest */
+		
 		if (dst_idx+n <= bits) {
-			/* Single word */
+			
 			if (last)
 				first &= last;
 			*dst = comp(*src, *dst, first);
 		} else {
-			/* Multiple destination words */
-			/* Leading bits */
+			
+			
  			if (first != ~0UL) {
 				*dst = comp(*src, *dst, first);
 				dst++;
@@ -53,7 +38,7 @@ bitcpy(struct fb_info *p, unsigned long *dst, int dst_idx,
 				n -= bits - dst_idx;
 			}
 
-			/* Main chunk */
+			
 			n /= bits;
 			while (n >= 8) {
 				*dst++ = *src++;
@@ -69,7 +54,7 @@ bitcpy(struct fb_info *p, unsigned long *dst, int dst_idx,
 			while (n--)
 				*dst++ = *src++;
 
-			/* Trailing bits */
+			
 			if (last)
 				*dst = comp(*src, *dst, last);
 		}
@@ -77,44 +62,39 @@ bitcpy(struct fb_info *p, unsigned long *dst, int dst_idx,
 		unsigned long d0, d1;
 		int m;
 
-		/* Different alignment for source and dest */
+		
 		right = shift & (bits - 1);
 		left = -shift & (bits - 1);
 
 		if (dst_idx+n <= bits) {
-			/* Single destination word */
+			
 			if (last)
 				first &= last;
 			if (shift > 0) {
-				/* Single source word */
+				
 				*dst = comp(*src >> right, *dst, first);
 			} else if (src_idx+n <= bits) {
-				/* Single source word */
+				
 				*dst = comp(*src << left, *dst, first);
 			} else {
-				/* 2 source words */
+				
 				d0 = *src++;
 				d1 = *src;
 				*dst = comp(d0 << left | d1 >> right, *dst,
 					    first);
 			}
 		} else {
-			/* Multiple destination words */
-			/** We must always remember the last value read,
-			    because in case SRC and DST overlap bitwise (e.g.
-			    when moving just one pixel in 1bpp), we always
-			    collect one full long for DST and that might
-			    overlap with the current long from SRC. We store
-			    this value in 'd0'. */
+			
+			
 			d0 = *src++;
-			/* Leading bits */
+			
 			if (shift > 0) {
-				/* Single source word */
+				
 				*dst = comp(d0 >> right, *dst, first);
 				dst++;
 				n -= bits - dst_idx;
 			} else {
-				/* 2 source words */
+				
 				d1 = *src++;
 				*dst = comp(d0 << left | *dst >> right, *dst, first);
 				d0 = d1;
@@ -122,7 +102,7 @@ bitcpy(struct fb_info *p, unsigned long *dst, int dst_idx,
 				n -= bits - dst_idx;
 			}
 
-			/* Main chunk */
+			
 			m = n % bits;
 			n /= bits;
 			while (n >= 4) {
@@ -146,13 +126,13 @@ bitcpy(struct fb_info *p, unsigned long *dst, int dst_idx,
 				d0 = d1;
 			}
 
-			/* Trailing bits */
+			
 			if (last) {
 				if (m <= right) {
-					/* Single source word */
+					
 					*dst = comp(d0 << left, *dst, last);
 				} else {
-					/* 2 source words */
+					
  					d1 = *src;
 					*dst = comp(d0 << left | d1 >> right,
 						    *dst, last);
@@ -162,9 +142,7 @@ bitcpy(struct fb_info *p, unsigned long *dst, int dst_idx,
 	}
 }
 
-    /*
-     *  Generic bitwise copy algorithm, operating backward
-     */
+    
 
 static void
 bitcpy_rev(struct fb_info *p, unsigned long *dst, int dst_idx,
@@ -190,16 +168,16 @@ bitcpy_rev(struct fb_info *p, unsigned long *dst, int dst_idx,
 	last = ~(FB_SHIFT_LOW(p, ~0UL, bits - 1 - ((dst_idx-n) % bits)));
 
 	if (!shift) {
-		/* Same alignment for source and dest */
+		
 		if ((unsigned long)dst_idx+1 >= n) {
-			/* Single word */
+			
 			if (last)
 				first &= last;
 			*dst = comp(*src, *dst, first);
 		} else {
-			/* Multiple destination words */
+			
 
-			/* Leading bits */
+			
 			if (first != ~0UL) {
 				*dst = comp(*src, *dst, first);
 				dst--;
@@ -207,7 +185,7 @@ bitcpy_rev(struct fb_info *p, unsigned long *dst, int dst_idx,
 				n -= dst_idx+1;
 			}
 
-			/* Main chunk */
+			
 			n /= bits;
 			while (n >= 8) {
 				*dst-- = *src--;
@@ -222,49 +200,44 @@ bitcpy_rev(struct fb_info *p, unsigned long *dst, int dst_idx,
 			}
 			while (n--)
 				*dst-- = *src--;
-			/* Trailing bits */
+			
 			if (last)
 				*dst = comp(*src, *dst, last);
 		}
 	} else {
-		/* Different alignment for source and dest */
+		
 
 		int const left = -shift & (bits-1);
 		int const right = shift & (bits-1);
 
 		if ((unsigned long)dst_idx+1 >= n) {
-			/* Single destination word */
+			
 			if (last)
 				first &= last;
 			if (shift < 0) {
-				/* Single source word */
+				
 				*dst = comp(*src << left, *dst, first);
 			} else if (1+(unsigned long)src_idx >= n) {
-				/* Single source word */
+				
 				*dst = comp(*src >> right, *dst, first);
 			} else {
-				/* 2 source words */
+				
 				*dst = comp(*src >> right | *(src-1) << left,
 					    *dst, first);
 			}
 		} else {
-			/* Multiple destination words */
-			/** We must always remember the last value read,
-			    because in case SRC and DST overlap bitwise (e.g.
-			    when moving just one pixel in 1bpp), we always
-			    collect one full long for DST and that might
-			    overlap with the current long from SRC. We store
-			    this value in 'd0'. */
+			
+			
 			unsigned long d0, d1;
 			int m;
 
 			d0 = *src--;
-			/* Leading bits */
+			
 			if (shift < 0) {
-				/* Single source word */
+				
 				*dst = comp(d0 << left, *dst, first);
 			} else {
-				/* 2 source words */
+				
 				d1 = *src--;
 				*dst = comp(d0 >> right | d1 << left, *dst,
 					    first);
@@ -273,7 +246,7 @@ bitcpy_rev(struct fb_info *p, unsigned long *dst, int dst_idx,
 			dst--;
 			n -= dst_idx+1;
 
-			/* Main chunk */
+			
 			m = n % bits;
 			n /= bits;
 			while (n >= 4) {
@@ -297,13 +270,13 @@ bitcpy_rev(struct fb_info *p, unsigned long *dst, int dst_idx,
 				d0 = d1;
 			}
 
-			/* Trailing bits */
+			
 			if (last) {
 				if (m <= left) {
-					/* Single source word */
+					
 					*dst = comp(d0 >> right, *dst, last);
 				} else {
-					/* 2 source words */
+					
 					d1 = *src;
 					*dst = comp(d0 >> right | d1 << left,
 						    *dst, last);
@@ -325,20 +298,18 @@ void sys_copyarea(struct fb_info *p, const struct fb_copyarea *area)
 	if (p->state != FBINFO_STATE_RUNNING)
 		return;
 
-	/* if the beginning of the target area might overlap with the end of
-	the source area, be have to copy the area reverse. */
+	
 	if ((dy == sy && dx > sx) || (dy > sy)) {
 		dy += height;
 		sy += height;
 		rev_copy = 1;
 	}
 
-	/* split the base of the framebuffer into a long-aligned address and
-	   the index of the first bit */
+	
 	dst = src = (unsigned long *)((unsigned long)p->screen_base &
 				      ~(bytes-1));
 	dst_idx = src_idx = 8*((unsigned long)p->screen_base & (bytes-1));
-	/* add offset of source and target area */
+	
 	dst_idx += dy*bits_per_line + dx*p->var.bits_per_pixel;
 	src_idx += sy*bits_per_line + sx*p->var.bits_per_pixel;
 

@@ -1,16 +1,4 @@
-/*
- * drivers/mb862xx/mb862xxfb.c
- *
- * Fujitsu Carmine/Coral-P(A)/Lime framebuffer driver
- *
- * (C) 2008 Anatolij Gustschin <agust@denx.de>
- * DENX Software Engineering
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #undef DEBUG
 
@@ -33,23 +21,23 @@
 
 #if defined(CONFIG_LWMON5)
 static struct mb862xx_gc_mode lwmon5_gc_mode = {
-	/* Mode for Sharp LQ104V1DG61 TFT LCD Panel */
+	
 	{ "640x480", 60, 640, 480, 40000, 48, 16, 32, 11, 96, 2, 0, 0, 0 },
-	/* 16 bits/pixel, 32MB, 100MHz, SDRAM memory mode value */
+	
 	16, 0x2000000, GC_CCF_COT_100, 0x414fb7f2
 };
 #endif
 
 #if defined(CONFIG_SOCRATES)
 static struct mb862xx_gc_mode socrates_gc_mode = {
-	/* Mode for Prime View PM070WL4 TFT LCD Panel */
+	
 	{ "800x480", 45, 800, 480, 40000, 86, 42, 33, 10, 128, 2, 0, 0, 0 },
-	/* 16 bits/pixel, 16MB, 133MHz, SDRAM memory mode value */
+	
 	16, 0x1000000, GC_CCF_COT_133, 0x4157ba63
 };
 #endif
 
-/* Helpers */
+
 static inline int h_total(struct fb_var_screeninfo *var)
 {
 	return var->xres + var->left_margin +
@@ -110,7 +98,7 @@ static int mb862xxfb_setcolreg(unsigned regno,
 		}
 		break;
 	default:
-		return 1;   /* unsupported type */
+		return 1;   
 	}
 	return 0;
 }
@@ -123,7 +111,7 @@ static int mb862xxfb_check_var(struct fb_var_screeninfo *var,
 	if (fbi->dev)
 		dev_dbg(fbi->dev, "%s\n", __func__);
 
-	/* check if these values fit into the registers */
+	
 	if (var->hsync_len > 255 || var->vsync_len > 255)
 		return -EINVAL;
 
@@ -146,10 +134,7 @@ static int mb862xxfb_check_var(struct fb_var_screeninfo *var,
 	else if (var->bits_per_pixel <= 32)
 		var->bits_per_pixel = 32;
 
-	/*
-	 * can cope with 8,16 or 24/32bpp if resulting
-	 * pitch is divisible by 64 without remainder
-	 */
+	
 	if (d_pitch(&fbi->var) % GC_L0M_L0W_UNIT) {
 		int r;
 
@@ -163,12 +148,12 @@ static int mb862xxfb_check_var(struct fb_var_screeninfo *var,
 			return -EINVAL;
 	}
 
-	/* line length is going to be 128 bit aligned */
+	
 	tmp = (var->xres * var->bits_per_pixel) / 8;
 	if ((tmp & 15) != 0)
 		return -EINVAL;
 
-	/* set r/g/b positions and validate bpp */
+	
 	switch (var->bits_per_pixel) {
 	case 8:
 		var->red.length		= var->bits_per_pixel;
@@ -205,9 +190,7 @@ static int mb862xxfb_check_var(struct fb_var_screeninfo *var,
 	return 0;
 }
 
-/*
- * set display parameters
- */
+
 static int mb862xxfb_set_par(struct fb_info *fbi)
 {
 	struct mb862xxfb_par *par = fbi->par;
@@ -218,12 +201,12 @@ static int mb862xxfb_set_par(struct fb_info *fbi)
 	if (par->pre_init)
 		return 0;
 
-	/* disp off */
+	
 	reg = inreg(disp, GC_DCM1);
 	reg &= ~GC_DCM01_DEN;
 	outreg(disp, GC_DCM1, reg);
 
-	/* set display reference clock div. */
+	
 	sc = par->refclk / (1000000 / fbi->var.pixclock) - 1;
 	reg = inreg(disp, GC_DCM1);
 	reg &= ~(GC_DCM01_CKS | GC_DCM01_RESV | GC_DCM01_SC);
@@ -231,7 +214,7 @@ static int mb862xxfb_set_par(struct fb_info *fbi)
 	outreg(disp, GC_DCM1, reg);
 	dev_dbg(par->dev, "SC 0x%lx\n", sc);
 
-	/* disp dimension, format */
+	
 	reg =  pack(d_pitch(&fbi->var) / GC_L0M_L0W_UNIT,
 		    (fbi->var.yres - 1));
 	if (fbi->var.bits_per_pixel == 16)
@@ -251,12 +234,12 @@ static int mb862xxfb_set_par(struct fb_info *fbi)
 	outreg(disp, GC_L0WY_L0WX, 0);
 	outreg(disp, GC_L0WH_L0WW, reg);
 
-	/* both HW-cursors off */
+	
 	reg = inreg(disp, GC_CPM_CUTC);
 	reg &= ~(GC_CPM_CEN0 | GC_CPM_CEN1);
 	outreg(disp, GC_CPM_CUTC, reg);
 
-	/* timings */
+	
 	reg = pack(fbi->var.xres - 1, fbi->var.xres - 1);
 	outreg(disp, GC_HDB_HDP, reg);
 	reg = pack((fbi->var.yres - 1), vsp(&fbi->var));
@@ -267,7 +250,7 @@ static int mb862xxfb_set_par(struct fb_info *fbi)
 	outreg(disp, GC_HTP, pack(h_total(&fbi->var) - 1, 0));
 	outreg(disp, GC_VTR, pack(v_total(&fbi->var) - 1, 0));
 
-	/* display on */
+	
 	reg = inreg(disp, GC_DCM1);
 	reg |= GC_DCM01_DEN | GC_DCM01_L0E;
 	reg &= ~GC_DCM01_ESY;
@@ -316,7 +299,7 @@ static int mb862xxfb_blank(int mode, struct fb_info *fbi)
 	return 0;
 }
 
-/* framebuffer ops */
+
 static struct fb_ops mb862xxfb_ops = {
 	.owner		= THIS_MODULE,
 	.fb_check_var	= mb862xxfb_check_var,
@@ -329,7 +312,7 @@ static struct fb_ops mb862xxfb_ops = {
 	.fb_imageblit	= cfb_imageblit,
 };
 
-/* initialize fb_info data */
+
 static int mb862xxfb_init_fbinfo(struct fb_info *fbi)
 {
 	struct mb862xxfb_par *par = fbi->par;
@@ -355,7 +338,7 @@ static int mb862xxfb_init_fbinfo(struct fb_info *fbi)
 
 	reg = inreg(disp, GC_DCM1);
 	if (reg & GC_DCM01_DEN && reg & GC_DCM01_L0E) {
-		/* get the disp mode from active display cfg */
+		
 		unsigned long sc = ((reg & GC_DCM01_SC) >> 8) + 1;
 		unsigned long hsp, vsp, ht, vt;
 
@@ -419,7 +402,7 @@ static int mb862xxfb_init_fbinfo(struct fb_info *fbi)
 		     FBINFO_HWACCEL_XPAN |
 		     FBINFO_HWACCEL_YPAN;
 
-	/* check and possibly fix bpp */
+	
 	if ((fbi->fbops->fb_check_var)(&fbi->var, fbi))
 		dev_err(par->dev, "check_var() failed on initial setup?\n");
 
@@ -430,9 +413,7 @@ static int mb862xxfb_init_fbinfo(struct fb_info *fbi)
 	return 0;
 }
 
-/*
- * show some display controller and cursor registers
- */
+
 static ssize_t mb862xxfb_show_dispregs(struct device *dev,
 				       struct device_attribute *attr, char *buf)
 {
@@ -467,7 +448,7 @@ irqreturn_t mb862xx_intr(int irq, void *dev_id)
 		return IRQ_NONE;
 
 	if (par->type == BT_CARMINE) {
-		/* Get Interrupt Status */
+		
 		reg_ist = inreg(ctrl, GC_CTRL_STATUS);
 		mask = inreg(ctrl, GC_CTRL_INT_MASK);
 		if (reg_ist == 0)
@@ -477,10 +458,10 @@ irqreturn_t mb862xx_intr(int irq, void *dev_id)
 		if (reg_ist == 0)
 			return IRQ_HANDLED;
 
-		/* Clear interrupt status */
+		
 		outreg(ctrl, 0x0, reg_ist);
 	} else {
-		/* Get status */
+		
 		reg_ist = inreg(host, GC_IST);
 		mask = inreg(host, GC_IMASK);
 
@@ -488,16 +469,14 @@ irqreturn_t mb862xx_intr(int irq, void *dev_id)
 		if (reg_ist == 0)
 			return IRQ_HANDLED;
 
-		/* Clear status */
+		
 		outreg(host, GC_IST, ~reg_ist);
 	}
 	return IRQ_HANDLED;
 }
 
 #if defined(CONFIG_FB_MB862XX_LIME)
-/*
- * GDC (Lime, Coral(B/Q), Mint, ...) on host bus
- */
+
 static int mb862xx_gdc_init(struct mb862xxfb_par *par)
 {
 	unsigned long ccf, mmr;
@@ -539,7 +518,7 @@ static int mb862xx_gdc_init(struct mb862xxfb_par *par)
 		udelay(10);
 	}
 
-	/* interrupt status */
+	
 	outreg(host, GC_IST, 0);
 	outreg(host, GC_IMASK, GC_INT_EN);
 	return 0;
@@ -677,12 +656,12 @@ static int __devexit of_platform_mb862xx_remove(struct of_device *ofdev)
 
 	dev_dbg(fbi->dev, "%s release\n", fbi->fix.id);
 
-	/* display off */
+	
 	reg = inreg(disp, GC_DCM1);
 	reg &= ~(GC_DCM01_DEN | GC_DCM01_L0E);
 	outreg(disp, GC_DCM1, reg);
 
-	/* disable interrupts */
+	
 	outreg(host, GC_IMASK, 0);
 
 	free_irq(par->irq, (void *)par);
@@ -702,9 +681,7 @@ static int __devexit of_platform_mb862xx_remove(struct of_device *ofdev)
 	return 0;
 }
 
-/*
- * common types
- */
+
 static struct of_device_id __devinitdata of_platform_mb862xx_tbl[] = {
 	{ .compatible = "fujitsu,MB86276", },
 	{ .compatible = "fujitsu,lime", },
@@ -713,7 +690,7 @@ static struct of_device_id __devinitdata of_platform_mb862xx_tbl[] = {
 	{ .compatible = "fujitsu,MB86293", },
 	{ .compatible = "fujitsu,MB86294", },
 	{ .compatible = "fujitsu,coral", },
-	{ /* end */ }
+	{  }
 };
 
 static struct of_platform_driver of_platform_mb862xxfb_driver = {
@@ -751,7 +728,7 @@ static int coralp_init(struct mb862xxfb_par *par)
 		udelay(200);
 		outreg(host, GC_MMR, GC_MMR_CORALP_EVB_VAL);
 		udelay(10);
-		/* Clear interrupt status */
+		
 		outreg(host, GC_IST, 0);
 	} else {
 		return -ENODEV;
@@ -763,13 +740,10 @@ static int init_dram_ctrl(struct mb862xxfb_par *par)
 {
 	unsigned long i = 0;
 
-	/*
-	 * Set io mode first! Spec. says IC may be destroyed
-	 * if not set to SSTL2/LVCMOS before init.
-	 */
+	
 	outreg(dram_ctrl, GC_DCTL_IOCONT1_IOCONT0, GC_EVB_DCTL_IOCONT1_IOCONT0);
 
-	/* DRAM init */
+	
 	outreg(dram_ctrl, GC_DCTL_MODE_ADD, GC_EVB_DCTL_MODE_ADD);
 	outreg(dram_ctrl, GC_DCTL_SETTIME1_EMODE, GC_EVB_DCTL_SETTIME1_EMODE);
 	outreg(dram_ctrl, GC_DCTL_REFRESH_SETTIME2,
@@ -778,7 +752,7 @@ static int init_dram_ctrl(struct mb862xxfb_par *par)
 	outreg(dram_ctrl, GC_DCTL_DDRIF2_DDRIF1, GC_EVB_DCTL_DDRIF2_DDRIF1);
 	outreg(dram_ctrl, GC_DCTL_RSV0_STATES, GC_EVB_DCTL_RSV0_STATES);
 
-	/* DLL reset done? */
+	
 	while ((inreg(dram_ctrl, GC_DCTL_RSV0_STATES) & GC_DCTL_STATES_MSK)) {
 		udelay(GC_DCTL_INIT_WAIT_INTERVAL);
 		if (i++ > GC_DCTL_INIT_WAIT_CNT) {
@@ -807,11 +781,11 @@ static int carmine_init(struct mb862xxfb_par *par)
 
 	par->refclk = GC_DISP_REFCLK_533;
 
-	/* warm up */
+	
 	reg = GC_CTRL_CLK_EN_DRAM | GC_CTRL_CLK_EN_2D3D | GC_CTRL_CLK_EN_DISP0;
 	outreg(ctrl, GC_CTRL_CLK_ENABLE, reg);
 
-	/* check for engine module revision */
+	
 	if (inreg(draw, GC_2D3D_REV) == GC_RE_REVISION)
 		dev_info(par->dev, "Fujitsu Carmine GDC Rev.%d found\n",
 			 par->pdev->revision);
@@ -821,7 +795,7 @@ static int carmine_init(struct mb862xxfb_par *par)
 	reg &= ~GC_CTRL_CLK_EN_2D3D;
 	outreg(ctrl, GC_CTRL_CLK_ENABLE, reg);
 
-	/* set up vram */
+	
 	if (init_dram_ctrl(par) < 0)
 		goto err_init;
 
@@ -849,10 +823,10 @@ static inline int mb862xx_pci_gdc_init(struct mb862xxfb_par *par)
 	{ PCI_DEVICE(PCI_VENDOR_ID_FUJITSU_LIMITED, id) }
 
 static struct pci_device_id mb862xx_pci_tbl[] __devinitdata = {
-	/* MB86295/MB86296 */
+	
 	CHIP_ID(PCI_DEVICE_ID_FUJITSU_CORALP),
 	CHIP_ID(PCI_DEVICE_ID_FUJITSU_CORALPA),
-	/* MB86297 */
+	
 	CHIP_ID(PCI_DEVICE_ID_FUJITSU_CARMINE),
 	{ 0, }
 };
@@ -909,7 +883,7 @@ static int __devinit mb862xx_pci_probe(struct pci_dev *pdev,
 		par->type = BT_CARMINE;
 		break;
 	default:
-		/* should never occur */
+		
 		goto rel_reg;
 	}
 
@@ -995,7 +969,7 @@ static void __devexit mb862xx_pci_remove(struct pci_dev *pdev)
 
 	dev_dbg(fbi->dev, "%s release\n", fbi->fix.id);
 
-	/* display off */
+	
 	reg = inreg(disp, GC_DCM1);
 	reg &= ~(GC_DCM01_DEN | GC_DCM01_L0E);
 	outreg(disp, GC_DCM1, reg);

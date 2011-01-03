@@ -1,23 +1,4 @@
-/*
- * Copyright 1998-2008 VIA Technologies, Inc. All Rights Reserved.
- * Copyright 2001-2008 S3 Graphics, Inc. All Rights Reserved.
 
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public
- * License as published by the Free Software Foundation;
- * either version 2, or (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTIES OR REPRESENTATIONS; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE.See the GNU General Public License
- * for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc.,
- * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
 #include "global.h"
 
 static int hw_bitblt_1(void __iomem *engine, u8 op, u32 width, u32 height,
@@ -47,10 +28,10 @@ static int hw_bitblt_1(void __iomem *engine, u8 op, u32 width, u32 height,
 
 	if (op == VIA_BITBLT_FILL) {
 		switch (fill_rop) {
-		case 0x00: /* blackness */
-		case 0x5A: /* pattern inversion */
-		case 0xF0: /* pattern copy */
-		case 0xFF: /* whiteness */
+		case 0x00: 
+		case 0x5A: 
+		case 0xF0: 
+		case 0xFF: 
 			break;
 		default:
 			printk(KERN_WARNING "hw_bitblt_1: Invalid fill rop: "
@@ -143,7 +124,7 @@ static int hw_bitblt_1(void __iomem *engine, u8 op, u32 width, u32 height,
 	if (op == VIA_BITBLT_FILL)
 		ge_cmd |= fill_rop << 24 | 0x00002000 | 0x00000001;
 	else {
-		ge_cmd |= 0xCC000000; /* ROP=SRCCOPY */
+		ge_cmd |= 0xCC000000; 
 		if (src_mem)
 			ge_cmd |= 0x00000040;
 		if (op == VIA_BITBLT_MONO)
@@ -192,10 +173,10 @@ static int hw_bitblt_2(void __iomem *engine, u8 op, u32 width, u32 height,
 
 	if (op == VIA_BITBLT_FILL) {
 		switch (fill_rop) {
-		case 0x00: /* blackness */
-		case 0x5A: /* pattern inversion */
-		case 0xF0: /* pattern copy */
-		case 0xFF: /* whiteness */
+		case 0x00: 
+		case 0x5A: 
+		case 0xF0: 
+		case 0xFF: 
 			break;
 		default:
 			printk(KERN_WARNING "hw_bitblt_2: Invalid fill rop: "
@@ -286,7 +267,7 @@ static int hw_bitblt_2(void __iomem *engine, u8 op, u32 width, u32 height,
 	if (op == VIA_BITBLT_FILL)
 		ge_cmd |= fill_rop << 24 | 0x00002000 | 0x00000001;
 	else {
-		ge_cmd |= 0xCC000000; /* ROP=SRCCOPY */
+		ge_cmd |= 0xCC000000; 
 		if (src_mem)
 			ge_cmd |= 0x00000040;
 		if (op == VIA_BITBLT_MONO)
@@ -352,7 +333,7 @@ int viafb_init_engine(struct fb_info *info)
 	viapar->shared->vq_vram_addr = viapar->fbmem_free;
 	viapar->fbmem_used += VQ_SIZE;
 
-	/* Init AGP and VQ regs */
+	
 	switch (chip_name) {
 	case UNICHROME_K8M890:
 	case UNICHROME_P4M900:
@@ -377,7 +358,7 @@ int viafb_init_engine(struct fb_info *info)
 		break;
 	}
 
-	/* Enable VQ */
+	
 	vq_start_addr = viapar->shared->vq_vram_addr;
 	vq_end_addr = viapar->shared->vq_vram_addr + VQ_SIZE - 1;
 
@@ -429,7 +410,7 @@ int viafb_init_engine(struct fb_info *info)
 		break;
 	}
 
-	/* Set Cursor Image Base Address */
+	
 	writel(viapar->shared->cursor_vram_addr, engine + VIA_REG_CURSOR_MODE);
 	writel(0x0, engine + VIA_REG_CURSOR_POS);
 	writel(0x0, engine + VIA_REG_CURSOR_ORG);

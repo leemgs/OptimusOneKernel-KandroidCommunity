@@ -1,31 +1,4 @@
-/*
- * Copyright (c) Intel Corp. 2007.
- * All Rights Reserved.
- *
- * Intel funded Tungsten Graphics (http://www.tungstengraphics.com) to
- * develop this driver.
- *
- * This file is part of the Carillo Ranch video subsystem driver.
- * The Carillo Ranch video subsystem driver is free software;
- * you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * The Carillo Ranch video subsystem driver is distributed
- * in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this driver; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * Authors:
- *   Thomas Hellstrom <thomas-at-tungstengraphics-dot-com>
- *   Alan Hourihane <alanh-at-tungstengraphics-dot-com>
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -34,7 +7,7 @@
 #include <linux/fb.h>
 #include "vermilion.h"
 
-/* The PLL Clock register sits on Host bridge */
+
 #define CRVML_DEVICE_MCH   0x5001
 #define CRVML_REG_MCHBAR   0x44
 #define CRVML_REG_MCHEN    0x54
@@ -59,9 +32,7 @@ static const unsigned crvml_clocks[] = {
 	59400,
 	74250,
 	120000
-	    /*
-	     * There are more clocks, but they are disabled on the CR board.
-	     */
+	    
 };
 
 static const u32 crvml_clock_bits[] = {

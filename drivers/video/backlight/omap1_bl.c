@@ -1,22 +1,4 @@
-/*
- * Backlight driver for OMAP based boards.
- *
- * Copyright (c) 2006 Andrzej Zaborowski  <balrog@zabor.org>
- *
- * This package is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This package is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this package; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -159,7 +141,7 @@ static int omapbl_probe(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, dev);
 
-	omap_cfg_reg(PWL);	/* Conflicts with UART3 */
+	omap_cfg_reg(PWL);	
 
 	dev->props.fb_blank = FB_BLANK_UNBLANK;
 	dev->props.max_brightness = OMAPBL_MAX_INTENSITY;

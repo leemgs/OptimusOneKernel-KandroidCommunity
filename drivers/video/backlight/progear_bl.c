@@ -1,19 +1,4 @@
-/*
- *  Backlight Driver for Frontpath ProGear HX1050+
- *
- *  Copyright (c) 2006 Marcin Juszkiewicz
- *
- *  Based on Progear LCD driver by M Schacht
- *  <mschacht at alumni dot washington dot edu>
- *
- *  Based on Sharp's Corgi Backlight Driver
- *  Based on Backlight Driver for HP Jornada 680
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -77,7 +62,7 @@ static int progearbl_probe(struct platform_device *pdev)
 		return -ENODEV;
 	}
 
-	/*     Set SB_MPS1 to enable brightness control. */
+	
 	pci_read_config_byte(sb_dev, SB_MPS1, &temp);
 	pci_write_config_byte(sb_dev, SB_MPS1, temp | 0x20);
 

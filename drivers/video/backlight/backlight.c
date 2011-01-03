@@ -1,9 +1,4 @@
-/*
- * Backlight Lowlevel Control Abstraction
- *
- * Copyright (C) 2003,2004 Hewlett-Packard Company
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -20,17 +15,14 @@
 
 #if defined(CONFIG_FB) || (defined(CONFIG_FB_MODULE) && \
 			   defined(CONFIG_BACKLIGHT_CLASS_DEVICE_MODULE))
-/* This callback gets called when something important happens inside a
- * framebuffer driver. We're looking if that important event is blanking,
- * and if it is, we're switching backlight power as well ...
- */
+
 static int fb_notifier_callback(struct notifier_block *self,
 				unsigned long event, void *data)
 {
 	struct backlight_device *bd;
 	struct fb_event *evdata = data;
 
-	/* If we aren't interested in this event, skip it immediately ... */
+	
 	if (event != FB_EVENT_BLANK && event != FB_EVENT_CONBLANK)
 		return 0;
 
@@ -71,7 +63,7 @@ static inline int backlight_register_fb(struct backlight_device *bd)
 static inline void backlight_unregister_fb(struct backlight_device *bd)
 {
 }
-#endif /* CONFIG_FB */
+#endif 
 
 static void backlight_generate_event(struct backlight_device *bd,
 				     enum backlight_update_reason reason)
@@ -236,14 +228,7 @@ static struct device_attribute bl_device_attributes[] = {
 	__ATTR_NULL,
 };
 
-/**
- * backlight_force_update - tell the backlight subsystem that hardware state
- *   has changed
- * @bd: the backlight device to update
- *
- * Updates the internal state of the backlight in response to a hardware event,
- * and generate a uevent to notify userspace
- */
+
 void backlight_force_update(struct backlight_device *bd,
 			    enum backlight_update_reason reason)
 {
@@ -255,19 +240,7 @@ void backlight_force_update(struct backlight_device *bd,
 }
 EXPORT_SYMBOL(backlight_force_update);
 
-/**
- * backlight_device_register - create and register a new object of
- *   backlight_device class.
- * @name: the name of the new object(must be the same as the name of the
- *   respective framebuffer device).
- * @parent: a pointer to the parent device
- * @devdata: an optional pointer to be stored for private driver use. The
- *   methods may retrieve it by using bl_get_data(bd).
- * @ops: the backlight operations structure.
- *
- * Creates and registers new backlight device. Returns either an
- * ERR_PTR() or a pointer to the newly allocated device.
- */
+
 struct backlight_device *backlight_device_register(const char *name,
 		struct device *parent, void *devdata, struct backlight_ops *ops)
 {
@@ -314,12 +287,7 @@ struct backlight_device *backlight_device_register(const char *name,
 }
 EXPORT_SYMBOL(backlight_device_register);
 
-/**
- * backlight_device_unregister - unregisters a backlight device object.
- * @bd: the backlight device object to be unregistered and freed.
- *
- * Unregisters a previously registered via backlight_device_register object.
- */
+
 void backlight_device_unregister(struct backlight_device *bd)
 {
 	if (!bd)
@@ -360,10 +328,7 @@ static int __init backlight_class_init(void)
 	return 0;
 }
 
-/*
- * if this is compiled into the kernel, we need to ensure that the
- * class is registered before users of the class try to register lcd's
- */
+
 postcore_initcall(backlight_class_init);
 module_exit(backlight_class_exit);
 
