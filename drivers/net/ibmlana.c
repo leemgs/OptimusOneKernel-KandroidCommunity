@@ -1,79 +1,4 @@
-/*
-net-3-driver for the IBM LAN Adapter/A
 
-This is an extension to the Linux operating system, and is covered by the
-same GNU General Public License that covers that work.
-
-Copyright 1999 by Alfred Arnold (alfred@ccac.rwth-aachen.de,
-                                 alfred.arnold@lancom.de)
-
-This driver is based both on the SK_MCA driver, which is itself based on the
-SK_G16 and 3C523 driver.
-
-paper sources:
-  'PC Hardware: Aufbau, Funktionsweise, Programmierung' by
-  Hans-Peter Messmer for the basic Microchannel stuff
-
-  'Linux Geraetetreiber' by Allesandro Rubini, Kalle Dalheimer
-  for help on Ethernet driver programming
-
-  'DP83934CVUL-20/25 MHz SONIC-T Ethernet Controller Datasheet' by National
-  Semiconductor for info on the MAC chip
-
-  'LAN Technical Reference Ethernet Adapter Interface Version 1 Release 1.0
-   Document Number SC30-3661-00' by IBM for info on the adapter itself
-
-  Also see http://www.natsemi.com/
-
-special acknowledgements to:
-  - Bob Eager for helping me out with documentation from IBM
-  - Jim Shorney for his endless patience with me while I was using
-    him as a beta tester to trace down the address filter bug ;-)
-
-  Missing things:
-
-  -> set debug level via ioctl instead of compile-time switches
-  -> I didn't follow the development of the 2.1.x kernels, so my
-     assumptions about which things changed with which kernel version
-     are probably nonsense
-
-History:
-  Nov 6th, 1999
-  	startup from SK_MCA driver
-  Dec 6th, 1999
-	finally got docs about the card.  A big thank you to Bob Eager!
-  Dec 12th, 1999
-	first packet received
-  Dec 13th, 1999
-	recv queue done, tcpdump works
-  Dec 15th, 1999
-	transmission part works
-  Dec 28th, 1999
-	added usage of the isa_functions for Linux 2.3 .  Things should
-	still work with 2.0.x....
-  Jan 28th, 2000
-	in Linux 2.2.13, the version.h file mysteriously didn't get
-	included.  Added a workaround for this.  Futhermore, it now
-	not only compiles as a modules ;-)
-  Jan 30th, 2000
-	newer kernels automatically probe more than one board, so the
-	'startslot' as a variable is also needed here
-  Apr 12th, 2000
-	the interrupt mask register is not set 'hard' instead of individually
-	setting registers, since this seems to set bits that shouldn't be
-	set
-  May 21st, 2000
-	reset interrupt status immediately after CAM load
-	add a recovery delay after releasing the chip's reset line
-  May 24th, 2000
-	finally found the bug in the address filter setup - damned signed
-        chars!
-  June 1st, 2000
-	corrected version codes, added support for the latest 2.3 changes
-  Oct 28th, 2002
-	cleaned up for the 2.5 tree <alan@lxorguk.ukuu.org.uk>
-
- *************************************************************************/
 
 #include <linux/kernel.h>
 #include <linux/string.h>
@@ -100,21 +25,16 @@ History:
 
 #define DRV_NAME "ibmlana"
 
-/* ------------------------------------------------------------------------
- * global static data - not more since we can handle multiple boards and
- * have to pack all state info into the device struct!
- * ------------------------------------------------------------------------ */
+
 
 static char *MediaNames[Media_Count] = {
 	"10BaseT", "10Base5", "Unknown", "10Base2"
 };
 
-/* ------------------------------------------------------------------------
- * private subfunctions
- * ------------------------------------------------------------------------ */
+
 
 #ifdef DEBUG
-  /* dump all registers */
+  
 
 static void dumpregs(struct net_device *dev)
 {
@@ -129,7 +49,7 @@ static void dumpregs(struct net_device *dev)
 	}
 }
 
-/* dump parts of shared memory - only needed during debugging */
+
 
 static void dumpmem(struct net_device *dev, u32 start, u32 len)
 {
@@ -148,7 +68,7 @@ static void dumpmem(struct net_device *dev, u32 start, u32 len)
 		printk("\n");
 }
 
-/* print exact time - ditto */
+
 
 static void PrTime(void)
 {
@@ -157,9 +77,9 @@ static void PrTime(void)
 	do_gettimeofday(&tv);
 	printk("%9d:%06d: ", (int) tv.tv_sec, (int) tv.tv_usec);
 }
-#endif				/* DEBUG */
+#endif				
 
-/* deduce resources out of POS registers */
+
 
 static void getaddrs(struct mca_device *mdev, int *base, int *memlen,
 		     int *iobase, int *irq, ibmlana_medium *medium)
@@ -189,7 +109,7 @@ static void getaddrs(struct mca_device *mdev, int *base, int *memlen,
 	*medium = (pos0 & 0x18) >> 3;
 }
 
-/* wait on register value with mask and timeout */
+
 
 static int wait_timeout(struct net_device *dev, int regoffs, u16 mask,
 			u16 value, int timeout)
@@ -204,17 +124,17 @@ static int wait_timeout(struct net_device *dev, int regoffs, u16 mask,
 }
 
 
-/* reset the whole board */
+
 
 static void ResetBoard(struct net_device *dev)
 {
 	unsigned char bcmval;
 
-	/* read original board control value */
+	
 
 	bcmval = inb(dev->base_addr + BCMREG);
 
-	/* set reset bit for a while */
+	
 
 	bcmval |= BCMREG_RESET;
 	outb(bcmval, dev->base_addr + BCMREG);
@@ -222,13 +142,13 @@ static void ResetBoard(struct net_device *dev)
 	bcmval &= ~BCMREG_RESET;
 	outb(bcmval, dev->base_addr + BCMREG);
 
-	/* switch over to RAM again */
+	
 
 	bcmval |= BCMREG_RAMEN | BCMREG_RAMWIN;
 	outb(bcmval, dev->base_addr + BCMREG);
 }
 
-/* calculate RAM layout & set up descriptors in RAM */
+
 
 static void InitDscrs(struct net_device *dev)
 {
@@ -239,12 +159,12 @@ static void InitDscrs(struct net_device *dev)
 	rda_t rda;
 	rra_t rra;
 
-	/* initialize RAM */
+	
 
 	memset_io(priv->base, 0xaa,
-		      dev->mem_start - dev->mem_start);	/* XXX: typo? */
+		      dev->mem_start - dev->mem_start);	
 
-	/* setup n TX descriptors - independent of RAM size */
+	
 
 	priv->tdastart = addr = 0;
 	priv->txbufstart = baddr = sizeof(tda_t) * TXBUFCNT;
@@ -266,11 +186,11 @@ static void InitDscrs(struct net_device *dev)
 		baddr += PKTSIZE;
 	}
 
-	/* calculate how many receive buffers fit into remaining memory */
+	
 
 	priv->rxbufcnt = (dev->mem_end - dev->mem_start - baddr) / (sizeof(rra_t) + sizeof(rda_t) + PKTSIZE);
 
-	/* calculate receive addresses */
+	
 
 	priv->rrastart = raddr = priv->txbufstart + (TXBUFCNT * PKTSIZE);
 	priv->rdastart = addr = priv->rrastart + (priv->rxbufcnt * sizeof(rra_t));
@@ -300,7 +220,7 @@ static void InitDscrs(struct net_device *dev)
 		addr += sizeof(rda_t);
 	}
 
-	/* initialize current pointers */
+	
 
 	priv->nextrxdescr = 0;
 	priv->lastrxdescr = priv->rxbufcnt - 1;
@@ -310,13 +230,13 @@ static void InitDscrs(struct net_device *dev)
 	memset(priv->txused, 0, sizeof(priv->txused));
 }
 
-/* set up Rx + Tx descriptors in SONIC */
+
 
 static int InitSONIC(struct net_device *dev)
 {
 	ibmlana_priv *priv = netdev_priv(dev);
 
-	/* set up start & end of resource area */
+	
 
 	outw(0, SONIC_URRA);
 	outw(priv->rrastart, dev->base_addr + SONIC_RSA);
@@ -324,11 +244,11 @@ static int InitSONIC(struct net_device *dev)
 	outw(priv->rrastart, dev->base_addr + SONIC_RRP);
 	outw(priv->rrastart, dev->base_addr + SONIC_RWP);
 
-	/* set EOBC so that only one packet goes into one buffer */
+	
 
 	outw((PKTSIZE - 4) >> 1, dev->base_addr + SONIC_EOBC);
 
-	/* let SONIC read the first RRA descriptor */
+	
 
 	outw(CMDREG_RRRA, dev->base_addr + SONIC_CMDREG);
 	if (!wait_timeout(dev, SONIC_CMDREG, CMDREG_RRRA, 0, 2)) {
@@ -336,35 +256,35 @@ static int InitSONIC(struct net_device *dev)
 		return 0;
 	}
 
-	/* point SONIC to the first RDA */
+	
 
 	outw(0, dev->base_addr + SONIC_URDA);
 	outw(priv->rdastart, dev->base_addr + SONIC_CRDA);
 
-	/* set upper half of TDA address */
+	
 
 	outw(0, dev->base_addr + SONIC_UTDA);
 
 	return 1;
 }
 
-/* stop SONIC so we can reinitialize it */
+
 
 static void StopSONIC(struct net_device *dev)
 {
-	/* disable interrupts */
+	
 
 	outb(inb(dev->base_addr + BCMREG) & (~BCMREG_IEN), dev->base_addr + BCMREG);
 	outb(0, dev->base_addr + SONIC_IMREG);
 
-	/* reset the SONIC */
+	
 
 	outw(CMDREG_RST, dev->base_addr + SONIC_CMDREG);
 	udelay(10);
 	outw(CMDREG_RST, dev->base_addr + SONIC_CMDREG);
 }
 
-/* initialize card and SONIC for proper operation */
+
 
 static void putcam(camentry_t * cams, int *camcnt, char *addr)
 {
@@ -387,37 +307,35 @@ static void InitBoard(struct net_device *dev)
 	struct dev_mc_list *mcptr;
 	u16 rcrval;
 
-	/* reset the SONIC */
+	
 
 	outw(CMDREG_RST, dev->base_addr + SONIC_CMDREG);
 	udelay(10);
 
-	/* clear all spurious interrupts */
+	
 
 	outw(inw(dev->base_addr + SONIC_ISREG), dev->base_addr + SONIC_ISREG);
 
-	/* set up the SONIC's bus interface - constant for this adapter -
-	   must be done while the SONIC is in reset */
+	
 
 	outw(DCREG_USR1 | DCREG_USR0 | DCREG_WC1 | DCREG_DW32, dev->base_addr + SONIC_DCREG);
 	outw(0, dev->base_addr + SONIC_DCREG2);
 
-	/* remove reset form the SONIC */
+	
 
 	outw(0, dev->base_addr + SONIC_CMDREG);
 	udelay(10);
 
-	/* data sheet requires URRA to be programmed before setting up the CAM contents */
+	
 
 	outw(0, dev->base_addr + SONIC_URRA);
 
-	/* program the CAM entry 0 to the device address */
+	
 
 	camcnt = 0;
 	putcam(cams, &camcnt, dev->dev_addr);
 
-	/* start putting the multicast addresses into the CAM list.  Stop if
-	   it is full. */
+	
 
 	for (mcptr = dev->mc_list; mcptr != NULL; mcptr = mcptr->next) {
 		putcam(cams, &camcnt, mcptr->dmi_addr);
@@ -425,11 +343,11 @@ static void InitBoard(struct net_device *dev)
 			break;
 	}
 
-	/* calculate CAM mask */
+	
 
 	cammask = (1 << camcnt) - 1;
 
-	/* feed CDA into SONIC, initialize RCR value (always get broadcasts) */
+	
 
 	memcpy_toio(priv->base, cams, sizeof(camentry_t) * camcnt);
 	memcpy_toio(priv->base + (sizeof(camentry_t) * camcnt), &cammask, sizeof(cammask));
@@ -446,7 +364,7 @@ static void InitBoard(struct net_device *dev)
 		printk(KERN_ERR "%s:SONIC did not respond on LCAM command - giving up.", dev->name);
 		return;
 	} else {
-		/* clear interrupt condition */
+		
 
 		outw(ISREG_LCD, dev->base_addr + SONIC_ISREG);
 
@@ -475,40 +393,39 @@ static void InitBoard(struct net_device *dev)
 
 	rcrval = RCREG_BRD | RCREG_LB_NONE;
 
-	/* if still multicast addresses left or ALLMULTI is set, set the multicast
-	   enable bit */
+	
 
 	if ((dev->flags & IFF_ALLMULTI) || (mcptr != NULL))
 		rcrval |= RCREG_AMC;
 
-	/* promiscous mode ? */
+	
 
 	if (dev->flags & IFF_PROMISC)
 		rcrval |= RCREG_PRO;
 
-	/* program receive mode */
+	
 
 	outw(rcrval, dev->base_addr + SONIC_RCREG);
 #ifdef DEBUG
 	printk("\nRCRVAL: %04x\n", rcrval);
 #endif
 
-	/* set up descriptors in shared memory + feed them into SONIC registers */
+	
 
 	InitDscrs(dev);
 	if (!InitSONIC(dev))
 		return;
 
-	/* reset all pending interrupts */
+	
 
 	outw(0xffff, dev->base_addr + SONIC_ISREG);
 
-	/* enable transmitter + receiver interrupts */
+	
 
 	outw(CMDREG_RXEN, dev->base_addr + SONIC_CMDREG);
 	outw(IMREG_PRXEN | IMREG_RBEEN | IMREG_PTXEN | IMREG_TXEREN, dev->base_addr + SONIC_IMREG);
 
-	/* turn on card interrupts */
+	
 
 	outb(inb(dev->base_addr + BCMREG) | BCMREG_IEN, dev->base_addr + BCMREG);
 
@@ -518,7 +435,7 @@ static void InitBoard(struct net_device *dev)
 #endif
 }
 
-/* start transmission of a descriptor */
+
 
 static void StartTx(struct net_device *dev, int descr)
 {
@@ -527,33 +444,31 @@ static void StartTx(struct net_device *dev, int descr)
 
 	addr = priv->tdastart + (descr * sizeof(tda_t));
 
-	/* put descriptor address into SONIC */
+	
 
 	outw(addr, dev->base_addr + SONIC_CTDA);
 
-	/* trigger transmitter */
+	
 
 	priv->currtxdescr = descr;
 	outw(CMDREG_TXP, dev->base_addr + SONIC_CMDREG);
 }
 
-/* ------------------------------------------------------------------------
- * interrupt handler(s)
- * ------------------------------------------------------------------------ */
 
-/* receive buffer area exhausted */
+
+
 
 static void irqrbe_handler(struct net_device *dev)
 {
 	ibmlana_priv *priv = netdev_priv(dev);
 
-	/* point the SONIC back to the RRA start */
+	
 
 	outw(priv->rrastart, dev->base_addr + SONIC_RRP);
 	outw(priv->rrastart, dev->base_addr + SONIC_RWP);
 }
 
-/* receive interrupt */
+
 
 static void irqrx_handler(struct net_device *dev)
 {
@@ -561,59 +476,58 @@ static void irqrx_handler(struct net_device *dev)
 	rda_t rda;
 	u32 rdaaddr, lrdaaddr;
 
-	/* loop until ... */
+	
 
 	while (1) {
-		/* read descriptor that was next to be filled by SONIC */
+		
 
 		rdaaddr = priv->rdastart + (priv->nextrxdescr * sizeof(rda_t));
 		lrdaaddr = priv->rdastart + (priv->lastrxdescr * sizeof(rda_t));
 		memcpy_fromio(&rda, priv->base + rdaaddr, sizeof(rda_t));
 
-		/* iron out upper word halves of fields we use - SONIC will duplicate
-		   bits 0..15 to 16..31 */
+		
 
 		rda.status &= 0xffff;
 		rda.length &= 0xffff;
 		rda.startlo &= 0xffff;
 
-		/* stop if the SONIC still owns it, i.e. there is no data for us */
+		
 
 		if (rda.inuse)
 			break;
 
-		/* good packet? */
+		
 
 		else if (rda.status & RCREG_PRX) {
 			struct sk_buff *skb;
 
-			/* fetch buffer */
+			
 
 			skb = dev_alloc_skb(rda.length + 2);
 			if (skb == NULL)
 				dev->stats.rx_dropped++;
 			else {
-				/* copy out data */
+				
 
 				memcpy_fromio(skb_put(skb, rda.length),
 					       priv->base +
 					       rda.startlo, rda.length);
 
-				/* set up skb fields */
+				
 
 				skb->protocol = eth_type_trans(skb, dev);
 				skb->ip_summed = CHECKSUM_NONE;
 
-				/* bookkeeping */
+				
 				dev->stats.rx_packets++;
 				dev->stats.rx_bytes += rda.length;
 
-				/* pass to the upper layers */
+				
 				netif_rx(skb);
 			}
 		}
 
-		/* otherwise check error status bits and increase statistics */
+		
 
 		else {
 			dev->stats.rx_errors++;
@@ -623,20 +537,18 @@ static void irqrx_handler(struct net_device *dev)
 				dev->stats.rx_crc_errors++;
 		}
 
-		/* descriptor processed, will become new last descriptor in queue */
+		
 
 		rda.link = 1;
 		rda.inuse = 1;
 		memcpy_toio(priv->base + rdaaddr, &rda,
 			     sizeof(rda_t));
 
-		/* set up link and EOL = 0 in currently last descriptor. Only write
-		   the link field since the SONIC may currently already access the
-		   other fields. */
+		
 
 		memcpy_toio(priv->base + lrdaaddr + 20, &rdaaddr, 4);
 
-		/* advance indices */
+		
 
 		priv->lastrxdescr = priv->nextrxdescr;
 		if ((++priv->nextrxdescr) >= priv->rxbufcnt)
@@ -644,29 +556,29 @@ static void irqrx_handler(struct net_device *dev)
 	}
 }
 
-/* transmit interrupt */
+
 
 static void irqtx_handler(struct net_device *dev)
 {
 	ibmlana_priv *priv = netdev_priv(dev);
 	tda_t tda;
 
-	/* fetch descriptor (we forgot the size ;-) */
+	
 	memcpy_fromio(&tda, priv->base + priv->tdastart + (priv->currtxdescr * sizeof(tda_t)), sizeof(tda_t));
 
-	/* update statistics */
+	
 	dev->stats.tx_packets++;
 	dev->stats.tx_bytes += tda.length;
 
-	/* update our pointers */
+	
 	priv->txused[priv->currtxdescr] = 0;
 	priv->txusedcnt--;
 
-	/* if there are more descriptors present in RAM, start them */
+	
 	if (priv->txusedcnt > 0)
 		StartTx(dev, (priv->currtxdescr + 1) % TXBUFCNT);
 
-	/* tell the upper layer we can go on transmitting */
+	
 	netif_wake_queue(dev);
 }
 
@@ -675,10 +587,10 @@ static void irqtxerr_handler(struct net_device *dev)
 	ibmlana_priv *priv = netdev_priv(dev);
 	tda_t tda;
 
-	/* fetch descriptor to check status */
+	
 	memcpy_fromio(&tda, priv->base + priv->tdastart + (priv->currtxdescr * sizeof(tda_t)), sizeof(tda_t));
 
-	/* update statistics */
+	
 	dev->stats.tx_errors++;
 	if (tda.status & (TCREG_NCRS | TCREG_CRSL))
 		dev->stats.tx_carrier_errors++;
@@ -689,30 +601,30 @@ static void irqtxerr_handler(struct net_device *dev)
 	if (tda.status & TCREG_FU)
 		dev->stats.tx_fifo_errors++;
 
-	/* update our pointers */
+	
 	priv->txused[priv->currtxdescr] = 0;
 	priv->txusedcnt--;
 
-	/* if there are more descriptors present in RAM, start them */
+	
 	if (priv->txusedcnt > 0)
 		StartTx(dev, (priv->currtxdescr + 1) % TXBUFCNT);
 
-	/* tell the upper layer we can go on transmitting */
+	
 	netif_wake_queue(dev);
 }
 
-/* general interrupt entry */
+
 
 static irqreturn_t irq_handler(int dummy, void *device)
 {
 	struct net_device *dev = device;
 	u16 ival;
 
-	/* in case we're not meant... */
+	
 	if (!(inb(dev->base_addr + BCMREG) & BCMREG_IPEND))
 		return IRQ_NONE;
 
-	/* loop through the interrupt bits until everything is clear */
+	
 	while (1) {
 		ival = inw(dev->base_addr + SONIC_ISREG);
 
@@ -737,26 +649,24 @@ static irqreturn_t irq_handler(int dummy, void *device)
 	return IRQ_HANDLED;
 }
 
-/* ------------------------------------------------------------------------
- * driver methods
- * ------------------------------------------------------------------------ */
 
-/* MCA info */
 
-#if 0 /* info available elsewhere, but this is kept for reference */
+
+
+#if 0 
 static int ibmlana_getinfo(char *buf, int slot, void *d)
 {
 	int len = 0, i;
 	struct net_device *dev = (struct net_device *) d;
 	ibmlana_priv *priv;
 
-	/* can't say anything about an uninitialized device... */
+	
 
 	if (dev == NULL)
 		return len;
 	priv = netdev_priv(dev);
 
-	/* print info */
+	
 
 	len += sprintf(buf + len, "IRQ: %d\n", priv->realirq);
 	len += sprintf(buf + len, "I/O: %#lx\n", dev->base_addr);
@@ -773,14 +683,14 @@ static int ibmlana_getinfo(char *buf, int slot, void *d)
 }
 #endif
 
-/* open driver.  Means also initialization and start of LANCE */
+
 
 static int ibmlana_open(struct net_device *dev)
 {
 	int result;
 	ibmlana_priv *priv = netdev_priv(dev);
 
-	/* register resources - only necessary for IRQ */
+	
 
 	result = request_irq(priv->realirq, irq_handler, IRQF_SHARED | IRQF_SAMPLE_RANDOM, dev->name, dev);
 	if (result != 0) {
@@ -789,28 +699,28 @@ static int ibmlana_open(struct net_device *dev)
 	}
 	dev->irq = priv->realirq;
 
-	/* set up the card and SONIC */
+	
 	InitBoard(dev);
 
-	/* initialize operational flags */
+	
 	netif_start_queue(dev);
 	return 0;
 }
 
-/* close driver.  Shut down board and free allocated resources */
+
 
 static int ibmlana_close(struct net_device *dev)
 {
-	/* turn off board */
+	
 
-	/* release resources */
+	
 	if (dev->irq != 0)
 		free_irq(dev->irq, dev);
 	dev->irq = 0;
 	return 0;
 }
 
-/* transmit a block. */
+
 
 static netdev_tx_t ibmlana_tx(struct sk_buff *skb, struct net_device *dev)
 {
@@ -820,25 +730,21 @@ static netdev_tx_t ibmlana_tx(struct sk_buff *skb, struct net_device *dev)
 	tda_t tda;
 	int baddr;
 
-	/* find out if there are free slots for a frame to transmit. If not,
-	   the upper layer is in deep desperation and we simply ignore the frame. */
+	
 
 	if (priv->txusedcnt >= TXBUFCNT) {
 		dev->stats.tx_dropped++;
 		goto tx_done;
 	}
 
-	/* copy the frame data into the next free transmit buffer - fillup missing */
+	
 	tmplen = skb->len;
 	if (tmplen < 60)
 		tmplen = 60;
 	baddr = priv->txbufstart + (priv->nexttxdescr * PKTSIZE);
 	memcpy_toio(priv->base + baddr, skb->data, skb->len);
 
-	/* copy filler into RAM - in case we're filling up...
-	   we're filling a bit more than necessary, but that doesn't harm
-	   since the buffer is far larger...
-	   Sorry Linus for the filler string but I couldn't resist ;-) */
+	
 
 	if (tmplen > skb->len) {
 		char *fill = "NetBSD is a nice OS too! ";
@@ -850,19 +756,19 @@ static netdev_tx_t ibmlana_tx(struct sk_buff *skb, struct net_device *dev)
 		}
 	}
 
-	/* set up the new frame descriptor */
+	
 	addr = priv->tdastart + (priv->nexttxdescr * sizeof(tda_t));
 	memcpy_fromio(&tda, priv->base + addr, sizeof(tda_t));
 	tda.length = tda.fraglength = tmplen;
 	memcpy_toio(priv->base + addr, &tda, sizeof(tda_t));
 
-	/* if there were no active descriptors, trigger the SONIC */
+	
 	spin_lock_irqsave(&priv->lock, flags);
 
 	priv->txusedcnt++;
 	priv->txused[priv->nexttxdescr] = 1;
 
-	/* are all transmission slots used up ? */
+	
 	if (priv->txusedcnt >= TXBUFCNT)
 		netif_stop_queue(dev);
 
@@ -876,23 +782,21 @@ tx_done:
 	return NETDEV_TX_OK;
 }
 
-/* switch receiver mode. */
+
 
 static void ibmlana_set_multicast_list(struct net_device *dev)
 {
-	/* first stop the SONIC... */
+	
 	StopSONIC(dev);
-	/* ...then reinit it with the new flags */
+	
 	InitBoard(dev);
 }
 
-/* ------------------------------------------------------------------------
- * hardware check
- * ------------------------------------------------------------------------ */
+
 
 static int ibmlana_irq;
 static int ibmlana_io;
-static int startslot;		/* counts through slots when probing multiple devices */
+static int startslot;		
 
 static short ibmlana_adapter_ids[] __initdata = {
 	IBM_LANA_ID,
@@ -934,10 +838,10 @@ static int __devinit ibmlana_init_one(struct device *kdev)
 	base = dev->mem_start;
 	irq = dev->irq;
 
-	/* deduce card addresses */
+	
 	getaddrs(mdev, &base, &memlen, &iobase, &irq, &medium);
 
-	/* were we looking for something different ? */
+	
 	if (dev->irq && dev->irq != irq) {
 		rc = -ENODEV;
 		goto err_out;
@@ -947,10 +851,10 @@ static int __devinit ibmlana_init_one(struct device *kdev)
 		goto err_out;
 	}
 
-	/* announce success */
+	
 	printk(KERN_INFO "%s: IBM LAN Adapter/A found in slot %d\n", dev->name, slot + 1);
 
-	/* try to obtain I/O range */
+	
 	if (!request_region(iobase, IBM_LANA_IORANGE, DRV_NAME)) {
 		printk(KERN_ERR "%s: cannot allocate I/O range at %#x!\n", DRV_NAME, iobase);
 		startslot = slot + 1;
@@ -964,7 +868,7 @@ static int __devinit ibmlana_init_one(struct device *kdev)
 	priv->medium = medium;
 	spin_lock_init(&priv->lock);
 
-	/* set base + irq for this device (irq not allocated so far) */
+	
 
 	dev->irq = 0;
 	dev->mem_start = base;
@@ -982,16 +886,16 @@ static int __devinit ibmlana_init_one(struct device *kdev)
 	mca_device_set_name(mdev, ibmlana_adapter_names[mdev->index]);
 	mca_device_set_claim(mdev, 1);
 
-	/* set methods */
+	
 	dev->netdev_ops = &ibmlana_netdev_ops;
 	dev->flags |= IFF_MULTICAST;
 
-	/* copy out MAC address */
+	
 
 	for (z = 0; z < sizeof(dev->dev_addr); z++)
 		dev->dev_addr[z] = inb(dev->base_addr + MACADDRPROM + z);
 
-	/* print config */
+	
 
 	printk(KERN_INFO "%s: IRQ %d, I/O %#lx, memory %#lx-%#lx, "
 	       "MAC address %pM.\n",
@@ -1000,11 +904,11 @@ static int __devinit ibmlana_init_one(struct device *kdev)
 	       dev->dev_addr);
 	printk(KERN_INFO "%s: %s medium\n", dev->name, MediaNames[priv->medium]);
 
-	/* reset board */
+	
 
 	ResetBoard(dev);
 
-	/* next probe will start at next slot */
+	
 
 	startslot = slot + 1;
 
@@ -1032,7 +936,7 @@ static int ibmlana_remove_one(struct device *kdev)
 	ibmlana_priv *priv = netdev_priv(dev);
 
 	unregister_netdev(dev);
-	/*DeinitBoard(dev); */
+	
 	release_region(dev->base_addr, IBM_LANA_IORANGE);
 	mca_device_set_claim(mdev, 0);
 	iounmap(priv->base);
@@ -1040,9 +944,7 @@ static int ibmlana_remove_one(struct device *kdev)
 	return 0;
 }
 
-/* ------------------------------------------------------------------------
- * modularization support
- * ------------------------------------------------------------------------ */
+
 
 module_param_named(irq, ibmlana_irq, int, 0);
 module_param_named(io, ibmlana_io, int, 0);

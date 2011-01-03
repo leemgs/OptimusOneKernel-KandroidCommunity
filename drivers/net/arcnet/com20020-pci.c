@@ -1,31 +1,4 @@
-/*
- * Linux ARCnet driver - COM20020 PCI support
- * Contemporary Controls PCI20 and SOHARD SH-ARC PCI
- * 
- * Written 1994-1999 by Avery Pennarun,
- *    based on an ISA version by David Woodhouse.
- * Written 1999-2000 by Martin Mares <mj@ucw.cz>.
- * Derived from skeleton.c by Donald Becker.
- *
- * Special thanks to Contemporary Controls, Inc. (www.ccontrols.com)
- *  for sponsoring the further development of this driver.
- *
- * **********************
- *
- * The original copyright of skeleton.c was as follows:
- *
- * skeleton.c Written 1993 by Donald Becker.
- * Copyright 1993 United States Government as represented by the
- * Director, National Security Agency.  This software may only be used
- * and distributed according to the terms of the GNU General Public License as
- * modified by SRC, incorporated herein by reference.
- *
- * **********************
- *
- * For more details, see drivers/net/arcnet.c
- *
- * **********************
- */
+
 #include <linux/module.h>
 #include <linux/moduleparam.h>
 #include <linux/kernel.h>
@@ -44,10 +17,10 @@
 
 #define VERSION "arcnet: COM20020 PCI support\n"
 
-/* Module parameters */
+
 
 static int node;
-static char device[9];		/* use eg. device="arc1" to change name */
+static char device[9];		
 static int timeout = 3;
 static int backplane;
 static int clockp;
@@ -79,7 +52,7 @@ static int __devinit com20020pci_probe(struct pci_dev *pdev, const struct pci_de
 
 	pci_set_drvdata(pdev, dev);
 
-	// SOHARD needs PCI base addr 4
+	
 	if (pdev->vendor==0x10B5) {
 		BUGMSG(D_NORMAL, "SOHARD\n");
 		ioaddr = pci_resource_start(pdev, 4);
@@ -96,8 +69,8 @@ static int __devinit com20020pci_probe(struct pci_dev *pdev, const struct pci_de
 		goto out_dev;
 	}
 
-	// Dummy access after Reset
-	// ARCNET controller needs this access to detect bustype
+	
+	
 	outb(0x00,ioaddr+1);
 	inb(ioaddr+1);
 

@@ -1,11 +1,4 @@
-/****************************************************************************
- * Driver for Solarflare Solarstorm network controllers and boards
- * Copyright 2006 Solarflare Communications Inc.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published
- * by the Free Software Foundation, incorporated herein by reference.
- */
+
 
 #ifndef EFX_RX_H
 #define EFX_RX_H
@@ -23,4 +16,4 @@ void efx_rx_work(struct work_struct *data);
 void __efx_rx_packet(struct efx_channel *channel,
 		     struct efx_rx_buffer *rx_buf, bool checksummed);
 
-#endif /* EFX_RX_H */
+#endif 

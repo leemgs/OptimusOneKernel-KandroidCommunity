@@ -1,14 +1,4 @@
-/* cnic.c: Broadcom CNIC core network driver.
- *
- * Copyright (c) 2006-2009 Broadcom Corporation
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation.
- *
- * Original skeleton written by: John(Zongxi) Chen (zongxi@broadcom.com)
- * Modified and maintained by: Michael Chan <mchan@broadcom.com>
- */
+
 
 #include <linux/module.h>
 
@@ -372,7 +362,7 @@ int cnic_register_driver(int ulp_type, struct cnic_ulp_ops *ulp_ops)
 	rcu_assign_pointer(cnic_ulp_tbl[ulp_type], ulp_ops);
 	mutex_unlock(&cnic_lock);
 
-	/* Prevent race conditions with netdev_event */
+	
 	rtnl_lock();
 	read_lock(&cnic_dev_lock);
 	list_for_each_entry(dev, &cnic_dev_list, list) {
@@ -558,7 +548,7 @@ static int cnic_alloc_id(struct cnic_id_tbl *id_tbl, u32 id)
 	return ret;
 }
 
-/* Returns -1 if not successful */
+
 static u32 cnic_alloc_new_id(struct cnic_id_tbl *id_tbl)
 {
 	u32 id;
@@ -627,7 +617,7 @@ static void cnic_setup_page_tbl(struct cnic_dev *dev, struct cnic_dma *dma)
 	u32 *page_table = dma->pgtbl;
 
 	for (i = 0; i < dma->num_pages; i++) {
-		/* Each entry needs to be in big endian format. */
+		
 		*page_table = (u32) ((u64) dma->pg_map_arr[i] >> 32);
 		page_table++;
 		*page_table = (u32) dma->pg_map_arr[i];
@@ -894,7 +884,7 @@ static int cnic_submit_bnx2_kwqes(struct cnic_dev *dev, struct kwqe *wqes[],
 	u16 prod, sw_prod, i;
 
 	if (!test_bit(CNIC_F_CNIC_UP, &dev->flags))
-		return -EAGAIN;		/* bnx2 is down */
+		return -EAGAIN;		
 
 	spin_lock_bh(&cp->cnic_ulp_lock);
 	if (num_wqes > cnic_kwq_avail(cp) &&
@@ -1047,7 +1037,7 @@ static int cnic_service_bnx2(void *data, void *status_blk)
 
 		service_kcqes(dev, kcqe_cnt);
 
-		/* Tell compiler that status_blk fields can change. */
+		
 		barrier();
 		if (status_idx != sblk->status_idx) {
 			status_idx = sblk->status_idx;
@@ -1086,7 +1076,7 @@ static void cnic_service_bnx2_msix(unsigned long data)
 
 		service_kcqes(dev, kcqe_cnt);
 
-		/* Tell compiler that status_blk fields can change. */
+		
 		barrier();
 		if (status_idx != status_blk->status_idx) {
 			status_idx = status_blk->status_idx;
@@ -1745,9 +1735,7 @@ static int cnic_cm_abort(struct cnic_sock *csk)
 	if (cnic_abort_prep(csk))
 		return cnic_cm_abort_req(csk);
 
-	/* Getting here means that we haven't started connect, or
-	 * connect was not successful.
-	 */
+	
 
 	csk->state = L4_KCQE_OPCODE_VALUE_RESET_COMP;
 	if (test_bit(SK_F_PG_OFFLD_COMPLETE, &csk->flags))
@@ -1869,7 +1857,7 @@ static void cnic_cm_process_kcqe(struct cnic_dev *dev, struct kcqe *kcqe)
 	case L4_KCQE_OPCODE_VALUE_RESET_RECEIVED:
 		if (test_and_clear_bit(SK_F_OFFLD_COMPLETE, &csk->flags))
 			csk->state = opcode;
-		/* fall through */
+		
 	case L4_KCQE_OPCODE_VALUE_CLOSE_COMP:
 	case L4_KCQE_OPCODE_VALUE_RESET_COMP:
 		cp->close_conn(csk, opcode);
@@ -2381,7 +2369,7 @@ static int cnic_start_bnx2_hw(struct cnic_dev *dev)
 	else
 		cp->kwq_con_idx_ptr = &sblk->status_cmd_consumer_index;
 
-	/* Initialize the kernel work queue context. */
+	
 	val = KRNLQ_TYPE_TYPE_KRNLQ | KRNLQ_SIZE_TYPE_SIZE |
 	      (BCM_PAGE_BITS - 8) | KRNLQ_FLAGS_QE_SELF_SEQ;
 	cnic_ctx_wr(dev, cp->kwq_cid_addr, L5_KRNLQ_TYPE, val);
@@ -2403,7 +2391,7 @@ static int cnic_start_bnx2_hw(struct cnic_dev *dev)
 
 	cp->kcq_prod_idx = 0;
 
-	/* Initialize the kernel complete queue context. */
+	
 	val = KRNLQ_TYPE_TYPE_KRNLQ | KRNLQ_SIZE_TYPE_SIZE |
 	      (BCM_PAGE_BITS - 8) | KRNLQ_FLAGS_QE_SELF_SEQ;
 	cnic_ctx_wr(dev, cp->kcq_cid_addr, L5_KRNLQ_TYPE, val);
@@ -2430,22 +2418,17 @@ static int cnic_start_bnx2_hw(struct cnic_dev *dev)
 		cnic_ctx_wr(dev, cp->kcq_cid_addr, L5_KRNLQ_HOST_QIDX, sb);
 	}
 
-	/* Enable Commnad Scheduler notification when we write to the
-	 * host producer index of the kernel contexts. */
+	
 	CNIC_WR(dev, BNX2_MQ_KNL_CMD_MASK1, 2);
 
-	/* Enable Command Scheduler notification when we write to either
-	 * the Send Queue or Receive Queue producer indexes of the kernel
-	 * bypass contexts. */
+	
 	CNIC_WR(dev, BNX2_MQ_KNL_BYP_CMD_MASK1, 7);
 	CNIC_WR(dev, BNX2_MQ_KNL_BYP_WRITE_MASK1, 7);
 
-	/* Notify COM when the driver post an application buffer. */
+	
 	CNIC_WR(dev, BNX2_MQ_KNL_RX_V2P_MASK2, 0x2000);
 
-	/* Set the CP and COM doorbells.  These two processors polls the
-	 * doorbell for a non zero value before running.  This must be done
-	 * after setting up the kernel queue contexts. */
+	
 	cnic_reg_wr_ind(dev, BNX2_CP_SCRATCH + 0x20, 1);
 	cnic_reg_wr_ind(dev, BNX2_COM_SCRATCH + 0x20, 1);
 
@@ -2705,9 +2688,7 @@ static struct cnic_dev *is_cnic_dev(struct net_device *dev)
 	return cdev;
 }
 
-/**
- * netdev event handler
- */
+
 static int cnic_netdev_event(struct notifier_block *this, unsigned long event,
 							 void *ptr)
 {
@@ -2719,7 +2700,7 @@ static int cnic_netdev_event(struct notifier_block *this, unsigned long event,
 	dev = cnic_from_netdev(netdev);
 
 	if (!dev && (event == NETDEV_REGISTER || event == NETDEV_UP)) {
-		/* Check for the hot-plug device */
+		
 		dev = is_cnic_dev(netdev);
 		if (dev) {
 			new_dev = 1;

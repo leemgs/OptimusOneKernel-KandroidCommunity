@@ -1,35 +1,4 @@
-/*
- * Copyright (c) 2007 Mellanox Technologies. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/ethtool.h>
@@ -111,12 +80,12 @@ static const char main_strings[][ETH_GSTRING_LEN] = {
 	"tx_aborted_errors", "tx_carrier_errors", "tx_fifo_errors",
 	"tx_heartbeat_errors", "tx_window_errors",
 
-	/* port statistics */
+	
 	"lro_aggregated", "lro_flushed", "lro_no_desc", "tso_packets",
 	"queue_stopped", "wake_queue", "tx_timeout", "rx_alloc_failed",
 	"rx_csum_good", "rx_csum_none", "tx_chksum_offload",
 
-	/* packet statistics */
+	
 	"broadcast", "rx_prio_0", "rx_prio_1", "rx_prio_2", "rx_prio_3",
 	"rx_prio_4", "rx_prio_5", "rx_prio_6", "rx_prio_7", "tx_prio_0",
 	"tx_prio_1", "tx_prio_2", "tx_prio_3", "tx_prio_4", "tx_prio_5",
@@ -193,7 +162,7 @@ static void mlx4_en_get_strings(struct net_device *dev,
 	if (stringset != ETH_SS_STATS)
 		return;
 
-	/* Add main counters */
+	
 	for (i = 0; i < NUM_MAIN_STATS; i++)
 		strcpy(data + (index++) * ETH_GSTRING_LEN, main_strings[i]);
 	for (i = 0; i < NUM_PORT_STATS; i++)
@@ -237,7 +206,7 @@ static int mlx4_en_set_settings(struct net_device *dev, struct ethtool_cmd *cmd)
 	    (cmd->speed != SPEED_10000) || (cmd->duplex != DUPLEX_FULL))
 		return -EINVAL;
 
-	/* Nothing to change */
+	
 	return 0;
 }
 
@@ -275,7 +244,7 @@ static int mlx4_en_set_coalesce(struct net_device *dev,
 				MLX4_EN_RX_COAL_TIME :
 				coal->rx_coalesce_usecs;
 
-	/* Set adaptive coalescing params */
+	
 	priv->pkt_rate_low = coal->pkt_rate_low;
 	priv->rx_usecs_low = coal->rx_coalesce_usecs_low;
 	priv->pkt_rate_high = coal->pkt_rate_high;

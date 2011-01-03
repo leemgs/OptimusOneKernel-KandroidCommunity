@@ -1,30 +1,13 @@
-/****************************************************************************
- * Driver for Solarflare Solarstorm network controllers and boards
- * Copyright 2005-2006 Fen Systems Ltd.
- * Copyright 2006-2008 Solarflare Communications Inc.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published
- * by the Free Software Foundation, incorporated herein by reference.
- */
+
 
 #ifndef EFX_FALCON_HWDEFS_H
 #define EFX_FALCON_HWDEFS_H
 
-/*
- * Falcon hardware value definitions.
- * Falcon is the internal codename for the SFC4000 controller that is
- * present in SFE400X evaluation boards
- */
 
-/**************************************************************************
- *
- * Falcon registers
- *
- **************************************************************************
- */
 
-/* Address region register */
+
+
+
 #define ADR_REGION_REG_KER	0x00
 #define ADR_REGION0_LBN	0
 #define ADR_REGION0_WIDTH	18
@@ -35,33 +18,33 @@
 #define ADR_REGION3_LBN	96
 #define ADR_REGION3_WIDTH	18
 
-/* Interrupt enable register */
+
 #define INT_EN_REG_KER 0x0010
 #define KER_INT_KER_LBN 3
 #define KER_INT_KER_WIDTH 1
 #define DRV_INT_EN_KER_LBN 0
 #define DRV_INT_EN_KER_WIDTH 1
 
-/* Interrupt status address register */
+
 #define INT_ADR_REG_KER	0x0030
 #define NORM_INT_VEC_DIS_KER_LBN 64
 #define NORM_INT_VEC_DIS_KER_WIDTH 1
 #define INT_ADR_KER_LBN 0
-#define INT_ADR_KER_WIDTH EFX_DMA_TYPE_WIDTH(64) /* not 46 for this one */
+#define INT_ADR_KER_WIDTH EFX_DMA_TYPE_WIDTH(64) 
 
-/* Interrupt status register (B0 only) */
+
 #define INT_ISR0_B0 0x90
 #define INT_ISR1_B0 0xA0
 
-/* Interrupt acknowledge register (A0/A1 only) */
+
 #define INT_ACK_REG_KER_A1 0x0050
 #define INT_ACK_DUMMY_DATA_LBN 0
 #define INT_ACK_DUMMY_DATA_WIDTH 32
 
-/* Interrupt acknowledge work-around register (A0/A1 only )*/
+
 #define WORK_AROUND_BROKEN_PCI_READS_REG_KER_A1 0x0070
 
-/* SPI host command register */
+
 #define EE_SPI_HCMD_REG_KER 0x0100
 #define EE_SPI_HCMD_CMD_EN_LBN 31
 #define EE_SPI_HCMD_CMD_EN_WIDTH 1
@@ -84,15 +67,15 @@
 #define EE_SPI_HCMD_ENC_LBN 0
 #define EE_SPI_HCMD_ENC_WIDTH 8
 
-/* SPI host address register */
+
 #define EE_SPI_HADR_REG_KER 0x0110
 #define EE_SPI_HADR_ADR_LBN 0
 #define EE_SPI_HADR_ADR_WIDTH 24
 
-/* SPI host data register */
+
 #define EE_SPI_HDATA_REG_KER 0x0120
 
-/* SPI/VPD config register */
+
 #define EE_VPD_CFG_REG_KER 0x0140
 #define EE_VPD_EN_LBN 0
 #define EE_VPD_EN_WIDTH 1
@@ -103,13 +86,13 @@
 #define EE_SF_CLOCK_DIV_LBN 120
 #define EE_SF_CLOCK_DIV_WIDTH 7
 
-/* PCIE CORE ACCESS REG */
+
 #define PCIE_CORE_ADDR_PCIE_DEVICE_CTRL_STAT 0x68
 #define PCIE_CORE_ADDR_PCIE_LINK_CTRL_STAT 0x70
 #define PCIE_CORE_ADDR_ACK_RPL_TIMER 0x700
 #define PCIE_CORE_ADDR_ACK_FREQ 0x70C
 
-/* NIC status register */
+
 #define NIC_STAT_REG 0x0200
 #define EE_STRAP_EN_LBN 31
 #define EE_STRAP_EN_WIDTH 1
@@ -123,9 +106,7 @@
 #define EE_PRST_WIDTH 1
 #define STRAP_PINS_LBN 0
 #define STRAP_PINS_WIDTH 3
-/* These bit definitions are extrapolated from the list of numerical
- * values for STRAP_PINS.
- */
+
 #define STRAP_10G_LBN 2
 #define STRAP_10G_WIDTH 1
 #define STRAP_PCIE_LBN 0
@@ -134,7 +115,7 @@
 #define BOOTED_USING_NVDEVICE_LBN 3
 #define BOOTED_USING_NVDEVICE_WIDTH 1
 
-/* GPIO control register */
+
 #define GPIO_CTL_REG_KER 0x0210
 #define GPIO_USE_NIC_CLK_LBN (30)
 #define GPIO_USE_NIC_CLK_WIDTH (1)
@@ -171,7 +152,7 @@
 #define GPIO0_IN_LBN (GPIO_INPUTS_LBN + 0)
 #define	GPIO0_IN_WIDTH 1
 
-/* Global control register */
+
 #define GLB_CTL_REG_KER	0x0220
 #define EXT_PHY_RST_CTL_LBN 63
 #define EXT_PHY_RST_CTL_WIDTH 1
@@ -197,7 +178,7 @@
 #define INCLUDE_IN_RESET 0
 #define EXCLUDE_FROM_RESET 1
 
-/* Fatal interrupt register */
+
 #define FATAL_INTR_REG_KER 0x0230
 #define RBUF_OWN_INT_KER_EN_LBN 39
 #define RBUF_OWN_INT_KER_EN_WIDTH 1
@@ -216,7 +197,7 @@
 
 #define MEM_STAT_REG_KER 0x260
 
-/* Debug probe register */
+
 #define DEBUG_BLK_SEL_MISC 7
 #define DEBUG_BLK_SEL_SERDES 6
 #define DEBUG_BLK_SEL_EM 5
@@ -226,17 +207,17 @@
 #define DEBUG_BLK_SEL_TX 1
 #define DEBUG_BLK_SEL_BIU 0
 
-/* FPGA build version */
+
 #define ALTERA_BUILD_REG_KER 0x0300
 #define VER_ALL_LBN 0
 #define VER_ALL_WIDTH 32
 
-/* Spare EEPROM bits register (flash 0x390) */
+
 #define SPARE_REG_KER 0x310
 #define MEM_PERR_EN_TX_DATA_LBN 72
 #define MEM_PERR_EN_TX_DATA_WIDTH 2
 
-/* Timer table for kernel access */
+
 #define TIMER_CMD_REG_KER 0x420
 #define TIMER_MODE_LBN 12
 #define TIMER_MODE_WIDTH 2
@@ -245,31 +226,31 @@
 #define TIMER_VAL_LBN 0
 #define TIMER_VAL_WIDTH 12
 
-/* Driver generated event register */
+
 #define DRV_EV_REG_KER 0x440
 #define DRV_EV_QID_LBN 64
 #define DRV_EV_QID_WIDTH 12
 #define DRV_EV_DATA_LBN 0
 #define DRV_EV_DATA_WIDTH 64
 
-/* Buffer table configuration register */
+
 #define BUF_TBL_CFG_REG_KER 0x600
 #define BUF_TBL_MODE_LBN 3
 #define BUF_TBL_MODE_WIDTH 1
 #define BUF_TBL_MODE_HALF 0
 #define BUF_TBL_MODE_FULL 1
 
-/* SRAM receive descriptor cache configuration register */
+
 #define SRM_RX_DC_CFG_REG_KER 0x610
 #define SRM_RX_DC_BASE_ADR_LBN 0
 #define SRM_RX_DC_BASE_ADR_WIDTH 21
 
-/* SRAM transmit descriptor cache configuration register */
+
 #define SRM_TX_DC_CFG_REG_KER 0x620
 #define SRM_TX_DC_BASE_ADR_LBN 0
 #define SRM_TX_DC_BASE_ADR_WIDTH 21
 
-/* SRAM configuration register */
+
 #define SRM_CFG_REG_KER 0x630
 #define SRAM_OOB_BT_INIT_EN_LBN 3
 #define SRAM_OOB_BT_INIT_EN_WIDTH 1
@@ -278,13 +259,13 @@
 #define SRM_NB_BSZ_1BANKS_2M 0
 #define SRM_NB_BSZ_1BANKS_4M 1
 #define SRM_NB_BSZ_1BANKS_8M 2
-#define SRM_NB_BSZ_DEFAULT 3 /* char driver will set the default */
+#define SRM_NB_BSZ_DEFAULT 3 
 #define SRM_NB_BSZ_2BANKS_4M 4
 #define SRM_NB_BSZ_2BANKS_8M 5
 #define SRM_NB_BSZ_2BANKS_16M 6
 #define SRM_NB_BSZ_RESERVED 7
 
-/* Special buffer table update register */
+
 #define BUF_TBL_UPD_REG_KER 0x0650
 #define BUF_UPD_CMD_LBN 63
 #define BUF_UPD_CMD_WIDTH 1
@@ -295,10 +276,10 @@
 #define BUF_CLR_START_ID_LBN 0
 #define BUF_CLR_START_ID_WIDTH 20
 
-/* Receive configuration register */
+
 #define RX_CFG_REG_KER 0x800
 
-/* B0 */
+
 #define RX_INGR_EN_B0_LBN 47
 #define RX_INGR_EN_B0_WIDTH 1
 #define RX_DESC_PUSH_EN_B0_LBN 43
@@ -316,7 +297,7 @@
 #define RX_XOFF_MAC_EN_B0_LBN 0
 #define RX_XOFF_MAC_EN_B0_WIDTH 1
 
-/* A1 */
+
 #define RX_DESC_PUSH_EN_A1_LBN 35
 #define RX_DESC_PUSH_EN_A1_WIDTH 1
 #define RX_XON_TX_TH_A1_LBN 25
@@ -332,7 +313,7 @@
 #define RX_XOFF_MAC_EN_A1_LBN 0
 #define RX_XOFF_MAC_EN_A1_WIDTH 1
 
-/* Receive filter control register */
+
 #define RX_FILTER_CTL_REG 0x810
 #define UDP_FULL_SRCH_LIMIT_LBN 32
 #define UDP_FULL_SRCH_LIMIT_WIDTH 8
@@ -345,19 +326,19 @@
 #define TCP_FULL_SRCH_LIMIT_LBN 0
 #define TCP_FULL_SRCH_LIMIT_WIDTH 8
 
-/* RX queue flush register */
+
 #define RX_FLUSH_DESCQ_REG_KER 0x0820
 #define RX_FLUSH_DESCQ_CMD_LBN 24
 #define RX_FLUSH_DESCQ_CMD_WIDTH 1
 #define RX_FLUSH_DESCQ_LBN 0
 #define RX_FLUSH_DESCQ_WIDTH 12
 
-/* Receive descriptor update register */
+
 #define RX_DESC_UPD_REG_KER_DWORD (0x830 + 12)
 #define RX_DESC_WPTR_DWORD_LBN 0
 #define RX_DESC_WPTR_DWORD_WIDTH 12
 
-/* Receive descriptor cache configuration register */
+
 #define RX_DC_CFG_REG_KER 0x840
 #define RX_DC_SIZE_LBN 0
 #define RX_DC_SIZE_WIDTH 2
@@ -366,12 +347,12 @@
 #define RX_DC_PF_LWM_LBN 0
 #define RX_DC_PF_LWM_WIDTH 6
 
-/* RX no descriptor drop counter */
+
 #define RX_NODESC_DROP_REG_KER 0x880
 #define RX_NODESC_DROP_CNT_LBN 0
 #define RX_NODESC_DROP_CNT_WIDTH 16
 
-/* RX black magic register */
+
 #define RX_SELF_RST_REG_KER 0x890
 #define RX_ISCSI_DIS_LBN 17
 #define RX_ISCSI_DIS_WIDTH 1
@@ -380,32 +361,32 @@
 #define RX_RECOVERY_EN_LBN 8
 #define RX_RECOVERY_EN_WIDTH 1
 
-/* TX queue flush register */
+
 #define TX_FLUSH_DESCQ_REG_KER 0x0a00
 #define TX_FLUSH_DESCQ_CMD_LBN 12
 #define TX_FLUSH_DESCQ_CMD_WIDTH 1
 #define TX_FLUSH_DESCQ_LBN 0
 #define TX_FLUSH_DESCQ_WIDTH 12
 
-/* Transmit descriptor update register */
+
 #define TX_DESC_UPD_REG_KER_DWORD (0xa10 + 12)
 #define TX_DESC_WPTR_DWORD_LBN 0
 #define TX_DESC_WPTR_DWORD_WIDTH 12
 
-/* Transmit descriptor cache configuration register */
+
 #define TX_DC_CFG_REG_KER 0xa20
 #define TX_DC_SIZE_LBN 0
 #define TX_DC_SIZE_WIDTH 2
 
-/* Transmit checksum configuration register (A0/A1 only) */
+
 #define TX_CHKSM_CFG_REG_KER_A1 0xa30
 
-/* Transmit configuration register */
+
 #define TX_CFG_REG_KER 0xa50
 #define TX_NO_EOP_DISC_EN_LBN 5
 #define TX_NO_EOP_DISC_EN_WIDTH 1
 
-/* Transmit configuration register 2 */
+
 #define TX_CFG2_REG_KER 0xa80
 #define TX_CSR_PUSH_EN_LBN 89
 #define TX_CSR_PUSH_EN_WIDTH 1
@@ -424,17 +405,17 @@
 #define TX_FLUSH_MIN_LEN_EN_B0_LBN 7
 #define TX_FLUSH_MIN_LEN_EN_B0_WIDTH 1
 
-/* PHY management transmit data register */
+
 #define MD_TXD_REG_KER 0xc00
 #define MD_TXD_LBN 0
 #define MD_TXD_WIDTH 16
 
-/* PHY management receive data register */
+
 #define MD_RXD_REG_KER 0xc10
 #define MD_RXD_LBN 0
 #define MD_RXD_WIDTH 16
 
-/* PHY management configuration & status register */
+
 #define MD_CS_REG_KER 0xc20
 #define MD_GC_LBN 4
 #define MD_GC_WIDTH 1
@@ -445,19 +426,19 @@
 #define MD_WRC_LBN 0
 #define MD_WRC_WIDTH 1
 
-/* PHY management PHY address register */
+
 #define MD_PHY_ADR_REG_KER 0xc30
 #define MD_PHY_ADR_LBN 0
 #define MD_PHY_ADR_WIDTH 16
 
-/* PHY management ID register */
+
 #define MD_ID_REG_KER 0xc40
 #define MD_PRT_ADR_LBN 11
 #define MD_PRT_ADR_WIDTH 5
 #define MD_DEV_ADR_LBN 6
 #define MD_DEV_ADR_WIDTH 5
 
-/* PHY management status & mask register (DWORD read only) */
+
 #define MD_STAT_REG_KER 0xc50
 #define MD_BSERR_LBN 2
 #define MD_BSERR_WIDTH 1
@@ -466,14 +447,14 @@
 #define MD_BSY_LBN 0
 #define MD_BSY_WIDTH 1
 
-/* Port 0 and 1 MAC stats registers */
+
 #define MAC0_STAT_DMA_REG_KER 0xc60
 #define MAC_STAT_DMA_CMD_LBN 48
 #define MAC_STAT_DMA_CMD_WIDTH 1
 #define MAC_STAT_DMA_ADR_LBN 0
 #define MAC_STAT_DMA_ADR_WIDTH EFX_DMA_TYPE_WIDTH(46)
 
-/* Port 0 and 1 MAC control registers */
+
 #define MAC0_CTRL_REG_KER 0xc80
 #define MAC_XOFF_VAL_LBN 16
 #define MAC_XOFF_VAL_WIDTH 16
@@ -488,16 +469,16 @@
 #define MAC_SPEED_LBN 0
 #define MAC_SPEED_WIDTH 2
 
-/* 10G XAUI XGXS default values */
-#define XX_TXDRV_DEQ_DEFAULT 0xe /* deq=.6 */
-#define XX_TXDRV_DTX_DEFAULT 0x5 /* 1.25 */
-#define XX_SD_CTL_DRV_DEFAULT 0  /* 20mA */
 
-/* Multicast address hash table */
+#define XX_TXDRV_DEQ_DEFAULT 0xe 
+#define XX_TXDRV_DTX_DEFAULT 0x5 
+#define XX_SD_CTL_DRV_DEFAULT 0  
+
+
 #define MAC_MCAST_HASH_REG0_KER 0xca0
 #define MAC_MCAST_HASH_REG1_KER 0xcb0
 
-/* GMAC configuration register 1 */
+
 #define GM_CFG1_REG 0xe00
 #define GM_SW_RST_LBN 31
 #define GM_SW_RST_WIDTH 1
@@ -512,7 +493,7 @@
 #define GM_TX_EN_LBN 0
 #define GM_TX_EN_WIDTH 1
 
-/* GMAC configuration register 2 */
+
 #define GM_CFG2_REG 0xe10
 #define GM_PAMBL_LEN_LBN 12
 #define GM_PAMBL_LEN_WIDTH 4
@@ -525,12 +506,12 @@
 #define GM_FD_LBN 0
 #define GM_FD_WIDTH 1
 
-/* GMAC maximum frame length register */
+
 #define GM_MAX_FLEN_REG 0xe40
 #define GM_MAX_FLEN_LBN 0
 #define GM_MAX_FLEN_WIDTH 16
 
-/* GMAC station address register 1 */
+
 #define GM_ADR1_REG 0xf00
 #define GM_HWADDR_5_LBN 24
 #define GM_HWADDR_5_WIDTH 8
@@ -541,14 +522,14 @@
 #define GM_HWADDR_2_LBN 0
 #define GM_HWADDR_2_WIDTH 8
 
-/* GMAC station address register 2 */
+
 #define GM_ADR2_REG 0xf10
 #define GM_HWADDR_1_LBN 24
 #define GM_HWADDR_1_WIDTH 8
 #define GM_HWADDR_0_LBN 16
 #define GM_HWADDR_0_WIDTH 8
 
-/* GMAC FIFO configuration register 0 */
+
 #define GMF_CFG0_REG 0xf20
 #define GMF_FTFENREQ_LBN 12
 #define GMF_FTFENREQ_WIDTH 1
@@ -561,33 +542,33 @@
 #define GMF_WTMENREQ_LBN 8
 #define GMF_WTMENREQ_WIDTH 1
 
-/* GMAC FIFO configuration register 1 */
+
 #define GMF_CFG1_REG 0xf30
 #define GMF_CFGFRTH_LBN 16
 #define GMF_CFGFRTH_WIDTH 5
 #define GMF_CFGXOFFRTX_LBN 0
 #define GMF_CFGXOFFRTX_WIDTH 16
 
-/* GMAC FIFO configuration register 2 */
+
 #define GMF_CFG2_REG 0xf40
 #define GMF_CFGHWM_LBN 16
 #define GMF_CFGHWM_WIDTH 6
 #define GMF_CFGLWM_LBN 0
 #define GMF_CFGLWM_WIDTH 6
 
-/* GMAC FIFO configuration register 3 */
+
 #define GMF_CFG3_REG 0xf50
 #define GMF_CFGHWMFT_LBN 16
 #define GMF_CFGHWMFT_WIDTH 6
 #define GMF_CFGFTTH_LBN 0
 #define GMF_CFGFTTH_WIDTH 6
 
-/* GMAC FIFO configuration register 4 */
+
 #define GMF_CFG4_REG 0xf60
 #define GMF_HSTFLTRFRM_PAUSE_LBN 12
 #define GMF_HSTFLTRFRM_PAUSE_WIDTH 12
 
-/* GMAC FIFO configuration register 5 */
+
 #define GMF_CFG5_REG 0xf70
 #define GMF_CFGHDPLX_LBN 22
 #define GMF_CFGHDPLX_WIDTH 1
@@ -598,7 +579,7 @@
 #define GMF_HSTFLTRFRMDC_PAUSE_LBN 12
 #define GMF_HSTFLTRFRMDC_PAUSE_WIDTH 1
 
-/* XGMAC address register low */
+
 #define XM_ADR_LO_REG 0x1200
 #define XM_ADR_3_LBN 24
 #define XM_ADR_3_WIDTH 8
@@ -609,14 +590,14 @@
 #define XM_ADR_0_LBN 0
 #define XM_ADR_0_WIDTH 8
 
-/* XGMAC address register high */
+
 #define XM_ADR_HI_REG 0x1210
 #define XM_ADR_5_LBN 8
 #define XM_ADR_5_WIDTH 8
 #define XM_ADR_4_LBN 0
 #define XM_ADR_4_WIDTH 8
 
-/* XGMAC global configuration */
+
 #define XM_GLB_CFG_REG 0x1220
 #define XM_RX_STAT_EN_LBN 11
 #define XM_RX_STAT_EN_WIDTH 1
@@ -629,7 +610,7 @@
 #define XM_CORE_RST_LBN 0
 #define XM_CORE_RST_WIDTH 1
 
-/* XGMAC transmit configuration */
+
 #define XM_TX_CFG_REG 0x1230
 #define XM_IPG_LBN 16
 #define XM_IPG_WIDTH 4
@@ -644,7 +625,7 @@
 #define XM_TXEN_LBN 1
 #define XM_TXEN_WIDTH 1
 
-/* XGMAC receive configuration */
+
 #define XM_RX_CFG_REG 0x1240
 #define XM_PASS_CRC_ERR_LBN 25
 #define XM_PASS_CRC_ERR_WIDTH 1
@@ -657,7 +638,7 @@
 #define XM_RXEN_LBN 1
 #define XM_RXEN_WIDTH 1
 
-/* XGMAC management interrupt mask register */
+
 #define XM_MGT_INT_MSK_REG_B0 0x1250
 #define XM_MSK_PRMBLE_ERR_LBN 2
 #define XM_MSK_PRMBLE_ERR_WIDTH 1
@@ -666,29 +647,29 @@
 #define XM_MSK_LCLFLT_LBN 0
 #define XM_MSK_LCLFLT_WIDTH 1
 
-/* XGMAC flow control register */
+
 #define XM_FC_REG 0x1270
 #define XM_PAUSE_TIME_LBN 16
 #define XM_PAUSE_TIME_WIDTH 16
 #define XM_DIS_FCNTL_LBN 0
 #define XM_DIS_FCNTL_WIDTH 1
 
-/* XGMAC pause time count register */
+
 #define XM_PAUSE_TIME_REG 0x1290
 
-/* XGMAC transmit parameter register */
+
 #define XM_TX_PARAM_REG 0x012d0
 #define XM_TX_JUMBO_MODE_LBN 31
 #define XM_TX_JUMBO_MODE_WIDTH 1
 #define XM_MAX_TX_FRM_SIZE_LBN 16
 #define XM_MAX_TX_FRM_SIZE_WIDTH 14
 
-/* XGMAC receive parameter register */
+
 #define XM_RX_PARAM_REG 0x12e0
 #define XM_MAX_RX_FRM_SIZE_LBN 0
 #define XM_MAX_RX_FRM_SIZE_WIDTH 14
 
-/* XGMAC management interrupt status register */
+
 #define XM_MGT_INT_REG_B0 0x12f0
 #define XM_PRMBLE_ERR 2
 #define XM_PRMBLE_WIDTH 1
@@ -697,7 +678,7 @@
 #define XM_LCLFLT_LBN 0
 #define XM_LCLFLT_WIDTH 1
 
-/* XGXS/XAUI powerdown/reset register */
+
 #define XX_PWR_RST_REG 0x1300
 
 #define XX_SD_RST_ACT_LBN 16
@@ -729,7 +710,7 @@
 #define XX_RST_XX_EN_LBN 0
 #define XX_RST_XX_EN_WIDTH 1
 
-/* XGXS/XAUI powerdown/reset control register */
+
 #define XX_SD_CTL_REG 0x1310
 #define XX_HIDRVD_LBN 15
 #define XX_HIDRVD_WIDTH 1
@@ -774,7 +755,7 @@
 #define XX_DTXA_LBN 0
 #define XX_DTXA_WIDTH 4
 
-/* XAUI XGXS core status register */
+
 #define XX_CORE_STAT_REG 0x1360
 #define XX_FORCE_SIG_LBN 24
 #define XX_FORCE_SIG_WIDTH 8
@@ -799,10 +780,10 @@
 #define XX_DISPERR_WIDTH 4
 #define XX_DISPERR_RESET 0xf
 
-/* Receive filter table */
+
 #define RX_FILTER_TBL0 0xF00000
 
-/* Receive descriptor pointer table */
+
 #define RX_DESC_PTR_TBL_KER_A1 0x11800
 #define RX_DESC_PTR_TBL_KER_B0 0xF40000
 #define RX_DESC_PTR_TBL_KER_P0 0x900
@@ -831,7 +812,7 @@
 #define RX_DESCQ_EN_LBN 0
 #define RX_DESCQ_EN_WIDTH 1
 
-/* Transmit descriptor pointer table */
+
 #define TX_DESC_PTR_TBL_KER_A1 0x11900
 #define TX_DESC_PTR_TBL_KER_B0 0xF50000
 #define TX_DESC_PTR_TBL_KER_P0 0xa40
@@ -864,7 +845,7 @@
 #define TX_DESCQ_TYPE_LBN 1
 #define TX_DESCQ_TYPE_WIDTH 2
 
-/* Event queue pointer */
+
 #define EVQ_PTR_TBL_KER_A1 0x11a00
 #define EVQ_PTR_TBL_KER_B0 0xf60000
 #define EVQ_PTR_TBL_KER_P0 0x500
@@ -882,19 +863,19 @@
 #define EVQ_BUF_BASE_ID_LBN 0
 #define EVQ_BUF_BASE_ID_WIDTH 20
 
-/* Event queue read pointer */
+
 #define EVQ_RPTR_REG_KER_A1 0x11b00
 #define EVQ_RPTR_REG_KER_B0 0xfa0000
 #define EVQ_RPTR_REG_KER_DWORD (EVQ_RPTR_REG_KER + 0)
 #define EVQ_RPTR_DWORD_LBN 0
 #define EVQ_RPTR_DWORD_WIDTH 14
 
-/* RSS indirection table */
+
 #define RX_RSS_INDIR_TBL_B0 0xFB0000
 #define RX_RSS_INDIR_ENT_B0_LBN 0
 #define RX_RSS_INDIR_ENT_B0_WIDTH 6
 
-/* Special buffer descriptors (full-mode) */
+
 #define BUF_FULL_TBL_KER_A1 0x8000
 #define BUF_FULL_TBL_KER_B0 0x800000
 #define IP_DAT_BUF_SIZE_LBN 50
@@ -908,7 +889,7 @@
 #define BUF_OWNER_ID_FBUF_LBN 0
 #define BUF_OWNER_ID_FBUF_WIDTH 14
 
-/* Transmit descriptor */
+
 #define TX_KER_PORT_LBN 63
 #define TX_KER_PORT_WIDTH 1
 #define TX_KER_CONT_LBN 62
@@ -924,7 +905,7 @@
 #define TX_KER_BUF_ADR_LBN 0
 #define TX_KER_BUF_ADR_WIDTH EFX_DMA_TYPE_WIDTH(46)
 
-/* Receive descriptor */
+
 #define RX_KER_BUF_SIZE_LBN 48
 #define RX_KER_BUF_SIZE_WIDTH 14
 #define RX_KER_BUF_REGION_LBN 46
@@ -936,14 +917,9 @@
 #define RX_KER_BUF_ADR_LBN 0
 #define RX_KER_BUF_ADR_WIDTH EFX_DMA_TYPE_WIDTH(46)
 
-/**************************************************************************
- *
- * Falcon events
- *
- **************************************************************************
- */
 
-/* Event queue entries */
+
+
 #define EV_CODE_LBN 60
 #define EV_CODE_WIDTH 4
 #define RX_IP_EV_DECODE 0
@@ -954,7 +930,7 @@
 #define WHOLE_EVENT_LBN 0
 #define WHOLE_EVENT_WIDTH 64
 
-/* Receive events */
+
 #define RX_EV_PKT_OK_LBN 56
 #define RX_EV_PKT_OK_WIDTH 1
 #define RX_EV_PAUSE_FRM_ERR_LBN 55
@@ -1006,7 +982,7 @@
 #define RX_EV_DESC_PTR_LBN 0
 #define RX_EV_DESC_PTR_WIDTH 12
 
-/* Transmit events */
+
 #define TX_EV_PKT_ERR_LBN 38
 #define TX_EV_PKT_ERR_WIDTH 1
 #define TX_EV_Q_LABEL_LBN 32
@@ -1018,7 +994,7 @@
 #define TX_EV_DESC_PTR_LBN 0
 #define TX_EV_DESC_PTR_WIDTH 12
 
-/* Driver events */
+
 #define DRIVER_EV_SUB_CODE_LBN 56
 #define DRIVER_EV_SUB_CODE_WIDTH 4
 #define DRIVER_EV_SUB_DATA_LBN 0
@@ -1045,7 +1021,7 @@
 #define SRM_UPD_EV_DECODE 1
 #define SRM_ILLCLR_EV_DECODE 2
 
-/* Global events */
+
 #define RX_RECOVERY_B0_LBN 12
 #define RX_RECOVERY_B0_WIDTH 1
 #define XG_MNT_INTR_B0_LBN 11
@@ -1061,17 +1037,11 @@
 #define G_PHY0_INTR_LBN 7
 #define G_PHY0_INTR_WIDTH 1
 
-/* Driver-generated test events */
+
 #define EVQ_MAGIC_LBN 0
 #define EVQ_MAGIC_WIDTH 32
 
-/**************************************************************************
- *
- * Falcon MAC stats
- *
- **************************************************************************
- *
- */
+
 
 #define GRxGoodOct_offset 0x0
 #define GRxGoodOct_WIDTH 48
@@ -1265,20 +1235,15 @@
 #define FALCON_STATS_NOT_DONE 0x00000000
 #define FALCON_STATS_DONE 0xffffffff
 
-/* Interrupt status register bits */
+
 #define FATAL_INT_LBN 64
 #define FATAL_INT_WIDTH 1
 #define INT_EVQS_LBN 40
 #define INT_EVQS_WIDTH 4
 
-/**************************************************************************
- *
- * Falcon non-volatile configuration
- *
- **************************************************************************
- */
 
-/* Board configuration v2 (v1 is obsolete; later versions are compatible) */
+
+
 struct falcon_nvconfig_board_v2 {
 	__le16 nports;
 	u8 port0_phy_addr;
@@ -1289,12 +1254,12 @@ struct falcon_nvconfig_board_v2 {
 	__le16 board_revision;
 } __packed;
 
-/* Board configuration v3 extra information */
+
 struct falcon_nvconfig_board_v3 {
 	__le32 spi_device_type[2];
 } __packed;
 
-/* Bit numbers for spi_device_type */
+
 #define SPI_DEV_TYPE_SIZE_LBN 0
 #define SPI_DEV_TYPE_SIZE_WIDTH 5
 #define SPI_DEV_TYPE_ADDR_LEN_LBN 6
@@ -1312,22 +1277,22 @@ struct falcon_nvconfig_board_v3 {
 
 #define NVCONFIG_BOARD_MAGIC_NUM 0xFA1C
 struct falcon_nvconfig {
-	efx_oword_t ee_vpd_cfg_reg;			/* 0x300 */
-	u8 mac_address[2][8];			/* 0x310 */
-	efx_oword_t pcie_sd_ctl0123_reg;		/* 0x320 */
-	efx_oword_t pcie_sd_ctl45_reg;			/* 0x330 */
-	efx_oword_t pcie_pcs_ctl_stat_reg;		/* 0x340 */
-	efx_oword_t hw_init_reg;			/* 0x350 */
-	efx_oword_t nic_stat_reg;			/* 0x360 */
-	efx_oword_t glb_ctl_reg;			/* 0x370 */
-	efx_oword_t srm_cfg_reg;			/* 0x380 */
-	efx_oword_t spare_reg;				/* 0x390 */
-	__le16 board_magic_num;			/* 0x3A0 */
+	efx_oword_t ee_vpd_cfg_reg;			
+	u8 mac_address[2][8];			
+	efx_oword_t pcie_sd_ctl0123_reg;		
+	efx_oword_t pcie_sd_ctl45_reg;			
+	efx_oword_t pcie_pcs_ctl_stat_reg;		
+	efx_oword_t hw_init_reg;			
+	efx_oword_t nic_stat_reg;			
+	efx_oword_t glb_ctl_reg;			
+	efx_oword_t srm_cfg_reg;			
+	efx_oword_t spare_reg;				
+	__le16 board_magic_num;			
 	__le16 board_struct_ver;
 	__le16 board_checksum;
 	struct falcon_nvconfig_board_v2 board_v2;
-	efx_oword_t ee_base_page_reg;			/* 0x3B0 */
+	efx_oword_t ee_base_page_reg;			
 	struct falcon_nvconfig_board_v3 board_v3;
 } __packed;
 
-#endif /* EFX_FALCON_HWDEFS_H */
+#endif 

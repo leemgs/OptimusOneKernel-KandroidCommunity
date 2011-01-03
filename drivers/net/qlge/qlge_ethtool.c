@@ -45,9 +45,7 @@ static int ql_update_ring_coalescing(struct ql_adapter *qdev)
 	if (!netif_running(qdev->ndev))
 		return status;
 
-	/* Skip the default queue, and update the outbound handler
-	 * queues if they changed.
-	 */
+	
 	cqicb = (struct cqicb *)&qdev->rx_ring[qdev->rss_ring_count];
 	if (le16_to_cpu(cqicb->irq_delay) != qdev->tx_coalesce_usecs ||
 		le16_to_cpu(cqicb->pkt_delay) !=
@@ -69,7 +67,7 @@ static int ql_update_ring_coalescing(struct ql_adapter *qdev)
 		}
 	}
 
-	/* Update the inbound (RSS) handler queues if they changed. */
+	
 	cqicb = (struct cqicb *)&qdev->rx_ring[0];
 	if (le16_to_cpu(cqicb->irq_delay) != qdev->rx_coalesce_usecs ||
 		le16_to_cpu(cqicb->pkt_delay) !=
@@ -106,9 +104,7 @@ static void ql_update_stats(struct ql_adapter *qdev)
 				"Couldn't get xgmac sem.\n");
 		goto quit;
 	}
-	/*
-	 * Get TX statistics.
-	 */
+	
 	for (i = 0x200; i < 0x280; i += 8) {
 		if (ql_read_xgmac_reg64(qdev, i, &data)) {
 			QPRINTK(qdev, DRV, ERR,
@@ -119,9 +115,7 @@ static void ql_update_stats(struct ql_adapter *qdev)
 		iter++;
 	}
 
-	/*
-	 * Get RX statistics.
-	 */
+	
 	for (i = 0x300; i < 0x3d0; i += 8) {
 		if (ql_read_xgmac_reg64(qdev, i, &data)) {
 			QPRINTK(qdev, DRV, ERR,
@@ -309,16 +303,7 @@ static int ql_get_coalesce(struct net_device *dev, struct ethtool_coalesce *c)
 	c->rx_coalesce_usecs = qdev->rx_coalesce_usecs;
 	c->tx_coalesce_usecs = qdev->tx_coalesce_usecs;
 
-	/* This chip coalesces as follows:
-	 * If a packet arrives, hold off interrupts until
-	 * cqicb->int_delay expires, but if no other packets arrive don't
-	 * wait longer than cqicb->pkt_int_delay. But ethtool doesn't use a
-	 * timer to coalesce on a frame basis.  So, we have to take ethtool's
-	 * max_coalesced_frames value and convert it to a delay in microseconds.
-	 * We do this by using a basic thoughput of 1,000,000 frames per
-	 * second @ (1024 bytes).  This means one frame per usec. So it's a
-	 * simple one to one ratio.
-	 */
+	
 	c->rx_max_coalesced_frames = qdev->rx_max_coalesced_frames;
 	c->tx_max_coalesced_frames = qdev->tx_max_coalesced_frames;
 
@@ -329,10 +314,10 @@ static int ql_set_coalesce(struct net_device *ndev, struct ethtool_coalesce *c)
 {
 	struct ql_adapter *qdev = netdev_priv(ndev);
 
-	/* Validate user parameters. */
+	
 	if (c->rx_coalesce_usecs > qdev->rx_ring_size / 2)
 		return -EINVAL;
-       /* Don't wait more than 10 usec. */
+       
 	if (c->rx_max_coalesced_frames > MAX_INTER_FRAME_WAIT)
 		return -EINVAL;
 	if (c->tx_coalesce_usecs > qdev->tx_ring_size / 2)
@@ -340,7 +325,7 @@ static int ql_set_coalesce(struct net_device *ndev, struct ethtool_coalesce *c)
 	if (c->tx_max_coalesced_frames > MAX_INTER_FRAME_WAIT)
 		return -EINVAL;
 
-	/* Verify a change took place before updating the hardware. */
+	
 	if (qdev->rx_coalesce_usecs == c->rx_coalesce_usecs &&
 	    qdev->tx_coalesce_usecs == c->tx_coalesce_usecs &&
 	    qdev->rx_max_coalesced_frames == c->rx_max_coalesced_frames &&

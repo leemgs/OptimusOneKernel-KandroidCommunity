@@ -1,15 +1,4 @@
-/*********************************************************************
- *
- *	sir_dev.c:	irda sir network device
- * 
- *	Copyright (c) 2002 Martin Diehl
- * 
- *	This program is free software; you can redistribute it and/or 
- *	modify it under the terms of the GNU General Public License as 
- *	published by the Free Software Foundation; either version 2 of 
- *	the License, or (at your option) any later version.
- *
- ********************************************************************/    
+    
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -25,11 +14,9 @@
 
 static struct workqueue_struct *irda_sir_wq;
 
-/* STATE MACHINE */
 
-/* substate handler of the config-fsm to handle the cases where we want
- * to wait for transmit completion before changing the port configuration
- */
+
+
 
 static int sirdev_tx_complete_fsm(struct sir_dev *dev)
 {
@@ -38,7 +25,7 @@ static int sirdev_tx_complete_fsm(struct sir_dev *dev)
 	unsigned bytes_left;
 
 	do {
-		next_state = fsm->substate;	/* default: stay in current substate */
+		next_state = fsm->substate;	
 		delay = 0;
 
 		switch(fsm->substate) {
@@ -59,18 +46,18 @@ static int sirdev_tx_complete_fsm(struct sir_dev *dev)
 				delay = (bytes_left*10*10000) / (dev->speed/100);
 			else
 				delay = 0;
-			/* expected delay (usec) until remaining bytes are sent */
+			
 			if (delay < 100) {
 				udelay(delay);
 				delay = 0;
 				break;
 			}
-			/* sleep some longer delay (msec) */
+			
 			delay = (delay+999) / 1000;
 			break;
 
 		case SIRDEV_STATE_WAIT_UNTIL_SENT:
-			/* block until underlaying hardware buffer are empty */
+			
 			if (dev->drv->wait_until_sent)
 				dev->drv->wait_until_sent(dev);
 			next_state = SIRDEV_STATE_TX_DONE;
@@ -88,16 +75,7 @@ static int sirdev_tx_complete_fsm(struct sir_dev *dev)
 	return delay;
 }
 
-/*
- * Function sirdev_config_fsm
- *
- * State machine to handle the configuration of the device (and attached dongle, if any).
- * This handler is scheduled for execution in kIrDAd context, so we can sleep.
- * however, kIrDAd is shared by all sir_dev devices so we better don't sleep there too
- * long. Instead, for longer delays we start a timer to reschedule us later.
- * On entry, fsm->sem is always locked and the netdev xmit queue stopped.
- * Both must be unlocked/restarted on completion - but only on final exit.
- */
+
 
 static void sirdev_config_fsm(struct work_struct *work)
 {
@@ -128,7 +106,7 @@ static void sirdev_config_fsm(struct work_struct *work)
 				}
 			}
 
-			/* Initialize dongle */
+			
 			ret = sirdev_get_dongle(dev, fsm->param);
 			if (ret) {
 				fsm->result = ret;
@@ -136,11 +114,7 @@ static void sirdev_config_fsm(struct work_struct *work)
 				break;
 			}
 
-			/* Dongles are powered through the modem control lines which
-			 * were just set during open. Before resetting, let's wait for
-			 * the power to stabilize. This is what some dongle drivers did
-			 * in open before, while others didn't - should be safe anyway.
-			 */
+			
 
 			delay = 50;
 			fsm->substate = SIRDEV_STATE_DONGLE_RESET;
@@ -151,7 +125,7 @@ static void sirdev_config_fsm(struct work_struct *work)
 			break;
 
 		case SIRDEV_STATE_DONGLE_CLOSE:
-			/* shouldn't we just treat this as success=? */
+			
 			if (dev->dongle_drv == NULL) {
 				fsm->result = -EINVAL;
 				next_state = SIRDEV_STATE_ERROR;
@@ -211,7 +185,7 @@ static void sirdev_config_fsm(struct work_struct *work)
 			else
 				ret = 0;
 			if ((delay=ret) == 0) {
-				/* set serial port according to dongle default speed */
+				
 				if (dev->drv->set_speed)
 					dev->drv->set_speed(dev, dev->speed);
 				fsm->substate = SIRDEV_STATE_DONGLE_SPEED;
@@ -235,7 +209,7 @@ static void sirdev_config_fsm(struct work_struct *work)
 			break;
 
 		case SIRDEV_STATE_PORT_SPEED:
-			/* Finally we are ready to change the serial port speed */
+			
 			if (dev->drv->set_speed)
 				dev->drv->set_speed(dev, dev->speed);
 			dev->new_speed = 0;
@@ -243,7 +217,7 @@ static void sirdev_config_fsm(struct work_struct *work)
 			break;
 
 		case SIRDEV_STATE_DONE:
-			/* Signal network layer so it can send more frames */
+			
 			netif_wake_queue(dev->netdev);
 			next_state = SIRDEV_STATE_COMPLETE;
 			break;
@@ -251,20 +225,20 @@ static void sirdev_config_fsm(struct work_struct *work)
 		default:
 			IRDA_ERROR("%s - undefined state\n", __func__);
 			fsm->result = -EINVAL;
-			/* fall thru */
+			
 
 		case SIRDEV_STATE_ERROR:
 			IRDA_ERROR("%s - error: %d\n", __func__, fsm->result);
 
-#if 0	/* don't enable this before we have netdev->tx_timeout to recover */
+#if 0	
 			netif_stop_queue(dev->netdev);
 #else
 			netif_wake_queue(dev->netdev);
 #endif
-			/* fall thru */
+			
 
 		case SIRDEV_STATE_COMPLETE:
-			/* config change finished, so we are not busy any longer */
+			
 			sirdev_enable_rx(dev);
 			up(&fsm->sem);
 			return;
@@ -275,10 +249,7 @@ static void sirdev_config_fsm(struct work_struct *work)
 	queue_delayed_work(irda_sir_wq, &fsm->work, msecs_to_jiffies(delay));
 }
 
-/* schedule some device configuration task for execution by kIrDAd
- * on behalf of the above state machine.
- * can be called from process or interrupt/tasklet context.
- */
+
 
 int sirdev_schedule_request(struct sir_dev *dev, int initial_state, unsigned param)
 {
@@ -296,10 +267,10 @@ int sirdev_schedule_request(struct sir_dev *dev, int initial_state, unsigned par
 	}
 
 	if (fsm->state == SIRDEV_STATE_DEAD) {
-		/* race with sirdev_close should never happen */
+		
 		IRDA_ERROR("%s(), instance staled!\n", __func__);
 		up(&fsm->sem);
-		return -ESTALE;		/* or better EPIPE? */
+		return -ESTALE;		
 	}
 
 	netif_stop_queue(dev->netdev);
@@ -315,14 +286,14 @@ int sirdev_schedule_request(struct sir_dev *dev, int initial_state, unsigned par
 }
 
 
-/***************************************************************************/
+
 
 void sirdev_enable_rx(struct sir_dev *dev)
 {
 	if (unlikely(atomic_read(&dev->enable_rx)))
 		return;
 
-	/* flush rx-buffer - should also help in case of problems with echo cancelation */
+	
 	dev->rx_buff.data = dev->rx_buff.head;
 	dev->rx_buff.len = 0;
 	dev->rx_buff.in_frame = FALSE;
@@ -347,14 +318,14 @@ int sirdev_set_dongle(struct sir_dev *dev, IRDA_DONGLE type)
 	err = sirdev_schedule_dongle_open(dev, type);
 	if (unlikely(err))
 		return err;
-	down(&dev->fsm.sem);		/* block until config change completed */
+	down(&dev->fsm.sem);		
 	err = dev->fsm.result;
 	up(&dev->fsm.sem);
 	return err;
 }
 EXPORT_SYMBOL(sirdev_set_dongle);
 
-/* used by dongle drivers for dongle programming */
+
 
 int sirdev_raw_write(struct sir_dev *dev, const char *buf, int len)
 {
@@ -364,8 +335,8 @@ int sirdev_raw_write(struct sir_dev *dev, const char *buf, int len)
 	if (unlikely(len > dev->tx_buff.truesize))
 		return -ENOSPC;
 
-	spin_lock_irqsave(&dev->tx_lock, flags);	/* serialize with other tx operations */
-	while (dev->tx_buff.len > 0) {			/* wait until tx idle */
+	spin_lock_irqsave(&dev->tx_lock, flags);	
+	while (dev->tx_buff.len > 0) {			
 		spin_unlock_irqrestore(&dev->tx_lock, flags);
 		msleep(10);
 		spin_lock_irqsave(&dev->tx_lock, flags);
@@ -382,21 +353,21 @@ int sirdev_raw_write(struct sir_dev *dev, const char *buf, int len)
 		dev->tx_buff.data += ret;
 		dev->tx_buff.len -= ret;
 		dev->raw_tx = 1;
-		ret = len;		/* all data is going to be sent */
+		ret = len;		
 	}
 	spin_unlock_irqrestore(&dev->tx_lock, flags);
 	return ret;
 }
 EXPORT_SYMBOL(sirdev_raw_write);
 
-/* seems some dongle drivers may need this */
+
 
 int sirdev_raw_read(struct sir_dev *dev, char *buf, int len)
 {
 	int count;
 
 	if (atomic_read(&dev->enable_rx))
-		return -EIO;		/* fail if we expect irda-frames */
+		return -EIO;		
 
 	count = (len < dev->rx_buff.len) ? len : dev->rx_buff.len;
 
@@ -406,7 +377,7 @@ int sirdev_raw_read(struct sir_dev *dev, char *buf, int len)
 		dev->rx_buff.len -= count;
 	}
 
-	/* remaining stuff gets flushed when re-enabling normal rx */
+	
 
 	return count;
 }
@@ -421,12 +392,9 @@ int sirdev_set_dtr_rts(struct sir_dev *dev, int dtr, int rts)
 }
 EXPORT_SYMBOL(sirdev_set_dtr_rts);
 
-/**********************************************************************/
 
-/* called from client driver - likely with bh-context - to indicate
- * it made some progress with transmission. Hence we send the next
- * chunk, if any, or complete the skb otherwise
- */
+
+
 
 void sirdev_write_complete(struct sir_dev *dev)
 {
@@ -441,7 +409,7 @@ void sirdev_write_complete(struct sir_dev *dev)
 		   __func__, dev->tx_buff.len);
 
 	if (likely(dev->tx_buff.len > 0))  {
-		/* Write data left in transmit buffer */
+		
 		actual = dev->drv->do_write(dev, dev->tx_buff.data, dev->tx_buff.len);
 
 		if (likely(actual>0)) {
@@ -449,7 +417,7 @@ void sirdev_write_complete(struct sir_dev *dev)
 			dev->tx_buff.len  -= actual;
 		}
 		else if (unlikely(actual<0)) {
-			/* could be dropped later when we have tx_timeout to recover */
+			
 			IRDA_ERROR("%s: drv->do_write failed (%d)\n",
 				   __func__, actual);
 			if ((skb=dev->tx_skb) != NULL) {
@@ -461,33 +429,18 @@ void sirdev_write_complete(struct sir_dev *dev)
 			dev->tx_buff.len = 0;
 		}
 		if (dev->tx_buff.len > 0)
-			goto done;	/* more data to send later */
+			goto done;	
 	}
 
 	if (unlikely(dev->raw_tx != 0)) {
-		/* in raw mode we are just done now after the buffer was sent
-		 * completely. Since this was requested by some dongle driver
-		 * running under the control of the irda-thread we must take
-		 * care here not to re-enable the queue. The queue will be
-		 * restarted when the irda-thread has completed the request.
-		 */
+		
 
 		IRDA_DEBUG(3, "%s(), raw-tx done\n", __func__);
 		dev->raw_tx = 0;
-		goto done;	/* no post-frame handling in raw mode */
+		goto done;	
 	}
 
-	/* we have finished now sending this skb.
-	 * update statistics and free the skb.
-	 * finally we check and trigger a pending speed change, if any.
-	 * if not we switch to rx mode and wake the queue for further
-	 * packets.
-	 * note the scheduled speed request blocks until the lower
-	 * client driver and the corresponding hardware has really
-	 * finished sending all data (xmit fifo drained f.e.)
-	 * before the speed change gets finally done and the queue
-	 * re-activated.
-	 */
+	
 
 	IRDA_DEBUG(5, "%s(), finished with frame!\n", __func__);
 		
@@ -502,18 +455,12 @@ void sirdev_write_complete(struct sir_dev *dev)
 		IRDA_DEBUG(5, "%s(), Changing speed!\n", __func__);
 		err = sirdev_schedule_speed(dev, dev->new_speed);
 		if (unlikely(err)) {
-			/* should never happen
-			 * forget the speed change and hope the stack recovers
-			 */
+			
 			IRDA_ERROR("%s - schedule speed change failed: %d\n",
 				   __func__, err);
 			netif_wake_queue(dev->netdev);
 		}
-		/* else: success
-		 *	speed change in progress now
-		 *	on completion dev->new_speed gets cleared,
-		 *	rx-reenabled and the queue restarted
-		 */
+		
 	}
 	else {
 		sirdev_enable_rx(dev);
@@ -525,10 +472,7 @@ done:
 }
 EXPORT_SYMBOL(sirdev_write_complete);
 
-/* called from client driver - likely with bh-context - to give us
- * some more received bytes. We put them into the rx-buffer,
- * normally unwrapping and building LAP-skb's (unless rx disabled)
- */
+
 
 int sirdev_receive(struct sir_dev *dev, const unsigned char *cp, size_t count) 
 {
@@ -544,31 +488,25 @@ int sirdev_receive(struct sir_dev *dev, const unsigned char *cp, size_t count)
 	}
 
 	if (cp==NULL) {
-		/* error already at lower level receive
-		 * just update stats and set media busy
-		 */
+		
 		irda_device_set_media_busy(dev->netdev, TRUE);
 		dev->netdev->stats.rx_dropped++;
 		IRDA_DEBUG(0, "%s; rx-drop: %zd\n", __func__, count);
 		return 0;
 	}
 
-	/* Read the characters into the buffer */
+	
 	if (likely(atomic_read(&dev->enable_rx))) {
 		while (count--)
-			/* Unwrap and destuff one byte */
+			
 			async_unwrap_char(dev->netdev, &dev->netdev->stats,
 					  &dev->rx_buff, *cp++);
 	} else {
 		while (count--) {
-			/* rx not enabled: save the raw bytes and never
-			 * trigger any netif_rx. The received bytes are flushed
-			 * later when we re-enable rx but might be read meanwhile
-			 * by the dongle driver.
-			 */
+			
 			dev->rx_buff.data[dev->rx_buff.len++] = *cp++;
 
-			/* What should we do when the buffer is full? */
+			
 			if (unlikely(dev->rx_buff.len == dev->rx_buff.truesize))
 				dev->rx_buff.len = 0;
 		}
@@ -578,9 +516,9 @@ int sirdev_receive(struct sir_dev *dev, const unsigned char *cp, size_t count)
 }
 EXPORT_SYMBOL(sirdev_receive);
 
-/**********************************************************************/
 
-/* callbacks from network layer */
+
+
 
 static netdev_tx_t sirdev_hard_xmit(struct sk_buff *skb,
 					  struct net_device *ndev)
@@ -602,24 +540,14 @@ static netdev_tx_t sirdev_hard_xmit(struct sk_buff *skb,
 		if (!skb->len) {
 			err = sirdev_schedule_speed(dev, speed);
 			if (unlikely(err == -EWOULDBLOCK)) {
-				/* Failed to initiate the speed change, likely the fsm
-				 * is still busy (pretty unlikely, but...)
-				 * We refuse to accept the skb and return with the queue
-				 * stopped so the network layer will retry after the
-				 * fsm completes and wakes the queue.
-				 */
+				
 				 return NETDEV_TX_BUSY;
 			}
 			else if (unlikely(err)) {
-				/* other fatal error - forget the speed change and
-				 * hope the stack will recover somehow
-				 */
+				
 				 netif_start_queue(ndev);
 			}
-			/* else: success
-			 *	speed change in progress now
-			 *	on completion the queue gets restarted
-			 */
+			
 
 			dev_kfree_skb_any(skb);
 			return NETDEV_TX_OK;
@@ -627,25 +555,21 @@ static netdev_tx_t sirdev_hard_xmit(struct sk_buff *skb,
 			dev->new_speed = speed;
 	}
 
-	/* Init tx buffer*/
+	
 	dev->tx_buff.data = dev->tx_buff.head;
 
-	/* Check problems */
+	
 	if(spin_is_locked(&dev->tx_lock)) {
 		IRDA_DEBUG(3, "%s(), write not completed\n", __func__);
 	}
 
-	/* serialize with write completion */
+	
 	spin_lock_irqsave(&dev->tx_lock, flags);
 
-        /* Copy skb to tx_buff while wrapping, stuffing and making CRC */
+        
 	dev->tx_buff.len = async_wrap_skb(skb, dev->tx_buff.data, dev->tx_buff.truesize); 
 
-	/* transmission will start now - disable receive.
-	 * if we are just in the middle of an incoming frame,
-	 * treat it as collision. probably it's a good idea to
-	 * reset the rx_buf OUTSIDE_FRAME in this case too?
-	 */
+	
 	atomic_set(&dev->enable_rx, 0);
 	if (unlikely(sirdev_is_receiving(dev)))
 		dev->netdev->stats.collisions++;
@@ -659,7 +583,7 @@ static netdev_tx_t sirdev_hard_xmit(struct sk_buff *skb,
 		dev->tx_buff.len -= actual;
 	}
 	else if (unlikely(actual < 0)) {
-		/* could be dropped later when we have tx_timeout to recover */
+		
 		IRDA_ERROR("%s: drv->do_write failed (%d)\n",
 			   __func__, actual);
 		dev_kfree_skb_any(skb);
@@ -672,7 +596,7 @@ static netdev_tx_t sirdev_hard_xmit(struct sk_buff *skb,
 	return NETDEV_TX_OK;
 }
 
-/* called from network layer with rtnl hold */
+
 
 static int sirdev_ioctl(struct net_device *ndev, struct ifreq *rq, int cmd)
 {
@@ -685,34 +609,30 @@ static int sirdev_ioctl(struct net_device *ndev, struct ifreq *rq, int cmd)
 	IRDA_DEBUG(3, "%s(), %s, (cmd=0x%X)\n", __func__, ndev->name, cmd);
 	
 	switch (cmd) {
-	case SIOCSBANDWIDTH: /* Set bandwidth */
+	case SIOCSBANDWIDTH: 
 		if (!capable(CAP_NET_ADMIN))
 			ret = -EPERM;
 		else
 			ret = sirdev_schedule_speed(dev, irq->ifr_baudrate);
-		/* cannot sleep here for completion
-		 * we are called from network layer with rtnl hold
-		 */
+		
 		break;
 
-	case SIOCSDONGLE: /* Set dongle */
+	case SIOCSDONGLE: 
 		if (!capable(CAP_NET_ADMIN))
 			ret = -EPERM;
 		else
 			ret = sirdev_schedule_dongle_open(dev, irq->ifr_dongle);
-		/* cannot sleep here for completion
-		 * we are called from network layer with rtnl hold
-		 */
+		
 		break;
 
-	case SIOCSMEDIABUSY: /* Set media busy */
+	case SIOCSMEDIABUSY: 
 		if (!capable(CAP_NET_ADMIN))
 			ret = -EPERM;
 		else
 			irda_device_set_media_busy(dev->netdev, TRUE);
 		break;
 
-	case SIOCGRECEIVING: /* Check if we are receiving right now */
+	case SIOCGRECEIVING: 
 		irq->ifr_receiving = sirdev_is_receiving(dev);
 		break;
 
@@ -721,9 +641,7 @@ static int sirdev_ioctl(struct net_device *ndev, struct ifreq *rq, int cmd)
 			ret = -EPERM;
 		else
 			ret = sirdev_schedule_dtr_rts(dev, irq->ifr_dtr, irq->ifr_rts);
-		/* cannot sleep here for completion
-		 * we are called from network layer with rtnl hold
-		 */
+		
 		break;
 
 	case SIOCSMODE:
@@ -732,9 +650,7 @@ static int sirdev_ioctl(struct net_device *ndev, struct ifreq *rq, int cmd)
 			ret = -EPERM;
 		else
 			ret = sirdev_schedule_mode(dev, irq->ifr_mode);
-		/* cannot sleep here for completion
-		 * we are called from network layer with rtnl hold
-		 */
+		
 		break;
 #endif
 	default:
@@ -744,16 +660,16 @@ static int sirdev_ioctl(struct net_device *ndev, struct ifreq *rq, int cmd)
 	return ret;
 }
 
-/* ----------------------------------------------------------------------------- */
 
-#define SIRBUF_ALLOCSIZE 4269	/* worst case size of a wrapped IrLAP frame */
+
+#define SIRBUF_ALLOCSIZE 4269	
 
 static int sirdev_alloc_buffers(struct sir_dev *dev)
 {
 	dev->tx_buff.truesize = SIRBUF_ALLOCSIZE;
 	dev->rx_buff.truesize = IRDA_SKB_MAX_MTU; 
 
-	/* Bootstrap ZeroCopy Rx */
+	
 	dev->rx_buff.skb = __netdev_alloc_skb(dev->netdev, dev->rx_buff.truesize,
 					      GFP_KERNEL);
 	if (dev->rx_buff.skb == NULL)
@@ -795,7 +711,7 @@ static int sirdev_open(struct net_device *ndev)
 	if (!drv)
 		return -ENODEV;
 
-	/* increase the reference count of the driver module before doing serious stuff */
+	
 	if (!try_module_get(drv->owner))
 		return -ESTALE;
 
@@ -837,11 +753,11 @@ static int sirdev_close(struct net_device *ndev)
 	struct sir_dev *dev = netdev_priv(ndev);
 	const struct sir_driver *drv;
 
-//	IRDA_DEBUG(0, "%s\n", __func__);
+
 
 	netif_stop_queue(ndev);
 
-	down(&dev->fsm.sem);		/* block on pending config completion */
+	down(&dev->fsm.sem);		
 
 	atomic_set(&dev->enable_rx, 0);
 
@@ -872,7 +788,7 @@ static const struct net_device_ops sirdev_ops = {
 	.ndo_stop	= sirdev_close,
 	.ndo_do_ioctl	= sirdev_ioctl,
 };
-/* ----------------------------------------------------------------------------- */
+
 
 struct sir_dev * sirdev_get_instance(const struct sir_driver *drv, const char *name)
 {
@@ -881,16 +797,11 @@ struct sir_dev * sirdev_get_instance(const struct sir_driver *drv, const char *n
 
 	IRDA_DEBUG(0, "%s - %s\n", __func__, name);
 
-	/* instead of adding tests to protect against drv->do_write==NULL
-	 * at several places we refuse to create a sir_dev instance for
-	 * drivers which don't implement do_write.
-	 */
+	
 	if (!drv ||  !drv->do_write)
 		return NULL;
 
-	/*
-	 *  Allocate new instance of the device
-	 */
+	
 	ndev = alloc_irdadev(sizeof(*dev));
 	if (ndev == NULL) {
 		IRDA_ERROR("%s - Can't allocate memory for IrDA control block!\n", __func__);
@@ -914,7 +825,7 @@ struct sir_dev * sirdev_get_instance(const struct sir_driver *drv, const char *n
 	dev->drv = drv;
 	dev->netdev = ndev;
 
-	/* Override the network functions we need to use */
+	
 	ndev->netdev_ops = &sirdev_ops;
 
 	if (register_netdev(ndev)) {
@@ -950,12 +861,12 @@ int sirdev_put_instance(struct sir_dev *dev)
 	sirdev_close(dev->netdev);
 
 	down(&dev->fsm.sem);
-	dev->fsm.state = SIRDEV_STATE_DEAD;	/* mark staled */
+	dev->fsm.state = SIRDEV_STATE_DEAD;	
 	dev->dongle_drv = NULL;
 	dev->priv = NULL;
 	up(&dev->fsm.sem);
 
-	/* Remove netdevice */
+	
 	unregister_netdev(dev->netdev);
 
 	free_netdev(dev->netdev);

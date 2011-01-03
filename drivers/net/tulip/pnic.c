@@ -1,17 +1,4 @@
-/*
-	drivers/net/tulip/pnic.c
 
-	Copyright 2000,2001  The Linux Kernel Team
-	Written/copyright 1994-2001 by Donald Becker.
-
-	This software may be used and distributed according to the terms
-	of the GNU General Public License, incorporated herein by reference.
-
-	Please refer to Documentation/DocBook/tulip-user.{pdf,ps,html}
-	for more information on this driver.
-
-	Please submit bugs to http://bugzilla.kernel.org/ .
-*/
 
 #include <linux/kernel.h>
 #include <linux/jiffies.h>
@@ -25,7 +12,7 @@ void pnic_do_nway(struct net_device *dev)
 	u32 phy_reg = ioread32(ioaddr + 0xB8);
 	u32 new_csr6 = tp->csr6 & ~0x40C40200;
 
-	if (phy_reg & 0x78000000) { /* Ignore baseT4 */
+	if (phy_reg & 0x78000000) { 
 		if (phy_reg & 0x20000000)		dev->if_port = 5;
 		else if (phy_reg & 0x40000000)	dev->if_port = 3;
 		else if (phy_reg & 0x10000000)	dev->if_port = 4;
@@ -44,7 +31,7 @@ void pnic_do_nway(struct net_device *dev)
 				   dev->name, phy_reg, medianame[dev->if_port]);
 		if (tp->csr6 != new_csr6) {
 			tp->csr6 = new_csr6;
-			/* Restart Tx */
+			
 			tulip_restart_rxtx(tp);
 			dev->trans_start = jiffies;
 		}
@@ -62,16 +49,14 @@ void pnic_lnk_change(struct net_device *dev, int csr5)
 			   dev->name, phy_reg, csr5);
 	if (ioread32(ioaddr + CSR5) & TPLnkFail) {
 		iowrite32((ioread32(ioaddr + CSR7) & ~TPLnkFail) | TPLnkPass, ioaddr + CSR7);
-		/* If we use an external MII, then we mustn't use the
-		 * internal negotiation.
-		 */
+		
 		if (tulip_media_cap[dev->if_port] & MediaIsMII)
 			return;
 		if (! tp->nwayset  ||  time_after(jiffies, dev->trans_start + 1*HZ)) {
 			tp->csr6 = 0x00420000 | (tp->csr6 & 0x0000fdff);
 			iowrite32(tp->csr6, ioaddr + CSR6);
 			iowrite32(0x30, ioaddr + CSR12);
-			iowrite32(0x0201F078, ioaddr + 0xB8); /* Turn on autonegotiation. */
+			iowrite32(0x0201F078, ioaddr + 0xB8); 
 			dev->trans_start = jiffies;
 		}
 	} else if (ioread32(ioaddr + CSR5) & TPLnkPass) {
@@ -94,11 +79,7 @@ void pnic_timer(unsigned long data)
 	int next_tick = 60*HZ;
 
 	if(!ioread32(ioaddr + CSR7)) {
-		/* the timer was called due to a work overflow
-		 * in the interrupt handler. Skip the connection
-		 * checks, the nic is definitively speaking with
-		 * his link partner.
-		 */
+		
 		goto too_good_connection;
 	}
 
@@ -117,14 +98,14 @@ void pnic_timer(unsigned long data)
 			printk(KERN_DEBUG "%s: PNIC timer PHY status %8.8x, %s "
 				   "CSR5 %8.8x.\n",
 				   dev->name, phy_reg, medianame[dev->if_port], csr5);
-		if (phy_reg & 0x04000000) {	/* Remote link fault */
+		if (phy_reg & 0x04000000) {	
 			iowrite32(0x0201F078, ioaddr + 0xB8);
 			next_tick = 1*HZ;
 			tp->nwayset = 0;
-		} else if (phy_reg & 0x78000000) { /* Ignore baseT4 */
+		} else if (phy_reg & 0x78000000) { 
 			pnic_do_nway(dev);
 			next_tick = 60*HZ;
-		} else if (csr5 & TPLnkFail) { /* 100baseTx link beat */
+		} else if (csr5 & TPLnkFail) { 
 			if (tulip_debug > 1)
 				printk(KERN_DEBUG "%s: %s link beat failed, CSR12 %4.4x, "
 					   "CSR5 %8.8x, PHY %3.3x.\n",
@@ -147,7 +128,7 @@ void pnic_timer(unsigned long data)
 			}
 			if (tp->csr6 != new_csr6) {
 				tp->csr6 = new_csr6;
-				/* Restart Tx */
+				
 				tulip_restart_rxtx(tp);
 				dev->trans_start = jiffies;
 				if (tulip_debug > 1)

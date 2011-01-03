@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2007 Freescale Semiconductor, Inc. All rights reserved.
- *
- * Description: QE UCC Gigabit Ethernet Ethtool API Set
- *
- * Author: Li Yang <leoli@freescale.com>
- *
- * Limitation:
- * Can only get/set setttings of the first queue.
- * Need to re-open the interface manually after changing some parameters.
- *
- * This program is free software; you can redistribute  it and/or modify it
- * under  the terms of  the GNU General  Public License as published by the
- * Free Software Foundation;  either version 2 of the  License, or (at your
- * option) any later version.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -160,7 +145,7 @@ uec_set_pauseparam(struct net_device *netdev,
 
 	if (ugeth->phydev->autoneg) {
 		if (netif_running(netdev)) {
-			/* FIXME: automatically restart */
+			
 			printk(KERN_INFO
 				"Please re-open the interface.\n");
 		}
@@ -260,7 +245,7 @@ uec_set_ringparam(struct net_device *netdev,
 	ug_info->bdRingLenTx[queue] = ring->tx_pending;
 
 	if (netif_running(netdev)) {
-		/* FIXME: restart automatically */
+		
 		printk(KERN_INFO
 			"Please re-open the interface.\n");
 	}
@@ -346,7 +331,7 @@ static int uec_nway_reset(struct net_device *netdev)
 	return phy_start_aneg(ugeth->phydev);
 }
 
-/* Report driver information */
+
 static void
 uec_get_drvinfo(struct net_device *netdev,
                        struct ethtool_drvinfo *drvinfo)
@@ -395,7 +380,7 @@ static int uec_set_wol(struct net_device *netdev, struct ethtool_wolinfo *wol)
 #else
 #define uec_get_wol NULL
 #define uec_set_wol NULL
-#endif /* CONFIG_PM */
+#endif 
 
 static const struct ethtool_ops uec_ethtool_ops = {
 	.get_settings           = uec_get_settings,

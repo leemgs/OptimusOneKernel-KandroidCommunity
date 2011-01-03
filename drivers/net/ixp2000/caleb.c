@@ -1,13 +1,4 @@
-/*
- * Helper functions for the SPI-3 bridge FPGA on the Radisys ENP2611
- * Copyright (C) 2004, 2005 Lennert Buytenhek <buytenh@wantstofly.org>
- * Dedicated to Marija Kulikova.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/delay.h>
@@ -49,7 +40,7 @@ static u8 caleb_reg_read(int reg)
 
 	value = *((volatile u8 *)(ENP2611_CALEB_VIRT_BASE + reg));
 
-//	printk(KERN_INFO "caleb_reg_read(%d) = %.2x\n", reg, value);
+
 
 	return value;
 }
@@ -58,7 +49,7 @@ static void caleb_reg_write(int reg, u8 value)
 {
 	u8 dummy;
 
-//	printk(KERN_INFO "caleb_reg_write(%d, %.2x)\n", reg, value);
+
 
 	*((volatile u8 *)(ENP2611_CALEB_VIRT_BASE + reg)) = value;
 
@@ -69,34 +60,24 @@ static void caleb_reg_write(int reg, u8 value)
 
 void caleb_reset(void)
 {
-	/*
-	 * Perform a chip reset.
-	 */
+	
 	caleb_reg_write(CALEB_RESET, 0x02);
 	udelay(1);
 
-	/*
-	 * Enable all interrupt sources.  This is needed to get
-	 * meaningful results out of the status bits (register 6
-	 * and 7.)
-	 */
+	
 	caleb_reg_write(CALEB_INTREN0, 0xff);
 	caleb_reg_write(CALEB_INTREN1, 0x07);
 
-	/*
-	 * Set RX and TX FIFO thresholds to 1.5kb.
-	 */
+	
 	caleb_reg_write(CALEB_PHY0RX, 0x11);
 	caleb_reg_write(CALEB_PHY1RX, 0x11);
 	caleb_reg_write(CALEB_PHY0TX, 0x11);
 	caleb_reg_write(CALEB_PHY1TX, 0x11);
 
-	/*
-	 * Program SPI-3 burst size.
-	 */
-	caleb_reg_write(CALEB_BURST, 0);	// 64-byte RBUF mpackets
-//	caleb_reg_write(CALEB_BURST, 1);	// 128-byte RBUF mpackets
-//	caleb_reg_write(CALEB_BURST, 2);	// 256-byte RBUF mpackets
+	
+	caleb_reg_write(CALEB_BURST, 0);	
+
+
 }
 
 void caleb_enable_rx(int port)

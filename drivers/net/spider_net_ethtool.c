@@ -1,25 +1,4 @@
-/*
- * Network device driver for Cell Processor-Based Blade
- *
- * (C) Copyright IBM Corp. 2005
- *
- * Authors : Utz Bacher <utz.bacher@de.ibm.com>
- *           Jens Osterkamp <Jens.Osterkamp@de.ibm.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/netdevice.h>
 #include <linux/ethtool.h>
@@ -71,7 +50,7 @@ spider_net_ethtool_get_drvinfo(struct net_device *netdev,
 	struct spider_net_card *card;
 	card = netdev_priv(netdev);
 
-	/* clear and fill out info */
+	
 	memset(drvinfo, 0, sizeof(struct ethtool_drvinfo));
 	strncpy(drvinfo->driver, spider_net_driver_name, 32);
 	strncpy(drvinfo->version, VERSION, 32);
@@ -83,7 +62,7 @@ static void
 spider_net_ethtool_get_wol(struct net_device *netdev,
 			   struct ethtool_wolinfo *wolinfo)
 {
-	/* no support for wol */
+	
 	wolinfo->supported = 0;
 	wolinfo->wolopts = 0;
 }

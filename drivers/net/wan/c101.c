@@ -1,18 +1,4 @@
-/*
- * Moxa C101 synchronous serial card driver for Linux
- *
- * Copyright (C) 2000-2003 Krzysztof Halasa <khc@pm.waw.pl>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of version 2 of the GNU General Public License
- * as published by the Free Software Foundation.
- *
- * For information see <http://www.kernel.org/pub/linux/utils/net/hdlc/>
- *
- * Sources of information:
- *    Hitachi HD64570 SCA User's Manual
- *    Moxa C101 User's Manual
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -48,29 +34,29 @@ static const char* devname = "C101";
 #define RX_RING_BUFFERS ((RAM_SIZE - C101_WINDOW_SIZE) /		\
 			 (sizeof(pkt_desc) + HDLC_MAX_MRU) - TX_RING_BUFFERS)
 
-#define CLOCK_BASE 9830400	/* 9.8304 MHz */
+#define CLOCK_BASE 9830400	
 #define PAGE0_ALWAYS_MAPPED
 
-static char *hw;		/* pointer to hw=xxx command line string */
+static char *hw;		
 
 
 typedef struct card_s {
 	struct net_device *dev;
-	spinlock_t lock;	/* TX lock */
-	u8 __iomem *win0base;	/* ISA window base address */
-	u32 phy_winbase;	/* ISA physical base address */
+	spinlock_t lock;	
+	u8 __iomem *win0base;	
+	u32 phy_winbase;	
 	sync_serial_settings settings;
-	int rxpart;		/* partial frame received, next frame invalid*/
+	int rxpart;		
 	unsigned short encoding;
 	unsigned short parity;
-	u16 rx_ring_buffers;	/* number of buffers in a ring */
+	u16 rx_ring_buffers;	
 	u16 tx_ring_buffers;
-	u16 buff_offset;	/* offset of first buffer of first channel */
-	u16 rxin;		/* rx ring buffer 'in' pointer */
-	u16 txin;		/* tx ring buffer 'in' and 'last' pointers */
+	u16 buff_offset;	
+	u16 rxin;		
+	u16 txin;		
 	u16 txlast;
-	u8 rxs, txs, tmc;	/* SCA registers */
-	u8 irq;			/* IRQ (3-15) */
+	u8 rxs, txs, tmc;	
+	u8 irq;			
 	u8 page;
 
 	struct card_s *next_card;
@@ -86,7 +72,7 @@ static card_t **new_card = &first_card;
 #define sca_out(value, reg, card)  writeb(value, (card)->win0base + C101_SCA + (reg))
 #define sca_inw(reg, card)	   readw((card)->win0base + C101_SCA + (reg))
 
-/* EDA address register must be set in EDAL, EDAH order - 8 bit ISA bus */
+
 #define sca_outw(value, reg, card) do { \
 	writeb(value & 0xFF, (card)->win0base + C101_SCA + (reg)); \
 	writeb((value >> 8 ) & 0xFF, (card)->win0base + C101_SCA + (reg + 1));\
@@ -128,19 +114,19 @@ static inline void set_carrier(port_t *port)
 
 static void sca_msci_intr(port_t *port)
 {
-	u8 stat = sca_in(MSCI0_OFFSET + ST1, port); /* read MSCI ST1 status */
+	u8 stat = sca_in(MSCI0_OFFSET + ST1, port); 
 
-	/* Reset MSCI TX underrun and CDCD (ignored) status bit */
+	
 	sca_out(stat & (ST1_UDRN | ST1_CDCD), MSCI0_OFFSET + ST1, port);
 
 	if (stat & ST1_UDRN) {
-		/* TX Underrun error detected */
+		
 		port_to_dev(port)->stats.tx_errors++;
 		port_to_dev(port)->stats.tx_fifo_errors++;
 	}
 
-	stat = sca_in(MSCI1_OFFSET + ST1, port); /* read MSCI1 ST1 status */
-	/* Reset MSCI CDCD status bit - uses ch#2 DCD input */
+	stat = sca_in(MSCI1_OFFSET + ST1, port); 
+	
 	sca_out(stat & ST1_CDCD, MSCI1_OFFSET + ST1, port);
 
 	if (stat & ST1_CDCD)
@@ -155,23 +141,23 @@ static void c101_set_iface(port_t *port)
 
 	switch(port->settings.clock_type) {
 	case CLOCK_INT:
-		rxs |= CLK_BRG_RX; /* TX clock */
-		txs |= CLK_RXCLK_TX; /* BRG output */
+		rxs |= CLK_BRG_RX; 
+		txs |= CLK_RXCLK_TX; 
 		break;
 
 	case CLOCK_TXINT:
-		rxs |= CLK_LINE_RX; /* RXC input */
-		txs |= CLK_BRG_TX; /* BRG output */
+		rxs |= CLK_LINE_RX; 
+		txs |= CLK_BRG_TX; 
 		break;
 
 	case CLOCK_TXFROMRX:
-		rxs |= CLK_LINE_RX; /* RXC input */
-		txs |= CLK_RXCLK_TX; /* RX clock */
+		rxs |= CLK_LINE_RX; 
+		txs |= CLK_RXCLK_TX; 
 		break;
 
-	default:	/* EXTernal clock */
-		rxs |= CLK_LINE_RX; /* RXC input */
-		txs |= CLK_LINE_TX; /* TXC input */
+	default:	
+		rxs |= CLK_LINE_RX; 
+		txs |= CLK_LINE_TX; 
 	}
 
 	port->rxs = rxs;
@@ -192,18 +178,18 @@ static int c101_open(struct net_device *dev)
 		return result;
 
 	writeb(1, port->win0base + C101_DTR);
-	sca_out(0, MSCI1_OFFSET + CTL, port); /* RTS uses ch#2 output */
+	sca_out(0, MSCI1_OFFSET + CTL, port); 
 	sca_open(dev);
-	/* DCD is connected to port 2 !@#$%^& - disable MSCI0 CDCD interrupt */
+	
 	sca_out(IE1_UDRN, MSCI0_OFFSET + IE1, port);
 	sca_out(IE0_TXINT, MSCI0_OFFSET + IE0, port);
 
 	set_carrier(port);
 
-	/* enable MSCI1 CDCD interrupt */
+	
 	sca_out(IE1_CDCD, MSCI1_OFFSET + IE1, port);
 	sca_out(IE0_RXINTA, MSCI1_OFFSET + IE0, port);
-	sca_out(0x48, IER0, port); /* TXINT #0 and RXINT #1 */
+	sca_out(0x48, IER0, port); 
 	c101_set_iface(port);
 	return 0;
 }
@@ -246,7 +232,7 @@ static int c101_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 	case IF_GET_IFACE:
 		ifr->ifr_settings.type = IF_IFACE_SYNC_SERIAL;
 		if (ifr->ifr_settings.size < size) {
-			ifr->ifr_settings.size = size; /* data size wanted */
+			ifr->ifr_settings.size = size; 
 			return -ENOBUFS;
 		}
 		if (copy_to_user(line, &port->settings, size))
@@ -264,12 +250,12 @@ static int c101_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 		    new_line.clock_type != CLOCK_TXFROMRX &&
 		    new_line.clock_type != CLOCK_INT &&
 		    new_line.clock_type != CLOCK_TXINT)
-		return -EINVAL;	/* No such clock setting */
+		return -EINVAL;	
 
 		if (new_line.loopback != 0 && new_line.loopback != 1)
 			return -EINVAL;
 
-		memcpy(&port->settings, &new_line, size); /* Update settings */
+		memcpy(&port->settings, &new_line, size); 
 		c101_set_iface(port);
 		return 0;
 
@@ -282,7 +268,7 @@ static int c101_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 
 static void c101_destroy_card(card_t *card)
 {
-	readb(card->win0base + C101_PAGE); /* Resets SCA? */
+	readb(card->win0base + C101_PAGE); 
 
 	if (card->irq)
 		free_irq(card->irq, card);
@@ -312,7 +298,7 @@ static int __init c101_run(unsigned long irq, unsigned long winbase)
 	card_t *card;
 	int result;
 
-	if (irq<3 || irq>15 || irq == 6) /* FIXME */ {
+	if (irq<3 || irq>15 || irq == 6)  {
 		printk(KERN_ERR "c101: invalid IRQ value\n");
 		return -ENODEV;
 	}
@@ -357,12 +343,12 @@ static int __init c101_run(unsigned long irq, unsigned long winbase)
 
 	card->tx_ring_buffers = TX_RING_BUFFERS;
 	card->rx_ring_buffers = RX_RING_BUFFERS;
-	card->buff_offset = C101_WINDOW_SIZE; /* Bytes 1D00-1FFF reserved */
+	card->buff_offset = C101_WINDOW_SIZE; 
 
-	readb(card->win0base + C101_PAGE); /* Resets SCA? */
+	readb(card->win0base + C101_PAGE); 
 	udelay(100);
 	writeb(0, card->win0base + C101_PAGE);
-	writeb(0, card->win0base + C101_DTR); /* Power-up for RAM? */
+	writeb(0, card->win0base + C101_DTR); 
 
 	sca_init(card, 0);
 
@@ -386,7 +372,7 @@ static int __init c101_run(unsigned long irq, unsigned long winbase)
 		return result;
 	}
 
-	sca_init_port(card); /* Set up C101 memory */
+	sca_init_port(card); 
 	set_carrier(card);
 
 	printk(KERN_INFO "%s: Moxa C101 on IRQ%u,"
@@ -407,7 +393,7 @@ static int __init c101_init(void)
 #ifdef MODULE
 		printk(KERN_INFO "c101: no card initialized\n");
 #endif
-		return -EINVAL;	/* no parameters specified, abort */
+		return -EINVAL;	
 	}
 
 	printk(KERN_INFO "%s\n", version);

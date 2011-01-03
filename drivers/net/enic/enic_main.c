@@ -1,21 +1,4 @@
-/*
- * Copyright 2008 Cisco Systems, Inc.  All rights reserved.
- * Copyright 2007 Nuova Systems, Inc.  All rights reserved.
- *
- * This program is free software; you may redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; version 2 of the License.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -48,12 +31,12 @@
 #define MAX_TSO				(1 << 16)
 #define ENIC_DESC_MAX_SPLITS		(MAX_TSO / WQ_ENET_MAX_DESC_LEN + 1)
 
-#define PCI_DEVICE_ID_CISCO_VIC_ENET         0x0043  /* ethernet vnic */
+#define PCI_DEVICE_ID_CISCO_VIC_ENET         0x0043  
 
-/* Supported devices */
+
 static struct pci_device_id enic_id_table[] = {
 	{ PCI_VDEVICE(CISCO, PCI_DEVICE_ID_CISCO_VIC_ENET) },
-	{ 0, }	/* end of table */
+	{ 0, }	
 };
 
 MODULE_DESCRIPTION(DRV_DESCRIPTION);
@@ -403,7 +386,7 @@ static irqreturn_t enic_isr_legacy(int irq, void *data)
 	pba = vnic_intr_legacy_pba(enic->legacy_pba);
 	if (!pba) {
 		vnic_intr_unmask(&enic->intr[ENIC_INTX_WQ_RQ]);
-		return IRQ_NONE;	/* not our interrupt */
+		return IRQ_NONE;	
 	}
 
 	if (ENIC_TEST_INTR(pba, ENIC_INTX_NOTIFY)) {
@@ -414,7 +397,7 @@ static irqreturn_t enic_isr_legacy(int irq, void *data)
 	if (ENIC_TEST_INTR(pba, ENIC_INTX_ERR)) {
 		vnic_intr_return_all_credits(&enic->intr[ENIC_INTX_ERR]);
 		enic_log_q_error(enic);
-		/* schedule recovery from WQ/RQ error */
+		
 		schedule_work(&enic->reset);
 		return IRQ_HANDLED;
 	}
@@ -433,21 +416,7 @@ static irqreturn_t enic_isr_msi(int irq, void *data)
 {
 	struct enic *enic = data;
 
-	/* With MSI, there is no sharing of interrupts, so this is
-	 * our interrupt and there is no need to ack it.  The device
-	 * is not providing per-vector masking, so the OS will not
-	 * write to PCI config space to mask/unmask the interrupt.
-	 * We're using mask_on_assertion for MSI, so the device
-	 * automatically masks the interrupt when the interrupt is
-	 * generated.  Later, when exiting polling, the interrupt
-	 * will be unmasked (see enic_poll).
-	 *
-	 * Also, the device uses the same PCIe Traffic Class (TC)
-	 * for Memory Write data and MSI, so there are no ordering
-	 * issues; the MSI will always arrive at the Root Complex
-	 * _after_ corresponding Memory Writes (i.e. descriptor
-	 * writes).
-	 */
+	
 
 	napi_schedule(&enic->napi);
 
@@ -458,7 +427,7 @@ static irqreturn_t enic_isr_msix_rq(int irq, void *data)
 {
 	struct enic *enic = data;
 
-	/* schedule NAPI polling for RQ cleanup */
+	
 	napi_schedule(&enic->napi);
 
 	return IRQ_HANDLED;
@@ -467,7 +436,7 @@ static irqreturn_t enic_isr_msix_rq(int irq, void *data)
 static irqreturn_t enic_isr_msix_wq(int irq, void *data)
 {
 	struct enic *enic = data;
-	unsigned int wq_work_to_do = -1; /* no limit */
+	unsigned int wq_work_to_do = -1; 
 	unsigned int wq_work_done;
 
 	wq_work_done = vnic_cq_service(&enic->cq[ENIC_CQ_WQ],
@@ -475,8 +444,8 @@ static irqreturn_t enic_isr_msix_wq(int irq, void *data)
 
 	vnic_intr_return_credits(&enic->intr[ENIC_MSIX_WQ],
 		wq_work_done,
-		1 /* unmask intr */,
-		1 /* reset intr timer */);
+		1 ,
+		1 );
 
 	return IRQ_HANDLED;
 }
@@ -489,7 +458,7 @@ static irqreturn_t enic_isr_msix_err(int irq, void *data)
 
 	enic_log_q_error(enic);
 
-	/* schedule recovery from WQ/RQ error */
+	
 	schedule_work(&enic->reset);
 
 	return IRQ_HANDLED;
@@ -511,7 +480,7 @@ static inline void enic_queue_wq_skb_cont(struct enic *enic,
 {
 	skb_frag_t *frag;
 
-	/* Queue additional data fragments */
+	
 	for (frag = skb_shinfo(skb)->frags; len_left; frag++) {
 		len_left -= frag->size;
 		enic_queue_wq_desc_cont(wq, skb,
@@ -519,7 +488,7 @@ static inline void enic_queue_wq_skb_cont(struct enic *enic,
 				frag->page_offset, frag->size,
 				PCI_DMA_TODEVICE),
 			frag->size,
-			(len_left == 0));	/* EOP? */
+			(len_left == 0));	
 	}
 }
 
@@ -531,11 +500,7 @@ static inline void enic_queue_wq_skb_vlan(struct enic *enic,
 	unsigned int len_left = skb->len - head_len;
 	int eop = (len_left == 0);
 
-	/* Queue the main skb fragment. The fragments are no larger
-	 * than max MTU(9000)+ETH_HDR_LEN(14) bytes, which is less
-	 * than WQ_ENET_MAX_DESC_LEN length. So only one descriptor
-	 * per fragment is queued.
-	 */
+	
 	enic_queue_wq_desc(wq, skb,
 		pci_map_single(enic->pdev, skb->data,
 			head_len, PCI_DMA_TODEVICE),
@@ -557,11 +522,7 @@ static inline void enic_queue_wq_skb_csum_l4(struct enic *enic,
 	unsigned int csum_offset = hdr_len + skb->csum_offset;
 	int eop = (len_left == 0);
 
-	/* Queue the main skb fragment. The fragments are no larger
-	 * than max MTU(9000)+ETH_HDR_LEN(14) bytes, which is less
-	 * than WQ_ENET_MAX_DESC_LEN length. So only one descriptor
-	 * per fragment is queued.
-	 */
+	
 	enic_queue_wq_desc_csum_l4(wq, skb,
 		pci_map_single(enic->pdev, skb->data,
 			head_len, PCI_DMA_TODEVICE),
@@ -588,10 +549,7 @@ static inline void enic_queue_wq_skb_tso(struct enic *enic,
 	unsigned int offset = 0;
 	skb_frag_t *frag;
 
-	/* Preload TCP csum field with IP pseudo hdr calculated
-	 * with IP length set to zero.  HW will later add in length
-	 * to each TCP segment resulting from the TSO.
-	 */
+	
 
 	if (skb->protocol == cpu_to_be16(ETH_P_IP)) {
 		ip_hdr(skb)->check = 0;
@@ -602,9 +560,7 @@ static inline void enic_queue_wq_skb_tso(struct enic *enic,
 			&ipv6_hdr(skb)->daddr, 0, IPPROTO_TCP, 0);
 	}
 
-	/* Queue WQ_ENET_MAX_DESC_LEN length descriptors
-	 * for the main skb fragment
-	 */
+	
 	while (frag_len_left) {
 		len = min(frag_len_left, (unsigned int)WQ_ENET_MAX_DESC_LEN);
 		dma_addr = pci_map_single(enic->pdev, skb->data + offset,
@@ -622,9 +578,7 @@ static inline void enic_queue_wq_skb_tso(struct enic *enic,
 	if (eop)
 		return;
 
-	/* Queue WQ_ENET_MAX_DESC_LEN length descriptors
-	 * for additional data fragments
-	 */
+	
 	for (frag = skb_shinfo(skb)->frags; len_left; frag++) {
 		len_left -= frag->size;
 		frag_len_left = frag->size;
@@ -640,7 +594,7 @@ static inline void enic_queue_wq_skb_tso(struct enic *enic,
 				dma_addr,
 				len,
 				(len_left == 0) &&
-				(len == frag_len_left));	/* EOP? */
+				(len == frag_len_left));	
 			frag_len_left -= len;
 			offset += len;
 		}
@@ -655,7 +609,7 @@ static inline void enic_queue_wq_skb(struct enic *enic,
 	int vlan_tag_insert = 0;
 
 	if (enic->vlan_group && vlan_tx_tag_present(skb)) {
-		/* VLAN tag from trunking driver */
+		
 		vlan_tag_insert = 1;
 		vlan_tag = vlan_tx_tag_get(skb);
 	}
@@ -671,7 +625,7 @@ static inline void enic_queue_wq_skb(struct enic *enic,
 			vlan_tag_insert, vlan_tag);
 }
 
-/* netif_tx_lock held, process context with BHs disabled, or BH */
+
 static netdev_tx_t enic_hard_start_xmit(struct sk_buff *skb,
 					      struct net_device *netdev)
 {
@@ -684,10 +638,7 @@ static netdev_tx_t enic_hard_start_xmit(struct sk_buff *skb,
 		return NETDEV_TX_OK;
 	}
 
-	/* Non-TSO sends must fit within ENIC_NON_TSO_MAX_DESC descs,
-	 * which is very likely.  In the off chance it's going to take
-	 * more than * ENIC_NON_TSO_MAX_DESC, linearize the skb.
-	 */
+	
 
 	if (skb_shinfo(skb)->gso_size == 0 &&
 	    skb_shinfo(skb)->nr_frags + 1 > ENIC_NON_TSO_MAX_DESC &&
@@ -701,7 +652,7 @@ static netdev_tx_t enic_hard_start_xmit(struct sk_buff *skb,
 	if (vnic_wq_desc_avail(wq) <
 	    skb_shinfo(skb)->nr_frags + ENIC_DESC_MAX_SPLITS) {
 		netif_stop_queue(netdev);
-		/* This is a hard error, log it */
+		
 		printk(KERN_ERR PFX "%s: BUG! Tx ring full when "
 			"queue awake!\n", netdev->name);
 		spin_unlock_irqrestore(&enic->wq_lock[0], flags);
@@ -718,7 +669,7 @@ static netdev_tx_t enic_hard_start_xmit(struct sk_buff *skb,
 	return NETDEV_TX_OK;
 }
 
-/* dev_base_lock rwlock held, nominally process context */
+
 static struct net_device_stats *enic_get_stats(struct net_device *netdev)
 {
 	struct enic *enic = netdev_priv(netdev);
@@ -760,7 +711,7 @@ static int enic_set_mac_addr(struct net_device *netdev, char *addr)
 	return 0;
 }
 
-/* netif_tx_lock held, BHs disabled */
+
 static void enic_set_multicast_list(struct net_device *netdev)
 {
 	struct enic *enic = netdev_priv(netdev);
@@ -783,11 +734,7 @@ static void enic_set_multicast_list(struct net_device *netdev)
 	vnic_dev_packet_filter(enic->vdev, directed,
 		multicast, broadcast, promisc, allmulti);
 
-	/* Is there an easier way?  Trying to minimize to
-	 * calls to add/del multicast addrs.  We keep the
-	 * addrs from the last call in enic->mc_addr and
-	 * look for changes to add/del.
-	 */
+	
 
 	for (i = 0; list && i < mc_count; i++) {
 		memcpy(mc_addr[i], list->dmi_addr, ETH_ALEN);
@@ -812,8 +759,7 @@ static void enic_set_multicast_list(struct net_device *netdev)
 			enic_add_multicast_addr(enic, mc_addr[i]);
 	}
 
-	/* Save the list to compare against next time
-	 */
+	
 
 	for (i = 0; i < mc_count; i++)
 		memcpy(enic->mc_addr[i], mc_addr[i], ETH_ALEN);
@@ -823,7 +769,7 @@ static void enic_set_multicast_list(struct net_device *netdev)
 	spin_unlock(&enic->devcmd_lock);
 }
 
-/* rtnl lock is held */
+
 static void enic_vlan_rx_register(struct net_device *netdev,
 	struct vlan_group *vlan_group)
 {
@@ -831,7 +777,7 @@ static void enic_vlan_rx_register(struct net_device *netdev,
 	enic->vlan_group = vlan_group;
 }
 
-/* rtnl lock is held */
+
 static void enic_vlan_rx_add_vid(struct net_device *netdev, u16 vid)
 {
 	struct enic *enic = netdev_priv(netdev);
@@ -841,7 +787,7 @@ static void enic_vlan_rx_add_vid(struct net_device *netdev, u16 vid)
 	spin_unlock(&enic->devcmd_lock);
 }
 
-/* rtnl lock is held */
+
 static void enic_vlan_rx_kill_vid(struct net_device *netdev, u16 vid)
 {
 	struct enic *enic = netdev_priv(netdev);
@@ -851,7 +797,7 @@ static void enic_vlan_rx_kill_vid(struct net_device *netdev, u16 vid)
 	spin_unlock(&enic->devcmd_lock);
 }
 
-/* netif_tx_lock held, BHs disabled */
+
 static void enic_tx_timeout(struct net_device *netdev)
 {
 	struct enic *enic = netdev_priv(netdev);
@@ -911,10 +857,7 @@ static int enic_rq_alloc_buf_a1(struct vnic_rq *rq)
 
 	if (vnic_rq_posting_soon(rq)) {
 
-		/* SW workaround for A0 HW erratum: if we're just about
-		 * to write posted_index, insert a dummy desc
-		 * of type resvd
-		 */
+		
 
 		rq_enet_desc_enc(desc, 0, RQ_ENET_TYPE_RESV2, 0);
 		vnic_rq_post(rq, 0, 0, 0, 0);
@@ -983,7 +926,7 @@ static int enic_get_skb_header(struct sk_buff *skb, void **iphdr,
 	ip_len = ip_hdrlen(skb);
 	skb_set_transport_header(skb, ip_len);
 
-	/* check if ip header and tcp header are complete */
+	
 	if (ntohs(iph->tot_len) < ip_len + tcp_hdrlen(skb))
 		return -1;
 
@@ -1044,8 +987,7 @@ static void enic_rq_indicate_buf(struct vnic_rq *rq,
 
 	if (eop && bytes_written > 0) {
 
-		/* Good receive
-		 */
+		
 
 		skb_put(skb, bytes_written);
 		skb->protocol = eth_type_trans(skb, netdev);
@@ -1078,8 +1020,7 @@ static void enic_rq_indicate_buf(struct vnic_rq *rq,
 
 	} else {
 
-		/* Buffer overflow
-		 */
+		
 
 		dev_kfree_skb_any(skb);
 	}
@@ -1130,11 +1071,10 @@ static int enic_poll(struct napi_struct *napi, int budget)
 	struct enic *enic = container_of(napi, struct enic, napi);
 	struct net_device *netdev = enic->netdev;
 	unsigned int rq_work_to_do = budget;
-	unsigned int wq_work_to_do = -1; /* no limit */
+	unsigned int wq_work_to_do = -1; 
 	unsigned int  work_done, rq_work_done, wq_work_done;
 
-	/* Service RQ (first) and WQ
-	 */
+	
 
 	rq_work_done = vnic_cq_service(&enic->cq[ENIC_CQ_RQ],
 		rq_work_to_do, enic_rq_service, NULL);
@@ -1142,30 +1082,25 @@ static int enic_poll(struct napi_struct *napi, int budget)
 	wq_work_done = vnic_cq_service(&enic->cq[ENIC_CQ_WQ],
 		wq_work_to_do, enic_wq_service, NULL);
 
-	/* Accumulate intr event credits for this polling
-	 * cycle.  An intr event is the completion of a
-	 * a WQ or RQ packet.
-	 */
+	
 
 	work_done = rq_work_done + wq_work_done;
 
 	if (work_done > 0)
 		vnic_intr_return_credits(&enic->intr[ENIC_INTX_WQ_RQ],
 			work_done,
-			0 /* don't unmask intr */,
-			0 /* don't reset intr timer */);
+			0 ,
+			0 );
 
 	if (rq_work_done > 0) {
 
-		/* Replenish RQ
-		 */
+		
 
 		vnic_rq_fill(&enic->rq[0], enic->rq_alloc_buf);
 
 	} else {
 
-		/* If no work done, flush all LROs and exit polling
-		 */
+		
 
 		if (netdev->features & NETIF_F_LRO)
 			lro_flush_all(&enic->lro_mgr);
@@ -1184,32 +1119,26 @@ static int enic_poll_msix(struct napi_struct *napi, int budget)
 	unsigned int work_to_do = budget;
 	unsigned int work_done;
 
-	/* Service RQ
-	 */
+	
 
 	work_done = vnic_cq_service(&enic->cq[ENIC_CQ_RQ],
 		work_to_do, enic_rq_service, NULL);
 
 	if (work_done > 0) {
 
-		/* Replenish RQ
-		 */
+		
 
 		vnic_rq_fill(&enic->rq[0], enic->rq_alloc_buf);
 
-		/* Return intr event credits for this polling
-		 * cycle.  An intr event is the completion of a
-		 * RQ packet.
-		 */
+		
 
 		vnic_intr_return_credits(&enic->intr[ENIC_MSIX_RQ],
 			work_done,
-			0 /* don't unmask intr */,
-			0 /* don't reset intr timer */);
+			0 ,
+			0 );
 	} else {
 
-		/* If no work done, flush all LROs and exit polling
-		 */
+		
 
 		if (netdev->features & NETIF_F_LRO)
 			lro_flush_all(&enic->lro_mgr);
@@ -1330,7 +1259,7 @@ static int enic_notify_set(struct enic *enic)
 		err = vnic_dev_notify_set(enic->vdev, ENIC_MSIX_NOTIFY);
 		break;
 	default:
-		err = vnic_dev_notify_set(enic->vdev, -1 /* no intr */);
+		err = vnic_dev_notify_set(enic->vdev, -1 );
 		break;
 	}
 	spin_unlock(&enic->devcmd_lock);
@@ -1345,12 +1274,12 @@ static void enic_notify_timer_start(struct enic *enic)
 		mod_timer(&enic->notify_timer, jiffies);
 		break;
 	default:
-		/* Using intr for notification for INTx/MSI-X */
+		
 		break;
 	};
 }
 
-/* rtnl lock is held, process context */
+
 static int enic_open(struct net_device *netdev)
 {
 	struct enic *enic = netdev_priv(netdev);
@@ -1415,7 +1344,7 @@ err_out_free_intr:
 	return err;
 }
 
-/* rtnl lock is held, process context */
+
 static int enic_stop(struct net_device *netdev)
 {
 	struct enic *enic = netdev_priv(netdev);
@@ -1529,8 +1458,7 @@ static int enic_dev_wait(struct vnic_dev *vdev,
 	if (err)
 		return err;
 
-	/* Wait for func to complete...2 seconds max
-	 */
+	
 
 	time = jiffies + (HZ * 2);
 	do {
@@ -1585,8 +1513,7 @@ static int enic_set_niccfg(struct enic *enic)
 	const u8 tso_ipid_split_en = 0;
 	const u8 ig_vlan_strip_en = 1;
 
-	/* Enable VLAN tag stripping.  RSS not enabled (yet).
-	 */
+	
 
 	return enic_set_nic_cfg(enic,
 		rss_default_cpu, rss_hash_type,
@@ -1625,15 +1552,7 @@ static int enic_set_intr_mode(struct enic *enic)
 	unsigned int m = 1;
 	unsigned int i;
 
-	/* Set interrupt mode (INTx, MSI, MSI-X) depending
-	 * system capabilities.
-	 *
-	 * Try MSI-X first
-	 *
-	 * We need n RQs, m WQs, n+m CQs, and n+m+2 INTRs
-	 * (the second to last INTR is used for WQ/RQ errors)
-	 * (the last INTR is used for notifications)
-	 */
+	
 
 	BUG_ON(ARRAY_SIZE(enic->msix_entry) < n + m + 2);
 	for (i = 0; i < n + m + 2; i++)
@@ -1656,10 +1575,7 @@ static int enic_set_intr_mode(struct enic *enic)
 		return 0;
 	}
 
-	/* Next try MSI
-	 *
-	 * We need 1 RQ, 1 WQ, 2 CQs, and 1 INTR
-	 */
+	
 
 	if (enic->config.intr_mode < 2 &&
 	    enic->rq_count >= 1 &&
@@ -1678,13 +1594,7 @@ static int enic_set_intr_mode(struct enic *enic)
 		return 0;
 	}
 
-	/* Next try INTx
-	 *
-	 * We need 1 RQ, 1 WQ, 2 CQs, and 3 INTRs
-	 * (the first INTR is used for WQ/RQ)
-	 * (the second INTR is used for WQ/RQ errors)
-	 * (the last INTR is used for notifications)
-	 */
+	
 
 	if (enic->config.intr_mode < 3 &&
 	    enic->rq_count >= 1 &&
@@ -1753,8 +1663,7 @@ int enic_dev_init(struct enic *enic)
 	struct net_device *netdev = enic->netdev;
 	int err;
 
-	/* Get vNIC configuration
-	 */
+	
 
 	err = enic_get_vnic_config(enic);
 	if (err) {
@@ -1763,14 +1672,11 @@ int enic_dev_init(struct enic *enic)
 		return err;
 	}
 
-	/* Get available resource counts
-	 */
+	
 
 	enic_get_res_counts(enic);
 
-	/* Set interrupt mode based on resource counts and system
-	 * capabilities
-	 */
+	
 
 	err = enic_set_intr_mode(enic);
 	if (err) {
@@ -1779,8 +1685,7 @@ int enic_dev_init(struct enic *enic)
 		return err;
 	}
 
-	/* Allocate and configure vNIC resources
-	 */
+	
 
 	err = enic_alloc_vnic_resources(enic);
 	if (err) {
@@ -1841,9 +1746,7 @@ static int __devinit enic_probe(struct pci_dev *pdev,
 	unsigned int i;
 	int err;
 
-	/* Allocate net device structure and initialize.  Private
-	 * instance data is initialized to zero.
-	 */
+	
 
 	netdev = alloc_etherdev(sizeof(struct enic));
 	if (!netdev) {
@@ -1859,8 +1762,7 @@ static int __devinit enic_probe(struct pci_dev *pdev,
 	enic->netdev = netdev;
 	enic->pdev = pdev;
 
-	/* Setup PCI resources
-	 */
+	
 
 	err = pci_enable_device(pdev);
 	if (err) {
@@ -1878,10 +1780,7 @@ static int __devinit enic_probe(struct pci_dev *pdev,
 
 	pci_set_master(pdev);
 
-	/* Query PCI controller on system for DMA addressing
-	 * limitation for the device.  Try 40-bit first, and
-	 * fail to 32-bit.
-	 */
+	
 
 	err = pci_set_dma_mask(pdev, DMA_BIT_MASK(40));
 	if (err) {
@@ -1909,8 +1808,7 @@ static int __devinit enic_probe(struct pci_dev *pdev,
 		using_dac = 1;
 	}
 
-	/* Map vNIC resources from BAR0-5
-	 */
+	
 
 	for (i = 0; i < ARRAY_SIZE(enic->bar); i++) {
 		if (!(pci_resource_flags(pdev, i) & IORESOURCE_MEM))
@@ -1926,8 +1824,7 @@ static int __devinit enic_probe(struct pci_dev *pdev,
 		enic->bar[i].bus_addr = pci_resource_start(pdev, i);
 	}
 
-	/* Register vNIC device
-	 */
+	
 
 	enic->vdev = vnic_dev_register(NULL, enic, pdev, enic->bar,
 		ARRAY_SIZE(enic->bar));
@@ -1938,8 +1835,7 @@ static int __devinit enic_probe(struct pci_dev *pdev,
 		goto err_out_iounmap;
 	}
 
-	/* Issue device open to get device in known state
-	 */
+	
 
 	err = enic_dev_open(enic);
 	if (err) {
@@ -1948,13 +1844,7 @@ static int __devinit enic_probe(struct pci_dev *pdev,
 		goto err_out_vnic_unregister;
 	}
 
-	/* Issue device init to initialize the vnic-to-switch link.
-	 * We'll start with carrier off and wait for link UP
-	 * notification later to turn on carrier.  We don't need
-	 * to wait here for the vnic-to-switch link initialization
-	 * to complete; link UP notification is the indication that
-	 * the process is complete.
-	 */
+	
 
 	netif_carrier_off(netdev);
 
@@ -1972,8 +1862,7 @@ static int __devinit enic_probe(struct pci_dev *pdev,
 		goto err_out_dev_close;
 	}
 
-	/* Setup notification timer, HW reset task, and locks
-	 */
+	
 
 	init_timer(&enic->notify_timer);
 	enic->notify_timer.function = enic_notify_timer;
@@ -1986,8 +1875,7 @@ static int __devinit enic_probe(struct pci_dev *pdev,
 
 	spin_lock_init(&enic->devcmd_lock);
 
-	/* Register net device
-	 */
+	
 
 	enic->port_mtu = enic->config.mtu;
 	(void)enic_change_mtu(netdev, enic->port_mtu);

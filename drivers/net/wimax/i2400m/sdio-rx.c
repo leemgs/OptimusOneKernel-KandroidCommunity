@@ -1,64 +1,4 @@
-/*
- * Intel Wireless WiMAX Connection 2400m
- * SDIO RX handling
- *
- *
- * Copyright (C) 2007-2008 Intel Corporation. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in
- *     the documentation and/or other materials provided with the
- *     distribution.
- *   * Neither the name of Intel Corporation nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- *
- * Intel Corporation <linux-wimax@intel.com>
- * Dirk Brandewie <dirk.j.brandewie@intel.com>
- *  - Initial implementation
- *
- *
- * This handles the RX path on SDIO.
- *
- * The SDIO bus driver calls the "irq" routine when data is available.
- * This is not a traditional interrupt routine since the SDIO bus
- * driver calls us from its irq thread context.  Because of this
- * sleeping in the SDIO RX IRQ routine is okay.
- *
- * From there on, we obtain the size of the data that is available,
- * allocate an skb, copy it and then pass it to the generic driver's
- * RX routine [i2400m_rx()].
- *
- * ROADMAP
- *
- * i2400ms_irq()
- *   i2400ms_rx()
- *     __i2400ms_rx_get_size()
- *     i2400m_rx()
- *
- * i2400ms_rx_setup()
- *
- * i2400ms_rx_release()
- */
+
 #include <linux/workqueue.h>
 #include <linux/wait.h>
 #include <linux/skbuff.h>
@@ -77,14 +17,7 @@ static const __le32 i2400m_ACK_BARKER[4] = {
 };
 
 
-/*
- * Read and return the amount of bytes available for RX
- *
- * The RX size has to be read like this: byte reads of three
- * sequential locations; then glue'em together.
- *
- * sdio_readl() doesn't work.
- */
+
 ssize_t __i2400ms_rx_get_size(struct i2400ms *i2400ms)
 {
 	int ret, cnt, val;
@@ -113,15 +46,7 @@ error_read:
 }
 
 
-/*
- * Read data from the device (when in normal)
- *
- * Allocate an SKB of the right size, read the data in and then
- * deliver it to the generic layer.
- *
- * We also check for a reboot barker. That means the device died and
- * we have to reboot it.
- */
+
 static
 void i2400ms_rx(struct i2400ms *i2400ms)
 {
@@ -152,7 +77,7 @@ void i2400ms_rx(struct i2400ms *i2400ms)
 		goto error_memcpy_fromio;
 	}
 
-	rmb();	/* make sure we get boot_mode from dev_reset_handle */
+	rmb();	
 	if (i2400m->boot_mode == 1) {
 		spin_lock(&i2400m->rx_lock);
 		i2400ms->bm_ack_size = rx_size;
@@ -184,13 +109,7 @@ error_get_size:
 }
 
 
-/*
- * Process an interrupt from the SDIO card
- *
- * FIXME: need to process other events that are not just ready-to-read
- *
- * Checks there is data ready and then proceeds to read it.
- */
+
 static
 void i2400ms_irq(struct sdio_func *func)
 {
@@ -217,11 +136,7 @@ error_no_irq:
 }
 
 
-/*
- * Setup SDIO RX
- *
- * Hooks up the IRQ handler and then enables IRQs.
- */
+
 int i2400ms_rx_setup(struct i2400ms *i2400ms)
 {
 	int result;
@@ -255,11 +170,7 @@ error_irq_claim:
 }
 
 
-/*
- * Tear down SDIO RX
- *
- * Disables IRQs in the device and removes the IRQ handler.
- */
+
 void i2400ms_rx_release(struct i2400ms *i2400ms)
 {
 	int result;

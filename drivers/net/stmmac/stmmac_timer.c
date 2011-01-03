@@ -1,26 +1,4 @@
-/*******************************************************************************
-  STMMAC external timer support.
 
-  Copyright (C) 2007-2009  STMicroelectronics Ltd
-
-  This program is free software; you can redistribute it and/or modify it
-  under the terms and conditions of the GNU General Public License,
-  version 2, as published by the Free Software Foundation.
-
-  This program is distributed in the hope it will be useful, but WITHOUT
-  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-  more details.
-
-  You should have received a copy of the GNU General Public License along with
-  this program; if not, write to the Free Software Foundation, Inc.,
-  51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
-
-  The full GNU General Public License is included in this distribution in
-  the file called "COPYING".
-
-  Author: Giuseppe Cavallaro <peppe.cavallaro@st.com>
-*******************************************************************************/
 
 #include <linux/kernel.h>
 #include <linux/etherdevice.h>
@@ -69,7 +47,7 @@ int stmmac_open_ext_timer(struct net_device *dev, struct stmmac_timer *tm)
 
 	rtc_irq_register(stmmac_rtc, &stmmac_task);
 
-	/* Periodic mode is not supported */
+	
 	if ((rtc_irq_set_freq(stmmac_rtc, &stmmac_task, tm->freq) < 0)) {
 		pr_err("set periodic failed\n");
 		rtc_irq_unregister(stmmac_rtc, &stmmac_task);

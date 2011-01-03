@@ -1,24 +1,4 @@
-/*
- * Copyright(c) 2009 - 2009 Atheros Corporation. All rights reserved.
- *
- * Derived from Intel e1000 driver
- * Copyright(c) 1999 - 2005 Intel Corporation. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 59
- * Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- */
+
 
 #include <linux/netdevice.h>
 #include <linux/ethtool.h>
@@ -198,7 +178,7 @@ static int atl1c_get_eeprom(struct net_device *netdev,
 	if (eeprom->len == 0)
 		return -EINVAL;
 
-	if (!atl1c_check_eeprom_exist(hw)) /* not exist */
+	if (!atl1c_check_eeprom_exist(hw)) 
 		return -EINVAL;
 
 	eeprom->magic = adapter->pdev->vendor |
@@ -273,7 +253,7 @@ static int atl1c_set_wol(struct net_device *netdev, struct ethtool_wolinfo *wol)
 	if (wol->wolopts & (WAKE_ARP | WAKE_MAGICSECURE |
 			    WAKE_UCAST | WAKE_BCAST | WAKE_MCAST))
 		return -EOPNOTSUPP;
-	/* these settings will always override what we currently have */
+	
 	adapter->wol = 0;
 
 	if (wol->wolopts & WAKE_MAGIC)

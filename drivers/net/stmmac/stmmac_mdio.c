@@ -1,28 +1,4 @@
-/*******************************************************************************
-  STMMAC Ethernet Driver -- MDIO bus implementation
-  Provides Bus interface for MII registers
 
-  Copyright (C) 2007-2009  STMicroelectronics Ltd
-
-  This program is free software; you can redistribute it and/or modify it
-  under the terms and conditions of the GNU General Public License,
-  version 2, as published by the Free Software Foundation.
-
-  This program is distributed in the hope it will be useful, but WITHOUT
-  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-  more details.
-
-  You should have received a copy of the GNU General Public License along with
-  this program; if not, write to the Free Software Foundation, Inc.,
-  51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
-
-  The full GNU General Public License is included in this distribution in
-  the file called "COPYING".
-
-  Author: Carl Shaw <carl.shaw@st.com>
-  Maintainer: Giuseppe Cavallaro <peppe.cavallaro@st.com>
-*******************************************************************************/
 
 #include <linux/netdevice.h>
 #include <linux/mii.h>
@@ -33,16 +9,7 @@
 #define MII_BUSY 0x00000001
 #define MII_WRITE 0x00000002
 
-/**
- * stmmac_mdio_read
- * @bus: points to the mii_bus structure
- * @phyaddr: MII addr reg bits 15-11
- * @phyreg: MII addr reg bits 10-6
- * Description: it reads data from the MII register from within the phy device.
- * For the 7111 GMAC, we must set the bit 0 in the MII address register while
- * accessing the PHY registers.
- * Fortunately, it seems this has no drawback for the 7109 MAC.
- */
+
 static int stmmac_mdio_read(struct mii_bus *bus, int phyaddr, int phyreg)
 {
 	struct net_device *ndev = bus->priv;
@@ -54,26 +21,19 @@ static int stmmac_mdio_read(struct mii_bus *bus, int phyaddr, int phyreg)
 	int data;
 	u16 regValue = (((phyaddr << 11) & (0x0000F800)) |
 			((phyreg << 6) & (0x000007C0)));
-	regValue |= MII_BUSY;	/* in case of GMAC */
+	regValue |= MII_BUSY;	
 
 	do {} while (((readl(ioaddr + mii_address)) & MII_BUSY) == 1);
 	writel(regValue, ioaddr + mii_address);
 	do {} while (((readl(ioaddr + mii_address)) & MII_BUSY) == 1);
 
-	/* Read the data from the MII data register */
+	
 	data = (int)readl(ioaddr + mii_data);
 
 	return data;
 }
 
-/**
- * stmmac_mdio_write
- * @bus: points to the mii_bus structure
- * @phyaddr: MII addr reg bits 15-11
- * @phyreg: MII addr reg bits 10-6
- * @phydata: phy data
- * Description: it writes the data into the MII register from within the device.
- */
+
 static int stmmac_mdio_write(struct mii_bus *bus, int phyaddr, int phyreg,
 			     u16 phydata)
 {
@@ -89,24 +49,20 @@ static int stmmac_mdio_write(struct mii_bus *bus, int phyaddr, int phyreg,
 
 	value |= MII_BUSY;
 
-	/* Wait until any existing MII operation is complete */
+	
 	do {} while (((readl(ioaddr + mii_address)) & MII_BUSY) == 1);
 
-	/* Set the MII address register to write */
+	
 	writel(phydata, ioaddr + mii_data);
 	writel(value, ioaddr + mii_address);
 
-	/* Wait until any existing MII operation is complete */
+	
 	do {} while (((readl(ioaddr + mii_address)) & MII_BUSY) == 1);
 
 	return 0;
 }
 
-/**
- * stmmac_mdio_reset
- * @bus: points to the mii_bus structure
- * Description: reset the MII bus
- */
+
 static int stmmac_mdio_reset(struct mii_bus *bus)
 {
 	struct net_device *ndev = bus->priv;
@@ -119,20 +75,13 @@ static int stmmac_mdio_reset(struct mii_bus *bus)
 		priv->phy_reset(priv->bsp_priv);
 	}
 
-	/* This is a workaround for problems with the STE101P PHY.
-	 * It doesn't complete its reset until at least one clock cycle
-	 * on MDC, so perform a dummy mdio read.
-	 */
+	
 	writel(0, ioaddr + mii_address);
 
 	return 0;
 }
 
-/**
- * stmmac_mdio_register
- * @ndev: net device structure
- * Description: it registers the MII bus
- */
+
 int stmmac_mdio_register(struct net_device *ndev)
 {
 	int err = 0;
@@ -151,7 +100,7 @@ int stmmac_mdio_register(struct net_device *ndev)
 		goto irqlist_alloc_fail;
 	}
 
-	/* Assign IRQ to phy at address phy_addr */
+	
 	if (priv->phy_addr != -1)
 		irqlist[priv->phy_addr] = priv->phy_irq;
 
@@ -200,11 +149,7 @@ irqlist_alloc_fail:
 	return err;
 }
 
-/**
- * stmmac_mdio_unregister
- * @ndev: net device structure
- * Description: it unregisters the MII bus
- */
+
 int stmmac_mdio_unregister(struct net_device *ndev)
 {
 	struct stmmac_priv *priv = netdev_priv(ndev);

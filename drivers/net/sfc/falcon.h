@@ -1,12 +1,4 @@
-/****************************************************************************
- * Driver for Solarflare Solarstorm network controllers and boards
- * Copyright 2005-2006 Fen Systems Ltd.
- * Copyright 2006-2008 Solarflare Communications Inc.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published
- * by the Free Software Foundation, incorporated herein by reference.
- */
+
 
 #ifndef EFX_FALCON_H
 #define EFX_FALCON_H
@@ -14,9 +6,7 @@
 #include "net_driver.h"
 #include "efx.h"
 
-/*
- * Falcon hardware control
- */
+
 
 enum falcon_revision {
 	FALCON_REV_A0 = 0,
@@ -32,28 +22,23 @@ static inline int falcon_rev(struct efx_nic *efx)
 extern struct efx_nic_type falcon_a_nic_type;
 extern struct efx_nic_type falcon_b_nic_type;
 
-/**************************************************************************
- *
- * Externs
- *
- **************************************************************************
- */
 
-/* TX data path */
+
+
 extern int falcon_probe_tx(struct efx_tx_queue *tx_queue);
 extern void falcon_init_tx(struct efx_tx_queue *tx_queue);
 extern void falcon_fini_tx(struct efx_tx_queue *tx_queue);
 extern void falcon_remove_tx(struct efx_tx_queue *tx_queue);
 extern void falcon_push_buffers(struct efx_tx_queue *tx_queue);
 
-/* RX data path */
+
 extern int falcon_probe_rx(struct efx_rx_queue *rx_queue);
 extern void falcon_init_rx(struct efx_rx_queue *rx_queue);
 extern void falcon_fini_rx(struct efx_rx_queue *rx_queue);
 extern void falcon_remove_rx(struct efx_rx_queue *rx_queue);
 extern void falcon_notify_rx_desc(struct efx_rx_queue *rx_queue);
 
-/* Event data path */
+
 extern int falcon_probe_eventq(struct efx_channel *channel);
 extern void falcon_init_eventq(struct efx_channel *channel);
 extern void falcon_fini_eventq(struct efx_channel *channel);
@@ -61,11 +46,11 @@ extern void falcon_remove_eventq(struct efx_channel *channel);
 extern int falcon_process_eventq(struct efx_channel *channel, int rx_quota);
 extern void falcon_eventq_read_ack(struct efx_channel *channel);
 
-/* Ports */
+
 extern int falcon_probe_port(struct efx_nic *efx);
 extern void falcon_remove_port(struct efx_nic *efx);
 
-/* MAC/PHY */
+
 extern int falcon_switch_mac(struct efx_nic *efx);
 extern bool falcon_xaui_link_ok(struct efx_nic *efx);
 extern int falcon_dma_stats(struct efx_nic *efx,
@@ -74,7 +59,7 @@ extern void falcon_drain_tx_fifo(struct efx_nic *efx);
 extern void falcon_deconfigure_mac_wrapper(struct efx_nic *efx);
 extern void falcon_reconfigure_mac_wrapper(struct efx_nic *efx);
 
-/* Interrupts and test events */
+
 extern int falcon_init_interrupt(struct efx_nic *efx);
 extern void falcon_enable_interrupts(struct efx_nic *efx);
 extern void falcon_generate_test_event(struct efx_channel *channel,
@@ -87,7 +72,7 @@ extern void falcon_fini_interrupt(struct efx_nic *efx);
 
 #define FALCON_IRQ_MOD_RESOLUTION 5
 
-/* Global Resources */
+
 extern int falcon_probe_nic(struct efx_nic *efx);
 extern int falcon_probe_resources(struct efx_nic *efx);
 extern int falcon_init_nic(struct efx_nic *efx);
@@ -99,23 +84,18 @@ extern void falcon_update_nic_stats(struct efx_nic *efx);
 extern void falcon_set_multicast_hash(struct efx_nic *efx);
 extern int falcon_reset_xaui(struct efx_nic *efx);
 
-/* Tests */
+
 struct falcon_nvconfig;
 extern int falcon_read_nvram(struct efx_nic *efx,
 			     struct falcon_nvconfig *nvconfig);
 extern int falcon_test_registers(struct efx_nic *efx);
 
-/**************************************************************************
- *
- * Falcon MAC stats
- *
- **************************************************************************
- */
+
 
 #define FALCON_STAT_OFFSET(falcon_stat) EFX_VAL(falcon_stat, offset)
 #define FALCON_STAT_WIDTH(falcon_stat) EFX_VAL(falcon_stat, WIDTH)
 
-/* Retrieve statistic from statistics block */
+
 #define FALCON_STAT(efx, falcon_stat, efx_stat) do {		\
 	if (FALCON_STAT_WIDTH(falcon_stat) == 16)		\
 		(efx)->mac_stats.efx_stat += le16_to_cpu(	\
@@ -142,4 +122,4 @@ extern int falcon_test_registers(struct efx_nic *efx);
 extern void falcon_generate_event(struct efx_channel *channel,
 				  efx_qword_t *event);
 
-#endif /* EFX_FALCON_H */
+#endif 

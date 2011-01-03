@@ -1,12 +1,4 @@
-/****************************************************************************
- * Driver for Solarflare Solarstorm network controllers and boards
- * Copyright 2005-2006 Fen Systems Ltd.
- * Copyright 2006-2008 Solarflare Communications Inc.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published
- * by the Free Software Foundation, incorporated herein by reference.
- */
+
 
 #include <linux/module.h>
 #include <linux/mtd/mtd.h>
@@ -25,7 +17,7 @@ struct efx_mtd {
 	char name[IFNAMSIZ + 20];
 };
 
-/* SPI utilities */
+
 
 static int efx_spi_slow_wait(struct efx_mtd *efx_mtd, bool uninterruptible)
 {
@@ -34,7 +26,7 @@ static int efx_spi_slow_wait(struct efx_mtd *efx_mtd, bool uninterruptible)
 	u8 status;
 	int rc, i;
 
-	/* Wait up to 4s for flash/EEPROM to finish a slow operation. */
+	
 	for (i = 0; i < 40; i++) {
 		__set_current_state(uninterruptible ?
 				    TASK_UNINTERRUPTIBLE : TASK_INTERRUPTIBLE);
@@ -64,7 +56,7 @@ static int efx_spi_unlock(const struct efx_spi_device *spi)
 		return rc;
 
 	if (!(status & unlock_mask))
-		return 0; /* already unlocked */
+		return 0; 
 
 	rc = falcon_spi_cmd(spi, SPI_WREN, -1, NULL, NULL, 0);
 	if (rc)
@@ -109,7 +101,7 @@ static int efx_spi_erase(struct efx_mtd *efx_mtd, loff_t start, size_t len)
 		return rc;
 	rc = efx_spi_slow_wait(efx_mtd, false);
 
-	/* Verify the entire region has been wiped */
+	
 	memset(empty, 0xff, sizeof(empty));
 	for (pos = 0; pos < len; pos += block_len) {
 		block_len = min(len - pos, sizeof(buffer));
@@ -119,7 +111,7 @@ static int efx_spi_erase(struct efx_mtd *efx_mtd, loff_t start, size_t len)
 		if (memcmp(empty, buffer, block_len))
 			return -EIO;
 
-		/* Avoid locking up the system */
+		
 		cond_resched();
 		if (signal_pending(current))
 			return -EINTR;
@@ -128,7 +120,7 @@ static int efx_spi_erase(struct efx_mtd *efx_mtd, loff_t start, size_t len)
 	return rc;
 }
 
-/* MTD interface */
+
 
 static int efx_mtd_read(struct mtd_info *mtd, loff_t start, size_t len,
 			size_t *retlen, u8 *buffer)
@@ -261,7 +253,7 @@ int efx_mtd_probe(struct efx_nic *efx)
 	if (add_mtd_device(&efx_mtd->mtd)) {
 		kfree(efx_mtd);
 		spi->mtd = NULL;
-		/* add_mtd_device() returns 1 if the MTD table is full */
+		
 		return -ENOMEM;
 	}
 

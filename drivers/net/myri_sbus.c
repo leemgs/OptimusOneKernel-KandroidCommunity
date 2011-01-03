@@ -1,7 +1,4 @@
-/* myri_sbus.c: MyriCOM MyriNET SBUS card driver.
- *
- * Copyright (C) 1996, 1999, 2006, 2008 David S. Miller (davem@davemloft.net)
- */
+
 
 static char version[] =
         "myri_sbus.c:v2.0 June 23, 2006 David S. Miller (davem@davemloft.net)\n";
@@ -45,11 +42,11 @@ static char version[] =
 
 #include "myri_sbus.h"
 
-/* #define DEBUG_DETECT */
-/* #define DEBUG_IRQ */
-/* #define DEBUG_TRANSMIT */
-/* #define DEBUG_RECEIVE */
-/* #define DEBUG_HEADER */
+
+
+
+
+
 
 #ifdef DEBUG_DETECT
 #define DET(x)   printk x
@@ -81,24 +78,24 @@ static char version[] =
 #define DHDR(x)
 #endif
 
-/* Firmware name */
+
 #define FWNAME		"myricom/lanai.bin"
 
 static void myri_reset_off(void __iomem *lp, void __iomem *cregs)
 {
-	/* Clear IRQ mask. */
+	
 	sbus_writel(0, lp + LANAI_EIMASK);
 
-	/* Turn RESET function off. */
+	
 	sbus_writel(CONTROL_ROFF, cregs + MYRICTRL_CTRL);
 }
 
 static void myri_reset_on(void __iomem *cregs)
 {
-	/* Enable RESET function. */
+	
 	sbus_writel(CONTROL_RON, cregs + MYRICTRL_CTRL);
 
-	/* Disable IRQ's. */
+	
 	sbus_writel(CONTROL_DIRQ, cregs + MYRICTRL_CTRL);
 }
 
@@ -134,7 +131,7 @@ static int myri_do_handshake(struct myri_eth *mp)
 	DET(("myri_do_handshake: "));
 	if (sbus_readl(&chan->state) == STATE_READY) {
 		DET(("Already STATE_READY, failed.\n"));
-		return -1;	/* We're hosed... */
+		return -1;	
 	}
 
 	myri_disable_irq(mp->lregs, cregs);
@@ -142,7 +139,7 @@ static int myri_do_handshake(struct myri_eth *mp)
 	while (tick++ < 25) {
 		u32 softstate;
 
-		/* Wake it up. */
+		
 		DET(("shakedown, CONTROL_WON, "));
 		sbus_writel(1, &shmem->shakedown);
 		sbus_writel(CONTROL_WON, cregs + MYRICTRL_CTRL);
@@ -204,31 +201,31 @@ static int __devinit myri_load_lanai(struct myri_eth *mp)
 	}
 	lanai4_data_size = fw->data[0] << 8 | fw->data[1];
 
-	/* Load executable code. */
+	
 	for (i = 2; i < fw->size; i++)
 		sbus_writeb(fw->data[i], rptr++);
 
-	/* Load data segment. */
+	
 	for (i = 0; i < lanai4_data_size; i++)
 		sbus_writeb(0, rptr++);
 
-	/* Set device address. */
+	
 	sbus_writeb(0, &shmem->addr[0]);
 	sbus_writeb(0, &shmem->addr[1]);
 	for (i = 0; i < 6; i++)
 		sbus_writeb(dev->dev_addr[i],
 			    &shmem->addr[i + 2]);
 
-	/* Set SBUS bursts and interrupt mask. */
+	
 	sbus_writel(((mp->myri_bursts & 0xf8) >> 3), &shmem->burst);
 	sbus_writel(SHMEM_IMASK_RX, &shmem->imask);
 
-	/* Release the LANAI. */
+	
 	myri_disable_irq(mp->lregs, mp->cregs);
 	myri_reset_off(mp->lregs, mp->cregs);
 	myri_disable_irq(mp->lregs, mp->cregs);
 
-	/* Wait for the reset to complete. */
+	
 	for (i = 0; i < 5000; i++) {
 		if (sbus_readl(&shmem->channel.state) != STATE_READY)
 			break;
@@ -377,10 +374,7 @@ static void myri_tx(struct myri_eth *mp, struct net_device *dev)
 	mp->tx_old = entry;
 }
 
-/* Determine the packet's protocol ID. The rule here is that we
- * assume 802.3 if the type field is short enough to be a length.
- * This is normal practice and works for any 'now in use' protocol.
- */
+
 static __be16 myri_type_trans(struct sk_buff *skb, struct net_device *dev)
 {
 	struct ethhdr *eth;
@@ -409,15 +403,11 @@ static __be16 myri_type_trans(struct sk_buff *skb, struct net_device *dev)
 
 	rawp = skb->data;
 
-	/* This is a magic hack to spot IPX packets. Older Novell breaks
-	 * the protocol design and runs IPX over 802.3 without an 802.2 LLC
-	 * layer. We look for FFFF which isn't a used 802.2 SSAP/DSAP. This
-	 * won't work for fault tolerant netware but does for the rest.
-	 */
+	
 	if (*(unsigned short *)rawp == 0xFFFF)
 		return htons(ETH_P_802_3);
 
-	/* Real 802.2 LLC */
+	
 	return htons(ETH_P_802_2);
 }
 
@@ -442,10 +432,10 @@ static void myri_rx(struct myri_eth *mp, struct net_device *dev)
 		struct myri_rxd __iomem *rxd = &rq->myri_rxd[sbus_readl(&rq->tail)];
 		struct sk_buff *skb	= mp->rx_skbs[index];
 
-		/* Ack it. */
+		
 		sbus_writel(NEXT_RX(entry), &rqa->head);
 
-		/* Check for errors. */
+		
 		DRX(("rxd[%d]: %p len[%d] csum[%08x] ", entry, rxd, len, csum));
 		dma_sync_single_for_cpu(&mp->myri_op->dev,
 					sbus_readl(&rxd->myri_scatters[0].addr),
@@ -461,7 +451,7 @@ static void myri_rx(struct myri_eth *mp, struct net_device *dev)
 				dev->stats.rx_frame_errors++;
 			}
 
-			/* Return it to the LANAI. */
+			
 	drop_it:
 			drops++;
 			DRX(("DROP "));
@@ -505,7 +495,7 @@ static void myri_rx(struct myri_eth *mp, struct net_device *dev)
 			sbus_writel(1, &rxd->num_sg);
 			sbus_writel(NEXT_RX(sbus_readl(&rq->tail)), &rq->tail);
 
-			/* Trim the original skb for the netif. */
+			
 			DRX(("trim(%d) ", len));
 			skb_trim(skb, len);
 		} else {
@@ -516,13 +506,13 @@ static void myri_rx(struct myri_eth *mp, struct net_device *dev)
 				DRX(("dev_alloc_skb(FAILED) "));
 				goto drop_it;
 			}
-			/* DMA sync already done above. */
+			
 			copy_skb->dev = dev;
 			DRX(("resv_and_put "));
 			skb_put(copy_skb, len);
 			skb_copy_from_linear_data(skb, copy_skb->data, len);
 
-			/* Reuse original ring buffer. */
+			
 			DRX(("reuse "));
 			dma_sync_single_for_device(&mp->myri_op->dev,
 						   sbus_readl(&rxd->myri_scatters[0].addr),
@@ -536,9 +526,9 @@ static void myri_rx(struct myri_eth *mp, struct net_device *dev)
 			skb = copy_skb;
 		}
 
-		/* Just like the happy meal we get checksums from this card. */
+		
 		skb->csum = csum;
-		skb->ip_summed = CHECKSUM_UNNECESSARY; /* XXX */
+		skb->ip_summed = CHECKSUM_UNNECESSARY; 
 
 		skb->protocol = myri_type_trans(skb, dev);
 		DRX(("prot[%04x] netif_rx ", skb->protocol));
@@ -634,7 +624,7 @@ static int myri_start_xmit(struct sk_buff *skb, struct net_device *dev)
 
 	netif_stop_queue(dev);
 
-	/* This is just to prevent multiple PIO reads for TX_BUFFS_AVAIL. */
+	
 	head = sbus_readl(&sq->head);
 	tail = sbus_readl(&sq->tail);
 
@@ -650,7 +640,7 @@ static int myri_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	dump_ehdr_and_myripad(((unsigned char *) skb->data));
 #endif
 
-	/* XXX Maybe this can go as well. */
+	
 	len = skb->len;
 	if (len & 3) {
 		DTX(("len&3 "));
@@ -662,7 +652,7 @@ static int myri_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	txd = &sq->myri_txd[entry];
 	mp->tx_skbs[entry] = skb;
 
-	/* Must do this before we sbus map it. */
+	
 	if (skb->data[MYRI_PAD_LEN] & 0x1) {
 		sbus_writew(0xffff, &txd->addr[0]);
 		sbus_writew(0xffff, &txd->addr[1]);
@@ -695,11 +685,7 @@ static int myri_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	return NETDEV_TX_OK;
 }
 
-/* Create the MyriNet MAC header for an arbitrary protocol layer
- *
- * saddr=NULL	means use device source address
- * daddr=NULL	means leave destination address (eg unresolved arp)
- */
+
 static int myri_header(struct sk_buff *skb, struct net_device *dev,
 		       unsigned short type, const void *daddr,
 		       const void *saddr, unsigned len)
@@ -712,25 +698,23 @@ static int myri_header(struct sk_buff *skb, struct net_device *dev,
 	dump_ehdr(eth);
 #endif
 
-	/* Set the MyriNET padding identifier. */
+	
 	pad[0] = MYRI_PAD_LEN;
 	pad[1] = 0xab;
 
-	/* Set the protocol type. For a packet of type ETH_P_802_3 we put the length
-	 * in here instead. It is up to the 802.2 layer to carry protocol information.
-	 */
+	
 	if (type != ETH_P_802_3)
 		eth->h_proto = htons(type);
 	else
 		eth->h_proto = htons(len);
 
-	/* Set the source hardware address. */
+	
 	if (saddr)
 		memcpy(eth->h_source, saddr, dev->addr_len);
 	else
 		memcpy(eth->h_source, dev->dev_addr, dev->addr_len);
 
-	/* Anyway, the loopback-device should never use this function... */
+	
 	if (dev->flags & IFF_LOOPBACK) {
 		int i;
 		for (i = 0; i < dev->addr_len; i++)
@@ -745,10 +729,7 @@ static int myri_header(struct sk_buff *skb, struct net_device *dev,
 	return -dev->hard_header_len;
 }
 
-/* Rebuild the MyriNet MAC header. This is called after an ARP
- * (or in future other address resolution) has completed on this
- * sk_buff. We now let ARP fill in the other fields.
- */
+
 static int myri_rebuild_header(struct sk_buff *skb)
 {
 	unsigned char *pad = (unsigned char *) skb->data;
@@ -760,7 +741,7 @@ static int myri_rebuild_header(struct sk_buff *skb)
 	dump_ehdr(eth);
 #endif
 
-	/* Refill MyriNet padding identifiers, this is just being anal. */
+	
 	pad[0] = MYRI_PAD_LEN;
 	pad[1] = 0xab;
 
@@ -798,7 +779,7 @@ static int myri_header_cache(const struct neighbour *neigh, struct hh_cache *hh)
 	if (type == htons(ETH_P_802_3))
 		return -1;
 
-	/* Refill MyriNet padding identifiers, this is just being anal. */
+	
 	pad[0] = MYRI_PAD_LEN;
 	pad[1] = 0xab;
 
@@ -810,7 +791,7 @@ static int myri_header_cache(const struct neighbour *neigh, struct hh_cache *hh)
 }
 
 
-/* Called by Address Resolution module to notify changes in address. */
+
 void myri_header_cache_update(struct hh_cache *hh,
 			      const struct net_device *dev,
 			      const unsigned char * haddr)
@@ -829,9 +810,7 @@ static int myri_change_mtu(struct net_device *dev, int new_mtu)
 
 static void myri_set_multicast(struct net_device *dev)
 {
-	/* Do nothing, all MyriCOM nodes transmit multicast frames
-	 * as broadcast packets...
-	 */
+	
 }
 
 static inline void set_boardid_from_idprom(struct myri_eth *mp, int num)
@@ -950,20 +929,20 @@ static int __devinit myri_sbus_probe(struct of_device *op, const struct of_devic
 	spin_lock_init(&mp->irq_lock);
 	mp->myri_op = op;
 
-	/* Clean out skb arrays. */
+	
 	for (i = 0; i < (RX_RING_SIZE + 1); i++)
 		mp->rx_skbs[i] = NULL;
 
 	for (i = 0; i < TX_RING_SIZE; i++)
 		mp->tx_skbs[i] = NULL;
 
-	/* First check for EEPROM information. */
+	
 	prop = of_get_property(dp, "myrinet-eeprom-info", &len);
 
 	if (prop)
 		memcpy(&mp->eeprom, prop, sizeof(struct myri_eeprom));
 	if (!prop) {
-		/* No eeprom property, must cook up the values ourselves. */
+		
 		DET(("No EEPROM: "));
 		mp->eeprom.bus_type = BUS_TYPE_SBUS;
 		mp->eeprom.cpuvers =
@@ -1007,12 +986,9 @@ static int __devinit myri_sbus_probe(struct of_device *op, const struct of_devic
 
 	determine_reg_space_size(mp);
 
-	/* Map in the MyriCOM register/localram set. */
+	
 	if (mp->eeprom.cpuvers < CPUVERS_4_0) {
-		/* XXX Makes no sense, if control reg is non-existant this
-		 * XXX driver cannot function at all... maybe pre-4.0 is
-		 * XXX only a valid version for PCI cards?  Ask feldy...
-		 */
+		
 		DET(("Mapping regs for cpuvers < CPUVERS_4_0\n"));
 		mp->regs = of_ioremap(&op->resource[0], 0,
 				      mp->reg_size, "MyriCOM Regs");
@@ -1049,18 +1025,18 @@ static int __devinit myri_sbus_probe(struct of_device *op, const struct of_devic
 	mp->rq		= &mp->shmem->channel.recvq;
 	mp->sq		= &mp->shmem->channel.sendq;
 
-	/* Reset the board. */
+	
 	DET(("Resetting LANAI\n"));
 	myri_reset_off(mp->lregs, mp->cregs);
 	myri_reset_on(mp->cregs);
 
-	/* Turn IRQ's off. */
+	
 	myri_disable_irq(mp->lregs, mp->cregs);
 
-	/* Reset once more. */
+	
 	myri_reset_on(mp->cregs);
 
-	/* Get the supported DVMA burst sizes from our SBUS. */
+	
 	mp->myri_bursts = of_getintprop_default(dp->parent,
 						"burst-sizes", 0x00);
 	if (!sbus_can_burst64())
@@ -1068,7 +1044,7 @@ static int __devinit myri_sbus_probe(struct of_device *op, const struct of_devic
 
 	DET(("MYRI bursts %02x\n", mp->myri_bursts));
 
-	/* Encode SBUS interrupt level in second control register. */
+	
 	i = of_getintprop_default(dp, "interrupts", 0);
 	if (i == 0)
 		i = 4;
@@ -1082,7 +1058,7 @@ static int __devinit myri_sbus_probe(struct of_device *op, const struct of_devic
 	dev->irq = op->irqs[0];
 	dev->netdev_ops = &myri_ops;
 
-	/* Register interrupt handler now. */
+	
 	DET(("Requesting MYRIcom IRQ line.\n"));
 	if (request_irq(dev->irq, &myri_interrupt,
 			IRQF_SHARED, "MyriCOM Ethernet", (void *) dev)) {
@@ -1095,7 +1071,7 @@ static int __devinit myri_sbus_probe(struct of_device *op, const struct of_devic
 
 	dev->hard_header_len	= (ETH_HLEN + MYRI_PAD_LEN);
 
-	/* Load code onto the LANai. */
+	
 	DET(("Loading LANAI firmware\n"));
 	if (myri_load_lanai(mp)) {
 		printk(KERN_ERR "MyriCOM: Cannot Load LANAI firmware.\n");
@@ -1119,7 +1095,7 @@ static int __devinit myri_sbus_probe(struct of_device *op, const struct of_devic
 err_free_irq:
 	free_irq(dev->irq, dev);
 err:
-	/* This will also free the co-allocated private data*/
+	
 	free_netdev(dev);
 	return -ENODEV;
 }

@@ -1,61 +1,4 @@
-/*
- * Intel Wireless WiMAX Connection 2400m
- * Linux driver model glue for the SDIO device, reset & fw upload
- *
- *
- * Copyright (C) 2007-2008 Intel Corporation <linux-wimax@intel.com>
- * Dirk Brandewie <dirk.j.brandewie@intel.com>
- * Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>
- * Yanir Lubetkin <yanirx.lubetkin@intel.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version
- * 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
- *
- *
- * See i2400m-sdio.h for a general description of this driver.
- *
- * This file implements driver model glue, and hook ups for the
- * generic driver to implement the bus-specific functions (device
- * communication setup/tear down, firmware upload and resetting).
- *
- * ROADMAP
- *
- * i2400m_probe()
- *   alloc_netdev()
- *     i2400ms_netdev_setup()
- *       i2400ms_init()
- *       i2400m_netdev_setup()
- *   i2400ms_enable_function()
- *   i2400m_setup()
- *
- * i2400m_remove()
- *     i2400m_release()
- *     free_netdev(net_dev)
- *
- * i2400ms_bus_reset()            Called by i2400m->bus_reset
- *   __i2400ms_reset()
- *     __i2400ms_send_barker()
- *
- * i2400ms_bus_dev_start()        Called by i2400m_dev_start() [who is
- *   i2400ms_tx_setup()           called by i2400m_setup()]
- *   i2400ms_rx_setup()
- *
- * i2400ms_bus_dev_stop()         Called by i2400m_dev_stop() [who is
- *   i2400ms_rx_release()         is called by i2400m_release()]
- *   i2400ms_tx_release()
- *
- */
+
 
 #include <linux/debugfs.h>
 #include <linux/mmc/sdio_ids.h>
@@ -67,11 +10,11 @@
 #define D_SUBMODULE main
 #include "sdio-debug-levels.h"
 
-/* IOE WiMAX function timeout in seconds */
+
 static int ioe_timeout = 2;
 module_param(ioe_timeout, int, 0);
 
-/* Our firmware file name list */
+
 static const char *i2400ms_bus_fw_names[] = {
 #define I2400MS_FW_FILE_NAME "i2400m-fw-sdio-1.3.sbcf"
 	I2400MS_FW_FILE_NAME,
@@ -83,23 +26,10 @@ static const struct i2400m_poke_table i2400ms_pokes[] = {
 	I2400M_FW_POKE(0x6BE260, 0x00000088),
 	I2400M_FW_POKE(0x080550, 0x00000005),
 	I2400M_FW_POKE(0xAE0000, 0x00000000),
-	I2400M_FW_POKE(0x000000, 0x00000000), /* MUST be 0 terminated or bad
-					       * things will happen */
+	I2400M_FW_POKE(0x000000, 0x00000000), 
 };
 
-/*
- * Enable the SDIO function
- *
- * Tries to enable the SDIO function; might fail if it is still not
- * ready (in some hardware, the SDIO WiMAX function is only enabled
- * when we ask it to explicitly doing). Tries until a timeout is
- * reached.
- *
- * The reverse of this is...sdio_disable_function()
- *
- * Returns: 0 if the SDIO function was enabled, < 0 errno code on
- *     error (-ENODEV when it was unable to enable the function).
- */
+
 static
 int i2400ms_enable_function(struct sdio_func *func)
 {
@@ -108,9 +38,7 @@ int i2400ms_enable_function(struct sdio_func *func)
 	struct device *dev = &func->dev;
 
 	d_fnstart(3, dev, "(func %p)\n", func);
-	/* Setup timeout (FIXME: This needs to read the CIS table to
-	 * get a real timeout) and then wait for the device to signal
-	 * it is ready */
+	
 	timeout = get_jiffies_64() + ioe_timeout * HZ;
 	err = -ENODEV;
 	while (err != 0 && time_before64(get_jiffies_64(), timeout)) {
@@ -126,8 +54,7 @@ int i2400ms_enable_function(struct sdio_func *func)
 		sdio_release_host(func);
 		msleep(I2400MS_INIT_SLEEP_INTERVAL);
 	}
-	/* If timed out, device is not there yet -- get -ENODEV so
-	 * the device driver core will retry later on. */
+	
 	if (err == -ETIME) {
 		dev_err(dev, "Can't enable WiMAX function; "
 			" has the function been enabled?\n");
@@ -139,14 +66,7 @@ function_enabled:
 }
 
 
-/*
- * Setup driver resources needed to communicate with the device
- *
- * The fw needs some time to settle, and it was just uploaded,
- * so give it a break first. I'd prefer to just wait for the device to
- * send something, but seems the poking we do to enable SDIO stuff
- * interferes with it, so just give it a break before starting...
- */
+
 static
 int i2400ms_bus_dev_start(struct i2400m *i2400m)
 {
@@ -183,15 +103,7 @@ void i2400ms_bus_dev_stop(struct i2400m *i2400m)
 }
 
 
-/*
- * Sends a barker buffer to the device
- *
- * This helper will allocate a kmalloced buffer and use it to transmit
- * (then free it). Reason for this is that the SDIO host controller
- * expects alignment (unknown exactly which) which the stack won't
- * really provide and certain arches/host-controller combinations
- * cannot use stack/vmalloc/text areas for DMA transfers.
- */
+
 static
 int __i2400ms_send_barker(struct i2400ms *i2400ms,
 			  const __le32 *barker, size_t barker_size)
@@ -220,41 +132,7 @@ error_kzalloc:
 }
 
 
-/*
- * Reset a device at different levels (warm, cold or bus)
- *
- * @i2400ms: device descriptor
- * @reset_type: soft, warm or bus reset (I2400M_RT_WARM/SOFT/BUS)
- *
- * FIXME: not tested -- need to confirm expected effects
- *
- * Warm and cold resets get an SDIO reset if they fail (unimplemented)
- *
- * Warm reset:
- *
- * The device will be fully reset internally, but won't be
- * disconnected from the USB bus (so no reenumeration will
- * happen). Firmware upload will be neccessary.
- *
- * The device will send a reboot barker in the notification endpoint
- * that will trigger the driver to reinitialize the state
- * automatically from notif.c:i2400m_notification_grok() into
- * i2400m_dev_bootstrap_delayed().
- *
- * Cold and bus (USB) reset:
- *
- * The device will be fully reset internally, disconnected from the
- * USB bus an a reenumeration will happen. Firmware upload will be
- * neccessary. Thus, we don't do any locking or struct
- * reinitialization, as we are going to be fully disconnected and
- * reenumerated.
- *
- * Note we need to return -ENODEV if a warm reset was requested and we
- * had to resort to a bus reset. See i2400m_op_reset(), wimax_reset()
- * and wimax_dev->op_reset.
- *
- * WARNING: no driver state saved/fixed
- */
+
 static
 int i2400ms_bus_reset(struct i2400m *i2400m, enum i2400m_reset_type rt)
 {
@@ -283,11 +161,7 @@ int i2400ms_bus_reset(struct i2400m *i2400m, enum i2400m_reset_type rt)
 					       sizeof(i2400m_COLD_BOOT_BARKER));
 	else if (rt == I2400M_RT_BUS) {
 do_bus_reset:
-		/* call netif_tx_disable() before sending IOE disable,
-		 * so that all the tx from network layer are stopped
-		 * while IOE is being reset. Make sure it is called
-		 * only after register_netdev() was issued.
-		 */
+		
 		if (i2400m->wimax_dev.net_dev->reg_state == NETREG_REGISTERED)
 			netif_tx_disable(i2400m->wimax_dev.net_dev);
 
@@ -296,7 +170,7 @@ do_bus_reset:
 		sdio_disable_func(i2400ms->func);
 		sdio_release_host(i2400ms->func);
 
-		/* Wait for the device to settle */
+		
 		msleep(40);
 
 		result = i2400ms_enable_function(i2400ms->func);
@@ -324,9 +198,7 @@ void i2400ms_netdev_setup(struct net_device *net_dev)
 }
 
 
-/*
- * Debug levels control; see debug.h
- */
+
 struct d_level D_LEVEL[] = {
 	D_SUBMODULE_DEFINE(main),
 	D_SUBMODULE_DEFINE(tx),
@@ -354,7 +226,7 @@ int i2400ms_debugfs_add(struct i2400ms *i2400ms)
 	result = PTR_ERR(dentry);
 	if (IS_ERR(dentry)) {
 		if (result == -ENODEV)
-			result = 0;	/* No debugfs support */
+			result = 0;	
 		goto error;
 	}
 	i2400ms->debugfs_dentry = dentry;
@@ -375,28 +247,7 @@ static struct device_type i2400ms_type = {
 	.name	= "wimax",
 };
 
-/*
- * Probe a i2400m interface and register it
- *
- * @func:    SDIO function
- * @id:      SDIO device ID
- * @returns: 0 if ok, < 0 errno code on error.
- *
- * Alloc a net device, initialize the bus-specific details and then
- * calls the bus-generic initialization routine. That will register
- * the wimax and netdev devices, upload the firmware [using
- * _bus_bm_*()], call _bus_dev_start() to finalize the setup of the
- * communication with the device and then will start to talk to it to
- * finnish setting it up.
- *
- * Initialization is tricky; some instances of the hw are packed with
- * others in a way that requires a third driver that enables the WiMAX
- * function. In those cases, we can't enable the SDIO function and
- * we'll return with -ENODEV. When the driver that enables the WiMAX
- * function does its thing, it has to do a bus_rescan_devices() on the
- * SDIO bus so this driver is called again to enumerate the WiMAX
- * function.
- */
+
 static
 int i2400ms_probe(struct sdio_func *func,
 		  const struct sdio_device_id *id)
@@ -407,7 +258,7 @@ int i2400ms_probe(struct sdio_func *func,
 	struct i2400m *i2400m;
 	struct i2400ms *i2400ms;
 
-	/* Allocate instance [calls i2400m_netdev_setup() on it]. */
+	
 	result = -ENOMEM;
 	net_dev = alloc_netdev(sizeof(*i2400ms), "wmx%d",
 			       i2400ms_netdev_setup);
@@ -429,8 +280,7 @@ int i2400ms_probe(struct sdio_func *func,
 	i2400m->bus_dev_stop = i2400ms_bus_dev_stop;
 	i2400m->bus_tx_kick = i2400ms_bus_tx_kick;
 	i2400m->bus_reset = i2400ms_bus_reset;
-	/* The iwmc3200-wimax sometimes requires the driver to try
-	 * hard when we paint it into a corner. */
+	
 	i2400m->bus_bm_retries = I3200_BOOT_RETRIES;
 	i2400m->bus_bm_cmd_send = i2400ms_bus_bm_cmd_send;
 	i2400m->bus_bm_wait_for_ack = i2400ms_bus_bm_wait_for_ack;
@@ -509,10 +359,10 @@ void i2400ms_remove(struct sdio_func *func)
 
 static
 const struct sdio_device_id i2400ms_sdio_ids[] = {
-	/* Intel: i2400m WiMAX (iwmc3200) over SDIO */
+	
 	{ SDIO_DEVICE(SDIO_VENDOR_ID_INTEL,
 		      SDIO_DEVICE_ID_INTEL_IWMC3200WIMAX) },
-	{ /* end: all zeroes */ },
+	{  },
 };
 MODULE_DEVICE_TABLE(sdio, i2400ms_sdio_ids);
 
@@ -537,7 +387,7 @@ module_init(i2400ms_driver_init);
 static
 void __exit i2400ms_driver_exit(void)
 {
-	flush_scheduled_work();	/* for the stuff we schedule */
+	flush_scheduled_work();	
 	sdio_unregister_driver(&i2400m_sdio_driver);
 }
 module_exit(i2400ms_driver_exit);

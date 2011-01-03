@@ -1,36 +1,4 @@
-/*
- * Copyright (c) 2004 Topspin Communications.  All rights reserved.
- * Copyright (c) 2005, 2006, 2007, 2008 Mellanox Technologies. All rights reserved.
- * Copyright (c) 2006, 2007 Cisco Systems, Inc.  All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 
 #include <linux/errno.h>
 
@@ -39,9 +7,7 @@
 #include "mlx4.h"
 #include "icm.h"
 
-/*
- * Must be packed because mtt_seg is 64 bits but only aligned to 32 bits.
- */
+
 struct mlx4_mpt_entry {
 	__be32 flags;
 	__be32 qpn;
@@ -344,7 +310,7 @@ int mlx4_mr_enable(struct mlx4_dev *dev, struct mlx4_mr *mr)
 	}
 
 	if (mr->mtt.order >= 0 && mr->mtt.page_shift == 0) {
-		/* fast register MR in free state */
+		
 		mpt_entry->flags    |= cpu_to_be32(MLX4_MPT_FLAG_FREE);
 		mpt_entry->pd_flags |= cpu_to_be32(MLX4_MPT_PD_FLAG_FAST_REG |
 						   MLX4_MPT_PD_FLAG_RAE);
@@ -385,7 +351,7 @@ static int mlx4_write_mtt_chunk(struct mlx4_dev *dev, struct mlx4_mtt *mtt,
 	int i;
 	int s = start_index * sizeof (u64);
 
-	/* All MTTs must fit in the same page */
+	
 	if (start_index / (PAGE_SIZE / sizeof (u64)) !=
 	    (start_index + npages - 1) / (PAGE_SIZE / sizeof (u64)))
 		return -EINVAL;
@@ -511,11 +477,11 @@ static inline int mlx4_check_fmr(struct mlx4_fmr *fmr, u64 *page_list,
 
 	page_mask = (1 << fmr->page_shift) - 1;
 
-	/* We are getting page lists, so va must be page aligned. */
+	
 	if (iova & page_mask)
 		return -EINVAL;
 
-	/* Trust the user not to pass misaligned data in page_list */
+	
 	if (0)
 		for (i = 0; i < npages; ++i) {
 			if (page_list[i] & ~page_mask)
@@ -546,7 +512,7 @@ int mlx4_map_phys_fmr(struct mlx4_dev *dev, struct mlx4_fmr *fmr, u64 *page_list
 
 	*(u8 *) fmr->mpt = MLX4_MPT_STATUS_SW;
 
-	/* Make sure MPT status is visible before writing MTT entries */
+	
 	wmb();
 
 	dma_sync_single_for_cpu(&dev->pdev->dev, fmr->dma_handle,
@@ -563,12 +529,12 @@ int mlx4_map_phys_fmr(struct mlx4_dev *dev, struct mlx4_fmr *fmr, u64 *page_list
 	fmr->mpt->length = cpu_to_be64(npages * (1ull << fmr->page_shift));
 	fmr->mpt->start  = cpu_to_be64(iova);
 
-	/* Make MTT entries are visible before setting MPT status */
+	
 	wmb();
 
 	*(u8 *) fmr->mpt = MLX4_MPT_STATUS_HW;
 
-	/* Make sure MPT status is visible before consumer can use FMR */
+	
 	wmb();
 
 	return 0;
@@ -585,7 +551,7 @@ int mlx4_fmr_alloc(struct mlx4_dev *dev, u32 pd, u32 access, int max_pages,
 	if (page_shift < (ffs(dev->caps.page_size_cap) - 1) || page_shift >= 32)
 		return -EINVAL;
 
-	/* All MTTs must fit in the same page */
+	
 	if (max_pages * sizeof *fmr->mtts > PAGE_SIZE)
 		return -EINVAL;
 

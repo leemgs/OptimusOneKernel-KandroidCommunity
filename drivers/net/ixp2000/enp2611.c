@@ -1,13 +1,4 @@
-/*
- * IXP2400 MSF network device driver for the Radisys ENP2611
- * Copyright (C) 2004, 2005 Lennert Buytenhek <buytenh@wantstofly.org>
- * Dedicated to Marija Kulikova.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -23,27 +14,7 @@
 #include "ixp2400-msf.h"
 #include "pm3386.h"
 
-/***********************************************************************
- * The Radisys ENP2611 is a PCI form factor board with three SFP GBIC
- * slots, connected via two PMC/Sierra 3386s and an SPI-3 bridge FPGA
- * to the IXP2400.
- *
- *                +-------------+
- * SFP GBIC #0 ---+             |       +---------+
- *                |  PM3386 #0  +-------+         |
- * SFP GBIC #1 ---+             |       | "Caleb" |         +---------+
- *                +-------------+       |         |         |         |
- *                                      | SPI-3   +---------+ IXP2400 |
- *                +-------------+       | bridge  |         |         |
- * SFP GBIC #2 ---+             |       | FPGA    |         +---------+
- *                |  PM3386 #1  +-------+         |
- *                |             |       +---------+
- *                +-------------+
- *              ^                   ^                  ^
- *              | 1.25Gbaud         | 104MHz           | 104MHz
- *              | SERDES ea.        | SPI-3 ea.        | SPI-3
- *
- ***********************************************************************/
+
 static struct ixp2400_msf_parameters enp2611_msf_parameters =
 {
 	.rx_mode =		IXP2400_RX_MODE_UTOPIA_POS |
@@ -122,8 +93,8 @@ static struct ixp2400_msf_parameters enp2611_msf_parameters =
 static struct net_device *nds[3];
 static struct timer_list link_check_timer;
 
-/* @@@ Poll the SFP moddef0 line too.  */
-/* @@@ Try to use the pm3386 DOOL interrupt as well.  */
+
+
 static void enp2611_check_link_status(unsigned long __dummy)
 {
 	int i;
@@ -138,7 +109,7 @@ static void enp2611_check_link_status(unsigned long __dummy)
 
 		status = pm3386_is_link_up(i);
 		if (status && !netif_carrier_ok(dev)) {
-			/* @@@ Should report autonegotiation status.  */
+			
 			printk(KERN_INFO "%s: NIC Link is Up\n", dev->name);
 
 			pm3386_enable_tx(i);
@@ -167,7 +138,7 @@ static void enp2611_set_port_admin_status(int port, int up)
 	} else {
 		caleb_disable_tx(port);
 		pm3386_disable_tx(port);
-		/* @@@ Flush out pending packets.  */
+		
 		pm3386_set_carrier(port, 0);
 
 		pm3386_disable_rx(port);

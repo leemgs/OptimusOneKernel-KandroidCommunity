@@ -1,31 +1,5 @@
-/* de2104x.c: A Linux PCI Ethernet driver for Intel/Digital 21040/1 chips. */
-/*
-	Copyright 2001,2003 Jeff Garzik <jgarzik@pobox.com>
 
-	Copyright 1994, 1995 Digital Equipment Corporation.	    [de4x5.c]
-	Written/copyright 1994-2001 by Donald Becker.		    [tulip.c]
 
-	This software may be used and distributed according to the terms of
-	the GNU General Public License (GPL), incorporated herein by reference.
-	Drivers based on or derived from this code fall under the GPL and must
-	retain the authorship, copyright and license notice.  This file is not
-	a complete program and may only be used when the entire operating
-	system is licensed under the GPL.
-
-	See the file COPYING in this distribution for more information.
-
-	TODO, in rough priority order:
-	* Support forcing media type with a module parameter,
-	  like dl2k.c/sundance.c
-	* Constants (module parms?) for Rx work limit
-	* Complete reset on PciErr
-	* Jumbo frames / dev->change_mtu
-	* Adjust Rx FIFO threshold and Max Rx DMA burst on Rx FIFO error
-	* Adjust Tx FIFO threshold and Max Tx DMA burst on Tx FIFO error
-	* Implement Tx software interrupt mitigation via
-	  Tx descriptor bit
-
- */
 
 #define DRV_NAME		"de2104x"
 #define DRV_VERSION		"0.7"
@@ -48,7 +22,7 @@
 #include <asm/uaccess.h>
 #include <asm/unaligned.h>
 
-/* These identify the driver base version and may not be removed. */
+
 static char version[] =
 KERN_INFO DRV_NAME " PCI Ethernet driver v" DRV_VERSION " (" DRV_RELDATE ")\n";
 
@@ -61,7 +35,7 @@ static int debug = -1;
 module_param (debug, int, 0);
 MODULE_PARM_DESC (debug, "de2104x bitmapped message enable number");
 
-/* Set the copy breakpoint for the copy-only-tiny-buffer Rx structure. */
+
 #if defined(__alpha__) || defined(__arm__) || defined(__hppa__) \
         || defined(CONFIG_SPARC) || defined(__ia64__) \
         || defined(__sh__) || defined(__mips__)
@@ -82,7 +56,7 @@ MODULE_PARM_DESC (rx_copybreak, "de2104x Breakpoint at which Rx packets are copi
 				 NETIF_MSG_RX_ERR	| \
 				 NETIF_MSG_TX_ERR)
 
-/* Descriptor skip length in 32 bit longwords. */
+
 #ifndef CONFIG_DE2104X_DSL
 #define DSL			0
 #else
@@ -101,7 +75,7 @@ MODULE_PARM_DESC (rx_copybreak, "de2104x Breakpoint at which Rx packets are copi
 	  (CP)->tx_tail + (DE_TX_RING_SIZE - 1) - (CP)->tx_head :	\
 	  (CP)->tx_tail - (CP)->tx_head - 1)
 
-#define PKT_BUF_SZ		1536	/* Size of each temporary Rx buffer.*/
+#define PKT_BUF_SZ		1536	
 #define RX_OFFSET		2
 
 #define DE_SETUP_SKB		((struct sk_buff *) 1)
@@ -128,17 +102,14 @@ MODULE_PARM_DESC (rx_copybreak, "de2104x Breakpoint at which Rx packets are copi
 #define DE_REGS_SIZE		(DE_NUM_REGS * sizeof(u32))
 #define DE_REGS_VER		1
 
-/* Time in jiffies before concluding the transmitter is hung. */
+
 #define TX_TIMEOUT		(6*HZ)
 
-/* This is a mysterious value that can be written to CSR11 in the 21040 (only)
-   to support a pre-NWay full-duplex signaling mechanism using short frames.
-   No one knows what it should be, but if left at its default value some
-   10base2(!) packets trigger a full-duplex-request interrupt. */
+
 #define FULL_DUPLEX_MAGIC	0x6969
 
 enum {
-	/* NIC registers */
+	
 	BusMode			= 0x00,
 	TxPoll			= 0x08,
 	RxPoll			= 0x10,
@@ -156,17 +127,17 @@ enum {
 	CSR15			= 0x78,
 	PCIPM			= 0x40,
 
-	/* BusMode bits */
+	
 	CmdReset		= (1 << 0),
 	CacheAlign16		= 0x00008000,
 	BurstLen4		= 0x00000400,
 	DescSkipLen		= (DSL << 2),
 
-	/* Rx/TxPoll bits */
+	
 	NormalTxPoll		= (1 << 0),
 	NormalRxPoll		= (1 << 0),
 
-	/* Tx/Rx descriptor status bits */
+	
 	DescOwn			= (1 << 31),
 	RxError			= (1 << 15),
 	RxErrLong		= (1 << 7),
@@ -186,7 +157,7 @@ enum {
 	SetupFrame		= (1 << 27),
 	TxSwInt			= (1 << 31),
 
-	/* MacStatus bits */
+	
 	IntrOK			= (1 << 16),
 	IntrErr			= (1 << 15),
 	RxIntr			= (1 << 6),
@@ -201,7 +172,7 @@ enum {
 	RxStopped		= (1 << 8),
 	TxStopped		= (1 << 1),
 
-	/* MacMode bits */
+	
 	TxEnable		= (1 << 13),
 	RxEnable		= (1 << 1),
 	RxTx			= TxEnable | RxEnable,
@@ -212,33 +183,33 @@ enum {
 	MacModeClear		= (1<<12) | (1<<11) | (1<<10) | (1<<8) | (1<<3) |
 				  RxTx | BOCnt | AcceptAllPhys | AcceptAllMulticast,
 
-	/* ROMCmd bits */
-	EE_SHIFT_CLK		= 0x02,	/* EEPROM shift clock. */
-	EE_CS			= 0x01,	/* EEPROM chip select. */
-	EE_DATA_WRITE		= 0x04,	/* Data from the Tulip to EEPROM. */
+	
+	EE_SHIFT_CLK		= 0x02,	
+	EE_CS			= 0x01,	
+	EE_DATA_WRITE		= 0x04,	
 	EE_WRITE_0		= 0x01,
 	EE_WRITE_1		= 0x05,
-	EE_DATA_READ		= 0x08,	/* Data from the EEPROM chip. */
+	EE_DATA_READ		= 0x08,	
 	EE_ENB			= (0x4800 | EE_CS),
 
-	/* The EEPROM commands include the alway-set leading bit. */
+	
 	EE_READ_CMD		= 6,
 
-	/* RxMissed bits */
+	
 	RxMissedOver		= (1 << 16),
 	RxMissedMask		= 0xffff,
 
-	/* SROM-related bits */
+	
 	SROMC0InfoLeaf		= 27,
 	MediaBlockMask		= 0x3f,
 	MediaCustomCSRs		= (1 << 6),
 
-	/* PCIPM bits */
+	
 	PM_Sleep		= (1 << 31),
 	PM_Snooze		= (1 << 30),
 	PM_Mask			= PM_Sleep | PM_Snooze,
 
-	/* SIAStatus bits */
+	
 	NWayState		= (1 << 14) | (1 << 13) | (1 << 12),
 	NWayRestart		= (1 << 12),
 	NonselPortActive	= (1 << 9),
@@ -250,10 +221,7 @@ static const u32 de_intr_mask =
 	IntrOK | IntrErr | RxIntr | RxEmpty | TxIntr | TxEmpty |
 	LinkPass | LinkFail | PciErr;
 
-/*
- * Set the programmable burst length to 4 longwords for all:
- * DMA errors result without these values. Cache align 16 long.
- */
+
 static const u32 de_bus_mode = CacheAlign16 | BurstLen4 | DescSkipLen;
 
 struct de_srom_media_block {
@@ -280,7 +248,7 @@ struct de_desc {
 };
 
 struct media_info {
-	u16			type;	/* DE_MEDIA_xxx */
+	u16			type;	
 	u16			csr13;
 	u16			csr14;
 	u16			csr15;
@@ -354,13 +322,12 @@ static const char * const media_name[DE_MAX_MEDIA] = {
 	"10baseT-FD"
 };
 
-/* 21040 transceiver register settings:
- * TP AUTO(unused), BNC(unused), AUI, TP, TP FD*/
+
 static u16 t21040_csr13[] = { 0, 0, 0x8F09, 0x8F01, 0x8F01, };
 static u16 t21040_csr14[] = { 0, 0, 0x0705, 0xFFFF, 0xFFFD, };
 static u16 t21040_csr15[] = { 0, 0, 0x0006, 0x0000, 0x0000, };
 
-/* 21041 transceiver register settings: TP AUTO, BNC, AUI, TP, TP FD*/
+
 static u16 t21041_csr13[] = { 0xEF01, 0xEF09, 0xEF09, 0xEF01, 0xEF09, };
 static u16 t21041_csr14[] = { 0xFFFF, 0xF7FD, 0xF7FD, 0x6F3F, 0x6F3D, };
 static u16 t21041_csr15[] = { 0x0008, 0x0006, 0x000E, 0x0008, 0x0008, };
@@ -379,7 +346,7 @@ static void de_rx_err_acct (struct de_private *de, unsigned rx_tail,
 			de->dev->name, rx_tail, status, len);
 
 	if ((status & 0x38000300) != 0x0300) {
-		/* Ingore earlier buffers. */
+		
 		if ((status & 0xffff) != 0x7fff) {
 			if (netif_msg_rx_err(de))
 				printk(KERN_WARNING "%s: Oversized Ethernet frame "
@@ -388,8 +355,8 @@ static void de_rx_err_acct (struct de_private *de, unsigned rx_tail,
 			de->net_stats.rx_length_errors++;
 		}
 	} else if (status & RxError) {
-		/* There was a fatal error. */
-		de->net_stats.rx_errors++; /* end of a packet.*/
+		
+		de->net_stats.rx_errors++; 
 		if (status & 0x0890) de->net_stats.rx_length_errors++;
 		if (status & RxErrCRC) de->net_stats.rx_crc_errors++;
 		if (status & RxErrFIFO) de->net_stats.rx_fifo_errors++;
@@ -462,7 +429,7 @@ static void de_rx (struct de_private *de)
 						  len);
 			pci_dma_sync_single_for_device(de->pdev, mapping, len, PCI_DMA_FROMDEVICE);
 
-			/* We'll reuse the original ring buffer. */
+			
 			skb = copy_skb;
 		}
 
@@ -648,17 +615,14 @@ static netdev_tx_t de_start_xmit (struct sk_buff *skb,
 
 	spin_unlock_irq(&de->lock);
 
-	/* Trigger an immediate transmit demand. */
+	
 	dw32(TxPoll, NormalTxPoll);
 	dev->trans_start = jiffies;
 
 	return NETDEV_TX_OK;
 }
 
-/* Set or clear the multicast filter for this adaptor.
-   Note that we only use exclusion around actually queueing the
-   new frame, not around filling de->setup_frame.  This is non-deterministic
-   when re-entered but still correct. */
+
 
 #undef set_bit_le
 #define set_bit_le(i,p) do { ((char *)(p))[(i)/8] |= (1<<((i)%8)); } while(0)
@@ -672,8 +636,8 @@ static void build_setup_frame_hash(u16 *setup_frm, struct net_device *dev)
 	u16 *eaddrs;
 
 	memset(hash_table, 0, sizeof(hash_table));
-	set_bit_le(255, hash_table); 			/* Broadcast entry */
-	/* This should work on big-endian machines as well. */
+	set_bit_le(255, hash_table); 			
+	
 	for (i = 0, mclist = dev->mc_list; mclist && i < dev->mc_count;
 	     i++, mclist = mclist->next) {
 		int index = ether_crc_le(ETH_ALEN, mclist->dmi_addr) & 0x1ff;
@@ -687,7 +651,7 @@ static void build_setup_frame_hash(u16 *setup_frm, struct net_device *dev)
 		setup_frm = &de->setup_frame[13*6];
 	}
 
-	/* Fill the final entry with our physical address. */
+	
 	eaddrs = (u16 *)dev->dev_addr;
 	*setup_frm++ = eaddrs[0]; *setup_frm++ = eaddrs[0];
 	*setup_frm++ = eaddrs[1]; *setup_frm++ = eaddrs[1];
@@ -701,8 +665,7 @@ static void build_setup_frame_perfect(u16 *setup_frm, struct net_device *dev)
 	int i;
 	u16 *eaddrs;
 
-	/* We have <= 14 addresses so we can use the wonderful
-	   16 address perfect filtering of the Tulip. */
+	
 	for (i = 0, mclist = dev->mc_list; i < dev->mc_count;
 	     i++, mclist = mclist->next) {
 		eaddrs = (u16 *)mclist->dmi_addr;
@@ -710,11 +673,11 @@ static void build_setup_frame_perfect(u16 *setup_frm, struct net_device *dev)
 		*setup_frm++ = *eaddrs; *setup_frm++ = *eaddrs++;
 		*setup_frm++ = *eaddrs; *setup_frm++ = *eaddrs++;
 	}
-	/* Fill the unused entries with the broadcast address. */
+	
 	memset(setup_frm, 0xff, (15-i)*12);
 	setup_frm = &de->setup_frame[15*6];
 
-	/* Fill the final entry with our physical address. */
+	
 	eaddrs = (u16 *)dev->dev_addr;
 	*setup_frm++ = eaddrs[0]; *setup_frm++ = eaddrs[0];
 	*setup_frm++ = eaddrs[1]; *setup_frm++ = eaddrs[1];
@@ -733,31 +696,28 @@ static void __de_set_rx_mode (struct net_device *dev)
 
 	macmode = dr32(MacMode) & ~(AcceptAllMulticast | AcceptAllPhys);
 
-	if (dev->flags & IFF_PROMISC) {	/* Set promiscuous. */
+	if (dev->flags & IFF_PROMISC) {	
 		macmode |= AcceptAllMulticast | AcceptAllPhys;
 		goto out;
 	}
 
 	if ((dev->mc_count > 1000) || (dev->flags & IFF_ALLMULTI)) {
-		/* Too many to filter well -- accept all multicasts. */
+		
 		macmode |= AcceptAllMulticast;
 		goto out;
 	}
 
-	/* Note that only the low-address shortword of setup_frame is valid!
-	   The values are doubled for big-endian architectures. */
-	if (dev->mc_count > 14)	/* Must use a multicast hash table. */
+	
+	if (dev->mc_count > 14)	
 		build_setup_frame_hash (de->setup_frame, dev);
 	else
 		build_setup_frame_perfect (de->setup_frame, dev);
 
-	/*
-	 * Now add this frame to the Tx list.
-	 */
+	
 
 	entry = de->tx_head;
 
-	/* Avoid a chip errata by prefixing a dummy entry. */
+	
 	if (entry != 0) {
 		de->tx_skb[entry].skb = DE_DUMMY_SKB;
 
@@ -766,7 +726,7 @@ static void __de_set_rx_mode (struct net_device *dev)
 				   cpu_to_le32(RingEnd) : 0;
 		dummy_txd->addr1 = 0;
 
-		/* Must set DescOwned later to avoid race with chip */
+		
 
 		entry = NEXT_TX(entry);
 	}
@@ -776,7 +736,7 @@ static void __de_set_rx_mode (struct net_device *dev)
 	    pci_map_single (de->pdev, de->setup_frame,
 			    sizeof (de->setup_frame), PCI_DMA_TODEVICE);
 
-	/* Put the setup frame on the Tx list. */
+	
 	txd = &de->tx_ring[entry];
 	if (entry == (DE_TX_RING_SIZE - 1))
 		txd->opts2 = cpu_to_le32(SetupFrame | RingEnd | sizeof (de->setup_frame));
@@ -798,7 +758,7 @@ static void __de_set_rx_mode (struct net_device *dev)
 	if (TX_BUFFS_AVAIL(de) == 0)
 		netif_stop_queue(dev);
 
-	/* Trigger an immediate transmit demand. */
+	
 	dw32(TxPoll, NormalTxPoll);
 
 out:
@@ -826,7 +786,7 @@ static inline void de_rx_missed(struct de_private *de, u32 rx_missed)
 
 static void __de_get_stats(struct de_private *de)
 {
-	u32 tmp = dr32(RxMissed); /* self-clearing */
+	u32 tmp = dr32(RxMissed); 
 
 	de_rx_missed(de, tmp);
 }
@@ -835,7 +795,7 @@ static struct net_device_stats *de_get_stats(struct net_device *dev)
 {
 	struct de_private *de = netdev_priv(dev);
 
-	/* The chip only need report frame silently dropped. */
+	
 	spin_lock_irq(&de->lock);
  	if (netif_running(dev) && netif_device_present(dev))
  		__de_get_stats(de);
@@ -860,10 +820,7 @@ static void de_stop_rxtx (struct de_private *de)
 		dr32(MacMode);
 	}
 
-	/* wait until in-flight frame completes.
-	 * Max time @ 10BT: 1500*8b/10Mbps == 1200us (+ 100us margin)
-	 * Typically expect this loop to end in < 50 us on 100BT.
-	 */
+	
 	while (--i) {
 		if (!de_is_running(de))
 			return;
@@ -929,14 +886,12 @@ static void de_set_media (struct de_private *de)
 
 	if (de->de21040)
 		dw32(CSR11, FULL_DUPLEX_MAGIC);
-	dw32(CSR13, 0); /* Reset phy */
+	dw32(CSR13, 0); 
 	dw32(CSR14, de->media[media].csr14);
 	dw32(CSR15, de->media[media].csr15);
 	dw32(CSR13, de->media[media].csr13);
 
-	/* must delay 10ms before writing to other registers,
-	 * especially CSR6
-	 */
+	
 	mdelay(10);
 
 	if (media == DE_MEDIA_TP_FD)
@@ -1087,15 +1042,15 @@ static void de21041_media_timer (unsigned long data)
 
 	de_link_down(de);
 
-	/* if media type locked, don't switch media */
+	
 	if (de->media_lock)
 		goto set_media;
 
-	/* if activity detected, use that as hint for new media type */
+	
 	if (status & NonselPortActive) {
 		unsigned int have_media = 1;
 
-		/* if AUI/BNC selected, then activity is on TP port */
+		
 		if (de->media_type == DE_MEDIA_AUI ||
 		    de->media_type == DE_MEDIA_BNC) {
 			if (de_ok_to_advertise(de, DE_MEDIA_TP_AUTO))
@@ -1104,17 +1059,17 @@ static void de21041_media_timer (unsigned long data)
 				have_media = 0;
 		}
 
-		/* TP selected.  If there is only TP and BNC, then it's BNC */
+		
 		else if (((de->media_supported & DE_AUI_BNC) == SUPPORTED_BNC) &&
 			 de_ok_to_advertise(de, DE_MEDIA_BNC))
 			de->media_type = DE_MEDIA_BNC;
 
-		/* TP selected.  If there is only TP and AUI, then it's AUI */
+		
 		else if (((de->media_supported & DE_AUI_BNC) == SUPPORTED_AUI) &&
 			 de_ok_to_advertise(de, DE_MEDIA_AUI))
 			de->media_type = DE_MEDIA_AUI;
 
-		/* otherwise, ignore the hint */
+		
 		else
 			have_media = 0;
 
@@ -1122,11 +1077,7 @@ static void de21041_media_timer (unsigned long data)
 			goto set_media;
 	}
 
-	/*
-	 * Absent or ambiguous activity hint, move to next advertised
-	 * media state.  If de->media_type is left unchanged, this
-	 * simply resets the PHY and reloads the current media settings.
-	 */
+	
 	if (de->media_type == DE_MEDIA_AUI) {
 		u32 next_states[] = { DE_MEDIA_BNC, DE_MEDIA_TP_AUTO };
 		de_next_media(de, next_states, ARRAY_SIZE(next_states));
@@ -1174,15 +1125,12 @@ static int de_reset_mac (struct de_private *de)
 {
 	u32 status, tmp;
 
-	/*
-	 * Reset MAC.  de4x5.c and tulip.c examined for "advice"
-	 * in this area.
-	 */
+	
 
 	if (dr32(BusMode) == 0xffffffff)
 		return -EBUSY;
 
-	/* Reset the chip, holding bit 0 set at least 50 PCI cycles. */
+	
 	dw32 (BusMode, CmdReset);
 	mdelay (1);
 
@@ -1216,7 +1164,7 @@ static void de_adapter_wake (struct de_private *de)
 		pmctl &= ~PM_Mask;
 		pci_write_config_dword(de->pdev, PCIPM, pmctl);
 
-		/* de4x5.c delays, so we do too */
+		
 		msleep(10);
 	}
 }
@@ -1247,14 +1195,14 @@ static int de_init_hw (struct de_private *de)
 	if (rc)
 		return rc;
 
-	de_set_media(de); /* reset phy */
+	de_set_media(de); 
 
 	dw32(RxRingAddr, de->ring_dma);
 	dw32(TxRingAddr, de->ring_dma + (sizeof(struct de_desc) * DE_RX_RING_SIZE));
 
 	dw32(MacMode, RxTx | macmode);
 
-	dr32(RxMissed); /* self-clearing */
+	dr32(RxMissed); 
 
 	dw32(IntrMask, de_intr_mask);
 
@@ -1454,7 +1402,7 @@ static void de_tx_timeout (struct net_device *dev)
 	spin_unlock_irq(&de->lock);
 	enable_irq(dev->irq);
 
-	/* Update the error counts. */
+	
 	__de_get_stats(de);
 
 	synchronize_irq(dev->irq);
@@ -1472,11 +1420,11 @@ static void __de_get_regs(struct de_private *de, u8 *buf)
 	int i;
 	u32 *rbuf = (u32 *)buf;
 
-	/* read all CSRs */
+	
 	for (i = 0; i < DE_NUM_REGS; i++)
 		rbuf[i] = dr32(i * 8);
 
-	/* handle self-clearing RxMissed counter, CSR8 */
+	
 	de_rx_missed(de, rbuf[8]);
 }
 
@@ -1512,7 +1460,7 @@ static int __de_get_settings(struct de_private *de, struct ethtool_cmd *ecmd)
 	else
 		ecmd->autoneg = AUTONEG_ENABLE;
 
-	/* ignore maxtxpkt, maxrxpkt for now */
+	
 
 	return 0;
 }
@@ -1572,7 +1520,7 @@ static int __de_set_settings(struct de_private *de, struct ethtool_cmd *ecmd)
 	if ((new_media == de->media_type) &&
 	    (media_lock == de->media_lock) &&
 	    (ecmd->advertising == de->media_advertise))
-		return 0; /* nothing to change */
+		return 0; 
 
 	de_link_down(de);
 	de_stop_rxtx(de);
@@ -1700,7 +1648,7 @@ static void __devinit de21040_get_mac_address (struct de_private *de)
 {
 	unsigned i;
 
-	dw32 (ROMCmd, 0);	/* Reset the pointer with a dummy write. */
+	dw32 (ROMCmd, 0);	
 	udelay(5);
 
 	for (i = 0; i < 6; i++) {
@@ -1741,7 +1689,7 @@ static void __devinit de21040_get_media_info(struct de_private *de)
 	}
 }
 
-/* Note: this routine returns extra data bits for size detection. */
+
 static unsigned __devinit tulip_read_eeprom(void __iomem *regs, int location, int addr_len)
 {
 	int i;
@@ -1752,7 +1700,7 @@ static unsigned __devinit tulip_read_eeprom(void __iomem *regs, int location, in
 	writel(EE_ENB & ~EE_CS, ee_addr);
 	writel(EE_ENB, ee_addr);
 
-	/* Shift the read command bits out. */
+	
 	for (i = 4 + addr_len; i >= 0; i--) {
 		short dataval = (read_cmd & (1 << i)) ? EE_DATA_WRITE : 0;
 		writel(EE_ENB | dataval, ee_addr);
@@ -1772,7 +1720,7 @@ static unsigned __devinit tulip_read_eeprom(void __iomem *regs, int location, in
 		readl(ee_addr);
 	}
 
-	/* Terminate the EEPROM access. */
+	
 	writel(EE_ENB & ~EE_CS, ee_addr);
 	return retval;
 }
@@ -1785,14 +1733,13 @@ static void __devinit de21041_get_srom_info (struct de_private *de)
 	struct de_srom_info_leaf *il;
 	void *bufp;
 
-	/* download entire eeprom */
+	
 	for (i = 0; i < DE_EEPROM_WORDS; i++)
 		((__le16 *)ee_data)[i] =
 			cpu_to_le16(tulip_read_eeprom(de->regs, i, ee_addr_size));
 
-	/* DEC now has a specification but early board makers
-	   just put the address in the first EEPROM locations. */
-	/* This does  memcmp(eedata, eedata+16, 8) */
+	
+	
 
 #ifndef CONFIG_MIPS_COBALT
 
@@ -1802,26 +1749,26 @@ static void __devinit de21041_get_srom_info (struct de_private *de)
 
 #endif
 
-	/* store MAC address */
+	
 	for (i = 0; i < 6; i ++)
 		de->dev->dev_addr[i] = ee_data[i + sa_offset];
 
-	/* get offset of controller 0 info leaf.  ignore 2nd byte. */
+	
 	ofs = ee_data[SROMC0InfoLeaf];
 	if (ofs >= (sizeof(ee_data) - sizeof(struct de_srom_info_leaf) - sizeof(struct de_srom_media_block)))
 		goto bad_srom;
 
-	/* get pointer to info leaf */
+	
 	il = (struct de_srom_info_leaf *) &ee_data[ofs];
 
-	/* paranoia checks */
+	
 	if (il->n_blocks == 0)
 		goto bad_srom;
 	if ((sizeof(ee_data) - ofs) <
 	    (sizeof(struct de_srom_info_leaf) + (sizeof(struct de_srom_media_block) * il->n_blocks)))
 		goto bad_srom;
 
-	/* get default media type */
+	
 	switch (get_unaligned(&il->default_media)) {
 	case 0x0001:  de->media_type = DE_MEDIA_BNC; break;
 	case 0x0002:  de->media_type = DE_MEDIA_AUI; break;
@@ -1834,7 +1781,7 @@ static void __devinit de21041_get_srom_info (struct de_private *de)
 		       de->board_idx, ofs,
 		       media_name[de->media_type]);
 
-	/* init SIA register values to defaults */
+	
 	for (i = 0; i < DE_MAX_MEDIA; i++) {
 		de->media[i].type = DE_MEDIA_INVALID;
 		de->media[i].csr13 = 0xffff;
@@ -1842,31 +1789,29 @@ static void __devinit de21041_get_srom_info (struct de_private *de)
 		de->media[i].csr15 = 0xffff;
 	}
 
-	/* parse media blocks to see what medias are supported,
-	 * and if any custom CSR values are provided
-	 */
+	
 	bufp = ((void *)il) + sizeof(*il);
 	for (i = 0; i < il->n_blocks; i++) {
 		struct de_srom_media_block *ib = bufp;
 		unsigned idx;
 
-		/* index based on media type in media block */
+		
 		switch(ib->opts & MediaBlockMask) {
-		case 0: /* 10baseT */
+		case 0: 
 			de->media_supported |= SUPPORTED_TP | SUPPORTED_10baseT_Half
 					  | SUPPORTED_Autoneg;
 			idx = DE_MEDIA_TP;
 			de->media[DE_MEDIA_TP_AUTO].type = DE_MEDIA_TP_AUTO;
 			break;
-		case 1: /* BNC */
+		case 1: 
 			de->media_supported |= SUPPORTED_BNC;
 			idx = DE_MEDIA_BNC;
 			break;
-		case 2: /* AUI */
+		case 2: 
 			de->media_supported |= SUPPORTED_AUI;
 			idx = DE_MEDIA_AUI;
 			break;
-		case 4: /* 10baseT-FD */
+		case 4: 
 			de->media_supported |= SUPPORTED_TP | SUPPORTED_10baseT_Full
 					  | SUPPORTED_Autoneg;
 			idx = DE_MEDIA_TP_FD;
@@ -1908,7 +1853,7 @@ static void __devinit de21041_get_srom_info (struct de_private *de)
 	de->media_advertise = de->media_supported;
 
 fill_defaults:
-	/* fill in defaults, for cases where custom CSRs not used */
+	
 	for (i = 0; i < DE_MAX_MEDIA; i++) {
 		if (de->media[i].csr13 == 0xffff)
 			de->media[i].csr13 = t21041_csr13[i];
@@ -1923,7 +1868,7 @@ fill_defaults:
 	return;
 
 bad_srom:
-	/* for error cases, it's ok to assume we support all these */
+	
 	for (i = 0; i < DE_MAX_MEDIA; i++)
 		de->media[i].type = i;
 	de->media_supported =
@@ -1965,7 +1910,7 @@ static int __devinit de_init_one (struct pci_dev *pdev,
 		printk("%s", version);
 #endif
 
-	/* allocate a new ethernet device structure, and fill in defaults */
+	
 	dev = alloc_etherdev(sizeof(struct de_private));
 	if (!dev)
 		return -ENOMEM;
@@ -1992,17 +1937,17 @@ static int __devinit de_init_one (struct pci_dev *pdev,
 	netif_carrier_off(dev);
 	netif_stop_queue(dev);
 
-	/* wake up device, assign resources */
+	
 	rc = pci_enable_device(pdev);
 	if (rc)
 		goto err_out_free;
 
-	/* reserve PCI resources to ensure driver atomicity */
+	
 	rc = pci_request_regions(pdev, DRV_NAME);
 	if (rc)
 		goto err_out_disable;
 
-	/* check for invalid IRQ value */
+	
 	if (pdev->irq < 2) {
 		rc = -EIO;
 		printk(KERN_ERR PFX "invalid irq (%d) for pci dev %s\n",
@@ -2012,7 +1957,7 @@ static int __devinit de_init_one (struct pci_dev *pdev,
 
 	dev->irq = pdev->irq;
 
-	/* obtain and check validity of PCI I/O address */
+	
 	pciaddr = pci_resource_start(pdev, 1);
 	if (!pciaddr) {
 		rc = -EIO;
@@ -2027,7 +1972,7 @@ static int __devinit de_init_one (struct pci_dev *pdev,
 		goto err_out_res;
 	}
 
-	/* remap CSR registers */
+	
 	regs = ioremap_nocache(pciaddr, DE_REGS_SIZE);
 	if (!regs) {
 		rc = -EIO;
@@ -2041,7 +1986,7 @@ static int __devinit de_init_one (struct pci_dev *pdev,
 
 	de_adapter_wake(de);
 
-	/* make sure hardware is not running */
+	
 	rc = de_reset_mac(de);
 	if (rc) {
 		printk(KERN_ERR PFX "Cannot reset MAC, pci dev %s\n",
@@ -2049,9 +1994,7 @@ static int __devinit de_init_one (struct pci_dev *pdev,
 		goto err_out_iomap;
 	}
 
-	/* get MAC address, initialize default media type and
-	 * get list of supported media
-	 */
+	
 	if (de->de21040) {
 		de21040_get_mac_address(de);
 		de21040_get_media_info(de);
@@ -2059,12 +2002,12 @@ static int __devinit de_init_one (struct pci_dev *pdev,
 		de21041_get_srom_info(de);
 	}
 
-	/* register new network interface with kernel */
+	
 	rc = register_netdev(dev);
 	if (rc)
 		goto err_out_iomap;
 
-	/* print info about board and interface just registered */
+	
 	printk (KERN_INFO "%s: %s at 0x%lx, %pM, IRQ %d\n",
 		dev->name,
 		de->de21040 ? "21040" : "21041",
@@ -2074,10 +2017,10 @@ static int __devinit de_init_one (struct pci_dev *pdev,
 
 	pci_set_drvdata(pdev, dev);
 
-	/* enable busmastering */
+	
 	pci_set_master(pdev);
 
-	/* put adapter to sleep */
+	
 	de_adapter_sleep(de);
 
 	return 0;
@@ -2131,7 +2074,7 @@ static int de_suspend (struct pci_dev *pdev, pm_message_t state)
 		spin_unlock_irq(&de->lock);
 		enable_irq(dev->irq);
 
-		/* Update the error counts. */
+		
 		__de_get_stats(de);
 
 		synchronize_irq(dev->irq);
@@ -2170,7 +2113,7 @@ out:
 	return 0;
 }
 
-#endif /* CONFIG_PM */
+#endif 
 
 static struct pci_driver de_driver = {
 	.name		= DRV_NAME,

@@ -1,35 +1,4 @@
-/*
- * Copyright (c) 2007 Mellanox Technologies. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- */
+
 
 #include <linux/cpumask.h>
 #include <linux/module.h>
@@ -57,22 +26,20 @@ static const char mlx4_en_version[] =
 	MODULE_PARM_DESC(X, desc);
 
 
-/*
- * Device scope module parameters
- */
 
 
-/* Use a XOR rathern than Toeplitz hash function for RSS */
+
+
 MLX4_EN_PARM_INT(rss_xor, 0, "Use XOR hash function for RSS");
 
-/* RSS hash type mask - default to <saddr, daddr, sport, dport> */
+
 MLX4_EN_PARM_INT(rss_mask, 0xf, "RSS hash type bitmask");
 
-/* Number of LRO sessions per Rx ring (rounded up to a power of two) */
+
 MLX4_EN_PARM_INT(num_lro, MLX4_EN_MAX_LRO_DESCRIPTORS,
 		 "Number of LRO sessions per ring or disabled (0)");
 
-/* Priority pausing */
+
 MLX4_EN_PARM_INT(pfctx, 0, "Priority based Flow Control policy on TX[7:0]."
 			   " Per priority bit mask");
 MLX4_EN_PARM_INT(pfcrx, 0, "Priority based Flow Control policy on RX[7:0]."
@@ -113,8 +80,7 @@ static void mlx4_en_event(struct mlx4_dev *dev, void *endev_ptr,
 	switch (event) {
 	case MLX4_DEV_EVENT_PORT_UP:
 	case MLX4_DEV_EVENT_PORT_DOWN:
-		/* To prevent races, we poll the link state in a separate
-		  task rather than changing it here */
+		
 		priv->link_state = event;
 		queue_work(mdev->workqueue, &priv->linkstate_task);
 		break;
@@ -201,20 +167,19 @@ static void *mlx4_en_add(struct mlx4_dev *dev)
 		goto err_mr;
 	}
 
-	/* Build device profile according to supplied module parameters */
+	
 	err = mlx4_en_get_profile(mdev);
 	if (err) {
 		mlx4_err(mdev, "Bad module parameters, aborting.\n");
 		goto err_mr;
 	}
 
-	/* Configure wich ports to start according to module parameters */
+	
 	mdev->port_cnt = 0;
 	mlx4_foreach_port(i, dev, MLX4_PORT_TYPE_ETH)
 		mdev->port_cnt++;
 
-	/* If we did not receive an explicit number of Rx rings, default to
-	 * the number of completion vectors populated by the mlx4_core */
+	
 	mlx4_foreach_port(i, dev, MLX4_PORT_TYPE_ETH) {
 		mlx4_info(mdev, "Using %d tx rings for port:%d\n",
 			  mdev->profile.prof[i].tx_ring_num, i);
@@ -225,23 +190,20 @@ static void *mlx4_en_add(struct mlx4_dev *dev)
 			  mdev->profile.prof[i].rx_ring_num, i);
 	}
 
-	/* Create our own workqueue for reset/multicast tasks
-	 * Note: we cannot use the shared workqueue because of deadlocks caused
-	 *       by the rtnl lock */
+	
 	mdev->workqueue = create_singlethread_workqueue("mlx4_en");
 	if (!mdev->workqueue) {
 		err = -ENOMEM;
 		goto err_mr;
 	}
 
-	/* At this stage all non-port specific tasks are complete:
-	 * mark the card state as up */
+	
 	mutex_init(&mdev->state_lock);
 	mdev->device_up = true;
 
-	/* Setup ports */
+	
 
-	/* Create a netdev for each port */
+	
 	mlx4_foreach_port(i, dev, MLX4_PORT_TYPE_ETH) {
 		mlx4_info(mdev, "Activating port:%d\n", i);
 		if (mlx4_en_init_netdev(mdev, i, &mdev->profile.prof[i]))

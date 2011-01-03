@@ -1,21 +1,4 @@
-/*
- * Copyright 2008 Cisco Systems, Inc.  All rights reserved.
- * Copyright 2007 Nuova Systems, Inc.  All rights reserved.
- *
- * This program is free software; you may redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; version 2 of the License.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/errno.h>
@@ -141,7 +124,7 @@ void vnic_rq_init(struct vnic_rq *rq, unsigned int cq_index,
 {
 	u32 fetch_index;
 
-	/* Use current fetch_index as the ring starting point */
+	
 	fetch_index = ioread32(&rq->ctrl->fetch_index);
 
 	vnic_rq_init_start(rq, cq_index,
@@ -166,7 +149,7 @@ int vnic_rq_disable(struct vnic_rq *rq)
 
 	iowrite32(0, &rq->ctrl->enable);
 
-	/* Wait for HW to ACK disable request */
+	
 	for (wait = 0; wait < 100; wait++) {
 		if (!(ioread32(&rq->ctrl->running)))
 			return 0;
@@ -196,7 +179,7 @@ void vnic_rq_clean(struct vnic_rq *rq,
 		rq->ring.desc_avail++;
 	}
 
-	/* Use current fetch_index as the ring starting point */
+	
 	fetch_index = ioread32(&rq->ctrl->fetch_index);
 	rq->to_use = rq->to_clean =
 		&rq->bufs[fetch_index / VNIC_RQ_BUF_BLK_ENTRIES]

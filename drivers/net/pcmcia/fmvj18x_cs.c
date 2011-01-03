@@ -1,32 +1,4 @@
-/*======================================================================
-    fmvj18x_cs.c 2.8 2002/03/23
 
-    A fmvj18x (and its compatibles) PCMCIA client driver
-
-    Contributed by Shingo Fujimoto, shingo@flab.fujitsu.co.jp
-
-    TDK LAK-CD021 and CONTEC C-NET(PC)C support added by 
-    Nobuhiro Katayama, kata-n@po.iijnet.or.jp
-
-    The PCMCIA client code is based on code written by David Hinds.
-    Network code is based on the "FMV-18x driver" by Yutaka TAMIYA
-    but is actually largely Donald Becker's AT1700 driver, which
-    carries the following attribution:
-
-    Written 1993-94 by Donald Becker.
-
-    Copyright 1993 United States Government as represented by the
-    Director, National Security Agency.
-    
-    This software may be used and distributed according to the terms
-    of the GNU General Public License, incorporated herein by reference.
-    
-    The author may be reached as becker@scyld.com, or C/O
-    Scyld Computing Corporation
-    410 Severn Ave., Suite 210
-    Annapolis MD 21403
-   
-======================================================================*/
 
 #define DRV_NAME	"fmvj18x_cs"
 #define DRV_VERSION	"2.9"
@@ -59,17 +31,17 @@
 #include <asm/io.h>
 #include <asm/system.h>
 
-/*====================================================================*/
 
-/* Module parameters */
+
+
 
 MODULE_DESCRIPTION("fmvj18x and compatible PCMCIA ethernet driver");
 MODULE_LICENSE("GPL");
 
 #define INT_MODULE_PARM(n, v) static int n = v; module_param(n, int, 0)
 
-/* SRAM configuration */
-/* 0:4KB*2 TX buffer   else:8KB*2 TX buffer */
+
+
 INT_MODULE_PARM(sram_config, 0);
 
 #ifdef PCMCIA_DEBUG
@@ -80,19 +52,15 @@ static char *version = DRV_NAME ".c " DRV_VERSION " 2002/03/23";
 #define DEBUG(n, args...)
 #endif
 
-/*====================================================================*/
-/*
-    PCMCIA event handlers
- */
+
+
 static int fmvj18x_config(struct pcmcia_device *link);
 static int fmvj18x_get_hwinfo(struct pcmcia_device *link, u_char *node_id);
 static int fmvj18x_setup_mfc(struct pcmcia_device *link);
 static void fmvj18x_release(struct pcmcia_device *link);
 static void fmvj18x_detach(struct pcmcia_device *p_dev);
 
-/*
-    LAN controller(MBH86960A) specific routines
- */
+
 static int fjn_config(struct net_device *dev, struct ifmap *map);
 static int fjn_open(struct net_device *dev);
 static int fjn_close(struct net_device *dev);
@@ -105,16 +73,12 @@ static void set_rx_mode(struct net_device *dev);
 static void fjn_tx_timeout(struct net_device *dev);
 static const struct ethtool_ops netdev_ethtool_ops;
 
-/*
-    card type
- */
+
 typedef enum { MBH10302, MBH10304, TDK, CONTEC, LA501, UNGERMANN, 
 	       XXX10304, NEC, KME
 } cardtype_t;
 
-/*
-    driver specific data structure
-*/
+
 typedef struct local_info_t {
 	struct pcmcia_device	*p_dev;
     dev_node_t node;
@@ -129,37 +93,33 @@ typedef struct local_info_t {
 
 #define MC_FILTERBREAK 64
 
-/*====================================================================*/
-/* 
-    ioport offset from the base address 
- */
-#define TX_STATUS               0 /* transmit status register */
-#define RX_STATUS               1 /* receive status register */
-#define TX_INTR                 2 /* transmit interrupt mask register */
-#define RX_INTR                 3 /* receive interrupt mask register */
-#define TX_MODE                 4 /* transmit mode register */
-#define RX_MODE                 5 /* receive mode register */
-#define CONFIG_0                6 /* configuration register 0 */
-#define CONFIG_1                7 /* configuration register 1 */
 
-#define NODE_ID                 8 /* node ID register            (bank 0) */
-#define MAR_ADR                 8 /* multicast address registers (bank 1) */
 
-#define DATAPORT                8 /* buffer mem port registers   (bank 2) */
-#define TX_START               10 /* transmit start register */
-#define COL_CTRL               11 /* 16 collision control register */
-#define BMPR12                 12 /* reserved */
-#define BMPR13                 13 /* reserved */
-#define RX_SKIP                14 /* skip received packet register */
+#define TX_STATUS               0 
+#define RX_STATUS               1 
+#define TX_INTR                 2 
+#define RX_INTR                 3 
+#define TX_MODE                 4 
+#define RX_MODE                 5 
+#define CONFIG_0                6 
+#define CONFIG_1                7 
 
-#define LAN_CTRL               16 /* LAN card control register */
+#define NODE_ID                 8 
+#define MAR_ADR                 8 
 
-#define MAC_ID               0x1a /* hardware address */
-#define UNGERMANN_MAC_ID     0x18 /* UNGERMANN-BASS hardware address */
+#define DATAPORT                8 
+#define TX_START               10 
+#define COL_CTRL               11 
+#define BMPR12                 12 
+#define BMPR13                 13 
+#define RX_SKIP                14 
 
-/* 
-    control bits 
- */
+#define LAN_CTRL               16 
+
+#define MAC_ID               0x1a 
+#define UNGERMANN_MAC_ID     0x18 
+
+
 #define ENA_TMT_OK           0x80
 #define ENA_TMT_REC          0x20
 #define ENA_COL              0x04
@@ -173,27 +133,27 @@ typedef struct local_info_t {
 #define ENA_CRC_ERR          0x02
 #define ENA_OVR_FLO          0x01
 
-/* flags */
-#define F_TMT_RDY            0x80 /* can accept new packet */
-#define F_NET_BSY            0x40 /* carrier is detected */
-#define F_TMT_OK             0x20 /* send packet successfully */
-#define F_SRT_PKT            0x10 /* short packet error */
-#define F_COL_ERR            0x04 /* collision error */
-#define F_16_COL             0x02 /* 16 collision error */
-#define F_TBUS_ERR           0x01 /* bus read error */
 
-#define F_PKT_RDY            0x80 /* packet(s) in buffer */
-#define F_BUS_ERR            0x40 /* bus read error */
-#define F_LEN_ERR            0x08 /* short packet */
-#define F_ALG_ERR            0x04 /* frame error */
-#define F_CRC_ERR            0x02 /* CRC error */
-#define F_OVR_FLO            0x01 /* overflow error */
+#define F_TMT_RDY            0x80 
+#define F_NET_BSY            0x40 
+#define F_TMT_OK             0x20 
+#define F_SRT_PKT            0x10 
+#define F_COL_ERR            0x04 
+#define F_16_COL             0x02 
+#define F_TBUS_ERR           0x01 
 
-#define F_BUF_EMP            0x40 /* receive buffer is empty */
+#define F_PKT_RDY            0x80 
+#define F_BUS_ERR            0x40 
+#define F_LEN_ERR            0x08 
+#define F_ALG_ERR            0x04 
+#define F_CRC_ERR            0x02 
+#define F_OVR_FLO            0x01 
 
-#define F_SKP_PKT            0x05 /* drop packet in buffer */
+#define F_BUF_EMP            0x40 
 
-/* default bitmaps */
+#define F_SKP_PKT            0x05 
+
+
 #define D_TX_INTR  ( ENA_TMT_OK )
 #define D_RX_INTR  ( ENA_PKT_RDY | ENA_LEN_ERR \
 		   | ENA_ALG_ERR | ENA_CRC_ERR | ENA_OVR_FLO )
@@ -201,32 +161,32 @@ typedef struct local_info_t {
 #define RX_STAT_M  ( F_PKT_RDY | F_LEN_ERR \
                    | F_ALG_ERR | F_CRC_ERR | F_OVR_FLO )
 
-/* commands */
-#define D_TX_MODE            0x06 /* no tests, detect carrier */
-#define ID_MATCHED           0x02 /* (RX_MODE) */
-#define RECV_ALL             0x03 /* (RX_MODE) */
-#define CONFIG0_DFL          0x5a /* 16bit bus, 4K x 2 Tx queues */
-#define CONFIG0_DFL_1        0x5e /* 16bit bus, 8K x 2 Tx queues */
-#define CONFIG0_RST          0xda /* Data Link Controller off (CONFIG_0) */
-#define CONFIG0_RST_1        0xde /* Data Link Controller off (CONFIG_0) */
-#define BANK_0               0xa0 /* bank 0 (CONFIG_1) */
-#define BANK_1               0xa4 /* bank 1 (CONFIG_1) */
-#define BANK_2               0xa8 /* bank 2 (CONFIG_1) */
-#define CHIP_OFF             0x80 /* contrl chip power off (CONFIG_1) */
-#define DO_TX                0x80 /* do transmit packet */
-#define SEND_PKT             0x81 /* send a packet */
-#define AUTO_MODE            0x07 /* Auto skip packet on 16 col detected */
-#define MANU_MODE            0x03 /* Stop and skip packet on 16 col */
-#define TDK_AUTO_MODE        0x47 /* Auto skip packet on 16 col detected */
-#define TDK_MANU_MODE        0x43 /* Stop and skip packet on 16 col */
-#define INTR_OFF             0x0d /* LAN controller ignores interrupts */
-#define INTR_ON              0x1d /* LAN controller will catch interrupts */
+
+#define D_TX_MODE            0x06 
+#define ID_MATCHED           0x02 
+#define RECV_ALL             0x03 
+#define CONFIG0_DFL          0x5a 
+#define CONFIG0_DFL_1        0x5e 
+#define CONFIG0_RST          0xda 
+#define CONFIG0_RST_1        0xde 
+#define BANK_0               0xa0 
+#define BANK_1               0xa4 
+#define BANK_2               0xa8 
+#define CHIP_OFF             0x80 
+#define DO_TX                0x80 
+#define SEND_PKT             0x81 
+#define AUTO_MODE            0x07 
+#define MANU_MODE            0x03 
+#define TDK_AUTO_MODE        0x47 
+#define TDK_MANU_MODE        0x43 
+#define INTR_OFF             0x0d 
+#define INTR_ON              0x1d 
 
 #define TX_TIMEOUT		((400*HZ)/1000)
 
-#define BANK_0U              0x20 /* bank 0 (CONFIG_1) */
-#define BANK_1U              0x24 /* bank 1 (CONFIG_1) */
-#define BANK_2U              0x28 /* bank 2 (CONFIG_1) */
+#define BANK_0U              0x20 
+#define BANK_1U              0x24 
+#define BANK_2U              0x28 
 
 static const struct net_device_ops fjn_netdev_ops = {
 	.ndo_open 		= fjn_open,
@@ -247,7 +207,7 @@ static int fmvj18x_probe(struct pcmcia_device *link)
 
     DEBUG(0, "fmvj18x_attach()\n");
 
-    /* Make up a FMVJ18x specific data structure */
+    
     dev = alloc_etherdev(sizeof(local_info_t));
     if (!dev)
 	return -ENOMEM;
@@ -256,18 +216,18 @@ static int fmvj18x_probe(struct pcmcia_device *link)
     lp->p_dev = link;
     lp->base = NULL;
 
-    /* The io structure describes IO port mapping */
+    
     link->io.NumPorts1 = 32;
     link->io.Attributes1 = IO_DATA_PATH_WIDTH_AUTO;
     link->io.IOAddrLines = 5;
 
-    /* Interrupt setup */
+    
     link->irq.Attributes = IRQ_TYPE_DYNAMIC_SHARING|IRQ_HANDLE_PRESENT;
     link->irq.IRQInfo1 = IRQ_LEVEL_ID;
     link->irq.Handler = &fjn_interrupt;
     link->irq.Instance = dev;
 
-    /* General socket configuration */
+    
     link->conf.Attributes = CONF_ENABLE_IRQ;
     link->conf.IntType = INT_MEMORY_AND_IO;
 
@@ -277,9 +237,9 @@ static int fmvj18x_probe(struct pcmcia_device *link)
     SET_ETHTOOL_OPS(dev, &netdev_ethtool_ops);
 
     return fmvj18x_config(link);
-} /* fmvj18x_attach */
+} 
 
-/*====================================================================*/
+
 
 static void fmvj18x_detach(struct pcmcia_device *link)
 {
@@ -293,9 +253,9 @@ static void fmvj18x_detach(struct pcmcia_device *link)
     fmvj18x_release(link);
 
     free_netdev(dev);
-} /* fmvj18x_detach */
+} 
 
-/*====================================================================*/
+
 
 #define CS_CHECK(fn, ret) \
 do { last_fn = (fn); if ((last_ret = (ret)) != 0) goto cs_failed; } while (0)
@@ -324,21 +284,18 @@ static int ungermann_try_io_port(struct pcmcia_device *link)
 {
     int ret;
     unsigned int ioaddr;
-    /*
-	Ungermann-Bass Access/CARD accepts 0x300,0x320,0x340,0x360
-	0x380,0x3c0 only for ioport.
-    */
+    
     for (ioaddr = 0x300; ioaddr < 0x3e0; ioaddr += 0x20) {
 	link->io.BasePort1 = ioaddr;
 	ret = pcmcia_request_io(link, &link->io);
 	if (ret == 0) {
-	    /* calculate ConfigIndex value */
+	    
 	    link->conf.ConfigIndex = 
 		((link->io.BasePort1 & 0x0f0) >> 3) | 0x22;
 	    return ret;
 	}
     }
-    return ret;	/* RequestIO failed */
+    return ret;	
 }
 
 static int fmvj18x_config(struct pcmcia_device *link)
@@ -362,7 +319,7 @@ static int fmvj18x_config(struct pcmcia_device *link)
     tuple.DesiredTuple = CISTPL_FUNCE;
     tuple.TupleOffset = 0;
     if (pcmcia_get_first_tuple(link, &tuple) == 0) {
-	/* Yes, I have CISTPL_FUNCE. Let's check CISTPL_MANFID */
+	
 	tuple.DesiredTuple = CISTPL_CFTABLE_ENTRY;
 	CS_CHECK(GetFirstTuple, pcmcia_get_first_tuple(link, &tuple));
 	CS_CHECK(GetTupleData, pcmcia_get_tuple_data(link, &tuple));
@@ -374,20 +331,20 @@ static int fmvj18x_config(struct pcmcia_device *link)
 	    if (link->card_id == PRODID_TDK_GN3410
 			|| link->card_id == PRODID_TDK_NP9610
 			|| link->card_id == PRODID_TDK_MN3200) {
-		/* MultiFunction Card */
+		
 		link->conf.ConfigBase = 0x800;
 		link->conf.ConfigIndex = 0x47;
 		link->io.NumPorts2 = 8;
 	    }
 	    break;
 	case MANFID_NEC:
-	    cardtype = NEC; /* MultiFunction Card */
+	    cardtype = NEC; 
 	    link->conf.ConfigBase = 0x800;
 	    link->conf.ConfigIndex = 0x47;
 	    link->io.NumPorts2 = 8;
 	    break;
 	case MANFID_KME:
-	    cardtype = KME; /* MultiFunction Card */
+	    cardtype = KME; 
 	    link->conf.ConfigBase = 0x800;
 	    link->conf.ConfigIndex = 0x47;
 	    link->io.NumPorts2 = 8;
@@ -399,8 +356,7 @@ static int fmvj18x_config(struct pcmcia_device *link)
 	    if (link->conf.ConfigBase == 0x0fe0)
 		cardtype = MBH10302;
 	    else if (link->card_id == PRODID_FUJITSU_MBH10302) 
-                /* RATOC REX-5588/9822/4886's PRODID are 0004(=MBH10302),
-                   but these are MBH10304 based card. */ 
+                 
 		cardtype = MBH10304;
 	    else if (link->card_id == PRODID_FUJITSU_MBH10304)
 		cardtype = MBH10304;
@@ -411,14 +367,14 @@ static int fmvj18x_config(struct pcmcia_device *link)
 	    cardtype = MBH10304;
 	}
     } else {
-	/* old type card */
+	
 	switch (link->manf_id) {
 	case MANFID_FUJITSU:
 	    if (link->card_id == PRODID_FUJITSU_MBH10304) {
-		cardtype = XXX10304;    /* MBH10304 with buggy CIS */
+		cardtype = XXX10304;    
 	        link->conf.ConfigIndex = 0x20;
 	    } else {
-		cardtype = MBH10302;    /* NextCom NC5310, etc. */
+		cardtype = MBH10302;    
 		link->conf.ConfigIndex = 1;
 	    }
 	    break;
@@ -454,19 +410,19 @@ static int fmvj18x_config(struct pcmcia_device *link)
 
     ioaddr = dev->base_addr;
 
-    /* Reset controller */
+    
     if (sram_config == 0) 
 	outb(CONFIG0_RST, ioaddr + CONFIG_0);
     else
 	outb(CONFIG0_RST_1, ioaddr + CONFIG_0);
 
-    /* Power On chip and select bank 0 */
+    
     if (cardtype == MBH10302)
 	outb(BANK_0, ioaddr + CONFIG_1);
     else
 	outb(BANK_0U, ioaddr + CONFIG_1);
     
-    /* Set hardware address */
+    
     switch (cardtype) {
     case MBH10304:
     case TDK:
@@ -480,7 +436,7 @@ static int fmvj18x_config(struct pcmcia_device *link)
 	tuple.TupleOffset = 0;
 	CS_CHECK(GetTupleData, pcmcia_get_tuple_data(link, &tuple));
 	if (cardtype == MBH10304) {
-	    /* MBH10304's CIS_FUNCE is corrupted */
+	    
 	    node_id = &(tuple.TupleData[5]);
 	    card_name = "FMV-J182";
 	} else {
@@ -501,18 +457,18 @@ static int fmvj18x_config(struct pcmcia_device *link)
 		card_name = "C-NET(PC)C";
 	    }
 	}
-	/* Read MACID from CIS */
+	
 	for (i = 0; i < 6; i++)
 	    dev->dev_addr[i] = node_id[i];
 	break;
     case UNGERMANN:
-	/* Read MACID from register */
+	
 	for (i = 0; i < 6; i++) 
 	    dev->dev_addr[i] = inb(ioaddr + UNGERMANN_MAC_ID + i);
 	card_name = "Access/CARD";
 	break;
     case XXX10304:
-	/* Read MACID from Buggy CIS */
+	
 	if (fmvj18x_get_hwinfo(link, tuple.TupleData) == -1) {
 	    printk(KERN_NOTICE "fmvj18x_cs: unable to read hardware net address.\n");
 	    goto failed;
@@ -524,7 +480,7 @@ static int fmvj18x_config(struct pcmcia_device *link)
 	break;
     case MBH10302:
     default:
-	/* Read MACID from register */
+	
 	for (i = 0; i < 6; i++) 
 	    dev->dev_addr[i] = inb(ioaddr + MAC_ID + i);
 	card_name = "FMV-J181";
@@ -543,7 +499,7 @@ static int fmvj18x_config(struct pcmcia_device *link)
 
     strcpy(lp->node.dev_name, dev->name);
 
-    /* print current configuration */
+    
     printk(KERN_INFO "%s: %s, sram %s, port %#3lx, irq %d, "
 	   "hw_addr %pM\n",
 	   dev->name, card_name, sram_config == 0 ? "4K TX*2" : "8K TX*2", 
@@ -552,13 +508,13 @@ static int fmvj18x_config(struct pcmcia_device *link)
     return 0;
     
 cs_failed:
-    /* All Card Services errors end up here */
+    
     cs_error(link, last_fn, last_ret);
 failed:
     fmvj18x_release(link);
     return -ENODEV;
-} /* fmvj18x_config */
-/*====================================================================*/
+} 
+
 
 static int fmvj18x_get_hwinfo(struct pcmcia_device *link, u_char *node_id)
 {
@@ -567,7 +523,7 @@ static int fmvj18x_get_hwinfo(struct pcmcia_device *link, u_char *node_id)
     u_char __iomem *base;
     int i, j;
 
-    /* Allocate a small memory window */
+    
     req.Attributes = WIN_DATA_WIDTH_8|WIN_MEMORY_TYPE_AM|WIN_ENABLE;
     req.Base = 0; req.Size = 0;
     req.AccessSpeed = 0;
@@ -582,12 +538,7 @@ static int fmvj18x_get_hwinfo(struct pcmcia_device *link, u_char *node_id)
     mem.CardOffset = 0;
     pcmcia_map_mem_page(link->win, &mem);
 
-    /*
-     *  MBH10304 CISTPL_FUNCE_LAN_NODE_ID format
-     *  22 0d xx xx xx 04 06 yy yy yy yy yy yy ff
-     *  'xx' is garbage.
-     *  'yy' is MAC address.
-    */ 
+     
     for (i = 0; i < 0x200; i++) {
 	if (readb(base+i*2) == 0x22) {	
 	    if (readb(base+(i-1)*2) == 0xff
@@ -610,8 +561,8 @@ static int fmvj18x_get_hwinfo(struct pcmcia_device *link, u_char *node_id)
 	cs_error(link, ReleaseWindow, j);
     return (i != 0x200) ? 0 : -1;
 
-} /* fmvj18x_get_hwinfo */
-/*====================================================================*/
+} 
+
 
 static int fmvj18x_setup_mfc(struct pcmcia_device *link)
 {
@@ -622,7 +573,7 @@ static int fmvj18x_setup_mfc(struct pcmcia_device *link)
     unsigned int ioaddr;
     local_info_t *lp = netdev_priv(dev);
 
-    /* Allocate a small memory window */
+    
     req.Attributes = WIN_DATA_WIDTH_8|WIN_MEMORY_TYPE_AM|WIN_ENABLE;
     req.Base = 0; req.Size = 0;
     req.AccessSpeed = 0;
@@ -649,19 +600,19 @@ static int fmvj18x_setup_mfc(struct pcmcia_device *link)
     }
     
     ioaddr = dev->base_addr;
-    writeb(0x47, lp->base+0x800);	/* Config Option Register of LAN */
-    writeb(0x0,  lp->base+0x802);	/* Config and Status Register */
+    writeb(0x47, lp->base+0x800);	
+    writeb(0x0,  lp->base+0x802);	
 
-    writeb(ioaddr & 0xff, lp->base+0x80a);	  /* I/O Base(Low) of LAN */
-    writeb((ioaddr >> 8) & 0xff, lp->base+0x80c); /* I/O Base(High) of LAN */
+    writeb(ioaddr & 0xff, lp->base+0x80a);	  
+    writeb((ioaddr >> 8) & 0xff, lp->base+0x80c); 
    
-    writeb(0x45, lp->base+0x820);	/* Config Option Register of Modem */
-    writeb(0x8,  lp->base+0x822);	/* Config and Status Register */
+    writeb(0x45, lp->base+0x820);	
+    writeb(0x8,  lp->base+0x822);	
 
     return 0;
 
 }
-/*====================================================================*/
+
 
 static void fmvj18x_release(struct pcmcia_device *link)
 {
@@ -675,7 +626,7 @@ static void fmvj18x_release(struct pcmcia_device *link)
 
     if (lp->base != NULL) {
 	tmp = lp->base;
-	lp->base = NULL;    /* set NULL before iounmap */
+	lp->base = NULL;    
 	iounmap(tmp);
 	j = pcmcia_release_window(link->win);
 	if (j != 0)
@@ -708,7 +659,7 @@ static int fmvj18x_resume(struct pcmcia_device *link)
 	return 0;
 }
 
-/*====================================================================*/
+
 
 static struct pcmcia_device_id fmvj18x_ids[] = {
 	PCMCIA_DEVICE_MANF_CARD(0x0004, 0x0004),
@@ -763,7 +714,7 @@ static void __exit exit_fmvj18x_cs(void)
 module_init(init_fmvj18x_cs);
 module_exit(exit_fmvj18x_cs);
 
-/*====================================================================*/
+
 
 static irqreturn_t fjn_interrupt(int dummy, void *dev_id)
 {
@@ -774,17 +725,17 @@ static irqreturn_t fjn_interrupt(int dummy, void *dev_id)
 
     ioaddr = dev->base_addr;
 
-    /* avoid multiple interrupts */
+    
     outw(0x0000, ioaddr + TX_INTR);
 
-    /* wait for a while */
+    
     udelay(1);
 
-    /* get status */
+    
     tx_stat = inb(ioaddr + TX_STATUS);
     rx_stat = inb(ioaddr + RX_STATUS);
 
-    /* clear status */
+    
     outb(tx_stat, ioaddr + TX_STATUS);
     outb(rx_stat, ioaddr + RX_STATUS);
     
@@ -792,7 +743,7 @@ static irqreturn_t fjn_interrupt(int dummy, void *dev_id)
     DEBUG(4, "               tx_status %02x.\n", tx_stat);
     
     if (rx_stat || (inb(ioaddr + RX_MODE) & F_BUF_EMP) == 0) {
-	/* there is packet(s) in rx buffer */
+	
 	fjn_rx(dev);
     }
     if (tx_stat & F_TMT_RDY) {
@@ -816,16 +767,16 @@ static irqreturn_t fjn_interrupt(int dummy, void *dev_id)
     outb(D_RX_INTR, ioaddr + RX_INTR);
 
     if (lp->base != NULL) {
-	/* Ack interrupt for multifunction card */
+	
 	writeb(0x01, lp->base+0x802);
 	writeb(0x09, lp->base+0x822);
     }
 
     return IRQ_HANDLED;
 
-} /* fjn_interrupt */
+} 
 
-/*====================================================================*/
+
 
 static void fjn_tx_timeout(struct net_device *dev)
 {
@@ -844,7 +795,7 @@ static void fjn_tx_timeout(struct net_device *dev)
 	   htons(inw(ioaddr +10)), htons(inw(ioaddr +12)),
 	   htons(inw(ioaddr +14)));
     dev->stats.tx_errors++;
-    /* ToDo: We should try to restart the adaptor... */
+    
     local_irq_disable();
     fjn_reset(dev);
 
@@ -886,10 +837,10 @@ static netdev_tx_t fjn_start_xmit(struct sk_buff *skb,
 	      dev->name, (unsigned long)skb->len);
 	dev->stats.tx_bytes += skb->len;
 
-	/* Disable both interrupts. */
+	
 	outw(0x0000, ioaddr + TX_INTR);
 
-	/* wait for a while */
+	
 	udelay(1);
 
 	outw(length, ioaddr + DATAPORT);
@@ -899,7 +850,7 @@ static netdev_tx_t fjn_start_xmit(struct sk_buff *skb,
 	lp->tx_queue_len += ((length+3) & ~1);
 
 	if (lp->tx_started == 0) {
-	    /* If the Tx is idle, always trigger a transmit. */
+	    
 	    outb(DO_TX | lp->tx_queue, ioaddr + TX_START);
 	    lp->sent = lp->tx_queue ;
 	    lp->tx_queue = 0;
@@ -910,26 +861,26 @@ static netdev_tx_t fjn_start_xmit(struct sk_buff *skb,
 	} else {
 	    if( sram_config == 0 ) {
 		if (lp->tx_queue_len < (4096 - (ETH_FRAME_LEN +2)) )
-		    /* Yes, there is room for one more packet. */
+		    
 		    netif_start_queue(dev);
 	    } else {
 		if (lp->tx_queue_len < (8192 - (ETH_FRAME_LEN +2)) && 
 						lp->tx_queue < 127 )
-		    /* Yes, there is room for one more packet. */
+		    
 		    netif_start_queue(dev);
 	    }
 	}
 
-	/* Re-enable interrupts */
+	
 	outb(D_TX_INTR, ioaddr + TX_INTR);
 	outb(D_RX_INTR, ioaddr + RX_INTR);
     }
     dev_kfree_skb (skb);
 
     return NETDEV_TX_OK;
-} /* fjn_start_xmit */
+} 
 
-/*====================================================================*/
+
 
 static void fjn_reset(struct net_device *dev)
 {
@@ -939,81 +890,81 @@ static void fjn_reset(struct net_device *dev)
 
     DEBUG(4, "fjn_reset(%s) called.\n",dev->name);
 
-    /* Reset controller */
+    
     if( sram_config == 0 ) 
 	outb(CONFIG0_RST, ioaddr + CONFIG_0);
     else
 	outb(CONFIG0_RST_1, ioaddr + CONFIG_0);
 
-    /* Power On chip and select bank 0 */
+    
     if (lp->cardtype == MBH10302)
 	outb(BANK_0, ioaddr + CONFIG_1);
     else
 	outb(BANK_0U, ioaddr + CONFIG_1);
 
-    /* Set Tx modes */
+    
     outb(D_TX_MODE, ioaddr + TX_MODE);
-    /* set Rx modes */
+    
     outb(ID_MATCHED, ioaddr + RX_MODE);
 
-    /* Set hardware address */
+    
     for (i = 0; i < 6; i++) 
         outb(dev->dev_addr[i], ioaddr + NODE_ID + i);
 
-    /* (re)initialize the multicast table */
+    
     set_rx_mode(dev);
 
-    /* Switch to bank 2 (runtime mode) */
+    
     if (lp->cardtype == MBH10302)
 	outb(BANK_2, ioaddr + CONFIG_1);
     else
 	outb(BANK_2U, ioaddr + CONFIG_1);
 
-    /* set 16col ctrl bits */
+    
     if( lp->cardtype == TDK || lp->cardtype == CONTEC) 
         outb(TDK_AUTO_MODE, ioaddr + COL_CTRL);
     else
         outb(AUTO_MODE, ioaddr + COL_CTRL);
 
-    /* clear Reserved Regs */
+    
     outb(0x00, ioaddr + BMPR12);
     outb(0x00, ioaddr + BMPR13);
 
-    /* reset Skip packet reg. */
+    
     outb(0x01, ioaddr + RX_SKIP);
 
-    /* Enable Tx and Rx */
+    
     if( sram_config == 0 )
 	outb(CONFIG0_DFL, ioaddr + CONFIG_0);
     else
 	outb(CONFIG0_DFL_1, ioaddr + CONFIG_0);
 
-    /* Init receive pointer ? */
+    
     inw(ioaddr + DATAPORT);
     inw(ioaddr + DATAPORT);
 
-    /* Clear all status */
+    
     outb(0xff, ioaddr + TX_STATUS);
     outb(0xff, ioaddr + RX_STATUS);
 
     if (lp->cardtype == MBH10302)
 	outb(INTR_OFF, ioaddr + LAN_CTRL);
 
-    /* Turn on Rx interrupts */
+    
     outb(D_TX_INTR, ioaddr + TX_INTR);
     outb(D_RX_INTR, ioaddr + RX_INTR);
 
-    /* Turn on interrupts from LAN card controller */
+    
     if (lp->cardtype == MBH10302)
 	outb(INTR_ON, ioaddr + LAN_CTRL);
-} /* fjn_reset */
+} 
 
-/*====================================================================*/
+
 
 static void fjn_rx(struct net_device *dev)
 {
     unsigned int ioaddr = dev->base_addr;
-    int boguscount = 10;	/* 5 -> 10: by agy 19940922 */
+    int boguscount = 10;	
 
     DEBUG(4, "%s: in rx_packet(), rx_status %02x.\n",
 	  dev->name, inb(ioaddr + RX_STATUS));
@@ -1029,7 +980,7 @@ static void fjn_rx(struct net_device *dev)
 	    break;
 	}
 #endif
-	if ((status & 0xF0) != 0x20) {	/* There was an error. */
+	if ((status & 0xF0) != 0x20) {	
 	    dev->stats.rx_errors++;
 	    if (status & F_LEN_ERR) dev->stats.rx_length_errors++;
 	    if (status & F_ALG_ERR) dev->stats.rx_frame_errors++;
@@ -1037,7 +988,7 @@ static void fjn_rx(struct net_device *dev)
 	    if (status & F_OVR_FLO) dev->stats.rx_over_errors++;
 	} else {
 	    u_short pkt_len = inw(ioaddr + DATAPORT);
-	    /* Malloc up new buffer. */
+	    
 	    struct sk_buff *skb;
 
 	    if (pkt_len > 1550) {
@@ -1080,29 +1031,13 @@ static void fjn_rx(struct net_device *dev)
 	    break;
     }
 
-    /* If any worth-while packets have been received, dev_rint()
-	   has done a netif_wake_queue() for us and will work on them
-	   when we get to the bottom-half routine. */
-/*
-    if (lp->cardtype != TDK) {
-	int i;
-	for (i = 0; i < 20; i++) {
-	    if ((inb(ioaddr + RX_MODE) & F_BUF_EMP) == F_BUF_EMP)
-		break;
-	    (void)inw(ioaddr + DATAPORT);  /+ dummy status read +/
-	    outb(F_SKP_PKT, ioaddr + RX_SKIP);
-	}
+    
 
-	if (i > 0)
-	    DEBUG(5, "%s: Exint Rx packet with mode %02x after "
-		  "%d ticks.\n", dev->name, inb(ioaddr + RX_MODE), i);
-    }
-*/
 
     return;
-} /* fjn_rx */
+} 
 
-/*====================================================================*/
+
 
 static void netdev_get_drvinfo(struct net_device *dev,
 			       struct ethtool_drvinfo *info)
@@ -1122,14 +1057,14 @@ static void netdev_set_msglevel(struct net_device *dev, u32 level)
 {
 	pc_debug = level;
 }
-#endif /* PCMCIA_DEBUG */
+#endif 
 
 static const struct ethtool_ops netdev_ethtool_ops = {
 	.get_drvinfo		= netdev_get_drvinfo,
 #ifdef PCMCIA_DEBUG
 	.get_msglevel		= netdev_get_msglevel,
 	.set_msglevel		= netdev_set_msglevel,
-#endif /* PCMCIA_DEBUG */
+#endif 
 };
 
 static int fjn_config(struct net_device *dev, struct ifmap *map){
@@ -1157,9 +1092,9 @@ static int fjn_open(struct net_device *dev)
     netif_start_queue(dev);
     
     return 0;
-} /* fjn_open */
+} 
 
-/*====================================================================*/
+
 
 static int fjn_close(struct net_device *dev)
 {
@@ -1172,36 +1107,34 @@ static int fjn_close(struct net_device *dev)
     lp->open_time = 0;
     netif_stop_queue(dev);
 
-    /* Set configuration register 0 to disable Tx and Rx. */
+    
     if( sram_config == 0 ) 
 	outb(CONFIG0_RST ,ioaddr + CONFIG_0);
     else
 	outb(CONFIG0_RST_1 ,ioaddr + CONFIG_0);
 
-    /* Update the statistics -- ToDo. */
+    
 
-    /* Power-down the chip.  Green, green, green! */
+    
     outb(CHIP_OFF ,ioaddr + CONFIG_1);
 
-    /* Set the ethernet adaptor disable IRQ */
+    
     if (lp->cardtype == MBH10302)
 	outb(INTR_OFF, ioaddr + LAN_CTRL);
 
     link->open--;
 
     return 0;
-} /* fjn_close */
+} 
 
-/*====================================================================*/
 
-/*
-  Set the multicast/promiscuous mode for this adaptor.
-*/
+
+
 
 static void set_rx_mode(struct net_device *dev)
 {
     unsigned int ioaddr = dev->base_addr;
-    u_char mc_filter[8];		 /* Multicast hash filter */
+    u_char mc_filter[8];		 
     u_long flags;
     int i;
     
@@ -1210,7 +1143,7 @@ static void set_rx_mode(struct net_device *dev)
      
     local_irq_save(flags); 
 
-    /* Disable Tx and Rx */
+    
     if (sram_config == 0) 
 	outb(CONFIG0_RST, ioaddr + CONFIG_0);
     else
@@ -1218,15 +1151,15 @@ static void set_rx_mode(struct net_device *dev)
 
     if (dev->flags & IFF_PROMISC) {
 	memset(mc_filter, 0xff, sizeof(mc_filter));
-	outb(3, ioaddr + RX_MODE);	/* Enable promiscuous mode */
+	outb(3, ioaddr + RX_MODE);	
     } else if (dev->mc_count > MC_FILTERBREAK
 	       ||  (dev->flags & IFF_ALLMULTI)) {
-	/* Too many to filter perfectly -- accept all multicasts. */
+	
 	memset(mc_filter, 0xff, sizeof(mc_filter));
-	outb(2, ioaddr + RX_MODE);	/* Use normal mode. */
+	outb(2, ioaddr + RX_MODE);	
     } else if (dev->mc_count == 0) {
 	memset(mc_filter, 0x00, sizeof(mc_filter));
-	outb(1, ioaddr + RX_MODE);	/* Ignore almost all multicasts. */
+	outb(1, ioaddr + RX_MODE);	
     } else {
 	struct dev_mc_list *mclist;
 
@@ -1237,10 +1170,10 @@ static void set_rx_mode(struct net_device *dev)
 	    	ether_crc_le(ETH_ALEN, mclist->dmi_addr) >> 26;
 	    mc_filter[bit >> 3] |= (1 << (bit & 7));
 	}
-	outb(2, ioaddr + RX_MODE);	/* Use normal mode. */
+	outb(2, ioaddr + RX_MODE);	
     }
 
-    /* Switch to bank 1 and set the multicast table. */
+    
     saved_bank = inb(ioaddr + CONFIG_1);
     outb(0xe4, ioaddr + CONFIG_1);
 

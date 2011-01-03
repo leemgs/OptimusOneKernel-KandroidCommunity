@@ -1,24 +1,4 @@
-/*
- * GPIO based MDIO bitbang driver.
- * Supports OpenFirmware.
- *
- * Copyright (c) 2008 CSE Semaphore Belgium.
- *  by Laurent Pinchart <laurentp@cse-semaphore.com>
- *
- * Copyright (C) 2008, Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
- *
- * Based on earlier work by
- *
- * Copyright (c) 2003 Intracom S.A.
- *  by Pantelis Antoniou <panto@intracom.gr>
- *
- * 2005 (c) MontaVista Software, Inc.
- * Vitaly Bordug <vbordug@ru.mvista.com>
- *
- * This file is licensed under the terms of the GNU General Public License
- * version 2. This program is licensed "as is" without any warranty of any
- * kind, whether express or implied.
- */
+
 
 #include <linux/module.h>
 #include <linux/slab.h>
@@ -259,7 +239,7 @@ static inline void __exit mdio_ofgpio_exit(void)
 #else
 static inline int __init mdio_ofgpio_init(void) { return 0; }
 static inline void __exit mdio_ofgpio_exit(void) { }
-#endif /* CONFIG_OF_GPIO */
+#endif 
 
 static struct platform_driver mdio_gpio_driver = {
 	.probe = mdio_gpio_probe,

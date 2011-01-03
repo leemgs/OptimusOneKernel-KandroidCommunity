@@ -1,31 +1,6 @@
-/*******************************************************************************
 
-  Intel(R) 82576 Virtual Function Linux driver
-  Copyright(c) 2009 Intel Corporation.
 
-  This program is free software; you can redistribute it and/or modify it
-  under the terms and conditions of the GNU General Public License,
-  version 2, as published by the Free Software Foundation.
 
-  This program is distributed in the hope it will be useful, but WITHOUT
-  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-  more details.
-
-  You should have received a copy of the GNU General Public License along with
-  this program; if not, write to the Free Software Foundation, Inc.,
-  51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
-
-  The full GNU General Public License is included in this distribution in
-  the file called "COPYING".
-
-  Contact Information:
-  e1000-devel Mailing List <e1000-devel@lists.sourceforge.net>
-  Intel Corporation, 5200 N.E. Elam Young Parkway, Hillsboro, OR 97124-6497
-
-*******************************************************************************/
-
-/* Linux PRO/1000 Ethernet Driver main header file */
 
 #ifndef _IGBVF_H_
 #define _IGBVF_H_
@@ -38,19 +13,19 @@
 
 #include "vf.h"
 
-/* Forward declarations */
+
 struct igbvf_info;
 struct igbvf_adapter;
 
-/* Interrupt defines */
-#define IGBVF_START_ITR                 648 /* ~6000 ints/sec */
 
-/* Interrupt modes, as used by the IntMode parameter */
+#define IGBVF_START_ITR                 648 
+
+
 #define IGBVF_INT_MODE_LEGACY           0
 #define IGBVF_INT_MODE_MSI              1
 #define IGBVF_INT_MODE_MSIX             2
 
-/* Tx/Rx descriptor defines */
+
 #define IGBVF_DEFAULT_TXD               256
 #define IGBVF_MAX_TXD                   4096
 #define IGBVF_MIN_TXD                   80
@@ -59,40 +34,30 @@ struct igbvf_adapter;
 #define IGBVF_MAX_RXD                   4096
 #define IGBVF_MIN_RXD                   80
 
-#define IGBVF_MIN_ITR_USECS             10 /* 100000 irq/sec */
-#define IGBVF_MAX_ITR_USECS             10000 /* 100    irq/sec */
+#define IGBVF_MIN_ITR_USECS             10 
+#define IGBVF_MAX_ITR_USECS             10000 
 
-/* RX descriptor control thresholds.
- * PTHRESH - MAC will consider prefetch if it has fewer than this number of
- *           descriptors available in its onboard memory.
- *           Setting this to 0 disables RX descriptor prefetch.
- * HTHRESH - MAC will only prefetch if there are at least this many descriptors
- *           available in host memory.
- *           If PTHRESH is 0, this should also be 0.
- * WTHRESH - RX descriptor writeback threshold - MAC will delay writing back
- *           descriptors until either it has this many to write back, or the
- *           ITR timer expires.
- */
+
 #define IGBVF_RX_PTHRESH                16
 #define IGBVF_RX_HTHRESH                8
 #define IGBVF_RX_WTHRESH                1
 
-/* this is the size past which hardware will drop packets when setting LPE=0 */
+
 #define MAXIMUM_ETHERNET_VLAN_SIZE      1522
 
-#define IGBVF_FC_PAUSE_TIME             0x0680 /* 858 usec */
+#define IGBVF_FC_PAUSE_TIME             0x0680 
 
-/* How many Tx Descriptors do we need to call netif_wake_queue ? */
+
 #define IGBVF_TX_QUEUE_WAKE             32
-/* How many Rx Buffers do we bundle into one write to the hardware ? */
-#define IGBVF_RX_BUFFER_WRITE           16 /* Must be power of 2 */
+
+#define IGBVF_RX_BUFFER_WRITE           16 
 
 #define AUTO_ALL_MODES                  0
 #define IGBVF_EEPROM_APME               0x0400
 
 #define IGBVF_MNG_VLAN_NONE             (-1)
 
-/* Number of packet split data buffers (not including the header buffer) */
+
 #define PS_PAGE_BUFFERS                 (MAX_PS_BUFFERS - 1)
 
 enum igbvf_boards {
@@ -104,21 +69,18 @@ struct igbvf_queue_stats {
 	u64 bytes;
 };
 
-/*
- * wrappers around a pointer to a socket buffer,
- * so a DMA handle can be stored along with the buffer
- */
+
 struct igbvf_buffer {
 	dma_addr_t dma;
 	struct sk_buff *skb;
 	union {
-		/* Tx */
+		
 		struct {
 			unsigned long time_stamp;
 			u16 length;
 			u16 next_to_watch;
 		};
-		/* Rx */
+		
 		struct {
 			struct page *page;
 			u64 page_dma;
@@ -135,11 +97,11 @@ union igbvf_desc {
 };
 
 struct igbvf_ring {
-	struct igbvf_adapter *adapter;  /* backlink */
-	union igbvf_desc *desc;         /* pointer to ring memory  */
-	dma_addr_t dma;                 /* phys address of ring    */
-	unsigned int size;              /* length of ring in bytes */
-	unsigned int count;             /* number of desc. in ring */
+	struct igbvf_adapter *adapter;  
+	union igbvf_desc *desc;         
+	dma_addr_t dma;                 
+	unsigned int size;              
+	unsigned int count;             
 
 	u16 next_to_use;
 	u16 next_to_clean;
@@ -147,7 +109,7 @@ struct igbvf_ring {
 	u16 head;
 	u16 tail;
 
-	/* array of buffer information structs */
+	
 	struct igbvf_buffer *buffer_info;
 	struct napi_struct napi;
 
@@ -162,7 +124,7 @@ struct igbvf_ring {
 	struct igbvf_queue_stats stats;
 };
 
-/* board specific private data structure */
+
 struct igbvf_adapter {
 	struct timer_list watchdog_timer;
 	struct timer_list blink_timer;
@@ -180,21 +142,19 @@ struct igbvf_adapter {
 	u16 link_speed;
 	u16 link_duplex;
 
-	spinlock_t tx_queue_lock; /* prevent concurrent tail updates */
+	spinlock_t tx_queue_lock; 
 
-	/* track device up/down/testing state */
+	
 	unsigned long state;
 
-	/* Interrupt Throttle Rate */
+	
 	u32 itr;
 	u32 itr_setting;
 	u16 tx_itr;
 	u16 rx_itr;
 
-	/*
-	 * Tx
-	 */
-	struct igbvf_ring *tx_ring /* One per active queue */
+	
+	struct igbvf_ring *tx_ring 
 	____cacheline_aligned_in_smp;
 
 	unsigned long tx_queue_len;
@@ -212,22 +172,20 @@ struct igbvf_adapter {
 	unsigned int total_rx_bytes;
 	unsigned int total_rx_packets;
 
-	/* Tx stats */
+	
 	u32 tx_timeout_count;
 	u32 tx_fifo_head;
 	u32 tx_head_addr;
 	u32 tx_fifo_size;
 	u32 tx_dma_failed;
 
-	/*
-	 * Rx
-	 */
+	
 	struct igbvf_ring *rx_ring;
 
 	u32 rx_int_delay;
 	u32 rx_abs_int_delay;
 
-	/* Rx stats */
+	
 	u64 hw_csum_err;
 	u64 hw_csum_good;
 	u64 rx_hdr_split;
@@ -238,19 +196,16 @@ struct igbvf_adapter {
 	u32 max_frame_size;
 	u32 min_frame_size;
 
-	/* OS defined structs */
+	
 	struct net_device *netdev;
 	struct pci_dev *pdev;
 	struct net_device_stats net_stats;
-	spinlock_t stats_lock;      /* prevent concurrent stats updates */
+	spinlock_t stats_lock;      
 
-	/* structs defined in e1000_hw.h */
+	
 	struct e1000_hw hw;
 
-	/* The VF counters don't clear on read so we have to get a base
-	 * count on driver start up and always subtract that base on
-	 * on the first update, thus the flag..
-	 */
+	
 	struct e1000_vf_stats stats;
 	u64 zero_base;
 
@@ -285,7 +240,7 @@ struct igbvf_info {
 	s32                     (*get_variants)(struct igbvf_adapter *);
 };
 
-/* hardware capability, feature, and workaround flags */
+
 #define IGBVF_FLAG_RX_CSUM_DISABLED             (1 << 0)
 
 #define IGBVF_RX_DESC_ADV(R, i)     \
@@ -325,4 +280,4 @@ extern void igbvf_update_stats(struct igbvf_adapter *);
 
 extern unsigned int copybreak;
 
-#endif /* _IGBVF_H_ */
+#endif 

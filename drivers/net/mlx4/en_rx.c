@@ -1,35 +1,4 @@
-/*
- * Copyright (c) 2007 Mellanox Technologies. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- */
+
 
 #include <linux/mlx4/cq.h>
 #include <linux/mlx4/qp.h>
@@ -66,7 +35,7 @@ static int mlx4_en_alloc_frag(struct mlx4_en_priv *priv,
 	dma_addr_t dma;
 
 	if (page_alloc->offset == frag_info->last_offset) {
-		/* Allocate new page */
+		
 		page = alloc_pages(GFP_ATOMIC | __GFP_COMP, MLX4_EN_ALLOC_ORDER);
 		if (!page)
 			return -ENOMEM;
@@ -144,7 +113,7 @@ static void mlx4_en_init_rx_desc(struct mlx4_en_priv *priv,
 	int possible_frags;
 	int i;
 
-	/* Set size and memtype fields */
+	
 	for (i = 0; i < priv->num_frags; i++) {
 		skb_frags[i].size = priv->frag_info[i].frag_size;
 		rx_desc->data[i].byte_count =
@@ -152,9 +121,7 @@ static void mlx4_en_init_rx_desc(struct mlx4_en_priv *priv,
 		rx_desc->data[i].lkey = cpu_to_be32(priv->mdev->mr.key);
 	}
 
-	/* If the number of used fragments does not fill up the ring stride,
-	 * remaining (unused) fragments must be padded with null address/size
-	 * and a special memory key */
+	
 	possible_frags = (ring->stride - sizeof(struct mlx4_en_rx_desc)) / DS_SIZE;
 	for (i = priv->num_frags; i < possible_frags; i++) {
 		rx_desc->data[i].byte_count = 0;
@@ -264,7 +231,7 @@ static void mlx4_en_free_rx_buf(struct mlx4_en_priv *priv,
 	en_dbg(DRV, priv, "Freeing Rx buf - cons:%d prod:%d\n",
 	       ring->cons, ring->prod);
 
-	/* Unmap and free Rx buffers */
+	
 	BUG_ON((u32) (ring->prod - ring->cons) > ring->actual_size);
 	while (ring->cons != ring->prod) {
 		index = ring->cons & ring->size_mask;
@@ -312,7 +279,7 @@ int mlx4_en_create_rx_ring(struct mlx4_en_priv *priv,
 	}
 	ring->buf = ring->wqres.buf.direct.buf;
 
-	/* Configure lro mngr */
+	
 	memset(&ring->lro, 0, sizeof(struct net_lro_mgr));
 	ring->lro.dev = priv->dev;
 	ring->lro.features = LRO_F_NAPI;
@@ -369,11 +336,11 @@ int mlx4_en_activate_rx_rings(struct mlx4_en_priv *priv)
 		memset(ring->buf, 0, ring->buf_size);
 		mlx4_en_update_rx_prod_db(ring);
 
-		/* Initailize all descriptors */
+		
 		for (i = 0; i < ring->size; i++)
 			mlx4_en_init_rx_desc(priv, ring, i);
 
-		/* Initialize page allocators */
+		
 		err = mlx4_en_init_allocator(priv, ring);
 		if (err) {
 			en_err(priv, "Failed initializing ring allocator\n");
@@ -428,7 +395,7 @@ void mlx4_en_deactivate_rx_ring(struct mlx4_en_priv *priv,
 }
 
 
-/* Unmap a completed descriptor and free unused pages */
+
 static int mlx4_en_complete_rx_desc(struct mlx4_en_priv *priv,
 				    struct mlx4_en_rx_desc *rx_desc,
 				    struct skb_frag_struct *skb_frags,
@@ -441,35 +408,34 @@ static int mlx4_en_complete_rx_desc(struct mlx4_en_priv *priv,
 	int nr;
 	dma_addr_t dma;
 
-	/* Collect used fragments while replacing them in the HW descirptors */
+	
 	for (nr = 0; nr < priv->num_frags; nr++) {
 		frag_info = &priv->frag_info[nr];
 		if (length <= frag_info->frag_prefix_size)
 			break;
 
-		/* Save page reference in skb */
+		
 		skb_frags_rx[nr].page = skb_frags[nr].page;
 		skb_frags_rx[nr].size = skb_frags[nr].size;
 		skb_frags_rx[nr].page_offset = skb_frags[nr].page_offset;
 		dma = be64_to_cpu(rx_desc->data[nr].addr);
 
-		/* Allocate a replacement page */
+		
 		if (mlx4_en_alloc_frag(priv, rx_desc, skb_frags, page_alloc, nr))
 			goto fail;
 
-		/* Unmap buffer */
+		
 		pci_unmap_single(mdev->pdev, dma, skb_frags[nr].size,
 				 PCI_DMA_FROMDEVICE);
 	}
-	/* Adjust size of last fragment to match actual length */
+	
 	if (nr > 0)
 		skb_frags_rx[nr - 1].size = length -
 			priv->frag_info[nr - 1].frag_prefix_size;
 	return nr;
 
 fail:
-	/* Drop all accumulated fragments (which have already been replaced in
-	 * the descriptor) of this packet; remaining fragments are reused... */
+	
 	while (nr > 0) {
 		nr--;
 		put_page(skb_frags_rx[nr].page);
@@ -500,13 +466,11 @@ static struct sk_buff *mlx4_en_rx_skb(struct mlx4_en_priv *priv,
 	skb->len = length;
 	skb->truesize = length + sizeof(struct sk_buff);
 
-	/* Get pointer to first fragment so we could copy the headers into the
-	 * (linear part of the) skb */
+	
 	va = page_address(skb_frags[0].page) + skb_frags[0].page_offset;
 
 	if (length <= SMALL_PACKET_SIZE) {
-		/* We are copying all relevant data to the skb - temporarily
-		 * synch buffers for the copy */
+		
 		dma = be64_to_cpu(rx_desc->data[0].addr);
 		dma_sync_single_range_for_cpu(&mdev->pdev->dev, dma, 0,
 					      length, DMA_FROM_DEVICE);
@@ -516,7 +480,7 @@ static struct sk_buff *mlx4_en_rx_skb(struct mlx4_en_priv *priv,
 		skb->tail += length;
 	} else {
 
-		/* Move relevant fragments to skb */
+		
 		used_frags = mlx4_en_complete_rx_desc(priv, rx_desc, skb_frags,
 						      skb_shinfo(skb)->frags,
 						      page_alloc, length);
@@ -526,14 +490,14 @@ static struct sk_buff *mlx4_en_rx_skb(struct mlx4_en_priv *priv,
 		}
 		skb_shinfo(skb)->nr_frags = used_frags;
 
-		/* Copy headers into the skb linear buffer */
+		
 		memcpy(skb->data, va, HEADER_COPY_SIZE);
 		skb->tail += HEADER_COPY_SIZE;
 
-		/* Skip headers in first fragment */
+		
 		skb_shinfo(skb)->frags[0].page_offset += HEADER_COPY_SIZE;
 
-		/* Adjust size of first fragment */
+		
 		skb_shinfo(skb)->frags[0].size -= HEADER_COPY_SIZE;
 		skb->data_len = length - HEADER_COPY_SIZE;
 	}
@@ -559,25 +523,21 @@ int mlx4_en_process_rx_cq(struct net_device *dev, struct mlx4_en_cq *cq, int bud
 	if (!priv->port_up)
 		return 0;
 
-	/* We assume a 1:1 mapping between CQEs and Rx descriptors, so Rx
-	 * descriptor offset can be deduced from the CQE index instead of
-	 * reading 'cqe->index' */
+	
 	index = cq->mcq.cons_index & ring->size_mask;
 	cqe = &cq->buf[index];
 
-	/* Process all completed CQEs */
+	
 	while (XNOR(cqe->owner_sr_opcode & MLX4_CQE_OWNER_MASK,
 		    cq->mcq.cons_index & cq->size)) {
 
 		skb_frags = ring->rx_info + (index << priv->log_rx_info);
 		rx_desc = ring->buf + (index << ring->log_stride);
 
-		/*
-		 * make sure we read the CQE after we read the ownership bit
-		 */
+		
 		rmb();
 
-		/* Drop packet on bad receive or bad checksum */
+		
 		if (unlikely((cqe->owner_sr_opcode & MLX4_CQE_OPCODE_MASK) ==
 						MLX4_CQE_OPCODE_ERROR)) {
 			en_err(priv, "CQE completed in error - vendor "
@@ -591,9 +551,7 @@ int mlx4_en_process_rx_cq(struct net_device *dev, struct mlx4_en_cq *cq, int bud
 			goto next;
 		}
 
-		/*
-		 * Packet is OK - process it.
-		 */
+		
 		length = be32_to_cpu(cqe->byte_cnt);
 		ring->bytes += length;
 		ring->packets++;
@@ -602,11 +560,7 @@ int mlx4_en_process_rx_cq(struct net_device *dev, struct mlx4_en_cq *cq, int bud
 			if ((cqe->status & cpu_to_be16(MLX4_CQE_STATUS_IPOK)) &&
 			    (cqe->checksum == cpu_to_be16(0xffff))) {
 				priv->port_stats.rx_chksum_good++;
-				/* This packet is eligible for LRO if it is:
-				 * - DIX Ethernet (type interpretation)
-				 * - TCP/IP (v4)
-				 * - without IP options
-				 * - not an IP fragment */
+				
 				if (mlx4_en_can_lro(cqe->status) &&
 				    dev->features & NETIF_F_LRO) {
 
@@ -635,7 +589,7 @@ int mlx4_en_process_rx_cq(struct net_device *dev, struct mlx4_en_cq *cq, int bud
 					goto next;
 				}
 
-				/* LRO not possible, complete processing here */
+				
 				ip_summed = CHECKSUM_UNNECESSARY;
 				INC_PERF_COUNTER(priv->pstats.lro_misses);
 			} else {
@@ -658,7 +612,7 @@ int mlx4_en_process_rx_cq(struct net_device *dev, struct mlx4_en_cq *cq, int bud
 		skb->protocol = eth_type_trans(skb, dev);
 		skb_record_rx_queue(skb, cq->ring);
 
-		/* Push it up the stack */
+		
 		if (priv->vlgrp && (be32_to_cpu(cqe->vlan_my_qpn) &
 				    MLX4_CQE_VLAN_PRESENT_MASK)) {
 			vlan_hwaccel_receive_skb(skb, priv->vlgrp,
@@ -671,22 +625,21 @@ next:
 		index = (cq->mcq.cons_index) & ring->size_mask;
 		cqe = &cq->buf[index];
 		if (++polled == budget) {
-			/* We are here because we reached the NAPI budget -
-			 * flush only pending LRO sessions */
+			
 			lro_flush_all(&ring->lro);
 			goto out;
 		}
 	}
 
-	/* If CQ is empty flush all LRO sessions unconditionally */
+	
 	lro_flush_all(&ring->lro);
 
 out:
 	AVG_PERF_COUNTER(priv->pstats.rx_coal_avg, polled);
 	mlx4_cq_set_ci(&cq->mcq);
-	wmb(); /* ensure HW sees CQ consumer before we post new buffers */
+	wmb(); 
 	ring->cons = cq->mcq.cons_index;
-	ring->prod += polled; /* Polled descriptors were realocated in place */
+	ring->prod += polled; 
 	mlx4_en_update_rx_prod_db(ring);
 	return polled;
 }
@@ -703,7 +656,7 @@ void mlx4_en_rx_irq(struct mlx4_cq *mcq)
 		mlx4_en_arm_cq(priv, cq);
 }
 
-/* Rx CQ polling - called by NAPI */
+
 int mlx4_en_poll_rx_cq(struct napi_struct *napi, int budget)
 {
 	struct mlx4_en_cq *cq = container_of(napi, struct mlx4_en_cq, napi);
@@ -713,11 +666,11 @@ int mlx4_en_poll_rx_cq(struct napi_struct *napi, int budget)
 
 	done = mlx4_en_process_rx_cq(dev, cq, budget);
 
-	/* If we used up all the quota - we're probably not done yet... */
+	
 	if (done == budget)
 		INC_PERF_COUNTER(priv->pstats.napi_quota);
 	else {
-		/* Done for now */
+		
 		napi_complete(napi);
 		mlx4_en_arm_cq(priv, cq);
 	}
@@ -725,8 +678,7 @@ int mlx4_en_poll_rx_cq(struct napi_struct *napi, int budget)
 }
 
 
-/* Calculate the last offset position that accomodates a full fragment
- * (assuming fagment size = stride-align) */
+
 static int mlx4_en_last_alloc_offset(struct mlx4_en_priv *priv, u16 stride, u16 align)
 {
 	u16 res = MLX4_EN_ALLOC_SIZE % stride;
@@ -790,7 +742,7 @@ void mlx4_en_calc_rx_buf(struct net_device *dev)
 	}
 }
 
-/* RSS related functions */
+
 
 static int mlx4_en_config_rss_qp(struct mlx4_en_priv *priv, int qpn,
 				 struct mlx4_en_rx_ring *ring,
@@ -830,7 +782,7 @@ out:
 	return err;
 }
 
-/* Allocate rx qp's and configure them according to rss map */
+
 int mlx4_en_config_rss_steer(struct mlx4_en_priv *priv)
 {
 	struct mlx4_en_dev *mdev = priv->mdev;
@@ -864,7 +816,7 @@ int mlx4_en_config_rss_steer(struct mlx4_en_priv *priv)
 		++good_qps;
 	}
 
-	/* Configure RSS indirection qp */
+	
 	err = mlx4_qp_reserve_range(mdev->dev, 1, 1, &priv->base_qpn);
 	if (err) {
 		en_err(priv, "Failed to reserve range for RSS "

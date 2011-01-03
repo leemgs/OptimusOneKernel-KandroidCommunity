@@ -1,12 +1,4 @@
-/****************************************************************************
- * Driver for Solarflare Solarstorm network controllers and boards
- * Copyright 2005-2006 Fen Systems Ltd.
- * Copyright 2006-2008 Solarflare Communications Inc.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published
- * by the Free Software Foundation, incorporated herein by reference.
- */
+
 
 #include <linux/delay.h>
 #include "net_driver.h"
@@ -20,19 +12,14 @@
 #include "boards.h"
 #include "workarounds.h"
 
-/**************************************************************************
- *
- * MAC operations
- *
- *************************************************************************/
 
-/* Configure the XAUI driver that is an output from Falcon */
+
+
 static void falcon_setup_xaui(struct efx_nic *efx)
 {
 	efx_oword_t sdctl, txdrv;
 
-	/* Move the XAUI into low power, unless there is no PHY, in
-	 * which case the XAUI will have to drive a cable. */
+	
 	if (efx->phy_type == PHY_TYPE_NONE)
 		return;
 
@@ -64,11 +51,11 @@ int falcon_reset_xaui(struct efx_nic *efx)
 	efx_oword_t reg;
 	int count;
 
-	/* Start reset sequence */
+	
 	EFX_POPULATE_DWORD_1(reg, XX_RST_XX_EN, 1);
 	falcon_write(efx, &reg, XX_PWR_RST_REG);
 
-	/* Wait up to 10 ms for completion, then reinitialise */
+	
 	for (count = 0; count < 1000; count++) {
 		falcon_read(efx, &reg, XX_PWR_RST_REG);
 		if (EFX_OWORD_FIELD(reg, XX_RST_XX_EN) == 0 &&
@@ -89,16 +76,15 @@ static void falcon_mask_status_intr(struct efx_nic *efx, bool enable)
 	if ((falcon_rev(efx) != FALCON_REV_B0) || LOOPBACK_INTERNAL(efx))
 		return;
 
-	/* We expect xgmii faults if the wireside link is up */
+	
 	if (!EFX_WORKAROUND_5147(efx) || !efx->link_up)
 		return;
 
-	/* We can only use this interrupt to signal the negative edge of
-	 * xaui_align [we have to poll the positive edge]. */
+	
 	if (!efx->mac_up)
 		return;
 
-	/* Flush the ISR */
+	
 	if (enable)
 		falcon_read(efx, &reg, XM_MGT_INT_REG_B0);
 
@@ -108,7 +94,7 @@ static void falcon_mask_status_intr(struct efx_nic *efx, bool enable)
 	falcon_write(efx, &reg, XM_MGT_INT_MSK_REG_B0);
 }
 
-/* Get status of XAUI link */
+
 bool falcon_xaui_link_ok(struct efx_nic *efx)
 {
 	efx_oword_t reg;
@@ -118,7 +104,7 @@ bool falcon_xaui_link_ok(struct efx_nic *efx)
 	if (LOOPBACK_INTERNAL(efx))
 		return true;
 
-	/* Read link status */
+	
 	falcon_read(efx, &reg, XX_CORE_STAT_REG);
 
 	align_done = EFX_OWORD_FIELD(reg, XX_ALIGN_DONE);
@@ -126,13 +112,13 @@ bool falcon_xaui_link_ok(struct efx_nic *efx)
 	if (align_done && (sync_status == XX_SYNC_STAT_DECODE_SYNCED))
 		link_ok = true;
 
-	/* Clear link status ready for next read */
+	
 	EFX_SET_OWORD_FIELD(reg, XX_COMMA_DET, XX_COMMA_DET_RESET);
 	EFX_SET_OWORD_FIELD(reg, XX_CHARERR, XX_CHARERR_RESET);
 	EFX_SET_OWORD_FIELD(reg, XX_DISPERR, XX_DISPERR_RESET);
 	falcon_write(efx, &reg, XX_CORE_STAT_REG);
 
-	/* If the link is up, then check the phy side of the xaui link */
+	
 	if (efx->link_up && link_ok)
 		if (efx->phy_op->mmds & (1 << MDIO_MMD_PHYXS))
 			link_ok = efx_mdio_phyxgxs_lane_sync(efx);
@@ -146,14 +132,14 @@ static void falcon_reconfigure_xmac_core(struct efx_nic *efx)
 	efx_oword_t reg;
 	bool rx_fc = !!(efx->link_fc & EFX_FC_RX);
 
-	/* Configure MAC  - cut-thru mode is hard wired on */
+	
 	EFX_POPULATE_DWORD_3(reg,
 			     XM_RX_JUMBO_MODE, 1,
 			     XM_TX_STAT_EN, 1,
 			     XM_RX_STAT_EN, 1);
 	falcon_write(efx, &reg, XM_GLB_CFG_REG);
 
-	/* Configure TX */
+	
 	EFX_POPULATE_DWORD_6(reg,
 			     XM_TXEN, 1,
 			     XM_TX_PRMBL, 1,
@@ -163,7 +149,7 @@ static void falcon_reconfigure_xmac_core(struct efx_nic *efx)
 			     XM_IPG, 0x3);
 	falcon_write(efx, &reg, XM_TX_CFG_REG);
 
-	/* Configure RX */
+	
 	EFX_POPULATE_DWORD_5(reg,
 			     XM_RXEN, 1,
 			     XM_AUTO_DEPAD, 0,
@@ -172,7 +158,7 @@ static void falcon_reconfigure_xmac_core(struct efx_nic *efx)
 			     XM_PASS_CRC_ERR, 1);
 	falcon_write(efx, &reg, XM_RX_CFG_REG);
 
-	/* Set frame length */
+	
 	max_frame_len = EFX_MAX_FRAME_LEN(efx->net_dev->mtu);
 	EFX_POPULATE_DWORD_1(reg, XM_MAX_RX_FRM_SIZE, max_frame_len);
 	falcon_write(efx, &reg, XM_RX_PARAM_REG);
@@ -182,11 +168,11 @@ static void falcon_reconfigure_xmac_core(struct efx_nic *efx)
 	falcon_write(efx, &reg, XM_TX_PARAM_REG);
 
 	EFX_POPULATE_DWORD_2(reg,
-			     XM_PAUSE_TIME, 0xfffe, /* MAX PAUSE TIME */
+			     XM_PAUSE_TIME, 0xfffe, 
 			     XM_DIS_FCNTL, !rx_fc);
 	falcon_write(efx, &reg, XM_FC_REG);
 
-	/* Set MAC address */
+	
 	EFX_POPULATE_DWORD_4(reg,
 			     XM_ADR_0, efx->net_dev->dev_addr[0],
 			     XM_ADR_1, efx->net_dev->dev_addr[1],
@@ -206,8 +192,7 @@ static void falcon_reconfigure_xgxs_core(struct efx_nic *efx)
 	bool xaui_loopback = (efx->loopback_mode == LOOPBACK_XAUI);
 	bool xgmii_loopback = (efx->loopback_mode == LOOPBACK_XGMII);
 
-	/* XGXS block is flaky and will need to be reset if moving
-	 * into our out of XGMII, XGXS or XAUI loopbacks. */
+	
 	if (EFX_WORKAROUND_5147(efx)) {
 		bool old_xgmii_loopback, old_xgxs_loopback, old_xaui_loopback;
 		bool reset_xgxs;
@@ -219,7 +204,7 @@ static void falcon_reconfigure_xgxs_core(struct efx_nic *efx)
 		falcon_read(efx, &reg, XX_SD_CTL_REG);
 		old_xaui_loopback = EFX_OWORD_FIELD(reg, XX_LPBKA);
 
-		/* The PHY driver may have turned XAUI off */
+		
 		reset_xgxs = ((xgxs_loopback != old_xgxs_loopback) ||
 			      (xaui_loopback != old_xaui_loopback) ||
 			      (xgmii_loopback != old_xgmii_loopback));
@@ -245,15 +230,14 @@ static void falcon_reconfigure_xgxs_core(struct efx_nic *efx)
 }
 
 
-/* Try and bring the Falcon side of the Falcon-Phy XAUI link fails
- * to come back up. Bash it until it comes back up */
+
 static void falcon_check_xaui_link_up(struct efx_nic *efx, int tries)
 {
 	efx->mac_up = falcon_xaui_link_ok(efx);
 
 	if ((efx->loopback_mode == LOOPBACK_NETWORK) ||
 	    efx_phy_mode_disabled(efx->phy_mode))
-		/* XAUI link is expected to be down */
+		
 		return;
 
 	while (!efx->mac_up && tries) {
@@ -288,7 +272,7 @@ static void falcon_update_stats_xmac(struct efx_nic *efx)
 	if (rc)
 		return;
 
-	/* Update MAC stats from DMAed values */
+	
 	FALCON_STAT(efx, XgRxOctets, rx_bytes);
 	FALCON_STAT(efx, XgRxOctetsOK, rx_good_bytes);
 	FALCON_STAT(efx, XgRxPkts, rx_packets);
@@ -335,7 +319,7 @@ static void falcon_update_stats_xmac(struct efx_nic *efx)
 	FALCON_STAT(efx, XgTxMacSrcErrPkt, tx_mac_src_error);
 	FALCON_STAT(efx, XgTxIpSrcErrPkt, tx_ip_src_error);
 
-	/* Update derived statistics */
+	
 	mac_stats->tx_good_bytes =
 		(mac_stats->tx_bytes - mac_stats->tx_bad_bytes -
 		 mac_stats->tx_control * 64);
@@ -346,17 +330,7 @@ static void falcon_update_stats_xmac(struct efx_nic *efx)
 
 static void falcon_xmac_irq(struct efx_nic *efx)
 {
-	/* The XGMII link has a transient fault, which indicates either:
-	 *   - there's a transient xgmii fault
-	 *   - falcon's end of the xaui link may need a kick
-	 *   - the wire-side link may have gone down, but the lasi/poll()
-	 *     hasn't noticed yet.
-	 *
-	 * We only want to even bother polling XAUI if we're confident it's
-	 * not (1) or (3). In both cases, the only reliable way to spot this
-	 * is to wait a bit. We do this here by forcing the mac link state
-	 * to down, and waiting for the mac poll to come round and check
-	 */
+	
 	efx->mac_up = false;
 }
 

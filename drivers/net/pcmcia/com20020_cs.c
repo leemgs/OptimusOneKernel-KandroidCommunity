@@ -1,36 +1,4 @@
-/*
- * Linux ARCnet driver - COM20020 PCMCIA support
- * 
- * Written 1994-1999 by Avery Pennarun,
- *    based on an ISA version by David Woodhouse.
- * Derived from ibmtr_cs.c by Steve Kipisz (pcmcia-cs 3.1.4)
- *    which was derived from pcnet_cs.c by David Hinds.
- * Some additional portions derived from skeleton.c by Donald Becker.
- *
- * Special thanks to Contemporary Controls, Inc. (www.ccontrols.com)
- *  for sponsoring the further development of this driver.
- *
- * **********************
- *
- * The original copyright of skeleton.c was as follows:
- *
- * skeleton.c Written 1993 by Donald Becker.
- * Copyright 1993 United States Government as represented by the
- * Director, National Security Agency.  This software may only be used
- * and distributed according to the terms of the GNU General Public License as
- * modified by SRC, incorporated herein by reference.
- * 
- * **********************
- * Changes:
- * Arnaldo Carvalho de Melo <acme@conectiva.com.br> - 08/08/2000
- * - reorganize kmallocs in com20020_attach, checking all for failure
- *   and releasing the previous allocations if one fails
- * **********************
- * 
- * For more details, see drivers/net/arcnet.c
- *
- * **********************
- */
+
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/ptrace.h>
@@ -74,7 +42,7 @@ static void regdump(struct net_device *dev)
     printk("\n");
     
     printk("buffer0 dump:\n");
-	/* set up the address register */
+	
         count = 0;
 	outb((count >> 8) | RDDATAflag | AUTOINCflag, _ADDR_HI);
 	outb(count & 0xff, _ADDR_LO);
@@ -84,7 +52,7 @@ static void regdump(struct net_device *dev)
 	if (!(count % 16))
 	    printk("\n%04X: ", count);
 	
-	/* copy the data */
+	
 	printk("%02X ", inb(_MEMDATA));
     }
     printk("\n");
@@ -98,9 +66,9 @@ static inline void regdump(struct net_device *dev) { }
 #endif
 
 
-/*====================================================================*/
 
-/* Parameters that can be set with 'insmod' */
+
+
 
 static int node;
 static int timeout = 3;
@@ -116,27 +84,21 @@ module_param(clockm, int, 0);
 
 MODULE_LICENSE("GPL");
 
-/*====================================================================*/
+
 
 static int com20020_config(struct pcmcia_device *link);
 static void com20020_release(struct pcmcia_device *link);
 
 static void com20020_detach(struct pcmcia_device *p_dev);
 
-/*====================================================================*/
+
 
 typedef struct com20020_dev_t {
     struct net_device       *dev;
     dev_node_t          node;
 } com20020_dev_t;
 
-/*======================================================================
 
-    com20020_attach() creates an "instance" of the driver, allocating
-    local data structures for one device.  The device is registered
-    with Card Services.
-
-======================================================================*/
 
 static int com20020_probe(struct pcmcia_device *p_dev)
 {
@@ -146,7 +108,7 @@ static int com20020_probe(struct pcmcia_device *p_dev)
 
     DEBUG(0, "com20020_attach()\n");
 
-    /* Create new network device */
+    
     info = kzalloc(sizeof(struct com20020_dev_t), GFP_KERNEL);
     if (!info)
 	goto fail_alloc_info;
@@ -162,7 +124,7 @@ static int com20020_probe(struct pcmcia_device *p_dev)
     lp->clockm = clockm & 3;
     lp->hw.owner = THIS_MODULE;
 
-    /* fill in our module parameters as defaults */
+    
     dev->dev_addr[0] = node;
 
     p_dev->io.Attributes1 = IO_DATA_PATH_WIDTH_8;
@@ -182,16 +144,9 @@ fail_alloc_dev:
     kfree(info);
 fail_alloc_info:
     return -ENOMEM;
-} /* com20020_attach */
+} 
 
-/*======================================================================
 
-    This deletes a driver "instance".  The device is de-registered
-    with Card Services.  If it has been released, all local data
-    structures are freed.  Otherwise, the structures will be freed
-    when the device is released.
-
-======================================================================*/
 
 static void com20020_detach(struct pcmcia_device *link)
 {
@@ -207,17 +162,14 @@ static void com20020_detach(struct pcmcia_device *link)
 
 	unregister_netdev(dev);
 
-	/*
-	 * this is necessary because we register our IRQ separately
-	 * from card services.
-	 */
+	
 	if (dev->irq)
 	    free_irq(dev->irq, dev);
     }
 
     com20020_release(link);
 
-    /* Unlink device structure, free bits */
+    
     DEBUG(1,"unlinking...\n");
     if (link->priv)
     {
@@ -231,15 +183,9 @@ static void com20020_detach(struct pcmcia_device *link)
 	kfree(info);
     }
 
-} /* com20020_detach */
+} 
 
-/*======================================================================
 
-    com20020_config() is scheduled to run after a CARD_INSERTION event
-    is received, to configure the PCMCIA socket, and to make the
-    device available to the system.
-
-======================================================================*/
 
 #define CS_CHECK(fn, ret) \
 do { last_fn = (fn); if ((last_ret = (ret)) != 0) goto cs_failed; } while (0)
@@ -305,12 +251,12 @@ static int com20020_config(struct pcmcia_device *link)
     
     lp = netdev_priv(dev);
     lp->card_name = "PCMCIA COM20020";
-    lp->card_flags = ARC_CAN_10MBIT; /* pretend all of them can 10Mbit */
+    lp->card_flags = ARC_CAN_10MBIT; 
 
     link->dev_node = &info->node;
     SET_NETDEV_DEV(dev, &handle_to_dev(link));
 
-    i = com20020_found(dev, 0);	/* calls register_netdev */
+    i = com20020_found(dev, 0);	
     
     if (i != 0) {
 	DEBUG(1,KERN_NOTICE "com20020_cs: com20020_found() failed\n");
@@ -330,15 +276,9 @@ failed:
     DEBUG(1,"com20020_config failed...\n");
     com20020_release(link);
     return -ENODEV;
-} /* com20020_config */
+} 
 
-/*======================================================================
 
-    After a card is removed, com20020_release() will unregister the net
-    device, and release the PCMCIA configuration.  If the device is
-    still open, this will be postponed until it is closed.
-
-======================================================================*/
 
 static void com20020_release(struct pcmcia_device *link)
 {

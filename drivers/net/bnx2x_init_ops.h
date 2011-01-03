@@ -1,16 +1,4 @@
-/* bnx2x_init_ops.h: Broadcom Everest network driver.
- *               Static functions needed during the initialization.
- *               This file is "included" in bnx2x_main.c.
- *
- * Copyright (c) 2007-2009 Broadcom Corporation
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation.
- *
- * Maintained by: Eilon Greenstein <eilong@broadcom.com>
- * Written by: Vladislav Zolotarov <vladz@broadcom.com>
- */
+
 
 #ifndef BNX2X_INIT_OPS_H
 #define BNX2X_INIT_OPS_H
@@ -67,7 +55,7 @@ static void bnx2x_init_wr_64(struct bnx2x *bp, u32 addr, const u32 *data,
 	u64 data64 = 0;
 	u32 i;
 
-	/* 64 bit value is in a blob: first low DWORD, then high DWORD */
+	
 	data64 = HILO_U64((*(data + 1)), (*data));
 
 	len64 = min((u32)(FW_BUF_SIZE/8), len64);
@@ -84,14 +72,7 @@ static void bnx2x_init_wr_64(struct bnx2x *bp, u32 addr, const u32 *data,
 	}
 }
 
-/*********************************************************
-   There are different blobs for each PRAM section.
-   In addition, each blob write operation is divided into a few operations
-   in order to decrease the amount of phys. contiguous buffer needed.
-   Thus, when we select a blob the address may be with some offset
-   from the beginning of PRAM section.
-   The same holds for the INT_TABLE sections.
-**********************************************************/
+
 #define IF_IS_INT_TABLE_ADDR(base, addr) \
 			if (((base) <= (addr)) && ((base) + 0x400 >= (addr)))
 
@@ -158,7 +139,7 @@ static void bnx2x_init_wr_zp(struct bnx2x *bp, u32 addr, u32 len, u32 blob_off)
 	if (rc)
 		return;
 
-	/* gunzip_outlen is in dwords */
+	
 	len = GUNZIP_OUTLEN(bp);
 	for (i = 0; i < len; i++)
 		((u32 *)GUNZIP_BUF(bp))[i] =
@@ -178,7 +159,7 @@ static void bnx2x_init_block(struct bnx2x *bp, u32 block, u32 stage)
 	u32 i, op_type, addr, len;
 	const u32 *data, *data_base;
 
-	/* If empty block */
+	
 	if (op_start == op_end)
 		return;
 
@@ -200,7 +181,7 @@ static void bnx2x_init_block(struct bnx2x *bp, u32 block, u32 stage)
 		len = op->str_wr.data_len;
 		data = data_base + op->str_wr.data_off;
 
-		/* HW/EMUL specific */
+		
 		if ((op_type > OP_WB) && (op_type == hw_wr))
 			op_type = OP_WR;
 
@@ -231,41 +212,31 @@ static void bnx2x_init_block(struct bnx2x *bp, u32 block, u32 stage)
 			bnx2x_init_wr_64(bp, addr, data, len);
 			break;
 		default:
-			/* happens whenever an op is of a diff HW */
+			
 			break;
 		}
 	}
 }
 
 
-/****************************************************************************
-* PXP Arbiter
-****************************************************************************/
-/*
- * This code configures the PCI read/write arbiter
- * which implements a weighted round robin
- * between the virtual queues in the chip.
- *
- * The values were derived for each PCI max payload and max request size.
- * since max payload and max request size are only known at run time,
- * this is done as a separate init stage.
- */
+
+
 
 #define NUM_WR_Q			13
 #define NUM_RD_Q			29
 #define MAX_RD_ORD			3
 #define MAX_WR_ORD			2
 
-/* configuration for one arbiter queue */
+
 struct arb_line {
 	int l;
 	int add;
 	int ubound;
 };
 
-/* derived configuration for each read queue for each max request size */
+
 static const struct arb_line read_arb_data[NUM_RD_Q][MAX_RD_ORD + 1] = {
-/* 1 */	{ {8, 64, 25}, {16, 64, 25}, {32, 64, 25}, {64, 64, 41} },
+	{ {8, 64, 25}, {16, 64, 25}, {32, 64, 25}, {64, 64, 41} },
 	{ {4, 8,  4},  {4,  8,  4},  {4,  8,  4},  {4,  8,  4}  },
 	{ {4, 3,  3},  {4,  3,  3},  {4,  3,  3},  {4,  3,  3}  },
 	{ {8, 3,  6},  {16, 3,  11}, {16, 3,  11}, {16, 3,  11} },
@@ -274,7 +245,7 @@ static const struct arb_line read_arb_data[NUM_RD_Q][MAX_RD_ORD + 1] = {
 	{ {8, 3,  6},  {16, 3,  11}, {32, 3,  21}, {64, 3,  41} },
 	{ {8, 3,  6},  {16, 3,  11}, {32, 3,  21}, {64, 3,  41} },
 	{ {8, 3,  6},  {16, 3,  11}, {32, 3,  21}, {64, 3,  41} },
-/* 10 */{ {8, 3,  6},  {16, 3,  11}, {32, 3,  21}, {32, 3,  21} },
+{ {8, 3,  6},  {16, 3,  11}, {32, 3,  21}, {32, 3,  21} },
 	{ {8, 3,  6},  {16, 3,  11}, {32, 3,  21}, {32, 3,  21} },
 	{ {8, 3,  6},  {16, 3,  11}, {32, 3,  21}, {32, 3,  21} },
 	{ {8, 3,  6},  {16, 3,  11}, {32, 3,  21}, {32, 3,  21} },
@@ -284,7 +255,7 @@ static const struct arb_line read_arb_data[NUM_RD_Q][MAX_RD_ORD + 1] = {
 	{ {8, 64, 6},  {16, 64, 11}, {32, 64, 21}, {32, 64, 21} },
 	{ {8, 3,  6},  {16, 3,  11}, {32, 3,  21}, {32, 3,  21} },
 	{ {8, 3,  6},  {16, 3,  11}, {32, 3,  21}, {32, 3,  21} },
-/* 20 */{ {8, 3,  6},  {16, 3,  11}, {32, 3,  21}, {32, 3,  21} },
+{ {8, 3,  6},  {16, 3,  11}, {32, 3,  21}, {32, 3,  21} },
 	{ {8, 3,  6},  {16, 3,  11}, {32, 3,  21}, {32, 3,  21} },
 	{ {8, 3,  6},  {16, 3,  11}, {32, 3,  21}, {32, 3,  21} },
 	{ {8, 3,  6},  {16, 3,  11}, {32, 3,  21}, {32, 3,  21} },
@@ -296,9 +267,9 @@ static const struct arb_line read_arb_data[NUM_RD_Q][MAX_RD_ORD + 1] = {
 	{ {8, 64, 25}, {16, 64, 41}, {32, 64, 81}, {64, 64, 120} }
 };
 
-/* derived configuration for each write queue for each max request size */
+
 static const struct arb_line write_arb_data[NUM_WR_Q][MAX_WR_ORD + 1] = {
-/* 1 */	{ {4, 6,  3},  {4,  6,  3},  {4,  6,  3} },
+	{ {4, 6,  3},  {4,  6,  3},  {4,  6,  3} },
 	{ {4, 2,  3},  {4,  2,  3},  {4,  2,  3} },
 	{ {8, 2,  6},  {16, 2,  11}, {16, 2,  11} },
 	{ {8, 2,  6},  {16, 2,  11}, {32, 2,  21} },
@@ -307,15 +278,15 @@ static const struct arb_line write_arb_data[NUM_WR_Q][MAX_WR_ORD + 1] = {
 	{ {8, 64, 25}, {16, 64, 25}, {32, 64, 25} },
 	{ {8, 2,  6},  {16, 2,  11}, {16, 2,  11} },
 	{ {8, 2,  6},  {16, 2,  11}, {16, 2,  11} },
-/* 10 */{ {8, 9,  6},  {16, 9,  11}, {32, 9,  21} },
+{ {8, 9,  6},  {16, 9,  11}, {32, 9,  21} },
 	{ {8, 47, 19}, {16, 47, 19}, {32, 47, 21} },
 	{ {8, 9,  6},  {16, 9,  11}, {16, 9,  11} },
 	{ {8, 64, 25}, {16, 64, 41}, {32, 64, 81} }
 };
 
-/* register addresses for read queues */
+
 static const struct arb_line read_arb_addr[NUM_RD_Q-1] = {
-/* 1 */	{PXP2_REG_RQ_BW_RD_L0, PXP2_REG_RQ_BW_RD_ADD0,
+	{PXP2_REG_RQ_BW_RD_L0, PXP2_REG_RQ_BW_RD_ADD0,
 		PXP2_REG_RQ_BW_RD_UBOUND0},
 	{PXP2_REG_PSWRQ_BW_L1, PXP2_REG_PSWRQ_BW_ADD1,
 		PXP2_REG_PSWRQ_BW_UB1},
@@ -333,7 +304,7 @@ static const struct arb_line read_arb_addr[NUM_RD_Q-1] = {
 		PXP2_REG_PSWRQ_BW_UB7},
 	{PXP2_REG_PSWRQ_BW_L8, PXP2_REG_PSWRQ_BW_ADD8,
 		PXP2_REG_PSWRQ_BW_UB8},
-/* 10 */{PXP2_REG_PSWRQ_BW_L9, PXP2_REG_PSWRQ_BW_ADD9,
+{PXP2_REG_PSWRQ_BW_L9, PXP2_REG_PSWRQ_BW_ADD9,
 		PXP2_REG_PSWRQ_BW_UB9},
 	{PXP2_REG_PSWRQ_BW_L10, PXP2_REG_PSWRQ_BW_ADD10,
 		PXP2_REG_PSWRQ_BW_UB10},
@@ -353,7 +324,7 @@ static const struct arb_line read_arb_addr[NUM_RD_Q-1] = {
 		PXP2_REG_RQ_BW_RD_UBOUND17},
 	{PXP2_REG_RQ_BW_RD_L18, PXP2_REG_RQ_BW_RD_ADD18,
 		PXP2_REG_RQ_BW_RD_UBOUND18},
-/* 20 */{PXP2_REG_RQ_BW_RD_L19, PXP2_REG_RQ_BW_RD_ADD19,
+{PXP2_REG_RQ_BW_RD_L19, PXP2_REG_RQ_BW_RD_ADD19,
 		PXP2_REG_RQ_BW_RD_UBOUND19},
 	{PXP2_REG_RQ_BW_RD_L20, PXP2_REG_RQ_BW_RD_ADD20,
 		PXP2_REG_RQ_BW_RD_UBOUND20},
@@ -373,9 +344,9 @@ static const struct arb_line read_arb_addr[NUM_RD_Q-1] = {
 		PXP2_REG_PSWRQ_BW_UB28}
 };
 
-/* register addresses for write queues */
+
 static const struct arb_line write_arb_addr[NUM_WR_Q-1] = {
-/* 1 */	{PXP2_REG_PSWRQ_BW_L1, PXP2_REG_PSWRQ_BW_ADD1,
+	{PXP2_REG_PSWRQ_BW_L1, PXP2_REG_PSWRQ_BW_ADD1,
 		PXP2_REG_PSWRQ_BW_UB1},
 	{PXP2_REG_PSWRQ_BW_L2, PXP2_REG_PSWRQ_BW_ADD2,
 		PXP2_REG_PSWRQ_BW_UB2},
@@ -393,7 +364,7 @@ static const struct arb_line write_arb_addr[NUM_WR_Q-1] = {
 		PXP2_REG_PSWRQ_BW_UB10},
 	{PXP2_REG_PSWRQ_BW_L11, PXP2_REG_PSWRQ_BW_ADD11,
 		PXP2_REG_PSWRQ_BW_UB11},
-/* 10 */{PXP2_REG_PSWRQ_BW_L28, PXP2_REG_PSWRQ_BW_ADD28,
+{PXP2_REG_PSWRQ_BW_L28, PXP2_REG_PSWRQ_BW_ADD28,
 		PXP2_REG_PSWRQ_BW_UB28},
 	{PXP2_REG_RQ_BW_WR_L29, PXP2_REG_RQ_BW_WR_ADD29,
 		PXP2_REG_RQ_BW_WR_UBOUND29},
@@ -478,11 +449,7 @@ static void bnx2x_init_pxp_arb(struct bnx2x *bp, int r_order, int w_order)
 	REG_WR(bp, PXP2_REG_WR_USDMDP_TH, (0x18 << w_order));
 
 	if (CHIP_IS_E1H(bp)) {
-		/*    MPS      w_order     optimal TH      presently TH
-		 *    128         0             0               2
-		 *    256         1             1               3
-		 *    >=512       2             2               3
-		 */
+		
 		val = ((w_order == 0) ? 2 : 3);
 		REG_WR(bp, PXP2_REG_WR_HC_MPS, val);
 		REG_WR(bp, PXP2_REG_WR_USDM_MPS, val);
@@ -493,9 +460,9 @@ static void bnx2x_init_pxp_arb(struct bnx2x *bp, int r_order, int w_order)
 		REG_WR(bp, PXP2_REG_WR_TM_MPS, val);
 		REG_WR(bp, PXP2_REG_WR_SRC_MPS, val);
 		REG_WR(bp, PXP2_REG_WR_DBG_MPS, val);
-		REG_WR(bp, PXP2_REG_WR_DMAE_MPS, 2); /* DMAE is special */
+		REG_WR(bp, PXP2_REG_WR_DMAE_MPS, 2); 
 		REG_WR(bp, PXP2_REG_WR_CDU_MPS, val);
 	}
 }
 
-#endif /* BNX2X_INIT_OPS_H */
+#endif 

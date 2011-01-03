@@ -1,18 +1,4 @@
-/*
- * Copyright (c) 2007 Patrick McHardy <kaber@trash.net>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * The code this is based on carried the following copyright notice:
- * ---
- * (C) Copyright 2001-2006
- * Alex Zeffertt, Cambridge Broadband Ltd, ajz@cambridgebroadband.com
- * Re-worked by Ben Greear <greearb@candelatech.com>
- * ---
- */
+
 #include <linux/kernel.h>
 #include <linux/types.h>
 #include <linux/module.h>
@@ -78,9 +64,7 @@ static void macvlan_hash_change_addr(struct macvlan_dev *vlan,
 					const unsigned char *addr)
 {
 	macvlan_hash_del(vlan);
-	/* Now that we are unhashed it is safe to change the device
-	 * address without confusing packet delivery.
-	 */
+	
 	memcpy(vlan->dev->dev_addr, addr, ETH_ALEN);
 	macvlan_hash_add(vlan);
 }
@@ -88,10 +72,7 @@ static void macvlan_hash_change_addr(struct macvlan_dev *vlan,
 static int macvlan_addr_busy(const struct macvlan_port *port,
 				const unsigned char *addr)
 {
-	/* Test to see if the specified multicast address is
-	 * currently in use by the underlying device or
-	 * another macvlan.
-	 */
+	
 	if (!compare_ether_addr_64bits(port->dev->dev_addr, addr))
 		return 1;
 
@@ -140,7 +121,7 @@ static void macvlan_broadcast(struct sk_buff *skb,
 	}
 }
 
-/* called under rcu_read_lock() from netif_receive_skb */
+
 static struct sk_buff *macvlan_handle_frame(struct sk_buff *skb)
 {
 	const struct ethhdr *eth = eth_hdr(skb);
@@ -277,10 +258,10 @@ static int macvlan_set_mac_address(struct net_device *dev, void *p)
 		return -EADDRNOTAVAIL;
 
 	if (!(dev->flags & IFF_UP)) {
-		/* Just copy in the new address */
+		
 		memcpy(dev->dev_addr, addr->sa_data, ETH_ALEN);
 	} else {
-		/* Rehash and update the device filters */
+		
 		if (macvlan_addr_busy(vlan->port, addr->sa_data))
 			return -EBUSY;
 
@@ -321,11 +302,7 @@ static int macvlan_change_mtu(struct net_device *dev, int new_mtu)
 	return 0;
 }
 
-/*
- * macvlan network devices have devices nesting below it and are a special
- * "super class" of normal network devices; split their locks off into a
- * separate class since they always nest.
- */
+
 static struct lock_class_key macvlan_netdev_xmit_lock_key;
 static struct lock_class_key macvlan_netdev_addr_lock_key;
 
@@ -520,9 +497,7 @@ static int macvlan_newlink(struct net_device *dev,
 	if (lowerdev == NULL)
 		return -ENODEV;
 
-	/* When creating macvlans on top of other macvlans - use
-	 * the real device as the lowerdev.
-	 */
+	
 	if (lowerdev->rtnl_link_ops == dev->rtnl_link_ops) {
 		struct macvlan_dev *lowervlan = netdev_priv(lowerdev);
 		lowerdev = lowervlan->lowerdev;

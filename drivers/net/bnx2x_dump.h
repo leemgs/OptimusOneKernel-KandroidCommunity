@@ -1,17 +1,7 @@
-/* bnx2x_dump.h: Broadcom Everest network driver.
- *
- * Copyright (c) 2009 Broadcom Corporation
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation.
- */
 
 
-/* This struct holds a signature to ensure the dump returned from the driver
- * match the meta data file inserted to grc_dump.tcl
- * The signature is time stamp, diag version and grc_dump version
- */
+
+
 
 #ifndef BNX2X_DUMP_H
 #define BNX2X_DUMP_H
@@ -45,7 +35,7 @@ struct dump_sign {
 
 
 struct dump_hdr {
-	u32		 hdr_size;	/* in dwords, excluding this field */
+	u32		 hdr_size;	
 	struct dump_sign dump_sign;
 	u32		 xstorm_waitp;
 	u32		 tstorm_waitp;
@@ -531,4 +521,4 @@ static const u32 timer_scan_regs_e1h[TIMER_REGS_COUNT_E1H] =
 	{ 0x1640d0, 0x1640d4 };
 
 
-#endif /* BNX2X_DUMP_H */
+#endif 

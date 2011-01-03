@@ -1,30 +1,9 @@
-/*******************************************************************************
-  Header File to describe the DMA descriptors
-  Use enhanced descriptors in case of GMAC Cores.
 
-  This program is free software; you can redistribute it and/or modify it
-  under the terms and conditions of the GNU General Public License,
-  version 2, as published by the Free Software Foundation.
-
-  This program is distributed in the hope it will be useful, but WITHOUT
-  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-  more details.
-
-  You should have received a copy of the GNU General Public License along with
-  this program; if not, write to the Free Software Foundation, Inc.,
-  51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
-
-  The full GNU General Public License is included in this distribution in
-  the file called "COPYING".
-
-  Author: Giuseppe Cavallaro <peppe.cavallaro@st.com>
-*******************************************************************************/
 struct dma_desc {
-	/* Receive descriptor */
+	
 	union {
 		struct {
-			/* RDES0 */
+			
 			u32 reserved1:1;
 			u32 crc_error:1;
 			u32 dribbling:1;
@@ -44,7 +23,7 @@ struct dma_desc {
 			u32 frame_length:14;
 			u32 filtering_fail:1;
 			u32 own:1;
-			/* RDES1 */
+			
 			u32 buffer1_size:11;
 			u32 buffer2_size:11;
 			u32 reserved2:2;
@@ -54,7 +33,7 @@ struct dma_desc {
 			u32 disable_ic:1;
 		} rx;
 		struct {
-			/* RDES0 */
+			
 			u32 payload_csum_error:1;
 			u32 crc_error:1;
 			u32 dribbling:1;
@@ -74,7 +53,7 @@ struct dma_desc {
 			u32 frame_length:14;
 			u32 da_filter_fail:1;
 			u32 own:1;
-			/* RDES1 */
+			
 			u32 buffer1_size:13;
 			u32 reserved1:1;
 			u32 second_address_chained:1;
@@ -82,11 +61,11 @@ struct dma_desc {
 			u32 buffer2_size:13;
 			u32 reserved2:2;
 			u32 disable_ic:1;
-		} erx;		/* -- enhanced -- */
+		} erx;		
 
-		/* Transmit descriptor */
+		
 		struct {
-			/* TDES0 */
+			
 			u32 deferred:1;
 			u32 underflow_error:1;
 			u32 excessive_deferral:1;
@@ -100,7 +79,7 @@ struct dma_desc {
 			u32 error_summary:1;
 			u32 reserved2:15;
 			u32 own:1;
-			/* TDES1 */
+			
 			u32 buffer1_size:11;
 			u32 buffer2_size:11;
 			u32 reserved3:1;
@@ -114,7 +93,7 @@ struct dma_desc {
 			u32 interrupt:1;
 		} tx;
 		struct {
-			/* TDES0 */
+			
 			u32 deferred:1;
 			u32 underflow_error:1;
 			u32 excessive_deferral:1;
@@ -142,22 +121,21 @@ struct dma_desc {
 			u32 last_segment:1;
 			u32 interrupt:1;
 			u32 own:1;
-			/* TDES1 */
+			
 			u32 buffer1_size:13;
 			u32 reserved3:3;
 			u32 buffer2_size:13;
 			u32 reserved4:3;
-		} etx;		/* -- enhanced -- */
+		} etx;		
 	} des01;
 	unsigned int des2;
 	unsigned int des3;
 };
 
-/* Transmit checksum insertion control */
+
 enum tdes_csum_insertion {
-	cic_disabled = 0,	/* Checksum Insertion Control */
-	cic_only_ip = 1,	/* Only IP header */
-	cic_no_pseudoheader = 2,	/* IP header but pseudoheader
-					 * is not calculated */
-	cic_full = 3,		/* IP header and pseudoheader */
+	cic_disabled = 0,	
+	cic_only_ip = 1,	
+	cic_no_pseudoheader = 2,	
+	cic_full = 3,		
 };

@@ -1,37 +1,4 @@
-/*
- * Copyright (c) 2004, 2005 Topspin Communications.  All rights reserved.
- * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
- * Copyright (c) 2005, 2006, 2007, 2008 Mellanox Technologies. All rights reserved.
- * Copyright (c) 2006, 2007 Cisco Systems, Inc. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -59,7 +26,7 @@ int mlx4_debug_level = 0;
 module_param_named(debug_level, mlx4_debug_level, int, 0644);
 MODULE_PARM_DESC(debug_level, "Enable debug tracing if > 0");
 
-#endif /* CONFIG_MLX4_DEBUG */
+#endif 
 
 #ifdef CONFIG_PCI_MSI
 
@@ -67,11 +34,11 @@ static int msi_x = 1;
 module_param(msi_x, int, 0444);
 MODULE_PARM_DESC(msi_x, "attempt to use MSI-X if nonzero");
 
-#else /* CONFIG_PCI_MSI */
+#else 
 
 #define msi_x (0)
 
-#endif /* CONFIG_PCI_MSI */
+#endif 
 
 static char mlx4_version[] __devinitdata =
 	DRV_NAME ": Mellanox ConnectX core driver v"
@@ -199,11 +166,7 @@ static int mlx4_dev_cap(struct mlx4_dev *dev, struct mlx4_dev_cap *dev_cap)
 	dev->caps.max_sq_desc_sz     = dev_cap->max_sq_desc_sz;
 	dev->caps.max_rq_desc_sz     = dev_cap->max_rq_desc_sz;
 	dev->caps.num_qp_per_mgm     = MLX4_QP_PER_MGM;
-	/*
-	 * Subtract 1 from the limit because we need to allocate a
-	 * spare CQE so the HCA HW can tell the difference between an
-	 * empty CQ and a full CQ.
-	 */
+	
 	dev->caps.max_cqes	     = dev_cap->max_cq_sz - 1;
 	dev->caps.reserved_cqs	     = dev_cap->reserved_cqs;
 	dev->caps.reserved_eqs	     = dev_cap->reserved_eqs;
@@ -268,10 +231,7 @@ static int mlx4_dev_cap(struct mlx4_dev *dev, struct mlx4_dev_cap *dev_cap)
 	return 0;
 }
 
-/*
- * Change the port configuration of the device.
- * Every user of this function must hold the port mutex.
- */
+
 int mlx4_change_port_types(struct mlx4_dev *dev,
 			   enum mlx4_port_type *port_types)
 {
@@ -280,8 +240,7 @@ int mlx4_change_port_types(struct mlx4_dev *dev,
 	int port;
 
 	for (port = 0; port <  dev->caps.num_ports; port++) {
-		/* Change the port type only if the new type is different
-		 * from the current, and not set to Auto */
+		
 		if (port_types[port] != dev->caps.port_type[port + 1]) {
 			change = 1;
 			dev->caps.port_type[port + 1] = port_types[port];
@@ -352,7 +311,7 @@ static ssize_t set_port_type(struct device *dev,
 
 	mlx4_stop_sense(mdev);
 	mutex_lock(&priv->port_mutex);
-	/* Possible type is always the one that was delivered */
+	
 	mdev->caps.possible_type[info->port] = info->tmp_type;
 
 	for (i = 0; i < mdev->caps.num_ports; i++) {
@@ -383,9 +342,7 @@ static ssize_t set_port_type(struct device *dev,
 	if (err)
 		goto out;
 
-	/* We are about to apply the changes after the configuration
-	 * was verified, no need to remember the temporary types
-	 * any more */
+	
 	for (i = 0; i < mdev->caps.num_ports; i++)
 		priv->port[i + 1].tmp_type = 0;
 
@@ -534,13 +491,7 @@ static int mlx4_init_icm(struct mlx4_dev *dev, struct mlx4_dev_cap *dev_cap,
 		goto err_unmap_cmpt;
 	}
 
-	/*
-	 * Reserved MTT entries must be aligned up to a cacheline
-	 * boundary, since the FW will write to them, while the driver
-	 * writes to all other MTT entries. (The variable
-	 * dev->caps.mtt_entry_sz below is really the MTT segment
-	 * size, not the raw entry size)
-	 */
+	
 	dev->caps.reserved_mtts =
 		ALIGN(dev->caps.reserved_mtts * dev->caps.mtt_entry_sz,
 		      dma_get_cache_alignment()) / dev->caps.mtt_entry_sz;
@@ -629,11 +580,7 @@ static int mlx4_init_icm(struct mlx4_dev *dev, struct mlx4_dev_cap *dev_cap,
 		goto err_unmap_cq;
 	}
 
-	/*
-	 * It's not strictly required, but for simplicity just map the
-	 * whole multicast group table now.  The table isn't very big
-	 * and it's a lot easier than trying to track ref counts.
-	 */
+	
 	err = mlx4_init_icm_table(dev, &priv->mcg_table.table,
 				  init_hca->mc_base, MLX4_MGM_ENTRY_SIZE,
 				  dev->caps.num_mgms + dev->caps.num_amgms,
@@ -979,7 +926,7 @@ static void mlx4_enable_msi_x(struct mlx4_dev *dev)
 	retry:
 		err = pci_enable_msix(dev->pdev, entries, nreq);
 		if (err) {
-			/* Try again if at least 2 vectors are available */
+			
 			if (err > 1) {
 				mlx4_info(dev, "Requested %d vectors, "
 					  "but only %d MSI-X vectors available, "
@@ -1058,9 +1005,7 @@ static int __mlx4_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
 		return err;
 	}
 
-	/*
-	 * Check for BARs.  We expect 0: 1MB
-	 */
+	
 	if (!(pci_resource_flags(pdev, 0) & IORESOURCE_MEM) ||
 	    pci_resource_len(pdev, 0) != 1 << 20) {
 		dev_err(&pdev->dev, "Missing DCS, aborting.\n");
@@ -1120,11 +1065,7 @@ static int __mlx4_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
 	INIT_LIST_HEAD(&priv->pgdir_list);
 	mutex_init(&priv->pgdir_mutex);
 
-	/*
-	 * Now reset the HCA before we touch the PCI capabilities or
-	 * attempt a firmware command, since a boot ROM may have left
-	 * the HCA in an undefined state.
-	 */
+	
 	err = mlx4_reset(dev);
 	if (err) {
 		mlx4_err(dev, "Failed to reset HCA, aborting.\n");
@@ -1272,18 +1213,18 @@ int mlx4_restart_one(struct pci_dev *pdev)
 }
 
 static struct pci_device_id mlx4_pci_table[] = {
-	{ PCI_VDEVICE(MELLANOX, 0x6340) }, /* MT25408 "Hermon" SDR */
-	{ PCI_VDEVICE(MELLANOX, 0x634a) }, /* MT25408 "Hermon" DDR */
-	{ PCI_VDEVICE(MELLANOX, 0x6354) }, /* MT25408 "Hermon" QDR */
-	{ PCI_VDEVICE(MELLANOX, 0x6732) }, /* MT25408 "Hermon" DDR PCIe gen2 */
-	{ PCI_VDEVICE(MELLANOX, 0x673c) }, /* MT25408 "Hermon" QDR PCIe gen2 */
-	{ PCI_VDEVICE(MELLANOX, 0x6368) }, /* MT25408 "Hermon" EN 10GigE */
-	{ PCI_VDEVICE(MELLANOX, 0x6750) }, /* MT25408 "Hermon" EN 10GigE PCIe gen2 */
-	{ PCI_VDEVICE(MELLANOX, 0x6372) }, /* MT25458 ConnectX EN 10GBASE-T 10GigE */
-	{ PCI_VDEVICE(MELLANOX, 0x675a) }, /* MT25458 ConnectX EN 10GBASE-T+Gen2 10GigE */
-	{ PCI_VDEVICE(MELLANOX, 0x6764) }, /* MT26468 ConnectX EN 10GigE PCIe gen2*/
-	{ PCI_VDEVICE(MELLANOX, 0x6746) }, /* MT26438 ConnectX EN 40GigE PCIe gen2 5GT/s */
-	{ PCI_VDEVICE(MELLANOX, 0x676e) }, /* MT26478 ConnectX2 40GigE PCIe gen2 */
+	{ PCI_VDEVICE(MELLANOX, 0x6340) }, 
+	{ PCI_VDEVICE(MELLANOX, 0x634a) }, 
+	{ PCI_VDEVICE(MELLANOX, 0x6354) }, 
+	{ PCI_VDEVICE(MELLANOX, 0x6732) }, 
+	{ PCI_VDEVICE(MELLANOX, 0x673c) }, 
+	{ PCI_VDEVICE(MELLANOX, 0x6368) }, 
+	{ PCI_VDEVICE(MELLANOX, 0x6750) }, 
+	{ PCI_VDEVICE(MELLANOX, 0x6372) }, 
+	{ PCI_VDEVICE(MELLANOX, 0x675a) }, 
+	{ PCI_VDEVICE(MELLANOX, 0x6764) }, 
+	{ PCI_VDEVICE(MELLANOX, 0x6746) }, 
+	{ PCI_VDEVICE(MELLANOX, 0x676e) }, 
 	{ 0, }
 };
 

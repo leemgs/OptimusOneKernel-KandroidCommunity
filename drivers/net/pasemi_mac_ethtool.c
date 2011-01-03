@@ -1,21 +1,4 @@
-/*
- * Copyright (C) 2006-2008 PA Semi, Inc
- *
- * Ethtool hooks for the PA Semi PWRficient onchip 1G/10G Ethernet MACs
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- */
+
 
 
 #include <linux/netdevice.h>
@@ -84,7 +67,7 @@ pasemi_mac_ethtool_get_drvinfo(struct net_device *netdev,
 	struct pasemi_mac *mac;
 	mac = netdev_priv(netdev);
 
-	/* clear and fill out info */
+	
 	memset(drvinfo, 0, sizeof(struct ethtool_drvinfo));
 	strncpy(drvinfo->driver, "pasemi_mac", 12);
 	strcpy(drvinfo->version, "N/A");

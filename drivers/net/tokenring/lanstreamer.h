@@ -1,69 +1,6 @@
-/*
- *   lanstreamer.h -- driver for the IBM Auto LANStreamer PCI Adapter
- *
- *  Written By: Mike Sullivan, IBM Corporation
- *
- *  Copyright (C) 1999 IBM Corporation
- *
- *  Linux driver for IBM PCI tokenring cards based on the LanStreamer MPC
- *  chipset. 
- *
- *  This driver is based on the olympic driver for IBM PCI TokenRing cards (Pit/Pit-Phy/Olympic
- *  chipsets) written  by:
- *      1999 Peter De Schrijver All Rights Reserved
- *	1999 Mike Phillips (phillim@amtrak.com)
- *
- *  Base Driver Skeleton:
- *      Written 1993-94 by Donald Becker.
- *
- *      Copyright 1993 United States Government as represented by the
- *      Director, National Security Agency.
- *
- * This program is free software; you can redistribute it and/or modify      
- * it under the terms of the GNU General Public License as published by      
- * the Free Software Foundation; either version 2 of the License, or         
- * (at your option) any later version.                                       
- *                                                                           
- * This program is distributed in the hope that it will be useful,           
- * but WITHOUT ANY WARRANTY; without even the implied warranty of            
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             
- * GNU General Public License for more details.                              
- *                                                                           
- * NO WARRANTY                                                               
- * THE PROGRAM IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OR        
- * CONDITIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED INCLUDING, WITHOUT      
- * LIMITATION, ANY WARRANTIES OR CONDITIONS OF TITLE, NON-INFRINGEMENT,      
- * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. Each Recipient is    
- * solely responsible for determining the appropriateness of using and       
- * distributing the Program and assumes all risks associated with its        
- * exercise of rights under this Agreement, including but not limited to     
- * the risks and costs of program errors, damage to or loss of data,         
- * programs or equipment, and unavailability or interruption of operations.  
- *                                                                           
- * DISCLAIMER OF LIABILITY                                                   
- * NEITHER RECIPIENT NOR ANY CONTRIBUTORS SHALL HAVE ANY LIABILITY FOR ANY   
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL        
- * DAMAGES (INCLUDING WITHOUT LIMITATION LOST PROFITS), HOWEVER CAUSED AND   
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR     
- * TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE    
- * USE OR DISTRIBUTION OF THE PROGRAM OR THE EXERCISE OF ANY RIGHTS GRANTED  
- * HEREUNDER, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES             
- *                                                                           
- * You should have received a copy of the GNU General Public License         
- * along with this program; if not, write to the Free Software               
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
- *                                                                           
- * 
- *  12/10/99 - Alpha Release 0.1.0
- *            First release to the public
- *  08/15/01 - Added ioctl() definitions and others - Kent Yoder <yoder1@us.ibm.com>
- *
- */
 
-/* MAX_INTR - the maximum number of times we can loop
- * inside the interrupt function before returning
- * control to the OS (maximum value is 256)
- */
+
+
 #define MAX_INTR 5
 
 #define CLS 0x0C
@@ -166,9 +103,9 @@
 
 #define SRB_COMMAND_SIZE 50
 
-#define STREAMER_MAX_ADAPTERS 8	/* 0x08 __MODULE_STRING can't hand 0xnn */
+#define STREAMER_MAX_ADAPTERS 8	
 
-/* Defines for LAN STATUS CHANGE reports */
+
 #define LSC_SIG_LOSS 0x8000
 #define LSC_HARD_ERR 0x4000
 #define LSC_SOFT_ERR 0x2000
@@ -183,7 +120,7 @@
 #define LSC_SR_CO    0x0010
 #define LSC_FDX_MODE 0x0004
 
-/* Defines for OPEN ADAPTER command */
+
 
 #define OPEN_ADAPTER_EXT_WRAP (1<<15)
 #define OPEN_ADAPTER_DIS_HARDEE (1<<14)
@@ -199,7 +136,7 @@
 #define OPEN_ADAPTER_INTERNAL_WRAP (1<<3)
 
 
-/* Defines for SRB Commands */
+
 #define SRB_CLOSE_ADAPTER 0x04
 #define SRB_CONFIGURE_BRIDGE 0x0c
 #define SRB_CONFIGURE_HP_CHANNEL 0x13
@@ -218,31 +155,26 @@
 #define SRB_SET_GROUP_ADDRESS 0x06
 #define SRB_SET_TARGET_SEGMENT 0x05
 
-/* Clear return code */
+
 #define STREAMER_CLEAR_RET_CODE 0xfe
 
-/* ARB Commands */
+
 #define ARB_RECEIVE_DATA 0x81
 #define ARB_LAN_CHANGE_STATUS 0x84
 
-/* ASB Response commands */
+
 #define ASB_RECEIVE_DATA 0x81
 
 
-/* Streamer defaults for buffers */
 
-#define STREAMER_RX_RING_SIZE 16	/* should be a power of 2 */
-/* Setting the number of TX descriptors to 1 is a workaround for an
- * undocumented hardware problem with the lanstreamer board. Setting
- * this to something higher may slightly increase the throughput you
- * can get from the card, but at the risk of locking up the box. - 
- * <yoder1@us.ibm.com>
- */
-#define STREAMER_TX_RING_SIZE 1	/* should be a power of 2 */
 
-#define PKT_BUF_SZ 4096		/* Default packet size */
+#define STREAMER_RX_RING_SIZE 16	
 
-/* Streamer data structures */
+#define STREAMER_TX_RING_SIZE 1	
+
+#define PKT_BUF_SZ 4096		
+
+
 
 struct streamer_tx_desc {
 	__u32 forward;
@@ -284,12 +216,12 @@ struct streamer_private {
  
         spinlock_t streamer_lock;
 
-	volatile int srb_queued;	/* True if an SRB is still posted */
+	volatile int srb_queued;	
 	wait_queue_head_t srb_wait;
 
-	volatile int asb_queued;	/* True if an ASB is posted */
+	volatile int asb_queued;	
 
-	volatile int trb_queued;	/* True if a TRB is posted */
+	volatile int trb_queued;	
 	wait_queue_head_t trb_wait;
 
 	struct streamer_rx_desc *streamer_rx_ring;

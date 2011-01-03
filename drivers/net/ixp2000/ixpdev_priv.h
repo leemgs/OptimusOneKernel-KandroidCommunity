@@ -1,13 +1,4 @@
-/*
- * IXP2000 MSF network device driver
- * Copyright (C) 2004, 2005 Lennert Buytenhek <buytenh@wantstofly.org>
- * Dedicated to Marija Kulikova.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
+
 
 #ifndef __IXPDEV_PRIV_H
 #define __IXPDEV_PRIV_H

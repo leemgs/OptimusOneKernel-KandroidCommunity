@@ -1,28 +1,4 @@
-/*
- * Linux driver for VMware's vmxnet3 ethernet NIC.
- *
- * Copyright (C) 2008-2009, VMware, Inc. All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; version 2 of the License and no later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, GOOD TITLE or
- * NON INFRINGEMENT.  See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * The full GNU General Public License is included in this distribution in
- * the file called "COPYING".
- *
- * Maintained by: Shreyas Bhatewara <pv-drivers@vmware.com>
- *
- */
+
 
 
 #include "vmxnet3_int.h"
@@ -64,10 +40,10 @@ vmxnet3_set_rx_csum(struct net_device *netdev, u32 val)
 }
 
 
-/* per tq stats maintained by the device */
+
 static const struct vmxnet3_stat_desc
 vmxnet3_tq_dev_stats[] = {
-	/* description,         offset */
+	
 	{ "TSO pkts tx",        offsetof(struct UPT1_TxStats, TSOPktsTxOK) },
 	{ "TSO bytes tx",       offsetof(struct UPT1_TxStats, TSOBytesTxOK) },
 	{ "ucast pkts tx",      offsetof(struct UPT1_TxStats, ucastPktsTxOK) },
@@ -80,10 +56,10 @@ vmxnet3_tq_dev_stats[] = {
 	{ "pkts tx discard",    offsetof(struct UPT1_TxStats, pktsTxDiscard) },
 };
 
-/* per tq stats maintained by the driver */
+
 static const struct vmxnet3_stat_desc
 vmxnet3_tq_driver_stats[] = {
-	/* description,         offset */
+	
 	{"drv dropped tx total", offsetof(struct vmxnet3_tq_driver_stats,
 					drop_total) },
 	{ "   too many frags",  offsetof(struct vmxnet3_tq_driver_stats,
@@ -104,7 +80,7 @@ vmxnet3_tq_driver_stats[] = {
 					oversized_hdr) },
 };
 
-/* per rq stats maintained by the device */
+
 static const struct vmxnet3_stat_desc
 vmxnet3_rq_dev_stats[] = {
 	{ "LRO pkts rx",        offsetof(struct UPT1_RxStats, LROPktsRxOK) },
@@ -119,10 +95,10 @@ vmxnet3_rq_dev_stats[] = {
 	{ "pkts rx err",        offsetof(struct UPT1_RxStats, pktsRxError) },
 };
 
-/* per rq stats maintained by the driver */
+
 static const struct vmxnet3_stat_desc
 vmxnet3_rq_driver_stats[] = {
-	/* description,         offset */
+	
 	{ "drv dropped rx total", offsetof(struct vmxnet3_rq_driver_stats,
 					   drop_total) },
 	{ "   err",            offsetof(struct vmxnet3_rq_driver_stats,
@@ -133,10 +109,10 @@ vmxnet3_rq_driver_stats[] = {
 					rx_buf_alloc_failure) },
 };
 
-/* gloabl stats maintained by the driver */
+
 static const struct vmxnet3_stat_desc
 vmxnet3_global_stats[] = {
-	/* description,         offset */
+	
 	{ "tx timeout count",   offsetof(struct vmxnet3_adapter,
 					 tx_timeout_count) }
 };
@@ -154,14 +130,14 @@ vmxnet3_get_stats(struct net_device *netdev)
 
 	adapter = netdev_priv(netdev);
 
-	/* Collect the dev stats into the shared area */
+	
 	VMXNET3_WRITE_BAR1_REG(adapter, VMXNET3_REG_CMD, VMXNET3_CMD_GET_STATS);
 
-	/* Assuming that we have a single queue device */
+	
 	devTxStats = &adapter->tqd_start->stats;
 	devRxStats = &adapter->rqd_start->stats;
 
-	/* Get access to the driver stats per queue */
+	
 	drvTxStats = &adapter->tx_queue.stats;
 	drvRxStats = &adapter->rx_queue.stats;
 
@@ -285,10 +261,10 @@ vmxnet3_set_flags(struct net_device *netdev, u32 data) {
 	u8 lro_present = (netdev->features & NETIF_F_LRO) == 0 ? 0 : 1;
 
 	if (lro_requested ^ lro_present) {
-		/* toggle the LRO feature*/
+		
 		netdev->features ^= NETIF_F_LRO;
 
-		/* update harware LRO capability accordingly */
+		
 		if (lro_requested)
 			adapter->shared->devRead.misc.uptFeatures &= UPT1_F_LRO;
 		else
@@ -310,7 +286,7 @@ vmxnet3_get_ethtool_stats(struct net_device *netdev,
 
 	VMXNET3_WRITE_BAR1_REG(adapter, VMXNET3_REG_CMD, VMXNET3_CMD_GET_STATS);
 
-	/* this does assume each counter is 64-bit wide */
+	
 
 	base = (u8 *)&adapter->tqd_start->stats;
 	for (i = 0; i < ARRAY_SIZE(vmxnet3_tq_dev_stats); i++)
@@ -344,9 +320,9 @@ vmxnet3_get_regs(struct net_device *netdev, struct ethtool_regs *regs, void *p)
 
 	regs->version = 1;
 
-	/* Update vmxnet3_get_regs_len if we want to dump more registers */
+	
 
-	/* make each ring use multiple of 16 bytes */
+	
 	buf[0] = adapter->tx_queue.tx_ring.next2fill;
 	buf[1] = adapter->tx_queue.tx_ring.next2comp;
 	buf[2] = adapter->tx_queue.tx_ring.gen;
@@ -460,7 +436,7 @@ vmxnet3_set_ringparam(struct net_device *netdev,
 		return -EINVAL;
 
 
-	/* round it up to a multiple of VMXNET3_RING_SIZE_ALIGN */
+	
 	new_tx_ring_size = (param->tx_pending + VMXNET3_RING_SIZE_MASK) &
 							~VMXNET3_RING_SIZE_MASK;
 	new_tx_ring_size = min_t(u32, new_tx_ring_size,
@@ -469,9 +445,7 @@ vmxnet3_set_ringparam(struct net_device *netdev,
 						VMXNET3_RING_SIZE_ALIGN) != 0)
 		return -EINVAL;
 
-	/* ring0 has to be a multiple of
-	 * rx_buf_per_pkt * VMXNET3_RING_SIZE_ALIGN
-	 */
+	
 	sz = adapter->rx_buf_per_pkt * VMXNET3_RING_SIZE_ALIGN;
 	new_rx_ring_size = (param->rx_pending + sz - 1) / sz * sz;
 	new_rx_ring_size = min_t(u32, new_rx_ring_size,
@@ -485,10 +459,7 @@ vmxnet3_set_ringparam(struct net_device *netdev,
 		return 0;
 	}
 
-	/*
-	 * Reset_work may be in the middle of resetting the device, wait for its
-	 * completion.
-	 */
+	
 	while (test_and_set_bit(VMXNET3_STATE_BIT_RESETTING, &adapter->state))
 		msleep(1);
 
@@ -496,16 +467,14 @@ vmxnet3_set_ringparam(struct net_device *netdev,
 		vmxnet3_quiesce_dev(adapter);
 		vmxnet3_reset_dev(adapter);
 
-		/* recreate the rx queue and the tx queue based on the
-		 * new sizes */
+		
 		vmxnet3_tq_destroy(&adapter->tx_queue, adapter);
 		vmxnet3_rq_destroy(&adapter->rx_queue, adapter);
 
 		err = vmxnet3_create_queues(adapter, new_tx_ring_size,
 			new_rx_ring_size, VMXNET3_DEF_RX_RING_SIZE);
 		if (err) {
-			/* failed, most likely because of OOM, try default
-			 * size */
+			
 			printk(KERN_ERR "%s: failed to apply new sizes, try the"
 				" default ones\n", netdev->name);
 			err = vmxnet3_create_queues(adapter,

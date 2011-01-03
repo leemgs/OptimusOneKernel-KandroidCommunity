@@ -1,35 +1,4 @@
-/*
- * Copyright (c) 2005, 2006, 2007, 2008 Mellanox Technologies. All rights reserved.
- * Copyright (c) 2005, 2006, 2007 Cisco Systems, Inc. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *	- Redistributions of source code must retain the above
- *	  copyright notice, this list of conditions and the following
- *	  disclaimer.
- *
- *	- Redistributions in binary form must reproduce the above
- *	  copyright notice, this list of conditions and the following
- *	  disclaimer in the documentation and/or other materials
- *	  provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 
 #include <linux/interrupt.h>
 #include <linux/mm.h>
@@ -50,9 +19,7 @@ enum {
 	MLX4_EQ_ENTRY_SIZE	= 0x20
 };
 
-/*
- * Must be packed because start is 64 bits but only aligned to 32 bits.
- */
+
 struct mlx4_eq_context {
 	__be32			flags;
 	u16			reserved1[3];
@@ -144,7 +111,7 @@ static void eq_set_ci(struct mlx4_eq *eq, int req_not)
 	__raw_writel((__force u32) cpu_to_be32((eq->cons_index & 0xffffff) |
 					       req_not << 31),
 		     eq->doorbell);
-	/* We still want ordering, just not swabbing, so add a barrier */
+	
 	mb();
 }
 
@@ -169,10 +136,7 @@ static int mlx4_eq_int(struct mlx4_dev *dev, struct mlx4_eq *eq)
 	int port;
 
 	while ((eqe = next_eqe_sw(eq))) {
-		/*
-		 * Make sure we read EQ entry contents after we've
-		 * checked the ownership bit.
-		 */
+		
 		rmb();
 
 		switch (eqe->type) {
@@ -244,13 +208,7 @@ static int mlx4_eq_int(struct mlx4_dev *dev, struct mlx4_eq *eq)
 		eqes_found = 1;
 		++set_ci;
 
-		/*
-		 * The HCA will think the queue has overflowed if we
-		 * don't tell it we've been processing events.  We
-		 * create our EQs with MLX4_NUM_SPARE_EQE extra
-		 * entries, so we must update our consumer index at
-		 * least that often.
-		 */
+		
 		if (unlikely(set_ci >= MLX4_NUM_SPARE_EQE)) {
 			eq_set_ci(eq, 0);
 			set_ci = 0;
@@ -284,7 +242,7 @@ static irqreturn_t mlx4_msi_x_interrupt(int irq, void *eq_ptr)
 
 	mlx4_eq_int(dev, eq);
 
-	/* MSI-X vectors always belong to us */
+	
 	return IRQ_HANDLED;
 }
 
@@ -311,11 +269,7 @@ static int mlx4_HW2SW_EQ(struct mlx4_dev *dev, struct mlx4_cmd_mailbox *mailbox,
 
 static int mlx4_num_eq_uar(struct mlx4_dev *dev)
 {
-	/*
-	 * Each UAR holds 4 EQ doorbells.  To figure out how many UARs
-	 * we need to map, take the difference of highest index and
-	 * the lowest index we'll use and add 1.
-	 */
+	
 	return (dev->caps.num_comp_vectors + 1 + dev->caps.reserved_eqs) / 4 -
 		dev->caps.reserved_eqs / 4 + 1;
 }

@@ -1,27 +1,6 @@
-/****************************************************************************
- * Driver for Solarflare Solarstorm network controllers and boards
- * Copyright 2007-2008 Solarflare Communications Inc.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published
- * by the Free Software Foundation, incorporated herein by reference.
- */
 
-/*****************************************************************************
- * Support for the SFE4001 and SFN4111T NICs.
- *
- * The SFE4001 does not power-up fully at reset due to its high power
- * consumption.  We control its power via a PCA9539 I/O expander.
- * Both boards have a MAX6647 temperature monitor which we expose to
- * the lm90 driver.
- *
- * This also provides minimal support for reflashing the PHY, which is
- * initiated by resetting it with the FLASH_CFG_1 pin pulled down.
- * On SFE4001 rev A2 and later this is connected to the 3V3X output of
- * the IO-expander; on the SFN4111T it is connected to Falcon's GPIO3.
- * We represent reflash mode as PHY_MODE_SPECIAL and make it mutually
- * exclusive with the network device being open.
- */
+
+
 
 #include <linux/delay.h>
 #include <linux/rtnetlink.h>
@@ -35,11 +14,7 @@
 #include "mac.h"
 #include "workarounds.h"
 
-/**************************************************************************
- *
- * I2C IO Expander device
- *
- **************************************************************************/
+
 #define	PCA9539 0x74
 
 #define	P0_IN 0x00
@@ -78,7 +53,7 @@
 #define	P1_SPARE_LBN 4
 #define	P1_SPARE_WIDTH 4
 
-/* Temperature Sensor */
+
 #define MAX664X_REG_RSL		0x02
 #define MAX664X_REG_WLHO	0x0B
 
@@ -87,12 +62,12 @@ static void sfe4001_poweroff(struct efx_nic *efx)
 	struct i2c_client *ioexp_client = efx->board_info.ioexp_client;
 	struct i2c_client *hwmon_client = efx->board_info.hwmon_client;
 
-	/* Turn off all power rails and disable outputs */
+	
 	i2c_smbus_write_byte_data(ioexp_client, P0_OUT, 0xff);
 	i2c_smbus_write_byte_data(ioexp_client, P1_CONFIG, 0xff);
 	i2c_smbus_write_byte_data(ioexp_client, P0_CONFIG, 0xff);
 
-	/* Clear any over-temperature alert */
+	
 	i2c_smbus_read_byte_data(hwmon_client, MAX664X_REG_RSL);
 }
 
@@ -104,12 +79,12 @@ static int sfe4001_poweron(struct efx_nic *efx)
 	int rc;
 	u8 out;
 
-	/* Clear any previous over-temperature alert */
+	
 	rc = i2c_smbus_read_byte_data(hwmon_client, MAX664X_REG_RSL);
 	if (rc < 0)
 		return rc;
 
-	/* Enable port 0 and port 1 outputs on IO expander */
+	
 	rc = i2c_smbus_write_byte_data(ioexp_client, P0_CONFIG, 0x00);
 	if (rc)
 		return rc;
@@ -118,9 +93,7 @@ static int sfe4001_poweron(struct efx_nic *efx)
 	if (rc)
 		goto fail_on;
 
-	/* If PHY power is on, turn it all off and wait 1 second to
-	 * ensure a full reset.
-	 */
+	
 	rc = i2c_smbus_read_byte_data(ioexp_client, P0_OUT);
 	if (rc < 0)
 		goto fail_on;
@@ -136,7 +109,7 @@ static int sfe4001_poweron(struct efx_nic *efx)
 	}
 
 	for (i = 0; i < 20; ++i) {
-		/* Turn on 1.2V, 2.5V, 3.3V and 5V power rails */
+		
 		out = 0xff & ~((1 << P0_EN_1V2_LBN) | (1 << P0_EN_2V5_LBN) |
 			       (1 << P0_EN_3V3X_LBN) | (1 << P0_EN_5V_LBN) |
 			       (1 << P0_X_TRST_LBN));
@@ -148,7 +121,7 @@ static int sfe4001_poweron(struct efx_nic *efx)
 			goto fail_on;
 		msleep(10);
 
-		/* Turn on 1V power rail */
+		
 		out &= ~(1 << P0_EN_1V0X_LBN);
 		rc = i2c_smbus_write_byte_data(ioexp_client, P0_OUT, out);
 		if (rc)
@@ -156,9 +129,7 @@ static int sfe4001_poweron(struct efx_nic *efx)
 
 		EFX_INFO(efx, "waiting for DSP boot (attempt %d)...\n", i);
 
-		/* In flash config mode, DSP does not turn on AFE, so
-		 * just wait 1 second.
-		 */
+		
 		if (efx->phy_mode & PHY_MODE_SPECIAL) {
 			schedule_timeout_uninterruptible(HZ);
 			return 0;
@@ -167,7 +138,7 @@ static int sfe4001_poweron(struct efx_nic *efx)
 		for (j = 0; j < 10; ++j) {
 			msleep(100);
 
-			/* Check DSP has asserted AFE power line */
+			
 			rc = i2c_smbus_read_byte_data(ioexp_client, P1_IN);
 			if (rc < 0)
 				goto fail_on;
@@ -187,13 +158,10 @@ static int sfn4111t_reset(struct efx_nic *efx)
 {
 	efx_oword_t reg;
 
-	/* GPIO 3 and the GPIO register are shared with I2C, so block that */
+	
 	i2c_lock_adapter(&efx->i2c_adap);
 
-	/* Pull RST_N (GPIO 2) low then let it up again, setting the
-	 * FLASH_CFG_1 strap (GPIO 3) appropriately.  Only change the
-	 * output enables; the output levels should always be 0 (low)
-	 * and we rely on external pull-ups. */
+	
 	falcon_read(efx, &reg, GPIO_CTL_REG_KER);
 	EFX_SET_OWORD_FIELD(reg, GPIO2_OEN, true);
 	falcon_write(efx, &reg, GPIO_CTL_REG_KER);
@@ -236,8 +204,7 @@ static ssize_t set_phy_flash_cfg(struct device *dev,
 	} else if (efx->state != STATE_RUNNING || netif_running(efx->net_dev)) {
 		err = -EBUSY;
 	} else {
-		/* Reset the PHY, reconfigure the MAC and enable/disable
-		 * MAC stats accordingly. */
+		
 		efx->phy_mode = new_mode;
 		if (new_mode & PHY_MODE_SPECIAL)
 			efx_stats_disable(efx);
@@ -270,24 +237,17 @@ static int sfe4001_check_hw(struct efx_nic *efx)
 {
 	s32 status;
 
-	/* If XAUI link is up then do not monitor */
+	
 	if (EFX_WORKAROUND_7884(efx) && efx->mac_up)
 		return 0;
 
-	/* Check the powered status of the PHY. Lack of power implies that
-	 * the MAX6647 has shut down power to it, probably due to a temp.
-	 * alarm. Reading the power status rather than the MAX6647 status
-	 * directly because the later is read-to-clear and would thus
-	 * start to power up the PHY again when polled, causing us to blip
-	 * the power undesirably.
-	 * We know we can read from the IO expander because we did
-	 * it during power-on. Assume failure now is bad news. */
+	
 	status = i2c_smbus_read_byte_data(efx->board_info.ioexp_client, P1_IN);
 	if (status >= 0 &&
 	    (status & ((1 << P1_AFE_PWD_LBN) | (1 << P1_DSP_PWD25_LBN))) != 0)
 		return 0;
 
-	/* Use board power control, not PHY power control */
+	
 	sfe4001_poweroff(efx);
 	efx->phy_mode = PHY_MODE_OFF;
 
@@ -298,10 +258,7 @@ static struct i2c_board_info sfe4001_hwmon_info = {
 	I2C_BOARD_INFO("max6647", 0x4e),
 };
 
-/* This board uses an I2C expander to provider power to the PHY, which needs to
- * be turned on before the PHY can be used.
- * Context: Process context, rtnl lock held
- */
+
 int sfe4001_init(struct efx_nic *efx)
 {
 	int rc;
@@ -316,7 +273,7 @@ int sfe4001_init(struct efx_nic *efx)
 	if (!efx->board_info.hwmon_client)
 		return -EIO;
 
-	/* Raise board/PHY high limit from 85 to 90 degrees Celsius */
+	
 	rc = i2c_smbus_write_byte_data(efx->board_info.hwmon_client,
 				       MAX664X_REG_WLHO, 90);
 	if (rc)
@@ -328,16 +285,14 @@ int sfe4001_init(struct efx_nic *efx)
 		goto fail_hwmon;
 	}
 
-	/* 10Xpress has fixed-function LED pins, so there is no board-specific
-	 * blink code. */
+	
 	efx->board_info.blink = tenxpress_phy_blink;
 
 	efx->board_info.monitor = sfe4001_check_hw;
 	efx->board_info.fini = sfe4001_fini;
 
 	if (efx->phy_mode & PHY_MODE_SPECIAL) {
-		/* PHY won't generate a 156.25 MHz clock and MAC stats fetch
-		 * will fail. */
+		
 		efx_stats_disable(efx);
 	}
 	rc = sfe4001_poweron(efx);
@@ -364,11 +319,11 @@ static int sfn4111t_check_hw(struct efx_nic *efx)
 {
 	s32 status;
 
-	/* If XAUI link is up then do not monitor */
+	
 	if (EFX_WORKAROUND_7884(efx) && efx->mac_up)
 		return 0;
 
-	/* Test LHIGH, RHIGH, FAULT, EOT and IOT alarms */
+	
 	status = i2c_smbus_read_byte_data(efx->board_info.hwmon_client,
 					  MAX664X_REG_RSL);
 	if (status < 0)
@@ -417,8 +372,7 @@ int sfn4111t_init(struct efx_nic *efx)
 
 	do {
 		if (efx->phy_mode & PHY_MODE_SPECIAL) {
-			/* PHY may not generate a 156.25 MHz clock and MAC
-			 * stats fetch will fail. */
+			
 			efx_stats_disable(efx);
 			sfn4111t_reset(efx);
 		}

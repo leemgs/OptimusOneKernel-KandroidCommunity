@@ -1,9 +1,4 @@
-/*
- * QLogic QLA3xxx NIC HBA Driver
- * Copyright (c)  2003-2006 QLogic Corporation
- *
- * See LICENSE.qla3xxx for copyright and licensing details.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -53,7 +48,7 @@ static const u32 default_msg
     = NETIF_MSG_DRV | NETIF_MSG_PROBE | NETIF_MSG_LINK
     | NETIF_MSG_IFUP | NETIF_MSG_IFDOWN;
 
-static int debug = -1;		/* defaults above */
+static int debug = -1;		
 module_param(debug, int, 0);
 MODULE_PARM_DESC(debug, "Debug level (0=none,...,16=all)");
 
@@ -64,15 +59,13 @@ MODULE_PARM_DESC(msi, "Turn on Message Signaled Interrupts.");
 static struct pci_device_id ql3xxx_pci_tbl[] __devinitdata = {
 	{PCI_DEVICE(PCI_VENDOR_ID_QLOGIC, QL3022_DEVICE_ID)},
 	{PCI_DEVICE(PCI_VENDOR_ID_QLOGIC, QL3032_DEVICE_ID)},
-	/* required last entry */
+	
 	{0,}
 };
 
 MODULE_DEVICE_TABLE(pci, ql3xxx_pci_tbl);
 
-/*
- *  These are the known PHY's which are used
- */
+
 typedef enum {
    PHY_TYPE_UNKNOWN   = 0,
    PHY_VITESSE_VSC8211,
@@ -94,9 +87,7 @@ static const PHY_DEVICE_INFO_t PHY_DEVICES[] =
 };
 
 
-/*
- * Caller must take hw_lock.
- */
+
 static int ql_sem_spinlock(struct ql3_adapter *qdev,
 			    u32 sem_mask, u32 sem_bits)
 {
@@ -132,9 +123,7 @@ static int ql_sem_lock(struct ql3_adapter *qdev, u32 sem_mask, u32 sem_bits)
 	return ((value & (sem_mask >> 16)) == sem_bits);
 }
 
-/*
- * Caller holds hw_lock.
- */
+
 static int ql_wait_for_drvr_lock(struct ql3_adapter *qdev)
 {
 	int i = 0;
@@ -252,9 +241,7 @@ static void ql_write_page0_reg(struct ql3_adapter *qdev,
 	return;
 }
 
-/*
- * Caller holds hw_lock. Only called during init.
- */
+
 static void ql_write_page1_reg(struct ql3_adapter *qdev,
 			       u32 __iomem *reg, u32 value)
 {
@@ -265,9 +252,7 @@ static void ql_write_page1_reg(struct ql3_adapter *qdev,
 	return;
 }
 
-/*
- * Caller holds hw_lock. Only called during init.
- */
+
 static void ql_write_page2_reg(struct ql3_adapter *qdev,
 			       u32 __iomem *reg, u32 value)
 {
@@ -303,7 +288,7 @@ static void ql_release_to_lrg_buf_free_list(struct ql3_adapter *qdev,
 	int err;
 	lrg_buf_cb->next = NULL;
 
-	if (qdev->lrg_buf_free_tail == NULL) {	/* The list is empty  */
+	if (qdev->lrg_buf_free_tail == NULL) {	
 		qdev->lrg_buf_free_head = qdev->lrg_buf_free_tail = lrg_buf_cb;
 	} else {
 		qdev->lrg_buf_free_tail->next = lrg_buf_cb;
@@ -318,10 +303,7 @@ static void ql_release_to_lrg_buf_free_list(struct ql3_adapter *qdev,
 			       qdev->ndev->name);
 			qdev->lrg_buf_skb_check++;
 		} else {
-			/*
-			 * We save some space to copy the ethhdr from first
-			 * buffer
-			 */
+			
 			skb_reserve(lrg_buf_cb->skb, QL_HEADER_SPACE);
 			map = pci_map_single(qdev->pdev,
 					     lrg_buf_cb->skb->data,
@@ -374,9 +356,7 @@ static void fm93c56a_deselect(struct ql3_adapter *qdev);
 static void eeprom_readword(struct ql3_adapter *qdev, u32 eepromAddr,
 			    unsigned short *value);
 
-/*
- * Caller holds hw_lock.
- */
+
 static void fm93c56a_select(struct ql3_adapter *qdev)
 {
 	struct ql3xxx_port_registers __iomem *port_regs =
@@ -389,9 +369,7 @@ static void fm93c56a_select(struct ql3_adapter *qdev)
 			    ((ISP_NVRAM_MASK << 16) | qdev->eeprom_cmd_data));
 }
 
-/*
- * Caller holds hw_lock.
- */
+
 static void fm93c56a_cmd(struct ql3_adapter *qdev, u32 cmd, u32 eepromAddr)
 {
 	int i;
@@ -401,7 +379,7 @@ static void fm93c56a_cmd(struct ql3_adapter *qdev, u32 cmd, u32 eepromAddr)
 	struct ql3xxx_port_registers __iomem *port_regs =
 	    		qdev->mem_map_registers;
 
-	/* Clock in a zero, then do the start bit */
+	
 	ql_write_nvram_reg(qdev, &port_regs->CommonRegs.serialPortInterfaceReg,
 			    ISP_NVRAM_MASK | qdev->eeprom_cmd_data |
 			    AUBURN_EEPROM_DO_1);
@@ -415,16 +393,13 @@ static void fm93c56a_cmd(struct ql3_adapter *qdev, u32 cmd, u32 eepromAddr)
 			    AUBURN_EEPROM_CLK_FALL);
 
 	mask = 1 << (FM93C56A_CMD_BITS - 1);
-	/* Force the previous data bit to be different */
+	
 	previousBit = 0xffff;
 	for (i = 0; i < FM93C56A_CMD_BITS; i++) {
 		dataBit =
 		    (cmd & mask) ? AUBURN_EEPROM_DO_1 : AUBURN_EEPROM_DO_0;
 		if (previousBit != dataBit) {
-			/*
-			 * If the bit changed, then change the DO state to
-			 * match
-			 */
+			
 			ql_write_nvram_reg(qdev,
 					    &port_regs->CommonRegs.
 					    serialPortInterfaceReg,
@@ -448,17 +423,14 @@ static void fm93c56a_cmd(struct ql3_adapter *qdev, u32 cmd, u32 eepromAddr)
 	}
 
 	mask = 1 << (addrBits - 1);
-	/* Force the previous data bit to be different */
+	
 	previousBit = 0xffff;
 	for (i = 0; i < addrBits; i++) {
 		dataBit =
 		    (eepromAddr & mask) ? AUBURN_EEPROM_DO_1 :
 		    AUBURN_EEPROM_DO_0;
 		if (previousBit != dataBit) {
-			/*
-			 * If the bit changed, then change the DO state to
-			 * match
-			 */
+			
 			ql_write_nvram_reg(qdev,
 					    &port_regs->CommonRegs.
 					    serialPortInterfaceReg,
@@ -482,9 +454,7 @@ static void fm93c56a_cmd(struct ql3_adapter *qdev, u32 cmd, u32 eepromAddr)
 	}
 }
 
-/*
- * Caller holds hw_lock.
- */
+
 static void fm93c56a_deselect(struct ql3_adapter *qdev)
 {
 	struct ql3xxx_port_registers __iomem *port_regs =
@@ -494,9 +464,7 @@ static void fm93c56a_deselect(struct ql3_adapter *qdev)
 			    ISP_NVRAM_MASK | qdev->eeprom_cmd_data);
 }
 
-/*
- * Caller holds hw_lock.
- */
+
 static void fm93c56a_datain(struct ql3_adapter *qdev, unsigned short *value)
 {
 	int i;
@@ -505,8 +473,8 @@ static void fm93c56a_datain(struct ql3_adapter *qdev, unsigned short *value)
 	struct ql3xxx_port_registers __iomem *port_regs =
 	    		qdev->mem_map_registers;
 
-	/* Read the data bits */
-	/* The first bit is a dummy.  Clock right over it. */
+	
+	
 	for (i = 0; i < dataBits; i++) {
 		ql_write_nvram_reg(qdev,
 				    &port_regs->CommonRegs.
@@ -528,9 +496,7 @@ static void fm93c56a_datain(struct ql3_adapter *qdev, unsigned short *value)
 	*value = (u16) data;
 }
 
-/*
- * Caller holds hw_lock.
- */
+
 static void eeprom_readword(struct ql3_adapter *qdev,
 			    u32 eepromAddr, unsigned short *value)
 {
@@ -614,18 +580,13 @@ static void ql_mii_enable_scan_mode(struct ql3_adapter *qdev)
 	u32 scanControl;
 
 	if (qdev->numPorts > 1) {
-		/* Auto scan will cycle through multiple ports */
+		
 		scanControl = MAC_MII_CONTROL_AS | MAC_MII_CONTROL_SC;
 	} else {
 		scanControl = MAC_MII_CONTROL_SC;
 	}
 
-	/*
-	 * Scan register 1 of PHY/PETBI,
-	 * Set up to scan both devices
-	 * The autoscan starts from the first register, completes
-	 * the last one before rolling over to the first
-	 */
+	
 	ql_write_page0_reg(qdev, &port_regs->macMIIMgmtAddrReg,
 			   PHYAddr[0] | MII_SCAN_REGISTER);
 
@@ -640,20 +601,17 @@ static u8 ql_mii_disable_scan_mode(struct ql3_adapter *qdev)
 	struct ql3xxx_port_registers __iomem *port_regs =
 	    				qdev->mem_map_registers;
 
-	/* See if scan mode is enabled before we turn it off */
+	
 	if (ql_read_page0_reg(qdev, &port_regs->macMIIMgmtControlReg) &
 	    (MAC_MII_CONTROL_AS | MAC_MII_CONTROL_SC)) {
-		/* Scan is enabled */
+		
 		ret = 1;
 	} else {
-		/* Scan is disabled */
+		
 		ret = 0;
 	}
 
-	/*
-	 * When disabling scan mode you must first change the MII register
-	 * address
-	 */
+	
 	ql_write_page0_reg(qdev, &port_regs->macMIIMgmtAddrReg,
 			   PHYAddr[0] | MII_SCAN_REGISTER);
 
@@ -687,7 +645,7 @@ static int ql_mii_write_reg_ex(struct ql3_adapter *qdev,
 
 	ql_write_page0_reg(qdev, &port_regs->macMIIMgmtDataReg, value);
 
-	/* Wait for write to complete 9/10/04 SJP */
+	
 	if (ql_wait_for_mii_ready(qdev)) {
 		if (netif_msg_link(qdev))
 			printk(KERN_WARNING PFX
@@ -731,7 +689,7 @@ static int ql_mii_read_reg_ex(struct ql3_adapter *qdev, u16 regAddr,
 	ql_write_page0_reg(qdev, &port_regs->macMIIMgmtControlReg,
 			   (MAC_MII_CONTROL_RC << 16) | MAC_MII_CONTROL_RC);
 
-	/* Wait for the read to complete */
+	
 	if (ql_wait_for_mii_ready(qdev)) {
 		if (netif_msg_link(qdev))
 			printk(KERN_WARNING PFX
@@ -771,7 +729,7 @@ static int ql_mii_write_reg(struct ql3_adapter *qdev, u16 regAddr, u16 value)
 
 	ql_write_page0_reg(qdev, &port_regs->macMIIMgmtDataReg, value);
 
-	/* Wait for write to complete. */
+	
 	if (ql_wait_for_mii_ready(qdev)) {
 		if (netif_msg_link(qdev))
 			printk(KERN_WARNING PFX
@@ -812,7 +770,7 @@ static int ql_mii_read_reg(struct ql3_adapter *qdev, u16 regAddr, u16 *value)
 	ql_write_page0_reg(qdev, &port_regs->macMIIMgmtControlReg,
 			   (MAC_MII_CONTROL_RC << 16) | MAC_MII_CONTROL_RC);
 
-	/* Wait for the read to complete */
+	
 	if (ql_wait_for_mii_ready(qdev)) {
 		if (netif_msg_link(qdev))
 			printk(KERN_WARNING PFX
@@ -839,7 +797,7 @@ static void ql_petbi_start_neg(struct ql3_adapter *qdev)
 {
 	u16 reg;
 
-	/* Enable Auto-negotiation sense */
+	
 	ql_mii_read_reg(qdev, PETBI_TBI_CTRL, &reg);
 	reg |= PETBI_TBI_AUTO_SENSE;
 	ql_mii_write_reg(qdev, PETBI_TBI_CTRL, reg);
@@ -863,7 +821,7 @@ static void ql_petbi_start_neg_ex(struct ql3_adapter *qdev)
 {
 	u16 reg;
 
-	/* Enable Auto-negotiation sense */
+	
 	ql_mii_read_reg_ex(qdev, PETBI_TBI_CTRL, &reg,
 			   PHYAddr[qdev->mac_index]);
 	reg |= PETBI_TBI_AUTO_SENSE;
@@ -905,31 +863,27 @@ static int ql_is_petbi_neg_pause(struct ql3_adapter *qdev)
 static void phyAgereSpecificInit(struct ql3_adapter *qdev, u32 miiAddr)
 {
 	printk(KERN_INFO "%s: enabling Agere specific PHY\n", qdev->ndev->name);
-	/* power down device bit 11 = 1 */
+	
 	ql_mii_write_reg_ex(qdev, 0x00, 0x1940, miiAddr);
-	/* enable diagnostic mode bit 2 = 1 */
+	
 	ql_mii_write_reg_ex(qdev, 0x12, 0x840e, miiAddr);
-	/* 1000MB amplitude adjust (see Agere errata) */
+	
 	ql_mii_write_reg_ex(qdev, 0x10, 0x8805, miiAddr);
-	/* 1000MB amplitude adjust (see Agere errata) */
+	
 	ql_mii_write_reg_ex(qdev, 0x11, 0xf03e, miiAddr);
-	/* 100MB amplitude adjust (see Agere errata) */
+	
 	ql_mii_write_reg_ex(qdev, 0x10, 0x8806, miiAddr);
-	/* 100MB amplitude adjust (see Agere errata) */
+	
 	ql_mii_write_reg_ex(qdev, 0x11, 0x003e, miiAddr);
-	/* 10MB amplitude adjust (see Agere errata) */
+	
 	ql_mii_write_reg_ex(qdev, 0x10, 0x8807, miiAddr);
-	/* 10MB amplitude adjust (see Agere errata) */
+	
 	ql_mii_write_reg_ex(qdev, 0x11, 0x1f00, miiAddr);
-	/* point to hidden reg 0x2806 */
+	
 	ql_mii_write_reg_ex(qdev, 0x10, 0x2806, miiAddr);
-	/* Write new PHYAD w/bit 5 set */
+	
 	ql_mii_write_reg_ex(qdev, 0x11, 0x0020 | (PHYAddr[qdev->mac_index] >> 8), miiAddr);
-	/*
-	 * Disable diagnostic mode bit 2 = 0
-	 * Power up device bit 11 = 0
-	 * Link up (on) and activity (blink)
-	 */
+	
 	ql_mii_write_reg(qdev, 0x12, 0x840a);
 	ql_mii_write_reg(qdev, 0x00, 0x1140);
 	ql_mii_write_reg(qdev, 0x1c, 0xfaf0);
@@ -951,12 +905,12 @@ static PHY_DEVICE_et getPhyType (struct ql3_adapter *qdev,
 		return result;
 	}
 
-	/* oui is split between two registers */
+	
 	oui = (phyIdReg0 << 6) | ((phyIdReg1 & PHY_OUI_1_MASK) >> 10);
 
 	model = (phyIdReg1 & PHY_MODEL_MASK) >> 4;
 
-	/* Scan table for this PHY */
+	
 	for(i = 0; i < MAX_PHY_DEV_TYPES; i++) {
 		if ((oui == PHY_DEVICES[i].phyIdOUI) && (model == PHY_DEVICES[i].phyIdModel))
 		{
@@ -1044,7 +998,7 @@ static int PHY_Setup(struct ql3_adapter *qdev)
 	u32 miiAddr = 0;
 	int err;
 
-	/*  Determine the PHY we are using by reading the ID's */
+	
 	err = ql_mii_read_reg(qdev, PHY_ID_0_REG, &reg1);
 	if(err != 0) {
 		printk(KERN_ERR "%s: Could not read from reg PHY_ID_0_REG\n",
@@ -1059,11 +1013,10 @@ static int PHY_Setup(struct ql3_adapter *qdev)
                 return err;
 	}
 
-	/*  Check if we have a Agere PHY */
+	
 	if ((reg1 == 0xffff) || (reg2 == 0xffff)) {
 
-		/* Determine which MII address we should be using
-		   determined by the index of the card */
+		
 		if (qdev->mac_index == 0) {
 			miiAddr = MII_AGERE_ADDR_1;
 		} else {
@@ -1084,16 +1037,15 @@ static int PHY_Setup(struct ql3_adapter *qdev)
         	        return err;
 		}
 
-		/*  We need to remember to initialize the Agere PHY */
+		
 		agereAddrChangeNeeded = true;
 	}
 
-	/*  Determine the particular PHY we have on board to apply
-	    PHY specific initializations */
+	
 	qdev->phyType = getPhyType(qdev, reg1, reg2);
 
 	if ((qdev->phyType == PHY_AGERE_ET1011C) && agereAddrChangeNeeded) {
-		/* need this here so address gets changed */
+		
 		phyAgereSpecificInit(qdev, miiAddr);
 	} else if (qdev->phyType == PHY_TYPE_UNKNOWN) {
 		printk(KERN_ERR "%s: PHY is unknown\n", qdev->ndev->name);
@@ -1103,9 +1055,7 @@ static int PHY_Setup(struct ql3_adapter *qdev)
 	return 0;
 }
 
-/*
- * Caller holds hw_lock.
- */
+
 static void ql_mac_enable(struct ql3_adapter *qdev, u32 enable)
 {
 	struct ql3xxx_port_registers __iomem *port_regs =
@@ -1123,9 +1073,7 @@ static void ql_mac_enable(struct ql3_adapter *qdev, u32 enable)
 		ql_write_page0_reg(qdev, &port_regs->mac0ConfigReg, value);
 }
 
-/*
- * Caller holds hw_lock.
- */
+
 static void ql_mac_cfg_soft_reset(struct ql3_adapter *qdev, u32 enable)
 {
 	struct ql3xxx_port_registers __iomem *port_regs =
@@ -1143,9 +1091,7 @@ static void ql_mac_cfg_soft_reset(struct ql3_adapter *qdev, u32 enable)
 		ql_write_page0_reg(qdev, &port_regs->mac0ConfigReg, value);
 }
 
-/*
- * Caller holds hw_lock.
- */
+
 static void ql_mac_cfg_gig(struct ql3_adapter *qdev, u32 enable)
 {
 	struct ql3xxx_port_registers __iomem *port_regs =
@@ -1163,9 +1109,7 @@ static void ql_mac_cfg_gig(struct ql3_adapter *qdev, u32 enable)
 		ql_write_page0_reg(qdev, &port_regs->mac0ConfigReg, value);
 }
 
-/*
- * Caller holds hw_lock.
- */
+
 static void ql_mac_cfg_full_dup(struct ql3_adapter *qdev, u32 enable)
 {
 	struct ql3xxx_port_registers __iomem *port_regs =
@@ -1183,9 +1127,7 @@ static void ql_mac_cfg_full_dup(struct ql3_adapter *qdev, u32 enable)
 		ql_write_page0_reg(qdev, &port_regs->mac0ConfigReg, value);
 }
 
-/*
- * Caller holds hw_lock.
- */
+
 static void ql_mac_cfg_pause(struct ql3_adapter *qdev, u32 enable)
 {
 	struct ql3xxx_port_registers __iomem *port_regs =
@@ -1205,9 +1147,7 @@ static void ql_mac_cfg_pause(struct ql3_adapter *qdev, u32 enable)
 		ql_write_page0_reg(qdev, &port_regs->mac0ConfigReg, value);
 }
 
-/*
- * Caller holds hw_lock.
- */
+
 static int ql_is_fiber(struct ql3_adapter *qdev)
 {
 	struct ql3xxx_port_registers __iomem *port_regs =
@@ -1235,9 +1175,7 @@ static int ql_is_auto_cfg(struct ql3_adapter *qdev)
 	return (reg & 0x1000) != 0;
 }
 
-/*
- * Caller holds hw_lock.
- */
+
 static int ql_is_auto_neg_complete(struct ql3_adapter *qdev)
 {
 	struct ql3xxx_port_registers __iomem *port_regs =
@@ -1270,9 +1208,7 @@ static int ql_is_auto_neg_complete(struct ql3_adapter *qdev)
 	}
 }
 
-/*
- *  ql_is_neg_pause() returns 1 if pause was negotiated to be on
- */
+
 static int ql_is_neg_pause(struct ql3_adapter *qdev)
 {
 	if (ql_is_fiber(qdev))
@@ -1316,9 +1252,7 @@ static int ql_is_link_full_dup(struct ql3_adapter *qdev)
 		return ql_is_full_dup(qdev);
 }
 
-/*
- * Caller holds hw_lock.
- */
+
 static int ql_link_down_detect(struct ql3_adapter *qdev)
 {
 	struct ql3xxx_port_registers __iomem *port_regs =
@@ -1340,9 +1274,7 @@ static int ql_link_down_detect(struct ql3_adapter *qdev)
 	return (temp & bitToCheck) != 0;
 }
 
-/*
- * Caller holds hw_lock.
- */
+
 static int ql_link_down_detect_clear(struct ql3_adapter *qdev)
 {
 	struct ql3xxx_port_registers __iomem *port_regs =
@@ -1370,9 +1302,7 @@ static int ql_link_down_detect_clear(struct ql3_adapter *qdev)
 	return 0;
 }
 
-/*
- * Caller holds hw_lock.
- */
+
 static int ql_this_adapter_controls_port(struct ql3_adapter *qdev)
 {
 	struct ql3xxx_port_registers __iomem *port_regs =
@@ -1417,7 +1347,7 @@ static void ql_phy_start_neg_ex(struct ql3_adapter *qdev)
 	u16 portConfiguration;
 
 	if(qdev->phyType == PHY_AGERE_ET1011C) {
-		/* turn off external loopback */
+		
 		ql_mii_write_reg(qdev, 0x13, 0x0000);
 	}
 
@@ -1426,12 +1356,11 @@ static void ql_phy_start_neg_ex(struct ql3_adapter *qdev)
 	else
 		portConfiguration = qdev->nvram_data.macCfg_port1.portConfiguration;
 
-	/*  Some HBA's in the field are set to 0 and they need to
-	    be reinterpreted with a default value */
+	
 	if(portConfiguration == 0)
 		portConfiguration = PORT_CONFIG_DEFAULT;
 
-	/* Set the 1000 advertisements */
+	
 	ql_mii_read_reg_ex(qdev, PHY_GIG_CONTROL, &reg,
 			   PHYAddr[qdev->mac_index]);
 	reg &= ~PHY_GIG_ALL_PARAMS;
@@ -1446,7 +1375,7 @@ static void ql_phy_start_neg_ex(struct ql3_adapter *qdev)
 	ql_mii_write_reg_ex(qdev, PHY_GIG_CONTROL, reg,
 			    PHYAddr[qdev->mac_index]);
 
-	/* Set the 10/100 & pause negotiation advertisements */
+	
 	ql_mii_read_reg_ex(qdev, PHY_NEG_ADVER, &reg,
 			   PHYAddr[qdev->mac_index]);
 	reg &= ~PHY_NEG_ALL_PARAMS;
@@ -1492,9 +1421,7 @@ static void ql_phy_init_ex(struct ql3_adapter *qdev)
 	ql_phy_start_neg_ex(qdev);
 }
 
-/*
- * Caller holds hw_lock.
- */
+
 static u32 ql_get_link_state(struct ql3_adapter *qdev)
 {
 	struct ql3xxx_port_registers __iomem *port_regs =
@@ -1532,7 +1459,7 @@ static int ql_port_start(struct ql3_adapter *qdev)
 	if (ql_is_fiber(qdev)) {
 		ql_petbi_init(qdev);
 	} else {
-		/* Copper port */
+		
 		ql_phy_init_ex(qdev);
 	}
 
@@ -1550,7 +1477,7 @@ static int ql_finish_auto_neg(struct ql3_adapter *qdev)
 
 	if (!ql_auto_neg_error(qdev)) {
 		if (test_bit(QL_LINK_MASTER,&qdev->flags)) {
-			/* configure the MAC */
+			
 			if (netif_msg_link(qdev))
 				printk(KERN_DEBUG PFX
 				       "%s: Configuring link.\n",
@@ -1569,7 +1496,7 @@ static int ql_finish_auto_neg(struct ql3_adapter *qdev)
 					 (qdev));
 			ql_mac_cfg_soft_reset(qdev, 0);
 
-			/* enable the MAC */
+			
 			if (netif_msg_link(qdev))
 				printk(KERN_DEBUG PFX
 				       "%s: Enabling mac.\n",
@@ -1589,7 +1516,7 @@ static int ql_finish_auto_neg(struct ql3_adapter *qdev)
 			       ql_is_link_full_dup(qdev)
 			       ? "full" : "half");
 
-	} else {	/* Remote error detected */
+	} else {	
 
 		if (test_bit(QL_LINK_MASTER,&qdev->flags)) {
 			if (netif_msg_link(qdev))
@@ -1598,12 +1525,9 @@ static int ql_finish_auto_neg(struct ql3_adapter *qdev)
 				       "Calling ql_port_start().\n",
 				       qdev->ndev->
 				       name);
-			/*
-			 * ql_port_start() is shared code and needs
-			 * to lock the PHY on it's own.
-			 */
+			
 			ql_sem_unlock(qdev, QL_PHY_GIO_SEM_MASK);
-			if(ql_port_start(qdev))	{/* Restart port */
+			if(ql_port_start(qdev))	{
 				return -1;
 			} else
 				return 0;
@@ -1633,7 +1557,7 @@ static void ql_link_state_machine_work(struct work_struct *work)
 
 		spin_unlock_irqrestore(&qdev->hw_lock, hw_flags);
 
-		/* Restart timer on 2 second interval. */
+		
 		mod_timer(&qdev->adapter_timer, jiffies + HZ * 1);\
 
 		return;
@@ -1645,7 +1569,7 @@ static void ql_link_state_machine_work(struct work_struct *work)
 			ql_port_start(qdev);
 		}
 		qdev->port_link_state = LS_DOWN;
-		/* Fall Through */
+		
 
 	case LS_DOWN:
 		if (curr_link_state == LS_UP) {
@@ -1663,10 +1587,7 @@ static void ql_link_state_machine_work(struct work_struct *work)
 		break;
 
 	case LS_UP:
-		/*
-		 * See if the link is currently down or went down and came
-		 * back up
-		 */
+		
 		if (curr_link_state == LS_DOWN) {
 			if (netif_msg_link(qdev))
 				printk(KERN_INFO PFX "%s: Link is down.\n",
@@ -1679,13 +1600,11 @@ static void ql_link_state_machine_work(struct work_struct *work)
 	}
 	spin_unlock_irqrestore(&qdev->hw_lock, hw_flags);
 
-	/* Restart timer on 2 second interval. */
+	
 	mod_timer(&qdev->adapter_timer, jiffies + HZ * 1);
 }
 
-/*
- * Caller must take hw_lock and QL_PHY_GIO_SEM.
- */
+
 static void ql_get_phy_owner(struct ql3_adapter *qdev)
 {
 	if (ql_this_adapter_controls_port(qdev))
@@ -1694,9 +1613,7 @@ static void ql_get_phy_owner(struct ql3_adapter *qdev)
 		clear_bit(QL_LINK_MASTER,&qdev->flags);
 }
 
-/*
- * Caller must take hw_lock and QL_PHY_GIO_SEM.
- */
+
 static void ql_init_scan_mode(struct ql3_adapter *qdev)
 {
 	ql_mii_enable_scan_mode(qdev);
@@ -1710,12 +1627,7 @@ static void ql_init_scan_mode(struct ql3_adapter *qdev)
 	}
 }
 
-/*
- * MII_Setup needs to be called before taking the PHY out of reset so that the
- * management interface clock speed can be set properly.  It would be better if
- * we had a way to disable MDC until after the PHY is out of reset, but we
- * don't have that capability.
- */
+
 static int ql_mii_setup(struct ql3_adapter *qdev)
 {
 	u32 reg;
@@ -1731,7 +1643,7 @@ static int ql_mii_setup(struct ql3_adapter *qdev)
 		ql_write_page0_reg(qdev,
 			&port_regs->macMIIMgmtControlReg, 0x0f00000);
 
-	/* Divide 125MHz clock by 28 to meet PHY timing requirements */
+	
 	reg = MAC_MII_CONTROL_CLK_SEL_DIV28;
 
 	ql_write_page0_reg(qdev, &port_regs->macMIIMgmtControlReg,
@@ -1899,10 +1811,7 @@ static int ql_populate_free_queue(struct ql3_adapter *qdev)
 				       qdev->ndev->name);
 				break;
 			} else {
-				/*
-				 * We save some space to copy the ethhdr from
-				 * first buffer
-				 */
+				
 				skb_reserve(lrg_buf_cb->skb, QL_HEADER_SPACE);
 				map = pci_map_single(qdev->pdev,
 						     lrg_buf_cb->skb->data,
@@ -1938,9 +1847,7 @@ static int ql_populate_free_queue(struct ql3_adapter *qdev)
 	return 0;
 }
 
-/*
- * Caller holds hw_lock.
- */
+
 static void ql_update_small_bufq_prod_index(struct ql3_adapter *qdev)
 {
 	struct ql3xxx_port_registers __iomem *port_regs = qdev->mem_map_registers;
@@ -1959,9 +1866,7 @@ static void ql_update_small_bufq_prod_index(struct ql3_adapter *qdev)
 	}
 }
 
-/*
- * Caller holds hw_lock.
- */
+
 static void ql_update_lrg_bufq_prod_index(struct ql3_adapter *qdev)
 {
 	struct bufq_addr_element *lrg_buf_q_ele;
@@ -2023,7 +1928,7 @@ static void ql_process_mac_tx_intr(struct ql3_adapter *qdev,
 
 	tx_cb = &qdev->tx_buf[mac_rsp->transaction_id];
 
-	/*  Check the transmit response flags for any errors */
+	
 	if(mac_rsp->flags & OB_MAC_IOCB_RSP_S) {
 		printk(KERN_ERR "Frame too short to be legal, frame not sent.\n");
 
@@ -2082,18 +1987,7 @@ static struct ql_rcv_buf_cb *ql_get_lbuf(struct ql3_adapter *qdev)
 	return(lrg_buf_cb);
 }
 
-/*
- * The difference between 3022 and 3032 for inbound completions:
- * 3022 uses two buffers per completion.  The first buffer contains
- * (some) header info, the second the remainder of the headers plus
- * the data.  For this chip we reserve some space at the top of the
- * receive buffer so that the header info in buffer one can be
- * prepended to the buffer two.  Buffer two is the sent up while
- * buffer one is returned to the hardware to be reused.
- * 3032 receives all of it's data and headers in one buffer for a
- * simpler process.  3032 also supports checksum verification as
- * can be seen in ql_process_macip_rx_intr().
- */
+
 static void ql_process_mac_rx_intr(struct ql3_adapter *qdev,
 				   struct ib_mac_iocb_rsp *ib_mac_rsp_ptr)
 {
@@ -2102,15 +1996,13 @@ static void ql_process_mac_rx_intr(struct ql3_adapter *qdev,
 	struct sk_buff *skb;
 	u16 length = le16_to_cpu(ib_mac_rsp_ptr->length);
 
-	/*
-	 * Get the inbound address list (small buffer).
-	 */
+	
 	ql_get_sbuf(qdev);
 
 	if (qdev->device_id == QL3022_DEVICE_ID)
 		lrg_buf_cb1 = ql_get_lbuf(qdev);
 
-	/* start of second buffer */
+	
 	lrg_buf_cb2 = ql_get_lbuf(qdev);
 	skb = lrg_buf_cb2->skb;
 
@@ -2144,14 +2036,12 @@ static void ql_process_macip_rx_intr(struct ql3_adapter *qdev,
 	u16 length = le16_to_cpu(ib_ip_rsp_ptr->length);
 	u16 size = 0;
 
-	/*
-	 * Get the inbound address list (small buffer).
-	 */
+	
 
 	ql_get_sbuf(qdev);
 
 	if (qdev->device_id == QL3022_DEVICE_ID) {
-		/* start of first buffer on 3022 */
+		
 		lrg_buf_cb1 = ql_get_lbuf(qdev);
 		skb1 = lrg_buf_cb1->skb;
 		size = ETH_HLEN;
@@ -2159,11 +2049,11 @@ static void ql_process_macip_rx_intr(struct ql3_adapter *qdev,
 			size += VLAN_ETH_HLEN - ETH_HLEN;
 	}
 
-	/* start of second buffer */
+	
 	lrg_buf_cb2 = ql_get_lbuf(qdev);
 	skb2 = lrg_buf_cb2->skb;
 
-	skb_put(skb2, length);	/* Just the second buffer length here. */
+	skb_put(skb2, length);	
 	pci_unmap_single(qdev->pdev,
 			 pci_unmap_addr(lrg_buf_cb2, mapaddr),
 			 pci_unmap_len(lrg_buf_cb2, maplen),
@@ -2172,10 +2062,7 @@ static void ql_process_macip_rx_intr(struct ql3_adapter *qdev,
 
 	skb2->ip_summed = CHECKSUM_NONE;
 	if (qdev->device_id == QL3022_DEVICE_ID) {
-		/*
-		 * Copy the ethhdr from first buffer to second. This
-		 * is necessary for 3022 IP completions.
-		 */
+		
 		skb_copy_from_linear_data_offset(skb1, VLAN_ID_LEN,
 						 skb_push(skb2, size), size);
 	} else {
@@ -2214,16 +2101,13 @@ static int ql_tx_rx_clean(struct ql3_adapter *qdev,
 	struct net_device *ndev = qdev->ndev;
 	int work_done = 0;
 
-	/* While there are entries in the completion queue. */
+	
 	while ((le32_to_cpu(*(qdev->prsp_producer_index)) !=
 		qdev->rsp_consumer_index) && (work_done < work_to_do)) {
 
 		net_rsp = qdev->rsp_current;
 		rmb();
-		/*
-		 * Fix 4032 chipe undocumented "feature" where bit-8 is set if the
-		 * inbound completion is for a VLAN.
-		 */
+		
 		if (qdev->device_id == QL3032_DEVICE_ID)
 			net_rsp->opcode &= 0x7f;
 		switch (net_rsp->opcode) {
@@ -2328,9 +2212,7 @@ static irqreturn_t ql3xxx_isr(int irq, void *dev_id)
 		set_bit(QL_RESET_ACTIVE,&qdev->flags) ;
 
 		if (value & ISP_CONTROL_FE) {
-			/*
-			 * Chip Fatal Error.
-			 */
+			
 			var =
 			    ql_read_page0_reg_l(qdev,
 					      &port_regs->PortFatalErrStatus);
@@ -2339,9 +2221,7 @@ static irqreturn_t ql3xxx_isr(int irq, void *dev_id)
 			       "register = 0x%x\n", ndev->name, var);
 			set_bit(QL_RESET_START,&qdev->flags) ;
 		} else {
-			/*
-			 * Soft Reset Requested.
-			 */
+			
 			set_bit(QL_RESET_PER_SCSI,&qdev->flags) ;
 			printk(KERN_ERR PFX
 			       "%s: Another function issued a reset to the "
@@ -2361,15 +2241,7 @@ static irqreturn_t ql3xxx_isr(int irq, void *dev_id)
 	return IRQ_RETVAL(handled);
 }
 
-/*
- * Get the total number of segments needed for the
- * given number of fragments.  This is necessary because
- * outbound address lists (OAL) will be used when more than
- * two frags are given.  Each address list has 5 addr/len
- * pairs.  The 5th pair in each AOL is used to  point to
- * the next AOL if more frags are coming.
- * That is why the frags:segment count  ratio is not linear.
- */
+
 static int ql_get_seg_count(struct ql3_adapter *qdev,
 			    unsigned short frags)
 {
@@ -2377,10 +2249,10 @@ static int ql_get_seg_count(struct ql3_adapter *qdev,
 		return 1;
 
 	switch(frags) {
-	case 0:	return 1;	/* just the skb->data seg */
-	case 1:	return 2;	/* skb->data + 1 frag */
-	case 2:	return 3;	/* skb->data + 2 frags */
-	case 3:	return 5;	/* skb->data + 1 frag + 1 AOL containting 2 frags */
+	case 0:	return 1;	
+	case 1:	return 2;	
+	case 2:	return 3;	
+	case 3:	return 5;	
 	case 4:	return 6;
 	case 5:	return 7;
 	case 6:	return 8;
@@ -2418,10 +2290,7 @@ static void ql_hw_csum_setup(const struct sk_buff *skb,
 
 }
 
-/*
- * Map the buffers for this transmit.  This will return
- * NETDEV_TX_BUSY or NETDEV_TX_OK based on success.
- */
+
 static int ql_send_map(struct ql3_adapter *qdev,
 				struct ob_mac_iocb_req *mac_iocb_ptr,
 				struct ql_tx_buf_cb *tx_cb,
@@ -2437,9 +2306,7 @@ static int ql_send_map(struct ql3_adapter *qdev,
 	int frag_cnt = (int)skb_shinfo(skb)->nr_frags;
 
 	seg_cnt = tx_cb->seg_count;
-	/*
-	 * Map the skb buffer first.
-	 */
+	
 	map = pci_map_single(qdev->pdev, skb->data, len, PCI_DMA_TODEVICE);
 
 	err = pci_dma_mapping_error(qdev->pdev, map);
@@ -2459,18 +2326,18 @@ static int ql_send_map(struct ql3_adapter *qdev,
 	seg++;
 
 	if (seg_cnt == 1) {
-		/* Terminate the last segment. */
+		
 		oal_entry->len |= cpu_to_le32(OAL_LAST_ENTRY);
 	} else {
 		oal = tx_cb->oal;
 		for (completed_segs=0; completed_segs<frag_cnt; completed_segs++,seg++) {
 			skb_frag_t *frag = &skb_shinfo(skb)->frags[completed_segs];
 			oal_entry++;
-			if ((seg == 2 && seg_cnt > 3) ||	/* Check for continuation */
-			    (seg == 7 && seg_cnt > 8) ||	/* requirements. It's strange */
-			    (seg == 12 && seg_cnt > 13) ||	/* but necessary. */
+			if ((seg == 2 && seg_cnt > 3) ||	
+			    (seg == 7 && seg_cnt > 8) ||	
+			    (seg == 12 && seg_cnt > 13) ||	
 			    (seg == 17 && seg_cnt > 18)) {
-				/* Continuation entry points to outbound address list. */
+				
 				map = pci_map_single(qdev->pdev, oal,
 						     sizeof(struct oal),
 						     PCI_DMA_TODEVICE);
@@ -2516,17 +2383,14 @@ static int ql_send_map(struct ql3_adapter *qdev,
 			pci_unmap_len_set(&tx_cb->map[seg], maplen,
 					  frag->size);
 		}
-		/* Terminate the last segment. */
+		
 		oal_entry->len |= cpu_to_le32(OAL_LAST_ENTRY);
 	}
 
 	return NETDEV_TX_OK;
 
 map_error:
-	/* A PCI mapping failed and now we will need to back out
-	 * We need to traverse through the oal's and associated pages which
-	 * have been mapped and now we must unmap them to clean up properly
-	 */
+	
 
 	seg = 1;
 	oal_entry = (struct oal_entry *)&mac_iocb_ptr->buf_addr0_low;
@@ -2534,9 +2398,9 @@ map_error:
 	for (i=0; i<completed_segs; i++,seg++) {
 		oal_entry++;
 
-		if((seg == 2 && seg_cnt > 3) ||        /* Check for continuation */
-		   (seg == 7 && seg_cnt > 8) ||        /* requirements. It's strange */
-		   (seg == 12 && seg_cnt > 13) ||      /* but necessary. */
+		if((seg == 2 && seg_cnt > 3) ||        
+		   (seg == 7 && seg_cnt > 8) ||        
+		   (seg == 12 && seg_cnt > 13) ||      
 		   (seg == 17 && seg_cnt > 18)) {
 			pci_unmap_single(qdev->pdev,
 				pci_unmap_addr(&tx_cb->map[seg], mapaddr),
@@ -2561,17 +2425,7 @@ map_error:
 
 }
 
-/*
- * The difference between 3022 and 3032 sends:
- * 3022 only supports a simple single segment transmission.
- * 3032 supports checksumming and scatter/gather lists (fragments).
- * The 3032 supports sglists by using the 3 addr/len pairs (ALP)
- * in the IOCB plus a chain of outbound address lists (OAL) that
- * each contain 5 ALPs.  The last ALP of the IOCB (3rd) or OAL (5th)
- * will used to point to an OAL when more ALP entries are required.
- * The IOCB is always the top of the chain followed by one or more
- * OALs (when necessary).
- */
+
 static netdev_tx_t ql3xxx_send(struct sk_buff *skb,
 			       struct net_device *ndev)
 {
@@ -2691,7 +2545,7 @@ static void ql_free_net_req_rsp_queues(struct ql3_adapter *qdev)
 
 static int ql_alloc_buffer_queues(struct ql3_adapter *qdev)
 {
-	/* Create Large Buffer Queue */
+	
 	qdev->lrg_buf_q_size =
 	    qdev->num_lbufq_entries * sizeof(struct lrg_buf_q_entry);
 	if (qdev->lrg_buf_q_size < PAGE_SIZE)
@@ -2719,7 +2573,7 @@ static int ql_alloc_buffer_queues(struct ql3_adapter *qdev)
 	qdev->lrg_buf_q_virt_addr = qdev->lrg_buf_q_alloc_virt_addr;
 	qdev->lrg_buf_q_phy_addr = qdev->lrg_buf_q_alloc_phy_addr;
 
-	/* Create Small Buffer Queue */
+	
 	qdev->small_buf_q_size =
 	    NUM_SBUFQ_ENTRIES * sizeof(struct lrg_buf_q_entry);
 	if (qdev->small_buf_q_size < PAGE_SIZE)
@@ -2778,7 +2632,7 @@ static int ql_alloc_small_buffers(struct ql3_adapter *qdev)
 	int i;
 	struct bufq_addr_element *small_buf_q_entry;
 
-	/* Currently we allocate on one of memory and use it for smallbuffers */
+	
 	qdev->small_buf_total_size =
 	    (QL_ADDR_ELE_PER_BUFQ_ENTRY * NUM_SBUFQ_ENTRIES *
 	     QL_SMALL_BUFFER_SIZE);
@@ -2800,7 +2654,7 @@ static int ql_alloc_small_buffers(struct ql3_adapter *qdev)
 
 	small_buf_q_entry = qdev->small_buf_q_virt_addr;
 
-	/* Initialize the small buffer queue. */
+	
 	for (i = 0; i < (QL_ADDR_ELE_PER_BUFQ_ENTRY * NUM_SBUFQ_ENTRIES); i++) {
 		small_buf_q_entry->addr_high =
 		    cpu_to_le32(qdev->small_buf_phy_addr_high);
@@ -2879,7 +2733,7 @@ static int ql_alloc_large_buffers(struct ql3_adapter *qdev)
 		skb = netdev_alloc_skb(qdev->ndev,
 				       qdev->lrg_buffer_len);
 		if (unlikely(!skb)) {
-			/* Better luck next round */
+			
 			printk(KERN_ERR PFX
 			       "%s: large buff alloc failed, "
 			       "for %d bytes at index %d.\n",
@@ -2893,10 +2747,7 @@ static int ql_alloc_large_buffers(struct ql3_adapter *qdev)
 			memset(lrg_buf_cb, 0, sizeof(struct ql_rcv_buf_cb));
 			lrg_buf_cb->index = i;
 			lrg_buf_cb->skb = skb;
-			/*
-			 * We save some space to copy the ethhdr from first
-			 * buffer
-			 */
+			
 			skb_reserve(skb, QL_HEADER_SPACE);
 			map = pci_map_single(qdev->pdev,
 					     skb->data,
@@ -2947,7 +2798,7 @@ static int ql_create_send_free_list(struct ql3_adapter *qdev)
 	struct ob_mac_iocb_req *req_q_curr =
 					qdev->req_q_virt_addr;
 
-	/* Create free list of transmit buffers */
+	
 	for (i = 0; i < NUM_REQ_Q_ENTRIES; i++) {
 
 		tx_cb = &qdev->tx_buf[i];
@@ -2968,9 +2819,7 @@ static int ql_alloc_mem_resources(struct ql3_adapter *qdev)
 		qdev->lrg_buffer_len = NORMAL_MTU_SIZE;
 	}
 	else if (qdev->ndev->mtu == JUMBO_MTU_SIZE) {
-		/*
-		 * Bigger buffers, so less of them.
-		 */
+		
 		qdev->num_lbufq_entries = JUMBO_NUM_LBUFQ_ENTRIES;
 		qdev->lrg_buffer_len = JUMBO_MTU_SIZE;
 	} else {
@@ -2984,11 +2833,7 @@ static int ql_alloc_mem_resources(struct ql3_adapter *qdev)
 	qdev->max_frame_size =
 	    (qdev->lrg_buffer_len - QL_HEADER_SPACE) + ETHERNET_CRC_SIZE;
 
-	/*
-	 * First allocate a page of shared memory and use it for shadow
-	 * locations of Network Request Queue Consumer Address Register and
-	 * Network Completion Queue Producer Index Register
-	 */
+	
 	qdev->shadow_reg_virt_addr =
 	    pci_alloc_consistent(qdev->pdev,
 				 PAGE_SIZE, &qdev->shadow_reg_phy_addr);
@@ -3038,7 +2883,7 @@ static int ql_alloc_mem_resources(struct ql3_adapter *qdev)
 		goto err_small_buffers;
 	}
 
-	/* Initialize the large buffer queue. */
+	
 	ql_init_large_buffers(qdev);
 	if (ql_create_send_free_list(qdev))
 		goto err_free_list;
@@ -3148,21 +2993,21 @@ static int ql_adapter_initialize(struct ql3_adapter *qdev)
 	if(ql_mii_setup(qdev))
 		return -1;
 
-	/* Bring out PHY out of reset */
+	
 	ql_write_common_reg(qdev, &port_regs->CommonRegs.serialPortInterfaceReg,
 			    (ISP_SERIAL_PORT_IF_WE |
 			     (ISP_SERIAL_PORT_IF_WE << 16)));
-	/* Give the PHY time to come out of reset. */
+	
 	mdelay(100);
 	qdev->port_link_state = LS_DOWN;
 	netif_carrier_off(qdev->ndev);
 
-	/* V2 chip fix for ARS-39168. */
+	
 	ql_write_common_reg(qdev, &port_regs->CommonRegs.serialPortInterfaceReg,
 			    (ISP_SERIAL_PORT_IF_SDE |
 			     (ISP_SERIAL_PORT_IF_SDE << 16)));
 
-	/* Request Queue Registers */
+	
 	*((u32 *) (qdev->preq_consumer_index)) = 0;
 	atomic_set(&qdev->tx_count,NUM_REQ_Q_ENTRIES);
 	qdev->req_producer_index = 0;
@@ -3182,7 +3027,7 @@ static int ql_adapter_initialize(struct ql3_adapter *qdev)
 			   LS_64BITS(qdev->req_q_phy_addr));
 	ql_write_page1_reg(qdev, &hmem_regs->reqLength, NUM_REQ_Q_ENTRIES);
 
-	/* Response Queue Registers */
+	
 	*((__le16 *) (qdev->prsp_producer_index)) = 0;
 	qdev->rsp_consumer_index = 0;
 	qdev->rsp_current = qdev->rsp_q_virt_addr;
@@ -3205,7 +3050,7 @@ static int ql_adapter_initialize(struct ql3_adapter *qdev)
 
 	ql_write_page1_reg(qdev, &hmem_regs->rspLength, NUM_RSP_Q_ENTRIES);
 
-	/* Large Buffer Queue */
+	
 	ql_write_page1_reg(qdev,
 			   &hmem_regs->rxLargeQBaseAddrHigh,
 			   MS_64BITS(qdev->lrg_buf_q_phy_addr));
@@ -3220,7 +3065,7 @@ static int ql_adapter_initialize(struct ql3_adapter *qdev)
 			   &hmem_regs->rxLargeBufferLength,
 			   qdev->lrg_buffer_len);
 
-	/* Small Buffer Queue */
+	
 	ql_write_page1_reg(qdev,
 			   &hmem_regs->rxSmallQBaseAddrHigh,
 			   MS_64BITS(qdev->small_buf_q_phy_addr));
@@ -3255,15 +3100,12 @@ static int ql_adapter_initialize(struct ql3_adapter *qdev)
 			    rxLargeQProducerIndex,
 			    qdev->lrg_buf_q_producer_index);
 
-	/*
-	 * Find out if the chip has already been initialized.  If it has, then
-	 * we skip some of the initialization.
-	 */
+	
 	clear_bit(QL_LINK_MASTER, &qdev->flags);
 	value = ql_read_page0_reg(qdev, &port_regs->portStatus);
 	if ((value & PORT_STATUS_IC) == 0) {
 
-		/* Chip has not been configured yet, so let it rip. */
+		
 		if(ql_init_misc_registers(qdev)) {
 			status = -1;
 			goto out;
@@ -3308,9 +3150,9 @@ static int ql_adapter_initialize(struct ql3_adapter *qdev)
 	ql_init_scan_mode(qdev);
 	ql_get_phy_owner(qdev);
 
-	/* Load the MAC Configuration */
+	
 
-	/* Program lower 32 bits of the MAC address */
+	
 	ql_write_page0_reg(qdev, &port_regs->macAddrIndirectPtrReg,
 			   (MAC_ADDR_INDIRECT_PTR_REG_RP_MASK << 16));
 	ql_write_page0_reg(qdev, &port_regs->macAddrDataReg,
@@ -3319,19 +3161,19 @@ static int ql_adapter_initialize(struct ql3_adapter *qdev)
 			    | (qdev->ndev->dev_addr[4] << 8)
 			    | qdev->ndev->dev_addr[5]));
 
-	/* Program top 16 bits of the MAC address */
+	
 	ql_write_page0_reg(qdev, &port_regs->macAddrIndirectPtrReg,
 			   ((MAC_ADDR_INDIRECT_PTR_REG_RP_MASK << 16) | 1));
 	ql_write_page0_reg(qdev, &port_regs->macAddrDataReg,
 			   ((qdev->ndev->dev_addr[0] << 8)
 			    | qdev->ndev->dev_addr[1]));
 
-	/* Enable Primary MAC */
+	
 	ql_write_page0_reg(qdev, &port_regs->macAddrIndirectPtrReg,
 			   ((MAC_ADDR_INDIRECT_PTR_REG_PE << 16) |
 			    MAC_ADDR_INDIRECT_PTR_REG_PE));
 
-	/* Clear Primary and Secondary IP addresses */
+	
 	ql_write_page0_reg(qdev, &port_regs->ipAddrIndexReg,
 			   ((IP_ADDR_INDEX_REG_MASK << 16) |
 			    (qdev->mac_index << 2)));
@@ -3344,7 +3186,7 @@ static int ql_adapter_initialize(struct ql3_adapter *qdev)
 
 	ql_sem_unlock(qdev, QL_PHY_GIO_SEM_MASK);
 
-	/* Indicate Configuration Complete */
+	
 	ql_write_page0_reg(qdev,
 			   &port_regs->portControl,
 			   ((PORT_CONTROL_CC << 16) | PORT_CONTROL_CC));
@@ -3365,7 +3207,7 @@ static int ql_adapter_initialize(struct ql3_adapter *qdev)
 		goto out;
 	}
 
-	/* Enable Ethernet Function */
+	
 	if (qdev->device_id == QL3032_DEVICE_ID) {
 		value =
 		    (QL3032_PORT_CONTROL_EF | QL3032_PORT_CONTROL_KIE |
@@ -3386,9 +3228,7 @@ out:
 	return status;
 }
 
-/*
- * Caller holds hw_lock.
- */
+
 static int ql_adapter_reset(struct ql3_adapter *qdev)
 {
 	struct ql3xxx_port_registers __iomem *port_regs = qdev->mem_map_registers;
@@ -3399,9 +3239,7 @@ static int ql_adapter_reset(struct ql3_adapter *qdev)
 	set_bit(QL_RESET_ACTIVE, &qdev->flags);
 	clear_bit(QL_RESET_DONE, &qdev->flags);
 
-	/*
-	 * Issue soft reset to chip.
-	 */
+	
 	printk(KERN_DEBUG PFX
 	       "%s: Issue soft reset to chip.\n",
 	       qdev->ndev->name);
@@ -3409,12 +3247,12 @@ static int ql_adapter_reset(struct ql3_adapter *qdev)
 			    &port_regs->CommonRegs.ispControlStatus,
 			    ((ISP_CONTROL_SR << 16) | ISP_CONTROL_SR));
 
-	/* Wait 3 seconds for reset to complete. */
+	
 	printk(KERN_DEBUG PFX
 	       "%s: Wait 10 milliseconds for reset to complete.\n",
 	       qdev->ndev->name);
 
-	/* Wait until the firmware tells us the Soft Reset is done */
+	
 	max_wait_time = 5;
 	do {
 		value =
@@ -3426,10 +3264,7 @@ static int ql_adapter_reset(struct ql3_adapter *qdev)
 		ssleep(1);
 	} while ((--max_wait_time));
 
-	/*
-	 * Also, make sure that the Network Reset Interrupt bit has been
-	 * cleared after the soft reset has taken place.
-	 */
+	
 	value =
 	    ql_read_common_reg(qdev, &port_regs->CommonRegs.ispControlStatus);
 	if (value & ISP_CONTROL_RI) {
@@ -3442,16 +3277,13 @@ static int ql_adapter_reset(struct ql3_adapter *qdev)
 	}
 
 	if (max_wait_time == 0) {
-		/* Issue Force Soft Reset */
+		
 		ql_write_common_reg(qdev,
 				    &port_regs->CommonRegs.
 				    ispControlStatus,
 				    ((ISP_CONTROL_FSR << 16) |
 				     ISP_CONTROL_FSR));
-		/*
-		 * Wait until the firmware tells us the Force Soft Reset is
-		 * done
-		 */
+		
 		max_wait_time = 5;
 		do {
 			value =
@@ -3478,7 +3310,7 @@ static void ql_set_mac_info(struct ql3_adapter *qdev)
 	u32 value, port_status;
 	u8 func_number;
 
-	/* Get the function number */
+	
 	value =
 	    ql_read_common_reg_l(qdev, &port_regs->CommonRegs.ispControlStatus);
 	func_number = (u8) ((value >> 4) & OPCODE_FUNC_ID_MASK);
@@ -3531,9 +3363,7 @@ static void ql_display_dev_info(struct net_device *ndev)
 	       "%s Interface.\n",
 	       test_bit(QL_LINK_OPTICAL,&qdev->flags) ? "OPTICAL" : "COPPER");
 
-	/*
-	 * Print PCI bus width/type.
-	 */
+	
 	printk(KERN_INFO PFX
 	       "Bus interface is %s %s.\n",
 	       ((qdev->pci_width == 64) ? "64-bit" : "32-bit"),
@@ -3700,10 +3530,7 @@ static int ql3xxx_close(struct net_device *ndev)
 {
 	struct ql3_adapter *qdev = netdev_priv(ndev);
 
-	/*
-	 * Wait for device to recover from a reset.
-	 * (Rarely happens, but possible.)
-	 */
+	
 	while (!test_bit(QL_ADAPTER_UP,&qdev->flags))
 		msleep(50);
 
@@ -3734,7 +3561,7 @@ static int ql3xxx_set_mac_address(struct net_device *ndev, void *p)
 	memcpy(ndev->dev_addr, addr->sa_data, ndev->addr_len);
 
 	spin_lock_irqsave(&qdev->hw_lock, hw_flags);
-	/* Program lower 32 bits of the MAC address */
+	
 	ql_write_page0_reg(qdev, &port_regs->macAddrIndirectPtrReg,
 			   (MAC_ADDR_INDIRECT_PTR_REG_RP_MASK << 16));
 	ql_write_page0_reg(qdev, &port_regs->macAddrDataReg,
@@ -3742,7 +3569,7 @@ static int ql3xxx_set_mac_address(struct net_device *ndev, void *p)
 							 dev_addr[3] << 16) |
 			    (ndev->dev_addr[4] << 8) | ndev->dev_addr[5]));
 
-	/* Program top 16 bits of the MAC address */
+	
 	ql_write_page0_reg(qdev, &port_regs->macAddrIndirectPtrReg,
 			   ((MAC_ADDR_INDIRECT_PTR_REG_RP_MASK << 16) | 1));
 	ql_write_page0_reg(qdev, &port_regs->macAddrDataReg,
@@ -3757,14 +3584,10 @@ static void ql3xxx_tx_timeout(struct net_device *ndev)
 	struct ql3_adapter *qdev = (struct ql3_adapter *)netdev_priv(ndev);
 
 	printk(KERN_ERR PFX "%s: Resetting...\n", ndev->name);
-	/*
-	 * Stop the queues, we've got a problem.
-	 */
+	
 	netif_stop_queue(ndev);
 
-	/*
-	 * Wake up the worker to process this event.
-	 */
+	
 	queue_delayed_work(qdev->workqueue, &qdev->tx_timeout_work, 0);
 }
 
@@ -3782,9 +3605,7 @@ static void ql_reset_work(struct work_struct *work)
 	if (test_bit((QL_RESET_PER_SCSI | QL_RESET_START),&qdev->flags)) {
 		clear_bit(QL_LINK_MASTER,&qdev->flags);
 
-		/*
-		 * Loop through the active list and return the skb.
-		 */
+		
 		for (i = 0; i < NUM_REQ_Q_ENTRIES; i++) {
 			int j;
 			tx_cb = &qdev->tx_buf[i];
@@ -3814,9 +3635,7 @@ static void ql_reset_work(struct work_struct *work)
 				    &port_regs->CommonRegs.
 				    ispControlStatus,
 				    ((ISP_CONTROL_RI << 16) | ISP_CONTROL_RI));
-		/*
-		 * Wait the for Soft Reset to Complete.
-		 */
+		
 		max_wait_time = 10;
 		do {
 			value = ql_read_common_reg(qdev,
@@ -3850,10 +3669,7 @@ static void ql_reset_work(struct work_struct *work)
 
 		if (value & ISP_CONTROL_SR) {
 
-			/*
-			 * Set the reset flags and clear the board again.
-			 * Nothing else to do...
-			 */
+			
 			printk(KERN_ERR PFX
 			       "%s: Timed out waiting for reset to "
 			       "complete.\n", ndev->name);
@@ -3909,7 +3725,7 @@ static const struct net_device_ops ql3xxx_netdev_ops = {
 	.ndo_open		= ql3xxx_open,
 	.ndo_start_xmit		= ql3xxx_send,
 	.ndo_stop		= ql3xxx_close,
-	.ndo_set_multicast_list = NULL, /* not allowed on NIC side */
+	.ndo_set_multicast_list = NULL, 
 	.ndo_change_mtu		= eth_change_mtu,
 	.ndo_validate_addr	= eth_validate_addr,
 	.ndo_set_mac_address	= ql3xxx_set_mac_address,
@@ -3993,7 +3809,7 @@ static int __devinit ql3xxx_probe(struct pci_dev *pdev,
 	spin_lock_init(&qdev->adapter_lock);
 	spin_lock_init(&qdev->hw_lock);
 
-	/* Set driver entry points */
+	
 	ndev->netdev_ops = &ql3xxx_netdev_ops;
 	SET_ETHTOOL_OPS(ndev, &ql3xxx_ethtool_ops);
 	ndev->watchdog_timeo = 5 * HZ;
@@ -4002,7 +3818,7 @@ static int __devinit ql3xxx_probe(struct pci_dev *pdev,
 
 	ndev->irq = pdev->irq;
 
-	/* make sure the EEPROM is good */
+	
 	if (ql_get_nvram_params(qdev)) {
 		printk(KERN_ALERT PFX
 		       "ql3xxx_probe: Adapter #%d, Invalid NVRAM parameters.\n",
@@ -4013,7 +3829,7 @@ static int __devinit ql3xxx_probe(struct pci_dev *pdev,
 
 	ql_set_mac_info(qdev);
 
-	/* Validate and set parameters */
+	
 	if (qdev->mac_index) {
 		ndev->mtu = qdev->nvram_data.macCfg_port1.etherMtu_mac ;
 		ql_set_mac_addr(ndev, qdev->nvram_data.funcCfg_fn2.macAddress);
@@ -4025,13 +3841,10 @@ static int __devinit ql3xxx_probe(struct pci_dev *pdev,
 
 	ndev->tx_queue_len = NUM_REQ_Q_ENTRIES;
 
-	/* Record PCI bus information. */
+	
 	ql_get_board_info(qdev);
 
-	/*
-	 * Set the Maximum Memory Read Byte Count value. We do this to handle
-	 * jumbo frames.
-	 */
+	
 	if (qdev->pci_x) {
 		pci_write_config_word(pdev, (int)0x4e, (u16) 0x0036);
 	}
@@ -4043,7 +3856,7 @@ static int __devinit ql3xxx_probe(struct pci_dev *pdev,
 		goto err_out_iounmap;
 	}
 
-	/* we're going to reset, so assume we have no link for now */
+	
 
 	netif_carrier_off(ndev);
 	netif_stop_queue(ndev);
@@ -4055,7 +3868,7 @@ static int __devinit ql3xxx_probe(struct pci_dev *pdev,
 
 	init_timer(&qdev->adapter_timer);
 	qdev->adapter_timer.function = ql3xxx_timer;
-	qdev->adapter_timer.expires = jiffies + HZ * 2;	/* two second delay */
+	qdev->adapter_timer.expires = jiffies + HZ * 2;	
 	qdev->adapter_timer.data = (unsigned long)qdev;
 
 	if(!cards_found) {

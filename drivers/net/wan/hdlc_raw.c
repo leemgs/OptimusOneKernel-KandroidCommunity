@@ -1,13 +1,4 @@
-/*
- * Generic HDLC support routines for Linux
- * HDLC support
- *
- * Copyright (C) 1999 - 2006 Krzysztof Halasa <khc@pm.waw.pl>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of version 2 of the GNU General Public License
- * as published by the Free Software Foundation.
- */
+
 
 #include <linux/errno.h>
 #include <linux/hdlc.h>
@@ -51,7 +42,7 @@ static int raw_ioctl(struct net_device *dev, struct ifreq *ifr)
 			return -EINVAL;
 		ifr->ifr_settings.type = IF_PROTO_HDLC;
 		if (ifr->ifr_settings.size < size) {
-			ifr->ifr_settings.size = size; /* data size wanted */
+			ifr->ifr_settings.size = size; 
 			return -ENOBUFS;
 		}
 		if (copy_to_user(raw_s, hdlc->state, size))

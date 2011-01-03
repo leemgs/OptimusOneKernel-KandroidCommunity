@@ -1,16 +1,4 @@
-/*
- * Bond several ethernet interfaces into a Cisco, running 'Etherchannel'.
- *
- * Portions are (c) Copyright 1995 Simon "Guru Aleph-Null" Janes
- * NCM: Network and Communications Management, Inc.
- *
- * BUT, I'm the one who modified it for ethernet, so:
- * (c) Copyright 1999, Thomas Davis, tadavis@lbl.gov
- *
- *	This software may be used and distributed according to the terms
- *	of the GNU Public License, incorporated herein by reference.
- *
- */
+
 
 #ifndef _LINUX_BONDING_H
 #define _LINUX_BONDING_H
@@ -37,19 +25,13 @@ extern struct list_head bond_dev_list;
 	       netif_running(dev)			&& \
 	       netif_carrier_ok(dev))
 
-/*
- * Checks whether bond is ready for transmit.
- *
- * Caller must hold bond->lock
- */
+
 #define BOND_IS_OK(bond)			     \
 		   (((bond)->dev->flags & IFF_UP) && \
 		    netif_running((bond)->dev)	  && \
 		    ((bond)->slave_cnt > 0))
 
-/*
- * Checks whether slave is ready for transmit.
- */
+
 #define SLAVE_IS_OK(slave)			        \
 		    (((slave)->dev->flags & IFF_UP)  && \
 		     netif_running((slave)->dev)     && \
@@ -62,11 +44,7 @@ extern struct list_head bond_dev_list;
 		 ((mode) == BOND_MODE_TLB)          ||	\
 		 ((mode) == BOND_MODE_ALB))
 
-/*
- * Less bad way to call ioctl from within the kernel; this needs to be
- * done some other way to get the call out of interrupt context.
- * Needs "ioctl" variable to be supplied by calling context.
- */
+
 #define IOCTL(dev, arg, cmd) ({		\
 	int res = 0;			\
 	mm_segment_t fs = get_fs();	\
@@ -75,43 +53,19 @@ extern struct list_head bond_dev_list;
 	set_fs(fs);			\
 	res; })
 
-/**
- * bond_for_each_slave_from - iterate the slaves list from a starting point
- * @bond:	the bond holding this list.
- * @pos:	current slave.
- * @cnt:	counter for max number of moves
- * @start:	starting point.
- *
- * Caller must hold bond->lock
- */
+
 #define bond_for_each_slave_from(bond, pos, cnt, start)	\
 	for (cnt = 0, pos = start;				\
 	     cnt < (bond)->slave_cnt;				\
              cnt++, pos = (pos)->next)
 
-/**
- * bond_for_each_slave_from_to - iterate the slaves list from start point to stop point
- * @bond:	the bond holding this list.
- * @pos:	current slave.
- * @cnt:	counter for number max of moves
- * @start:	start point.
- * @stop:	stop point.
- *
- * Caller must hold bond->lock
- */
+
 #define bond_for_each_slave_from_to(bond, pos, cnt, start, stop)	\
 	for (cnt = 0, pos = start;					\
 	     ((cnt < (bond)->slave_cnt) && (pos != (stop)->next));	\
              cnt++, pos = (pos)->next)
 
-/**
- * bond_for_each_slave - iterate the slaves list from head
- * @bond:	the bond holding this list.
- * @pos:	current slave.
- * @cnt:	counter for max number of moves
- *
- * Caller must hold bond->lock
- */
+
 #define bond_for_each_slave(bond, pos, cnt)	\
 		bond_for_each_slave_from(bond, pos, cnt, (bond)->first_slave)
 
@@ -151,46 +105,36 @@ struct vlan_entry {
 };
 
 struct slave {
-	struct net_device *dev; /* first - useful for panic debug */
+	struct net_device *dev; 
 	struct slave *next;
 	struct slave *prev;
 	int    delay;
 	unsigned long jiffies;
 	unsigned long last_arp_rx;
-	s8     link;    /* one of BOND_LINK_XXXX */
+	s8     link;    
 	s8     new_link;
-	s8     state;   /* one of BOND_STATE_XXXX */
+	s8     state;   
 	u32    original_flags;
 	u32    original_mtu;
 	u32    link_failure_count;
 	u8     perm_hwaddr[ETH_ALEN];
 	u16    speed;
 	u8     duplex;
-	struct ad_slave_info ad_info; /* HUGE - better to dynamically alloc */
+	struct ad_slave_info ad_info; 
 	struct tlb_slave_info tlb_info;
 };
 
-/*
- * Link pseudo-state only used internally by monitors
- */
+
 #define BOND_LINK_NOCHANGE -1
 
-/*
- * Here are the locking policies for the two bonding locks:
- *
- * 1) Get bond->lock when reading/writing slave list.
- * 2) Get bond->curr_slave_lock when reading/writing bond->curr_active_slave.
- *    (It is unnecessary when the write-lock is put with bond->lock.)
- * 3) When we lock with bond->curr_slave_lock, we must lock with bond->lock
- *    beforehand.
- */
+
 struct bonding {
-	struct   net_device *dev; /* first - useful for panic debug */
+	struct   net_device *dev; 
 	struct   slave *first_slave;
 	struct   slave *curr_active_slave;
 	struct   slave *current_arp_slave;
 	struct   slave *primary_slave;
-	s32      slave_cnt; /* never change this value outside the attach/detach wrappers */
+	s32      slave_cnt; 
 	rwlock_t lock;
 	rwlock_t curr_slave_lock;
 	s8       kill_timers;
@@ -201,7 +145,7 @@ struct bonding {
 #ifdef CONFIG_PROC_FS
 	struct   proc_dir_entry *proc_entry;
 	char     proc_file_name[IFNAMSIZ];
-#endif /* CONFIG_PROC_FS */
+#endif 
 	struct   list_head bond_list;
 	struct   dev_mc_list *mc_list;
 	int      (*xmit_hash_policy)(struct sk_buff *, struct net_device *, int);
@@ -224,11 +168,7 @@ struct bonding {
 #endif
 };
 
-/**
- * Returns NULL if the net_device does not belong to any of the bond's slaves
- *
- * Caller must hold bond lock for read
- */
+
 static inline struct slave *bond_get_slave_by_dev(struct bonding *bond, struct net_device *slave_dev)
 {
 	struct slave *slave = NULL;
@@ -341,7 +281,7 @@ void bond_change_active_slave(struct bonding *bond, struct slave *new_active);
 void bond_register_arp(struct bonding *);
 void bond_unregister_arp(struct bonding *);
 
-/* exported from bond_main.c */
+
 extern struct list_head bond_dev_list;
 extern const struct bond_parm_tbl bond_lacp_tbl[];
 extern const struct bond_parm_tbl bond_mode_tbl[];
@@ -369,5 +309,5 @@ static inline void bond_unregister_ipv6_notifier(void)
 }
 #endif
 
-#endif /* _LINUX_BONDING_H */
+#endif 
 

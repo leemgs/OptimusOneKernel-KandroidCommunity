@@ -1,11 +1,4 @@
-/****************************************************************************
- * Driver for Solarflare Solarstorm network controllers and boards
- * Copyright 2007-2008 Solarflare Communications Inc.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published
- * by the Free Software Foundation, incorporated herein by reference.
- */
+
 
 #include "net_driver.h"
 #include "phy.h"
@@ -13,13 +6,13 @@
 #include "efx.h"
 #include "workarounds.h"
 
-/* Macros for unpacking the board revision */
-/* The revision info is in host byte order. */
+
+
 #define BOARD_TYPE(_rev) (_rev >> 8)
 #define BOARD_MAJOR(_rev) ((_rev >> 4) & 0xf)
 #define BOARD_MINOR(_rev) (_rev & 0xf)
 
-/* Blink support. If the PHY has no auto-blink mode so we hang it off a timer */
+
 #define BLINK_INTERVAL (HZ/2)
 
 static void blink_led_timer(unsigned long context)
@@ -36,8 +29,7 @@ static void board_blink(struct efx_nic *efx, bool blink)
 {
 	struct efx_blinker *blinker = &efx->board_info.blinker;
 
-	/* The rtnl mutex serialises all ethtool ioctls, so
-	 * nothing special needs doing here. */
+	
 	if (blink) {
 		blinker->resubmit = true;
 		blinker->state = false;
@@ -52,9 +44,7 @@ static void board_blink(struct efx_nic *efx, bool blink)
 	}
 }
 
-/*****************************************************************************
- * Support for LM87 sensor chip used on several boards
- */
+
 #define LM87_REG_ALARMS1		0x41
 #define LM87_REG_ALARMS2		0x42
 #define LM87_IN_LIMITS(nr, _min, _max)			\
@@ -106,7 +96,7 @@ static int efx_check_lm87(struct efx_nic *efx, unsigned mask)
 	struct i2c_client *client = efx->board_info.hwmon_client;
 	s32 alarms1, alarms2;
 
-	/* If link is up then do not monitor temperature */
+	
 	if (EFX_WORKAROUND_7884(efx) && efx->link_up)
 		return 0;
 
@@ -131,7 +121,7 @@ static int efx_check_lm87(struct efx_nic *efx, unsigned mask)
 	return 0;
 }
 
-#else /* !CONFIG_SENSORS_LM87 */
+#else 
 
 static inline int
 efx_init_lm87(struct efx_nic *efx, struct i2c_board_info *info,
@@ -147,25 +137,22 @@ static inline int efx_check_lm87(struct efx_nic *efx, unsigned mask)
 	return 0;
 }
 
-#endif /* CONFIG_SENSORS_LM87 */
+#endif 
 
-/*****************************************************************************
- * Support for the SFE4002
- *
- */
-static u8 sfe4002_lm87_channel = 0x03; /* use AIN not FAN inputs */
+
+static u8 sfe4002_lm87_channel = 0x03; 
 
 static const u8 sfe4002_lm87_regs[] = {
-	LM87_IN_LIMITS(0, 0x83, 0x91),		/* 2.5V:  1.8V +/- 5% */
-	LM87_IN_LIMITS(1, 0x51, 0x5a),		/* Vccp1: 1.2V +/- 5% */
-	LM87_IN_LIMITS(2, 0xb6, 0xca),		/* 3.3V:  3.3V +/- 5% */
-	LM87_IN_LIMITS(3, 0xb0, 0xc9),		/* 5V:    4.6-5.2V */
-	LM87_IN_LIMITS(4, 0xb0, 0xe0),		/* 12V:   11-14V */
-	LM87_IN_LIMITS(5, 0x44, 0x4b),		/* Vccp2: 1.0V +/- 5% */
-	LM87_AIN_LIMITS(0, 0xa0, 0xb2),		/* AIN1:  1.66V +/- 5% */
-	LM87_AIN_LIMITS(1, 0x91, 0xa1),		/* AIN2:  1.5V +/- 5% */
-	LM87_TEMP_INT_LIMITS(10, 60),		/* board */
-	LM87_TEMP_EXT1_LIMITS(10, 70),		/* Falcon */
+	LM87_IN_LIMITS(0, 0x83, 0x91),		
+	LM87_IN_LIMITS(1, 0x51, 0x5a),		
+	LM87_IN_LIMITS(2, 0xb6, 0xca),		
+	LM87_IN_LIMITS(3, 0xb0, 0xc9),		
+	LM87_IN_LIMITS(4, 0xb0, 0xe0),		
+	LM87_IN_LIMITS(5, 0x44, 0x4b),		
+	LM87_AIN_LIMITS(0, 0xa0, 0xb2),		
+	LM87_AIN_LIMITS(1, 0x91, 0xa1),		
+	LM87_TEMP_INT_LIMITS(10, 60),		
+	LM87_TEMP_EXT1_LIMITS(10, 70),		
 	0
 };
 
@@ -174,20 +161,15 @@ static struct i2c_board_info sfe4002_hwmon_info = {
 	.platform_data	= &sfe4002_lm87_channel,
 };
 
-/****************************************************************************/
-/* LED allocations. Note that on rev A0 boards the schematic and the reality
- * differ: red and green are swapped. Below is the fixed (A1) layout (there
- * are only 3 A0 boards in existence, so no real reason to make this
- * conditional).
- */
-#define SFE4002_FAULT_LED (2)	/* Red */
-#define SFE4002_RX_LED    (0)	/* Green */
-#define SFE4002_TX_LED    (1)	/* Amber */
+
+
+#define SFE4002_FAULT_LED (2)	
+#define SFE4002_RX_LED    (0)	
+#define SFE4002_TX_LED    (1)	
 
 static void sfe4002_init_leds(struct efx_nic *efx)
 {
-	/* Set the TX and RX LEDs to reflect status and activity, and the
-	 * fault LED off */
+	
 	xfp_set_led(efx, SFE4002_TX_LED,
 		    QUAKE_LED_TXLINK | QUAKE_LED_LINK_ACTSTAT);
 	xfp_set_led(efx, SFE4002_RX_LED,
@@ -203,8 +185,7 @@ static void sfe4002_set_id_led(struct efx_nic *efx, bool state)
 
 static int sfe4002_check_hw(struct efx_nic *efx)
 {
-	/* A0 board rev. 4002s report a temperature fault the whole time
-	 * (bad sensor) so we mask it out. */
+	
 	unsigned alarm_mask =
 		(efx->board_info.major == 0 && efx->board_info.minor == 0) ?
 		~LM87_ALARM_TEMP_EXT1 : ~0;
@@ -225,21 +206,18 @@ static int sfe4002_init(struct efx_nic *efx)
 	return 0;
 }
 
-/*****************************************************************************
- * Support for the SFN4112F
- *
- */
-static u8 sfn4112f_lm87_channel = 0x03; /* use AIN not FAN inputs */
+
+static u8 sfn4112f_lm87_channel = 0x03; 
 
 static const u8 sfn4112f_lm87_regs[] = {
-	LM87_IN_LIMITS(0, 0x83, 0x91),		/* 2.5V:  1.8V +/- 5% */
-	LM87_IN_LIMITS(1, 0x51, 0x5a),		/* Vccp1: 1.2V +/- 5% */
-	LM87_IN_LIMITS(2, 0xb6, 0xca),		/* 3.3V:  3.3V +/- 5% */
-	LM87_IN_LIMITS(4, 0xb0, 0xe0),		/* 12V:   11-14V */
-	LM87_IN_LIMITS(5, 0x44, 0x4b),		/* Vccp2: 1.0V +/- 5% */
-	LM87_AIN_LIMITS(1, 0x91, 0xa1),		/* AIN2:  1.5V +/- 5% */
-	LM87_TEMP_INT_LIMITS(10, 60),		/* board */
-	LM87_TEMP_EXT1_LIMITS(10, 70),		/* Falcon */
+	LM87_IN_LIMITS(0, 0x83, 0x91),		
+	LM87_IN_LIMITS(1, 0x51, 0x5a),		
+	LM87_IN_LIMITS(2, 0xb6, 0xca),		
+	LM87_IN_LIMITS(4, 0xb0, 0xe0),		
+	LM87_IN_LIMITS(5, 0x44, 0x4b),		
+	LM87_AIN_LIMITS(1, 0x91, 0xa1),		
+	LM87_TEMP_INT_LIMITS(10, 60),		
+	LM87_TEMP_EXT1_LIMITS(10, 70),		
 	0
 };
 
@@ -267,7 +245,7 @@ static void sfn4112f_set_id_led(struct efx_nic *efx, bool state)
 
 static int sfn4112f_check_hw(struct efx_nic *efx)
 {
-	/* Mask out unused sensors */
+	
 	return efx_check_lm87(efx, ~0x48);
 }
 
@@ -284,8 +262,7 @@ static int sfn4112f_init(struct efx_nic *efx)
 	return 0;
 }
 
-/* This will get expanded as board-specific details get moved out of the
- * PHY drivers. */
+
 struct efx_board_data {
 	enum efx_board_type type;
 	const char *ref_model;

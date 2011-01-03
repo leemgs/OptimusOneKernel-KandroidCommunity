@@ -1,25 +1,4 @@
-/*
- * Intel Wireless WiMAX Connection 2400m
- * Sysfs interfaces to show driver and device information
- *
- *
- * Copyright (C) 2007 Intel Corporation <linux-wimax@intel.com>
- * Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version
- * 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
- */
+
 
 #include <linux/netdevice.h>
 #include <linux/etherdevice.h>
@@ -32,12 +11,7 @@
 #include "debug-levels.h"
 
 
-/*
- * Set the idle timeout (msecs)
- *
- * FIXME: eventually this should be a common WiMAX stack method, but
- * would like to wait to see how other devices manage it.
- */
+
 static
 ssize_t i2400m_idle_timeout_store(struct device *dev,
 				  struct device_attribute *attr,
@@ -75,6 +49,6 @@ struct attribute *i2400m_dev_attrs[] = {
 };
 
 struct attribute_group i2400m_dev_attr_group = {
-	.name = NULL,		/* we want them in the same directory */
+	.name = NULL,		
 	.attrs = i2400m_dev_attrs,
 };

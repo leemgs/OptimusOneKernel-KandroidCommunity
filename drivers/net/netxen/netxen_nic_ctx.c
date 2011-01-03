@@ -1,27 +1,4 @@
-/*
- * Copyright (C) 2003 - 2009 NetXen, Inc.
- * Copyright (C) 2009 - QLogic Corporation.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA  02111-1307, USA.
- *
- * The full GNU General Public License is included in this distribution
- * in the file called LICENSE.
- *
- */
+
 
 #include "netxen_nic_hw.h"
 #include "netxen_nic.h"
@@ -35,7 +12,7 @@ netxen_poll_rsp(struct netxen_adapter *adapter)
 	int	timeout = 0;
 
 	do {
-		/* give atleast 1ms for firmware to respond */
+		
 		msleep(1);
 
 		if (++timeout > NX_OS_CRB_RETRY_COUNT)
@@ -57,7 +34,7 @@ netxen_issue_cmd(struct netxen_adapter *adapter,
 
 	signature = NX_CDRP_SIGNATURE_MAKE(pci_fn, version);
 
-	/* Acquire semaphore before accessing CRB */
+	
 	if (netxen_api_lock(adapter))
 		return NX_RCODE_TIMEOUT;
 
@@ -85,7 +62,7 @@ netxen_issue_cmd(struct netxen_adapter *adapter,
 				netxen_nic_driver_name, rcode);
 	}
 
-	/* Release semaphore */
+	
 	netxen_api_unlock(adapter);
 
 	return rcode;
@@ -432,24 +409,24 @@ static u64 ctx_addr_sig_regs[][3] = {
 #define upper32(x)	((u32)(((u64)(x) >> 32) & 0xffffffff))
 
 static struct netxen_recv_crb recv_crb_registers[] = {
-	/* Instance 0 */
+	
 	{
-		/* crb_rcv_producer: */
+		
 		{
 			NETXEN_NIC_REG(0x100),
-			/* Jumbo frames */
+			
 			NETXEN_NIC_REG(0x110),
-			/* LRO */
+			
 			NETXEN_NIC_REG(0x120)
 		},
-		/* crb_sts_consumer: */
+		
 		{
 			NETXEN_NIC_REG(0x138),
 			NETXEN_NIC_REG_2(0x000),
 			NETXEN_NIC_REG_2(0x004),
 			NETXEN_NIC_REG_2(0x008),
 		},
-		/* sw_int_mask */
+		
 		{
 			CRB_SW_INT_MASK_0,
 			NETXEN_NIC_REG_2(0x044),
@@ -457,24 +434,24 @@ static struct netxen_recv_crb recv_crb_registers[] = {
 			NETXEN_NIC_REG_2(0x04c),
 		},
 	},
-	/* Instance 1 */
+	
 	{
-		/* crb_rcv_producer: */
+		
 		{
 			NETXEN_NIC_REG(0x144),
-			/* Jumbo frames */
+			
 			NETXEN_NIC_REG(0x154),
-			/* LRO */
+			
 			NETXEN_NIC_REG(0x164)
 		},
-		/* crb_sts_consumer: */
+		
 		{
 			NETXEN_NIC_REG(0x17c),
 			NETXEN_NIC_REG_2(0x020),
 			NETXEN_NIC_REG_2(0x024),
 			NETXEN_NIC_REG_2(0x028),
 		},
-		/* sw_int_mask */
+		
 		{
 			CRB_SW_INT_MASK_1,
 			NETXEN_NIC_REG_2(0x064),
@@ -482,24 +459,24 @@ static struct netxen_recv_crb recv_crb_registers[] = {
 			NETXEN_NIC_REG_2(0x06c),
 		},
 	},
-	/* Instance 2 */
+	
 	{
-		/* crb_rcv_producer: */
+		
 		{
 			NETXEN_NIC_REG(0x1d8),
-			/* Jumbo frames */
+			
 			NETXEN_NIC_REG(0x1f8),
-			/* LRO */
+			
 			NETXEN_NIC_REG(0x208)
 		},
-		/* crb_sts_consumer: */
+		
 		{
 			NETXEN_NIC_REG(0x220),
 			NETXEN_NIC_REG_2(0x03c),
 			NETXEN_NIC_REG_2(0x03c),
 			NETXEN_NIC_REG_2(0x03c),
 		},
-		/* sw_int_mask */
+		
 		{
 			CRB_SW_INT_MASK_2,
 			NETXEN_NIC_REG_2(0x03c),
@@ -507,24 +484,24 @@ static struct netxen_recv_crb recv_crb_registers[] = {
 			NETXEN_NIC_REG_2(0x03c),
 		},
 	},
-	/* Instance 3 */
+	
 	{
-		/* crb_rcv_producer: */
+		
 		{
 			NETXEN_NIC_REG(0x22c),
-			/* Jumbo frames */
+			
 			NETXEN_NIC_REG(0x23c),
-			/* LRO */
+			
 			NETXEN_NIC_REG(0x24c)
 		},
-		/* crb_sts_consumer: */
+		
 		{
 			NETXEN_NIC_REG(0x264),
 			NETXEN_NIC_REG_2(0x03c),
 			NETXEN_NIC_REG_2(0x03c),
 			NETXEN_NIC_REG_2(0x03c),
 		},
-		/* sw_int_mask */
+		
 		{
 			CRB_SW_INT_MASK_3,
 			NETXEN_NIC_REG_2(0x03c),
@@ -622,7 +599,7 @@ int netxen_alloc_hw_resources(struct netxen_adapter *adapter)
 	tx_ring->hw_consumer =
 		(__le32 *)(((char *)addr) + sizeof(struct netxen_ring_ctx));
 
-	/* cmd desc ring */
+	
 	addr = pci_alloc_consistent(pdev, TX_DESC_RINGSIZE(tx_ring),
 			&tx_ring->phys_addr);
 
@@ -726,7 +703,7 @@ void netxen_free_hw_resources(struct netxen_adapter *adapter)
 		netxen_api_unlock(adapter);
 	}
 
-	/* Allow dma queues to drain after context reset */
+	
 	msleep(20);
 
 done:

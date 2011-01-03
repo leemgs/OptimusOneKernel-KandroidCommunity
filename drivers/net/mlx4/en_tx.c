@@ -1,35 +1,4 @@
-/*
- * Copyright (c) 2007 Mellanox Technologies. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- */
+
 
 #include <asm/page.h>
 #include <linux/mlx4/cq.h>
@@ -41,7 +10,7 @@
 #include "mlx4_en.h"
 
 enum {
-	MAX_INLINE = 104, /* 128 - 16 - 4 - 4 */
+	MAX_INLINE = 104, 
 };
 
 static int inline_thold __read_mostly = MAX_INLINE;
@@ -202,7 +171,7 @@ static u32 mlx4_en_free_tx_desc(struct mlx4_en_priv *priv,
 	__be32 *ptr = (__be32 *)tx_desc;
 	__be32 stamp = cpu_to_be32(STAMP_VAL | (!!owner << STAMP_SHIFT));
 
-	/* Optimize the common case when there are no wraparounds */
+	
 	if (likely((void *) tx_desc + tx_info->nr_txbb * TXBB_SIZE <= end)) {
 		if (!tx_info->inl) {
 			if (tx_info->linear) {
@@ -220,7 +189,7 @@ static u32 mlx4_en_free_tx_desc(struct mlx4_en_priv *priv,
 					frag->size, PCI_DMA_TODEVICE);
 			}
 		}
-		/* Stamp the freed descriptor */
+		
 		for (i = 0; i < tx_info->nr_txbb * TXBB_SIZE; i += STAMP_STRIDE) {
 			*ptr = stamp;
 			ptr += STAMP_DWORDS;
@@ -242,7 +211,7 @@ static u32 mlx4_en_free_tx_desc(struct mlx4_en_priv *priv,
 			}
 
 			for (i = 0; i < frags; i++) {
-				/* Check for wraparound before unmapping */
+				
 				if ((void *) data >= end)
 					data = (struct mlx4_wqe_data_seg *) ring->buf;
 				frag = &skb_shinfo(skb)->frags[i];
@@ -252,7 +221,7 @@ static u32 mlx4_en_free_tx_desc(struct mlx4_en_priv *priv,
 				++data;
 			}
 		}
-		/* Stamp the freed descriptor */
+		
 		for (i = 0; i < tx_info->nr_txbb * TXBB_SIZE; i += STAMP_STRIDE) {
 			*ptr = stamp;
 			ptr += STAMP_DWORDS;
@@ -273,7 +242,7 @@ int mlx4_en_free_tx_buf(struct net_device *dev, struct mlx4_en_tx_ring *ring)
 	struct mlx4_en_priv *priv = netdev_priv(dev);
 	int cnt = 0;
 
-	/* Skip last polled descriptor */
+	
 	ring->cons += ring->last_nr_txbb;
 	en_dbg(DRV, priv, "Freeing Tx buf - cons:0x%x prod:0x%x\n",
 		 ring->cons, ring->prod);
@@ -310,7 +279,7 @@ static void mlx4_en_process_tx_cq(struct net_device *dev, struct mlx4_en_cq *cq)
 	u32 txbbs_skipped = 0;
 	u32 cq_last_sav;
 
-	/* index always points to the first TXBB of the last polled descriptor */
+	
 	index = ring->cons & ring->size_mask;
 	new_index = be16_to_cpu(cqe->wqe_index) & ring->size_mask;
 	if (index == new_index)
@@ -319,21 +288,15 @@ static void mlx4_en_process_tx_cq(struct net_device *dev, struct mlx4_en_cq *cq)
 	if (!priv->port_up)
 		return;
 
-	/*
-	 * We use a two-stage loop:
-	 * - the first samples the HW-updated CQE
-	 * - the second frees TXBBs until the last sample
-	 * This lets us amortize CQE cache misses, while still polling the CQ
-	 * until is quiescent.
-	 */
+	
 	cq_last_sav = mcq->cons_index;
 	do {
 		do {
-			/* Skip over last polled CQE */
+			
 			index = (index + ring->last_nr_txbb) & ring->size_mask;
 			txbbs_skipped += ring->last_nr_txbb;
 
-			/* Poll next CQE */
+			
 			ring->last_nr_txbb = mlx4_en_free_tx_desc(
 						priv, ring, index,
 						!!((ring->cons + txbbs_skipped) &
@@ -347,15 +310,12 @@ static void mlx4_en_process_tx_cq(struct net_device *dev, struct mlx4_en_cq *cq)
 	AVG_PERF_COUNTER(priv->pstats.tx_coal_avg,
 			 (u32) (mcq->cons_index - cq_last_sav));
 
-	/*
-	 * To prevent CQ overflow we first update CQ consumer and only then
-	 * the ring consumer.
-	 */
+	
 	mlx4_cq_set_ci(mcq);
 	wmb();
 	ring->cons += txbbs_skipped;
 
-	/* Wakeup Tx queue if this ring stopped it */
+	
 	if (unlikely(ring->blocked)) {
 		if ((u32) (ring->prod - ring->cons) <=
 		     ring->size - HEADROOM - MAX_DESC_TXBBS) {
@@ -396,9 +356,7 @@ void mlx4_en_poll_tx_cq(unsigned long data)
 	mlx4_en_process_tx_cq(cq->dev, cq);
 	inflight = (u32) (ring->prod - ring->cons - ring->last_nr_txbb);
 
-	/* If there are still packets in flight and the timer has not already
-	 * been scheduled by the Tx routine then schedule it here to guarantee
-	 * completion processing of these packets */
+	
 	if (inflight && priv->port_up)
 		mod_timer(&cq->timer, jiffies + MLX4_EN_TX_POLL_TIMEOUT);
 
@@ -429,7 +387,7 @@ static struct mlx4_en_tx_desc *mlx4_en_bounce_to_desc(struct mlx4_en_priv *priv,
 			*((u32 *) (ring->bounce_buf + i));
 	}
 
-	/* Return real descriptor location */
+	
 	return ring->buf + index * TXBB_SIZE;
 }
 
@@ -439,12 +397,11 @@ static inline void mlx4_en_xmit_poll(struct mlx4_en_priv *priv, int tx_ind)
 	struct mlx4_en_tx_ring *ring = &priv->tx_ring[tx_ind];
 	unsigned long flags;
 
-	/* If we don't have a pending timer, set one up to catch our recent
-	   post in case the interface becomes idle */
+	
 	if (!timer_pending(&cq->timer))
 		mod_timer(&cq->timer, jiffies + MLX4_EN_TX_POLL_TIMEOUT);
 
-	/* Poll the CQ every mlx4_en_TX_MODER_POLL packets */
+	
 	if ((++ring->poll_cnt & (MLX4_EN_TX_POLL_MODER - 1)) == 0)
 		if (spin_trylock_irqsave(&ring->comp_lock, flags)) {
 			mlx4_en_process_tx_cq(priv->dev, cq);
@@ -510,8 +467,7 @@ static int get_real_size(struct sk_buff *skb, struct net_device *dev,
 		real_size = CTRL_SIZE + skb_shinfo(skb)->nr_frags * DS_SIZE +
 			ALIGN(*lso_header_size + 4, DS_SIZE);
 		if (unlikely(*lso_header_size != skb_headlen(skb))) {
-			/* We add a segment for the skb linear buffer only if
-			 * it contains data */
+			
 			if (*lso_header_size < skb_headlen(skb))
 				real_size += DS_SIZE;
 			else {
@@ -578,9 +534,7 @@ u16 mlx4_en_select_queue(struct net_device *dev, struct sk_buff *skb)
 	struct mlx4_en_priv *priv = netdev_priv(dev);
 	u16 vlan_tag = 0;
 
-	/* If we support per priority flow control and the packet contains
-	 * a vlan tag, send the packet to the TX ring assigned to that priority
-	 */
+	
 	if (priv->prof->rx_ppp && priv->vlgrp && vlan_tx_tag_present(skb)) {
 		vlan_tag = vlan_tx_tag_get(skb);
 		return MLX4_EN_NUM_TX_RINGS + (vlan_tag >> 13);
@@ -615,7 +569,7 @@ netdev_tx_t mlx4_en_xmit(struct sk_buff *skb, struct net_device *dev)
 	if (unlikely(!real_size))
 		goto tx_drop;
 
-	/* Allign descriptor to TXBB size */
+	
 	desc_size = ALIGN(real_size, TXBB_SIZE);
 	nr_txbb = desc_size / TXBB_SIZE;
 	if (unlikely(nr_txbb > MAX_DESC_TXBBS)) {
@@ -629,41 +583,39 @@ netdev_tx_t mlx4_en_xmit(struct sk_buff *skb, struct net_device *dev)
 	if (priv->vlgrp && vlan_tx_tag_present(skb))
 		vlan_tag = vlan_tx_tag_get(skb);
 
-	/* Check available TXBBs And 2K spare for prefetch */
+	
 	if (unlikely(((int)(ring->prod - ring->cons)) >
 		     ring->size - HEADROOM - MAX_DESC_TXBBS)) {
-		/* every full Tx ring stops queue */
+		
 		netif_tx_stop_queue(netdev_get_tx_queue(dev, tx_ind));
 		ring->blocked = 1;
 		priv->port_stats.queue_stopped++;
 
-		/* Use interrupts to find out when queue opened */
+		
 		cq = &priv->tx_cq[tx_ind];
 		mlx4_en_arm_cq(priv, cq);
 		return NETDEV_TX_BUSY;
 	}
 
-	/* Track current inflight packets for performance analysis */
+	
 	AVG_PERF_COUNTER(priv->pstats.inflight_avg,
 			 (u32) (ring->prod - ring->cons - 1));
 
-	/* Packet is good - grab an index and transmit it */
+	
 	index = ring->prod & ring->size_mask;
 
-	/* See if we have enough space for whole descriptor TXBB for setting
-	 * SW ownership on next descriptor; if not, use a bounce buffer. */
+	
 	if (likely(index + nr_txbb <= ring->size))
 		tx_desc = ring->buf + index * TXBB_SIZE;
 	else
 		tx_desc = (struct mlx4_en_tx_desc *) ring->bounce_buf;
 
-	/* Save skb in tx_info ring */
+	
 	tx_info = &ring->tx_info[index];
 	tx_info->skb = skb;
 	tx_info->nr_txbb = nr_txbb;
 
-	/* Prepare ctrl segement apart opcode+ownership, which depends on
-	 * whether LSO is used */
+	
 	tx_desc->ctrl.vlan_tag = cpu_to_be16(vlan_tag);
 	tx_desc->ctrl.ins_vlan = MLX4_WQE_CTRL_INS_VLAN * !!vlan_tag;
 	tx_desc->ctrl.fence_size = (real_size / 16) & 0x3f;
@@ -675,19 +627,18 @@ netdev_tx_t mlx4_en_xmit(struct sk_buff *skb, struct net_device *dev)
 		priv->port_stats.tx_chksum_offload++;
 	}
 
-	/* Handle LSO (TSO) packets */
+	
 	if (lso_header_size) {
-		/* Mark opcode as LSO */
+		
 		op_own = cpu_to_be32(MLX4_OPCODE_LSO | (1 << 6)) |
 			((ring->prod & ring->size) ?
 				cpu_to_be32(MLX4_EN_BIT_DESC_OWN) : 0);
 
-		/* Fill in the LSO prefix */
+		
 		tx_desc->lso.mss_hdr_size = cpu_to_be32(
 			skb_shinfo(skb)->gso_size << 16 | lso_header_size);
 
-		/* Copy headers;
-		 * note that we already verified that it is linear */
+		
 		memcpy(tx_desc->lso.header, skb->data, lso_header_size);
 		data = ((void *) &tx_desc->lso +
 			ALIGN(lso_header_size + 4, DS_SIZE));
@@ -698,7 +649,7 @@ netdev_tx_t mlx4_en_xmit(struct sk_buff *skb, struct net_device *dev)
 		ring->bytes += skb->len + (i - 1) * lso_header_size;
 		ring->packets += i;
 	} else {
-		/* Normal (Non LSO) packet */
+		
 		op_own = cpu_to_be32(MLX4_OPCODE_SEND) |
 			((ring->prod & ring->size) ?
 			 cpu_to_be32(MLX4_EN_BIT_DESC_OWN) : 0);
@@ -710,14 +661,14 @@ netdev_tx_t mlx4_en_xmit(struct sk_buff *skb, struct net_device *dev)
 	AVG_PERF_COUNTER(priv->pstats.tx_pktsz_avg, skb->len);
 
 
-	/* valid only for none inline segments */
+	
 	tx_info->data_offset = (void *) data - (void *) tx_desc;
 
 	tx_info->linear = (lso_header_size < skb_headlen(skb) && !is_inline(skb, NULL)) ? 1 : 0;
 	data += skb_shinfo(skb)->nr_frags + tx_info->linear - 1;
 
 	if (!is_inline(skb, &fragptr)) {
-		/* Map fragments */
+		
 		for (i = skb_shinfo(skb)->nr_frags - 1; i >= 0; i--) {
 			frag = &skb_shinfo(skb)->frags[i];
 			dma = pci_map_page(mdev->dev->pdev, frag->page, frag->page_offset,
@@ -729,7 +680,7 @@ netdev_tx_t mlx4_en_xmit(struct sk_buff *skb, struct net_device *dev)
 			--data;
 		}
 
-		/* Map linear part */
+		
 		if (tx_info->linear) {
 			dma = pci_map_single(mdev->dev->pdev, skb->data + lso_header_size,
 					     skb_headlen(skb) - lso_header_size, PCI_DMA_TODEVICE);
@@ -746,24 +697,23 @@ netdev_tx_t mlx4_en_xmit(struct sk_buff *skb, struct net_device *dev)
 
 	ring->prod += nr_txbb;
 
-	/* If we used a bounce buffer then copy descriptor back into place */
+	
 	if (tx_desc == (struct mlx4_en_tx_desc *) ring->bounce_buf)
 		tx_desc = mlx4_en_bounce_to_desc(priv, ring, index, desc_size);
 
-	/* Run destructor before passing skb to HW */
+	
 	if (likely(!skb_shared(skb)))
 		skb_orphan(skb);
 
-	/* Ensure new descirptor hits memory
-	 * before setting ownership of this descriptor to HW */
+	
 	wmb();
 	tx_desc->ctrl.owner_opcode = op_own;
 
-	/* Ring doorbell! */
+	
 	wmb();
 	writel(ring->doorbell_qpn, mdev->uar_map + MLX4_SEND_DOORBELL);
 
-	/* Poll CQ here */
+	
 	mlx4_en_xmit_poll(priv, tx_ind);
 
 	return NETDEV_TX_OK;

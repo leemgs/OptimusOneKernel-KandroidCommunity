@@ -1,36 +1,8 @@
-/*******************************************************************************
 
-  Intel PRO/1000 Linux driver
-  Copyright(c) 1999 - 2006 Intel Corporation.
-
-  This program is free software; you can redistribute it and/or modify it
-  under the terms and conditions of the GNU General Public License,
-  version 2, as published by the Free Software Foundation.
-
-  This program is distributed in the hope it will be useful, but WITHOUT
-  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-  more details.
-
-  You should have received a copy of the GNU General Public License along with
-  this program; if not, write to the Free Software Foundation, Inc.,
-  51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
-
-  The full GNU General Public License is included in this distribution in
-  the file called "COPYING".
-
-  Contact Information:
-  Linux NICS <linux.nics@intel.com>
-  e1000-devel Mailing List <e1000-devel@lists.sourceforge.net>
-  Intel Corporation, 5200 N.E. Elam Young Parkway, Hillsboro, OR 97124-6497
-
-*******************************************************************************/
 
 #include "e1000.h"
 
-/* This is the only thing that needs to be changed to adjust the
- * maximum number of ports that the driver can manage.
- */
+
 
 #define E1000_MAX_NIC 32
 
@@ -38,10 +10,7 @@
 #define OPTION_DISABLED 0
 #define OPTION_ENABLED  1
 
-/* All parameters are treated the same, as an integer array of values.
- * This macro just reduces the need to repeat the same declaration code
- * over and over (plus this helps to avoid typo bugs).
- */
+
 
 #define E1000_PARAM_INIT { [0 ... E1000_MAX_NIC] = OPTION_UNSET }
 #define E1000_PARAM(X, desc) \
@@ -50,150 +19,64 @@
 	module_param_array_named(X, X, int, &num_##X, 0); \
 	MODULE_PARM_DESC(X, desc);
 
-/* Transmit Descriptor Count
- *
- * Valid Range: 80-256 for 82542 and 82543 gigabit ethernet controllers
- * Valid Range: 80-4096 for 82544 and newer
- *
- * Default Value: 256
- */
+
 E1000_PARAM(TxDescriptors, "Number of transmit descriptors");
 
-/* Receive Descriptor Count
- *
- * Valid Range: 80-256 for 82542 and 82543 gigabit ethernet controllers
- * Valid Range: 80-4096 for 82544 and newer
- *
- * Default Value: 256
- */
+
 E1000_PARAM(RxDescriptors, "Number of receive descriptors");
 
-/* User Specified Speed Override
- *
- * Valid Range: 0, 10, 100, 1000
- *  - 0    - auto-negotiate at all supported speeds
- *  - 10   - only link at 10 Mbps
- *  - 100  - only link at 100 Mbps
- *  - 1000 - only link at 1000 Mbps
- *
- * Default Value: 0
- */
+
 E1000_PARAM(Speed, "Speed setting");
 
-/* User Specified Duplex Override
- *
- * Valid Range: 0-2
- *  - 0 - auto-negotiate for duplex
- *  - 1 - only link at half duplex
- *  - 2 - only link at full duplex
- *
- * Default Value: 0
- */
+
 E1000_PARAM(Duplex, "Duplex setting");
 
-/* Auto-negotiation Advertisement Override
- *
- * Valid Range: 0x01-0x0F, 0x20-0x2F (copper); 0x20 (fiber)
- *
- * The AutoNeg value is a bit mask describing which speed and duplex
- * combinations should be advertised during auto-negotiation.
- * The supported speed and duplex modes are listed below
- *
- * Bit           7     6     5      4      3     2     1      0
- * Speed (Mbps)  N/A   N/A   1000   N/A    100   100   10     10
- * Duplex                    Full          Full  Half  Full   Half
- *
- * Default Value: 0x2F (copper); 0x20 (fiber)
- */
+
 E1000_PARAM(AutoNeg, "Advertised auto-negotiation setting");
 #define AUTONEG_ADV_DEFAULT  0x2F
 #define AUTONEG_ADV_MASK     0x2F
 
-/* User Specified Flow Control Override
- *
- * Valid Range: 0-3
- *  - 0 - No Flow Control
- *  - 1 - Rx only, respond to PAUSE frames but do not generate them
- *  - 2 - Tx only, generate PAUSE frames but ignore them on receive
- *  - 3 - Full Flow Control Support
- *
- * Default Value: Read flow control settings from the EEPROM
- */
+
 E1000_PARAM(FlowControl, "Flow Control setting");
 #define FLOW_CONTROL_DEFAULT FLOW_CONTROL_FULL
 
-/* XsumRX - Receive Checksum Offload Enable/Disable
- *
- * Valid Range: 0, 1
- *  - 0 - disables all checksum offload
- *  - 1 - enables receive IP/TCP/UDP checksum offload
- *        on 82543 and newer -based NICs
- *
- * Default Value: 1
- */
+
 E1000_PARAM(XsumRX, "Disable or enable Receive Checksum offload");
 
-/* Transmit Interrupt Delay in units of 1.024 microseconds
- *  Tx interrupt delay needs to typically be set to something non zero
- *
- * Valid Range: 0-65535
- */
+
 E1000_PARAM(TxIntDelay, "Transmit Interrupt Delay");
 #define DEFAULT_TIDV                   8
 #define MAX_TXDELAY               0xFFFF
 #define MIN_TXDELAY                    0
 
-/* Transmit Absolute Interrupt Delay in units of 1.024 microseconds
- *
- * Valid Range: 0-65535
- */
+
 E1000_PARAM(TxAbsIntDelay, "Transmit Absolute Interrupt Delay");
 #define DEFAULT_TADV                  32
 #define MAX_TXABSDELAY            0xFFFF
 #define MIN_TXABSDELAY                 0
 
-/* Receive Interrupt Delay in units of 1.024 microseconds
- *   hardware will likely hang if you set this to anything but zero.
- *
- * Valid Range: 0-65535
- */
+
 E1000_PARAM(RxIntDelay, "Receive Interrupt Delay");
 #define DEFAULT_RDTR                   0
 #define MAX_RXDELAY               0xFFFF
 #define MIN_RXDELAY                    0
 
-/* Receive Absolute Interrupt Delay in units of 1.024 microseconds
- *
- * Valid Range: 0-65535
- */
+
 E1000_PARAM(RxAbsIntDelay, "Receive Absolute Interrupt Delay");
 #define DEFAULT_RADV                   8
 #define MAX_RXABSDELAY            0xFFFF
 #define MIN_RXABSDELAY                 0
 
-/* Interrupt Throttle Rate (interrupts/sec)
- *
- * Valid Range: 100-100000 (0=off, 1=dynamic, 3=dynamic conservative)
- */
+
 E1000_PARAM(InterruptThrottleRate, "Interrupt Throttling Rate");
 #define DEFAULT_ITR                    3
 #define MAX_ITR                   100000
 #define MIN_ITR                      100
 
-/* Enable Smart Power Down of the PHY
- *
- * Valid Range: 0, 1
- *
- * Default Value: 0 (disabled)
- */
+
 E1000_PARAM(SmartPowerDownEnable, "Enable PHY smart power down");
 
-/* Enable Kumeran Lock Loss workaround
- *
- * Valid Range: 0, 1
- *
- * Default Value: 1 (enabled)
- */
+
 E1000_PARAM(KumeranLockLoss, "Enable Kumeran lock loss workaround");
 
 struct e1000_option {
@@ -202,11 +85,11 @@ struct e1000_option {
 	const char *err;
 	int def;
 	union {
-		struct { /* range_option info */
+		struct { 
 			int min;
 			int max;
 		} r;
-		struct { /* list_option info */
+		struct { 
 			int nr;
 			const struct e1000_opt_list { int i; char *str; } *p;
 		} l;
@@ -267,15 +150,7 @@ static int __devinit e1000_validate_option(unsigned int *value,
 static void e1000_check_fiber_options(struct e1000_adapter *adapter);
 static void e1000_check_copper_options(struct e1000_adapter *adapter);
 
-/**
- * e1000_check_options - Range Checking for Command Line Parameters
- * @adapter: board private structure
- *
- * This routine checks all command line parameters for valid user
- * input.  If an invalid value is given, or if no user specified
- * value exists, a default value is used.  The final value is stored
- * in a variable in the adapter structure.
- **/
+
 
 void __devinit e1000_check_options(struct e1000_adapter *adapter)
 {
@@ -288,7 +163,7 @@ void __devinit e1000_check_options(struct e1000_adapter *adapter)
 		DPRINTK(PROBE, NOTICE, "Using defaults for all values\n");
 	}
 
-	{ /* Transmit Descriptor Count */
+	{ 
 		struct e1000_tx_ring *tx_ring = adapter->tx_ring;
 		int i;
 		e1000_mac_type mac_type = adapter->hw.mac_type;
@@ -316,7 +191,7 @@ void __devinit e1000_check_options(struct e1000_adapter *adapter)
 		for (i = 0; i < adapter->num_tx_queues; i++)
 			tx_ring[i].count = tx_ring->count;
 	}
-	{ /* Receive Descriptor Count */
+	{ 
 		struct e1000_rx_ring *rx_ring = adapter->rx_ring;
 		int i;
 		e1000_mac_type mac_type = adapter->hw.mac_type;
@@ -344,7 +219,7 @@ void __devinit e1000_check_options(struct e1000_adapter *adapter)
 		for (i = 0; i < adapter->num_rx_queues; i++)
 			rx_ring[i].count = rx_ring->count;
 	}
-	{ /* Checksum Offload Enable/Disable */
+	{ 
 		opt = (struct e1000_option) {
 			.type = enable_option,
 			.name = "Checksum Offload",
@@ -360,7 +235,7 @@ void __devinit e1000_check_options(struct e1000_adapter *adapter)
 			adapter->rx_csum = opt.def;
 		}
 	}
-	{ /* Flow Control */
+	{ 
 
 		struct e1000_opt_list fc_list[] =
 			{{ E1000_FC_NONE,    "Flow Control Disabled" },
@@ -386,7 +261,7 @@ void __devinit e1000_check_options(struct e1000_adapter *adapter)
 			adapter->hw.fc = adapter->hw.original_fc = opt.def;
 		}
 	}
-	{ /* Transmit Interrupt Delay */
+	{ 
 		opt = (struct e1000_option) {
 			.type = range_option,
 			.name = "Transmit Interrupt Delay",
@@ -404,7 +279,7 @@ void __devinit e1000_check_options(struct e1000_adapter *adapter)
 			adapter->tx_int_delay = opt.def;
 		}
 	}
-	{ /* Transmit Absolute Interrupt Delay */
+	{ 
 		opt = (struct e1000_option) {
 			.type = range_option,
 			.name = "Transmit Absolute Interrupt Delay",
@@ -422,7 +297,7 @@ void __devinit e1000_check_options(struct e1000_adapter *adapter)
 			adapter->tx_abs_int_delay = opt.def;
 		}
 	}
-	{ /* Receive Interrupt Delay */
+	{ 
 		opt = (struct e1000_option) {
 			.type = range_option,
 			.name = "Receive Interrupt Delay",
@@ -440,7 +315,7 @@ void __devinit e1000_check_options(struct e1000_adapter *adapter)
 			adapter->rx_int_delay = opt.def;
 		}
 	}
-	{ /* Receive Absolute Interrupt Delay */
+	{ 
 		opt = (struct e1000_option) {
 			.type = range_option,
 			.name = "Receive Absolute Interrupt Delay",
@@ -458,7 +333,7 @@ void __devinit e1000_check_options(struct e1000_adapter *adapter)
 			adapter->rx_abs_int_delay = opt.def;
 		}
 	}
-	{ /* Interrupt Throttling Rate */
+	{ 
 		opt = (struct e1000_option) {
 			.type = range_option,
 			.name = "Interrupt Throttling Rate (ints/sec)",
@@ -491,9 +366,8 @@ void __devinit e1000_check_options(struct e1000_adapter *adapter)
 			default:
 				e1000_validate_option(&adapter->itr, &opt,
 				        adapter);
-				/* save the setting, because the dynamic bits change itr */
-				/* clear the lower two bits because they are
-				 * used as control */
+				
+				
 				adapter->itr_setting = adapter->itr & ~3;
 				break;
 			}
@@ -502,7 +376,7 @@ void __devinit e1000_check_options(struct e1000_adapter *adapter)
 			adapter->itr = 20000;
 		}
 	}
-	{ /* Smart Power Down */
+	{ 
 		opt = (struct e1000_option) {
 			.type = enable_option,
 			.name = "PHY Smart Power Down",
@@ -532,12 +406,7 @@ void __devinit e1000_check_options(struct e1000_adapter *adapter)
 	}
 }
 
-/**
- * e1000_check_fiber_options - Range Checking for Link Options, Fiber Version
- * @adapter: board private structure
- *
- * Handles speed and duplex options on fiber adapters
- **/
+
 
 static void __devinit e1000_check_fiber_options(struct e1000_adapter *adapter)
 {
@@ -559,12 +428,7 @@ static void __devinit e1000_check_fiber_options(struct e1000_adapter *adapter)
 	}
 }
 
-/**
- * e1000_check_copper_options - Range Checking for Link Options, Copper Version
- * @adapter: board private structure
- *
- * Handles speed and duplex options on copper adapters
- **/
+
 
 static void __devinit e1000_check_copper_options(struct e1000_adapter *adapter)
 {
@@ -572,7 +436,7 @@ static void __devinit e1000_check_copper_options(struct e1000_adapter *adapter)
 	unsigned int speed, dplx, an;
 	int bd = adapter->bd_number;
 
-	{ /* Speed */
+	{ 
 		static const struct e1000_opt_list speed_list[] = {
 			{          0, "" },
 			{   SPEED_10, "" },
@@ -595,7 +459,7 @@ static void __devinit e1000_check_copper_options(struct e1000_adapter *adapter)
 			speed = opt.def;
 		}
 	}
-	{ /* Duplex */
+	{ 
 		static const struct e1000_opt_list dplx_list[] = {
 			{           0, "" },
 			{ HALF_DUPLEX, "" },
@@ -623,7 +487,7 @@ static void __devinit e1000_check_copper_options(struct e1000_adapter *adapter)
 		       "AutoNeg specified along with Speed or Duplex, "
 		       "parameter ignored\n");
 		adapter->hw.autoneg_advertised = AUTONEG_ADV_DEFAULT;
-	} else { /* Autoneg */
+	} else { 
 		static const struct e1000_opt_list an_list[] =
 			#define AA "AutoNeg advertising "
 			{{ 0x01, AA "10/HD" },
@@ -748,7 +612,7 @@ static void __devinit e1000_check_copper_options(struct e1000_adapter *adapter)
 	case SPEED_1000 + HALF_DUPLEX:
 		DPRINTK(PROBE, INFO,
 			"Half Duplex is not supported at 1000 Mbps\n");
-		/* fall through */
+		
 	case SPEED_1000 + FULL_DUPLEX:
 full_duplex_only:
 		DPRINTK(PROBE, INFO,
@@ -760,7 +624,7 @@ full_duplex_only:
 		BUG();
 	}
 
-	/* Speed, AutoNeg and MDI/MDI-X must all play nice */
+	
 	if (e1000_validate_mdi_setting(&(adapter->hw)) < 0) {
 		DPRINTK(PROBE, INFO,
 			"Speed, AutoNeg and MDI-X specifications are "

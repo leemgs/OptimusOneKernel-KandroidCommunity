@@ -1,27 +1,4 @@
-/*
- * MosChips MCS7830 based USB 2.0 Ethernet Devices
- *
- * based on usbnet.c, asix.c and the vendor provided mcs7830 driver
- *
- * Copyright (C) 2006 Arnd Bergmann <arnd@arndb.de>
- * Copyright (C) 2003-2005 David Hollis <dhollis@davehollis.com>
- * Copyright (C) 2005 Phil Chang <pchang23@sbcglobal.net>
- * Copyright (c) 2002-2003 TiVo Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/crc32.h>
 #include <linux/etherdevice.h>
@@ -33,7 +10,7 @@
 #include <linux/usb.h>
 #include <linux/usb/usbnet.h>
 
-/* requests */
+
 #define MCS7830_RD_BMREQ	(USB_DIR_IN  | USB_TYPE_VENDOR | \
 				 USB_RECIP_DEVICE)
 #define MCS7830_WR_BMREQ	(USB_DIR_OUT | USB_TYPE_VENDOR | \
@@ -55,7 +32,7 @@
 				 ADVERTISE_100HALF | ADVERTISE_10FULL | \
 				 ADVERTISE_10HALF | ADVERTISE_CSMA)
 
-/* HIF_REG_XX coressponding index value */
+
 enum {
 	HIF_REG_MULTICAST_HASH			= 0x00,
 	HIF_REG_PACKET_GAP1			= 0x08,
@@ -205,12 +182,12 @@ static int mcs7830_read_phy(struct usbnet *dev, u8 index)
 	};
 
 	mutex_lock(&dev->phy_mutex);
-	/* write the MII command */
+	
 	ret = mcs7830_set_reg(dev, HIF_REG_PHY_CMD1, 2, cmd);
 	if (ret < 0)
 		goto out;
 
-	/* wait for the data to become valid, should be within < 1ms */
+	
 	for (i = 0; i < 10; i++) {
 		ret = mcs7830_get_reg(dev, HIF_REG_PHY_CMD1, 2, cmd);
 		if ((ret < 0) || (cmd[1] & HIF_REG_PHY_CMD2_READY_FLAG_BIT))
@@ -221,7 +198,7 @@ static int mcs7830_read_phy(struct usbnet *dev, u8 index)
 	if (ret < 0)
 		goto out;
 
-	/* read actual register contents */
+	
 	ret = mcs7830_get_reg(dev, HIF_REG_PHY_DATA, 2, &val);
 	if (ret < 0)
 		goto out;
@@ -246,18 +223,18 @@ static int mcs7830_write_phy(struct usbnet *dev, u8 index, u16 val)
 
 	mutex_lock(&dev->phy_mutex);
 
-	/* write the new register contents */
+	
 	le_val = cpu_to_le16(val);
 	ret = mcs7830_set_reg(dev, HIF_REG_PHY_DATA, 2, &le_val);
 	if (ret < 0)
 		goto out;
 
-	/* write the MII command */
+	
 	ret = mcs7830_set_reg(dev, HIF_REG_PHY_CMD1, 2, cmd);
 	if (ret < 0)
 		goto out;
 
-	/* wait for the command to be accepted by the PHY */
+	
 	for (i = 0; i < 10; i++) {
 		ret = mcs7830_get_reg(dev, HIF_REG_PHY_CMD1, 2, cmd);
 		if ((ret < 0) || (cmd[1] & HIF_REG_PHY_CMD2_READY_FLAG_BIT))
@@ -276,23 +253,20 @@ out:
 	return ret;
 }
 
-/*
- * This algorithm comes from the original mcs7830 version 1.4 driver,
- * not sure if it is needed.
- */
+
 static int mcs7830_set_autoneg(struct usbnet *dev, int ptrUserPhyMode)
 {
 	int ret;
-	/* Enable all media types */
+	
 	ret = mcs7830_write_phy(dev, MII_ADVERTISE, MCS7830_MII_ADVERTISE);
 
-	/* First reset BMCR */
+	
 	if (!ret)
 		ret = mcs7830_write_phy(dev, MII_BMCR, 0x0000);
-	/* Enable Auto Neg */
+	
 	if (!ret)
 		ret = mcs7830_write_phy(dev, MII_BMCR, BMCR_ANENABLE);
-	/* Restart Auto Neg (Keep the Enable Auto Neg Bit Set) */
+	
 	if (!ret)
 		ret = mcs7830_write_phy(dev, MII_BMCR,
 				BMCR_ANENABLE | BMCR_ANRESTART	);
@@ -300,22 +274,18 @@ static int mcs7830_set_autoneg(struct usbnet *dev, int ptrUserPhyMode)
 }
 
 
-/*
- * if we can read register 22, the chip revision is C or higher
- */
+
 static int mcs7830_get_rev(struct usbnet *dev)
 {
 	u8 dummy[2];
 	int ret;
 	ret = mcs7830_get_reg(dev, HIF_REG_22, 2, dummy);
 	if (ret > 0)
-		return 2; /* Rev C or later */
-	return 1; /* earlier revision */
+		return 2; 
+	return 1; 
 }
 
-/*
- * On rev. C we need to set the pause threshold
- */
+
 static void mcs7830_rev_C_fixup(struct usbnet *dev)
 {
 	u8 pause_threshold = HIF_REG_PAUSE_THRESHOLD_DEFAULT;
@@ -336,7 +306,7 @@ static int mcs7830_init_dev(struct usbnet *dev)
 	int ret;
 	int retry;
 
-	/* Read MAC address from EEPROM */
+	
 	ret = -EINVAL;
 	for (retry = 0; retry < 5 && ret; retry++)
 		ret = mcs7830_get_address(dev);
@@ -345,7 +315,7 @@ static int mcs7830_init_dev(struct usbnet *dev)
 		goto out;
 	}
 
-	/* Set up PHY */
+	
 	ret = mcs7830_set_autoneg(dev, 0);
 	if (ret) {
 		dev_info(&dev->udev->dev, "Cannot set autoneg\n");
@@ -378,7 +348,7 @@ static int mcs7830_ioctl(struct net_device *net, struct ifreq *rq, int cmd)
 	return generic_mii_ioctl(&dev->mii, if_mii(rq), cmd, NULL);
 }
 
-/* credits go to asix_set_multicast */
+
 static void mcs7830_set_multicast(struct net_device *net)
 {
 	struct usbnet *dev = netdev_priv(net);
@@ -386,7 +356,7 @@ static void mcs7830_set_multicast(struct net_device *net)
 
 	data->config = HIF_REG_CONFIG_TXENABLE;
 
-	/* this should not be needed, but it doesn't work otherwise */
+	
 	data->config |= HIF_REG_CONFIG_ALLMULTICAST;
 
 	if (net->flags & IFF_PROMISC) {
@@ -395,19 +365,16 @@ static void mcs7830_set_multicast(struct net_device *net)
 		   || net->mc_count > MCS7830_MAX_MCAST) {
 		data->config |= HIF_REG_CONFIG_ALLMULTICAST;
 	} else if (net->mc_count == 0) {
-		/* just broadcast and directed */
+		
 	} else {
-		/* We use the 20 byte dev->data
-		 * for our 8 byte filter buffer
-		 * to avoid allocating memory that
-		 * is tricky to free later */
+		
 		struct dev_mc_list *mc_list = net->mc_list;
 		u32 crc_bits;
 		int i;
 
 		memset(data->multi_filter, 0, sizeof data->multi_filter);
 
-		/* Build the multicast hash filter. */
+		
 		for (i = 0; i < net->mc_count; i++) {
 			crc_bits = ether_crc(ETH_ALEN, mc_list->dmi_addr) >> 26;
 			data->multi_filter[crc_bits >> 3] |= 1 << (crc_bits & 7);
@@ -454,7 +421,7 @@ static const struct ethtool_ops mcs7830_ethtool_ops = {
 	.get_regs_len		= mcs7830_get_regs_len,
 	.get_regs		= mcs7830_get_regs,
 
-	/* common usbnet calls */
+	
 	.get_link		= usbnet_get_link,
 	.get_msglevel		= usbnet_get_msglevel,
 	.set_msglevel		= usbnet_set_msglevel,
@@ -511,7 +478,7 @@ static int mcs7830_bind(struct usbnet *dev, struct usb_interface *udev)
 	net->netdev_ops = &mcs7830_netdev_ops;
 	mcs7830_set_multicast(net);
 
-	/* reserve space for the status byte on rx */
+	
 	dev->rx_urb_size = ETH_FRAME_LEN + 1;
 
 	dev->mii.mdio_read = mcs7830_mdio_read;
@@ -526,7 +493,7 @@ out:
 	return ret;
 }
 
-/* The chip always appends a status bytes that we need to strip */
+
 static int mcs7830_rx_fixup(struct usbnet *dev, struct sk_buff *skb)
 {
 	u8 status;

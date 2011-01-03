@@ -1,46 +1,34 @@
-/* bnx2x_init.h: Broadcom Everest network driver.
- *               Structures and macroes needed during the initialization.
- *
- * Copyright (c) 2007-2009 Broadcom Corporation
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation.
- *
- * Maintained by: Eilon Greenstein <eilong@broadcom.com>
- * Written by: Eliezer Tamir
- * Modified by: Vladislav Zolotarov <vladz@broadcom.com>
- */
+
 
 #ifndef BNX2X_INIT_H
 #define BNX2X_INIT_H
 
-/* RAM0 size in bytes */
+
 #define STORM_INTMEM_SIZE_E1		0x5800
 #define STORM_INTMEM_SIZE_E1H		0x10000
 #define STORM_INTMEM_SIZE(bp) ((CHIP_IS_E1(bp) ? STORM_INTMEM_SIZE_E1 : \
 						    STORM_INTMEM_SIZE_E1H) / 4)
 
 
-/* Init operation types and structures */
-/* Common for both E1 and E1H */
-#define OP_RD			0x1 /* read single register */
-#define OP_WR			0x2 /* write single register */
-#define OP_IW			0x3 /* write single register using mailbox */
-#define OP_SW			0x4 /* copy a string to the device */
-#define OP_SI			0x5 /* copy a string using mailbox */
-#define OP_ZR			0x6 /* clear memory */
-#define OP_ZP			0x7 /* unzip then copy with DMAE */
-#define OP_WR_64		0x8 /* write 64 bit pattern */
-#define OP_WB			0x9 /* copy a string using DMAE */
 
-/* FPGA and EMUL specific operations */
-#define OP_WR_EMUL		0xa /* write single register on Emulation */
-#define OP_WR_FPGA		0xb /* write single register on FPGA */
-#define OP_WR_ASIC		0xc /* write single register on ASIC */
 
-/* Init stages */
-/* Never reorder stages !!! */
+#define OP_RD			0x1 
+#define OP_WR			0x2 
+#define OP_IW			0x3 
+#define OP_SW			0x4 
+#define OP_SI			0x5 
+#define OP_ZR			0x6 
+#define OP_ZP			0x7 
+#define OP_WR_64		0x8 
+#define OP_WB			0x9 
+
+
+#define OP_WR_EMUL		0xa 
+#define OP_WR_FPGA		0xb 
+#define OP_WR_ASIC		0xc 
+
+
+
 #define COMMON_STAGE		0
 #define PORT0_STAGE		1
 #define PORT1_STAGE		2
@@ -58,7 +46,7 @@
 #define STAGE_END		1
 
 
-/* Indices of blocks */
+
 #define PRS_BLOCK		0
 #define SRCH_BLOCK		1
 #define TSDM_BLOCK		2
@@ -99,7 +87,7 @@
 #define IGU_BLOCK		37
 
 
-/* Returns the index of start or end of a specific block stage in ops array*/
+
 #define BLOCK_OPS_IDX(block, stage, end) \
 			(2*(((block)*STAGE_IDX_MAX) + (stage)) + (end))
 
@@ -128,7 +116,7 @@ struct op_string_write {
 #ifdef __LITTLE_ENDIAN
 	u16 data_off;
 	u16 data_len;
-#else /* __BIG_ENDIAN */
+#else 
 	u16 data_len;
 	u16 data_off;
 #endif
@@ -148,5 +136,5 @@ union init_op {
 	struct raw_op		raw;
 };
 
-#endif /* BNX2X_INIT_H */
+#endif 
 

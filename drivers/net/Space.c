@@ -1,32 +1,4 @@
-/*
- * INET		An implementation of the TCP/IP protocol suite for the LINUX
- *		operating system.  INET is implemented using the  BSD Socket
- *		interface as the means of communication with the user level.
- *
- *		Holds initial configuration information for devices.
- *
- * Version:	@(#)Space.c	1.0.7	08/12/93
- *
- * Authors:	Ross Biro
- *		Fred N. van Kempen, <waltje@uWalt.NL.Mugnet.ORG>
- *		Donald J. Becker, <becker@scyld.com>
- *
- * Changelog:
- *		Stephen Hemminger (09/2003)
- *		- get rid of pre-linked dev list, dynamic device allocation
- *		Paul Gortmaker (03/2002)
- *		- struct init cleanup, enable multiple ISA autoprobes.
- *		Arnaldo Carvalho de Melo <acme@conectiva.com.br> - 09/1999
- *		- fix sbni: s/device/net_device/
- *		Paul Gortmaker (06/98):
- *		 - sort probes in a sane way, make sure all (safe) probes
- *		   get run once & failed autoprobes don't autoprobe again.
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- */
+
 #include <linux/netdevice.h>
 #include <linux/etherdevice.h>
 #include <linux/trdevice.h>
@@ -34,9 +6,7 @@
 #include <linux/init.h>
 #include <linux/netlink.h>
 
-/* A unified ethernet device probe.  This is the easiest way to have every
-   ethernet adaptor have the name "eth[0123...]".
-   */
+
 
 extern struct net_device *ne2_probe(int unit);
 extern struct net_device *hp100_probe(int unit);
@@ -87,18 +57,18 @@ extern struct net_device *mc32_probe(int unit);
 extern struct net_device *cops_probe(int unit);
 extern struct net_device *ltpc_probe(void);
 
-/* Detachable devices ("pocket adaptors") */
+
 extern struct net_device *de620_probe(int unit);
 
-/* Fibre Channel adapters */
+
 extern int iph5526_probe(struct net_device *dev);
 
-/* SBNI adapters */
+
 extern int sbni_probe(int unit);
 
 struct devprobe2 {
 	struct net_device *(*probe)(int unit);
-	int status;	/* non-zero if autoprobe has failed */
+	int status;	
 };
 
 static int __init probe_list2(int unit, struct devprobe2 *p, int autoprobe)
@@ -116,12 +86,7 @@ static int __init probe_list2(int unit, struct devprobe2 *p, int autoprobe)
 	return -ENODEV;
 }
 
-/*
- * This is a bit of an artificial separation as there are PCI drivers
- * that also probe for EISA cards (in the PCI group) and there are ISA
- * drivers that probe for EISA cards (in the ISA group).  These are the
- * legacy EISA only driver probes, and also the legacy PCI probes
- */
+
 
 static struct devprobe2 eisa_probes[] __initdata = {
 #ifdef CONFIG_ULTRA32
@@ -143,21 +108,18 @@ static struct devprobe2 mca_probes[] __initdata = {
 #ifdef CONFIG_NE2_MCA
 	{ne2_probe, 0},
 #endif
-#ifdef CONFIG_ELMC		/* 3c523 */
+#ifdef CONFIG_ELMC		
 	{elmc_probe, 0},
 #endif
-#ifdef CONFIG_ELMC_II		/* 3c527 */
+#ifdef CONFIG_ELMC_II		
 	{mc32_probe, 0},
 #endif
 	{NULL, 0},
 };
 
-/*
- * ISA probes that touch addresses < 0x400 (including those that also
- * look for EISA/PCI/MCA cards in addition to ISA cards).
- */
+
 static struct devprobe2 isa_probes[] __initdata = {
-#if defined(CONFIG_HP100) && defined(CONFIG_ISA)	/* ISA, EISA */
+#if defined(CONFIG_HP100) && defined(CONFIG_ISA)	
 	{hp100_probe, 0},
 #endif
 #ifdef CONFIG_3C515
@@ -169,7 +131,7 @@ static struct devprobe2 isa_probes[] __initdata = {
 #ifdef CONFIG_WD80x3
 	{wd_probe, 0},
 #endif
-#ifdef CONFIG_EL2 		/* 3c503 */
+#ifdef CONFIG_EL2 		
 	{el2_probe, 0},
 #endif
 #ifdef CONFIG_HPLAN
@@ -178,14 +140,14 @@ static struct devprobe2 isa_probes[] __initdata = {
 #ifdef CONFIG_HPLAN_PLUS
 	{hp_plus_probe, 0},
 #endif
-#ifdef CONFIG_E2100		/* Cabletron E21xx series. */
+#ifdef CONFIG_E2100		
 	{e2100_probe, 0},
 #endif
 #if defined(CONFIG_NE2000) || \
-    defined(CONFIG_NE_H8300)  /* ISA (use ne2k-pci for PCI cards) */
+    defined(CONFIG_NE_H8300)  
 	{ne_probe, 0},
 #endif
-#ifdef CONFIG_LANCE		/* ISA/VLB (use pcnet32 for PCI cards) */
+#ifdef CONFIG_LANCE		
 	{lance_probe, 0},
 #endif
 #ifdef CONFIG_SMC9194
@@ -201,33 +163,33 @@ static struct devprobe2 isa_probes[] __initdata = {
 	{at1700_probe, 0},
 #endif
 #ifdef CONFIG_ETH16I
-	{eth16i_probe, 0},	/* ICL EtherTeam 16i/32 */
+	{eth16i_probe, 0},	
 #endif
-#ifdef CONFIG_EEXPRESS		/* Intel EtherExpress */
+#ifdef CONFIG_EEXPRESS		
 	{express_probe, 0},
 #endif
-#ifdef CONFIG_EEXPRESS_PRO	/* Intel EtherExpress Pro/10 */
+#ifdef CONFIG_EEXPRESS_PRO	
 	{eepro_probe, 0},
 #endif
-#ifdef CONFIG_EWRK3             /* DEC EtherWORKS 3 */
+#ifdef CONFIG_EWRK3             
     	{ewrk3_probe, 0},
 #endif
-#if defined(CONFIG_APRICOT) || defined(CONFIG_MVME16x_NET) || defined(CONFIG_BVME6000_NET)	/* Intel I82596 */
+#if defined(CONFIG_APRICOT) || defined(CONFIG_MVME16x_NET) || defined(CONFIG_BVME6000_NET)	
 	{i82596_probe, 0},
 #endif
-#ifdef CONFIG_EL1		/* 3c501 */
+#ifdef CONFIG_EL1		
 	{el1_probe, 0},
 #endif
-#ifdef CONFIG_WAVELAN		/* WaveLAN */
+#ifdef CONFIG_WAVELAN		
 	{wavelan_probe, 0},
 #endif
-#ifdef CONFIG_ARLAN		/* Aironet */
+#ifdef CONFIG_ARLAN		
 	{arlan_probe, 0},
 #endif
-#ifdef CONFIG_EL16		/* 3c507 */
+#ifdef CONFIG_EL16		
 	{el16_probe, 0},
 #endif
-#ifdef CONFIG_ELPLUS		/* 3c505 */
+#ifdef CONFIG_ELPLUS		
 	{elplus_probe, 0},
 #endif
 #ifdef CONFIG_NI5010
@@ -243,29 +205,29 @@ static struct devprobe2 isa_probes[] __initdata = {
 };
 
 static struct devprobe2 parport_probes[] __initdata = {
-#ifdef CONFIG_DE620		/* D-Link DE-620 adapter */
+#ifdef CONFIG_DE620		
 	{de620_probe, 0},
 #endif
 	{NULL, 0},
 };
 
 static struct devprobe2 m68k_probes[] __initdata = {
-#ifdef CONFIG_ATARILANCE	/* Lance-based Atari ethernet boards */
+#ifdef CONFIG_ATARILANCE	
 	{atarilance_probe, 0},
 #endif
-#ifdef CONFIG_SUN3LANCE         /* sun3 onboard Lance chip */
+#ifdef CONFIG_SUN3LANCE         
 	{sun3lance_probe, 0},
 #endif
-#ifdef CONFIG_SUN3_82586        /* sun3 onboard Intel 82586 chip */
+#ifdef CONFIG_SUN3_82586        
 	{sun3_82586_probe, 0},
 #endif
-#ifdef CONFIG_APNE		/* A1200 PCMCIA NE2000 */
+#ifdef CONFIG_APNE		
 	{apne_probe, 0},
 #endif
-#ifdef CONFIG_MVME147_NET	/* MVME147 internal Ethernet */
+#ifdef CONFIG_MVME147_NET	
 	{mvme147lance_probe, 0},
 #endif
-#ifdef CONFIG_MAC8390           /* NuBus NS8390-based cards */
+#ifdef CONFIG_MAC8390           
 	{mac8390_probe, 0},
 #endif
 #ifdef CONFIG_MAC89x0
@@ -274,10 +236,7 @@ static struct devprobe2 m68k_probes[] __initdata = {
 	{NULL, 0},
 };
 
-/*
- * Unified ethernet device probe, segmented per architecture and
- * per bus interface. This drives the legacy devices only for now.
- */
+
 
 static void __init ethif_probe2(int unit)
 {
@@ -294,7 +253,7 @@ static void __init ethif_probe2(int unit)
 }
 
 #ifdef CONFIG_TR
-/* Token-ring device probe */
+
 extern int ibmtr_probe_card(struct net_device *);
 extern struct net_device *smctr_probe(int unit);
 
@@ -333,7 +292,7 @@ static void __init trif_probe2(int unit)
 #endif
 
 
-/*  Statically configured drivers -- order matters here. */
+
 static int __init net_olddevs_init(void)
 {
 	int num;

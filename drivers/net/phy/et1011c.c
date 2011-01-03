@@ -1,18 +1,4 @@
-/*
- * drivers/net/phy/et1011c.c
- *
- * Driver for LSI ET1011C PHYs
- *
- * Author: Chaithrika U S
- *
- * Copyright (c) 2008 Texas Instruments
- *
- * This program is free software; you can redistribute  it and/or modify it
- * under  the terms of  the GNU General  Public License as published by the
- * Free Software Foundation;  either version 2 of the  License, or (at your
- * option) any later version.
- *
- */
+
 #include <linux/kernel.h>
 #include <linux/string.h>
 #include <linux/errno.h>
@@ -58,7 +44,7 @@ static int et1011c_config_aneg(struct phy_device *phydev)
 		return ctl;
 	ctl &= ~(BMCR_FULLDPLX | BMCR_SPEED100 | BMCR_SPEED1000 |
 		 BMCR_ANENABLE);
-	/* First clear the PHY */
+	
 	phy_write(phydev, MII_BMCR, ctl | BMCR_RESET);
 
 	return genphy_config_aneg(phydev);

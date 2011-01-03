@@ -1,24 +1,4 @@
-/*
- * Copyright(c) 2008 Hewlett-Packard Development Company, L.P.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * The full GNU General Public License is included in this distribution in the
- * file called LICENSE.
- *
- */
+
 
 #include <linux/types.h>
 #include <linux/if_vlan.h>
@@ -27,10 +7,7 @@
 #include <net/addrconf.h>
 #include "bonding.h"
 
-/*
- * Assign bond->master_ipv6 to the next IPv6 address in the list, or
- * zero it out if there are none.
- */
+
 static void bond_glean_dev_ipv6(struct net_device *dev, struct in6_addr *addr)
 {
 	struct inet6_dev *idev;
@@ -94,13 +71,7 @@ static void bond_na_send(struct net_device *slave_dev,
 	ndisc_send_skb(skb, slave_dev, NULL, &mcaddr, daddr, &icmp6h);
 }
 
-/*
- * Kick out an unsolicited Neighbor Advertisement for an IPv6 address on
- * the bonding master.  This will help the switch learn our address
- * if in active-backup mode.
- *
- * Caller must hold curr_slave_lock for read or better
- */
+
 void bond_send_unsolicited_na(struct bonding *bond)
 {
 	struct slave *slave = bond->curr_active_slave;
@@ -136,14 +107,7 @@ void bond_send_unsolicited_na(struct bonding *bond)
 	}
 }
 
-/*
- * bond_inet6addr_event: handle inet6addr notifier chain events.
- *
- * We keep track of device IPv6 addresses primarily to use as source
- * addresses in NS probes.
- *
- * We track one IPv6 for the main device (if it has one).
- */
+
 static int bond_inet6addr_event(struct notifier_block *this,
 				unsigned long event,
 				void *ptr)

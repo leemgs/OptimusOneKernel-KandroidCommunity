@@ -1,35 +1,4 @@
-/*
- * Copyright (c) 2007 Mellanox Technologies. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- */
+
 
 #include <linux/errno.h>
 #include <linux/if_ether.h>
@@ -79,11 +48,7 @@ void mlx4_do_sense_ports(struct mlx4_dev *dev,
 			stype[i - 1] = defaults[i - 1];
 	}
 
-	/*
-	 * Adjust port configuration:
-	 * If port 1 sensed nothing and port 2 is IB, set both as IB
-	 * If port 2 sensed nothing and port 1 is Eth, set both as Eth
-	 */
+	
 	if (stype[0] == MLX4_PORT_TYPE_ETH) {
 		for (i = 1; i < dev->caps.num_ports; i++)
 			stype[i] = stype[i] ? stype[i] : MLX4_PORT_TYPE_ETH;
@@ -93,9 +58,7 @@ void mlx4_do_sense_ports(struct mlx4_dev *dev,
 			stype[i] = stype[i] ? stype[i] : MLX4_PORT_TYPE_IB;
 	}
 
-	/*
-	 * If sensed nothing, remain in current configuration.
-	 */
+	
 	for (i = 0; i < dev->caps.num_ports; i++)
 		stype[i] = stype[i] ? stype[i] : defaults[i];
 

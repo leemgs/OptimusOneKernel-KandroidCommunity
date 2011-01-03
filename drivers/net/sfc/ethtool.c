@@ -1,12 +1,4 @@
-/****************************************************************************
- * Driver for Solarflare Solarstorm network controllers and boards
- * Copyright 2005-2006 Fen Systems Ltd.
- * Copyright 2006-2008 Solarflare Communications Inc.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published
- * by the Free Software Foundation, incorporated herein by reference.
- */
+
 
 #include <linux/netdevice.h>
 #include <linux/ethtool.h>
@@ -46,10 +38,10 @@ struct efx_ethtool_stat {
 		EFX_ETHTOOL_STAT_SOURCE_channel
 	} source;
 	unsigned offset;
-	u64(*get_stat) (void *field); /* Reader function */
+	u64(*get_stat) (void *field); 
 };
 
-/* Initialiser for a struct #efx_ethtool_stat with type-checking */
+
 #define EFX_ETHTOOL_STAT(stat_name, source_name, field, field_type, \
 				get_stat_function) {			\
 	.name = #stat_name,						\
@@ -170,19 +162,14 @@ static struct efx_ethtool_stat efx_ethtool_stats[] = {
 	EFX_ETHTOOL_UINT_CHANNEL_STAT(rx_frm_trunc),
 };
 
-/* Number of ethtool statistics */
+
 #define EFX_ETHTOOL_NUM_STATS ARRAY_SIZE(efx_ethtool_stats)
 
 #define EFX_ETHTOOL_EEPROM_MAGIC 0xEFAB
 
-/**************************************************************************
- *
- * Ethtool operations
- *
- **************************************************************************
- */
 
-/* Identify device by flashing LEDs */
+
+
 static int efx_ethtool_phys_id(struct net_device *net_dev, u32 count)
 {
 	struct efx_nic *efx = netdev_priv(net_dev);
@@ -197,7 +184,7 @@ static int efx_ethtool_phys_id(struct net_device *net_dev, u32 count)
 	return 0;
 }
 
-/* This must be called with rtnl_lock held. */
+
 int efx_ethtool_get_settings(struct net_device *net_dev,
 			     struct ethtool_cmd *ecmd)
 {
@@ -207,20 +194,20 @@ int efx_ethtool_get_settings(struct net_device *net_dev,
 	efx->phy_op->get_settings(efx, ecmd);
 	mutex_unlock(&efx->mac_lock);
 
-	/* Falcon GMAC does not support 1000Mbps HD */
+	
 	ecmd->supported &= ~SUPPORTED_1000baseT_Half;
 
 	return 0;
 }
 
-/* This must be called with rtnl_lock held. */
+
 int efx_ethtool_set_settings(struct net_device *net_dev,
 			     struct ethtool_cmd *ecmd)
 {
 	struct efx_nic *efx = netdev_priv(net_dev);
 	int rc;
 
-	/* Falcon GMAC does not support 1000Mbps HD */
+	
 	if (ecmd->speed == SPEED_1000 && ecmd->duplex != DUPLEX_FULL) {
 		EFX_LOG(efx, "rejecting unsupported 1000Mbps HD"
 			" setting\n");
@@ -246,19 +233,7 @@ static void efx_ethtool_get_drvinfo(struct net_device *net_dev,
 	strlcpy(info->bus_info, pci_name(efx->pci_dev), sizeof(info->bus_info));
 }
 
-/**
- * efx_fill_test - fill in an individual self-test entry
- * @test_index:		Index of the test
- * @strings:		Ethtool strings, or %NULL
- * @data:		Ethtool test results, or %NULL
- * @test:		Pointer to test result (used only if data != %NULL)
- * @unit_format:	Unit name format (e.g. "chan\%d")
- * @unit_id:		Unit id (e.g. 0 for "chan0")
- * @test_format:	Test name format (e.g. "loopback.\%s.tx.sent")
- * @test_id:		Test id (e.g. "PHYXS" for "loopback.PHYXS.tx_sent")
- *
- * Fill in an individual self-test entry.
- */
+
 static void efx_fill_test(unsigned int test_index,
 			  struct ethtool_string *strings, u64 *data,
 			  int *test, const char *unit_format, int unit_id,
@@ -266,11 +241,11 @@ static void efx_fill_test(unsigned int test_index,
 {
 	struct ethtool_string unit_str, test_str;
 
-	/* Fill data value, if applicable */
+	
 	if (data)
 		data[test_index] = *test;
 
-	/* Fill string, if applicable */
+	
 	if (strings) {
 		if (strchr(unit_format, '%'))
 			snprintf(unit_str.name, sizeof(unit_str.name),
@@ -291,15 +266,7 @@ static void efx_fill_test(unsigned int test_index,
 #define EFX_LOOPBACK_NAME(_mode, _counter)			\
 	"loopback.%s." _counter, LOOPBACK_MODE_NAME(mode)
 
-/**
- * efx_fill_loopback_test - fill in a block of loopback self-test entries
- * @efx:		Efx NIC
- * @lb_tests:		Efx loopback self-test results structure
- * @mode:		Loopback test mode
- * @test_index:		Starting index of the test
- * @strings:		Ethtool strings, or %NULL
- * @data:		Ethtool test results, or %NULL
- */
+
 static int efx_fill_loopback_test(struct efx_nic *efx,
 				  struct efx_loopback_self_tests *lb_tests,
 				  enum efx_loopback_mode mode,
@@ -330,13 +297,7 @@ static int efx_fill_loopback_test(struct efx_nic *efx,
 	return test_index;
 }
 
-/**
- * efx_ethtool_fill_self_tests - get self-test details
- * @efx:		Efx NIC
- * @tests:		Efx self-test results structure, or %NULL
- * @strings:		Ethtool strings, or %NULL
- * @data:		Ethtool test results, or %NULL
- */
+
 static int efx_ethtool_fill_self_tests(struct efx_nic *efx,
 				       struct efx_self_tests *tests,
 				       struct ethtool_string *strings,
@@ -353,7 +314,7 @@ static int efx_ethtool_fill_self_tests(struct efx_nic *efx,
 	efx_fill_test(n++, strings, data, &tests->interrupt,
 		      "core", 0, "interrupt", NULL);
 
-	/* Event queues */
+	
 	efx_for_each_channel(channel, efx) {
 		efx_fill_test(n++, strings, data,
 			      &tests->eventq_dma[channel->channel],
@@ -376,7 +337,7 @@ static int efx_ethtool_fill_self_tests(struct efx_nic *efx,
 		efx_fill_test(n++, strings, data, &tests->phy[i],
 			      "phy", 0, efx->phy_op->test_names[i], NULL);
 
-	/* Loopback tests */
+	
 	for (mode = LOOPBACK_NONE; mode <= LOOPBACK_TEST_MAX; mode++) {
 		if (!(efx->loopback_modes & (1 << mode)))
 			continue;
@@ -422,7 +383,7 @@ static void efx_ethtool_get_strings(struct net_device *net_dev,
 					    ethtool_strings, NULL);
 		break;
 	default:
-		/* No other string sets */
+		
 		break;
 	}
 }
@@ -439,10 +400,10 @@ static void efx_ethtool_get_stats(struct net_device *net_dev,
 
 	EFX_BUG_ON_PARANOID(stats->n_stats != EFX_ETHTOOL_NUM_STATS);
 
-	/* Update MAC and NIC statistics */
+	
 	dev_get_stats(net_dev);
 
-	/* Fill detailed statistics buffer */
+	
 	for (i = 0; i < EFX_ETHTOOL_NUM_STATS; i++) {
 		stat = &efx_ethtool_stats[i];
 		switch (stat->source) {
@@ -467,9 +428,7 @@ static int efx_ethtool_set_rx_csum(struct net_device *net_dev, u32 enable)
 {
 	struct efx_nic *efx = netdev_priv(net_dev);
 
-	/* No way to stop the hardware doing the checks; we just
-	 * ignore the result.
-	 */
+	
 	efx->rx_checksum_enabled = !!enable;
 
 	return 0;
@@ -496,7 +455,7 @@ static void efx_ethtool_self_test(struct net_device *net_dev,
 		goto fail1;
 	}
 
-	/* We need rx buffers and interrupts. */
+	
 	already_up = (efx->net_dev->flags & IFF_UP);
 	if (!already_up) {
 		rc = dev_open(efx->net_dev);
@@ -519,13 +478,13 @@ static void efx_ethtool_self_test(struct net_device *net_dev,
 
  fail2:
  fail1:
-	/* Fill ethtool results structures */
+	
 	efx_ethtool_fill_self_tests(efx, &efx_tests, NULL, data);
 	if (rc)
 		test->flags |= ETH_TEST_FL_FAILED;
 }
 
-/* Restart autonegotiation */
+
 static int efx_ethtool_nway_reset(struct net_device *net_dev)
 {
 	struct efx_nic *efx = netdev_priv(net_dev);
@@ -602,7 +561,7 @@ static int efx_ethtool_get_coalesce(struct net_device *net_dev,
 
 	memset(coalesce, 0, sizeof(*coalesce));
 
-	/* Find lowest IRQ moderation across all used TX queues */
+	
 	coalesce->tx_coalesce_usecs_irq = ~((u32) 0);
 	efx_for_each_tx_queue(tx_queue, efx) {
 		channel = tx_queue->channel;
@@ -621,9 +580,7 @@ static int efx_ethtool_get_coalesce(struct net_device *net_dev,
 	return 0;
 }
 
-/* Set coalescing parameters
- * The difficulties occur for shared channels
- */
+
 static int efx_ethtool_set_coalesce(struct net_device *net_dev,
 				    struct ethtool_coalesce *coalesce)
 {
@@ -645,7 +602,7 @@ static int efx_ethtool_set_coalesce(struct net_device *net_dev,
 	tx_usecs = coalesce->tx_coalesce_usecs_irq;
 	adaptive = coalesce->use_adaptive_rx_coalesce;
 
-	/* If the channel is shared only allow RX parameters to be set */
+	
 	efx_for_each_tx_queue(tx_queue, efx) {
 		if ((tx_queue->channel->used_flags == EFX_USED_BY_RX_TX) &&
 		    tx_usecs) {
@@ -657,10 +614,7 @@ static int efx_ethtool_set_coalesce(struct net_device *net_dev,
 
 	efx_init_irq_moderation(efx, tx_usecs, rx_usecs, adaptive);
 
-	/* Reset channel to pick up new moderation value.  Note that
-	 * this may change the value of the irq_moderation field
-	 * (e.g. to allow for hardware timer granularity).
-	 */
+	
 	efx_for_each_channel(channel, efx)
 		falcon_set_int_moderation(channel);
 
@@ -690,24 +644,20 @@ static int efx_ethtool_set_pauseparam(struct net_device *net_dev,
 		return -EINVAL;
 	}
 
-	/* TX flow control may automatically turn itself off if the
-	 * link partner (intermittently) stops responding to pause
-	 * frames. There isn't any indication that this has happened,
-	 * so the best we do is leave it up to the user to spot this
-	 * and fix it be cycling transmit flow control on this end. */
+	
 	reset = (wanted_fc & EFX_FC_TX) && !(efx->wanted_fc & EFX_FC_TX);
 	if (EFX_WORKAROUND_11482(efx) && reset) {
 		if (falcon_rev(efx) >= FALCON_REV_B0) {
-			/* Recover by resetting the EM block */
+			
 			if (efx->link_up)
 				falcon_drain_tx_fifo(efx);
 		} else {
-			/* Schedule a reset to recover */
+			
 			efx_schedule_reset(efx, RESET_TYPE_INVISIBLE);
 		}
 	}
 
-	/* Try to push the pause parameters */
+	
 	mutex_lock(&efx->mac_lock);
 
 	efx->wanted_fc = wanted_fc;

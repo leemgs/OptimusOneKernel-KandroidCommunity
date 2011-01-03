@@ -1,18 +1,10 @@
 
-/* cnic.c: Broadcom CNIC core network driver.
- *
- * Copyright (c) 2006-2009 Broadcom Corporation
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation.
- *
- */
+
 
 #ifndef CNIC_DEFS_H
 #define CNIC_DEFS_H
 
-/* KWQ (kernel work queue) request op codes */
+
 #define L2_KWQE_OPCODE_VALUE_FLUSH                  (4)
 
 #define L4_KWQE_OPCODE_VALUE_CONNECT1               (50)
@@ -34,7 +26,7 @@
 #define L5CM_RAMROD_CMD_ID_SEARCHER_DELETE	(L5CM_RAMROD_CMD_ID_BASE + 14)
 #define L5CM_RAMROD_CMD_ID_TERMINATE_OFFLOAD	(L5CM_RAMROD_CMD_ID_BASE + 15)
 
-/* KCQ (kernel completion queue) response op codes */
+
 #define L4_KCQE_OPCODE_VALUE_CLOSE_COMP             (53)
 #define L4_KCQE_OPCODE_VALUE_RESET_COMP             (54)
 #define L4_KCQE_OPCODE_VALUE_FW_TCP_UPDATE          (55)
@@ -47,16 +39,14 @@
 #define L4_KCQE_OPCODE_VALUE_UPDATE_PG              (9)
 #define L4_KCQE_OPCODE_VALUE_UPLOAD_PG              (14)
 
-/* KCQ (kernel completion queue) completion status */
+
 #define L4_KCQE_COMPLETION_STATUS_SUCCESS		    (0)
 #define L4_KCQE_COMPLETION_STATUS_TIMEOUT        (0x93)
 
 #define L4_LAYER_CODE (4)
 #define L2_LAYER_CODE (2)
 
-/*
- * L4 KCQ CQE
- */
+
 struct l4_kcq {
 	u32 cid;
 	u32 pg_cid;
@@ -74,7 +64,7 @@ struct l4_kcq {
 	u8 flags;
 #define L4_KCQ_RESERVED3 (0x7<<0)
 #define L4_KCQ_RESERVED3_SHIFT 0
-#define L4_KCQ_RAMROD_COMPLETION (0x1<<3) /* Everest only */
+#define L4_KCQ_RAMROD_COMPLETION (0x1<<3) 
 #define L4_KCQ_RAMROD_COMPLETION_SHIFT 3
 #define L4_KCQ_LAYER_CODE (0x7<<4)
 #define L4_KCQ_LAYER_CODE_SHIFT 4
@@ -88,7 +78,7 @@ struct l4_kcq {
 	u8 flags;
 #define L4_KCQ_RESERVED3 (0xF<<0)
 #define L4_KCQ_RESERVED3_SHIFT 0
-#define L4_KCQ_RAMROD_COMPLETION (0x1<<3) /* Everest only */
+#define L4_KCQ_RAMROD_COMPLETION (0x1<<3) 
 #define L4_KCQ_RAMROD_COMPLETION_SHIFT 3
 #define L4_KCQ_LAYER_CODE (0x7<<4)
 #define L4_KCQ_LAYER_CODE_SHIFT 4
@@ -98,9 +88,7 @@ struct l4_kcq {
 };
 
 
-/*
- * L4 KCQ CQE PG upload
- */
+
 struct l4_kcq_upload_pg {
 	u32 pg_cid;
 #if defined(__BIG_ENDIAN)
@@ -135,9 +123,7 @@ struct l4_kcq_upload_pg {
 };
 
 
-/*
- * Gracefully close the connection request
- */
+
 struct l4_kwq_close_req {
 #if defined(__BIG_ENDIAN)
 	u8 flags;
@@ -165,9 +151,7 @@ struct l4_kwq_close_req {
 };
 
 
-/*
- * The first request to be passed in order to establish connection in option2
- */
+
 struct l4_kwq_connect_req1 {
 #if defined(__BIG_ENDIAN)
 	u8 flags;
@@ -258,10 +242,7 @@ struct l4_kwq_connect_req1 {
 };
 
 
-/*
- * The second ( optional )request to be passed in order to establish
- * connection in option2 - for IPv6 only
- */
+
 struct l4_kwq_connect_req2 {
 #if defined(__BIG_ENDIAN)
 	u8 flags;
@@ -296,10 +277,7 @@ struct l4_kwq_connect_req2 {
 };
 
 
-/*
- * The third ( and last )request to be passed in order to establish
- * connection in option2
- */
+
 struct l4_kwq_connect_req3 {
 #if defined(__BIG_ENDIAN)
 	u8 flags;
@@ -348,9 +326,7 @@ struct l4_kwq_connect_req3 {
 };
 
 
-/*
- * a KWQE request to offload a PG connection
- */
+
 struct l4_kwq_offload_pg {
 #if defined(__BIG_ENDIAN)
 	u8 flags;
@@ -445,9 +421,7 @@ struct l4_kwq_offload_pg {
 };
 
 
-/*
- * Abortively close the connection request
- */
+
 struct l4_kwq_reset_req {
 #if defined(__BIG_ENDIAN)
 	u8 flags;
@@ -475,9 +449,7 @@ struct l4_kwq_reset_req {
 };
 
 
-/*
- * a KWQE request to update a PG connection
- */
+
 struct l4_kwq_update_pg {
 #if defined(__BIG_ENDIAN)
 	u8 flags;
@@ -548,9 +520,7 @@ struct l4_kwq_update_pg {
 };
 
 
-/*
- * a KWQE request to upload a PG or L4 context
- */
+
 struct l4_kwq_upload {
 #if defined(__BIG_ENDIAN)
 	u8 flags;
@@ -577,4 +547,4 @@ struct l4_kwq_upload {
 	u32 reserved2[6];
 };
 
-#endif /* CNIC_DEFS_H */
+#endif 

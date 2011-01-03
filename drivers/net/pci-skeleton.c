@@ -1,89 +1,4 @@
-/*
 
-	drivers/net/pci-skeleton.c
-
-	Maintained by Jeff Garzik <jgarzik@pobox.com>
-
-	Original code came from 8139too.c, which in turns was based
-	originally on Donald Becker's rtl8139.c driver, versions 1.11
-	and older.  This driver was originally based on rtl8139.c
-	version 1.07.  Header of rtl8139.c version 1.11:
-
-	-----<snip>-----
-
-        	Written 1997-2000 by Donald Becker.
-		This software may be used and distributed according to the
-		terms of the GNU General Public License (GPL), incorporated
-		herein by reference.  Drivers based on or derived from this
-		code fall under the GPL and must retain the authorship,
-		copyright and license notice.  This file is not a complete
-		program and may only be used when the entire operating
-		system is licensed under the GPL.
-
-		This driver is for boards based on the RTL8129 and RTL8139
-		PCI ethernet chips.
-
-		The author may be reached as becker@scyld.com, or C/O Scyld
-		Computing Corporation 410 Severn Ave., Suite 210 Annapolis
-		MD 21403
-
-		Support and updates available at
-		http://www.scyld.com/network/rtl8139.html
-
-		Twister-tuning table provided by Kinston
-		<shangh@realtek.com.tw>.
-
-	-----<snip>-----
-
-	This software may be used and distributed according to the terms
-	of the GNU General Public License, incorporated herein by reference.
-
-
------------------------------------------------------------------------------
-
-				Theory of Operation
-
-I. Board Compatibility
-
-This device driver is designed for the RealTek RTL8139 series, the RealTek
-Fast Ethernet controllers for PCI and CardBus.  This chip is used on many
-low-end boards, sometimes with its markings changed.
-
-
-II. Board-specific settings
-
-PCI bus devices are configured by the system at boot time, so no jumpers
-need to be set on the board.  The system BIOS will assign the
-PCI INTA signal to a (preferably otherwise unused) system IRQ line.
-
-III. Driver operation
-
-IIIa. Rx Ring buffers
-
-The receive unit uses a single linear ring buffer rather than the more
-common (and more efficient) descriptor-based architecture.  Incoming frames
-are sequentially stored into the Rx region, and the host copies them into
-skbuffs.
-
-Comment: While it is theoretically possible to process many frames in place,
-any delay in Rx processing would cause us to drop frames.  More importantly,
-the Linux protocol stack is not designed to operate in this manner.
-
-IIIb. Tx operation
-
-The RTL8139 uses a fixed set of four Tx descriptors in register space.
-In a stunningly bad design choice, Tx frames must be 32 bit aligned.  Linux
-aligns the IP header on word boundaries, and 14 byte ethernet header means
-that almost all frames will need to be copied to an alignment buffer.
-
-IVb. References
-
-http://www.realtek.com.tw/cn/cn.html
-http://www.scyld.com/expert/NWay.html
-
-IVc. Errata
-
-*/
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -107,18 +22,18 @@ static char version[] __devinitdata =
 KERN_INFO NETDRV_DRIVER_LOAD_MSG "\n"
 "  Support available from http://foo.com/bar/baz.html\n";
 
-/* define to 1 to enable PIO instead of MMIO */
+
 #undef USE_IO_OPS
 
-/* define to 1 to enable copious debugging info */
+
 #undef NETDRV_DEBUG
 
-/* define to 1 to disable lightweight runtime debugging checks */
+
 #undef NETDRV_NDEBUG
 
 
 #ifdef NETDRV_DEBUG
-/* note: prints function name for you */
+
 #  define DPRINTK(fmt, args...) printk(KERN_DEBUG "%s: " fmt, __func__ , ## args)
 #else
 #  define DPRINTK(fmt, args...)
@@ -135,46 +50,44 @@ KERN_INFO NETDRV_DRIVER_LOAD_MSG "\n"
 #endif
 
 
-/* A few user-configurable values. */
-/* media options */
+
+
 static int media[] = {-1, -1, -1, -1, -1, -1, -1, -1};
 
-/* Maximum events (Rx packets, etc.) to handle at each interrupt. */
+
 static int max_interrupt_work = 20;
 
-/* Maximum number of multicast addresses to filter (vs. Rx-all-multicast).
-   The RTL chips use a 64 element hash table based on the Ethernet CRC.  */
+
 static int multicast_filter_limit = 32;
 
-/* Size of the in-memory receive ring. */
-#define RX_BUF_LEN_IDX	2	/* 0==8K, 1==16K, 2==32K, 3==64K */
+
+#define RX_BUF_LEN_IDX	2	
 #define RX_BUF_LEN (8192 << RX_BUF_LEN_IDX)
 #define RX_BUF_PAD 16
-#define RX_BUF_WRAP_PAD 2048 /* spare padding to handle lack of packet wrap */
+#define RX_BUF_WRAP_PAD 2048 
 #define RX_BUF_TOT_LEN (RX_BUF_LEN + RX_BUF_PAD + RX_BUF_WRAP_PAD)
 
-/* Number of Tx descriptor registers. */
+
 #define NUM_TX_DESC	4
 
-/* max supported ethernet frame size -- must be at least (dev->mtu+14+4).*/
+
 #define MAX_ETH_FRAME_SIZE	1536
 
-/* Size of the Tx bounce buffers -- must be at least (dev->mtu+14+4). */
+
 #define TX_BUF_SIZE	MAX_ETH_FRAME_SIZE
 #define TX_BUF_TOT_LEN	(TX_BUF_SIZE * NUM_TX_DESC)
 
-/* PCI Tuning Parameters
-   Threshold is bytes transferred to chip before transmission starts. */
-#define TX_FIFO_THRESH 256	/* In bytes, rounded down to 32 byte units. */
 
-/* The following settings are log_2(bytes)-4:  0 == 16 bytes .. 6==1024, 7==end of packet. */
-#define RX_FIFO_THRESH	6	/* Rx buffer level before first PCI xfer.  */
-#define RX_DMA_BURST	6	/* Maximum PCI burst, '6' is 1024 */
-#define TX_DMA_BURST	6	/* Maximum PCI burst, '6' is 1024 */
+#define TX_FIFO_THRESH 256	
 
 
-/* Operational parameters that usually are not changed. */
-/* Time in jiffies before concluding the transmitter is hung. */
+#define RX_FIFO_THRESH	6	
+#define RX_DMA_BURST	6	
+#define TX_DMA_BURST	6	
+
+
+
+
 #define TX_TIMEOUT  (6*HZ)
 
 
@@ -192,20 +105,20 @@ typedef enum {
 	RTL8139 = 0,
 	NETDRV_CB,
 	SMC1211TX,
-	/*MPX5030,*/
+	
 	DELTA8139,
 	ADDTRON8139,
 } board_t;
 
 
-/* indexed by board_t, above */
+
 static struct {
 	const char *name;
 } board_info[] __devinitdata = {
 	{ "RealTek RTL8139 Fast Ethernet" },
 	{ "RealTek RTL8139B PCI/CardBus" },
 	{ "SMC1211TX EZCard 10/100 (RealTek RTL8139)" },
-/*	{ MPX5030, "Accton MPX5030 (RealTek RTL8139)" },*/
+
 	{ "Delta Electronics 8139 10/100BaseTX" },
 	{ "Addtron Technolgy 8139 10/100BaseTX" },
 };
@@ -215,7 +128,7 @@ static struct pci_device_id netdrv_pci_tbl[] = {
 	{0x10ec, 0x8139, PCI_ANY_ID, PCI_ANY_ID, 0, 0, RTL8139 },
 	{0x10ec, 0x8138, PCI_ANY_ID, PCI_ANY_ID, 0, 0, NETDRV_CB },
 	{0x1113, 0x1211, PCI_ANY_ID, PCI_ANY_ID, 0, 0, SMC1211TX },
-/*	{0x1113, 0x1211, PCI_ANY_ID, PCI_ANY_ID, 0, 0, MPX5030 },*/
+
 	{0x1500, 0x1360, PCI_ANY_ID, PCI_ANY_ID, 0, 0, DELTA8139 },
 	{0x4033, 0x1360, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ADDTRON8139 },
 	{0,}
@@ -223,14 +136,14 @@ static struct pci_device_id netdrv_pci_tbl[] = {
 MODULE_DEVICE_TABLE (pci, netdrv_pci_tbl);
 
 
-/* The rest of these values should never change. */
 
-/* Symbolic offsets to registers. */
+
+
 enum NETDRV_registers {
-	MAC0 = 0,		/* Ethernet hardware address. */
-	MAR0 = 8,		/* Multicast filter. */
-	TxStatus0 = 0x10,	/* Transmit status (Four 32bit registers). */
-	TxAddr0 = 0x20,		/* Tx descriptors (also four 32bit). */
+	MAC0 = 0,		
+	MAR0 = 8,		
+	TxStatus0 = 0x10,	
+	TxAddr0 = 0x20,		
 	RxBuf = 0x30,
 	RxEarlyCnt = 0x34,
 	RxEarlyStatus = 0x36,
@@ -242,15 +155,15 @@ enum NETDRV_registers {
 	TxConfig = 0x40,
 	ChipVersion = 0x43,
 	RxConfig = 0x44,
-	Timer = 0x48,		/* A general-purpose counter. */
-	RxMissed = 0x4C,	/* 24 bits valid, write clears. */
+	Timer = 0x48,		
+	RxMissed = 0x4C,	
 	Cfg9346 = 0x50,
 	Config0 = 0x51,
 	Config1 = 0x52,
 	FlashReg = 0x54,
 	MediaStatus = 0x58,
 	Config3 = 0x59,
-	Config4 = 0x5A,		/* absent on RTL-8139A */
+	Config4 = 0x5A,		
 	HltClk = 0x5B,
 	MultiIntr = 0x5C,
 	TxSummary = 0x60,
@@ -259,12 +172,12 @@ enum NETDRV_registers {
 	NWayAdvert = 0x66,
 	NWayLPAR = 0x68,
 	NWayExpansion = 0x6A,
-	/* Undocumented registers, but required for proper operation. */
-	FIFOTMS = 0x70,		/* FIFO Control and test. */
-	CSCR = 0x74,		/* Chip Status and Configuration Register. */
+	
+	FIFOTMS = 0x70,		
+	CSCR = 0x74,		
 	PARA78 = 0x78,
-	PARA7c = 0x7c,		/* Magic transceiver parameter register. */
-	Config5 = 0xD8,		/* absent on RTL-8139A */
+	PARA7c = 0x7c,		
+	Config5 = 0xD8,		
 };
 
 enum ClearBitMasks {
@@ -280,7 +193,7 @@ enum ChipCmdBits {
 	RxBufEmpty = 0x01,
 };
 
-/* Interrupt register bits, using my own meaningful names. */
+
 enum IntrStatusBits {
 	PCIErr = 0x8000,
 	PCSTimeout = 0x4000,
@@ -312,7 +225,7 @@ enum RxStatusBits {
 	RxStatusOK = 0x0001,
 };
 
-/* Bits in RxConfig. */
+
 enum rx_mode_bits {
 	AcceptErr = 0x20,
 	AcceptRunt = 0x10,
@@ -322,19 +235,19 @@ enum rx_mode_bits {
 	AcceptAllPhys = 0x01,
 };
 
-/* Bits in TxConfig. */
-enum tx_config_bits {
-	TxIFG1 = (1 << 25),	/* Interframe Gap Time */
-	TxIFG0 = (1 << 24),	/* Enabling these bits violates IEEE 802.3 */
-	TxLoopBack = (1 << 18) | (1 << 17), /* enable loopback test mode */
-	TxCRC = (1 << 16),	/* DISABLE appending CRC to end of Tx packets */
-	TxClearAbt = (1 << 0),	/* Clear abort (WO) */
-	TxDMAShift = 8,		/* DMA burst value (0-7) is shift this many bits */
 
-	TxVersionMask = 0x7C800000, /* mask out version bits 30-26, 23 */
+enum tx_config_bits {
+	TxIFG1 = (1 << 25),	
+	TxIFG0 = (1 << 24),	
+	TxLoopBack = (1 << 18) | (1 << 17), 
+	TxCRC = (1 << 16),	
+	TxClearAbt = (1 << 0),	
+	TxDMAShift = 8,		
+
+	TxVersionMask = 0x7C800000, 
 };
 
-/* Bits in Config1 */
+
 enum Config1Bits {
 	Cfg1_PM_Enable = 0x01,
 	Cfg1_VPD_Enable = 0x02,
@@ -347,31 +260,30 @@ enum Config1Bits {
 };
 
 enum RxConfigBits {
-	/* Early Rx threshold, none or X/16 */
+	
 	RxCfgEarlyRxNone = 0,
 	RxCfgEarlyRxShift = 24,
 
-	/* rx fifo threshold */
+	
 	RxCfgFIFOShift = 13,
 	RxCfgFIFONone = (7 << RxCfgFIFOShift),
 
-	/* Max DMA burst */
+	
 	RxCfgDMAShift = 8,
 	RxCfgDMAUnlimited = (7 << RxCfgDMAShift),
 
-	/* rx ring buffer length */
+	
 	RxCfgRcv8K = 0,
 	RxCfgRcv16K = (1 << 11),
 	RxCfgRcv32K = (1 << 12),
 	RxCfgRcv64K = (1 << 11) | (1 << 12),
 
-	/* Disable packet wrap at end of Rx buffer */
+	
 	RxNoWrap = (1 << 7),
 };
 
 
-/* Twister tuning parameters from RealTek.
-   Completely undocumented, but required to tune bad links. */
+
 enum CSCRBits {
 	CSCR_LinkOKBit = 0x0400,
 	CSCR_LinkChangeBit = 0x0800,
@@ -388,7 +300,7 @@ enum Cfg9346Bits {
 
 
 #define PARA78_default	0x78fa8388
-#define PARA7c_default	0xcb38de43	/* param[0][3] */
+#define PARA7c_default	0xcb38de43	
 #define PARA7c_xxx		0xcb38de43
 static const unsigned long param[4][4] = {
 	{0xcb39de43, 0xcb39ce43, 0xfb38de03, 0xcb38de43},
@@ -413,15 +325,15 @@ typedef enum {
 } chip_t;
 
 
-/* directly indexed by chip_t, above */
+
 static const struct {
 	const char *name;
-	u8 version; /* from RTL8139C docs */
-	u32 RxConfigMask; /* should clear the bits supported by this chip */
+	u8 version; 
+	u32 RxConfigMask; 
 } rtl_chip_info[] = {
 	{ "RTL-8139",
 	  0x40,
-	  0xf0fe0040, /* XXX copied from RTL8139A, verify */
+	  0xf0fe0040, 
 	},
 
 	{ "RTL-8139 rev K",
@@ -441,12 +353,12 @@ static const struct {
 
 	{ "RTL-8130",
 	  0x7C,
-	  0xf0fe0040, /* XXX copied from RTL8139A, verify */
+	  0xf0fe0040, 
 	},
 
 	{ "RTL-8139C",
 	  0x74,
-	  0xf0fc0040, /* XXX copied from RTL8139B, verify */
+	  0xf0fc0040, 
 	},
 
 };
@@ -457,26 +369,26 @@ struct netdrv_private {
 	void *mmio_addr;
 	int drv_flags;
 	struct pci_dev *pci_dev;
-	struct timer_list timer;	/* Media selection timer. */
+	struct timer_list timer;	
 	unsigned char *rx_ring;
-	unsigned int cur_rx;	/* Index into the Rx buffer of next Rx pkt. */
+	unsigned int cur_rx;	
 	unsigned int tx_flag;
 	atomic_t cur_tx;
 	atomic_t dirty_tx;
-	/* The saved address of a sent-in-place packet/buffer, for skfree(). */
+	
 	struct ring_info tx_info[NUM_TX_DESC];
-	unsigned char *tx_buf[NUM_TX_DESC];	/* Tx bounce buffers */
-	unsigned char *tx_bufs;	/* Tx bounce buffer region. */
+	unsigned char *tx_buf[NUM_TX_DESC];	
+	unsigned char *tx_bufs;	
 	dma_addr_t rx_ring_dma;
 	dma_addr_t tx_bufs_dma;
-	char phys[4];		/* MII device addresses. */
-	char twistie, twist_row, twist_col;	/* Twister tune state. */
-	unsigned int full_duplex:1;	/* Full-duplex operation requested. */
+	char phys[4];		
+	char twistie, twist_row, twist_col;	
+	unsigned int full_duplex:1;	
 	unsigned int duplex_lock:1;
-	unsigned int default_port:4;	/* Last dev->if_port value. */
-	unsigned int media2:4;	/* Secondary monitored media port. */
-	unsigned int medialock:1;	/* Don't sense media type. */
-	unsigned int mediasense:1;	/* Media sensing in progress. */
+	unsigned int default_port:4;	
+	unsigned int media2:4;	
+	unsigned int medialock:1;	
+	unsigned int mediasense:1;	
 	spinlock_t lock;
 	chip_t chipset;
 };
@@ -534,8 +446,8 @@ static void netdrv_hw_start (struct net_device *dev);
 
 #else
 
-/* write MMIO register, with flush */
-/* Flush avoids rtl8139 bug w/ posted MMIO writes */
+
+
 #define NETDRV_W8_F(reg, val8)	do { writeb ((val8), ioaddr + (reg)); readb (ioaddr + (reg)); } while (0)
 #define NETDRV_W16_F(reg, val16)	do { writew ((val16), ioaddr + (reg)); readw (ioaddr + (reg)); } while (0)
 #define NETDRV_W32_F(reg, val32)	do { writel ((val32), ioaddr + (reg)); readl (ioaddr + (reg)); } while (0)
@@ -543,26 +455,26 @@ static void netdrv_hw_start (struct net_device *dev);
 
 #ifdef MMIO_FLUSH_AUDIT_COMPLETE
 
-/* write MMIO register */
+
 #define NETDRV_W8(reg, val8)	writeb ((val8), ioaddr + (reg))
 #define NETDRV_W16(reg, val16)	writew ((val16), ioaddr + (reg))
 #define NETDRV_W32(reg, val32)	writel ((val32), ioaddr + (reg))
 
 #else
 
-/* write MMIO register, then flush */
+
 #define NETDRV_W8		NETDRV_W8_F
 #define NETDRV_W16		NETDRV_W16_F
 #define NETDRV_W32		NETDRV_W32_F
 
-#endif /* MMIO_FLUSH_AUDIT_COMPLETE */
+#endif 
 
-/* read MMIO register */
+
 #define NETDRV_R8(reg)		readb (ioaddr + (reg))
 #define NETDRV_R16(reg)		readw (ioaddr + (reg))
 #define NETDRV_R32(reg)		((unsigned long) readl (ioaddr + (reg)))
 
-#endif /* USE_IO_OPS */
+#endif 
 
 
 static const u16 netdrv_intr_mask =
@@ -595,7 +507,7 @@ static int __devinit netdrv_init_board (struct pci_dev *pdev,
 	*ioaddr_out = NULL;
 	*dev_out = NULL;
 
-	/* dev zeroed in alloc_etherdev */
+	
 	dev = alloc_etherdev (sizeof (*tp));
 	if (dev == NULL) {
 		dev_err(&pdev->dev, "unable to alloc new ethernet\n");
@@ -605,7 +517,7 @@ static int __devinit netdrv_init_board (struct pci_dev *pdev,
 	SET_NETDEV_DEV(dev, &pdev->dev);
 	tp = netdev_priv(dev);
 
-	/* enable device (incl. PCI PM wakeup), and bus-mastering */
+	
 	rc = pci_enable_device (pdev);
 	if (rc)
 		goto err_out;
@@ -620,26 +532,25 @@ static int __devinit netdrv_init_board (struct pci_dev *pdev,
 	mmio_flags = pci_resource_flags (pdev, 1);
 	mmio_len = pci_resource_len (pdev, 1);
 
-	/* set this immediately, we need to know before
-	 * we talk to the chip directly */
+	
 	DPRINTK("PIO region size == 0x%02X\n", pio_len);
 	DPRINTK("MMIO region size == 0x%02lX\n", mmio_len);
 
-	/* make sure PCI base addr 0 is PIO */
+	
 	if (!(pio_flags & IORESOURCE_IO)) {
 		dev_err(&pdev->dev, "region #0 not a PIO resource, aborting\n");
 		rc = -ENODEV;
 		goto err_out;
 	}
 
-	/* make sure PCI base addr 1 is MMIO */
+	
 	if (!(mmio_flags & IORESOURCE_MEM)) {
 		dev_err(&pdev->dev, "region #1 not an MMIO resource, aborting\n");
 		rc = -ENODEV;
 		goto err_out;
 	}
 
-	/* check for weird/broken PCI region reporting */
+	
 	if ((pio_len < NETDRV_MIN_IO_SIZE) ||
 	    (mmio_len < NETDRV_MIN_IO_SIZE)) {
 		dev_err(&pdev->dev, "Invalid PCI region size(s), aborting\n");
@@ -656,37 +567,37 @@ static int __devinit netdrv_init_board (struct pci_dev *pdev,
 #ifdef USE_IO_OPS
 	ioaddr = (void *) pio_start;
 #else
-	/* ioremap MMIO region */
+	
 	ioaddr = ioremap (mmio_start, mmio_len);
 	if (ioaddr == NULL) {
 		dev_err(&pdev->dev, "cannot remap MMIO, aborting\n");
 		rc = -EIO;
 		goto err_out_free_res;
 	}
-#endif /* USE_IO_OPS */
+#endif 
 
-	/* Soft reset the chip. */
+	
 	NETDRV_W8 (ChipCmd, (NETDRV_R8 (ChipCmd) & ChipCmdClear) | CmdReset);
 
-	/* Check that the chip has finished the reset. */
+	
 	for (i = 1000; i > 0; i--)
 		if ((NETDRV_R8 (ChipCmd) & CmdReset) == 0)
 			break;
 		else
 			udelay (10);
 
-	/* Bring the chip out of low-power mode. */
-	/* <insert device-specific code here> */
+	
+	
 
 #ifndef USE_IO_OPS
-	/* sanity checks -- ensure PIO and MMIO registers agree */
+	
 	assert (inb (pio_start+Config0) == readb (ioaddr+Config0));
 	assert (inb (pio_start+Config1) == readb (ioaddr+Config1));
 	assert (inb (pio_start+TxConfig) == readb (ioaddr+TxConfig));
 	assert (inb (pio_start+RxConfig) == readb (ioaddr+RxConfig));
-#endif /* !USE_IO_OPS */
+#endif 
 
-	/* identify chip attached to board */
+	
 	tmp = NETDRV_R8 (ChipVersion);
 	for (i = ARRAY_SIZE (rtl_chip_info) - 1; i >= 0; i--)
 		if (tmp == rtl_chip_info[i].version) {
@@ -694,7 +605,7 @@ static int __devinit netdrv_init_board (struct pci_dev *pdev,
 			goto match;
 		}
 
-	/* if unknown chip, assume array element #0, original RTL-8139 in this case */
+	
 	dev_printk (KERN_DEBUG, &pdev->dev,
 		"unknown chip version, assuming RTL-8139\n");
 	dev_printk (KERN_DEBUG, &pdev->dev, "TxConfig = 0x%lx\n",
@@ -749,7 +660,7 @@ static int __devinit netdrv_init_one (struct pci_dev *pdev,
 	void *ioaddr = NULL;
 	static int board_idx = -1;
 
-/* when built into the kernel, we only print version if device is found */
+
 #ifndef MODULE
 	static int printed_version;
 	if (!printed_version++)
@@ -786,10 +697,10 @@ static int __devinit netdrv_init_one (struct pci_dev *pdev,
 	dev->irq = pdev->irq;
 	dev->base_addr = (unsigned long) ioaddr;
 
-	/* netdev_priv()/tp zeroed and aligned in alloc_etherdev */
+	
 	tp = netdev_priv(dev);
 
-	/* note: tp->chipset set in netdrv_init_board */
+	
 	tp->drv_flags = PCI_COMMAND_IO | PCI_COMMAND_MEMORY |
 			PCI_COMMAND_MASTER | NETDRV_CAPS;
 	tp->pci_dev = pdev;
@@ -811,10 +722,10 @@ static int __devinit netdrv_init_one (struct pci_dev *pdev,
 	printk (KERN_DEBUG "%s:  Identified 8139 chip type '%s'\n",
 		dev->name, rtl_chip_info[tp->chipset].name);
 
-	/* Put the chip into low-power mode. */
+	
 	NETDRV_W8_F (Cfg9346, Cfg9346_Unlock);
 
-	/* The lower four bits are the media type. */
+	
 	option = (board_idx > 7) ? 0 : media[board_idx];
 	if (option > 0) {
 		tp->full_duplex = (option & 0x200) ? 1 : 0;
@@ -852,7 +763,7 @@ static void __devexit netdrv_remove_one (struct pci_dev *pdev)
 
 #ifndef USE_IO_OPS
 	iounmap (np->mmio_addr);
-#endif /* !USE_IO_OPS */
+#endif 
 
 	pci_release_regions (pdev);
 
@@ -866,24 +777,22 @@ static void __devexit netdrv_remove_one (struct pci_dev *pdev)
 }
 
 
-/* Serial EEPROM section. */
 
-/*  EEPROM_Ctrl bits. */
-#define EE_SHIFT_CLK	0x04	/* EEPROM shift clock. */
-#define EE_CS			0x08	/* EEPROM chip select. */
-#define EE_DATA_WRITE	0x02	/* EEPROM chip data in. */
+
+
+#define EE_SHIFT_CLK	0x04	
+#define EE_CS			0x08	
+#define EE_DATA_WRITE	0x02	
 #define EE_WRITE_0		0x00
 #define EE_WRITE_1		0x02
-#define EE_DATA_READ	0x01	/* EEPROM chip data out. */
+#define EE_DATA_READ	0x01	
 #define EE_ENB			(0x80 | EE_CS)
 
-/* Delay between EEPROM clock transitions.
-   No extra delay is needed with 33Mhz PCI, but 66Mhz may change this.
- */
+
 
 #define eeprom_delay()	readl(ee_addr)
 
-/* The EEPROM commands include the alway-set leading bit. */
+
 #define EE_WRITE_CMD	(5)
 #define EE_READ_CMD		(6)
 #define EE_ERASE_CMD	(7)
@@ -901,7 +810,7 @@ static int __devinit read_eeprom (void *ioaddr, int location, int addr_len)
 	writeb (EE_ENB, ee_addr);
 	eeprom_delay ();
 
-	/* Shift the read command bits out. */
+	
 	for (i = 4 + addr_len; i >= 0; i--) {
 		int dataval = (read_cmd & (1 << i)) ? EE_DATA_WRITE : 0;
 		writeb (EE_ENB | dataval, ee_addr);
@@ -922,7 +831,7 @@ static int __devinit read_eeprom (void *ioaddr, int location, int addr_len)
 		eeprom_delay ();
 	}
 
-	/* Terminate the EEPROM access. */
+	
 	writeb (~EE_CS, ee_addr);
 	eeprom_delay ();
 
@@ -930,12 +839,8 @@ static int __devinit read_eeprom (void *ioaddr, int location, int addr_len)
 	return retval;
 }
 
-/* MII serial management: mostly bogus for now. */
-/* Read and write the MII management registers using software-generated
-   serial MDIO protocol.
-   The maximum data clock rate is 2.5 Mhz.  The minimum timing is usually
-   met by back-to-back PCI I/O cycles, but we insert a delay to avoid
-   "overclocking" issues. */
+
+
 #define MDIO_DIR		0x80
 #define MDIO_DATA_OUT	0x04
 #define MDIO_DATA_IN	0x02
@@ -958,7 +863,7 @@ static char mii_2_8139_map[8] = {
 };
 
 
-/* Syncronize the MII management interface by shifting 32 one bits out. */
+
 static void mdio_sync (void *mdio_addr)
 {
 	int i;
@@ -986,13 +891,13 @@ static int mdio_read (struct net_device *dev, int phy_id, int location)
 
 	DPRINTK ("ENTER\n");
 
-	if (phy_id > 31) {	/* Really a 8139.  Use internal registers. */
+	if (phy_id > 31) {	
 		DPRINTK ("EXIT after directly using 8139 internal regs\n");
 		return location < 8 && mii_2_8139_map[location] ?
 		    readw (tp->mmio_addr + mii_2_8139_map[location]) : 0;
 	}
 	mdio_sync (mdio_addr);
-	/* Shift the read command bits out. */
+	
 	for (i = 15; i >= 0; i--) {
 		int dataval = (mii_cmd & (1 << i)) ? MDIO_DATA_OUT : 0;
 
@@ -1002,7 +907,7 @@ static int mdio_read (struct net_device *dev, int phy_id, int location)
 		mdio_delay ();
 	}
 
-	/* Read the two transition, 16 data, and wire-idle bits. */
+	
 	for (i = 19; i > 0; i--) {
 		writeb (0, mdio_addr);
 		mdio_delay ();
@@ -1029,7 +934,7 @@ static void mdio_write (struct net_device *dev, int phy_id, int location,
 
 	DPRINTK ("ENTER\n");
 
-	if (phy_id > 31) {	/* Really a 8139.  Use internal registers. */
+	if (phy_id > 31) {	
 		if (location < 8 && mii_2_8139_map[location]) {
 			writew (value,
 				tp->mmio_addr + mii_2_8139_map[location]);
@@ -1040,7 +945,7 @@ static void mdio_write (struct net_device *dev, int phy_id, int location,
 	}
 	mdio_sync (mdio_addr);
 
-	/* Shift the command bits out. */
+	
 	for (i = 31; i >= 0; i--) {
 		int dataval =
 		    (mii_cmd & (1 << i)) ? MDIO_WRITE1 : MDIO_WRITE0;
@@ -1050,7 +955,7 @@ static void mdio_write (struct net_device *dev, int phy_id, int location,
 		mdio_delay ();
 	}
 
-	/* Clear out extra bits. */
+	
 	for (i = 2; i > 0; i--) {
 		writeb (0, mdio_addr);
 		mdio_delay ();
@@ -1109,8 +1014,7 @@ static int netdrv_open (struct net_device *dev)
 			dev->irq, NETDRV_R8 (MediaStatus),
 			tp->full_duplex ? "full" : "half");
 
-	/* Set the timer to switch to check for link beat and perhaps switch
-	   to an alternate media type. */
+	
 	init_timer (&tp->timer);
 	tp->timer.expires = jiffies + 3 * HZ;
 	tp->timer.data = (unsigned long) dev;
@@ -1122,7 +1026,7 @@ static int netdrv_open (struct net_device *dev)
 }
 
 
-/* Start the hardware at open or resume. */
+
 static void netdrv_hw_start (struct net_device *dev)
 {
 	struct netdrv_private *tp = netdev_priv(dev);
@@ -1131,20 +1035,20 @@ static void netdrv_hw_start (struct net_device *dev)
 
 	DPRINTK ("ENTER\n");
 
-	/* Soft reset the chip. */
+	
 	NETDRV_W8 (ChipCmd, (NETDRV_R8 (ChipCmd) & ChipCmdClear) | CmdReset);
 	udelay (100);
 
-	/* Check that the chip has finished the reset. */
+	
 	for (i = 1000; i > 0; i--)
 		if ((NETDRV_R8 (ChipCmd) & CmdReset) == 0)
 			break;
 
-	/* Restore our idea of the MAC address. */
+	
 	NETDRV_W32_F (MAC0 + 0, cpu_to_le32 (*(u32 *) (dev->dev_addr + 0)));
 	NETDRV_W32_F (MAC0 + 4, cpu_to_le32 (*(u32 *) (dev->dev_addr + 4)));
 
-	/* Must enable Tx/Rx before setting transfer thresholds! */
+	
 	NETDRV_W8_F (ChipCmd, (NETDRV_R8 (ChipCmd) & ChipCmdClear) |
 			   CmdRxEnb | CmdTxEnb);
 
@@ -1152,23 +1056,23 @@ static void netdrv_hw_start (struct net_device *dev)
 	    (NETDRV_R32 (RxConfig) & rtl_chip_info[tp->chipset].RxConfigMask);
 	NETDRV_W32_F (RxConfig, i);
 
-	/* Check this value: the documentation for IFG contradicts ifself. */
+	
 	NETDRV_W32 (TxConfig, (TX_DMA_BURST << TxDMAShift));
 
-	/* unlock Config[01234] and BMCR register writes */
+	
 	NETDRV_W8_F (Cfg9346, Cfg9346_Unlock);
 	udelay (10);
 
 	tp->cur_rx = 0;
 
-	/* Lock Config[01234] and BMCR register writes */
+	
 	NETDRV_W8_F (Cfg9346, Cfg9346_Lock);
 	udelay (10);
 
-	/* init Rx ring buffer DMA address */
+	
 	NETDRV_W32_F (RxBuf, tp->rx_ring_dma);
 
-	/* init Tx buffer DMA addresses */
+	
 	for (i = 0; i < NUM_TX_DESC; i++)
 		NETDRV_W32_F (TxAddr0 + (i * 4), tp->tx_bufs_dma + (tp->tx_buf[i] - tp->tx_bufs));
 
@@ -1176,14 +1080,14 @@ static void netdrv_hw_start (struct net_device *dev)
 
 	netdrv_set_rx_mode (dev);
 
-	/* no early-rx interrupts */
+	
 	NETDRV_W16 (MultiIntr, NETDRV_R16 (MultiIntr) & MultiIntrClear);
 
-	/* make sure RxTx has started */
+	
 	NETDRV_W8_F (ChipCmd, (NETDRV_R8 (ChipCmd) & ChipCmdClear) |
 			   CmdRxEnb | CmdTxEnb);
 
-	/* Enable all known interrupts by setting the interrupt mask. */
+	
 	NETDRV_W16_F (IntrMask, netdrv_intr_mask);
 
 	netif_start_queue (dev);
@@ -1192,7 +1096,7 @@ static void netdrv_hw_start (struct net_device *dev)
 }
 
 
-/* Initialize the Rx and Tx rings, along with various 'dev' bits. */
+
 static void netdrv_init_ring (struct net_device *dev)
 {
 	struct netdrv_private *tp = netdev_priv(dev);
@@ -1264,7 +1168,7 @@ static void netdrv_tx_clear (struct net_device *dev)
 	atomic_set (&tp->cur_tx, 0);
 	atomic_set (&tp->dirty_tx, 0);
 
-	/* Dump the unsent Tx packets. */
+	
 	for (i = 0; i < NUM_TX_DESC; i++) {
 		struct ring_info *rp = &tp->tx_info[i];
 		if (rp->mapping != 0) {
@@ -1295,15 +1199,15 @@ static void netdrv_tx_timeout (struct net_device *dev)
 		 NETDRV_R16 (IntrStatus),
 		 NETDRV_R8 (MediaStatus));
 
-	/* disable Tx ASAP, if not already */
+	
 	tmp8 = NETDRV_R8 (ChipCmd);
 	if (tmp8 & CmdTxEnb)
 		NETDRV_W8 (ChipCmd, tmp8 & ~CmdTxEnb);
 
-	/* Disable interrupts by clearing the interrupt mask. */
+	
 	NETDRV_W16 (IntrMask, 0x0000);
 
-	/* Emit info to figure out what went wrong. */
+	
 	printk (KERN_DEBUG "%s: Tx queue start entry %d  dirty entry %d.\n",
 		dev->name, atomic_read (&tp->cur_tx),
 		atomic_read (&tp->dirty_tx));
@@ -1313,14 +1217,14 @@ static void netdrv_tx_timeout (struct net_device *dev)
 			i == atomic_read (&tp->dirty_tx) % NUM_TX_DESC ?
 				" (queue head)" : "");
 
-	/* Stop a shared interrupt from scavenging while we are. */
+	
 	spin_lock_irqsave (&tp->lock, flags);
 
 	netdrv_tx_clear (dev);
 
 	spin_unlock_irqrestore (&tp->lock, flags);
 
-	/* ...and finally, reset everything */
+	
 	netdrv_hw_start (dev);
 
 	netif_wake_queue (dev);
@@ -1334,17 +1238,17 @@ static int netdrv_start_xmit (struct sk_buff *skb, struct net_device *dev)
 	void *ioaddr = tp->mmio_addr;
 	int entry;
 
-	/* Calculate the next Tx descriptor entry. */
+	
 	entry = atomic_read (&tp->cur_tx) % NUM_TX_DESC;
 
 	assert (tp->tx_info[entry].skb == NULL);
 	assert (tp->tx_info[entry].mapping == 0);
 
 	tp->tx_info[entry].skb = skb;
-	/* tp->tx_info[entry].mapping = 0; */
+	
 	skb_copy_from_linear_data(skb, tp->tx_buf[entry], skb->len);
 
-	/* Note: the chip doesn't have auto-pad! */
+	
 	NETDRV_W32 (TxStatus0 + (entry * sizeof(u32)),
 		 tp->tx_flag | (skb->len >= ETH_ZLEN ? skb->len : ETH_ZLEN));
 
@@ -1381,11 +1285,11 @@ static void netdrv_tx_interrupt (struct net_device *dev,
 		txstatus = NETDRV_R32 (TxStatus0 + (entry * sizeof (u32)));
 
 		if (!(txstatus & (TxStatOK | TxUnderrun | TxAborted)))
-			break;	/* It still hasn't been Txed */
+			break;	
 
-		/* Note: TxCarrierLost is always asserted at 100mbps. */
+		
 		if (txstatus & (TxOutOfWindow | TxAborted)) {
-			/* There was an major error, log it. */
+			
 			DPRINTK ("%s: Transmit error, Tx status %8.8x.\n",
 				 dev->name, txstatus);
 			dev->stats.tx_errors++;
@@ -1399,7 +1303,7 @@ static void netdrv_tx_interrupt (struct net_device *dev,
 				dev->stats.tx_window_errors++;
 		} else {
 			if (txstatus & TxUnderrun) {
-				/* Add 64 to the Tx FIFO threshold. */
+				
 				if (tp->tx_flag < 0x00300000)
 					tp->tx_flag += 0x00020000;
 				dev->stats.tx_fifo_errors++;
@@ -1409,7 +1313,7 @@ static void netdrv_tx_interrupt (struct net_device *dev,
 			dev->stats.tx_packets++;
 		}
 
-		/* Free the original skb. */
+		
 		if (tp->tx_info[entry].mapping != 0) {
 			pci_unmap_single(tp->pci_dev,
 					 tp->tx_info[entry].mapping,
@@ -1420,8 +1324,8 @@ static void netdrv_tx_interrupt (struct net_device *dev,
 		dev_kfree_skb_irq (tp->tx_info[entry].skb);
 		tp->tx_info[entry].skb = NULL;
 		dirty_tx++;
-		if (dirty_tx < 0) { /* handle signed int overflow */
-			atomic_sub (cur_tx, &tp->cur_tx); /* XXX racy? */
+		if (dirty_tx < 0) { 
+			atomic_sub (cur_tx, &tp->cur_tx); 
 			dirty_tx = cur_tx - tx_left + 1;
 		}
 		if (netif_queue_stopped (dev))
@@ -1439,13 +1343,13 @@ static void netdrv_tx_interrupt (struct net_device *dev,
 		     dev->name, dirty_tx, atomic_read (&tp->cur_tx));
 		dirty_tx += NUM_TX_DESC;
 	}
-#endif /* NETDRV_NDEBUG */
+#endif 
 
 	atomic_set (&tp->dirty_tx, dirty_tx);
 }
 
 
-/* TODO: clean this up!  Rx reset need not be this intensive */
+
 static void netdrv_rx_err (u32 rx_status, struct net_device *dev,
 			    struct netdrv_private *tp, void *ioaddr)
 {
@@ -1457,7 +1361,7 @@ static void netdrv_rx_err (u32 rx_status, struct net_device *dev,
 	if (rx_status & RxTooLong) {
 		DPRINTK ("%s: Oversized Ethernet frame, status %4.4x!\n",
 			 dev->name, rx_status);
-		/* A.C.: The chip hangs here. */
+		
 	}
 	dev->stats.rx_errors++;
 	if (rx_status & (RxBadSymbol | RxBadAlign))
@@ -1466,18 +1370,17 @@ static void netdrv_rx_err (u32 rx_status, struct net_device *dev,
 		dev->stats.rx_length_errors++;
 	if (rx_status & RxCRCErr)
 		dev->stats.rx_crc_errors++;
-	/* Reset the receiver, based on RealTek recommendation. (Bug?) */
+	
 	tp->cur_rx = 0;
 
-	/* disable receive */
+	
 	tmp8 = NETDRV_R8 (ChipCmd) & ChipCmdClear;
 	NETDRV_W8_F (ChipCmd, tmp8 | CmdTxEnb);
 
-	/* A.C.: Reset the multicast list. */
+	
 	netdrv_set_rx_mode (dev);
 
-	/* XXX potentially temporary hack to
-	 * restart hung receiver */
+	
 	while (--tmp_work > 0) {
 		tmp8 = NETDRV_R8 (ChipCmd);
 		if ((tmp8 & CmdRxEnb) && (tmp8 & CmdTxEnb))
@@ -1486,8 +1389,8 @@ static void netdrv_rx_err (u32 rx_status, struct net_device *dev,
 			  (tmp8 & ChipCmdClear) | CmdRxEnb | CmdTxEnb);
 	}
 
-	/* G.S.: Re-enable receiver */
-	/* XXX temporary hack to work around receiver hang */
+	
+	
 	netdrv_set_rx_mode (dev);
 
 	if (tmp_work <= 0)
@@ -1495,8 +1398,7 @@ static void netdrv_rx_err (u32 rx_status, struct net_device *dev,
 }
 
 
-/* The data sheet doesn't describe the Rx ring at all, so I'm guessing at the
-   field alignments and semantics. */
+
 static void netdrv_rx_interrupt (struct net_device *dev,
 				  struct netdrv_private *tp, void *ioaddr)
 {
@@ -1522,7 +1424,7 @@ static void netdrv_rx_interrupt (struct net_device *dev,
 		unsigned int pkt_size;
 		struct sk_buff *skb;
 
-		/* read size+status of next frame from DMA ring buffer */
+		
 		rx_status = le32_to_cpu (*(u32 *) (rx_ring + ring_offset));
 		rx_size = rx_status >> 16;
 		pkt_size = rx_size - 4;
@@ -1541,29 +1443,21 @@ static void netdrv_rx_interrupt (struct net_device *dev,
 		}
 #endif
 
-		/* If Rx err or invalid rx_size/rx_status received
-		 * (which happens if we get lost in the ring),
-		 * Rx process gets reset, so we abort any further
-		 * Rx processing.
-		 */
+		
 		if ((rx_size > (MAX_ETH_FRAME_SIZE+4)) ||
 		    (!(rx_status & RxStatusOK))) {
 			netdrv_rx_err (rx_status, dev, tp, ioaddr);
 			return;
 		}
 
-		/* Malloc up new buffer, compatible with net-2e. */
-		/* Omit the four octet CRC from the length. */
+		
+		
 
-		/* TODO: consider allocating skb's outside of
-		 * interrupt context, both to speed interrupt processing,
-		 * and also to reduce the chances of having to
-		 * drop packets here under memory pressure.
-		 */
+		
 
 		skb = dev_alloc_skb (pkt_size + 2);
 		if (skb) {
-			skb_reserve (skb, 2);	/* 16 byte align the IP fields. */
+			skb_reserve (skb, 2);	
 
 			skb_copy_to_linear_data (skb, &rx_ring[ring_offset + 4], pkt_size);
 			skb_put (skb, pkt_size);
@@ -1604,13 +1498,13 @@ static void netdrv_weird_interrupt (struct net_device *dev,
 	assert (tp != NULL);
 	assert (ioaddr != NULL);
 
-	/* Update the error count. */
+	
 	dev->stats.rx_missed_errors += NETDRV_R32 (RxMissed);
 	NETDRV_W32 (RxMissed, 0);
 
 	if ((status & RxUnderrun) && link_changed &&
 	    (tp->drv_flags & HAS_LNK_CHNG)) {
-		/* Really link-change on new chips. */
+		
 		int lpar = NETDRV_R16 (NWayLPAR);
 		int duplex = (lpar & 0x0100) || (lpar & 0x01C0) == 0x0040
 				|| tp->duplex_lock;
@@ -1623,7 +1517,7 @@ static void netdrv_weird_interrupt (struct net_device *dev,
 		status &= ~RxUnderrun;
 	}
 
-	/* XXX along with netdrv_rx_err, are we double-counting errors? */
+	
 	if (status &
 	    (RxUnderrun | RxOverflow | RxErr | RxFIFOOver))
 		dev->stats.rx_errors++;
@@ -1647,15 +1541,14 @@ static void netdrv_weird_interrupt (struct net_device *dev,
 }
 
 
-/* The interrupt handler does all of the Rx thread work and cleans up
-   after the Tx thread. */
+
 static irqreturn_t netdrv_interrupt (int irq, void *dev_instance)
 {
 	struct net_device *dev = (struct net_device *) dev_instance;
 	struct netdrv_private *tp = netdev_priv(dev);
 	int boguscnt = max_interrupt_work;
 	void *ioaddr = tp->mmio_addr;
-	int status = 0, link_changed = 0; /* avoid bogus "uninit" warning */
+	int status = 0, link_changed = 0; 
 	int handled = 0;
 
 	spin_lock (&tp->lock);
@@ -1663,12 +1556,12 @@ static irqreturn_t netdrv_interrupt (int irq, void *dev_instance)
 	do {
 		status = NETDRV_R16 (IntrStatus);
 
-		/* h/w no longer present (hotplug?) or major error, bail */
+		
 		if (status == 0xFFFF)
 			break;
 
 		handled = 1;
-		/* Acknowledge all of the current interrupt sources ASAP */
+		
 		NETDRV_W16_F (IntrStatus, status);
 
 		DPRINTK ("%s: interrupt  status=%#4.4x new intstat=%#4.4x.\n",
@@ -1680,13 +1573,13 @@ static irqreturn_t netdrv_interrupt (int irq, void *dev_instance)
 		      RxFIFOOver | TxErr | TxOK | RxErr | RxOK)) == 0)
 			break;
 
-		/* Check uncommon events with one test. */
+		
 		if (status & (PCIErr | PCSTimeout | RxUnderrun | RxOverflow |
 		  	      RxFIFOOver | TxErr | RxErr))
 			netdrv_weird_interrupt (dev, tp, ioaddr,
 						 status, link_changed);
 
-		if (status & (RxOK | RxUnderrun | RxOverflow | RxFIFOOver))	/* Rx interrupt */
+		if (status & (RxOK | RxUnderrun | RxOverflow | RxFIFOOver))	
 			netdrv_rx_interrupt (dev, tp, ioaddr);
 
 		if (status & (TxOK | TxErr))
@@ -1701,7 +1594,7 @@ static irqreturn_t netdrv_interrupt (int irq, void *dev_instance)
 			"IntrStatus=0x%4.4x.\n", dev->name,
 			status);
 
-		/* Clear all interrupt sources. */
+		
 		NETDRV_W16 (IntrStatus, 0xffff);
 	}
 
@@ -1730,13 +1623,13 @@ static int netdrv_close (struct net_device *dev)
 
 	spin_lock_irqsave (&tp->lock, flags);
 
-	/* Stop the chip's Tx and Rx DMA processes. */
+	
 	NETDRV_W8 (ChipCmd, (NETDRV_R8 (ChipCmd) & ChipCmdClear));
 
-	/* Disable interrupts by clearing the interrupt mask. */
+	
 	NETDRV_W16 (IntrMask, 0x0000);
 
-	/* Update the error counts. */
+	
 	dev->stats.rx_missed_errors += NETDRV_R32 (RxMissed);
 	NETDRV_W32 (RxMissed, 0);
 
@@ -1753,7 +1646,7 @@ static int netdrv_close (struct net_device *dev)
 	tp->rx_ring = NULL;
 	tp->tx_bufs = NULL;
 
-	/* Green! Put the chip in low-power mode. */
+	
 	NETDRV_W8 (Cfg9346, Cfg9346_Unlock);
 	NETDRV_W8 (Config1, 0x03);
 	NETDRV_W8 (Cfg9346, Cfg9346_Lock);
@@ -1773,17 +1666,17 @@ static int netdrv_ioctl (struct net_device *dev, struct ifreq *rq, int cmd)
 	DPRINTK ("ENTER\n");
 
 	switch (cmd) {
-	case SIOCGMIIPHY:		/* Get address of MII PHY in use. */
+	case SIOCGMIIPHY:		
 		data->phy_id = tp->phys[0] & 0x3f;
-		/* Fall Through */
+		
 
-	case SIOCGMIIREG:		/* Read MII PHY register. */
+	case SIOCGMIIREG:		
 		spin_lock_irqsave (&tp->lock, flags);
 		data->val_out = mdio_read (dev, data->phy_id & 0x1f, data->reg_num & 0x1f);
 		spin_unlock_irqrestore (&tp->lock, flags);
 		break;
 
-	case SIOCSMIIREG:		/* Write MII PHY register. */
+	case SIOCSMIIREG:		
 		spin_lock_irqsave (&tp->lock, flags);
 		mdio_write (dev, data->phy_id & 0x1f, data->reg_num & 0x1f, data->val_in);
 		spin_unlock_irqrestore (&tp->lock, flags);
@@ -1798,14 +1691,13 @@ static int netdrv_ioctl (struct net_device *dev, struct ifreq *rq, int cmd)
 	return rc;
 }
 
-/* Set or clear the multicast filter for this adaptor.
-   This routine is not state sensitive and need not be SMP locked. */
+
 
 static void netdrv_set_rx_mode (struct net_device *dev)
 {
 	struct netdrv_private *tp = netdev_priv(dev);
 	void *ioaddr = tp->mmio_addr;
-	u32 mc_filter[2];	/* Multicast hash filter */
+	u32 mc_filter[2];	
 	int i, rx_mode;
 	u32 tmp;
 
@@ -1814,7 +1706,7 @@ static void netdrv_set_rx_mode (struct net_device *dev)
 	DPRINTK ("%s:   netdrv_set_rx_mode(%4.4x) done -- Rx config %8.8x.\n",
 			dev->name, dev->flags, NETDRV_R32 (RxConfig));
 
-	/* Note: do not reorder, GCC is clever about common statements. */
+	
 	if (dev->flags & IFF_PROMISC) {
 		rx_mode =
 		    AcceptBroadcast | AcceptMulticast | AcceptMyPhys |
@@ -1822,7 +1714,7 @@ static void netdrv_set_rx_mode (struct net_device *dev)
 		mc_filter[1] = mc_filter[0] = 0xffffffff;
 	} else if ((dev->mc_count > multicast_filter_limit)
 		   || (dev->flags & IFF_ALLMULTI)) {
-		/* Too many to filter perfectly -- accept all multicasts. */
+		
 		rx_mode = AcceptBroadcast | AcceptMulticast | AcceptMyPhys;
 		mc_filter[1] = mc_filter[0] = 0xffffffff;
 	} else {
@@ -1837,11 +1729,11 @@ static void netdrv_set_rx_mode (struct net_device *dev)
 		}
 	}
 
-	/* if called from irq handler, lock already acquired */
+	
 	if (!in_irq ())
 		spin_lock_irq (&tp->lock);
 
-	/* We can safely update without stopping the chip. */
+	
 	tmp = netdrv_rx_config | rx_mode |
 		(NETDRV_R32 (RxConfig) & rtl_chip_info[tp->chipset].RxConfigMask);
 	NETDRV_W32_F (RxConfig, tmp);
@@ -1870,11 +1762,11 @@ static int netdrv_suspend (struct pci_dev *pdev, pm_message_t state)
 
 	spin_lock_irqsave (&tp->lock, flags);
 
-	/* Disable interrupts, stop Tx and Rx. */
+	
 	NETDRV_W16 (IntrMask, 0x0000);
 	NETDRV_W8 (ChipCmd, (NETDRV_R8 (ChipCmd) & ChipCmdClear));
 
-	/* Update the error counts. */
+	
 	dev->stats.rx_missed_errors += NETDRV_R32 (RxMissed);
 	NETDRV_W32 (RxMissed, 0);
 
@@ -1890,7 +1782,7 @@ static int netdrv_suspend (struct pci_dev *pdev, pm_message_t state)
 static int netdrv_resume (struct pci_dev *pdev)
 {
 	struct net_device *dev = pci_get_drvdata (pdev);
-	/*struct netdrv_private *tp = netdev_priv(dev);*/
+	
 
 	if (!netif_running(dev))
 		return 0;
@@ -1902,7 +1794,7 @@ static int netdrv_resume (struct pci_dev *pdev)
 	return 0;
 }
 
-#endif /* CONFIG_PM */
+#endif 
 
 
 static struct pci_driver netdrv_pci_driver = {
@@ -1913,13 +1805,13 @@ static struct pci_driver netdrv_pci_driver = {
 #ifdef CONFIG_PM
 	.suspend	= netdrv_suspend,
 	.resume		= netdrv_resume,
-#endif /* CONFIG_PM */
+#endif 
 };
 
 
 static int __init netdrv_init_module (void)
 {
-/* when a module, this is printed whether or not devices are found in probe */
+
 #ifdef MODULE
 	printk(version);
 #endif

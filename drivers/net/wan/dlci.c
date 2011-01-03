@@ -1,32 +1,4 @@
-/*
- * DLCI		Implementation of Frame Relay protocol for Linux, according to
- *		RFC 1490.  This generic device provides en/decapsulation for an
- *		underlying hardware driver.  Routes & IPs are assigned to these
- *		interfaces.  Requires 'dlcicfg' program to create usable 
- *		interfaces, the initial one, 'dlci' is for IOCTL use only.
- *
- * Version:	@(#)dlci.c	0.35	4 Jan 1997
- *
- * Author:	Mike McLagan <mike.mclagan@linux.org>
- *
- * Changes:
- *
- *		0.15	Mike Mclagan	Packet freeing, bug in kmalloc call
- *					DLCI_RET handling
- *		0.20	Mike McLagan	More conservative on which packets
- *					are returned for retry and which are
- *					are dropped.  If DLCI_RET_DROP is
- *					returned from the FRAD, the packet is
- *				 	sent back to Linux for re-transmission
- *		0.25	Mike McLagan	Converted to use SIOC IOCTL calls
- *		0.30	Jim Freeman	Fixed to allow IPX traffic
- *		0.35	Michael Elizabeth	Fixed incorrect memcpy_fromfs
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -59,11 +31,7 @@ static LIST_HEAD(dlci_devs);
 
 static void dlci_setup(struct net_device *);
 
-/* 
- * these encapsulate the RFC 1490 requirements as well as 
- * deal with packet transmission and reception, working with
- * the upper network layers 
- */
+
 
 static int dlci_header(struct sk_buff *skb, struct net_device *dev, 
 		       unsigned short type, const void *daddr,
@@ -84,7 +52,7 @@ static int dlci_header(struct sk_buff *skb, struct net_device *dev,
 			hlen = sizeof(hdr.control) + sizeof(hdr.IP_NLPID);
 			break;
 
-		/* feel free to add other types, if necessary */
+		
 
 		default:
 			hdr.pad = FRAD_P_PADDING;
@@ -147,9 +115,9 @@ static void dlci_receive(struct sk_buff *skb, struct net_device *dev)
 					break;
 				}
 
-				/* at this point, it's an EtherType frame */
+				
 				header = sizeof(struct frhdr);
-				/* Already in network order ! */
+				
 				skb->protocol = hdr->PID;
 				process = 1;
 				break;
@@ -175,7 +143,7 @@ static void dlci_receive(struct sk_buff *skb, struct net_device *dev)
 
 	if (process)
 	{
-		/* we've set up the protocol, so discard the header */
+		
 		skb_reset_mac_header(skb);
 		skb_pull(skb, header);
 		dev->stats.rx_bytes += skb->len;
@@ -316,7 +284,7 @@ static int dlci_add(struct dlci_add *dlci)
 	int			err = -EINVAL;
 
 
-	/* validate slave device */
+	
 	slave = dev_get_by_name(&init_net, dlci->devname);
 	if (!slave)
 		return -ENODEV;
@@ -324,7 +292,7 @@ static int dlci_add(struct dlci_add *dlci)
 	if (slave->type != ARPHRD_FRAD || netdev_priv(slave) == NULL)
 		goto err1;
 
-	/* create device name */
+	
 	master = alloc_netdev( sizeof(struct dlci_local), "dlci%d",
 			      dlci_setup);
 	if (!master) {
@@ -332,7 +300,7 @@ static int dlci_add(struct dlci_add *dlci)
 		goto err1;
 	}
 
-	/* make sure same slave not already registered */
+	
 	rtnl_lock();
 	list_for_each_entry(dlp, &dlci_devs, list) {
 		if (dlp->slave == slave) {
@@ -382,7 +350,7 @@ static int dlci_del(struct dlci_add *dlci)
 	struct net_device	*master, *slave;
 	int			err;
 
-	/* validate slave device */
+	
 	master = __dev_get_by_name(&init_net, dlci->devname);
 	if (!master)
 		return(-ENODEV);
@@ -470,7 +438,7 @@ static void dlci_setup(struct net_device *dev)
 
 }
 
-/* if slave is unregistering, then cleanup master */
+
 static int dlci_dev_event(struct notifier_block *unused,
 			  unsigned long event, void *ptr)
 {

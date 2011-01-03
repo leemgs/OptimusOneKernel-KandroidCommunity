@@ -1,15 +1,5 @@
-/****************************************************************************
- * Driver for Solarflare Solarstorm network controllers and boards
- * Copyright 2006-2008 Solarflare Communications Inc.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published
- * by the Free Software Foundation, incorporated herein by reference.
- */
-/*
- * Driver for SFP+ and XFP optical PHYs plus some support specific to the
- * AMCC QT20xx adapters; see www.amcc.com for details
- */
+
+
 
 #include <linux/timer.h>
 #include <linux/delay.h>
@@ -26,11 +16,11 @@
 		       (1 << LOOPBACK_PMAPMD) |		\
 		       (1 << LOOPBACK_NETWORK))
 
-/****************************************************************************/
-/* Quake-specific MDIO registers */
+
+
 #define MDIO_QUAKE_LED0_REG	(0xD006)
 
-/* QT2025C only */
+
 #define PCS_FW_HEARTBEAT_REG	0xd7ee
 #define PCS_FW_HEARTB_LBN	0
 #define PCS_FW_HEARTB_WIDTH	8
@@ -63,7 +53,7 @@ static int qt2025c_wait_reset(struct efx_nic *efx)
 	unsigned long timeout = jiffies + 10 * HZ;
 	int reg, old_counter = 0;
 
-	/* Wait for firmware heartbeat to start */
+	
 	for (;;) {
 		int counter;
 		reg = efx_mdio_read(efx, MDIO_MMD_PCS, PCS_FW_HEARTBEAT_REG);
@@ -80,7 +70,7 @@ static int qt2025c_wait_reset(struct efx_nic *efx)
 		msleep(10);
 	}
 
-	/* Wait for firmware status to look good */
+	
 	for (;;) {
 		reg = efx_mdio_read(efx, MDIO_MMD_PCS, PCS_UC8051_STATUS_REG);
 		if (reg < 0)
@@ -102,14 +92,12 @@ static int xfp_reset_phy(struct efx_nic *efx)
 	int rc;
 
 	if (efx->phy_type == PHY_TYPE_QT2025C) {
-		/* Wait for the reset triggered by falcon_reset_hw()
-		 * to complete */
+		
 		rc = qt2025c_wait_reset(efx);
 		if (rc < 0)
 			goto fail;
 	} else {
-		/* Reset the PHYXS MMD. This is documented as doing
-		 * a complete soft reset. */
+		
 		rc = efx_mdio_reset_mmd(efx, MDIO_MMD_PHYXS,
 					XFP_MAX_RESET_TIME / XFP_RESET_WAIT,
 					XFP_RESET_WAIT);
@@ -117,11 +105,10 @@ static int xfp_reset_phy(struct efx_nic *efx)
 			goto fail;
 	}
 
-	/* Wait 250ms for the PHY to complete bootup */
+	
 	msleep(250);
 
-	/* Check that all the MMDs we expect are present and responding. We
-	 * expect faults on some if the link is down, but not on the PHY XS */
+	
 	rc = efx_mdio_check_mmds(efx, XFP_REQUIRED_DEVS, MDIO_DEVS_PHYXS);
 	if (rc < 0)
 		goto fail;
@@ -169,7 +156,7 @@ static int xfp_phy_init(struct efx_nic *efx)
 
 static void xfp_phy_clear_interrupt(struct efx_nic *efx)
 {
-	/* Read to clear link status alarm */
+	
 	efx_mdio_read(efx, MDIO_MMD_PMAPMD, MDIO_PMA_LASI_STAT);
 }
 
@@ -181,7 +168,7 @@ static int xfp_link_ok(struct efx_nic *efx)
 static void xfp_phy_poll(struct efx_nic *efx)
 {
 	int link_up = xfp_link_ok(efx);
-	/* Simulate a PHY event if link state has changed */
+	
 	if (link_up != efx->link_up)
 		falcon_sim_phy_event(efx);
 }
@@ -191,11 +178,7 @@ static void xfp_phy_reconfigure(struct efx_nic *efx)
 	struct xfp_phy_data *phy_data = efx->phy_data;
 
 	if (efx->phy_type == PHY_TYPE_QT2025C) {
-		/* There are several different register bits which can
-		 * disable TX (and save power) on direct-attach cables
-		 * or optical transceivers, varying somewhat between
-		 * firmware versions.  Only 'static mode' appears to
-		 * cover everything. */
+		
 		mdio_set_flag(
 			&efx->mdio, efx->mdio.prtad, MDIO_MMD_PMAPMD,
 			PMA_PMD_FTX_CTRL2_REG, 1 << PMA_PMD_FTX_STATIC_LBN,
@@ -204,7 +187,7 @@ static void xfp_phy_reconfigure(struct efx_nic *efx)
 			efx->loopback_mode == LOOPBACK_PCS ||
 			efx->loopback_mode == LOOPBACK_PMAPMD);
 	} else {
-		/* Reset the PHY when moving from tx off to tx on */
+		
 		if (!(efx->phy_mode & PHY_MODE_TX_DISABLED) &&
 		    (phy_data->phy_mode & PHY_MODE_TX_DISABLED))
 			xfp_reset_phy(efx);
@@ -228,10 +211,10 @@ static void xfp_phy_get_settings(struct efx_nic *efx, struct ethtool_cmd *ecmd)
 
 static void xfp_phy_fini(struct efx_nic *efx)
 {
-	/* Clobber the LED if it was blinking */
+	
 	efx->board_info.blink(efx, false);
 
-	/* Free the context block */
+	
 	kfree(efx->phy_data);
 	efx->phy_data = NULL;
 }

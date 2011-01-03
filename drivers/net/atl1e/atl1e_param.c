@@ -1,31 +1,10 @@
-/*
- * Copyright(c) 2007 Atheros Corporation. All rights reserved.
- *
- * Derived from Intel e1000 driver
- * Copyright(c) 1999 - 2005 Intel Corporation. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 59
- * Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
+
 
 #include <linux/netdevice.h>
 
 #include "atl1e.h"
 
-/* This is the only thing that needs to be changed to adjust the
- * maximum number of ports that the driver can manage.
- */
+
 
 #define ATL1E_MAX_NIC 32
 
@@ -33,10 +12,7 @@
 #define OPTION_DISABLED 0
 #define OPTION_ENABLED  1
 
-/* All parameters are treated the same, as an integer array of values.
- * This macro just reduces the need to repeat the same declaration code
- * over and over (plus this helps to avoid typo bugs).
- */
+
 #define ATL1E_PARAM_INIT { [0 ... ATL1E_MAX_NIC] = OPTION_UNSET }
 
 #define ATL1E_PARAM(x, desc) \
@@ -45,48 +21,24 @@
 	module_param_array_named(x, x, int, &num_##x, 0); \
 	MODULE_PARM_DESC(x, desc);
 
-/* Transmit Memory count
- *
- * Valid Range: 64-2048
- *
- * Default Value: 128
- */
+
 #define ATL1E_MIN_TX_DESC_CNT		32
 #define ATL1E_MAX_TX_DESC_CNT		1020
 #define ATL1E_DEFAULT_TX_DESC_CNT	128
 ATL1E_PARAM(tx_desc_cnt, "Transmit description count");
 
-/* Receive Memory Block Count
- *
- * Valid Range: 16-512
- *
- * Default Value: 128
- */
-#define ATL1E_MIN_RX_MEM_SIZE		8    /* 8KB   */
-#define ATL1E_MAX_RX_MEM_SIZE		1024 /* 1MB   */
-#define ATL1E_DEFAULT_RX_MEM_SIZE	256  /* 128KB */
+
+#define ATL1E_MIN_RX_MEM_SIZE		8    
+#define ATL1E_MAX_RX_MEM_SIZE		1024 
+#define ATL1E_DEFAULT_RX_MEM_SIZE	256  
 ATL1E_PARAM(rx_mem_size, "memory size of rx buffer(KB)");
 
-/* User Specified MediaType Override
- *
- * Valid Range: 0-5
- *  - 0    - auto-negotiate at all supported speeds
- *  - 1    - only link at 100Mbps Full Duplex
- *  - 2    - only link at 100Mbps Half Duplex
- *  - 3    - only link at 10Mbps Full Duplex
- *  - 4    - only link at 10Mbps Half Duplex
- * Default Value: 0
- */
+
 
 ATL1E_PARAM(media_type, "MediaType Select");
 
-/* Interrupt Moderate Timer in units of 2 us
- *
- * Valid Range: 10-65535
- *
- * Default Value: 45000(90ms)
- */
-#define INT_MOD_DEFAULT_CNT             100 /* 200us */
+
+#define INT_MOD_DEFAULT_CNT             100 
 #define INT_MOD_MAX_CNT                 65000
 #define INT_MOD_MIN_CNT                 50
 ATL1E_PARAM(int_mod_timer, "Interrupt Moderator Timer");
@@ -105,11 +57,11 @@ struct atl1e_option {
 	char *err;
 	int  def;
 	union {
-		struct { /* range_option info */
+		struct { 
 			int min;
 			int max;
 		} r;
-		struct { /* list_option info */
+		struct { 
 			int nr;
 			struct atl1e_opt_list { int i; char *str; } *p;
 		} l;
@@ -165,15 +117,7 @@ static int __devinit atl1e_validate_option(int *value, struct atl1e_option *opt,
 	return -1;
 }
 
-/*
- * atl1e_check_options - Range Checking for Command Line Parameters
- * @adapter: board private structure
- *
- * This routine checks all command line parameters for valid user
- * input.  If an invalid value is given, or if no user specified
- * value exists, a default value is used.  The final value is stored
- * in a variable in the adapter structure.
- */
+
 void __devinit atl1e_check_options(struct atl1e_adapter *adapter)
 {
 	struct pci_dev *pdev = adapter->pdev;
@@ -183,7 +127,7 @@ void __devinit atl1e_check_options(struct atl1e_adapter *adapter)
 		dev_notice(&pdev->dev, "Using defaults for all values\n");
 	}
 
-	{ 		/* Transmit Ring Size */
+	{ 		
 		struct atl1e_option opt = {
 			.type = range_option,
 			.name = "Transmit Ddescription Count",
@@ -202,7 +146,7 @@ void __devinit atl1e_check_options(struct atl1e_adapter *adapter)
 			adapter->tx_ring.count = (u16)opt.def;
 	}
 
-	{ 		/* Receive Memory Block Count */
+	{ 		
 		struct atl1e_option opt = {
 			.type = range_option,
 			.name = "Memory size of rx buffer(KB)",
@@ -222,7 +166,7 @@ void __devinit atl1e_check_options(struct atl1e_adapter *adapter)
 		}
 	}
 
-	{ 		/* Interrupt Moderate Timer */
+	{ 		
 		struct atl1e_option opt = {
 			.type = range_option,
 			.name = "Interrupt Moderate Timer",
@@ -241,7 +185,7 @@ void __devinit atl1e_check_options(struct atl1e_adapter *adapter)
 			adapter->hw.imt = (u16)(opt.def);
 	}
 
-	{ 		/* MediaType */
+	{ 		
 		struct atl1e_option opt = {
 			.type = range_option,
 			.name = "Speed/Duplex Selection",

@@ -1,32 +1,7 @@
-/*******************************************************************************
-
-  Intel(R) Gigabit Ethernet Linux driver
-  Copyright(c) 2007-2009 Intel Corporation.
-
-  This program is free software; you can redistribute it and/or modify it
-  under the terms and conditions of the GNU General Public License,
-  version 2, as published by the Free Software Foundation.
-
-  This program is distributed in the hope it will be useful, but WITHOUT
-  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-  more details.
-
-  You should have received a copy of the GNU General Public License along with
-  this program; if not, write to the Free Software Foundation, Inc.,
-  51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
-
-  The full GNU General Public License is included in this distribution in
-  the file called "COPYING".
-
-  Contact Information:
-  e1000-devel Mailing List <e1000-devel@lists.sourceforge.net>
-  Intel Corporation, 5200 N.E. Elam Young Parkway, Hillsboro, OR 97124-6497
-
-*******************************************************************************/
 
 
-/* Linux PRO/1000 Ethernet Driver main header file */
+
+
 
 #ifndef _IGB_H_
 #define _IGB_H_
@@ -40,10 +15,10 @@
 
 struct igb_adapter;
 
-/* ((1000000000ns / (6000ints/s * 1024ns)) << 2 = 648 */
+
 #define IGB_START_ITR 648
 
-/* TX/RX descriptor defines */
+
 #define IGB_DEFAULT_TXD                  256
 #define IGB_MIN_TXD                       80
 #define IGB_MAX_TXD                     4096
@@ -52,11 +27,11 @@ struct igb_adapter;
 #define IGB_MIN_RXD                       80
 #define IGB_MAX_RXD                     4096
 
-#define IGB_DEFAULT_ITR                    3 /* dynamic */
+#define IGB_DEFAULT_ITR                    3 
 #define IGB_MAX_ITR_USECS              10000
 #define IGB_MIN_ITR_USECS                 10
 
-/* Transmit and receive queues */
+
 #define IGB_MAX_RX_QUEUES     (adapter->vfs_allocated_count ? \
                                (adapter->vfs_allocated_count > 6 ? 1 : 2) : 4)
 #define IGB_MAX_TX_QUEUES     IGB_MAX_RX_QUEUES
@@ -74,27 +49,17 @@ struct vf_data_storage {
 	bool clear_to_send;
 };
 
-/* RX descriptor control thresholds.
- * PTHRESH - MAC will consider prefetch if it has fewer than this number of
- *           descriptors available in its onboard memory.
- *           Setting this to 0 disables RX descriptor prefetch.
- * HTHRESH - MAC will only prefetch if there are at least this many descriptors
- *           available in host memory.
- *           If PTHRESH is 0, this should also be 0.
- * WTHRESH - RX descriptor writeback threshold - MAC will delay writing back
- *           descriptors until either it has this many to write back, or the
- *           ITR timer expires.
- */
+
 #define IGB_RX_PTHRESH                    16
 #define IGB_RX_HTHRESH                     8
 #define IGB_RX_WTHRESH                     1
 
-/* this is the size past which hardware will drop packets when setting LPE=0 */
+
 #define MAXIMUM_ETHERNET_VLAN_SIZE 1522
 
-/* Supported Rx Buffer Sizes */
-#define IGB_RXBUFFER_128   128    /* Used for packet split */
-#define IGB_RXBUFFER_256   256    /* Used for packet split */
+
+#define IGB_RXBUFFER_128   128    
+#define IGB_RXBUFFER_256   256    
 #define IGB_RXBUFFER_512   512
 #define IGB_RXBUFFER_1024  1024
 #define IGB_RXBUFFER_2048  2048
@@ -102,34 +67,33 @@ struct vf_data_storage {
 
 #define MAX_STD_JUMBO_FRAME_SIZE 9234
 
-/* How many Tx Descriptors do we need to call netif_wake_queue ? */
+
 #define IGB_TX_QUEUE_WAKE	16
-/* How many Rx Buffers do we bundle into one write to the hardware ? */
-#define IGB_RX_BUFFER_WRITE	16	/* Must be power of 2 */
+
+#define IGB_RX_BUFFER_WRITE	16	
 
 #define AUTO_ALL_MODES            0
 #define IGB_EEPROM_APME         0x0400
 
 #ifndef IGB_MASTER_SLAVE
-/* Switch to override PHY master/slave setting */
+
 #define IGB_MASTER_SLAVE	e1000_ms_hw_default
 #endif
 
 #define IGB_MNG_VLAN_NONE -1
 
-/* wrapper around a pointer to a socket buffer,
- * so a DMA handle can be stored along with the buffer */
+
 struct igb_buffer {
 	struct sk_buff *skb;
 	dma_addr_t dma;
 	union {
-		/* TX */
+		
 		struct {
 			unsigned long time_stamp;
 			u16 length;
 			u16 next_to_watch;
 		};
-		/* RX */
+		
 		struct {
 			struct page *page;
 			u64 page_dma;
@@ -150,16 +114,16 @@ struct igb_rx_queue_stats {
 };
 
 struct igb_ring {
-	struct igb_adapter *adapter; /* backlink */
-	void *desc;                  /* descriptor ring memory */
-	dma_addr_t dma;              /* phys address of the ring */
-	unsigned int size;           /* length of desc. ring in bytes */
-	unsigned int count;          /* number of desc. in the ring */
+	struct igb_adapter *adapter; 
+	void *desc;                  
+	dma_addr_t dma;              
+	unsigned int size;           
+	unsigned int count;          
 	u16 next_to_use;
 	u16 next_to_clean;
 	u16 head;
 	u16 tail;
-	struct igb_buffer *buffer_info; /* array of buffer info structs */
+	struct igb_buffer *buffer_info; 
 
 	u32 eims_value;
 	u32 itr_val;
@@ -172,12 +136,12 @@ struct igb_ring {
 	unsigned int total_packets;
 
 	union {
-		/* TX */
+		
 		struct {
 			struct igb_tx_queue_stats tx_stats;
 			bool detect_tx_hung;
 		};
-		/* RX */
+		
 		struct {
 			struct igb_rx_queue_stats rx_stats;
 			u64 rx_queue_drops;
@@ -197,7 +161,7 @@ struct igb_ring {
 #define E1000_TX_CTXTDESC_ADV(R, i)	    \
 	(&(((struct e1000_adv_tx_context_desc *)((R).desc))[i]))
 
-/* board specific private data structure */
+
 
 struct igb_adapter {
 	struct timer_list watchdog_timer;
@@ -214,7 +178,7 @@ struct igb_adapter {
 	unsigned int total_tx_packets;
 	unsigned int total_rx_bytes;
 	unsigned int total_rx_packets;
-	/* Interrupt Throttle Rate */
+	
 	u32 itr;
 	u32 itr_setting;
 	u16 tx_itr;
@@ -227,8 +191,8 @@ struct igb_adapter {
 	struct timer_list blink_timer;
 	unsigned long led_status;
 
-	/* TX */
-	struct igb_ring *tx_ring;      /* One per active queue */
+	
+	struct igb_ring *tx_ring;      
 	unsigned int restart_queue;
 	unsigned long tx_queue_len;
 	u32 txd_cmd;
@@ -238,8 +202,8 @@ struct igb_adapter {
 	u64 colc_old;
 	u32 tx_timeout_count;
 
-	/* RX */
-	struct igb_ring *rx_ring;      /* One per active queue */
+	
+	struct igb_ring *rx_ring;      
 	int num_tx_queues;
 	int num_rx_queues;
 
@@ -252,7 +216,7 @@ struct igb_adapter {
 	u32 max_frame_size;
 	u32 min_frame_size;
 
-	/* OS defined structs */
+	
 	struct net_device *netdev;
 	struct napi_struct napi;
 	struct pci_dev *pdev;
@@ -262,7 +226,7 @@ struct igb_adapter {
 	struct timecompare compare;
 	struct hwtstamp_config hwtstamp_config;
 
-	/* structs defined in e1000_hw.h */
+	
 	struct e1000_hw hw;
 	struct e1000_hw_stats stats;
 	struct e1000_phy_info phy_info;
@@ -277,7 +241,7 @@ struct igb_adapter {
 	u32 eims_enable_mask;
 	u32 eims_other;
 
-	/* to not mess up cache alignment, always add to the bottom */
+	
 	unsigned long state;
 	unsigned int flags;
 	u32 eeprom_wol;
@@ -353,4 +317,4 @@ static inline s32 igb_get_phy_info(struct e1000_hw *hw)
 	return 0;
 }
 
-#endif /* _IGB_H_ */
+#endif 

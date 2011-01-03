@@ -1,37 +1,11 @@
-/*******************************************************************************
 
-  Intel 10 Gigabit PCI Express Linux driver
-  Copyright(c) 1999 - 2009 Intel Corporation.
-
-  This program is free software; you can redistribute it and/or modify it
-  under the terms and conditions of the GNU General Public License,
-  version 2, as published by the Free Software Foundation.
-
-  This program is distributed in the hope it will be useful, but WITHOUT
-  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-  more details.
-
-  You should have received a copy of the GNU General Public License along with
-  this program; if not, write to the Free Software Foundation, Inc.,
-  51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
-
-  The full GNU General Public License is included in this distribution in
-  the file called "COPYING".
-
-  Contact Information:
-  Linux NICS <linux.nics@intel.com>
-  e1000-devel Mailing List <e1000-devel@lists.sourceforge.net>
-  Intel Corporation, 5200 N.E. Elam Young Parkway, Hillsboro, OR 97124-6497
-
-*******************************************************************************/
 
 #include "ixgbe.h"
 #include <linux/dcbnl.h>
 #include "ixgbe_dcb_82598.h"
 #include "ixgbe_dcb_82599.h"
 
-/* Callbacks for DCB netlink in the kernel */
+
 #define BIT_DCB_MODE	0x01
 #define BIT_PFC		0x02
 #define BIT_PG_RX	0x04
@@ -40,10 +14,10 @@
 #define BIT_RESETLINK   0x40
 #define BIT_LINKSPEED   0x80
 
-/* Responses for the DCB_C_SET_ALL command */
-#define DCB_HW_CHG_RST  0  /* DCB configuration changed with reset */
-#define DCB_NO_HW_CHG   1  /* DCB configuration did not change */
-#define DCB_HW_CHG      2  /* DCB configuration changed, no reset */
+
+#define DCB_HW_CHG_RST  0  
+#define DCB_NO_HW_CHG   1  
+#define DCB_HW_CHG      2  
 
 int ixgbe_copy_dcb_cfg(struct ixgbe_dcb_config *src_dcb_cfg,
                        struct ixgbe_dcb_config *dst_dcb_cfg, int tc_max)
@@ -116,7 +90,7 @@ static u8 ixgbe_dcbnl_set_state(struct net_device *netdev, u8 state)
 	struct ixgbe_adapter *adapter = netdev_priv(netdev);
 
 	if (state > 0) {
-		/* Turn on DCB */
+		
 		if (adapter->flags & IXGBE_FLAG_DCB_ENABLED)
 			goto out;
 
@@ -144,7 +118,7 @@ static u8 ixgbe_dcbnl_set_state(struct net_device *netdev, u8 state)
 		if (netif_running(netdev))
 			netdev->netdev_ops->ndo_open(netdev);
 	} else {
-		/* Turn off DCB */
+		
 		if (adapter->flags & IXGBE_FLAG_DCB_ENABLED) {
 			if (netif_running(netdev))
 				netdev->netdev_ops->ndo_stop(netdev);
@@ -341,10 +315,7 @@ static u8 ixgbe_dcbnl_set_all(struct net_device *netdev)
 	if (!adapter->dcb_set_bitmap)
 		return DCB_NO_HW_CHG;
 
-	/*
-	 * Only take down the adapter if the configuration change
-	 * requires a reset.
-	 */
+	
 	if (adapter->dcb_set_bitmap & BIT_RESETLINK) {
 		while (test_and_set_bit(__IXGBE_RESETTING, &adapter->state))
 			msleep(1);
@@ -493,16 +464,7 @@ static void ixgbe_dcbnl_setpfcstate(struct net_device *netdev, u8 state)
 	return;
 }
 
-/**
- * ixgbe_dcbnl_getapp - retrieve the DCBX application user priority
- * @netdev : the corresponding netdev
- * @idtype : identifies the id as ether type or TCP/UDP port number
- * @id: id is either ether type or TCP/UDP port number
- *
- * Returns : on success, returns a non-zero 802.1p user priority bitmap
- * otherwise returns 0 as the invalid user priority bitmap to indicate an
- * error.
- */
+
 static u8 ixgbe_dcbnl_getapp(struct net_device *netdev, u8 idtype, u16 id)
 {
 	u8 rval = 0;
@@ -522,15 +484,7 @@ static u8 ixgbe_dcbnl_getapp(struct net_device *netdev, u8 idtype, u16 id)
 	return rval;
 }
 
-/**
- * ixgbe_dcbnl_setapp - set the DCBX application user priority
- * @netdev : the corresponding netdev
- * @idtype : identifies the id as ether type or TCP/UDP port number
- * @id: id is either ether type or TCP/UDP port number
- * @up: the 802.1p user priority bitmap
- *
- * Returns : 0 on success or 1 on error
- */
+
 static u8 ixgbe_dcbnl_setapp(struct net_device *netdev,
                              u8 idtype, u16 id, u8 up)
 {

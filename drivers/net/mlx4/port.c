@@ -1,34 +1,4 @@
-/*
- * Copyright (c) 2007 Mellanox Technologies. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 
 #include <linux/errno.h>
 #include <linux/if_ether.h>
@@ -105,7 +75,7 @@ int mlx4_register_mac(struct mlx4_dev *dev, u8 port, u64 mac, int *index)
 		}
 
 		if (mac == (MLX4_MAC_MASK & be64_to_cpu(table->entries[i]))) {
-			/* MAC already registered, increase refernce count */
+			
 			*index = i;
 			++table->refs[i];
 			goto out;
@@ -114,12 +84,12 @@ int mlx4_register_mac(struct mlx4_dev *dev, u8 port, u64 mac, int *index)
 	mlx4_dbg(dev, "Free MAC index is %d\n", free);
 
 	if (table->total == table->max) {
-		/* No free mac entries */
+		
 		err = -ENOSPC;
 		goto out;
 	}
 
-	/* Register new MAC */
+	
 	table->refs[free] = 1;
 	table->entries[free] = cpu_to_be64(mac | MLX4_MAC_VALID);
 
@@ -198,7 +168,7 @@ int mlx4_register_vlan(struct mlx4_dev *dev, u8 port, u16 vlan, int *index)
 		if (table->refs[i] &&
 		    (vlan == (MLX4_VLAN_MASK &
 			      be32_to_cpu(table->entries[i])))) {
-			/* Vlan already registered, increase refernce count */
+			
 			*index = i;
 			++table->refs[i];
 			goto out;
@@ -206,12 +176,12 @@ int mlx4_register_vlan(struct mlx4_dev *dev, u8 port, u16 vlan, int *index)
 	}
 
 	if (table->total == table->max) {
-		/* No free vlan entries */
+		
 		err = -ENOSPC;
 		goto out;
 	}
 
-	/* Register new MAC */
+	
 	table->refs[free] = 1;
 	table->entries[free] = cpu_to_be32(vlan | MLX4_VLAN_VALID);
 

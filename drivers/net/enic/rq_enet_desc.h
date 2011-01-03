@@ -1,26 +1,9 @@
-/*
- * Copyright 2008 Cisco Systems, Inc.  All rights reserved.
- * Copyright 2007 Nuova Systems, Inc.  All rights reserved.
- *
- * This program is free software; you may redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; version 2 of the License.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- */
+
 
 #ifndef _RQ_ENET_DESC_H_
 #define _RQ_ENET_DESC_H_
 
-/* Ethernet receive queue descriptor: 16B */
+
 struct rq_enet_desc {
 	__le64 address;
 	__le16 length_type;
@@ -57,4 +40,4 @@ static inline void rq_enet_desc_dec(struct rq_enet_desc *desc,
 		RQ_ENET_TYPE_MASK);
 }
 
-#endif /* _RQ_ENET_DESC_H_ */
+#endif 

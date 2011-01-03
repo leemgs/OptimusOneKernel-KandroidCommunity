@@ -1,19 +1,4 @@
-/*
- * Copyright (C) 2005 - 2009 ServerEngines
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version 2
- * as published by the Free Software Foundation.  The full GNU General
- * Public License is included in this distribution in the file called COPYING.
- *
- * Contact Information:
- * linux-drivers@serverengines.com
- *
- * ServerEngines
- * 209 N. Fair Oaks Ave
- * Sunnyvale, CA 94085
- */
+
 
 #ifndef BE_H
 #define BE_H
@@ -62,7 +47,7 @@ static inline char *nic_name(struct pci_dev *pdev)
 	}
 }
 
-/* Number of bytes of an RX frame that are copied to skb->data */
+
 #define BE_HDR_LEN 		64
 #define BE_MAX_JUMBO_FRAME_SIZE	9018
 #define BE_MIN_MTU		256
@@ -74,13 +59,13 @@ static inline char *nic_name(struct pci_dev *pdev)
 #define EVNT_Q_LEN		1024
 #define TX_Q_LEN		2048
 #define TX_CQ_LEN		1024
-#define RX_Q_LEN		1024	/* Does not support any other value */
+#define RX_Q_LEN		1024	
 #define RX_CQ_LEN		1024
-#define MCC_Q_LEN		128	/* total size not to exceed 8 pages */
+#define MCC_Q_LEN		128	
 #define MCC_CQ_LEN		256
 
 #define BE_NAPI_WEIGHT		64
-#define MAX_RX_POST 		BE_NAPI_WEIGHT /* Frags posted at a time */
+#define MAX_RX_POST 		BE_NAPI_WEIGHT 
 #define RX_FRAGS_REFILL_WM	(RX_Q_LEN - MAX_RX_POST)
 
 #define FW_VER_LEN		32
@@ -94,11 +79,11 @@ struct be_dma_mem {
 struct be_queue_info {
 	struct be_dma_mem dma_mem;
 	u16 len;
-	u16 entry_size;	/* Size of an element in the queue */
+	u16 entry_size;	
 	u16 id;
 	u16 tail, head;
 	bool created;
-	atomic_t used;	/* Number of valid elements in the queue */
+	atomic_t used;	
 };
 
 static inline u32 MODULO(u16 val, u16 limit)
@@ -141,11 +126,11 @@ struct be_eq_obj {
 	struct be_queue_info q;
 	char desc[32];
 
-	/* Adaptive interrupt coalescing (AIC) info */
+	
 	bool enable_aic;
-	u16 min_eqd;		/* in usecs */
-	u16 max_eqd;		/* in usecs */
-	u16 cur_eqd;		/* in usecs */
+	u16 min_eqd;		
+	u16 max_eqd;		
+	u16 cur_eqd;		
 
 	struct napi_struct napi;
 };
@@ -156,12 +141,12 @@ struct be_mcc_obj {
 };
 
 struct be_drvr_stats {
-	u32 be_tx_reqs;		/* number of TX requests initiated */
-	u32 be_tx_stops;	/* number of times TX Q was stopped */
-	u32 be_fwd_reqs;	/* number of send reqs through forwarding i/f */
-	u32 be_tx_wrbs;		/* number of tx WRBs used */
-	u32 be_tx_events;	/* number of tx completion events  */
-	u32 be_tx_compl;	/* number of tx completion entries processed */
+	u32 be_tx_reqs;		
+	u32 be_tx_stops;	
+	u32 be_fwd_reqs;	
+	u32 be_tx_wrbs;		
+	u32 be_tx_events;	
+	u32 be_tx_compl;	
 	ulong be_tx_jiffies;
 	u64 be_tx_bytes;
 	u64 be_tx_bytes_prev;
@@ -169,25 +154,23 @@ struct be_drvr_stats {
 
 	u32 cache_barrier[16];
 
-	u32 be_ethrx_post_fail;/* number of ethrx buffer alloc failures */
-	u32 be_polls;		/* number of times NAPI called poll function */
-	u32 be_rx_events;	/* number of ucast rx completion events  */
-	u32 be_rx_compl;	/* number of rx completion entries processed */
+	u32 be_ethrx_post_fail;
+	u32 be_polls;		
+	u32 be_rx_events;	
+	u32 be_rx_compl;	
 	ulong be_rx_jiffies;
 	u64 be_rx_bytes;
 	u64 be_rx_bytes_prev;
 	u32 be_rx_rate;
-	/* number of non ether type II frames dropped where
-	 * frame len > length field of Mac Hdr */
+	
 	u32 be_802_3_dropped_frames;
-	/* number of non ether type II frames malformed where
-	 * in frame len < length field of Mac Hdr */
+	
 	u32 be_802_3_malformed_frames;
-	u32 be_rxcp_err;	/* Num rx completion entries w/ err set. */
-	ulong rx_fps_jiffies;	/* jiffies at last FPS calc */
+	u32 be_rxcp_err;	
+	ulong rx_fps_jiffies;	
 	u32 be_rx_frags;
 	u32 be_prev_rx_frags;
-	u32 be_rx_fps;		/* Rx frags per second */
+	u32 be_rx_fps;		
 };
 
 struct be_stats_obj {
@@ -199,11 +182,11 @@ struct be_stats_obj {
 struct be_tx_obj {
 	struct be_queue_info q;
 	struct be_queue_info cq;
-	/* Remember the skbs that were transmitted */
+	
 	struct sk_buff *sent_skb_list[TX_Q_LEN];
 };
 
-/* Struct to remember the pages posted for rx frags */
+
 struct be_rx_page_info {
 	struct page *page;
 	dma_addr_t bus;
@@ -217,65 +200,64 @@ struct be_rx_obj {
 	struct be_rx_page_info page_info_tbl[RX_Q_LEN];
 };
 
-#define BE_NUM_MSIX_VECTORS		2	/* 1 each for Tx and Rx */
+#define BE_NUM_MSIX_VECTORS		2	
 struct be_adapter {
 	struct pci_dev *pdev;
 	struct net_device *netdev;
 
 	u8 __iomem *csr;
-	u8 __iomem *db;		/* Door Bell */
-	u8 __iomem *pcicfg;	/* PCI config space */
+	u8 __iomem *db;		
+	u8 __iomem *pcicfg;	
 
-	spinlock_t mbox_lock;	/* For serializing mbox cmds to BE card */
+	spinlock_t mbox_lock;	
 	struct be_dma_mem mbox_mem;
-	/* Mbox mem is adjusted to align to 16 bytes. The allocated addr
-	 * is stored for freeing purpose */
+	
 	struct be_dma_mem mbox_mem_alloced;
 
 	struct be_mcc_obj mcc_obj;
-	spinlock_t mcc_lock;	/* For serializing mcc cmds to BE card */
+	spinlock_t mcc_lock;	
 	spinlock_t mcc_cq_lock;
 
 	struct msix_entry msix_entries[BE_NUM_MSIX_VECTORS];
 	bool msix_enabled;
 	bool isr_registered;
 
-	/* TX Rings */
+	
 	struct be_eq_obj tx_eq;
 	struct be_tx_obj tx_obj;
 
 	u32 cache_line_break[8];
 
-	/* Rx rings */
+	
 	struct be_eq_obj rx_eq;
 	struct be_rx_obj rx_obj;
-	u32 big_page_size;	/* Compounded page size shared by rx wrbs */
-	bool rx_post_starved;	/* Zero rx frags have been posted to BE */
+	u32 big_page_size;	
+	bool rx_post_starved;	
 
 	struct vlan_group *vlan_grp;
 	u16 num_vlans;
 	u8 vlan_tag[VLAN_GROUP_ARRAY_LEN];
 
 	struct be_stats_obj stats;
-	/* Work queue used to perform periodic tasks like getting statistics */
+	
 	struct delayed_work work;
 
-	/* Ethtool knobs and info */
-	bool rx_csum; 		/* BE card must perform rx-checksumming */
+	
+	bool rx_csum; 		
 	char fw_ver[FW_VER_LEN];
-	u32 if_handle;		/* Used to configure filtering */
-	u32 pmac_id;		/* MAC addr handle used by BE card */
+	u32 if_handle;		
+	u32 pmac_id;		
 
 	bool link_up;
 	u32 port_num;
 	bool promiscuous;
 	u32 cap;
-	u32 rx_fc;		/* Rx flow control */
-	u32 tx_fc;		/* Tx flow control */
-	u8 generation;		/* BladeEngine ASIC generation */
+	u32 rx_fc;		
+	u32 tx_fc;		
+	u8 generation;		
 };
 
-/* BladeEngine Generation numbers */
+
 #define BE_GEN2 2
 #define BE_GEN3 3
 
@@ -293,20 +275,20 @@ static inline unsigned int be_pci_func(struct be_adapter *adapter)
 #define PAGE_SHIFT_4K		12
 #define PAGE_SIZE_4K		(1 << PAGE_SHIFT_4K)
 
-/* Returns number of pages spanned by the data starting at the given addr */
+
 #define PAGES_4K_SPANNED(_address, size) 				\
 		((u32)((((size_t)(_address) & (PAGE_SIZE_4K - 1)) + 	\
 			(size) + (PAGE_SIZE_4K - 1)) >> PAGE_SHIFT_4K))
 
-/* Byte offset into the page corresponding to given address */
+
 #define OFFSET_IN_PAGE(addr)						\
 		 ((size_t)(addr) & (PAGE_SIZE_4K-1))
 
-/* Returns bit offset within a DWORD of a bitfield */
+
 #define AMAP_BIT_OFFSET(_struct, field)  				\
 		(((size_t)&(((_struct *)0)->field))%32)
 
-/* Returns the bit mask of the field that is NOT shifted into location. */
+
 static inline u32 amap_mask(u32 bitsize)
 {
 	return (bitsize == 32 ? 0xFFFFFFFF : (1 << bitsize) - 1);
@@ -351,7 +333,7 @@ static inline void swap_dws(void *wrb, int len)
 		dw++;
 		len -= 4;
 	} while (len);
-#endif				/* __BIG_ENDIAN */
+#endif				
 }
 
 static inline u8 is_tcp_pkt(struct sk_buff *skb)
@@ -383,4 +365,4 @@ extern void be_cq_notify(struct be_adapter *adapter, u16 qid, bool arm,
 extern void be_link_status_update(struct be_adapter *adapter, bool link_up);
 extern void netdev_stats_update(struct be_adapter *adapter);
 extern int be_load_fw(struct be_adapter *adapter, u8 *func);
-#endif				/* BE_H */
+#endif				

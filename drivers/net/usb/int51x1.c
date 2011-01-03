@@ -1,28 +1,6 @@
-/*
- * Copyright (c) 2009 Peter Holik
- *
- * Intellon usb PLC (Powerline Communications) usb net driver
- *
- * http://www.tandel.be/downloads/INT51X1_Datasheet.pdf
- *
- * Based on the work of Jan 'RedBully' Seiffert
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or.
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- */
+
+
 
 #include <linux/module.h>
 #include <linux/ctype.h>
@@ -36,13 +14,13 @@
 #define INT51X1_VENDOR_ID	0x09e1
 #define INT51X1_PRODUCT_ID	0x5121
 
-#define INT51X1_HEADER_SIZE	2	/* 2 byte header */
+#define INT51X1_HEADER_SIZE	2	
 
 #define PACKET_TYPE_PROMISCUOUS		(1 << 0)
-#define PACKET_TYPE_ALL_MULTICAST	(1 << 1) /* no filter */
+#define PACKET_TYPE_ALL_MULTICAST	(1 << 1) 
 #define PACKET_TYPE_DIRECTED		(1 << 2)
 #define PACKET_TYPE_BROADCAST		(1 << 3)
-#define PACKET_TYPE_MULTICAST		(1 << 4) /* filtered */
+#define PACKET_TYPE_MULTICAST		(1 << 4) 
 
 #define SET_ETHERNET_PACKET_FILTER	0x43
 
@@ -72,14 +50,10 @@ static struct sk_buff *int51x1_tx_fixup(struct usbnet *dev,
 	int need_tail = 0;
 	__le16 *len;
 
-	/* if packet and our header is smaler than 64 pad to 64 (+ ZLP) */
+	
 	if ((pack_with_header_len) < dev->maxpacket)
 		need_tail = dev->maxpacket - pack_with_header_len + 1;
-	/*
-	 * usbnet would send a ZLP if packetlength mod urbsize == 0 for us,
-	 * but we need to know ourself, because this would add to the length
-	 * we send down to the device...
-	 */
+	
 	else if (!(pack_with_header_len % dev->maxpacket))
 		need_tail = 1;
 
@@ -136,7 +110,7 @@ static void int51x1_set_multicast(struct net_device *netdev)
 	u16 filter = PACKET_TYPE_DIRECTED | PACKET_TYPE_BROADCAST;
 
 	if (netdev->flags & IFF_PROMISC) {
-		/* do not expect to see traffic of other PLCs */
+		
 		filter |= PACKET_TYPE_PROMISCUOUS;
 		devinfo(dev, "promiscuous mode enabled");
 	} else if (netdev->mc_count ||
@@ -144,7 +118,7 @@ static void int51x1_set_multicast(struct net_device *netdev)
 		filter |= PACKET_TYPE_ALL_MULTICAST;
 		devdbg(dev, "receive all multicast enabled");
 	} else {
-		/* ~PROMISCUOUS, ~MULTICAST */
+		
 		devdbg(dev, "receive own packets only");
 	}
 

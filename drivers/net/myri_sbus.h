@@ -1,59 +1,56 @@
-/* myri_sbus.h: Defines for MyriCOM MyriNET SBUS card driver.
- *
- * Copyright (C) 1996 David S. Miller (davem@caip.rutgers.edu)
- */
+
 
 #ifndef _MYRI_SBUS_H
 #define _MYRI_SBUS_H
 
-/* LANAI Registers */
-#define LANAI_IPF0	0x00UL		/* Context zero state registers.*/
+
+#define LANAI_IPF0	0x00UL		
 #define LANAI_CUR0	0x04UL
 #define LANAI_PREV0	0x08UL
 #define LANAI_DATA0	0x0cUL
 #define LANAI_DPF0	0x10UL
-#define LANAI_IPF1	0x14UL		/* Context one state registers.	*/
+#define LANAI_IPF1	0x14UL		
 #define LANAI_CUR1	0x18UL
 #define LANAI_PREV1	0x1cUL
 #define LANAI_DATA1	0x20UL
 #define LANAI_DPF1	0x24UL
-#define LANAI_ISTAT	0x28UL		/* Interrupt status.		*/
-#define LANAI_EIMASK	0x2cUL		/* External IRQ mask.		*/
-#define LANAI_ITIMER	0x30UL		/* IRQ timer.			*/
-#define LANAI_RTC	0x34UL		/* Real Time Clock		*/
-#define LANAI_CSUM	0x38UL		/* Checksum.			*/
-#define LANAI_DMAXADDR	0x3cUL		/* SBUS DMA external address.	*/
-#define LANAI_DMALADDR	0x40UL		/* SBUS DMA local address.	*/
-#define LANAI_DMACTR	0x44UL		/* SBUS DMA counter.		*/
-#define LANAI_RXDMAPTR	0x48UL		/* Receive DMA pointer.		*/
-#define LANAI_RXDMALIM	0x4cUL		/* Receive DMA limit.		*/
-#define LANAI_TXDMAPTR	0x50UL		/* Transmit DMA pointer.	*/
-#define LANAI_TXDMALIM	0x54UL		/* Transmit DMA limit.		*/
-#define LANAI_TXDMALIMT	0x58UL		/* Transmit DMA limit w/tail.	*/
-	/* 0x5cUL, reserved */
-#define LANAI_RBYTE	0x60UL		/* Receive byte.		*/
-	/* 0x64-->0x6c, reserved */
-#define LANAI_RHALF	0x70UL		/* Receive half-word.		*/
-	/* 0x72UL, reserved */
-#define LANAI_RWORD	0x74UL		/* Receive word.		*/
-#define LANAI_SALIGN	0x78UL		/* Send align.			*/
-#define LANAI_SBYTE	0x7cUL		/* SingleSend send-byte.	*/
-#define LANAI_SHALF	0x80UL		/* SingleSend send-halfword.	*/
-#define LANAI_SWORD	0x84UL		/* SingleSend send-word.	*/
-#define LANAI_SSENDT	0x88UL		/* SingleSend special.		*/
-#define LANAI_DMADIR	0x8cUL		/* DMA direction.		*/
-#define LANAI_DMASTAT	0x90UL		/* DMA status.			*/
-#define LANAI_TIMEO	0x94UL		/* Timeout register.		*/
-#define LANAI_MYRINET	0x98UL		/* XXX MAGIC myricom thing	*/
-#define LANAI_HWDEBUG	0x9cUL		/* Hardware debugging reg.	*/
-#define LANAI_LEDS	0xa0UL		/* LED control.			*/
-#define LANAI_VERS	0xa4UL		/* Version register.		*/
-#define LANAI_LINKON	0xa8UL		/* Link activation reg.		*/
-	/* 0xac-->0x104, reserved */
-#define LANAI_CVAL	0x108UL		/* Clock value register.	*/
+#define LANAI_ISTAT	0x28UL		
+#define LANAI_EIMASK	0x2cUL		
+#define LANAI_ITIMER	0x30UL		
+#define LANAI_RTC	0x34UL		
+#define LANAI_CSUM	0x38UL		
+#define LANAI_DMAXADDR	0x3cUL		
+#define LANAI_DMALADDR	0x40UL		
+#define LANAI_DMACTR	0x44UL		
+#define LANAI_RXDMAPTR	0x48UL		
+#define LANAI_RXDMALIM	0x4cUL		
+#define LANAI_TXDMAPTR	0x50UL		
+#define LANAI_TXDMALIM	0x54UL		
+#define LANAI_TXDMALIMT	0x58UL		
+	
+#define LANAI_RBYTE	0x60UL		
+	
+#define LANAI_RHALF	0x70UL		
+	
+#define LANAI_RWORD	0x74UL		
+#define LANAI_SALIGN	0x78UL		
+#define LANAI_SBYTE	0x7cUL		
+#define LANAI_SHALF	0x80UL		
+#define LANAI_SWORD	0x84UL		
+#define LANAI_SSENDT	0x88UL		
+#define LANAI_DMADIR	0x8cUL		
+#define LANAI_DMASTAT	0x90UL		
+#define LANAI_TIMEO	0x94UL		
+#define LANAI_MYRINET	0x98UL		
+#define LANAI_HWDEBUG	0x9cUL		
+#define LANAI_LEDS	0xa0UL		
+#define LANAI_VERS	0xa4UL		
+#define LANAI_LINKON	0xa8UL		
+	
+#define LANAI_CVAL	0x108UL		
 #define LANAI_REG_SIZE	0x10cUL
 
-/* Interrupt status bits. */
+
 #define ISTAT_DEBUG	0x80000000
 #define ISTAT_HOST	0x40000000
 #define ISTAT_LAN7	0x00800000
@@ -82,7 +79,7 @@
 #define ISTAT_RECV	0x00000002
 #define ISTAT_BRDY	0x00000001
 
-/* MYRI Registers */
+
 #define MYRI_RESETOFF	0x00UL
 #define MYRI_RESETON	0x04UL
 #define MYRI_IRQOFF	0x08UL
@@ -90,18 +87,18 @@
 #define MYRI_WAKEUPOFF	0x10UL
 #define MYRI_WAKEUPON	0x14UL
 #define MYRI_IRQREAD	0x18UL
-	/* 0x1c-->0x3ffc, reserved */
+	
 #define MYRI_LOCALMEM	0x4000UL
 #define MYRI_REG_SIZE	0x25000UL
 
-/* Shared memory interrupt mask. */
+
 #define SHMEM_IMASK_RX		0x00000002
 #define SHMEM_IMASK_TX		0x00000001
 
-/* Just to make things readable. */
+
 #define KERNEL_CHANNEL		0
 
-/* The size of this must be >= 129 bytes. */
+
 struct myri_eeprom {
 	unsigned int		cval;
 	unsigned short		cpuvers;
@@ -118,10 +115,10 @@ struct myri_eeprom {
 	unsigned int		_unused[2];
 };
 
-/* EEPROM bus types, only SBUS is valid in this driver. */
+
 #define BUS_TYPE_SBUS		1
 
-/* EEPROM CPU revisions. */
+
 #define CPUVERS_2_3		0x0203
 #define CPUVERS_3_0		0x0300
 #define CPUVERS_3_1		0x0301
@@ -131,17 +128,17 @@ struct myri_eeprom {
 #define CPUVERS_4_2		0x0402
 #define CPUVERS_5_0		0x0500
 
-/* MYRI Control Registers */
+
 #define MYRICTRL_CTRL		0x00UL
 #define MYRICTRL_IRQLVL		0x02UL
 #define MYRICTRL_REG_SIZE	0x04UL
 
-/* Global control register defines. */
-#define CONTROL_ROFF		0x8000	/* Reset OFF.		*/
-#define CONTROL_RON		0x4000	/* Reset ON.		*/
-#define CONTROL_EIRQ		0x2000	/* Enable IRQ's.	*/
-#define CONTROL_DIRQ		0x1000	/* Disable IRQ's.	*/
-#define CONTROL_WON		0x0800	/* Wake-up ON.		*/
+
+#define CONTROL_ROFF		0x8000	
+#define CONTROL_RON		0x4000	
+#define CONTROL_EIRQ		0x2000	
+#define CONTROL_DIRQ		0x1000	
+#define CONTROL_WON		0x0800	
 
 #define MYRI_SCATTER_ENTRIES	8
 #define MYRI_GATHER_ENTRIES	16
@@ -152,20 +149,20 @@ struct myri_sglist {
 };
 
 struct myri_rxd {
-	struct myri_sglist myri_scatters[MYRI_SCATTER_ENTRIES];	/* DMA scatter list.*/
-	u32 csum;	/* HW computed checksum.    */
+	struct myri_sglist myri_scatters[MYRI_SCATTER_ENTRIES];	
+	u32 csum;	
 	u32 ctx;
-	u32 num_sg;	/* Total scatter entries.   */
+	u32 num_sg;	
 };
 
 struct myri_txd {
-	struct myri_sglist myri_gathers[MYRI_GATHER_ENTRIES]; /* DMA scatter list.  */
-	u32 num_sg;	/* Total scatter entries.   */
-	u16 addr[4];	/* XXX address              */
+	struct myri_sglist myri_gathers[MYRI_GATHER_ENTRIES]; 
+	u32 num_sg;	
+	u16 addr[4];	
 	u32 chan;
-	u32 len;	/* Total length of packet.  */
-	u32 csum_off;	/* Where data to csum is.   */
-	u32 csum_field;	/* Where csum goes in pkt.  */
+	u32 len;	
+	u32 csum_off;	
+	u32 csum_field;	
 };
 
 #define MYRINET_MTU        8432
@@ -173,19 +170,17 @@ struct myri_txd {
 #define MYRI_PAD_LEN       2
 #define RX_COPY_THRESHOLD  256
 
-/* These numbers are cast in stone, new firmware is needed if
- * you want to change them.
- */
+
 #define TX_RING_MAXSIZE    16
 #define RX_RING_MAXSIZE    16
 
 #define TX_RING_SIZE       16
 #define RX_RING_SIZE       16
 
-/* GRRR... */
+
 static __inline__ int NEXT_RX(int num)
 {
-	/* XXX >=??? */
+	
 	if(++num > RX_RING_SIZE)
 		num = 0;
 	return num;
@@ -236,62 +231,60 @@ struct mclist {
 };
 
 struct myri_channel {
-	u32		state;		/* State of the channel.	*/
-	u32		busy;		/* Channel is busy.		*/
-	struct sendq	sendq;		/* Device tx queue.		*/
-	struct recvq	recvq;		/* Device rx queue.		*/
-	struct recvq	recvqa;		/* Device rx queue acked.	*/
-	u32		rbytes;		/* Receive bytes.		*/
-	u32		sbytes;		/* Send bytes.			*/
-	u32		rmsgs;		/* Receive messages.		*/
-	u32		smsgs;		/* Send messages.		*/
-	struct mclist	mclist;		/* Device multicast list.	*/
+	u32		state;		
+	u32		busy;		
+	struct sendq	sendq;		
+	struct recvq	recvq;		
+	struct recvq	recvqa;		
+	u32		rbytes;		
+	u32		sbytes;		
+	u32		rmsgs;		
+	u32		smsgs;		
+	struct mclist	mclist;		
 };
 
-/* Values for per-channel state. */
-#define STATE_WFH	0		/* Waiting for HOST.		*/
-#define STATE_WFN	1		/* Waiting for NET.		*/
-#define STATE_READY	2		/* Ready.			*/
+
+#define STATE_WFH	0		
+#define STATE_WFN	1		
+#define STATE_READY	2		
 
 struct myri_shmem {
-	u8	addr[8];		/* Board's address.		*/
-	u32	nchan;			/* Number of channels.		*/
-	u32	burst;			/* SBUS dma burst enable.	*/
-	u32	shakedown;		/* DarkkkkStarrr Crashesss...	*/
-	u32	send;			/* Send wanted.			*/
-	u32	imask;			/* Interrupt enable mask.	*/
-	u32	mlevel;			/* Map level.			*/
-	u32	debug[4];		/* Misc. debug areas.		*/
-	struct myri_channel channel;	/* Only one channel on a host.	*/
+	u8	addr[8];		
+	u32	nchan;			
+	u32	burst;			
+	u32	shakedown;		
+	u32	send;			
+	u32	imask;			
+	u32	mlevel;			
+	u32	debug[4];		
+	struct myri_channel channel;	
 };
 
 struct myri_eth {
-	/* These are frequently accessed, keep together
-	 * to obtain good cache hit rates.
-	 */
+	
 	spinlock_t			irq_lock;
-	struct myri_shmem __iomem	*shmem;		/* Shared data structures.    */
-	void __iomem			*cregs;		/* Control register space.    */
-	struct recvq __iomem		*rqack;		/* Where we ack rx's.         */
-	struct recvq __iomem		*rq;		/* Where we put buffers.      */
-	struct sendq __iomem		*sq;		/* Where we stuff tx's.       */
-	struct net_device		*dev;		/* Linux/NET dev struct.      */
-	int				tx_old;		/* To speed up tx cleaning.   */
-	void __iomem			*lregs;		/* Quick ptr to LANAI regs.   */
-	struct sk_buff	       *rx_skbs[RX_RING_SIZE+1];/* RX skb's                   */
-	struct sk_buff	       *tx_skbs[TX_RING_SIZE];  /* TX skb's                   */
+	struct myri_shmem __iomem	*shmem;		
+	void __iomem			*cregs;		
+	struct recvq __iomem		*rqack;		
+	struct recvq __iomem		*rq;		
+	struct sendq __iomem		*sq;		
+	struct net_device		*dev;		
+	int				tx_old;		
+	void __iomem			*lregs;		
+	struct sk_buff	       *rx_skbs[RX_RING_SIZE+1];
+	struct sk_buff	       *tx_skbs[TX_RING_SIZE];  
 
-	/* These are less frequently accessed. */
-	void __iomem			*regs;          /* MyriCOM register space.    */
-	void __iomem			*lanai;		/* View 2 of register space.  */
-	unsigned int			myri_bursts;	/* SBUS bursts.               */
-	struct myri_eeprom		eeprom;		/* Local copy of EEPROM.      */
-	unsigned int			reg_size;	/* Size of register space.    */
-	unsigned int			shmem_base;	/* Offset to shared ram.      */
-	struct of_device		*myri_op;	/* Our OF device struct.    */
+	
+	void __iomem			*regs;          
+	void __iomem			*lanai;		
+	unsigned int			myri_bursts;	
+	struct myri_eeprom		eeprom;		
+	unsigned int			reg_size;	
+	unsigned int			shmem_base;	
+	struct of_device		*myri_op;	
 };
 
-/* We use this to acquire receive skb's that we can DMA directly into. */
+
 #define ALIGNED_RX_SKB_ADDR(addr) \
         ((((unsigned long)(addr) + (64 - 1)) & ~(64 - 1)) - (unsigned long)(addr))
 static inline struct sk_buff *myri_alloc_skb(unsigned int length, gfp_t gfp_flags)
@@ -308,4 +301,4 @@ static inline struct sk_buff *myri_alloc_skb(unsigned int length, gfp_t gfp_flag
 	return skb;
 }
 
-#endif /* !(_MYRI_SBUS_H) */
+#endif 

@@ -1,35 +1,4 @@
-/*
- * Copyright (c) 2007 Mellanox Technologies. All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- */
+
 
 #ifndef _MLX4_EN_H_
 #define _MLX4_EN_H_
@@ -86,9 +55,7 @@
 	printk(KERN_WARNING "%s %s: " format , DRV_NAME ,\
 		dev_name(&mdev->pdev->dev) , ## arg)
 
-/*
- * Device constants
- */
+
 
 
 #define MLX4_EN_PAGE_SHIFT	12
@@ -103,13 +70,11 @@
 #define STAMP_VAL		0x7fffffff
 #define STATS_DELAY		(HZ / 4)
 
-/* Typical TSO descriptor with 16 gather entries is 352 bytes... */
+
 #define MAX_DESC_SIZE		512
 #define MAX_DESC_TXBBS		(MAX_DESC_SIZE / TXBB_SIZE)
 
-/*
- * OS related constants and tunables
- */
+
 
 #define MLX4_EN_WATCHDOG_TIMEOUT	(15 * HZ)
 
@@ -118,8 +83,7 @@
 
 #define MLX4_EN_MAX_LRO_DESCRIPTORS	32
 
-/* Receive fragment sizes; we use at most 4 fragments (for 9600 byte MTU
- * and 4K allocations) */
+
 enum {
 	FRAG_SZ0 = 512 - NET_IP_ALIGN,
 	FRAG_SZ1 = 1024,
@@ -128,11 +92,11 @@ enum {
 };
 #define MLX4_EN_MAX_RX_FRAGS	4
 
-/* Maximum ring sizes */
+
 #define MLX4_EN_MAX_TX_SIZE	8192
 #define MLX4_EN_MAX_RX_SIZE	8192
 
-/* Minimum ring size for our page-allocation sceme to work */
+
 #define MLX4_EN_MIN_RX_SIZE	(MLX4_EN_ALLOC_SIZE / SMP_CACHE_BYTES)
 #define MLX4_EN_MIN_TX_SIZE	(4096 / TXBB_SIZE)
 
@@ -142,7 +106,7 @@ enum {
 #define MLX4_EN_DEF_TX_RING_SIZE	512
 #define MLX4_EN_DEF_RX_RING_SIZE  	1024
 
-/* Target number of packets to coalesce with interrupt moderation */
+
 #define MLX4_EN_RX_COAL_TARGET	44
 #define MLX4_EN_RX_COAL_TIME	0x10
 
@@ -162,8 +126,7 @@ enum {
 #define MLX4_EN_DEF_RX_PAUSE	1
 #define MLX4_EN_DEF_TX_PAUSE	1
 
-/* Interval between sucessive polls in the Tx routine when polling is used
-   instead of interrupts (in per-core Tx rings) - should be power of 2 */
+
 #define MLX4_EN_TX_POLL_MODER	16
 #define MLX4_EN_TX_POLL_TIMEOUT	(HZ / 4)
 
@@ -176,7 +139,7 @@ enum {
 #define ETH_BCAST		0xffffffffffffULL
 
 #ifdef MLX4_EN_PERF_STAT
-/* Number of samples to 'average' */
+
 #define AVG_SIZE			128
 #define AVG_FACTOR			1024
 #define NUM_PERF_STATS			NUM_PERF_COUNTERS
@@ -196,11 +159,9 @@ enum {
 #define AVG_PERF_COUNTER(cnt, sample)	do {} while (0)
 #define GET_PERF_COUNTER(cnt)		(0)
 #define GET_AVG_PERF_COUNTER(cnt)	(0)
-#endif /* MLX4_EN_PERF_STAT */
+#endif 
 
-/*
- * Configurables
- */
+
 
 enum cq_type {
 	RX = 0,
@@ -208,9 +169,7 @@ enum cq_type {
 };
 
 
-/*
- * Useful macros
- */
+
 #define ROUNDUP_LOG2(x)		ilog2(roundup_pow_of_two(x))
 #define XNOR(x, y)		(!(x) == !(y))
 #define ILLEGAL_MAC(addr)	(addr == 0xffffffffffffULL || addr == 0x0)
@@ -234,7 +193,7 @@ struct mlx4_en_tx_info {
 struct mlx4_en_tx_desc {
 	struct mlx4_wqe_ctrl_seg ctrl;
 	union {
-		struct mlx4_wqe_data_seg data; /* at least one data segment */
+		struct mlx4_wqe_data_seg data; 
 		struct mlx4_wqe_lso_seg lso;
 		struct mlx4_wqe_inline_seg inl;
 	};
@@ -249,10 +208,10 @@ struct mlx4_en_rx_alloc {
 
 struct mlx4_en_tx_ring {
 	struct mlx4_hwq_resources wqres;
-	u32 size ; /* number of TXBBs */
+	u32 size ; 
 	u32 size_mask;
 	u16 stride;
-	u16 cqn;	/* index of port CQ associated with this ring */
+	u16 cqn;	
 	u32 prod;
 	u32 cons;
 	u32 buf_size;
@@ -274,7 +233,7 @@ struct mlx4_en_tx_ring {
 };
 
 struct mlx4_en_rx_desc {
-	/* actual number of entries depends on rx ring stride */
+	
 	struct mlx4_wqe_data_seg data[0];
 };
 
@@ -282,12 +241,12 @@ struct mlx4_en_rx_ring {
 	struct mlx4_hwq_resources wqres;
 	struct mlx4_en_rx_alloc page_alloc[MLX4_EN_MAX_RX_FRAGS];
 	struct net_lro_mgr lro;
-	u32 size ;	/* number of Rx descs*/
+	u32 size ;	
 	u32 actual_size;
 	u32 size_mask;
 	u16 stride;
 	u16 log_stride;
-	u16 cqn;	/* index of port CQ associated with this ring */
+	u16 cqn;	
 	u32 prod;
 	u32 cons;
 	u32 buf_size;
@@ -319,7 +278,7 @@ struct mlx4_en_cq {
 	spinlock_t              lock;
 	struct net_device      *dev;
 	struct napi_struct	napi;
-	/* Per-core Tx cq processing support */
+	
 	struct timer_list timer;
 	int size;
 	int buf_size;
@@ -563,8 +522,6 @@ int mlx4_SET_PORT_qpn_calc(struct mlx4_dev *dev, u8 port, u32 base_qpn,
 
 int mlx4_en_DUMP_ETH_STATS(struct mlx4_en_dev *mdev, u8 port, u8 reset);
 
-/*
- * Globals
- */
+
 extern const struct ethtool_ops mlx4_en_ethtool_ops;
 #endif

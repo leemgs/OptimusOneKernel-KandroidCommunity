@@ -1,36 +1,4 @@
-/*
- * Copyright (c) 2004, 2005 Topspin Communications.  All rights reserved.
- * Copyright (c) 2005, 2006, 2007, 2008 Mellanox Technologies. All rights reserved.
- * Copyright (c) 2005, 2006, 2007 Cisco Systems, Inc.  All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 
 #include <linux/mlx4/cmd.h>
 #include <linux/cache.h>
@@ -393,11 +361,7 @@ int mlx4_QUERY_DEV_CAP(struct mlx4_dev *dev, struct mlx4_dev_cap *dev_cap)
 	mlx4_dbg(dev, "Base MM extensions: flags %08x, rsvd L_Key %08x\n",
 		 dev_cap->bmme_flags, dev_cap->reserved_lkey);
 
-	/*
-	 * Each UAR has 4 EQ doorbells; so if a UAR is reserved, then
-	 * we can't use any EQs whose doorbell falls on that page,
-	 * even if the EQ itself isn't reserved.
-	 */
+	
 	dev_cap->reserved_eqs = max(dev_cap->reserved_uars * 4,
 				    dev_cap->reserved_eqs);
 
@@ -455,11 +419,7 @@ int mlx4_map_cmd(struct mlx4_dev *dev, u16 op, struct mlx4_icm *icm, u64 virt)
 	for (mlx4_icm_first(icm, &iter);
 	     !mlx4_icm_last(&iter);
 	     mlx4_icm_next(&iter)) {
-		/*
-		 * We have to pass pages that are aligned to their
-		 * size, so find the least significant 1 in the
-		 * address or size and use that as our log2 size.
-		 */
+		
 		lg = ffs(mlx4_icm_addr(&iter) | mlx4_icm_size(&iter)) - 1;
 		if (lg < MLX4_ICM_PAGE_SHIFT) {
 			mlx4_warn(dev, "Got FW area not aligned to %d (%llx/%lx).\n",
@@ -565,10 +525,7 @@ int mlx4_QUERY_FW(struct mlx4_dev *dev)
 		goto out;
 
 	MLX4_GET(fw_ver, outbox, QUERY_FW_VER_OFFSET);
-	/*
-	 * FW subminor version is at more significant bits than minor
-	 * version, so swap here.
-	 */
+	
 	dev->caps.fw_ver = (fw_ver & 0xffff00000000ull) |
 		((fw_ver & 0xffff0000ull) >> 16) |
 		((fw_ver & 0x0000ffffull) << 16);
@@ -616,10 +573,7 @@ int mlx4_QUERY_FW(struct mlx4_dev *dev)
 
 	mlx4_dbg(dev, "FW size %d KB\n", fw->fw_pages >> 2);
 
-	/*
-	 * Round up number of system pages needed in case
-	 * MLX4_ICM_PAGE_SIZE < PAGE_SIZE.
-	 */
+	
 	fw->fw_pages =
 		ALIGN(fw->fw_pages, PAGE_SIZE / MLX4_ICM_PAGE_SIZE) >>
 		(PAGE_SHIFT - MLX4_ICM_PAGE_SHIFT);
@@ -649,11 +603,7 @@ static void get_board_id(void *vsd, char *board_id)
 	    be16_to_cpup(vsd + VSD_OFFSET_SIG2) == VSD_SIGNATURE_TOPSPIN) {
 		strlcpy(board_id, vsd + VSD_OFFSET_TS_BOARD_ID, MLX4_BOARD_ID_LEN);
 	} else {
-		/*
-		 * The board ID is a string but the firmware byte
-		 * swaps each 4-byte word before passing it back to
-		 * us.  Therefore we need to swab it before printing.
-		 */
+		
 		for (i = 0; i < 4; ++i)
 			((u32 *) board_id)[i] =
 				swab32(*(u32 *) (vsd + VSD_OFFSET_MLX_BOARD_ID + i * 4));
@@ -747,18 +697,18 @@ int mlx4_INIT_HCA(struct mlx4_dev *dev, struct mlx4_init_hca_param *param)
 #else
 #error Host endianness not defined
 #endif
-	/* Check port for UD address vector: */
+	
 	*(inbox + INIT_HCA_FLAGS_OFFSET / 4) |= cpu_to_be32(1);
 
-	/* Enable IPoIB checksumming if we can: */
+	
 	if (dev->caps.flags & MLX4_DEV_CAP_FLAG_IPOIB_CSUM)
 		*(inbox + INIT_HCA_FLAGS_OFFSET / 4) |= cpu_to_be32(1 << 3);
 
-	/* Enable QoS support if module parameter set */
+	
 	if (enable_qos)
 		*(inbox + INIT_HCA_FLAGS_OFFSET / 4) |= cpu_to_be32(1 << 2);
 
-	/* QPC/EEC/CQC/EQC/RDMARC attributes */
+	
 
 	MLX4_PUT(inbox, param->qpc_base,      INIT_HCA_QPC_BASE_OFFSET);
 	MLX4_PUT(inbox, param->log_num_qps,   INIT_HCA_LOG_QP_OFFSET);
@@ -773,21 +723,21 @@ int mlx4_INIT_HCA(struct mlx4_dev *dev, struct mlx4_init_hca_param *param)
 	MLX4_PUT(inbox, param->rdmarc_base,   INIT_HCA_RDMARC_BASE_OFFSET);
 	MLX4_PUT(inbox, param->log_rd_per_qp, INIT_HCA_LOG_RD_OFFSET);
 
-	/* multicast attributes */
+	
 
 	MLX4_PUT(inbox, param->mc_base,		INIT_HCA_MC_BASE_OFFSET);
 	MLX4_PUT(inbox, param->log_mc_entry_sz, INIT_HCA_LOG_MC_ENTRY_SZ_OFFSET);
 	MLX4_PUT(inbox, param->log_mc_hash_sz,  INIT_HCA_LOG_MC_HASH_SZ_OFFSET);
 	MLX4_PUT(inbox, param->log_mc_table_sz, INIT_HCA_LOG_MC_TABLE_SZ_OFFSET);
 
-	/* TPT attributes */
+	
 
 	MLX4_PUT(inbox, param->dmpt_base,  INIT_HCA_DMPT_BASE_OFFSET);
 	MLX4_PUT(inbox, param->log_mpt_sz, INIT_HCA_LOG_MPT_SZ_OFFSET);
 	MLX4_PUT(inbox, param->mtt_base,   INIT_HCA_MTT_BASE_OFFSET);
 	MLX4_PUT(inbox, param->cmpt_base,  INIT_HCA_CMPT_BASE_OFFSET);
 
-	/* UAR attributes */
+	
 
 	MLX4_PUT(inbox, (u8) (PAGE_SHIFT - 12), INIT_HCA_UAR_PAGE_SZ_OFFSET);
 	MLX4_PUT(inbox, param->log_uar_sz,      INIT_HCA_LOG_UAR_SZ_OFFSET);
@@ -874,10 +824,7 @@ int mlx4_SET_ICM_SIZE(struct mlx4_dev *dev, u64 icm_size, u64 *aux_pages)
 	if (ret)
 		return ret;
 
-	/*
-	 * Round up number of system pages needed in case
-	 * MLX4_ICM_PAGE_SIZE < PAGE_SIZE.
-	 */
+	
 	*aux_pages = ALIGN(*aux_pages, PAGE_SIZE / MLX4_ICM_PAGE_SIZE) >>
 		(PAGE_SHIFT - MLX4_ICM_PAGE_SHIFT);
 
@@ -886,6 +833,6 @@ int mlx4_SET_ICM_SIZE(struct mlx4_dev *dev, u64 icm_size, u64 *aux_pages)
 
 int mlx4_NOP(struct mlx4_dev *dev)
 {
-	/* Input modifier of 0x1f means "finish as soon as possible." */
+	
 	return mlx4_cmd(dev, 0, 0x1f, 0, MLX4_CMD_NOP, 100);
 }

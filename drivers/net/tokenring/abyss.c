@@ -1,29 +1,4 @@
-/*
- *  abyss.c: Network driver for the Madge Smart 16/4 PCI Mk2 token ring card.
- *
- *  Written 1999-2000 by Adam Fritzler
- *
- *  This software may be used and distributed according to the terms
- *  of the GNU General Public License, incorporated herein by reference.
- *
- *  This driver module supports the following cards:
- *      - Madge Smart 16/4 PCI Mk2
- *
- *  Maintainer(s):
- *    AF	Adam Fritzler
- *
- *  Modification History:
- *	30-Dec-99	AF	Split off from the tms380tr driver.
- *	22-Jan-00	AF	Updated to use indirect read/writes 
- *	23-Nov-00	JG	New PCI API, cleanups
- *
- *
- *  TODO:
- *	1. See if we can use MMIO instead of inb/outb/inw/outw
- *	2. Add support for Mk1 (has AT24 attached to the PCI
- *		config registers)
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -38,7 +13,7 @@
 #include <asm/irq.h>
 
 #include "tms380tr.h"
-#include "abyss.h"            /* Madge-specific constants */
+#include "abyss.h"            
 
 static char version[] __devinitdata =
 "abyss.c: v1.02 23/11/2000 by Adam Fritzler\n";
@@ -48,7 +23,7 @@ static char version[] __devinitdata =
 static struct pci_device_id abyss_pci_tbl[] = {
 	{ PCI_VENDOR_ID_MADGE, PCI_DEVICE_ID_MADGE_MK2,
 	  PCI_ANY_ID, PCI_ANY_ID, PCI_CLASS_NETWORK_TOKEN_RING << 8, 0x00ffffff, },
-	{ }			/* Terminating entry */
+	{ }			
 };
 MODULE_DEVICE_TABLE(pci, abyss_pci_tbl);
 
@@ -108,11 +83,11 @@ static int __devinit abyss_attach(struct pci_dev *pdev, const struct pci_device_
 	if (pci_enable_device(pdev))
 		return -EIO;
 
-	/* Remove I/O space marker in bit 0. */
+	
 	pci_irq_line = pdev->irq;
 	pci_ioaddr = pci_resource_start (pdev, 0);
 		
-	/* At this point we have found a valid card. */
+	
 		
 	dev = alloc_trdev(sizeof(struct net_local));
 	if (!dev)
@@ -134,9 +109,7 @@ static int __devinit abyss_attach(struct pci_dev *pdev, const struct pci_device_
 	printk("%s: Madge Smart 16/4 PCI Mk2 (Abyss)\n", dev->name);
 	printk("%s:    IO: %#4lx  IRQ: %d\n",
 	       dev->name, pci_ioaddr, dev->irq);
-	/*
-	 * The TMS SIF registers lay 0x10 above the card base address.
-	 */
+	
 	dev->base_addr += 0x10;
 		
 	ret = tmsdev_init(dev, &pdev->dev);
@@ -187,23 +160,14 @@ static unsigned short abyss_setnselout_pins(struct net_device *dev)
 	struct net_local *tp = netdev_priv(dev);
 	
 	if(tp->DataRate == SPEED_4)
-		val |= 0x01;  /* Set 4Mbps */
+		val |= 0x01;  
 	else
-		val |= 0x00;  /* Set 16Mbps */
+		val |= 0x00;  
 	
 	return val;
 }
 
-/*
- * The following Madge boards should use this code:
- *   - Smart 16/4 PCI Mk2 (Abyss)
- *   - Smart 16/4 PCI Mk1 (PCI T)
- *   - Smart 16/4 Client Plus PnP (Big Apple)
- *   - Smart 16/4 Cardbus Mk2
- *
- * These access an Atmel AT24 SEEPROM using their glue chip registers. 
- *
- */
+
 static void at24_writedatabyte(unsigned long regaddr, unsigned char byte)
 {
 	int i;
@@ -292,7 +256,7 @@ static void at24_setlines(unsigned long regaddr, unsigned char clock, unsigned c
 		val |= AT24_DATA;
 
 	outb(val, regaddr); 
-	tms380tr_wait(20); /* Very necessary. */
+	tms380tr_wait(20); 
 }
 
 static void at24_start(unsigned long regaddr)
@@ -318,10 +282,7 @@ static unsigned char at24_readb(unsigned long regaddr, unsigned char addr)
 }
 
 
-/*
- * Enable basic functions of the Madge chipset needed
- * for initialization.
- */
+
 static void abyss_enable(struct net_device *dev)
 {
 	unsigned char reset_reg;
@@ -334,10 +295,7 @@ static void abyss_enable(struct net_device *dev)
 	tms380tr_wait(100);
 }
 
-/*
- * Enable the functions of the Madge chipset needed for
- * full working order. 
- */
+
 static int abyss_chipset_init(struct net_device *dev)
 {
 	unsigned char reset_reg;
@@ -383,10 +341,7 @@ static inline void abyss_chipset_close(struct net_device *dev)
 	outb(0, ioaddr + PCIBM2_RESET_REG);
 }
 
-/*
- * Read configuration data from the AT24 SEEPROM on Madge cards.
- *
- */
+
 static void abyss_read_eeprom(struct net_device *dev)
 {
 	struct net_local *tp;
@@ -397,12 +352,12 @@ static void abyss_read_eeprom(struct net_device *dev)
 	tp = netdev_priv(dev);
 	ioaddr = dev->base_addr;
 	
-	/* Must enable glue chip first */
+	
 	abyss_enable(dev);
 	
 	val = at24_readb(ioaddr + PCIBM2_SEEPROM_REG, 
 			 PCIBM2_SEEPROM_RING_SPEED);
-	tp->DataRate = val?SPEED_4:SPEED_16; /* set open speed */
+	tp->DataRate = val?SPEED_4:SPEED_16; 
 	printk("%s:    SEEPROM: ring speed: %dMb/sec\n", dev->name, tp->DataRate);
 	
 	val = at24_readb(ioaddr + PCIBM2_SEEPROM_REG,

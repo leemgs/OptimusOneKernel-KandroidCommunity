@@ -1,28 +1,4 @@
-/*******************************************************************************
-  This is the driver for the GMAC on-chip Ethernet controller for ST SoCs.
-  DWC Ether MAC 10/100/1000 Universal version 3.41a  has been used for
-  developing this code.
 
-  Copyright (C) 2007-2009  STMicroelectronics Ltd
-
-  This program is free software; you can redistribute it and/or modify it
-  under the terms and conditions of the GNU General Public License,
-  version 2, as published by the Free Software Foundation.
-
-  This program is distributed in the hope it will be useful, but WITHOUT
-  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-  more details.
-
-  You should have received a copy of the GNU General Public License along with
-  this program; if not, write to the Free Software Foundation, Inc.,
-  51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
-
-  The full GNU General Public License is included in this distribution in
-  the file called "COPYING".
-
-  Author: Giuseppe Cavallaro <peppe.cavallaro@st.com>
-*******************************************************************************/
 
 #include <linux/netdevice.h>
 #include <linux/crc32.h>
@@ -33,9 +9,9 @@
 #include "gmac.h"
 
 #undef GMAC_DEBUG
-/*#define GMAC_DEBUG*/
+
 #undef FRAME_FILTER_DEBUG
-/*#define FRAME_FILTER_DEBUG*/
+
 #ifdef GMAC_DEBUG
 #define DBG(fmt, args...)  printk(fmt, ## args)
 #else
@@ -61,32 +37,31 @@ static void gmac_dump_regs(unsigned long ioaddr)
 static int gmac_dma_init(unsigned long ioaddr, int pbl, u32 dma_tx, u32 dma_rx)
 {
 	u32 value = readl(ioaddr + DMA_BUS_MODE);
-	/* DMA SW reset */
+	
 	value |= DMA_BUS_MODE_SFT_RESET;
 	writel(value, ioaddr + DMA_BUS_MODE);
 	do {} while ((readl(ioaddr + DMA_BUS_MODE) & DMA_BUS_MODE_SFT_RESET));
 
-	value = /* DMA_BUS_MODE_FB | */ DMA_BUS_MODE_4PBL |
+	value =  DMA_BUS_MODE_4PBL |
 	    ((pbl << DMA_BUS_MODE_PBL_SHIFT) |
 	     (pbl << DMA_BUS_MODE_RPBL_SHIFT));
 
 #ifdef CONFIG_STMMAC_DA
-	value |= DMA_BUS_MODE_DA;	/* Rx has priority over tx */
+	value |= DMA_BUS_MODE_DA;	
 #endif
 	writel(value, ioaddr + DMA_BUS_MODE);
 
-	/* Mask interrupts by writing to CSR7 */
+	
 	writel(DMA_INTR_DEFAULT_MASK, ioaddr + DMA_INTR_ENA);
 
-	/* The base address of the RX/TX descriptor lists must be written into
-	 * DMA CSR3 and CSR4, respectively. */
+	
 	writel(dma_tx, ioaddr + DMA_TX_BASE_ADDR);
 	writel(dma_rx, ioaddr + DMA_RCV_BASE_ADDR);
 
 	return 0;
 }
 
-/* Transmit FIFO flush operation */
+
 static void gmac_flush_tx_fifo(unsigned long ioaddr)
 {
 	u32 csr6 = readl(ioaddr + DMA_CONTROL);
@@ -102,17 +77,16 @@ static void gmac_dma_operation_mode(unsigned long ioaddr, int txmode,
 
 	if (txmode == SF_DMA_MODE) {
 		DBG(KERN_DEBUG "GMAC: enabling TX store and forward mode\n");
-		/* Transmit COE type 2 cannot be done in cut-through mode. */
+		
 		csr6 |= DMA_CONTROL_TSF;
-		/* Operating on second frame increase the performance
-		 * especially when transmit store-and-forward is used.*/
+		
 		csr6 |= DMA_CONTROL_OSF;
 	} else {
 		DBG(KERN_DEBUG "GMAC: disabling TX store and forward mode"
 			      " (threshold = %d)\n", txmode);
 		csr6 &= ~DMA_CONTROL_TSF;
 		csr6 &= DMA_CONTROL_TC_TX_MASK;
-		/* Set the transmit threashold */
+		
 		if (txmode <= 32)
 			csr6 |= DMA_CONTROL_TTC_32;
 		else if (txmode <= 64)
@@ -147,7 +121,7 @@ static void gmac_dma_operation_mode(unsigned long ioaddr, int txmode,
 	return;
 }
 
-/* Not yet implemented --- no RMON module */
+
 static void gmac_dma_diagnostic_fr(void *data, struct stmmac_extra_stats *x,
 				   unsigned long ioaddr)
 {
@@ -255,17 +229,7 @@ static int gmac_coe_rdes0(int ipc_err, int type, int payload_err)
 	int ret = good_frame;
 	u32 status = (type << 2 | ipc_err << 1 | payload_err) & 0x7;
 
-	/* bits 5 7 0 | Frame status
-	 * ----------------------------------------------------------
-	 *      0 0 0 | IEEE 802.3 Type frame (lenght < 1536 octects)
-	 *      1 0 0 | IPv4/6 No CSUM errorS.
-	 *      1 0 1 | IPv4/6 CSUM PAYLOAD error
-	 *      1 1 0 | IPv4/6 CSUM IP HR error
-	 *      1 1 1 | IPv4/6 IP PAYLOAD AND HEADER errorS
-	 *      0 0 1 | IPv4/6 unsupported IP PAYLOAD
-	 *      0 1 1 | COE bypassed.. no IPv4/6 frame
-	 *      0 1 0 | Reserved.
-	 */
+	
 	if (status == 0x0) {
 		DBG(KERN_INFO "RX Des0 status: IEEE 802.3 Type frame.\n");
 		ret = good_frame;
@@ -335,10 +299,7 @@ static int gmac_get_rx_frame_status(void *data, struct stmmac_extra_stats *x,
 		ret = discard_frame;
 	}
 
-	/* After a payload csum error, the ES bit is set.
-	 * It doesn't match with the information reported into the databook.
-	 * At any rate, we need to understand if the CSUM hw computation is ok
-	 * and report this info to the upper layers. */
+	
 	ret = gmac_coe_rdes0(p->des01.erx.ipc_csum_error,
 		p->des01.erx.frame_type, p->des01.erx.payload_csum_error);
 
@@ -374,7 +335,7 @@ static void gmac_irq_status(unsigned long ioaddr)
 {
 	u32 intr_status = readl(ioaddr + GMAC_INT_STATUS);
 
-	/* Not used events (e.g. MMC interrupts) are not handled. */
+	
 	if ((intr_status & mmc_tx_irq))
 		DBG(KERN_DEBUG "GMAC: MMC tx interrupt: 0x%08x\n",
 		    readl(ioaddr + GMAC_MMC_TX_INTR));
@@ -386,8 +347,7 @@ static void gmac_irq_status(unsigned long ioaddr)
 		    readl(ioaddr + GMAC_MMC_RX_CSUM_OFFLOAD));
 	if (unlikely(intr_status & pmt_irq)) {
 		DBG(KERN_DEBUG "GMAC: received Magic frame\n");
-		/* clear the PMT bits 5 and 6 by reading the PMT
-		 * status register. */
+		
 		readl(ioaddr + GMAC_PMT);
 	}
 
@@ -400,16 +360,16 @@ static void gmac_core_init(unsigned long ioaddr)
 	value |= GMAC_CORE_INIT;
 	writel(value, ioaddr + GMAC_CONTROL);
 
-	/* STBus Bridge Configuration */
-	/*writel(0xc5608, ioaddr + 0x00007000);*/
+	
+	
 
-	/* Freeze MMC counters */
+	
 	writel(0x8, ioaddr + GMAC_MMC_CTRL);
-	/* Mask GMAC interrupts */
+	
 	writel(0x207, ioaddr + GMAC_INT_MASK);
 
 #ifdef STMMAC_VLAN_TAG_USED
-	/* Tag detection without filtering */
+	
 	writel(0x0, ioaddr + GMAC_VLAN_TAG);
 #endif
 	return;
@@ -441,7 +401,7 @@ static void gmac_set_filter(struct net_device *dev)
 		value = GMAC_FRAME_FILTER_PR;
 	else if ((dev->mc_count > HASH_TABLE_SIZE)
 		   || (dev->flags & IFF_ALLMULTI)) {
-		value = GMAC_FRAME_FILTER_PM;	/* pass all multi */
+		value = GMAC_FRAME_FILTER_PM;	
 		writel(0xffffffff, ioaddr + GMAC_HASH_HIGH);
 		writel(0xffffffff, ioaddr + GMAC_HASH_LOW);
 	} else if (dev->mc_count > 0) {
@@ -449,29 +409,25 @@ static void gmac_set_filter(struct net_device *dev)
 		u32 mc_filter[2];
 		struct dev_mc_list *mclist;
 
-		/* Hash filter for multicast */
+		
 		value = GMAC_FRAME_FILTER_HMC;
 
 		memset(mc_filter, 0, sizeof(mc_filter));
 		for (i = 0, mclist = dev->mc_list;
 		     mclist && i < dev->mc_count; i++, mclist = mclist->next) {
-			/* The upper 6 bits of the calculated CRC are used to
-			   index the contens of the hash table */
+			
 			int bit_nr =
 			    bitrev32(~crc32_le(~0, mclist->dmi_addr, 6)) >> 26;
-			/* The most significant bit determines the register to
-			 * use (H/L) while the other 5 bits determine the bit
-			 * within the register. */
+			
 			mc_filter[bit_nr >> 5] |= 1 << (bit_nr & 31);
 		}
 		writel(mc_filter[0], ioaddr + GMAC_HASH_LOW);
 		writel(mc_filter[1], ioaddr + GMAC_HASH_HIGH);
 	}
 
-	/* Handle multiple unicast addresses (perfect filtering)*/
+	
 	if (dev->uc_count > GMAC_MAX_UNICAST_ADDRESSES)
-		/* Switch to promiscuous mode is more than 16 addrs
-		   are required */
+		
 		value |= GMAC_FRAME_FILTER_PR;
 	else {
 		int i;
@@ -492,7 +448,7 @@ static void gmac_set_filter(struct net_device *dev)
 	}
 
 #ifdef FRAME_FILTER_DEBUG
-	/* Enable Receive all mode (to debug filtering_fail errors) */
+	
 	value |= GMAC_FRAME_FILTER_RA;
 #endif
 	writel(value, ioaddr + GMAC_FRAME_FILTER);
@@ -551,7 +507,7 @@ static void gmac_init_rx_desc(struct dma_desc *p, unsigned int ring_size,
 	for (i = 0; i < ring_size; i++) {
 		p->des01.erx.own = 1;
 		p->des01.erx.buffer1_size = BUF_SIZE_8KiB - 1;
-		/* To support jumbo frames */
+		
 		p->des01.erx.buffer2_size = BUF_SIZE_8KiB - 1;
 		if (i == ring_size - 1)
 			p->des01.erx.end_ring = 1;

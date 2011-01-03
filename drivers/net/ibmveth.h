@@ -1,31 +1,31 @@
-/**************************************************************************/
-/*                                                                        */
-/* IBM eServer i/[Series Virtual Ethernet Device Driver                   */
-/* Copyright (C) 2003 IBM Corp.                                           */
-/*  Dave Larson (larson1@us.ibm.com)                                      */
-/*  Santiago Leon (santil@us.ibm.com)                                     */
-/*                                                                        */
-/*  This program is free software; you can redistribute it and/or modify  */
-/*  it under the terms of the GNU General Public License as published by  */
-/*  the Free Software Foundation; either version 2 of the License, or     */
-/*  (at your option) any later version.                                   */
-/*                                                                        */
-/*  This program is distributed in the hope that it will be useful,       */
-/*  but WITHOUT ANY WARRANTY; without even the implied warranty of        */
-/*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         */
-/*  GNU General Public License for more details.                          */
-/*                                                                        */
-/*  You should have received a copy of the GNU General Public License     */
-/*  along with this program; if not, write to the Free Software           */
-/*  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  */
-/*                                                                   USA  */
-/*                                                                        */
-/**************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #ifndef _IBMVETH_H
 #define _IBMVETH_H
 
-/* constants for H_MULTICAST_CTRL */
+
 #define IbmVethMcastReceptionModifyBit     0x80000UL
 #define IbmVethMcastReceptionEnableBit     0x20000UL
 #define IbmVethMcastFilterModifyBit        0x40000UL
@@ -45,7 +45,7 @@
 #define IBMVETH_ILLAN_IPV4_TCP_CSUM		0x0000000000000002UL
 #define IBMVETH_ILLAN_ACTIVE_TRUNK		0x0000000000000001UL
 
-/* hcall macros */
+
 #define h_register_logical_lan(ua, buflst, rxq, fltlst, mac) \
   plpar_hcall_norets(H_REGISTER_LOGICAL_LAN, ua, buflst, rxq, fltlst, mac)
 
@@ -93,8 +93,8 @@ static inline long h_illan_attributes(unsigned long unit_address,
   plpar_hcall_norets(H_CHANGE_LOGICAL_LAN_MAC, ua, mac)
 
 #define IbmVethNumBufferPools 5
-#define IBMVETH_IO_ENTITLEMENT_DEFAULT 4243456 /* MTU of 1500 needs 4.2Mb */
-#define IBMVETH_BUFF_OH 22 /* Overhead: 14 ethernet header + 8 opaque handle */
+#define IBMVETH_IO_ENTITLEMENT_DEFAULT 4243456 
+#define IBMVETH_BUFF_OH 22 
 #define IBMVETH_MAX_MTU 68
 #define IBMVETH_MAX_POOL_COUNT 4096
 #define IBMVETH_BUFF_LIST_SIZE 4096
@@ -149,7 +149,7 @@ struct ibmveth_adapter {
     void *bounce_buffer;
     dma_addr_t bounce_buffer_dma;
 
-    /* adapter specific stats */
+    
     u64 replenish_task_cycles;
     u64 replenish_no_mem;
     u64 replenish_add_buff_failure;
@@ -189,4 +189,4 @@ struct ibmveth_rx_q_entry {
 	u64 correlator;
 };
 
-#endif /* _IBMVETH_H */
+#endif 

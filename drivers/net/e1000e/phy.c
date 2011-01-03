@@ -1,30 +1,4 @@
-/*******************************************************************************
 
-  Intel PRO/1000 Linux driver
-  Copyright(c) 1999 - 2008 Intel Corporation.
-
-  This program is free software; you can redistribute it and/or modify it
-  under the terms and conditions of the GNU General Public License,
-  version 2, as published by the Free Software Foundation.
-
-  This program is distributed in the hope it will be useful, but WITHOUT
-  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-  more details.
-
-  You should have received a copy of the GNU General Public License along with
-  this program; if not, write to the Free Software Foundation, Inc.,
-  51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
-
-  The full GNU General Public License is included in this distribution in
-  the file called "COPYING".
-
-  Contact Information:
-  Linux NICS <linux.nics@intel.com>
-  e1000-devel Mailing List <e1000-devel@lists.sourceforge.net>
-  Intel Corporation, 5200 N.E. Elam Young Parkway, Hillsboro, OR 97124-6497
-
-*******************************************************************************/
 
 #include <linux/delay.h>
 
@@ -41,7 +15,7 @@ static u32 e1000_get_phy_addr_for_hv_page(u32 page);
 static s32 e1000_access_phy_debug_regs_hv(struct e1000_hw *hw, u32 offset,
                                           u16 *data, bool read);
 
-/* Cable length tables */
+
 static const u16 e1000_m88_cable_length_table[] =
 	{ 0, 50, 80, 110, 140, 140, E1000_CABLE_LENGTH_UNDEFINED };
 
@@ -69,43 +43,36 @@ static const u16 e1000_igp_2_cable_length_table[] =
 #define I82577_ADDR_REG                   16
 #define I82577_CFG_REG                    22
 #define I82577_CFG_ASSERT_CRS_ON_TX       (1 << 15)
-#define I82577_CFG_ENABLE_DOWNSHIFT       (3 << 10) /* auto downshift 100/10 */
+#define I82577_CFG_ENABLE_DOWNSHIFT       (3 << 10) 
 #define I82577_CTRL_REG                   23
 
-/* 82577 specific PHY registers */
+
 #define I82577_PHY_CTRL_2            18
 #define I82577_PHY_STATUS_2          26
 #define I82577_PHY_DIAG_STATUS       31
 
-/* I82577 PHY Status 2 */
+
 #define I82577_PHY_STATUS2_REV_POLARITY   0x0400
 #define I82577_PHY_STATUS2_MDIX           0x0800
 #define I82577_PHY_STATUS2_SPEED_MASK     0x0300
 #define I82577_PHY_STATUS2_SPEED_1000MBPS 0x0200
 
-/* I82577 PHY Control 2 */
+
 #define I82577_PHY_CTRL2_AUTO_MDIX        0x0400
 #define I82577_PHY_CTRL2_FORCE_MDI_MDIX   0x0200
 
-/* I82577 PHY Diagnostics Status */
+
 #define I82577_DSTATUS_CABLE_LENGTH       0x03FC
 #define I82577_DSTATUS_CABLE_LENGTH_SHIFT 2
 
-/* BM PHY Copper Specific Control 1 */
+
 #define BM_CS_CTRL1                       16
 
 #define HV_MUX_DATA_CTRL               PHY_REG(776, 16)
 #define HV_MUX_DATA_CTRL_GEN_TO_MAC    0x0400
 #define HV_MUX_DATA_CTRL_FORCE_SPEED   0x0004
 
-/**
- *  e1000e_check_reset_block_generic - Check if PHY reset is blocked
- *  @hw: pointer to the HW structure
- *
- *  Read the PHY management control register and check whether a PHY reset
- *  is blocked.  If a reset is not blocked return 0, otherwise
- *  return E1000_BLK_PHY_RESET (12).
- **/
+
 s32 e1000e_check_reset_block_generic(struct e1000_hw *hw)
 {
 	u32 manc;
@@ -116,13 +83,7 @@ s32 e1000e_check_reset_block_generic(struct e1000_hw *hw)
 	       E1000_BLK_PHY_RESET : 0;
 }
 
-/**
- *  e1000e_get_phy_id - Retrieve the PHY ID and revision
- *  @hw: pointer to the HW structure
- *
- *  Reads the PHY registers and stores the PHY ID and possibly the PHY
- *  revision in the hardware structure.
- **/
+
 s32 e1000e_get_phy_id(struct e1000_hw *hw)
 {
 	struct e1000_phy_info *phy = &hw->phy;
@@ -150,12 +111,7 @@ s32 e1000e_get_phy_id(struct e1000_hw *hw)
 		if (phy->id != 0 && phy->id != PHY_REVISION_MASK)
 			goto out;
 
-		/*
-		 * If the PHY ID is still unknown, we may have an 82577i
-		 * without link.  We will try again after setting Slow
-		 * MDIC mode. No harm in trying again in this case since
-		 * the PHY ID is unknown at this point anyway
-		 */
+		
 		ret_val = phy->ops.acquire_phy(hw);
 		if (ret_val)
 			goto out;
@@ -167,7 +123,7 @@ s32 e1000e_get_phy_id(struct e1000_hw *hw)
 		retry_count++;
 	}
 out:
-	/* Revert to MDIO fast mode, if applicable */
+	
 	if (retry_count) {
 		ret_val = phy->ops.acquire_phy(hw);
 		if (ret_val)
@@ -179,12 +135,7 @@ out:
 	return ret_val;
 }
 
-/**
- *  e1000e_phy_reset_dsp - Reset PHY DSP
- *  @hw: pointer to the HW structure
- *
- *  Reset the digital signal processor.
- **/
+
 s32 e1000e_phy_reset_dsp(struct e1000_hw *hw)
 {
 	s32 ret_val;
@@ -196,15 +147,7 @@ s32 e1000e_phy_reset_dsp(struct e1000_hw *hw)
 	return e1e_wphy(hw, M88E1000_PHY_GEN_CONTROL, 0);
 }
 
-/**
- *  e1000e_read_phy_reg_mdic - Read MDI control register
- *  @hw: pointer to the HW structure
- *  @offset: register offset to be read
- *  @data: pointer to the read data
- *
- *  Reads the MDI control register in the PHY at offset and stores the
- *  information read to data.
- **/
+
 s32 e1000e_read_phy_reg_mdic(struct e1000_hw *hw, u32 offset, u16 *data)
 {
 	struct e1000_phy_info *phy = &hw->phy;
@@ -215,22 +158,14 @@ s32 e1000e_read_phy_reg_mdic(struct e1000_hw *hw, u32 offset, u16 *data)
 		return -E1000_ERR_PARAM;
 	}
 
-	/*
-	 * Set up Op-code, Phy Address, and register offset in the MDI
-	 * Control register.  The MAC will take care of interfacing with the
-	 * PHY to retrieve the desired data.
-	 */
+	
 	mdic = ((offset << E1000_MDIC_REG_SHIFT) |
 		(phy->addr << E1000_MDIC_PHY_SHIFT) |
 		(E1000_MDIC_OP_READ));
 
 	ew32(MDIC, mdic);
 
-	/*
-	 * Poll the ready bit to see if the MDI read completed
-	 * Increasing the time out as testing showed failures with
-	 * the lower time out
-	 */
+	
 	for (i = 0; i < (E1000_GEN_POLL_TIMEOUT * 3); i++) {
 		udelay(50);
 		mdic = er32(MDIC);
@@ -250,14 +185,7 @@ s32 e1000e_read_phy_reg_mdic(struct e1000_hw *hw, u32 offset, u16 *data)
 	return 0;
 }
 
-/**
- *  e1000e_write_phy_reg_mdic - Write MDI control register
- *  @hw: pointer to the HW structure
- *  @offset: register offset to write to
- *  @data: data to write to register at offset
- *
- *  Writes data to MDI control register in the PHY at offset.
- **/
+
 s32 e1000e_write_phy_reg_mdic(struct e1000_hw *hw, u32 offset, u16 data)
 {
 	struct e1000_phy_info *phy = &hw->phy;
@@ -268,11 +196,7 @@ s32 e1000e_write_phy_reg_mdic(struct e1000_hw *hw, u32 offset, u16 data)
 		return -E1000_ERR_PARAM;
 	}
 
-	/*
-	 * Set up Op-code, Phy Address, and register offset in the MDI
-	 * Control register.  The MAC will take care of interfacing with the
-	 * PHY to retrieve the desired data.
-	 */
+	
 	mdic = (((u32)data) |
 		(offset << E1000_MDIC_REG_SHIFT) |
 		(phy->addr << E1000_MDIC_PHY_SHIFT) |
@@ -280,11 +204,7 @@ s32 e1000e_write_phy_reg_mdic(struct e1000_hw *hw, u32 offset, u16 data)
 
 	ew32(MDIC, mdic);
 
-	/*
-	 * Poll the ready bit to see if the MDI read completed
-	 * Increasing the time out as testing showed failures with
-	 * the lower time out
-	 */
+	
 	for (i = 0; i < (E1000_GEN_POLL_TIMEOUT * 3); i++) {
 		udelay(50);
 		mdic = er32(MDIC);
@@ -303,16 +223,7 @@ s32 e1000e_write_phy_reg_mdic(struct e1000_hw *hw, u32 offset, u16 data)
 	return 0;
 }
 
-/**
- *  e1000e_read_phy_reg_m88 - Read m88 PHY register
- *  @hw: pointer to the HW structure
- *  @offset: register offset to be read
- *  @data: pointer to the read data
- *
- *  Acquires semaphore, if necessary, then reads the PHY register at offset
- *  and storing the retrieved information in data.  Release any acquired
- *  semaphores before exiting.
- **/
+
 s32 e1000e_read_phy_reg_m88(struct e1000_hw *hw, u32 offset, u16 *data)
 {
 	s32 ret_val;
@@ -329,15 +240,7 @@ s32 e1000e_read_phy_reg_m88(struct e1000_hw *hw, u32 offset, u16 *data)
 	return ret_val;
 }
 
-/**
- *  e1000e_write_phy_reg_m88 - Write m88 PHY register
- *  @hw: pointer to the HW structure
- *  @offset: register offset to write to
- *  @data: data to write at register offset
- *
- *  Acquires semaphore, if necessary, then writes the data to PHY register
- *  at the offset.  Release any acquired semaphores before exiting.
- **/
+
 s32 e1000e_write_phy_reg_m88(struct e1000_hw *hw, u32 offset, u16 data)
 {
 	s32 ret_val;
@@ -354,17 +257,7 @@ s32 e1000e_write_phy_reg_m88(struct e1000_hw *hw, u32 offset, u16 data)
 	return ret_val;
 }
 
-/**
- *  __e1000e_read_phy_reg_igp - Read igp PHY register
- *  @hw: pointer to the HW structure
- *  @offset: register offset to be read
- *  @data: pointer to the read data
- *  @locked: semaphore has already been acquired or not
- *
- *  Acquires semaphore, if necessary, then reads the PHY register at offset
- *  and stores the retrieved information in data.  Release any acquired
- *  semaphores before exiting.
- **/
+
 static s32 __e1000e_read_phy_reg_igp(struct e1000_hw *hw, u32 offset, u16 *data,
                                     bool locked)
 {
@@ -397,45 +290,19 @@ out:
 	return ret_val;
 }
 
-/**
- *  e1000e_read_phy_reg_igp - Read igp PHY register
- *  @hw: pointer to the HW structure
- *  @offset: register offset to be read
- *  @data: pointer to the read data
- *
- *  Acquires semaphore then reads the PHY register at offset and stores the
- *  retrieved information in data.
- *  Release the acquired semaphore before exiting.
- **/
+
 s32 e1000e_read_phy_reg_igp(struct e1000_hw *hw, u32 offset, u16 *data)
 {
 	return __e1000e_read_phy_reg_igp(hw, offset, data, false);
 }
 
-/**
- *  e1000e_read_phy_reg_igp_locked - Read igp PHY register
- *  @hw: pointer to the HW structure
- *  @offset: register offset to be read
- *  @data: pointer to the read data
- *
- *  Reads the PHY register at offset and stores the retrieved information
- *  in data.  Assumes semaphore already acquired.
- **/
+
 s32 e1000e_read_phy_reg_igp_locked(struct e1000_hw *hw, u32 offset, u16 *data)
 {
 	return __e1000e_read_phy_reg_igp(hw, offset, data, true);
 }
 
-/**
- *  e1000e_write_phy_reg_igp - Write igp PHY register
- *  @hw: pointer to the HW structure
- *  @offset: register offset to write to
- *  @data: data to write at register offset
- *  @locked: semaphore has already been acquired or not
- *
- *  Acquires semaphore, if necessary, then writes the data to PHY register
- *  at the offset.  Release any acquired semaphores before exiting.
- **/
+
 static s32 __e1000e_write_phy_reg_igp(struct e1000_hw *hw, u32 offset, u16 data,
                                      bool locked)
 {
@@ -469,45 +336,19 @@ out:
 	return ret_val;
 }
 
-/**
- *  e1000e_write_phy_reg_igp - Write igp PHY register
- *  @hw: pointer to the HW structure
- *  @offset: register offset to write to
- *  @data: data to write at register offset
- *
- *  Acquires semaphore then writes the data to PHY register
- *  at the offset.  Release any acquired semaphores before exiting.
- **/
+
 s32 e1000e_write_phy_reg_igp(struct e1000_hw *hw, u32 offset, u16 data)
 {
 	return __e1000e_write_phy_reg_igp(hw, offset, data, false);
 }
 
-/**
- *  e1000e_write_phy_reg_igp_locked - Write igp PHY register
- *  @hw: pointer to the HW structure
- *  @offset: register offset to write to
- *  @data: data to write at register offset
- *
- *  Writes the data to PHY register at the offset.
- *  Assumes semaphore already acquired.
- **/
+
 s32 e1000e_write_phy_reg_igp_locked(struct e1000_hw *hw, u32 offset, u16 data)
 {
 	return __e1000e_write_phy_reg_igp(hw, offset, data, true);
 }
 
-/**
- *  __e1000_read_kmrn_reg - Read kumeran register
- *  @hw: pointer to the HW structure
- *  @offset: register offset to be read
- *  @data: pointer to the read data
- *  @locked: semaphore has already been acquired or not
- *
- *  Acquires semaphore, if necessary.  Then reads the PHY register at offset
- *  using the kumeran interface.  The information retrieved is stored in data.
- *  Release any acquired semaphores before exiting.
- **/
+
 static s32 __e1000_read_kmrn_reg(struct e1000_hw *hw, u32 offset, u16 *data,
                                  bool locked)
 {
@@ -539,47 +380,19 @@ out:
 	return ret_val;
 }
 
-/**
- *  e1000e_read_kmrn_reg -  Read kumeran register
- *  @hw: pointer to the HW structure
- *  @offset: register offset to be read
- *  @data: pointer to the read data
- *
- *  Acquires semaphore then reads the PHY register at offset using the
- *  kumeran interface.  The information retrieved is stored in data.
- *  Release the acquired semaphore before exiting.
- **/
+
 s32 e1000e_read_kmrn_reg(struct e1000_hw *hw, u32 offset, u16 *data)
 {
 	return __e1000_read_kmrn_reg(hw, offset, data, false);
 }
 
-/**
- *  e1000e_read_kmrn_reg_locked -  Read kumeran register
- *  @hw: pointer to the HW structure
- *  @offset: register offset to be read
- *  @data: pointer to the read data
- *
- *  Reads the PHY register at offset using the kumeran interface.  The
- *  information retrieved is stored in data.
- *  Assumes semaphore already acquired.
- **/
+
 s32 e1000e_read_kmrn_reg_locked(struct e1000_hw *hw, u32 offset, u16 *data)
 {
 	return __e1000_read_kmrn_reg(hw, offset, data, true);
 }
 
-/**
- *  __e1000_write_kmrn_reg - Write kumeran register
- *  @hw: pointer to the HW structure
- *  @offset: register offset to write to
- *  @data: data to write at register offset
- *  @locked: semaphore has already been acquired or not
- *
- *  Acquires semaphore, if necessary.  Then write the data to PHY register
- *  at the offset using the kumeran interface.  Release any acquired semaphores
- *  before exiting.
- **/
+
 static s32 __e1000_write_kmrn_reg(struct e1000_hw *hw, u32 offset, u16 data,
                                   bool locked)
 {
@@ -608,54 +421,33 @@ out:
 	return ret_val;
 }
 
-/**
- *  e1000e_write_kmrn_reg -  Write kumeran register
- *  @hw: pointer to the HW structure
- *  @offset: register offset to write to
- *  @data: data to write at register offset
- *
- *  Acquires semaphore then writes the data to the PHY register at the offset
- *  using the kumeran interface.  Release the acquired semaphore before exiting.
- **/
+
 s32 e1000e_write_kmrn_reg(struct e1000_hw *hw, u32 offset, u16 data)
 {
 	return __e1000_write_kmrn_reg(hw, offset, data, false);
 }
 
-/**
- *  e1000e_write_kmrn_reg_locked -  Write kumeran register
- *  @hw: pointer to the HW structure
- *  @offset: register offset to write to
- *  @data: data to write at register offset
- *
- *  Write the data to PHY register at the offset using the kumeran interface.
- *  Assumes semaphore already acquired.
- **/
+
 s32 e1000e_write_kmrn_reg_locked(struct e1000_hw *hw, u32 offset, u16 data)
 {
 	return __e1000_write_kmrn_reg(hw, offset, data, true);
 }
 
-/**
- *  e1000_copper_link_setup_82577 - Setup 82577 PHY for copper link
- *  @hw: pointer to the HW structure
- *
- *  Sets up Carrier-sense on Transmit and downshift values.
- **/
+
 s32 e1000_copper_link_setup_82577(struct e1000_hw *hw)
 {
 	struct e1000_phy_info *phy = &hw->phy;
 	s32 ret_val;
 	u16 phy_data;
 
-	/* Enable CRS on TX. This must be set for half-duplex operation. */
+	
 	ret_val = phy->ops.read_phy_reg(hw, I82577_CFG_REG, &phy_data);
 	if (ret_val)
 		goto out;
 
 	phy_data |= I82577_CFG_ASSERT_CRS_ON_TX;
 
-	/* Enable downshift */
+	
 	phy_data |= I82577_CFG_ENABLE_DOWNSHIFT;
 
 	ret_val = phy->ops.write_phy_reg(hw, I82577_CFG_REG, phy_data);
@@ -664,36 +456,23 @@ out:
 	return ret_val;
 }
 
-/**
- *  e1000e_copper_link_setup_m88 - Setup m88 PHY's for copper link
- *  @hw: pointer to the HW structure
- *
- *  Sets up MDI/MDI-X and polarity for m88 PHY's.  If necessary, transmit clock
- *  and downshift values are set also.
- **/
+
 s32 e1000e_copper_link_setup_m88(struct e1000_hw *hw)
 {
 	struct e1000_phy_info *phy = &hw->phy;
 	s32 ret_val;
 	u16 phy_data;
 
-	/* Enable CRS on Tx. This must be set for half-duplex operation. */
+	
 	ret_val = e1e_rphy(hw, M88E1000_PHY_SPEC_CTRL, &phy_data);
 	if (ret_val)
 		return ret_val;
 
-	/* For BM PHY this bit is downshift enable */
+	
 	if (phy->type != e1000_phy_bm)
 		phy_data |= M88E1000_PSCR_ASSERT_CRS_ON_TX;
 
-	/*
-	 * Options:
-	 *   MDI/MDI-X = 0 (default)
-	 *   0 - Auto for all speeds
-	 *   1 - MDI mode
-	 *   2 - MDI-X mode
-	 *   3 - Auto for 1000Base-T only (MDI-X for 10/100Base-T modes)
-	 */
+	
 	phy_data &= ~M88E1000_PSCR_AUTO_X_MODE;
 
 	switch (phy->mdix) {
@@ -712,18 +491,12 @@ s32 e1000e_copper_link_setup_m88(struct e1000_hw *hw)
 		break;
 	}
 
-	/*
-	 * Options:
-	 *   disable_polarity_correction = 0 (default)
-	 *       Automatic Correction for Reversed Cable Polarity
-	 *   0 - Disabled
-	 *   1 - Enabled
-	 */
+	
 	phy_data &= ~M88E1000_PSCR_POLARITY_REVERSAL;
 	if (phy->disable_polarity_correction == 1)
 		phy_data |= M88E1000_PSCR_POLARITY_REVERSAL;
 
-	/* Enable downshift on BM (disabled by default) */
+	
 	if (phy->type == e1000_phy_bm)
 		phy_data |= BME1000_PSCR_ENABLE_DOWNSHIFT;
 
@@ -734,10 +507,7 @@ s32 e1000e_copper_link_setup_m88(struct e1000_hw *hw)
 	if ((phy->type == e1000_phy_m88) &&
 	    (phy->revision < E1000_REVISION_4) &&
 	    (phy->id != BME1000_E_PHY_ID_R2)) {
-		/*
-		 * Force TX_CLK in the Extended PHY Specific Control Register
-		 * to 25MHz clock.
-		 */
+		
 		ret_val = e1e_rphy(hw, M88E1000_EXT_PHY_SPEC_CTRL, &phy_data);
 		if (ret_val)
 			return ret_val;
@@ -746,11 +516,11 @@ s32 e1000e_copper_link_setup_m88(struct e1000_hw *hw)
 
 		if ((phy->revision == 2) &&
 		    (phy->id == M88E1111_I_PHY_ID)) {
-			/* 82573L PHY - set the downshift counter to 5x. */
+			
 			phy_data &= ~M88EC018_EPSCR_DOWNSHIFT_COUNTER_MASK;
 			phy_data |= M88EC018_EPSCR_DOWNSHIFT_COUNTER_5X;
 		} else {
-			/* Configure Master and Slave downshift values */
+			
 			phy_data &= ~(M88E1000_EPSCR_MASTER_DOWNSHIFT_MASK |
 				      M88E1000_EPSCR_SLAVE_DOWNSHIFT_MASK);
 			phy_data |= (M88E1000_EPSCR_MASTER_DOWNSHIFT_1X |
@@ -762,18 +532,18 @@ s32 e1000e_copper_link_setup_m88(struct e1000_hw *hw)
 	}
 
 	if ((phy->type == e1000_phy_bm) && (phy->id == BME1000_E_PHY_ID_R2)) {
-		/* Set PHY page 0, register 29 to 0x0003 */
+		
 		ret_val = e1e_wphy(hw, 29, 0x0003);
 		if (ret_val)
 			return ret_val;
 
-		/* Set PHY page 0, register 30 to 0x0000 */
+		
 		ret_val = e1e_wphy(hw, 30, 0x0000);
 		if (ret_val)
 			return ret_val;
 	}
 
-	/* Commit the changes. */
+	
 	ret_val = e1000e_commit_phy(hw);
 	if (ret_val) {
 		hw_dbg(hw, "Error committing the PHY changes\n");
@@ -786,7 +556,7 @@ s32 e1000e_copper_link_setup_m88(struct e1000_hw *hw)
 		if (ret_val)
 			return ret_val;
 
-		/* 82578 PHY - set the downshift count to 1x. */
+		
 		phy_data |= I82578_EPSCR_DOWNSHIFT_ENABLE;
 		phy_data &= ~I82578_EPSCR_DOWNSHIFT_COUNTER_MASK;
 		ret_val = phy->ops.write_phy_reg(hw, M88E1000_EXT_PHY_SPEC_CTRL,
@@ -798,13 +568,7 @@ s32 e1000e_copper_link_setup_m88(struct e1000_hw *hw)
 	return 0;
 }
 
-/**
- *  e1000e_copper_link_setup_igp - Setup igp PHY's for copper link
- *  @hw: pointer to the HW structure
- *
- *  Sets up LPLU, MDI/MDI-X, polarity, Smartspeed and Master/Slave config for
- *  igp PHY's.
- **/
+
 s32 e1000e_copper_link_setup_igp(struct e1000_hw *hw)
 {
 	struct e1000_phy_info *phy = &hw->phy;
@@ -817,19 +581,16 @@ s32 e1000e_copper_link_setup_igp(struct e1000_hw *hw)
 		return ret_val;
 	}
 
-	/*
-	 * Wait 100ms for MAC to configure PHY from NVM settings, to avoid
-	 * timeout issues when LFS is enabled.
-	 */
+	
 	msleep(100);
 
-	/* disable lplu d0 during driver init */
+	
 	ret_val = e1000_set_d0_lplu_state(hw, 0);
 	if (ret_val) {
 		hw_dbg(hw, "Error Disabling LPLU D0\n");
 		return ret_val;
 	}
-	/* Configure mdi-mdix settings */
+	
 	ret_val = e1e_rphy(hw, IGP01E1000_PHY_PORT_CTRL, &data);
 	if (ret_val)
 		return ret_val;
@@ -852,15 +613,11 @@ s32 e1000e_copper_link_setup_igp(struct e1000_hw *hw)
 	if (ret_val)
 		return ret_val;
 
-	/* set auto-master slave resolution settings */
+	
 	if (hw->mac.autoneg) {
-		/*
-		 * when autonegotiation advertisement is only 1000Mbps then we
-		 * should disable SmartSpeed and enable Auto MasterSlave
-		 * resolution as hardware default.
-		 */
+		
 		if (phy->autoneg_advertised == ADVERTISE_1000_FULL) {
-			/* Disable SmartSpeed */
+			
 			ret_val = e1e_rphy(hw, IGP01E1000_PHY_PORT_CONFIG,
 					   &data);
 			if (ret_val)
@@ -872,7 +629,7 @@ s32 e1000e_copper_link_setup_igp(struct e1000_hw *hw)
 			if (ret_val)
 				return ret_val;
 
-			/* Set auto Master/Slave resolution process */
+			
 			ret_val = e1e_rphy(hw, PHY_1000T_CTRL, &data);
 			if (ret_val)
 				return ret_val;
@@ -887,7 +644,7 @@ s32 e1000e_copper_link_setup_igp(struct e1000_hw *hw)
 		if (ret_val)
 			return ret_val;
 
-		/* load defaults for future use */
+		
 		phy->original_ms_type = (data & CR_1000T_MS_ENABLE) ?
 			((data & CR_1000T_MS_VALUE) ?
 			e1000_ms_force_master :
@@ -913,15 +670,7 @@ s32 e1000e_copper_link_setup_igp(struct e1000_hw *hw)
 	return ret_val;
 }
 
-/**
- *  e1000_phy_setup_autoneg - Configure PHY for auto-negotiation
- *  @hw: pointer to the HW structure
- *
- *  Reads the MII auto-neg advertisement register and/or the 1000T control
- *  register and if the PHY is already setup for auto-negotiation, then
- *  return successful.  Otherwise, setup advertisement and flow control to
- *  the appropriate values for the wanted auto-negotiation.
- **/
+
 static s32 e1000_phy_setup_autoneg(struct e1000_hw *hw)
 {
 	struct e1000_phy_info *phy = &hw->phy;
@@ -931,31 +680,21 @@ static s32 e1000_phy_setup_autoneg(struct e1000_hw *hw)
 
 	phy->autoneg_advertised &= phy->autoneg_mask;
 
-	/* Read the MII Auto-Neg Advertisement Register (Address 4). */
+	
 	ret_val = e1e_rphy(hw, PHY_AUTONEG_ADV, &mii_autoneg_adv_reg);
 	if (ret_val)
 		return ret_val;
 
 	if (phy->autoneg_mask & ADVERTISE_1000_FULL) {
-		/* Read the MII 1000Base-T Control Register (Address 9). */
+		
 		ret_val = e1e_rphy(hw, PHY_1000T_CTRL, &mii_1000t_ctrl_reg);
 		if (ret_val)
 			return ret_val;
 	}
 
-	/*
-	 * Need to parse both autoneg_advertised and fc and set up
-	 * the appropriate PHY registers.  First we will parse for
-	 * autoneg_advertised software override.  Since we can advertise
-	 * a plethora of combinations, we need to check each bit
-	 * individually.
-	 */
+	
 
-	/*
-	 * First we clear all the 10/100 mb speed bits in the Auto-Neg
-	 * Advertisement Register (Address 4) and the 1000 mb speed bits in
-	 * the  1000Base-T Control Register (Address 9).
-	 */
+	
 	mii_autoneg_adv_reg &= ~(NWAY_AR_100TX_FD_CAPS |
 				 NWAY_AR_100TX_HD_CAPS |
 				 NWAY_AR_10T_FD_CAPS   |
@@ -964,92 +703,57 @@ static s32 e1000_phy_setup_autoneg(struct e1000_hw *hw)
 
 	hw_dbg(hw, "autoneg_advertised %x\n", phy->autoneg_advertised);
 
-	/* Do we want to advertise 10 Mb Half Duplex? */
+	
 	if (phy->autoneg_advertised & ADVERTISE_10_HALF) {
 		hw_dbg(hw, "Advertise 10mb Half duplex\n");
 		mii_autoneg_adv_reg |= NWAY_AR_10T_HD_CAPS;
 	}
 
-	/* Do we want to advertise 10 Mb Full Duplex? */
+	
 	if (phy->autoneg_advertised & ADVERTISE_10_FULL) {
 		hw_dbg(hw, "Advertise 10mb Full duplex\n");
 		mii_autoneg_adv_reg |= NWAY_AR_10T_FD_CAPS;
 	}
 
-	/* Do we want to advertise 100 Mb Half Duplex? */
+	
 	if (phy->autoneg_advertised & ADVERTISE_100_HALF) {
 		hw_dbg(hw, "Advertise 100mb Half duplex\n");
 		mii_autoneg_adv_reg |= NWAY_AR_100TX_HD_CAPS;
 	}
 
-	/* Do we want to advertise 100 Mb Full Duplex? */
+	
 	if (phy->autoneg_advertised & ADVERTISE_100_FULL) {
 		hw_dbg(hw, "Advertise 100mb Full duplex\n");
 		mii_autoneg_adv_reg |= NWAY_AR_100TX_FD_CAPS;
 	}
 
-	/* We do not allow the Phy to advertise 1000 Mb Half Duplex */
+	
 	if (phy->autoneg_advertised & ADVERTISE_1000_HALF)
 		hw_dbg(hw, "Advertise 1000mb Half duplex request denied!\n");
 
-	/* Do we want to advertise 1000 Mb Full Duplex? */
+	
 	if (phy->autoneg_advertised & ADVERTISE_1000_FULL) {
 		hw_dbg(hw, "Advertise 1000mb Full duplex\n");
 		mii_1000t_ctrl_reg |= CR_1000T_FD_CAPS;
 	}
 
-	/*
-	 * Check for a software override of the flow control settings, and
-	 * setup the PHY advertisement registers accordingly.  If
-	 * auto-negotiation is enabled, then software will have to set the
-	 * "PAUSE" bits to the correct value in the Auto-Negotiation
-	 * Advertisement Register (PHY_AUTONEG_ADV) and re-start auto-
-	 * negotiation.
-	 *
-	 * The possible values of the "fc" parameter are:
-	 *      0:  Flow control is completely disabled
-	 *      1:  Rx flow control is enabled (we can receive pause frames
-	 *	  but not send pause frames).
-	 *      2:  Tx flow control is enabled (we can send pause frames
-	 *	  but we do not support receiving pause frames).
-	 *      3:  Both Rx and Tx flow control (symmetric) are enabled.
-	 *  other:  No software override.  The flow control configuration
-	 *	  in the EEPROM is used.
-	 */
+	
 	switch (hw->fc.current_mode) {
 	case e1000_fc_none:
-		/*
-		 * Flow control (Rx & Tx) is completely disabled by a
-		 * software over-ride.
-		 */
+		
 		mii_autoneg_adv_reg &= ~(NWAY_AR_ASM_DIR | NWAY_AR_PAUSE);
 		break;
 	case e1000_fc_rx_pause:
-		/*
-		 * Rx Flow control is enabled, and Tx Flow control is
-		 * disabled, by a software over-ride.
-		 *
-		 * Since there really isn't a way to advertise that we are
-		 * capable of Rx Pause ONLY, we will advertise that we
-		 * support both symmetric and asymmetric Rx PAUSE.  Later
-		 * (in e1000e_config_fc_after_link_up) we will disable the
-		 * hw's ability to send PAUSE frames.
-		 */
+		
 		mii_autoneg_adv_reg |= (NWAY_AR_ASM_DIR | NWAY_AR_PAUSE);
 		break;
 	case e1000_fc_tx_pause:
-		/*
-		 * Tx Flow control is enabled, and Rx Flow control is
-		 * disabled, by a software over-ride.
-		 */
+		
 		mii_autoneg_adv_reg |= NWAY_AR_ASM_DIR;
 		mii_autoneg_adv_reg &= ~NWAY_AR_PAUSE;
 		break;
 	case e1000_fc_full:
-		/*
-		 * Flow control (both Rx and Tx) is enabled by a software
-		 * over-ride.
-		 */
+		
 		mii_autoneg_adv_reg |= (NWAY_AR_ASM_DIR | NWAY_AR_PAUSE);
 		break;
 	default:
@@ -1071,31 +775,17 @@ static s32 e1000_phy_setup_autoneg(struct e1000_hw *hw)
 	return ret_val;
 }
 
-/**
- *  e1000_copper_link_autoneg - Setup/Enable autoneg for copper link
- *  @hw: pointer to the HW structure
- *
- *  Performs initial bounds checking on autoneg advertisement parameter, then
- *  configure to advertise the full capability.  Setup the PHY to autoneg
- *  and restart the negotiation process between the link partner.  If
- *  autoneg_wait_to_complete, then wait for autoneg to complete before exiting.
- **/
+
 static s32 e1000_copper_link_autoneg(struct e1000_hw *hw)
 {
 	struct e1000_phy_info *phy = &hw->phy;
 	s32 ret_val;
 	u16 phy_ctrl;
 
-	/*
-	 * Perform some bounds checking on the autoneg advertisement
-	 * parameter.
-	 */
+	
 	phy->autoneg_advertised &= phy->autoneg_mask;
 
-	/*
-	 * If autoneg_advertised is zero, we assume it was not defaulted
-	 * by the calling code so we set to advertise full capability.
-	 */
+	
 	if (phy->autoneg_advertised == 0)
 		phy->autoneg_advertised = phy->autoneg_mask;
 
@@ -1107,10 +797,7 @@ static s32 e1000_copper_link_autoneg(struct e1000_hw *hw)
 	}
 	hw_dbg(hw, "Restarting Auto-Neg\n");
 
-	/*
-	 * Restart auto-negotiation by setting the Auto Neg Enable bit and
-	 * the Auto Neg Restart bit in the PHY control register.
-	 */
+	
 	ret_val = e1e_rphy(hw, PHY_CONTROL, &phy_ctrl);
 	if (ret_val)
 		return ret_val;
@@ -1120,10 +807,7 @@ static s32 e1000_copper_link_autoneg(struct e1000_hw *hw)
 	if (ret_val)
 		return ret_val;
 
-	/*
-	 * Does the user want to wait for Auto-Neg to complete here, or
-	 * check at a later time (for example, callback routine).
-	 */
+	
 	if (phy->autoneg_wait_to_complete) {
 		ret_val = e1000_wait_autoneg(hw);
 		if (ret_val) {
@@ -1138,33 +822,19 @@ static s32 e1000_copper_link_autoneg(struct e1000_hw *hw)
 	return ret_val;
 }
 
-/**
- *  e1000e_setup_copper_link - Configure copper link settings
- *  @hw: pointer to the HW structure
- *
- *  Calls the appropriate function to configure the link for auto-neg or forced
- *  speed and duplex.  Then we check for link, once link is established calls
- *  to configure collision distance and flow control are called.  If link is
- *  not established, we return -E1000_ERR_PHY (-2).
- **/
+
 s32 e1000e_setup_copper_link(struct e1000_hw *hw)
 {
 	s32 ret_val;
 	bool link;
 
 	if (hw->mac.autoneg) {
-		/*
-		 * Setup autoneg and flow control advertisement and perform
-		 * autonegotiation.
-		 */
+		
 		ret_val = e1000_copper_link_autoneg(hw);
 		if (ret_val)
 			return ret_val;
 	} else {
-		/*
-		 * PHY will be set to 10H, 10F, 100H or 100F
-		 * depending on user settings.
-		 */
+		
 		hw_dbg(hw, "Forcing Speed and Duplex\n");
 		ret_val = e1000_phy_force_speed_duplex(hw);
 		if (ret_val) {
@@ -1173,10 +843,7 @@ s32 e1000e_setup_copper_link(struct e1000_hw *hw)
 		}
 	}
 
-	/*
-	 * Check link status. Wait up to 100 microseconds for link to become
-	 * valid.
-	 */
+	
 	ret_val = e1000e_phy_has_link_generic(hw,
 					     COPPER_LINK_UP_LIMIT,
 					     10,
@@ -1195,14 +862,7 @@ s32 e1000e_setup_copper_link(struct e1000_hw *hw)
 	return ret_val;
 }
 
-/**
- *  e1000e_phy_force_speed_duplex_igp - Force speed/duplex for igp PHY
- *  @hw: pointer to the HW structure
- *
- *  Calls the PHY setup function to force speed and duplex.  Clears the
- *  auto-crossover to force MDI manually.  Waits for link and returns
- *  successful if link up is successful, else -E1000_ERR_PHY (-2).
- **/
+
 s32 e1000e_phy_force_speed_duplex_igp(struct e1000_hw *hw)
 {
 	struct e1000_phy_info *phy = &hw->phy;
@@ -1220,10 +880,7 @@ s32 e1000e_phy_force_speed_duplex_igp(struct e1000_hw *hw)
 	if (ret_val)
 		return ret_val;
 
-	/*
-	 * Clear Auto-Crossover to force MDI manually.  IGP requires MDI
-	 * forced whenever speed and duplex are forced.
-	 */
+	
 	ret_val = e1e_rphy(hw, IGP01E1000_PHY_PORT_CTRL, &phy_data);
 	if (ret_val)
 		return ret_val;
@@ -1252,7 +909,7 @@ s32 e1000e_phy_force_speed_duplex_igp(struct e1000_hw *hw)
 		if (!link)
 			hw_dbg(hw, "Link taking longer than expected.\n");
 
-		/* Try once more */
+		
 		ret_val = e1000e_phy_has_link_generic(hw,
 						     PHY_FORCE_LIMIT,
 						     100000,
@@ -1264,16 +921,7 @@ s32 e1000e_phy_force_speed_duplex_igp(struct e1000_hw *hw)
 	return ret_val;
 }
 
-/**
- *  e1000e_phy_force_speed_duplex_m88 - Force speed/duplex for m88 PHY
- *  @hw: pointer to the HW structure
- *
- *  Calls the PHY setup function to force speed and duplex.  Clears the
- *  auto-crossover to force MDI manually.  Resets the PHY to commit the
- *  changes.  If time expires while waiting for link up, we reset the DSP.
- *  After reset, TX_CLK and CRS on Tx must be set.  Return successful upon
- *  successful completion, else return corresponding error code.
- **/
+
 s32 e1000e_phy_force_speed_duplex_m88(struct e1000_hw *hw)
 {
 	struct e1000_phy_info *phy = &hw->phy;
@@ -1281,10 +929,7 @@ s32 e1000e_phy_force_speed_duplex_m88(struct e1000_hw *hw)
 	u16 phy_data;
 	bool link;
 
-	/*
-	 * Clear Auto-Crossover to force MDI manually.  M88E1000 requires MDI
-	 * forced whenever speed and duplex are forced.
-	 */
+	
 	ret_val = e1e_rphy(hw, M88E1000_PHY_SPEC_CTRL, &phy_data);
 	if (ret_val)
 		return ret_val;
@@ -1306,7 +951,7 @@ s32 e1000e_phy_force_speed_duplex_m88(struct e1000_hw *hw)
 	if (ret_val)
 		return ret_val;
 
-	/* Reset the phy to commit changes. */
+	
 	ret_val = e1000e_commit_phy(hw);
 	if (ret_val)
 		return ret_val;
@@ -1320,10 +965,7 @@ s32 e1000e_phy_force_speed_duplex_m88(struct e1000_hw *hw)
 			return ret_val;
 
 		if (!link) {
-			/*
-			 * We didn't get link.
-			 * Reset the DSP and cross our fingers.
-			 */
+			
 			ret_val = e1e_wphy(hw, M88E1000_PHY_PAGE_SELECT,
 					   0x001d);
 			if (ret_val)
@@ -1333,7 +975,7 @@ s32 e1000e_phy_force_speed_duplex_m88(struct e1000_hw *hw)
 				return ret_val;
 		}
 
-		/* Try once more */
+		
 		ret_val = e1000e_phy_has_link_generic(hw, PHY_FORCE_LIMIT,
 						     100000, &link);
 		if (ret_val)
@@ -1344,20 +986,13 @@ s32 e1000e_phy_force_speed_duplex_m88(struct e1000_hw *hw)
 	if (ret_val)
 		return ret_val;
 
-	/*
-	 * Resetting the phy means we need to re-force TX_CLK in the
-	 * Extended PHY Specific Control Register to 25MHz clock from
-	 * the reset value of 2.5MHz.
-	 */
+	
 	phy_data |= M88E1000_EPSCR_TX_CLK_25;
 	ret_val = e1e_wphy(hw, M88E1000_EXT_PHY_SPEC_CTRL, phy_data);
 	if (ret_val)
 		return ret_val;
 
-	/*
-	 * In addition, we must re-enable CRS on Tx for both half and full
-	 * duplex.
-	 */
+	
 	ret_val = e1e_rphy(hw, M88E1000_PHY_SPEC_CTRL, &phy_data);
 	if (ret_val)
 		return ret_val;
@@ -1368,38 +1003,27 @@ s32 e1000e_phy_force_speed_duplex_m88(struct e1000_hw *hw)
 	return ret_val;
 }
 
-/**
- *  e1000e_phy_force_speed_duplex_setup - Configure forced PHY speed/duplex
- *  @hw: pointer to the HW structure
- *  @phy_ctrl: pointer to current value of PHY_CONTROL
- *
- *  Forces speed and duplex on the PHY by doing the following: disable flow
- *  control, force speed/duplex on the MAC, disable auto speed detection,
- *  disable auto-negotiation, configure duplex, configure speed, configure
- *  the collision distance, write configuration to CTRL register.  The
- *  caller must write to the PHY_CONTROL register for these settings to
- *  take affect.
- **/
+
 void e1000e_phy_force_speed_duplex_setup(struct e1000_hw *hw, u16 *phy_ctrl)
 {
 	struct e1000_mac_info *mac = &hw->mac;
 	u32 ctrl;
 
-	/* Turn off flow control when forcing speed/duplex */
+	
 	hw->fc.current_mode = e1000_fc_none;
 
-	/* Force speed/duplex on the mac */
+	
 	ctrl = er32(CTRL);
 	ctrl |= (E1000_CTRL_FRCSPD | E1000_CTRL_FRCDPX);
 	ctrl &= ~E1000_CTRL_SPD_SEL;
 
-	/* Disable Auto Speed Detection */
+	
 	ctrl &= ~E1000_CTRL_ASDE;
 
-	/* Disable autoneg on the phy */
+	
 	*phy_ctrl &= ~MII_CR_AUTO_NEG_EN;
 
-	/* Forcing Full or Half Duplex? */
+	
 	if (mac->forced_speed_duplex & E1000_ALL_HALF_DUPLEX) {
 		ctrl &= ~E1000_CTRL_FD;
 		*phy_ctrl &= ~MII_CR_FULL_DUPLEX;
@@ -1410,7 +1034,7 @@ void e1000e_phy_force_speed_duplex_setup(struct e1000_hw *hw, u16 *phy_ctrl)
 		hw_dbg(hw, "Full Duplex\n");
 	}
 
-	/* Forcing 10mb or 100mb? */
+	
 	if (mac->forced_speed_duplex & E1000_ALL_100_SPEED) {
 		ctrl |= E1000_CTRL_SPD_100;
 		*phy_ctrl |= MII_CR_SPEED_100;
@@ -1428,20 +1052,7 @@ void e1000e_phy_force_speed_duplex_setup(struct e1000_hw *hw, u16 *phy_ctrl)
 	ew32(CTRL, ctrl);
 }
 
-/**
- *  e1000e_set_d3_lplu_state - Sets low power link up state for D3
- *  @hw: pointer to the HW structure
- *  @active: boolean used to enable/disable lplu
- *
- *  Success returns 0, Failure returns 1
- *
- *  The low power link up (lplu) state is set to the power management level D3
- *  and SmartSpeed is disabled when active is true, else clear lplu for D3
- *  and enable Smartspeed.  LPLU and Smartspeed are mutually exclusive.  LPLU
- *  is used during Dx states where the power conservation is most important.
- *  During driver activity, SmartSpeed should be enabled so performance is
- *  maintained.
- **/
+
 s32 e1000e_set_d3_lplu_state(struct e1000_hw *hw, bool active)
 {
 	struct e1000_phy_info *phy = &hw->phy;
@@ -1457,12 +1068,7 @@ s32 e1000e_set_d3_lplu_state(struct e1000_hw *hw, bool active)
 		ret_val = e1e_wphy(hw, IGP02E1000_PHY_POWER_MGMT, data);
 		if (ret_val)
 			return ret_val;
-		/*
-		 * LPLU and SmartSpeed are mutually exclusive.  LPLU is used
-		 * during Dx states where the power conservation is most
-		 * important.  During driver activity we should enable
-		 * SmartSpeed, so performance is maintained.
-		 */
+		
 		if (phy->smart_speed == e1000_smart_speed_on) {
 			ret_val = e1e_rphy(hw, IGP01E1000_PHY_PORT_CONFIG,
 					   &data);
@@ -1494,7 +1100,7 @@ s32 e1000e_set_d3_lplu_state(struct e1000_hw *hw, bool active)
 		if (ret_val)
 			return ret_val;
 
-		/* When LPLU is enabled, we should disable SmartSpeed */
+		
 		ret_val = e1e_rphy(hw, IGP01E1000_PHY_PORT_CONFIG, &data);
 		if (ret_val)
 			return ret_val;
@@ -1506,14 +1112,7 @@ s32 e1000e_set_d3_lplu_state(struct e1000_hw *hw, bool active)
 	return ret_val;
 }
 
-/**
- *  e1000e_check_downshift - Checks whether a downshift in speed occurred
- *  @hw: pointer to the HW structure
- *
- *  Success returns 0, Failure returns 1
- *
- *  A downshift is detected by querying the PHY link health.
- **/
+
 s32 e1000e_check_downshift(struct e1000_hw *hw)
 {
 	struct e1000_phy_info *phy = &hw->phy;
@@ -1534,7 +1133,7 @@ s32 e1000e_check_downshift(struct e1000_hw *hw)
 		mask	= IGP01E1000_PLHR_SS_DOWNGRADE;
 		break;
 	default:
-		/* speed downshift not supported */
+		
 		phy->speed_downgraded = 0;
 		return 0;
 	}
@@ -1547,14 +1146,7 @@ s32 e1000e_check_downshift(struct e1000_hw *hw)
 	return ret_val;
 }
 
-/**
- *  e1000_check_polarity_m88 - Checks the polarity.
- *  @hw: pointer to the HW structure
- *
- *  Success returns 0, Failure returns -E1000_ERR_PHY (-2)
- *
- *  Polarity is determined based on the PHY specific status register.
- **/
+
 static s32 e1000_check_polarity_m88(struct e1000_hw *hw)
 {
 	struct e1000_phy_info *phy = &hw->phy;
@@ -1571,25 +1163,14 @@ static s32 e1000_check_polarity_m88(struct e1000_hw *hw)
 	return ret_val;
 }
 
-/**
- *  e1000_check_polarity_igp - Checks the polarity.
- *  @hw: pointer to the HW structure
- *
- *  Success returns 0, Failure returns -E1000_ERR_PHY (-2)
- *
- *  Polarity is determined based on the PHY port status register, and the
- *  current speed (since there is no polarity at 100Mbps).
- **/
+
 static s32 e1000_check_polarity_igp(struct e1000_hw *hw)
 {
 	struct e1000_phy_info *phy = &hw->phy;
 	s32 ret_val;
 	u16 data, offset, mask;
 
-	/*
-	 * Polarity is determined based on the speed of
-	 * our connection.
-	 */
+	
 	ret_val = e1e_rphy(hw, IGP01E1000_PHY_PORT_STATUS, &data);
 	if (ret_val)
 		return ret_val;
@@ -1599,10 +1180,7 @@ static s32 e1000_check_polarity_igp(struct e1000_hw *hw)
 		offset	= IGP01E1000_PHY_PCS_INIT_REG;
 		mask	= IGP01E1000_PHY_POLARITY_MASK;
 	} else {
-		/*
-		 * This really only applies to 10Mbps since
-		 * there is no polarity for 100Mbps (always 0).
-		 */
+		
 		offset	= IGP01E1000_PHY_PORT_STATUS;
 		mask	= IGP01E1000_PSSR_POLARITY_REVERSED;
 	}
@@ -1617,19 +1195,13 @@ static s32 e1000_check_polarity_igp(struct e1000_hw *hw)
 	return ret_val;
 }
 
-/**
- *  e1000_wait_autoneg - Wait for auto-neg completion
- *  @hw: pointer to the HW structure
- *
- *  Waits for auto-negotiation to complete or for the auto-negotiation time
- *  limit to expire, which ever happens first.
- **/
+
 static s32 e1000_wait_autoneg(struct e1000_hw *hw)
 {
 	s32 ret_val = 0;
 	u16 i, phy_status;
 
-	/* Break after autoneg completes or PHY_AUTO_NEG_LIMIT expires. */
+	
 	for (i = PHY_AUTO_NEG_LIMIT; i > 0; i--) {
 		ret_val = e1e_rphy(hw, PHY_STATUS, &phy_status);
 		if (ret_val)
@@ -1642,22 +1214,11 @@ static s32 e1000_wait_autoneg(struct e1000_hw *hw)
 		msleep(100);
 	}
 
-	/*
-	 * PHY_AUTO_NEG_TIME expiration doesn't guarantee auto-negotiation
-	 * has completed.
-	 */
+	
 	return ret_val;
 }
 
-/**
- *  e1000e_phy_has_link_generic - Polls PHY for link
- *  @hw: pointer to the HW structure
- *  @iterations: number of times to poll for link
- *  @usec_interval: delay between polling attempts
- *  @success: pointer to whether polling was successful or not
- *
- *  Polls the PHY status register for link, 'iterations' number of times.
- **/
+
 s32 e1000e_phy_has_link_generic(struct e1000_hw *hw, u32 iterations,
 			       u32 usec_interval, bool *success)
 {
@@ -1665,18 +1226,10 @@ s32 e1000e_phy_has_link_generic(struct e1000_hw *hw, u32 iterations,
 	u16 i, phy_status;
 
 	for (i = 0; i < iterations; i++) {
-		/*
-		 * Some PHYs require the PHY_STATUS register to be read
-		 * twice due to the link bit being sticky.  No harm doing
-		 * it across the board.
-		 */
+		
 		ret_val = e1e_rphy(hw, PHY_STATUS, &phy_status);
 		if (ret_val)
-			/*
-			 * If the first read fails, another entity may have
-			 * ownership of the resources, wait and try again to
-			 * see if they have relinquished the resources yet.
-			 */
+			
 			udelay(usec_interval);
 		ret_val = e1e_rphy(hw, PHY_STATUS, &phy_status);
 		if (ret_val)
@@ -1694,21 +1247,7 @@ s32 e1000e_phy_has_link_generic(struct e1000_hw *hw, u32 iterations,
 	return ret_val;
 }
 
-/**
- *  e1000e_get_cable_length_m88 - Determine cable length for m88 PHY
- *  @hw: pointer to the HW structure
- *
- *  Reads the PHY specific status register to retrieve the cable length
- *  information.  The cable length is determined by averaging the minimum and
- *  maximum values to get the "average" cable length.  The m88 PHY has four
- *  possible cable length values, which are:
- *	Register Value		Cable Length
- *	0			< 50 meters
- *	1			50 - 80 meters
- *	2			80 - 110 meters
- *	3			110 - 140 meters
- *	4			> 140 meters
- **/
+
 s32 e1000e_get_cable_length_m88(struct e1000_hw *hw)
 {
 	struct e1000_phy_info *phy = &hw->phy;
@@ -1729,17 +1268,7 @@ s32 e1000e_get_cable_length_m88(struct e1000_hw *hw)
 	return ret_val;
 }
 
-/**
- *  e1000e_get_cable_length_igp_2 - Determine cable length for igp2 PHY
- *  @hw: pointer to the HW structure
- *
- *  The automatic gain control (agc) normalizes the amplitude of the
- *  received signal, adjusting for the attenuation produced by the
- *  cable.  By reading the AGC registers, which represent the
- *  combination of course and fine gain value, the value can be put
- *  into a lookup table to obtain the approximate cable length
- *  for each channel.
- **/
+
 s32 e1000e_get_cable_length_igp_2(struct e1000_hw *hw)
 {
 	struct e1000_phy_info *phy = &hw->phy;
@@ -1753,27 +1282,22 @@ s32 e1000e_get_cable_length_igp_2(struct e1000_hw *hw)
 							  IGP02E1000_PHY_AGC_C,
 							  IGP02E1000_PHY_AGC_D};
 
-	/* Read the AGC registers for all channels */
+	
 	for (i = 0; i < IGP02E1000_PHY_CHANNEL_NUM; i++) {
 		ret_val = e1e_rphy(hw, agc_reg_array[i], &phy_data);
 		if (ret_val)
 			return ret_val;
 
-		/*
-		 * Getting bits 15:9, which represent the combination of
-		 * course and fine gain values.  The result is a number
-		 * that can be put into the lookup table to obtain the
-		 * approximate cable length.
-		 */
+		
 		cur_agc_index = (phy_data >> IGP02E1000_AGC_LENGTH_SHIFT) &
 				IGP02E1000_AGC_LENGTH_MASK;
 
-		/* Array index bound check. */
+		
 		if ((cur_agc_index >= IGP02E1000_CABLE_LENGTH_TABLE_SIZE) ||
 		    (cur_agc_index == 0))
 			return -E1000_ERR_PHY;
 
-		/* Remove min & max AGC values from calculation. */
+		
 		if (e1000_igp_2_cable_length_table[min_agc_index] >
 		    e1000_igp_2_cable_length_table[cur_agc_index])
 			min_agc_index = cur_agc_index;
@@ -1788,7 +1312,7 @@ s32 e1000e_get_cable_length_igp_2(struct e1000_hw *hw)
 		      e1000_igp_2_cable_length_table[max_agc_index]);
 	agc_value /= (IGP02E1000_PHY_CHANNEL_NUM - 2);
 
-	/* Calculate cable length with the error range of +/- 10 meters. */
+	
 	phy->min_cable_length = ((agc_value - IGP02E1000_AGC_RANGE) > 0) ?
 				 (agc_value - IGP02E1000_AGC_RANGE) : 0;
 	phy->max_cable_length = agc_value + IGP02E1000_AGC_RANGE;
@@ -1798,16 +1322,7 @@ s32 e1000e_get_cable_length_igp_2(struct e1000_hw *hw)
 	return ret_val;
 }
 
-/**
- *  e1000e_get_phy_info_m88 - Retrieve PHY information
- *  @hw: pointer to the HW structure
- *
- *  Valid for only copper links.  Read the PHY status register (sticky read)
- *  to verify that link is up.  Read the PHY special control register to
- *  determine the polarity and 10base-T extended distance.  Read the PHY
- *  special status register to determine MDI/MDIx and current speed.  If
- *  speed is 1000, then determine cable length, local and remote receiver.
- **/
+
 s32 e1000e_get_phy_info_m88(struct e1000_hw *hw)
 {
 	struct e1000_phy_info *phy = &hw->phy;
@@ -1863,7 +1378,7 @@ s32 e1000e_get_phy_info_m88(struct e1000_hw *hw)
 				 ? e1000_1000t_rx_status_ok
 				 : e1000_1000t_rx_status_not_ok;
 	} else {
-		/* Set values to "undefined" */
+		
 		phy->cable_length = E1000_CABLE_LENGTH_UNDEFINED;
 		phy->local_rx = e1000_1000t_rx_status_undefined;
 		phy->remote_rx = e1000_1000t_rx_status_undefined;
@@ -1872,15 +1387,7 @@ s32 e1000e_get_phy_info_m88(struct e1000_hw *hw)
 	return ret_val;
 }
 
-/**
- *  e1000e_get_phy_info_igp - Retrieve igp PHY information
- *  @hw: pointer to the HW structure
- *
- *  Read PHY status to determine if link is up.  If link is up, then
- *  set/determine 10base-T extended distance and polarity correction.  Read
- *  PHY port status to determine MDI/MDIx and speed.  Based on the speed,
- *  determine on the cable length, local and remote receiver.
- **/
+
 s32 e1000e_get_phy_info_igp(struct e1000_hw *hw)
 {
 	struct e1000_phy_info *phy = &hw->phy;
@@ -1935,13 +1442,7 @@ s32 e1000e_get_phy_info_igp(struct e1000_hw *hw)
 	return ret_val;
 }
 
-/**
- *  e1000e_phy_sw_reset - PHY software reset
- *  @hw: pointer to the HW structure
- *
- *  Does a software reset of the PHY by reading the PHY control register and
- *  setting/write the control register reset bit to the PHY.
- **/
+
 s32 e1000e_phy_sw_reset(struct e1000_hw *hw)
 {
 	s32 ret_val;
@@ -1961,15 +1462,7 @@ s32 e1000e_phy_sw_reset(struct e1000_hw *hw)
 	return ret_val;
 }
 
-/**
- *  e1000e_phy_hw_reset_generic - PHY hardware reset
- *  @hw: pointer to the HW structure
- *
- *  Verify the reset block is not blocking us from resetting.  Acquire
- *  semaphore (if necessary) and read/set/write the device control reset
- *  bit in the PHY.  Wait the appropriate delay time for the device to
- *  reset and release the semaphore (if necessary).
- **/
+
 s32 e1000e_phy_hw_reset_generic(struct e1000_hw *hw)
 {
 	struct e1000_phy_info *phy = &hw->phy;
@@ -2000,113 +1493,90 @@ s32 e1000e_phy_hw_reset_generic(struct e1000_hw *hw)
 	return e1000_get_phy_cfg_done(hw);
 }
 
-/**
- *  e1000e_get_cfg_done - Generic configuration done
- *  @hw: pointer to the HW structure
- *
- *  Generic function to wait 10 milli-seconds for configuration to complete
- *  and return success.
- **/
+
 s32 e1000e_get_cfg_done(struct e1000_hw *hw)
 {
 	mdelay(10);
 	return 0;
 }
 
-/**
- *  e1000e_phy_init_script_igp3 - Inits the IGP3 PHY
- *  @hw: pointer to the HW structure
- *
- *  Initializes a Intel Gigabit PHY3 when an EEPROM is not present.
- **/
+
 s32 e1000e_phy_init_script_igp3(struct e1000_hw *hw)
 {
 	hw_dbg(hw, "Running IGP 3 PHY init script\n");
 
-	/* PHY init IGP 3 */
-	/* Enable rise/fall, 10-mode work in class-A */
+	
+	
 	e1e_wphy(hw, 0x2F5B, 0x9018);
-	/* Remove all caps from Replica path filter */
+	
 	e1e_wphy(hw, 0x2F52, 0x0000);
-	/* Bias trimming for ADC, AFE and Driver (Default) */
+	
 	e1e_wphy(hw, 0x2FB1, 0x8B24);
-	/* Increase Hybrid poly bias */
+	
 	e1e_wphy(hw, 0x2FB2, 0xF8F0);
-	/* Add 4% to Tx amplitude in Gig mode */
+	
 	e1e_wphy(hw, 0x2010, 0x10B0);
-	/* Disable trimming (TTT) */
+	
 	e1e_wphy(hw, 0x2011, 0x0000);
-	/* Poly DC correction to 94.6% + 2% for all channels */
+	
 	e1e_wphy(hw, 0x20DD, 0x249A);
-	/* ABS DC correction to 95.9% */
+	
 	e1e_wphy(hw, 0x20DE, 0x00D3);
-	/* BG temp curve trim */
+	
 	e1e_wphy(hw, 0x28B4, 0x04CE);
-	/* Increasing ADC OPAMP stage 1 currents to max */
+	
 	e1e_wphy(hw, 0x2F70, 0x29E4);
-	/* Force 1000 ( required for enabling PHY regs configuration) */
+	
 	e1e_wphy(hw, 0x0000, 0x0140);
-	/* Set upd_freq to 6 */
+	
 	e1e_wphy(hw, 0x1F30, 0x1606);
-	/* Disable NPDFE */
+	
 	e1e_wphy(hw, 0x1F31, 0xB814);
-	/* Disable adaptive fixed FFE (Default) */
+	
 	e1e_wphy(hw, 0x1F35, 0x002A);
-	/* Enable FFE hysteresis */
+	
 	e1e_wphy(hw, 0x1F3E, 0x0067);
-	/* Fixed FFE for short cable lengths */
+	
 	e1e_wphy(hw, 0x1F54, 0x0065);
-	/* Fixed FFE for medium cable lengths */
+	
 	e1e_wphy(hw, 0x1F55, 0x002A);
-	/* Fixed FFE for long cable lengths */
+	
 	e1e_wphy(hw, 0x1F56, 0x002A);
-	/* Enable Adaptive Clip Threshold */
+	
 	e1e_wphy(hw, 0x1F72, 0x3FB0);
-	/* AHT reset limit to 1 */
+	
 	e1e_wphy(hw, 0x1F76, 0xC0FF);
-	/* Set AHT master delay to 127 msec */
+	
 	e1e_wphy(hw, 0x1F77, 0x1DEC);
-	/* Set scan bits for AHT */
+	
 	e1e_wphy(hw, 0x1F78, 0xF9EF);
-	/* Set AHT Preset bits */
+	
 	e1e_wphy(hw, 0x1F79, 0x0210);
-	/* Change integ_factor of channel A to 3 */
+	
 	e1e_wphy(hw, 0x1895, 0x0003);
-	/* Change prop_factor of channels BCD to 8 */
+	
 	e1e_wphy(hw, 0x1796, 0x0008);
-	/* Change cg_icount + enable integbp for channels BCD */
+	
 	e1e_wphy(hw, 0x1798, 0xD008);
-	/*
-	 * Change cg_icount + enable integbp + change prop_factor_master
-	 * to 8 for channel A
-	 */
+	
 	e1e_wphy(hw, 0x1898, 0xD918);
-	/* Disable AHT in Slave mode on channel A */
+	
 	e1e_wphy(hw, 0x187A, 0x0800);
-	/*
-	 * Enable LPLU and disable AN to 1000 in non-D0a states,
-	 * Enable SPD+B2B
-	 */
+	
 	e1e_wphy(hw, 0x0019, 0x008D);
-	/* Enable restart AN on an1000_dis change */
+	
 	e1e_wphy(hw, 0x001B, 0x2080);
-	/* Enable wh_fifo read clock in 10/100 modes */
+	
 	e1e_wphy(hw, 0x0014, 0x0045);
-	/* Restart AN, Speed selection is 1000 */
+	
 	e1e_wphy(hw, 0x0000, 0x1340);
 
 	return 0;
 }
 
-/* Internal function pointers */
 
-/**
- *  e1000_get_phy_cfg_done - Generic PHY configuration done
- *  @hw: pointer to the HW structure
- *
- *  Return success if silicon family did not implement a family specific
- *  get_cfg_done function.
- **/
+
+
 static s32 e1000_get_phy_cfg_done(struct e1000_hw *hw)
 {
 	if (hw->phy.ops.get_cfg_done)
@@ -2115,13 +1585,7 @@ static s32 e1000_get_phy_cfg_done(struct e1000_hw *hw)
 	return 0;
 }
 
-/**
- *  e1000_phy_force_speed_duplex - Generic force PHY speed/duplex
- *  @hw: pointer to the HW structure
- *
- *  When the silicon family has not implemented a forced speed/duplex
- *  function for the PHY, simply return 0.
- **/
+
 static s32 e1000_phy_force_speed_duplex(struct e1000_hw *hw)
 {
 	if (hw->phy.ops.force_speed_duplex)
@@ -2130,12 +1594,7 @@ static s32 e1000_phy_force_speed_duplex(struct e1000_hw *hw)
 	return 0;
 }
 
-/**
- *  e1000e_get_phy_type_from_id - Get PHY type from id
- *  @phy_id: phy_id read from the phy
- *
- *  Returns the phy type from the id.
- **/
+
 enum e1000_phy_type e1000e_get_phy_type_from_id(u32 phy_id)
 {
 	enum e1000_phy_type phy_type = e1000_phy_unknown;
@@ -2147,7 +1606,7 @@ enum e1000_phy_type e1000e_get_phy_type_from_id(u32 phy_id)
 	case M88E1011_I_PHY_ID:
 		phy_type = e1000_phy_m88;
 		break;
-	case IGP01E1000_I_PHY_ID: /* IGP 1 & 2 share this */
+	case IGP01E1000_I_PHY_ID: 
 		phy_type = e1000_phy_igp_2;
 		break;
 	case GG82563_E_PHY_ID:
@@ -2178,14 +1637,7 @@ enum e1000_phy_type e1000e_get_phy_type_from_id(u32 phy_id)
 	return phy_type;
 }
 
-/**
- *  e1000e_determine_phy_address - Determines PHY address.
- *  @hw: pointer to the HW structure
- *
- *  This uses a trial and error method to loop through possible PHY
- *  addresses. It tests each by reading the PHY ID registers and
- *  checking for a match.
- **/
+
 s32 e1000e_determine_phy_address(struct e1000_hw *hw)
 {
 	s32 ret_val = -E1000_ERR_PHY_TYPE;
@@ -2199,10 +1651,7 @@ s32 e1000e_determine_phy_address(struct e1000_hw *hw)
 			e1000e_get_phy_id(hw);
 			phy_type = e1000e_get_phy_type_from_id(hw->phy.id);
 
-			/* 
-			 * If phy_type is valid, break - we found our
-			 * PHY address
-			 */
+			
 			if (phy_type  != e1000_phy_unknown) {
 				ret_val = 0;
 				break;
@@ -2214,12 +1663,7 @@ s32 e1000e_determine_phy_address(struct e1000_hw *hw)
 	return ret_val;
 }
 
-/**
- *  e1000_get_phy_addr_for_bm_page - Retrieve PHY page address
- *  @page: page to access
- *
- *  Returns the phy address for the page requested.
- **/
+
 static u32 e1000_get_phy_addr_for_bm_page(u32 page, u32 reg)
 {
 	u32 phy_addr = 2;
@@ -2230,15 +1674,7 @@ static u32 e1000_get_phy_addr_for_bm_page(u32 page, u32 reg)
 	return phy_addr;
 }
 
-/**
- *  e1000e_write_phy_reg_bm - Write BM PHY register
- *  @hw: pointer to the HW structure
- *  @offset: register offset to write to
- *  @data: data to write at register offset
- *
- *  Acquires semaphore, if necessary, then writes the data to PHY register
- *  at the offset.  Release any acquired semaphores before exiting.
- **/
+
 s32 e1000e_write_phy_reg_bm(struct e1000_hw *hw, u32 offset, u16 data)
 {
 	s32 ret_val;
@@ -2250,7 +1686,7 @@ s32 e1000e_write_phy_reg_bm(struct e1000_hw *hw, u32 offset, u16 data)
 	if (ret_val)
 		return ret_val;
 
-	/* Page 800 works differently than the rest so it has its own func */
+	
 	if (page == BM_WUC_PAGE) {
 		ret_val = e1000_access_phy_wakeup_reg_bm(hw, offset, &data,
 							 false);
@@ -2260,11 +1696,7 @@ s32 e1000e_write_phy_reg_bm(struct e1000_hw *hw, u32 offset, u16 data)
 	hw->phy.addr = e1000_get_phy_addr_for_bm_page(page, offset);
 
 	if (offset > MAX_PHY_MULTI_PAGE_REG) {
-		/*
-		 * Page select is register 31 for phy address 1 and 22 for
-		 * phy address 2 and 3. Page select is shifted only for
-		 * phy address 1.
-		 */
+		
 		if (hw->phy.addr == 1) {
 			page_shift = IGP_PAGE_SHIFT;
 			page_select = IGP01E1000_PHY_PAGE_SELECT;
@@ -2273,7 +1705,7 @@ s32 e1000e_write_phy_reg_bm(struct e1000_hw *hw, u32 offset, u16 data)
 			page_select = BM_PHY_PAGE_SELECT;
 		}
 
-		/* Page is shifted left, PHY expects (page x 32) */
+		
 		ret_val = e1000e_write_phy_reg_mdic(hw, page_select,
 		                                    (page << page_shift));
 		if (ret_val)
@@ -2288,16 +1720,7 @@ out:
 	return ret_val;
 }
 
-/**
- *  e1000e_read_phy_reg_bm - Read BM PHY register
- *  @hw: pointer to the HW structure
- *  @offset: register offset to be read
- *  @data: pointer to the read data
- *
- *  Acquires semaphore, if necessary, then reads the PHY register at offset
- *  and storing the retrieved information in data.  Release any acquired
- *  semaphores before exiting.
- **/
+
 s32 e1000e_read_phy_reg_bm(struct e1000_hw *hw, u32 offset, u16 *data)
 {
 	s32 ret_val;
@@ -2309,7 +1732,7 @@ s32 e1000e_read_phy_reg_bm(struct e1000_hw *hw, u32 offset, u16 *data)
 	if (ret_val)
 		return ret_val;
 
-	/* Page 800 works differently than the rest so it has its own func */
+	
 	if (page == BM_WUC_PAGE) {
 		ret_val = e1000_access_phy_wakeup_reg_bm(hw, offset, data,
 							 true);
@@ -2319,11 +1742,7 @@ s32 e1000e_read_phy_reg_bm(struct e1000_hw *hw, u32 offset, u16 *data)
 	hw->phy.addr = e1000_get_phy_addr_for_bm_page(page, offset);
 
 	if (offset > MAX_PHY_MULTI_PAGE_REG) {
-		/*
-		 * Page select is register 31 for phy address 1 and 22 for
-		 * phy address 2 and 3. Page select is shifted only for
-		 * phy address 1.
-		 */
+		
 		if (hw->phy.addr == 1) {
 			page_shift = IGP_PAGE_SHIFT;
 			page_select = IGP01E1000_PHY_PAGE_SELECT;
@@ -2332,7 +1751,7 @@ s32 e1000e_read_phy_reg_bm(struct e1000_hw *hw, u32 offset, u16 *data)
 			page_select = BM_PHY_PAGE_SELECT;
 		}
 
-		/* Page is shifted left, PHY expects (page x 32) */
+		
 		ret_val = e1000e_write_phy_reg_mdic(hw, page_select,
 		                                    (page << page_shift));
 		if (ret_val)
@@ -2346,16 +1765,7 @@ out:
 	return ret_val;
 }
 
-/**
- *  e1000e_read_phy_reg_bm2 - Read BM PHY register
- *  @hw: pointer to the HW structure
- *  @offset: register offset to be read
- *  @data: pointer to the read data
- *
- *  Acquires semaphore, if necessary, then reads the PHY register at offset
- *  and storing the retrieved information in data.  Release any acquired
- *  semaphores before exiting.
- **/
+
 s32 e1000e_read_phy_reg_bm2(struct e1000_hw *hw, u32 offset, u16 *data)
 {
 	s32 ret_val;
@@ -2365,7 +1775,7 @@ s32 e1000e_read_phy_reg_bm2(struct e1000_hw *hw, u32 offset, u16 *data)
 	if (ret_val)
 		return ret_val;
 
-	/* Page 800 works differently than the rest so it has its own func */
+	
 	if (page == BM_WUC_PAGE) {
 		ret_val = e1000_access_phy_wakeup_reg_bm(hw, offset, data,
 							 true);
@@ -2376,7 +1786,7 @@ s32 e1000e_read_phy_reg_bm2(struct e1000_hw *hw, u32 offset, u16 *data)
 
 	if (offset > MAX_PHY_MULTI_PAGE_REG) {
 
-		/* Page is shifted left, PHY expects (page x 32) */
+		
 		ret_val = e1000e_write_phy_reg_mdic(hw, BM_PHY_PAGE_SELECT,
 						    page);
 
@@ -2391,15 +1801,7 @@ out:
 	return ret_val;
 }
 
-/**
- *  e1000e_write_phy_reg_bm2 - Write BM PHY register
- *  @hw: pointer to the HW structure
- *  @offset: register offset to write to
- *  @data: data to write at register offset
- *
- *  Acquires semaphore, if necessary, then writes the data to PHY register
- *  at the offset.  Release any acquired semaphores before exiting.
- **/
+
 s32 e1000e_write_phy_reg_bm2(struct e1000_hw *hw, u32 offset, u16 data)
 {
 	s32 ret_val;
@@ -2409,7 +1811,7 @@ s32 e1000e_write_phy_reg_bm2(struct e1000_hw *hw, u32 offset, u16 data)
 	if (ret_val)
 		return ret_val;
 
-	/* Page 800 works differently than the rest so it has its own func */
+	
 	if (page == BM_WUC_PAGE) {
 		ret_val = e1000_access_phy_wakeup_reg_bm(hw, offset, &data,
 							 false);
@@ -2419,7 +1821,7 @@ s32 e1000e_write_phy_reg_bm2(struct e1000_hw *hw, u32 offset, u16 data)
 	hw->phy.addr = 1;
 
 	if (offset > MAX_PHY_MULTI_PAGE_REG) {
-		/* Page is shifted left, PHY expects (page x 32) */
+		
 		ret_val = e1000e_write_phy_reg_mdic(hw, BM_PHY_PAGE_SELECT,
 						    page);
 
@@ -2435,25 +1837,7 @@ out:
 	return ret_val;
 }
 
-/**
- *  e1000_access_phy_wakeup_reg_bm - Read BM PHY wakeup register
- *  @hw: pointer to the HW structure
- *  @offset: register offset to be read or written
- *  @data: pointer to the data to read or write
- *  @read: determines if operation is read or write
- *
- *  Acquires semaphore, if necessary, then reads the PHY register at offset
- *  and storing the retrieved information in data.  Release any acquired
- *  semaphores before exiting. Note that procedure to read the wakeup
- *  registers are different. It works as such:
- *  1) Set page 769, register 17, bit 2 = 1
- *  2) Set page to 800 for host (801 if we were manageability)
- *  3) Write the address using the address opcode (0x11)
- *  4) Read or write the data using the data opcode (0x12)
- *  5) Restore 769_17.2 to its original value
- *
- *  Assumes semaphore already acquired.
- **/
+
 static s32 e1000_access_phy_wakeup_reg_bm(struct e1000_hw *hw, u32 offset,
 					  u16 *data, bool read)
 {
@@ -2461,15 +1845,15 @@ static s32 e1000_access_phy_wakeup_reg_bm(struct e1000_hw *hw, u32 offset,
 	u16 reg = BM_PHY_REG_NUM(offset);
 	u16 phy_reg = 0;
 
-	/* Gig must be disabled for MDIO accesses to page 800 */
+	
 	if ((hw->mac.type == e1000_pchlan) &&
 	   (!(er32(PHY_CTRL) & E1000_PHY_CTRL_GBE_DISABLE)))
 		hw_dbg(hw, "Attempting to access page 800 while gig enabled\n");
 
-	/* All operations in this function are phy address 1 */
+	
 	hw->phy.addr = 1;
 
-	/* Set page 769 */
+	
 	e1000e_write_phy_reg_mdic(hw, IGP01E1000_PHY_PAGE_SELECT,
 	                          (BM_WUC_ENABLE_PAGE << IGP_PAGE_SHIFT));
 
@@ -2477,33 +1861,33 @@ static s32 e1000_access_phy_wakeup_reg_bm(struct e1000_hw *hw, u32 offset,
 	if (ret_val)
 		goto out;
 
-	/* First clear bit 4 to avoid a power state change */
+	
 	phy_reg &= ~(BM_WUC_HOST_WU_BIT);
 	ret_val = e1000e_write_phy_reg_mdic(hw, BM_WUC_ENABLE_REG, phy_reg);
 	if (ret_val)
 		goto out;
 
-	/* Write bit 2 = 1, and clear bit 4 to 769_17 */
+	
 	ret_val = e1000e_write_phy_reg_mdic(hw, BM_WUC_ENABLE_REG,
 	                                    phy_reg | BM_WUC_ENABLE_BIT);
 	if (ret_val)
 		goto out;
 
-	/* Select page 800 */
+	
 	ret_val = e1000e_write_phy_reg_mdic(hw, IGP01E1000_PHY_PAGE_SELECT,
 	                                    (BM_WUC_PAGE << IGP_PAGE_SHIFT));
 
-	/* Write the page 800 offset value using opcode 0x11 */
+	
 	ret_val = e1000e_write_phy_reg_mdic(hw, BM_WUC_ADDRESS_OPCODE, reg);
 	if (ret_val)
 		goto out;
 
 	if (read) {
-	        /* Read the page 800 value using opcode 0x12 */
+	        
 		ret_val = e1000e_read_phy_reg_mdic(hw, BM_WUC_DATA_OPCODE,
 		                                   data);
 	} else {
-	        /* Read the page 800 value using opcode 0x12 */
+	        
 		ret_val = e1000e_write_phy_reg_mdic(hw, BM_WUC_DATA_OPCODE,
 						    *data);
 	}
@@ -2511,27 +1895,18 @@ static s32 e1000_access_phy_wakeup_reg_bm(struct e1000_hw *hw, u32 offset,
 	if (ret_val)
 		goto out;
 
-	/*
-	 * Restore 769_17.2 to its original value
-	 * Set page 769
-	 */
+	
 	e1000e_write_phy_reg_mdic(hw, IGP01E1000_PHY_PAGE_SELECT,
 	                          (BM_WUC_ENABLE_PAGE << IGP_PAGE_SHIFT));
 
-	/* Clear 769_17.2 */
+	
 	ret_val = e1000e_write_phy_reg_mdic(hw, BM_WUC_ENABLE_REG, phy_reg);
 
 out:
 	return ret_val;
 }
 
-/**
- *  e1000e_commit_phy - Soft PHY reset
- *  @hw: pointer to the HW structure
- *
- *  Performs a soft PHY reset on those that apply. This is a function pointer
- *  entry point called by drivers.
- **/
+
 s32 e1000e_commit_phy(struct e1000_hw *hw)
 {
 	if (hw->phy.ops.commit_phy)
@@ -2540,20 +1915,7 @@ s32 e1000e_commit_phy(struct e1000_hw *hw)
 	return 0;
 }
 
-/**
- *  e1000_set_d0_lplu_state - Sets low power link up state for D0
- *  @hw: pointer to the HW structure
- *  @active: boolean used to enable/disable lplu
- *
- *  Success returns 0, Failure returns 1
- *
- *  The low power link up (lplu) state is set to the power management level D0
- *  and SmartSpeed is disabled when active is true, else clear lplu for D0
- *  and enable Smartspeed.  LPLU and Smartspeed are mutually exclusive.  LPLU
- *  is used during Dx states where the power conservation is most important.
- *  During driver activity, SmartSpeed should be enabled so performance is
- *  maintained.  This is a function pointer entry point called by drivers.
- **/
+
 static s32 e1000_set_d0_lplu_state(struct e1000_hw *hw, bool active)
 {
 	if (hw->phy.ops.set_d0_lplu_state)
@@ -2562,19 +1924,13 @@ static s32 e1000_set_d0_lplu_state(struct e1000_hw *hw, bool active)
 	return 0;
 }
 
-/**
- *  e1000_set_mdio_slow_mode_hv - Set slow MDIO access mode
- *  @hw:   pointer to the HW structure
- *  @slow: true for slow mode, false for normal mode
- *
- *  Assumes semaphore already acquired.
- **/
+
 s32 e1000_set_mdio_slow_mode_hv(struct e1000_hw *hw, bool slow)
 {
 	s32 ret_val = 0;
 	u16 data = 0;
 
-	/* Set MDIO mode - page 769, register 16: 0x2580==slow, 0x2180==fast */
+	
 	hw->phy.addr = 1;
 	ret_val = e1000e_write_phy_reg_mdic(hw, IGP01E1000_PHY_PAGE_SELECT,
 				         (BM_PORT_CTRL_PAGE << IGP_PAGE_SHIFT));
@@ -2586,7 +1942,7 @@ s32 e1000_set_mdio_slow_mode_hv(struct e1000_hw *hw, bool slow)
 	if (ret_val)
 		goto out;
 
-	/* dummy read when reverting to fast mode - throw away result */
+	
 	if (!slow)
 		ret_val = e1000e_read_phy_reg_mdic(hw, BM_CS_CTRL1, &data);
 
@@ -2594,17 +1950,7 @@ out:
 	return ret_val;
 }
 
-/**
- *  __e1000_read_phy_reg_hv -  Read HV PHY register
- *  @hw: pointer to the HW structure
- *  @offset: register offset to be read
- *  @data: pointer to the read data
- *  @locked: semaphore has already been acquired or not
- *
- *  Acquires semaphore, if necessary, then reads the PHY register at offset
- *  and stores the retrieved information in data.  Release any acquired
- *  semaphore before exiting.
- **/
+
 static s32 __e1000_read_phy_reg_hv(struct e1000_hw *hw, u32 offset, u16 *data,
                                    bool locked)
 {
@@ -2619,7 +1965,7 @@ static s32 __e1000_read_phy_reg_hv(struct e1000_hw *hw, u32 offset, u16 *data,
 			return ret_val;
 	}
 
-	/* Workaround failure in MDIO access while cable is disconnected */
+	
 	if ((hw->phy.type == e1000_phy_82577) &&
 	    !(er32(STATUS) & E1000_STATUS_LU)) {
 		ret_val = e1000_set_mdio_slow_mode_hv(hw, true);
@@ -2629,7 +1975,7 @@ static s32 __e1000_read_phy_reg_hv(struct e1000_hw *hw, u32 offset, u16 *data,
 		in_slow_mode = true;
 	}
 
-	/* Page 800 works differently than the rest so it has its own func */
+	
 	if (page == BM_WUC_PAGE) {
 		ret_val = e1000_access_phy_wakeup_reg_bm(hw, offset,
 		                                         data, true);
@@ -2652,7 +1998,7 @@ static s32 __e1000_read_phy_reg_hv(struct e1000_hw *hw, u32 offset, u16 *data,
 
 		hw->phy.addr = 1;
 
-		/* Page is shifted left, PHY expects (page x 32) */
+		
 		ret_val = e1000e_write_phy_reg_mdic(hw,
 					     IGP01E1000_PHY_PAGE_SELECT,
 					     (page << IGP_PAGE_SHIFT));
@@ -2665,7 +2011,7 @@ static s32 __e1000_read_phy_reg_hv(struct e1000_hw *hw, u32 offset, u16 *data,
 	ret_val = e1000e_read_phy_reg_mdic(hw, MAX_PHY_REG_ADDRESS & reg,
 	                                  data);
 out:
-	/* Revert to MDIO fast mode, if applicable */
+	
 	if ((hw->phy.type == e1000_phy_82577) && in_slow_mode)
 		ret_val |= e1000_set_mdio_slow_mode_hv(hw, false);
 
@@ -2675,45 +2021,19 @@ out:
 	return ret_val;
 }
 
-/**
- *  e1000_read_phy_reg_hv -  Read HV PHY register
- *  @hw: pointer to the HW structure
- *  @offset: register offset to be read
- *  @data: pointer to the read data
- *
- *  Acquires semaphore then reads the PHY register at offset and stores
- *  the retrieved information in data.  Release the acquired semaphore
- *  before exiting.
- **/
+
 s32 e1000_read_phy_reg_hv(struct e1000_hw *hw, u32 offset, u16 *data)
 {
 	return __e1000_read_phy_reg_hv(hw, offset, data, false);
 }
 
-/**
- *  e1000_read_phy_reg_hv_locked -  Read HV PHY register
- *  @hw: pointer to the HW structure
- *  @offset: register offset to be read
- *  @data: pointer to the read data
- *
- *  Reads the PHY register at offset and stores the retrieved information
- *  in data.  Assumes semaphore already acquired.
- **/
+
 s32 e1000_read_phy_reg_hv_locked(struct e1000_hw *hw, u32 offset, u16 *data)
 {
 	return __e1000_read_phy_reg_hv(hw, offset, data, true);
 }
 
-/**
- *  __e1000_write_phy_reg_hv - Write HV PHY register
- *  @hw: pointer to the HW structure
- *  @offset: register offset to write to
- *  @data: data to write at register offset
- *  @locked: semaphore has already been acquired or not
- *
- *  Acquires semaphore, if necessary, then writes the data to PHY register
- *  at the offset.  Release any acquired semaphores before exiting.
- **/
+
 static s32 __e1000_write_phy_reg_hv(struct e1000_hw *hw, u32 offset, u16 data,
                                     bool locked)
 {
@@ -2728,7 +2048,7 @@ static s32 __e1000_write_phy_reg_hv(struct e1000_hw *hw, u32 offset, u16 data,
 			return ret_val;
 	}
 
-	/* Workaround failure in MDIO access while cable is disconnected */
+	
 	if ((hw->phy.type == e1000_phy_82577) &&
 	    !(er32(STATUS) & E1000_STATUS_LU)) {
 		ret_val = e1000_set_mdio_slow_mode_hv(hw, true);
@@ -2738,7 +2058,7 @@ static s32 __e1000_write_phy_reg_hv(struct e1000_hw *hw, u32 offset, u16 data,
 		in_slow_mode = true;
 	}
 
-	/* Page 800 works differently than the rest so it has its own func */
+	
 	if (page == BM_WUC_PAGE) {
 		ret_val = e1000_access_phy_wakeup_reg_bm(hw, offset,
 		                                         &data, false);
@@ -2756,10 +2076,7 @@ static s32 __e1000_write_phy_reg_hv(struct e1000_hw *hw, u32 offset, u16 data,
 	if (page == HV_INTC_FC_PAGE_START)
 		page = 0;
 
-	/*
-	 * Workaround MDIO accesses being disabled after entering IEEE Power
-	 * Down (whenever bit 11 of the PHY Control register is set)
-	 */
+	
 	if ((hw->phy.type == e1000_phy_82578) &&
 	    (hw->phy.revision >= 1) &&
 	    (hw->phy.addr == 2) &&
@@ -2777,7 +2094,7 @@ static s32 __e1000_write_phy_reg_hv(struct e1000_hw *hw, u32 offset, u16 data,
 
 		hw->phy.addr = 1;
 
-		/* Page is shifted left, PHY expects (page x 32) */
+		
 		ret_val = e1000e_write_phy_reg_mdic(hw,
 					     IGP01E1000_PHY_PAGE_SELECT,
 					     (page << IGP_PAGE_SHIFT));
@@ -2791,7 +2108,7 @@ static s32 __e1000_write_phy_reg_hv(struct e1000_hw *hw, u32 offset, u16 data,
 	                                  data);
 
 out:
-	/* Revert to MDIO fast mode, if applicable */
+	
 	if ((hw->phy.type == e1000_phy_82577) && in_slow_mode)
 		ret_val |= e1000_set_mdio_slow_mode_hv(hw, false);
 
@@ -2801,38 +2118,19 @@ out:
 	return ret_val;
 }
 
-/**
- *  e1000_write_phy_reg_hv - Write HV PHY register
- *  @hw: pointer to the HW structure
- *  @offset: register offset to write to
- *  @data: data to write at register offset
- *
- *  Acquires semaphore then writes the data to PHY register at the offset.
- *  Release the acquired semaphores before exiting.
- **/
+
 s32 e1000_write_phy_reg_hv(struct e1000_hw *hw, u32 offset, u16 data)
 {
 	return __e1000_write_phy_reg_hv(hw, offset, data, false);
 }
 
-/**
- *  e1000_write_phy_reg_hv_locked - Write HV PHY register
- *  @hw: pointer to the HW structure
- *  @offset: register offset to write to
- *  @data: data to write at register offset
- *
- *  Writes the data to PHY register at the offset.  Assumes semaphore
- *  already acquired.
- **/
+
 s32 e1000_write_phy_reg_hv_locked(struct e1000_hw *hw, u32 offset, u16 data)
 {
 	return __e1000_write_phy_reg_hv(hw, offset, data, true);
 }
 
-/**
- *  e1000_get_phy_addr_for_hv_page - Get PHY adrress based on page
- *  @page: page to be accessed
- **/
+
 static u32 e1000_get_phy_addr_for_hv_page(u32 page)
 {
 	u32 phy_addr = 2;
@@ -2843,17 +2141,7 @@ static u32 e1000_get_phy_addr_for_hv_page(u32 page)
 	return phy_addr;
 }
 
-/**
- *  e1000_access_phy_debug_regs_hv - Read HV PHY vendor specific high registers
- *  @hw: pointer to the HW structure
- *  @offset: register offset to be read or written
- *  @data: pointer to the data to be read or written
- *  @read: determines if operation is read or written
- *
- *  Reads the PHY register at offset and stores the retreived information
- *  in data.  Assumes semaphore already acquired.  Note that the procedure
- *  to read these regs uses the address port and data port to read/write.
- **/
+
 static s32 e1000_access_phy_debug_regs_hv(struct e1000_hw *hw, u32 offset,
                                           u16 *data, bool read)
 {
@@ -2861,22 +2149,22 @@ static s32 e1000_access_phy_debug_regs_hv(struct e1000_hw *hw, u32 offset,
 	u32 addr_reg = 0;
 	u32 data_reg = 0;
 
-	/* This takes care of the difference with desktop vs mobile phy */
+	
 	addr_reg = (hw->phy.type == e1000_phy_82578) ?
 	           I82578_ADDR_REG : I82577_ADDR_REG;
 	data_reg = addr_reg + 1;
 
-	/* All operations in this function are phy address 2 */
+	
 	hw->phy.addr = 2;
 
-	/* masking with 0x3F to remove the page from offset */
+	
 	ret_val = e1000e_write_phy_reg_mdic(hw, addr_reg, (u16)offset & 0x3F);
 	if (ret_val) {
 		hw_dbg(hw, "Could not write PHY the HV address register\n");
 		goto out;
 	}
 
-	/* Read or write the data value next */
+	
 	if (read)
 		ret_val = e1000e_read_phy_reg_mdic(hw, data_reg, data);
 	else
@@ -2891,17 +2179,7 @@ out:
 	return ret_val;
 }
 
-/**
- *  e1000_link_stall_workaround_hv - Si workaround
- *  @hw: pointer to the HW structure
- *
- *  This function works around a Si bug where the link partner can get
- *  a link up indication before the PHY does.  If small packets are sent
- *  by the link partner they can be placed in the packet buffer without
- *  being properly accounted for by the PHY and will stall preventing
- *  further packets from being received.  The workaround is to clear the
- *  packet buffer after the PHY detects link up.
- **/
+
 s32 e1000_link_stall_workaround_hv(struct e1000_hw *hw)
 {
 	s32 ret_val = 0;
@@ -2910,12 +2188,12 @@ s32 e1000_link_stall_workaround_hv(struct e1000_hw *hw)
 	if (hw->phy.type != e1000_phy_82578)
 		goto out;
 
-	/* Do not apply workaround if in PHY loopback bit 14 set */
+	
 	hw->phy.ops.read_phy_reg(hw, PHY_CONTROL, &data);
 	if (data & PHY_CONTROL_LB)
 		goto out;
 
-	/* check if link is up and at 1Gbps */
+	
 	ret_val = hw->phy.ops.read_phy_reg(hw, BM_CS_STATUS, &data);
 	if (ret_val)
 		goto out;
@@ -2931,7 +2209,7 @@ s32 e1000_link_stall_workaround_hv(struct e1000_hw *hw)
 
 	mdelay(200);
 
-	/* flush the packets in the fifo buffer */
+	
 	ret_val = hw->phy.ops.write_phy_reg(hw, HV_MUX_DATA_CTRL,
 	                                HV_MUX_DATA_CTRL_GEN_TO_MAC |
 	                                HV_MUX_DATA_CTRL_FORCE_SPEED);
@@ -2945,14 +2223,7 @@ out:
 	return ret_val;
 }
 
-/**
- *  e1000_check_polarity_82577 - Checks the polarity.
- *  @hw: pointer to the HW structure
- *
- *  Success returns 0, Failure returns -E1000_ERR_PHY (-2)
- *
- *  Polarity is determined based on the PHY specific status register.
- **/
+
 s32 e1000_check_polarity_82577(struct e1000_hw *hw)
 {
 	struct e1000_phy_info *phy = &hw->phy;
@@ -2969,14 +2240,7 @@ s32 e1000_check_polarity_82577(struct e1000_hw *hw)
 	return ret_val;
 }
 
-/**
- *  e1000_phy_force_speed_duplex_82577 - Force speed/duplex for I82577 PHY
- *  @hw: pointer to the HW structure
- *
- *  Calls the PHY setup function to force speed and duplex.  Clears the
- *  auto-crossover to force MDI manually.  Waits for link and returns
- *  successful if link up is successful, else -E1000_ERR_PHY (-2).
- **/
+
 s32 e1000_phy_force_speed_duplex_82577(struct e1000_hw *hw)
 {
 	struct e1000_phy_info *phy = &hw->phy;
@@ -2994,10 +2258,7 @@ s32 e1000_phy_force_speed_duplex_82577(struct e1000_hw *hw)
 	if (ret_val)
 		goto out;
 
-	/*
-	 * Clear Auto-Crossover to force MDI manually.  82577 requires MDI
-	 * forced whenever speed and duplex are forced.
-	 */
+	
 	ret_val = phy->ops.read_phy_reg(hw, I82577_PHY_CTRL_2, &phy_data);
 	if (ret_val)
 		goto out;
@@ -3026,7 +2287,7 @@ s32 e1000_phy_force_speed_duplex_82577(struct e1000_hw *hw)
 		if (!link)
 			hw_dbg(hw, "Link taking longer than expected.\n");
 
-		/* Try once more */
+		
 		ret_val = e1000e_phy_has_link_generic(hw,
 		                                     PHY_FORCE_LIMIT,
 		                                     100000,
@@ -3039,15 +2300,7 @@ out:
 	return ret_val;
 }
 
-/**
- *  e1000_get_phy_info_82577 - Retrieve I82577 PHY information
- *  @hw: pointer to the HW structure
- *
- *  Read PHY status to determine if link is up.  If link is up, then
- *  set/determine 10base-T extended distance and polarity correction.  Read
- *  PHY port status to determine MDI/MDIx and speed.  Based on the speed,
- *  determine on the cable length, local and remote receiver.
- **/
+
 s32 e1000_get_phy_info_82577(struct e1000_hw *hw)
 {
 	struct e1000_phy_info *phy = &hw->phy;
@@ -3104,13 +2357,7 @@ out:
 	return ret_val;
 }
 
-/**
- *  e1000_get_cable_length_82577 - Determine cable length for 82577 PHY
- *  @hw: pointer to the HW structure
- *
- * Reads the diagnostic status register and verifies result is valid before
- * placing it in the phy_cable_length field.
- **/
+
 s32 e1000_get_cable_length_82577(struct e1000_hw *hw)
 {
 	struct e1000_phy_info *phy = &hw->phy;

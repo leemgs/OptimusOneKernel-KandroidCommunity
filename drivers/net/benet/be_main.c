@@ -1,19 +1,4 @@
-/*
- * Copyright (C) 2005 - 2009 ServerEngines
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version 2
- * as published by the Free Software Foundation.  The full GNU General
- * Public License is included in this distribution in the file called COPYING.
- *
- * Contact Information:
- * linux-drivers@serverengines.com
- *
- * ServerEngines
- * 209 N. Fair Oaks Ave
- * Sunnyvale, CA 94085
- */
+
 
 #include "be.h"
 #include "be_cmds.h"
@@ -154,7 +139,7 @@ void netdev_stats_update(struct be_adapter *adapter)
 	dev_stats->tx_bytes = (u64) port_stats->tx_bytes_msd << 32 |
 				(u64) port_stats->tx_bytes_lsd;
 
-	/* bad pkts received */
+	
 	dev_stats->rx_errors = port_stats->rx_crc_errors +
 		port_stats->rx_alignment_symbol_errors +
 		port_stats->rx_in_range_errors +
@@ -169,40 +154,40 @@ void netdev_stats_update(struct be_adapter *adapter)
 		port_stats->rx_ip_checksum_errs +
 		port_stats->rx_udp_checksum_errs;
 
-	/*  no space in linux buffers: best possible approximation */
+	
 	dev_stats->rx_dropped = erx_stats->rx_drops_no_fragments[0];
 
-	/* detailed rx errors */
+	
 	dev_stats->rx_length_errors = port_stats->rx_in_range_errors +
 		port_stats->rx_out_range_errors +
 		port_stats->rx_frame_too_long;
 
-	/* receive ring buffer overflow */
+	
 	dev_stats->rx_over_errors = 0;
 
 	dev_stats->rx_crc_errors = port_stats->rx_crc_errors;
 
-	/* frame alignment errors */
+	
 	dev_stats->rx_frame_errors = port_stats->rx_alignment_symbol_errors;
 
-	/* receiver fifo overrun */
-	/* drops_no_pbuf is no per i/f, it's per BE card */
+	
+	
 	dev_stats->rx_fifo_errors = port_stats->rx_fifo_overflow +
 					port_stats->rx_input_fifo_overflow +
 					rxf_stats->rx_drops_no_pbuf;
-	/* receiver missed packetd */
+	
 	dev_stats->rx_missed_errors = 0;
 
-	/*  packet transmit problems */
+	
 	dev_stats->tx_errors = 0;
 
-	/* no space available in linux */
+	
 	dev_stats->tx_dropped = 0;
 
 	dev_stats->multicast = port_stats->rx_multicast_frames;
 	dev_stats->collisions = 0;
 
-	/* detailed tx_errors */
+	
 	dev_stats->tx_aborted_errors = 0;
 	dev_stats->tx_carrier_errors = 0;
 	dev_stats->tx_fifo_errors = 0;
@@ -214,7 +199,7 @@ void be_link_status_update(struct be_adapter *adapter, bool link_up)
 {
 	struct net_device *netdev = adapter->netdev;
 
-	/* If link came up or went down */
+	
 	if (adapter->link_up != link_up) {
 		if (link_up) {
 			netif_start_queue(netdev);
@@ -229,7 +214,7 @@ void be_link_status_update(struct be_adapter *adapter, bool link_up)
 	}
 }
 
-/* Update the EQ delay n BE based on the RX frags consumed / sec */
+
 static void be_rx_eqd_update(struct be_adapter *adapter)
 {
 	struct be_eq_obj *rx_eq = &adapter->rx_eq;
@@ -240,13 +225,13 @@ static void be_rx_eqd_update(struct be_adapter *adapter)
 	if (!rx_eq->enable_aic)
 		return;
 
-	/* Wrapped around */
+	
 	if (time_before(now, stats->rx_fps_jiffies)) {
 		stats->rx_fps_jiffies = now;
 		return;
 	}
 
-	/* Update once a second */
+	
 	if ((now - stats->rx_fps_jiffies) < HZ)
 		return;
 
@@ -281,8 +266,8 @@ static u32 be_calc_rate(u64 bytes, unsigned long ticks)
 	u64 rate = bytes;
 
 	do_div(rate, ticks / HZ);
-	rate <<= 3;			/* bytes/sec -> bits/sec */
-	do_div(rate, 1000000ul);	/* MB/Sec */
+	rate <<= 3;			
+	do_div(rate, 1000000ul);	
 
 	return rate;
 }
@@ -292,13 +277,13 @@ static void be_tx_rate_update(struct be_adapter *adapter)
 	struct be_drvr_stats *stats = drvr_stats(adapter);
 	ulong now = jiffies;
 
-	/* Wrapped around? */
+	
 	if (time_before(now, stats->be_tx_jiffies)) {
 		stats->be_tx_jiffies = now;
 		return;
 	}
 
-	/* Update tx rate once in two seconds */
+	
 	if ((now - stats->be_tx_jiffies) > 2 * HZ) {
 		stats->be_tx_rate = be_calc_rate(stats->be_tx_bytes
 						  - stats->be_tx_bytes_prev,
@@ -319,17 +304,17 @@ static void be_tx_stats_update(struct be_adapter *adapter,
 		stats->be_tx_stops++;
 }
 
-/* Determine number of WRB entries needed to xmit data in an skb */
+
 static u32 wrb_cnt_for_skb(struct sk_buff *skb, bool *dummy)
 {
 	int cnt = (skb->len > skb->data_len);
 
 	cnt += skb_shinfo(skb)->nr_frags;
 
-	/* to account for hdr wrb */
+	
 	cnt++;
 	if (cnt & 1) {
-		/* add a dummy to make it an even num */
+		
 		cnt++;
 		*dummy = true;
 	} else
@@ -446,14 +431,11 @@ static netdev_tx_t be_xmit(struct sk_buff *skb,
 
 	copied = make_tx_wrbs(adapter, skb, wrb_cnt, dummy_wrb);
 	if (copied) {
-		/* record the sent skb in the sent_skb table */
+		
 		BUG_ON(tx_obj->sent_skb_list[start]);
 		tx_obj->sent_skb_list[start] = skb;
 
-		/* Ensure txq has space for the next skb; Else stop the queue
-		 * *BEFORE* ringing the tx doorbell, so that we serialze the
-		 * tx compls of the current transmit which'll wake up the queue
-		 */
+		
 		if ((BE_MAX_TX_FRAG_COUNT + atomic_read(&txq->used)) >=
 								txq->len) {
 			netif_stop_queue(netdev);
@@ -486,11 +468,7 @@ static int be_change_mtu(struct net_device *netdev, int new_mtu)
 	return 0;
 }
 
-/*
- * if there are BE_NUM_VLANS_SUPPORTED or lesser number of VLANS configured,
- * program them in BE.  If more than BE_NUM_VLANS_SUPPORTED are configured,
- * set the BE in promiscuous VLAN mode.
- */
+
 static int be_vid_config(struct be_adapter *adapter)
 {
 	u16 vtag[BE_NUM_VLANS_SUPPORTED];
@@ -498,7 +476,7 @@ static int be_vid_config(struct be_adapter *adapter)
 	int status;
 
 	if (adapter->num_vlans <= BE_NUM_VLANS_SUPPORTED)  {
-		/* Construct VLAN Table to give to HW */
+		
 		for (i = 0; i < VLAN_GROUP_ARRAY_LEN; i++) {
 			if (adapter->vlan_tag[i]) {
 				vtag[ntags] = cpu_to_le16(i);
@@ -558,7 +536,7 @@ static void be_set_multicast_list(struct net_device *netdev)
 		goto done;
 	}
 
-	/* BE was previously in promiscous mode; disable it */
+	
 	if (adapter->promiscuous) {
 		adapter->promiscuous = false;
 		be_cmd_promiscuous_config(adapter, adapter->port_num, 0);
@@ -580,13 +558,13 @@ static void be_rx_rate_update(struct be_adapter *adapter)
 	struct be_drvr_stats *stats = drvr_stats(adapter);
 	ulong now = jiffies;
 
-	/* Wrapped around */
+	
 	if (time_before(now, stats->be_rx_jiffies)) {
 		stats->be_rx_jiffies = now;
 		return;
 	}
 
-	/* Update the rate once in two seconds */
+	
 	if ((now - stats->be_rx_jiffies) < 2 * HZ)
 		return;
 
@@ -640,7 +618,7 @@ get_rx_page_info(struct be_adapter *adapter, u16 frag_idx)
 	return rx_page_info;
 }
 
-/* Throwaway the data in the Rx completion */
+
 static void be_rx_compl_discard(struct be_adapter *adapter,
 			struct be_eth_rx_compl *rxcp)
 {
@@ -659,10 +637,7 @@ static void be_rx_compl_discard(struct be_adapter *adapter,
 	}
 }
 
-/*
- * skb_fill_rx_data forms a complete skb for an ether frame
- * indicated by rxcp.
- */
+
 static void skb_fill_rx_data(struct be_adapter *adapter,
 			struct sk_buff *skb, struct be_eth_rx_compl *rxcp)
 {
@@ -681,15 +656,15 @@ static void skb_fill_rx_data(struct be_adapter *adapter,
 	start = page_address(page_info->page) + page_info->page_offset;
 	prefetch(start);
 
-	/* Copy data in the first descriptor of this completion */
+	
 	curr_frag_len = min(pktsize, rx_frag_size);
 
-	/* Copy the header portion into skb_data */
+	
 	hdr_len = min((u32)BE_HDR_LEN, curr_frag_len);
 	memcpy(skb->data, start, hdr_len);
 	skb->len = curr_frag_len;
-	if (curr_frag_len <= BE_HDR_LEN) { /* tiny packet */
-		/* Complete packet has now been moved to data */
+	if (curr_frag_len <= BE_HDR_LEN) { 
+		
 		put_page(page_info->page);
 		skb->data_len = 0;
 		skb->tail += curr_frag_len;
@@ -709,7 +684,7 @@ static void skb_fill_rx_data(struct be_adapter *adapter,
 		goto done;
 	}
 
-	/* More frags present for this completion */
+	
 	size = pktsize;
 	for (i = 1, j = 0; i < num_rcvd; i++) {
 		size -= curr_frag_len;
@@ -718,9 +693,9 @@ static void skb_fill_rx_data(struct be_adapter *adapter,
 
 		curr_frag_len = min(size, rx_frag_size);
 
-		/* Coalesce all frags from the same physical page in one slot */
+		
 		if (page_info->page_offset == 0) {
-			/* Fresh page */
+			
 			j++;
 			skb_shinfo(skb)->frags[j].page = page_info->page;
 			skb_shinfo(skb)->frags[j].page_offset =
@@ -744,7 +719,7 @@ done:
 	return;
 }
 
-/* Process the RX completion indicated by rxcp when GRO is disabled */
+
 static void be_rx_compl_process(struct be_adapter *adapter,
 			struct be_eth_rx_compl *rxcp)
 {
@@ -755,8 +730,7 @@ static void be_rx_compl_process(struct be_adapter *adapter,
 	vlanf = AMAP_GET_BITS(struct amap_eth_rx_compl, vtp, rxcp);
 	vtm = AMAP_GET_BITS(struct amap_eth_rx_compl, vtm, rxcp);
 
-	/* vlanf could be wrongly set in some cards.
-	 * ignore if vtm is not set */
+	
 	if ((adapter->cap == 0x400) && !vtm)
 		vlanf = 0;
 
@@ -796,7 +770,7 @@ static void be_rx_compl_process(struct be_adapter *adapter,
 	return;
 }
 
-/* Process the RX completion indicated by rxcp when GRO is enabled */
+
 static void be_rx_compl_process_gro(struct be_adapter *adapter,
 			struct be_eth_rx_compl *rxcp)
 {
@@ -814,8 +788,7 @@ static void be_rx_compl_process_gro(struct be_adapter *adapter,
 	rxq_idx = AMAP_GET_BITS(struct amap_eth_rx_compl, fragndx, rxcp);
 	vtm = AMAP_GET_BITS(struct amap_eth_rx_compl, vtm, rxcp);
 
-	/* vlanf could be wrongly set in some cards.
-	 * ignore if vtm is not set */
+	
 	if ((adapter->cap == 0x400) && !vtm)
 		vlanf = 0;
 
@@ -831,9 +804,9 @@ static void be_rx_compl_process_gro(struct be_adapter *adapter,
 
 		curr_frag_len = min(remaining, rx_frag_size);
 
-		/* Coalesce all frags from the same physical page in one slot */
+		
 		if (i == 0 || page_info->page_offset == 0) {
-			/* First frag or Fresh page */
+			
 			j++;
 			skb_shinfo(skb)->frags[j].page = page_info->page;
 			skb_shinfo(skb)->frags[j].page_offset =
@@ -885,10 +858,7 @@ static struct be_eth_rx_compl *be_rx_compl_get(struct be_adapter *adapter)
 	return rxcp;
 }
 
-/* To reset the valid bit, we need to reset the whole word as
- * when walking the queue the valid entries are little-endian
- * and invalid entries are host endian
- */
+
 static inline void be_rx_compl_reset(struct be_eth_rx_compl *rxcp)
 {
 	rxcp->dw[offsetof(struct amap_eth_rx_compl, valid) / 32] = 0;
@@ -903,10 +873,7 @@ static inline struct page *be_alloc_pages(u32 size)
 	return  alloc_pages(alloc_flags, order);
 }
 
-/*
- * Allocate a page, split it to fragments of size rx_frag_size and post as
- * receive buffers to BE
- */
+
 static void be_post_rx_frags(struct be_adapter *adapter)
 {
 	struct be_rx_page_info *page_info_tbl = adapter->rx_obj.page_info_tbl;
@@ -943,7 +910,7 @@ static void be_post_rx_frags(struct be_adapter *adapter)
 		rxd->fragpa_hi = cpu_to_le32(upper_32_bits(frag_dmaaddr));
 		queue_head_inc(rxq);
 
-		/* Any space left in the current big page for another frag? */
+		
 		if ((page_offset + rx_frag_size + rx_frag_size) >
 					adapter->big_page_size) {
 			pagep = NULL;
@@ -958,7 +925,7 @@ static void be_post_rx_frags(struct be_adapter *adapter)
 		atomic_add(posted, &rxq->used);
 		be_rxq_notify(adapter, rxq->id, posted);
 	} else if (atomic_read(&rxq->used) == 0) {
-		/* Let be_worker replenish when memory is available */
+		
 		adapter->rx_post_starved = true;
 	}
 
@@ -1026,9 +993,7 @@ static int event_handle(struct be_adapter *adapter,
 		num++;
 	}
 
-	/* Deal with any spurious interrupts that come
-	 * without events
-	 */
+	
 	be_eq_notify(adapter, eq_obj->q.id, true, true, num);
 	if (num)
 		napi_schedule(&eq_obj->napi);
@@ -1036,8 +1001,7 @@ static int event_handle(struct be_adapter *adapter,
 	return num;
 }
 
-/* Just read and notify events without processing them.
- * Used at the time of destroying event queues */
+
 static void be_eq_clean(struct be_adapter *adapter,
 			struct be_eq_obj *eq_obj)
 {
@@ -1061,14 +1025,14 @@ static void be_rx_q_clean(struct be_adapter *adapter)
 	struct be_eth_rx_compl *rxcp;
 	u16 tail;
 
-	/* First cleanup pending rx completions */
+	
 	while ((rxcp = be_rx_compl_get(adapter)) != NULL) {
 		be_rx_compl_discard(adapter, rxcp);
 		be_rx_compl_reset(rxcp);
 		be_cq_notify(adapter, rx_cq->id, true, 1);
 	}
 
-	/* Then free posted rx buffer that were not used */
+	
 	tail = (rxq->head + rxq->len - atomic_read(&rxq->used)) % rxq->len;
 	for (; atomic_read(&rxq->used) > 0; index_inc(&tail, rxq->len)) {
 		page_info = get_rx_page_info(adapter, tail);
@@ -1085,7 +1049,7 @@ static void be_tx_compl_clean(struct be_adapter *adapter)
 	struct be_eth_tx_compl *txcp;
 	u16 end_idx, cmpl = 0, timeo = 0;
 
-	/* Wait for a max of 200ms for all the tx-completions to arrive. */
+	
 	do {
 		while ((txcp = be_tx_compl_get(tx_cq))) {
 			end_idx = AMAP_GET_BITS(struct amap_eth_tx_compl,
@@ -1124,27 +1088,27 @@ static void be_mcc_queues_destroy(struct be_adapter *adapter)
 	be_queue_free(adapter, q);
 }
 
-/* Must be called only after TX qs are created as MCC shares TX EQ */
+
 static int be_mcc_queues_create(struct be_adapter *adapter)
 {
 	struct be_queue_info *q, *cq;
 
-	/* Alloc MCC compl queue */
+	
 	cq = &adapter->mcc_obj.cq;
 	if (be_queue_alloc(adapter, cq, MCC_CQ_LEN,
 			sizeof(struct be_mcc_compl)))
 		goto err;
 
-	/* Ask BE to create MCC compl queue; share TX's eq */
+	
 	if (be_cmd_cq_create(adapter, cq, &adapter->tx_eq.q, false, true, 0))
 		goto mcc_cq_free;
 
-	/* Alloc MCC queue */
+	
 	q = &adapter->mcc_obj.q;
 	if (be_queue_alloc(adapter, q, MCC_Q_LEN, sizeof(struct be_mcc_wrb)))
 		goto mcc_cq_destroy;
 
-	/* Ask BE to create MCC queue */
+	
 	if (be_cmd_mccq_create(adapter, q, cq))
 		goto mcc_q_free;
 
@@ -1174,7 +1138,7 @@ static void be_tx_queues_destroy(struct be_adapter *adapter)
 		be_cmd_q_destroy(adapter, q, QTYPE_CQ);
 	be_queue_free(adapter, q);
 
-	/* Clear any residual events */
+	
 	be_eq_clean(adapter, &adapter->tx_eq);
 
 	q = &adapter->tx_eq.q;
@@ -1191,30 +1155,30 @@ static int be_tx_queues_create(struct be_adapter *adapter)
 	adapter->tx_eq.min_eqd = 0;
 	adapter->tx_eq.cur_eqd = 96;
 	adapter->tx_eq.enable_aic = false;
-	/* Alloc Tx Event queue */
+	
 	eq = &adapter->tx_eq.q;
 	if (be_queue_alloc(adapter, eq, EVNT_Q_LEN, sizeof(struct be_eq_entry)))
 		return -1;
 
-	/* Ask BE to create Tx Event queue */
+	
 	if (be_cmd_eq_create(adapter, eq, adapter->tx_eq.cur_eqd))
 		goto tx_eq_free;
-	/* Alloc TX eth compl queue */
+	
 	cq = &adapter->tx_obj.cq;
 	if (be_queue_alloc(adapter, cq, TX_CQ_LEN,
 			sizeof(struct be_eth_tx_compl)))
 		goto tx_eq_destroy;
 
-	/* Ask BE to create Tx eth compl queue */
+	
 	if (be_cmd_cq_create(adapter, cq, eq, false, false, 3))
 		goto tx_cq_free;
 
-	/* Alloc TX eth queue */
+	
 	q = &adapter->tx_obj.q;
 	if (be_queue_alloc(adapter, q, TX_Q_LEN, sizeof(struct be_eth_wrb)))
 		goto tx_cq_destroy;
 
-	/* Ask BE to create Tx eth queue */
+	
 	if (be_cmd_txq_create(adapter, q, cq))
 		goto tx_q_free;
 	return 0;
@@ -1248,7 +1212,7 @@ static void be_rx_queues_destroy(struct be_adapter *adapter)
 		be_cmd_q_destroy(adapter, q, QTYPE_CQ);
 	be_queue_free(adapter, q);
 
-	/* Clear any residual events */
+	
 	be_eq_clean(adapter, &adapter->rx_eq);
 
 	q = &adapter->rx_eq.q;
@@ -1268,37 +1232,37 @@ static int be_rx_queues_create(struct be_adapter *adapter)
 	adapter->rx_eq.cur_eqd = 0;
 	adapter->rx_eq.enable_aic = true;
 
-	/* Alloc Rx Event queue */
+	
 	eq = &adapter->rx_eq.q;
 	rc = be_queue_alloc(adapter, eq, EVNT_Q_LEN,
 				sizeof(struct be_eq_entry));
 	if (rc)
 		return rc;
 
-	/* Ask BE to create Rx Event queue */
+	
 	rc = be_cmd_eq_create(adapter, eq, adapter->rx_eq.cur_eqd);
 	if (rc)
 		goto rx_eq_free;
 
-	/* Alloc RX eth compl queue */
+	
 	cq = &adapter->rx_obj.cq;
 	rc = be_queue_alloc(adapter, cq, RX_CQ_LEN,
 			sizeof(struct be_eth_rx_compl));
 	if (rc)
 		goto rx_eq_destroy;
 
-	/* Ask BE to create Rx eth compl queue */
+	
 	rc = be_cmd_cq_create(adapter, cq, eq, false, false, 3);
 	if (rc)
 		goto rx_cq_free;
 
-	/* Alloc RX eth queue */
+	
 	q = &adapter->rx_obj.q;
 	rc = be_queue_alloc(adapter, q, RX_Q_LEN, sizeof(struct be_eth_rx_d));
 	if (rc)
 		goto rx_cq_destroy;
 
-	/* Ask BE to create Rx eth queue */
+	
 	rc = be_cmd_rxq_create(adapter, q, cq->id, rx_frag_size,
 		BE_MAX_JUMBO_FRAME_SIZE, adapter->if_handle, false);
 	if (rc)
@@ -1318,7 +1282,7 @@ rx_eq_free:
 	return rc;
 }
 
-/* There are 8 evt ids per func. Retruns the evt id's bit number */
+
 static inline int be_evt_bit_get(struct be_adapter *adapter, u32 eq_id)
 {
 	return eq_id - 8 * be_pci_func(adapter);
@@ -1392,16 +1356,16 @@ int be_poll_rx(struct napi_struct *napi, int budget)
 		be_rx_compl_reset(rxcp);
 	}
 
-	/* Refill the queue */
+	
 	if (atomic_read(&adapter->rx_obj.q.used) < RX_FRAGS_REFILL_WM)
 		be_post_rx_frags(adapter);
 
-	/* All consumed */
+	
 	if (work_done < budget) {
 		napi_complete(napi);
 		be_cq_notify(adapter, rx_cq->id, true, work_done);
 	} else {
-		/* More to be consumed; continue with interrupts disabled */
+		
 		be_cq_notify(adapter, rx_cq->id, false, work_done);
 	}
 	return work_done;
@@ -1425,9 +1389,7 @@ void be_process_tx(struct be_adapter *adapter)
 	if (num_cmpl) {
 		be_cq_notify(adapter, tx_cq->id, true, num_cmpl);
 
-		/* As Tx wrbs have been freed up, wake up netdev queue if
-		 * it was stopped due to lack of tx wrbs.
-		 */
+		
 		if (netif_queue_stopped(adapter->netdev) &&
 			atomic_read(&txq->used) < txq->len / 2) {
 			netif_wake_queue(adapter->netdev);
@@ -1438,9 +1400,7 @@ void be_process_tx(struct be_adapter *adapter)
 	}
 }
 
-/* As TX and MCC share the same EQ check for both TX and MCC completions.
- * For TX/MCC we don't honour budget; consume everything
- */
+
 static int be_poll_tx_mcc(struct napi_struct *napi, int budget)
 {
 	struct be_eq_obj *tx_eq = container_of(napi, struct be_eq_obj, napi);
@@ -1463,7 +1423,7 @@ static void be_worker(struct work_struct *work)
 
 	be_cmd_get_stats(adapter, &adapter->stats.cmd);
 
-	/* Set EQ delay */
+	
 	be_rx_eqd_update(adapter);
 
 	be_tx_rate_update(adapter);
@@ -1550,7 +1510,7 @@ static int be_irq_register(struct be_adapter *adapter)
 			goto done;
 	}
 
-	/* INTx */
+	
 	netdev->irq = adapter->pdev->irq;
 	status = request_irq(netdev->irq, be_intx, IRQF_SHARED, netdev->name,
 			adapter);
@@ -1571,13 +1531,13 @@ static void be_irq_unregister(struct be_adapter *adapter)
 	if (!adapter->isr_registered)
 		return;
 
-	/* INTx */
+	
 	if (!adapter->msix_enabled) {
 		free_irq(netdev->irq, adapter);
 		goto done;
 	}
 
-	/* MSIx */
+	
 	be_free_irq(adapter, &adapter->tx_eq);
 	be_free_irq(adapter, &adapter->rx_eq);
 done:
@@ -1593,7 +1553,7 @@ static int be_open(struct net_device *netdev)
 	bool link_up;
 	int status;
 
-	/* First time posting */
+	
 	be_post_rx_frags(adapter);
 
 	napi_enable(&rx_eq->napi);
@@ -1603,11 +1563,11 @@ static int be_open(struct net_device *netdev)
 
 	be_intr_set(adapter, true);
 
-	/* The evt queues are created in unarmed state; arm them */
+	
 	be_eq_notify(adapter, rx_eq->q.id, true, false, 0);
 	be_eq_notify(adapter, tx_eq->q.id, true, false, 0);
 
-	/* Rx compl queue may be in unarmed state; rearm it */
+	
 	be_cq_notify(adapter, adapter->rx_obj.cq.id, true, 0);
 
 	status = be_cmd_link_status_query(adapter, &link_up);
@@ -1643,7 +1603,7 @@ static int be_setup(struct be_adapter *adapter)
 			BE_IF_FLAGS_PASS_L3L4_ERRORS;
 
 	status = be_cmd_if_create(adapter, cap_flags, en_flags,
-			netdev->dev_addr, false/* pmac_invalid */,
+			netdev->dev_addr, false,
 			&adapter->if_handle, &adapter->pmac_id);
 	if (status != 0)
 		goto do_none;
@@ -1711,9 +1671,7 @@ static int be_close(struct net_device *netdev)
 	napi_disable(&rx_eq->napi);
 	napi_disable(&tx_eq->napi);
 
-	/* Wait for all pending tx completions to arrive so that
-	 * all tx skbs are freed.
-	 */
+	
 	be_tx_compl_clean(adapter);
 
 	return 0;
@@ -1912,7 +1870,7 @@ static void be_netdev_init(struct net_device *netdev)
 
 	adapter->rx_csum = true;
 
-	/* Default settings for Rx and Tx flow control */
+	
 	adapter->rx_fc = true;
 	adapter->tx_fc = true;
 
@@ -2152,7 +2110,7 @@ static int __devinit be_probe(struct pci_dev *pdev,
 		goto stats_clean;
 
 	status = be_cmd_mac_addr_query(adapter, mac, MAC_ADDRESS_TYPE_NETWORK,
-			true /* permanent */, 0);
+			true , 0);
 	if (status)
 		goto stats_clean;
 	memcpy(netdev->dev_addr, mac, ETH_ALEN);

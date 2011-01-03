@@ -1,19 +1,4 @@
-/*
- * Copyright (C) 2005 - 2009 ServerEngines
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version 2
- * as published by the Free Software Foundation.  The full GNU General
- * Public License is included in this distribution in the file called COPYING.
- *
- * Contact Information:
- * linux-drivers@serverengines.com
- *
- * ServerEngines
- * 209 N. Fair Oaks Ave
- * Sunnyvale, CA 94085
- */
+
 
 #include "be.h"
 #include "be_cmds.h"
@@ -28,9 +13,7 @@ static void be_mcc_notify(struct be_adapter *adapter)
 	iowrite32(val, adapter->db + DB_MCCQ_OFFSET);
 }
 
-/* To check if valid bit is set, check the entire word as we don't know
- * the endianness of the data (old entry is host endian while a new entry is
- * little endian) */
+
 static inline bool be_mcc_compl_is_new(struct be_mcc_compl *compl)
 {
 	if (compl->flags != 0) {
@@ -42,7 +25,7 @@ static inline bool be_mcc_compl_is_new(struct be_mcc_compl *compl)
 	}
 }
 
-/* Need to reset the entire word that houses the valid bit */
+
 static inline void be_mcc_compl_use(struct be_mcc_compl *compl)
 {
 	compl->flags = 0;
@@ -53,8 +36,7 @@ static int be_mcc_compl_process(struct be_adapter *adapter,
 {
 	u16 compl_status, extd_status;
 
-	/* Just swap the status to host endian; mcc tag is opaquely copied
-	 * from mcc_wrb */
+	
 	be_dws_le_to_cpu(compl, 4);
 
 	compl_status = (compl->status >> CQE_STATUS_COMPL_SHIFT) &
@@ -77,7 +59,7 @@ static int be_mcc_compl_process(struct be_adapter *adapter,
 	return compl_status;
 }
 
-/* Link state evt is a string of bytes; no need for endian swapping */
+
 static void be_async_link_state_process(struct be_adapter *adapter,
 		struct be_async_event_link_state *evt)
 {
@@ -112,10 +94,10 @@ int be_process_mcc(struct be_adapter *adapter)
 	spin_lock_bh(&adapter->mcc_cq_lock);
 	while ((compl = be_mcc_compl_get(adapter))) {
 		if (compl->flags & CQE_FLAGS_ASYNC_MASK) {
-			/* Interpret flags as an async trailer */
+			
 			BUG_ON(!is_link_state_evt(compl->flags));
 
-			/* Interpret compl as a async link evt */
+			
 			be_async_link_state_process(adapter,
 				(struct be_async_event_link_state *) compl);
 		} else if (compl->flags & CQE_FLAGS_COMPLETED_MASK) {
@@ -133,10 +115,10 @@ int be_process_mcc(struct be_adapter *adapter)
 	return status;
 }
 
-/* Wait till no more pending mcc requests are present */
+
 static int be_mcc_wait_compl(struct be_adapter *adapter)
 {
-#define mcc_timeout		120000 /* 12s timeout */
+#define mcc_timeout		120000 
 	int i, status;
 	for (i = 0; i < mcc_timeout; i++) {
 		status = be_process_mcc(adapter);
@@ -154,7 +136,7 @@ static int be_mcc_wait_compl(struct be_adapter *adapter)
 	return 0;
 }
 
-/* Notify MCC requests and wait for completion */
+
 static int be_mcc_notify_wait(struct be_adapter *adapter)
 {
 	be_mcc_notify(adapter);
@@ -185,10 +167,7 @@ static int be_mbox_db_ready_wait(struct be_adapter *adapter, void __iomem *db)
 	return 0;
 }
 
-/*
- * Insert the mailbox address into the doorbell in two steps
- * Polls on the mbox doorbell till a command completion (or a timeout) occurs
- */
+
 static int be_mbox_notify_wait(struct be_adapter *adapter)
 {
 	int status;
@@ -199,17 +178,17 @@ static int be_mbox_notify_wait(struct be_adapter *adapter)
 	struct be_mcc_compl *compl = &mbox->compl;
 
 	val |= MPU_MAILBOX_DB_HI_MASK;
-	/* at bits 2 - 31 place mbox dma addr msb bits 34 - 63 */
+	
 	val |= (upper_32_bits(mbox_mem->dma) >> 2) << 2;
 	iowrite32(val, db);
 
-	/* wait for ready to be set */
+	
 	status = be_mbox_db_ready_wait(adapter, db);
 	if (status != 0)
 		return status;
 
 	val = 0;
-	/* at bits 2 - 31 place mbox dma addr lsb bits 4 - 33 */
+	
 	val |= (u32)(mbox_mem->dma >> 4) << 2;
 	iowrite32(val, db);
 
@@ -217,7 +196,7 @@ static int be_mbox_notify_wait(struct be_adapter *adapter)
 	if (status != 0)
 		return status;
 
-	/* A cq entry has been made now */
+	
 	if (be_mcc_compl_is_new(compl)) {
 		status = be_mcc_compl_process(adapter, &mbox->compl);
 		be_mcc_compl_use(compl);
@@ -275,7 +254,7 @@ static inline struct be_sge *nonembedded_sgl(struct be_mcc_wrb *wrb)
 	return &wrb->payload.sgl[0];
 }
 
-/* Don't touch the hdr after it's prepared */
+
 static void be_wrb_hdr_prepare(struct be_mcc_wrb *wrb, int payload_len,
 				bool embedded, u8 sge_cnt)
 {
@@ -288,7 +267,7 @@ static void be_wrb_hdr_prepare(struct be_mcc_wrb *wrb, int payload_len,
 	be_dws_cpu_to_le(wrb, 20);
 }
 
-/* Don't touch the hdr after it's prepared */
+
 static void be_cmd_hdr_prepare(struct be_cmd_req_hdr *req_hdr,
 				u8 subsystem, u8 opcode, int cmd_len)
 {
@@ -310,7 +289,7 @@ static void be_cmd_page_addrs_prepare(struct phys_addr *pages, u32 max_pages,
 	}
 }
 
-/* Converts interrupt delay in microseconds to multiplier value */
+
 static u32 eq_delay_to_mult(u32 usec_delay)
 {
 #define MAX_INTR_RATE			651042
@@ -321,13 +300,13 @@ static u32 eq_delay_to_mult(u32 usec_delay)
 		multiplier = 0;
 	else {
 		u32 interrupt_rate = 1000000 / usec_delay;
-		/* Max delay, corresponding to the lowest interrupt rate */
+		
 		if (interrupt_rate == 0)
 			multiplier = 1023;
 		else {
 			multiplier = (MAX_INTR_RATE - interrupt_rate) * round;
 			multiplier /= interrupt_rate;
-			/* Round the multiplier to the closest value.*/
+			
 			multiplier = (multiplier + round/2) / round;
 			multiplier = min(multiplier, (u32)1023);
 		}
@@ -380,7 +359,7 @@ int be_cmd_eq_create(struct be_adapter *adapter,
 	AMAP_SET_BITS(struct amap_eq_context, func, req->context,
 			be_pci_func(adapter));
 	AMAP_SET_BITS(struct amap_eq_context, valid, req->context, 1);
-	/* 4byte eqe*/
+	
 	AMAP_SET_BITS(struct amap_eq_context, size, req->context, 0);
 	AMAP_SET_BITS(struct amap_eq_context, count, req->context,
 			__ilog2_u32(eq->len/256));
@@ -401,7 +380,7 @@ int be_cmd_eq_create(struct be_adapter *adapter,
 	return status;
 }
 
-/* Uses mbox */
+
 int be_cmd_mac_addr_query(struct be_adapter *adapter, u8 *mac_addr,
 			u8 type, bool permanent, u32 if_handle)
 {
@@ -437,7 +416,7 @@ int be_cmd_mac_addr_query(struct be_adapter *adapter, u8 *mac_addr,
 	return status;
 }
 
-/* Uses synchronous MCCQ */
+
 int be_cmd_pmac_add(struct be_adapter *adapter, u8 *mac_addr,
 		u32 if_id, u32 *pmac_id)
 {
@@ -468,7 +447,7 @@ int be_cmd_pmac_add(struct be_adapter *adapter, u8 *mac_addr,
 	return status;
 }
 
-/* Uses synchronous MCCQ */
+
 int be_cmd_pmac_del(struct be_adapter *adapter, u32 if_id, u32 pmac_id)
 {
 	struct be_mcc_wrb *wrb;
@@ -495,7 +474,7 @@ int be_cmd_pmac_del(struct be_adapter *adapter, u32 if_id, u32 pmac_id)
 	return status;
 }
 
-/* Uses Mbox */
+
 int be_cmd_cq_create(struct be_adapter *adapter,
 		struct be_queue_info *cq, struct be_queue_info *eq,
 		bool sol_evts, bool no_delay, int coalesce_wm)
@@ -547,7 +526,7 @@ int be_cmd_cq_create(struct be_adapter *adapter,
 
 static u32 be_encoded_q_len(int q_len)
 {
-	u32 len_encoded = fls(q_len); /* log2(len) + 1 */
+	u32 len_encoded = fls(q_len); 
 	if (len_encoded == 16)
 		len_encoded = 0;
 	return len_encoded;
@@ -645,7 +624,7 @@ int be_cmd_txq_create(struct be_adapter *adapter,
 	return status;
 }
 
-/* Uses mbox */
+
 int be_cmd_rxq_create(struct be_adapter *adapter,
 		struct be_queue_info *rxq, u16 cq_id, u16 frag_size,
 		u16 max_frame_size, u32 if_id, u32 rss)
@@ -685,9 +664,7 @@ int be_cmd_rxq_create(struct be_adapter *adapter,
 	return status;
 }
 
-/* Generic destroyer function for all types of queues
- * Uses Mbox
- */
+
 int be_cmd_q_destroy(struct be_adapter *adapter, struct be_queue_info *q,
 		int queue_type)
 {
@@ -737,9 +714,7 @@ int be_cmd_q_destroy(struct be_adapter *adapter, struct be_queue_info *q,
 	return status;
 }
 
-/* Create an rx filtering policy configuration on an i/f
- * Uses mbox
- */
+
 int be_cmd_if_create(struct be_adapter *adapter, u32 cap_flags, u32 en_flags,
 		u8 *mac, bool pmac_invalid, u32 *if_handle, u32 *pmac_id)
 {
@@ -775,7 +750,7 @@ int be_cmd_if_create(struct be_adapter *adapter, u32 cap_flags, u32 en_flags,
 	return status;
 }
 
-/* Uses mbox */
+
 int be_cmd_if_destroy(struct be_adapter *adapter, u32 interface_id)
 {
 	struct be_mcc_wrb *wrb;
@@ -801,10 +776,7 @@ int be_cmd_if_destroy(struct be_adapter *adapter, u32 interface_id)
 	return status;
 }
 
-/* Get stats is a non embedded command: the request is not embedded inside
- * WRB but is a separate dma memory block
- * Uses asynchronous MCC
- */
+
 int be_cmd_get_stats(struct be_adapter *adapter, struct be_dma_mem *nonemb_cmd)
 {
 	struct be_mcc_wrb *wrb;
@@ -832,7 +804,7 @@ int be_cmd_get_stats(struct be_adapter *adapter, struct be_dma_mem *nonemb_cmd)
 	return 0;
 }
 
-/* Uses synchronous mcc */
+
 int be_cmd_link_status_query(struct be_adapter *adapter,
 			bool *link_up)
 {
@@ -863,7 +835,7 @@ int be_cmd_link_status_query(struct be_adapter *adapter,
 	return status;
 }
 
-/* Uses Mbox */
+
 int be_cmd_get_fw_ver(struct be_adapter *adapter, char *fw_ver)
 {
 	struct be_mcc_wrb *wrb;
@@ -890,9 +862,7 @@ int be_cmd_get_fw_ver(struct be_adapter *adapter, char *fw_ver)
 	return status;
 }
 
-/* set the EQ delay interval of an EQ to specified value
- * Uses async mcc
- */
+
 int be_cmd_modify_eqd(struct be_adapter *adapter, u32 eq_id, u32 eqd)
 {
 	struct be_mcc_wrb *wrb;
@@ -919,7 +889,7 @@ int be_cmd_modify_eqd(struct be_adapter *adapter, u32 eq_id, u32 eqd)
 	return 0;
 }
 
-/* Uses sycnhronous mcc */
+
 int be_cmd_vlan_config(struct be_adapter *adapter, u32 if_id, u16 *vtag_array,
 			u32 num, bool untagged, bool promiscuous)
 {
@@ -952,9 +922,7 @@ int be_cmd_vlan_config(struct be_adapter *adapter, u32 if_id, u16 *vtag_array,
 	return status;
 }
 
-/* Uses MCC for this command as it may be called in BH context
- * Uses synchronous mcc
- */
+
 int be_cmd_promiscuous_config(struct be_adapter *adapter, u8 port_num, bool en)
 {
 	struct be_mcc_wrb *wrb;
@@ -982,14 +950,11 @@ int be_cmd_promiscuous_config(struct be_adapter *adapter, u8 port_num, bool en)
 	return status;
 }
 
-/*
- * Uses MCC for this command as it may be called in BH context
- * (mc == NULL) => multicast promiscous
- */
+
 int be_cmd_multicast_set(struct be_adapter *adapter, u32 if_id,
 		struct dev_mc_list *mc_list, u32 mc_count)
 {
-#define BE_MAX_MC		32 /* set mcast promisc if > 32 */
+#define BE_MAX_MC		32 
 	struct be_mcc_wrb *wrb;
 	struct be_cmd_req_mcast_mac_config *req;
 
@@ -1023,7 +988,7 @@ int be_cmd_multicast_set(struct be_adapter *adapter, u32 if_id,
 	return 0;
 }
 
-/* Uses synchrounous mcc */
+
 int be_cmd_set_flow_control(struct be_adapter *adapter, u32 tx_fc, u32 rx_fc)
 {
 	struct be_mcc_wrb *wrb;
@@ -1049,7 +1014,7 @@ int be_cmd_set_flow_control(struct be_adapter *adapter, u32 tx_fc, u32 rx_fc)
 	return status;
 }
 
-/* Uses sycn mcc */
+
 int be_cmd_get_flow_control(struct be_adapter *adapter, u32 *tx_fc, u32 *rx_fc)
 {
 	struct be_mcc_wrb *wrb;
@@ -1078,7 +1043,7 @@ int be_cmd_get_flow_control(struct be_adapter *adapter, u32 *tx_fc, u32 *rx_fc)
 	return status;
 }
 
-/* Uses mbox */
+
 int be_cmd_query_fw_cfg(struct be_adapter *adapter, u32 *port_num, u32 *cap)
 {
 	struct be_mcc_wrb *wrb;
@@ -1106,7 +1071,7 @@ int be_cmd_query_fw_cfg(struct be_adapter *adapter, u32 *port_num, u32 *cap)
 	return status;
 }
 
-/* Uses mbox */
+
 int be_cmd_reset_function(struct be_adapter *adapter)
 {
 	struct be_mcc_wrb *wrb;

@@ -1,21 +1,4 @@
-/*
- * Copyright 2008 Cisco Systems, Inc.  All rights reserved.
- * Copyright 2007 Nuova Systems, Inc.  All rights reserved.
- *
- * This program is free software; you may redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; version 2 of the License.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- */
+
 
 #ifndef _ENIC_H_
 #define _ENIC_H_
@@ -74,7 +57,7 @@ struct enic_msix_entry {
 	void *devid;
 };
 
-/* Per-instance private data structure */
+
 struct enic {
 	struct net_device *netdev;
 	struct pci_dev *pdev;
@@ -93,13 +76,13 @@ struct enic {
 	int csum_rx_enabled;
 	u32 port_mtu;
 
-	/* work queue cache line section */
+	
 	____cacheline_aligned struct vnic_wq wq[ENIC_WQ_MAX];
 	spinlock_t wq_lock[ENIC_WQ_MAX];
 	unsigned int wq_count;
 	struct vlan_group *vlan_group;
 
-	/* receive queue cache line section */
+	
 	____cacheline_aligned struct vnic_rq rq[ENIC_RQ_MAX];
 	unsigned int rq_count;
 	int (*rq_alloc_buf)(struct vnic_rq *rq);
@@ -109,14 +92,14 @@ struct enic {
 	struct net_lro_mgr lro_mgr;
 	struct net_lro_desc lro_desc[ENIC_LRO_MAX_DESC];
 
-	/* interrupt resource cache line section */
+	
 	____cacheline_aligned struct vnic_intr intr[ENIC_INTR_MAX];
 	unsigned int intr_count;
-	u32 __iomem *legacy_pba;		/* memory-mapped */
+	u32 __iomem *legacy_pba;		
 
-	/* completion queue cache line section */
+	
 	____cacheline_aligned struct vnic_cq cq[ENIC_CQ_MAX];
 	unsigned int cq_count;
 };
 
-#endif /* _ENIC_H_ */
+#endif 

@@ -1,27 +1,4 @@
-/*
- * Copyright (C) 2003 - 2009 NetXen, Inc.
- * Copyright (C) 2009 - QLogic Corporation.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA  02111-1307, USA.
- *
- * The full GNU General Public License is included in this distribution
- * in the file called LICENSE.
- *
- */
+
 
 #include <linux/types.h>
 #include <linux/delay.h>
@@ -103,7 +80,7 @@ netxen_nic_get_settings(struct net_device *dev, struct ethtool_cmd *ecmd)
 	struct netxen_adapter *adapter = netdev_priv(dev);
 	int check_sfp_module = 0;
 
-	/* read which mode */
+	
 	if (adapter->ahw.port_type == NETXEN_NIC_GBE) {
 		ecmd->supported = (SUPPORTED_10baseT_Half |
 				   SUPPORTED_10baseT_Full |
@@ -256,9 +233,9 @@ netxen_nic_set_settings(struct net_device *dev, struct ethtool_cmd *ecmd)
 	struct netxen_adapter *adapter = netdev_priv(dev);
 	__u32 status;
 
-	/* read which mode */
+	
 	if (adapter->ahw.port_type == NETXEN_NIC_GBE) {
-		/* autonegotiation */
+		
 		if (adapter->phy_write
 		    && adapter->phy_write(adapter,
 					  NETXEN_NIU_GB_MII_MGMT_ADDR_AUTONEG,
@@ -273,7 +250,7 @@ netxen_nic_set_settings(struct net_device *dev, struct ethtool_cmd *ecmd)
 					 &status) != 0)
 			return -EIO;
 
-		/* speed */
+		
 		switch (ecmd->speed) {
 		case SPEED_10:
 			netxen_set_phy_speed(status, 0);
@@ -285,7 +262,7 @@ netxen_nic_set_settings(struct net_device *dev, struct ethtool_cmd *ecmd)
 			netxen_set_phy_speed(status, 2);
 			break;
 		}
-		/* set duplex mode */
+		
 		if (ecmd->duplex == DUPLEX_HALF)
 			netxen_clear_phy_duplex(status);
 		if (ecmd->duplex == DUPLEX_FULL)
@@ -320,7 +297,7 @@ struct netxen_niu_regs {
 
 static struct netxen_niu_regs niu_registers[] = {
 	{
-	 /* GB Mode */
+	 
 	 {
 	  NETXEN_NIU_GB_SERDES_RESET,
 	  NETXEN_NIU_GB0_MII_MODE,
@@ -358,7 +335,7 @@ static struct netxen_niu_regs niu_registers[] = {
 	  }
 	 },
 	{
-	 /* XG Mode */
+	 
 	 {
 	  NETXEN_NIU_XG_SINGLE_TERM,
 	  NETXEN_NIU_XG_DRIVE_HI,
@@ -413,18 +390,18 @@ netxen_nic_get_regs(struct net_device *dev, struct ethtool_regs *regs, void *p)
 	memset(p, 0, NETXEN_NIC_REGS_LEN);
 	regs->version = (1 << 24) | (adapter->ahw.revision_id << 16) |
 	    (adapter->pdev)->device;
-	/* which mode */
+	
 	regs_buff[0] = NXRD32(adapter, NETXEN_NIU_MODE);
 	mode = regs_buff[0];
 
-	/* Common registers to all the modes */
+	
 	regs_buff[2] = NXRD32(adapter, NETXEN_NIU_STRAP_VALUE_SAVE_HIGHER);
-	/* GB/XGB Mode */
+	
 	mode = (mode / 2) - 1;
 	window = 0;
 	if (mode <= 1) {
 		for (i = 3; niu_registers[mode].reg[i - 3] != -1; i++) {
-			/* GB: port specific registers */
+			
 			if (mode == 0 && i >= 19)
 				window = adapter->physical_port *
 					NETXEN_NIC_PORT_WINDOW;
@@ -442,7 +419,7 @@ static u32 netxen_nic_test_link(struct net_device *dev)
 	__u32 status;
 	int val;
 
-	/* read which mode */
+	
 	if (adapter->ahw.port_type == NETXEN_NIC_GBE) {
 		if (adapter->phy_read
 		    && adapter->phy_read(adapter,
@@ -575,7 +552,7 @@ netxen_nic_get_pauseparam(struct net_device *dev,
 	if (adapter->ahw.port_type == NETXEN_NIC_GBE) {
 		if ((port < 0) || (port > NETXEN_NIU_MAX_GBE_PORTS))
 			return;
-		/* get flow control settings */
+		
 		val = NXRD32(adapter, NETXEN_NIU_GB_MAC_CONFIG_0(port));
 		pause->rx_pause = netxen_gb_get_rx_flowctl(val);
 		val = NXRD32(adapter, NETXEN_NIU_GB_PAUSE_CTL);
@@ -616,11 +593,11 @@ netxen_nic_set_pauseparam(struct net_device *dev,
 	struct netxen_adapter *adapter = netdev_priv(dev);
 	__u32 val;
 	int port = adapter->physical_port;
-	/* read mode */
+	
 	if (adapter->ahw.port_type == NETXEN_NIC_GBE) {
 		if ((port < 0) || (port > NETXEN_NIU_MAX_GBE_PORTS))
 			return -EIO;
-		/* set flow control */
+		
 		val = NXRD32(adapter, NETXEN_NIU_GB_MAC_CONFIG_0(port));
 
 		if (pause->rx_pause)
@@ -630,7 +607,7 @@ netxen_nic_set_pauseparam(struct net_device *dev,
 
 		NXWR32(adapter, NETXEN_NIU_GB_MAC_CONFIG_0(port),
 				val);
-		/* set autoneg */
+		
 		val = NXRD32(adapter, NETXEN_NIU_GB_PAUSE_CTL);
 		switch (port) {
 			case 0:
@@ -722,7 +699,7 @@ netxen_nic_diag_test(struct net_device *dev, struct ethtool_test *eth_test,
 	memset(data, 0, sizeof(uint64_t) * NETXEN_NIC_TEST_LEN);
 	if ((data[0] = netxen_nic_reg_test(dev)))
 		eth_test->flags |= ETH_TEST_FL_FAILED;
-	/* link test */
+	
 	if ((data[1] = (u64) netxen_nic_test_link(dev)))
 		eth_test->flags |= ETH_TEST_FL_FAILED;
 }
@@ -848,11 +825,7 @@ netxen_nic_set_wol(struct net_device *dev, struct ethtool_wolinfo *wol)
 	return 0;
 }
 
-/*
- * Set the coalescing parameters. Currently only normal is supported.
- * If rx_coalesce_usecs == 0 or rx_max_coalesced_frames == 0 then set the
- * firmware coalescing to default.
- */
+
 static int netxen_set_intr_coalesce(struct net_device *netdev,
 			struct ethtool_coalesce *ethcoal)
 {
@@ -864,10 +837,7 @@ static int netxen_set_intr_coalesce(struct net_device *netdev,
 	if (adapter->is_up != NETXEN_ADAPTER_UP_MAGIC)
 		return -EINVAL;
 
-	/*
-	* Return Error if unsupported values or
-	* unsupported parameters are set.
-	*/
+	
 	if (ethcoal->rx_coalesce_usecs > 0xffff ||
 		ethcoal->rx_max_coalesced_frames > 0xffff ||
 		ethcoal->tx_coalesce_usecs > 0xffff ||

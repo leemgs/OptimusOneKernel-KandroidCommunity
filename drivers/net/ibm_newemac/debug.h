@@ -1,22 +1,4 @@
-/*
- * drivers/net/ibm_newemac/debug.h
- *
- * Driver for PowerPC 4xx on-chip ethernet controller, debug print routines.
- *
- * Copyright 2007 Benjamin Herrenschmidt, IBM Corp.
- *                <benh@kernel.crashing.org>
- *
- * Based on the arch/ppc version of the driver:
- *
- * Copyright (c) 2004, 2005 Zultys Technologies
- * Eugene Surovegin <eugene.surovegin@zultys.com> or <ebs@ebshome.net>
- *
- * This program is free software; you can redistribute  it and/or modify it
- * under  the terms of  the GNU General  Public License as published by the
- * Free Software Foundation;  either version 2 of the  License, or (at your
- * option) any later version.
- *
- */
+
 #ifndef __IBM_NEWEMAC_DEBUG_H
 #define __IBM_NEWEMAC_DEBUG_H
 
@@ -80,4 +62,4 @@ extern void emac_dbg_dump_all(void);
 #  define RGMII_DBG2(d,f,x...) 	((void)0)
 #endif
 
-#endif /* __IBM_NEWEMAC_DEBUG_H */
+#endif 

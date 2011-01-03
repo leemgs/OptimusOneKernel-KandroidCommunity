@@ -1,19 +1,4 @@
-/*
- * Copyright (C) 2005 - 2009 ServerEngines
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version 2
- * as published by the Free Software Foundation.  The full GNU General
- * Public License is included in this distribution in the file called COPYING.
- *
- * Contact Information:
- * linux-drivers@serverengines.com
- *
- * ServerEngines
- * 209 N. Fair Oaks Ave
- * Sunnyvale, CA 94085
- */
+
 
 #include "be.h"
 #include "be_cmds.h"
@@ -142,9 +127,7 @@ be_get_coalesce(struct net_device *netdev, struct ethtool_coalesce *coalesce)
 	return 0;
 }
 
-/*
- * This routine is used to set interrup coalescing delay
- */
+
 static int
 be_set_coalesce(struct net_device *netdev, struct ethtool_coalesce *coalesce)
 {
@@ -158,7 +141,7 @@ be_set_coalesce(struct net_device *netdev, struct ethtool_coalesce *coalesce)
 	if (coalesce->use_adaptive_tx_coalesce == 1)
 		return -EINVAL;
 
-	/* if AIC is being turned on now, start with an EQD of 0 */
+	
 	if (rx_eq->enable_aic == 0 &&
 		coalesce->use_adaptive_rx_coalesce == 1) {
 		rx_eq->cur_eqd = 0;
@@ -253,7 +236,7 @@ be_get_ethtool_stats(struct net_device *netdev,
 		case MISCSTAT:
 			p = rxf_stats;
 			break;
-		case ERXSTAT: /* Currently only one ERX stat is provided */
+		case ERXSTAT: 
 			p = (u32 *)erx_stats + adapter->rx_obj.q.id;
 			break;
 		}

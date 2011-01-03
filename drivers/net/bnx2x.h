@@ -1,24 +1,12 @@
-/* bnx2x.h: Broadcom Everest network driver.
- *
- * Copyright (c) 2007-2009 Broadcom Corporation
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation.
- *
- * Maintained by: Eilon Greenstein <eilong@broadcom.com>
- * Written by: Eliezer Tamir
- * Based on code from Michael Chan's bnx2 driver
- */
+
 
 #ifndef BNX2X_H
 #define BNX2X_H
 
-/* compilation time flags */
 
-/* define this to make the driver freeze on error to allow getting debug info
- * (you will need to reboot afterwards) */
-/* #define BNX2X_STOP_ON_ERROR */
+
+
+
 
 #if defined(CONFIG_VLAN_8021Q) || defined(CONFIG_VLAN_8021Q_MODULE)
 #define BCM_VLAN			1
@@ -37,43 +25,43 @@
 #include "bnx2x_hsi.h"
 #include "bnx2x_link.h"
 
-/* error/debug prints */
+
 
 #define DRV_MODULE_NAME		"bnx2x"
 #define PFX DRV_MODULE_NAME	": "
 
-/* for messages that are currently off */
+
 #define BNX2X_MSG_OFF			0
-#define BNX2X_MSG_MCP			0x010000 /* was: NETIF_MSG_HW */
-#define BNX2X_MSG_STATS			0x020000 /* was: NETIF_MSG_TIMER */
-#define BNX2X_MSG_NVM			0x040000 /* was: NETIF_MSG_HW */
-#define BNX2X_MSG_DMAE			0x080000 /* was: NETIF_MSG_HW */
-#define BNX2X_MSG_SP			0x100000 /* was: NETIF_MSG_INTR */
-#define BNX2X_MSG_FP			0x200000 /* was: NETIF_MSG_INTR */
+#define BNX2X_MSG_MCP			0x010000 
+#define BNX2X_MSG_STATS			0x020000 
+#define BNX2X_MSG_NVM			0x040000 
+#define BNX2X_MSG_DMAE			0x080000 
+#define BNX2X_MSG_SP			0x100000 
+#define BNX2X_MSG_FP			0x200000 
 
-#define DP_LEVEL			KERN_NOTICE	/* was: KERN_DEBUG */
+#define DP_LEVEL			KERN_NOTICE	
 
-/* regular debug print */
+
 #define DP(__mask, __fmt, __args...) do { \
 	if (bp->msglevel & (__mask)) \
 		printk(DP_LEVEL "[%s:%d(%s)]" __fmt, __func__, __LINE__, \
 			bp->dev ? (bp->dev->name) : "?", ##__args); \
 	} while (0)
 
-/* errors debug print */
+
 #define BNX2X_DBG_ERR(__fmt, __args...) do { \
 	if (bp->msglevel & NETIF_MSG_PROBE) \
 		printk(KERN_ERR "[%s:%d(%s)]" __fmt, __func__, __LINE__, \
 			bp->dev ? (bp->dev->name) : "?", ##__args); \
 	} while (0)
 
-/* for errors (never masked) */
+
 #define BNX2X_ERR(__fmt, __args...) do { \
 	printk(KERN_ERR "[%s:%d(%s)]" __fmt, __func__, __LINE__, \
 		bp->dev ? (bp->dev->name) : "?", ##__args); \
 	} while (0)
 
-/* before we have a dev->name use dev_info() */
+
 #define BNX2X_DEV_INFO(__fmt, __args...) do { \
 	if (bp->msglevel & NETIF_MSG_PROBE) \
 		dev_info(&bp->pdev->dev, __fmt, ##__args); \
@@ -146,7 +134,7 @@
 #define EMAC_WR(bp, reg, val)		REG_WR(bp, emac_base + reg, val)
 
 
-/* fast path */
+
 
 struct sw_rx_bd {
 	struct sk_buff	*skb;
@@ -157,7 +145,7 @@ struct sw_tx_bd {
 	struct sk_buff	*skb;
 	u16		first_bd;
 	u8		flags;
-/* Set on the first BD descriptor when there is a split BD */
+
 #define BNX2X_TSO_SPLIT_BD		(1<<0)
 };
 
@@ -172,7 +160,7 @@ union db_prod {
 };
 
 
-/* MC hsi */
+
 #define BCM_PAGE_SHIFT			12
 #define BCM_PAGE_SIZE			(1 << BCM_PAGE_SHIFT)
 #define BCM_PAGE_MASK			(~(BCM_PAGE_SIZE - 1))
@@ -184,11 +172,11 @@ union db_prod {
 #define SGE_PAGE_SHIFT			PAGE_SHIFT
 #define SGE_PAGE_ALIGN(addr)		PAGE_ALIGN((typeof(PAGE_SIZE))(addr))
 
-/* SGE ring related macros */
+
 #define NUM_RX_SGE_PAGES		2
 #define RX_SGE_CNT		(BCM_PAGE_SIZE / sizeof(struct eth_rx_sge))
 #define MAX_RX_SGE_CNT			(RX_SGE_CNT - 2)
-/* RX_SGE_CNT is promised to be a power of 2 */
+
 #define RX_SGE_MASK			(RX_SGE_CNT - 1)
 #define NUM_RX_SGE			(RX_SGE_CNT * NUM_RX_SGE_PAGES)
 #define MAX_RX_SGE			(NUM_RX_SGE - 1)
@@ -196,19 +184,18 @@ union db_prod {
 				  (MAX_RX_SGE_CNT - 1)) ? (x) + 3 : (x) + 1)
 #define RX_SGE(x)			((x) & MAX_RX_SGE)
 
-/* SGE producer mask related macros */
-/* Number of bits in one sge_mask array element */
+
+
 #define RX_SGE_MASK_ELEM_SZ		64
 #define RX_SGE_MASK_ELEM_SHIFT		6
 #define RX_SGE_MASK_ELEM_MASK		((u64)RX_SGE_MASK_ELEM_SZ - 1)
 
-/* Creates a bitmask of all ones in less significant bits.
-   idx - index of the most significant bit in the created mask */
+
 #define RX_SGE_ONES_MASK(idx) \
 		(((u64)0x1 << (((idx) & RX_SGE_MASK_ELEM_MASK) + 1)) - 1)
 #define RX_SGE_MASK_ELEM_ONE_MASK	((u64)(~0))
 
-/* Number of u64 elements in SGE mask array */
+
 #define RX_SGE_MASK_LEN			((NUM_RX_SGE_PAGES * RX_SGE_CNT) / \
 					 RX_SGE_MASK_ELEM_SZ)
 #define RX_SGE_MASK_LEN_MASK		(RX_SGE_MASK_LEN - 1)
@@ -266,8 +253,8 @@ struct bnx2x_fastpath {
 	union eth_tx_bd_types	*tx_desc_ring;
 	dma_addr_t		tx_desc_mapping;
 
-	struct sw_rx_bd		*rx_buf_ring;	/* BDs mappings ring */
-	struct sw_rx_page	*rx_page_ring;	/* SGE pages mappings ring */
+	struct sw_rx_bd		*rx_buf_ring;	
+	struct sw_rx_page	*rx_page_ring;	
 
 	struct eth_rx_bd	*rx_desc_ring;
 	dma_addr_t		rx_desc_mapping;
@@ -275,7 +262,7 @@ struct bnx2x_fastpath {
 	union eth_rx_cqe	*rx_comp_ring;
 	dma_addr_t		rx_comp_mapping;
 
-	/* SGE ring */
+	
 	struct eth_rx_sge	*rx_sge_ring;
 	dma_addr_t		rx_sge_mapping;
 
@@ -289,9 +276,9 @@ struct bnx2x_fastpath {
 #define BNX2X_FP_STATE_HALTING		0xb0000
 #define BNX2X_FP_STATE_HALTED		0xc0000
 
-	u8			index;	/* number in fp array */
-	u8			cl_id;	/* eth client id */
-	u8			sb_id;	/* status block number in HW */
+	u8			index;	
+	u8			cl_id;	
+	u8			sb_id;	
 
 	union db_prod		tx_db;
 
@@ -309,7 +296,7 @@ struct bnx2x_fastpath {
 	u16			rx_comp_prod;
 	u16			rx_comp_cons;
 	u16			rx_sge_prod;
-	/* The last maximal completed SGE */
+	
 	u16			last_max_sge;
 	__le16			*rx_cons_sb;
 	__le16			*rx_bd_cons_sb;
@@ -319,7 +306,7 @@ struct bnx2x_fastpath {
 				rx_pkt,
 				rx_calls;
 
-	/* TPA related */
+	
 	struct sw_rx_bd		tpa_pool[ETH_MAX_AGGREGATION_QUEUES_E1H];
 	u8			tpa_state[ETH_MAX_AGGREGATION_QUEUES_E1H];
 #define BNX2X_TPA_START			1
@@ -334,20 +321,17 @@ struct bnx2x_fastpath {
 	struct xstorm_per_client_stats old_xclient;
 	struct bnx2x_eth_q_stats eth_q_stats;
 
-	/* The size is calculated using the following:
-	     sizeof name field from netdev structure +
-	     4 ('-Xx-' string) +
-	     4 (for the digits and to make it DWORD aligned) */
+	
 #define FP_NAME_SIZE		(sizeof(((struct net_device *)0)->name) + 8)
 	char			name[FP_NAME_SIZE];
-	struct bnx2x		*bp; /* parent */
+	struct bnx2x		*bp; 
 };
 
 #define bnx2x_fp(bp, nr, var)		(bp->fp[nr].var)
 
 
-/* MC hsi */
-#define MAX_FETCH_BD			13	/* HW max BDs per packet */
+
+#define MAX_FETCH_BD			13	
 #define RX_COPY_THRESH			92
 
 #define NUM_TX_RINGS			16
@@ -361,7 +345,7 @@ struct bnx2x_fastpath {
 #define TX_BD(x)			((x) & MAX_TX_BD)
 #define TX_BD_POFF(x)			((x) & MAX_TX_DESC_CNT)
 
-/* The RX BD ring is special, each bd is 8 bytes but the last one is 16 */
+
 #define NUM_RX_RINGS			8
 #define RX_DESC_CNT		(BCM_PAGE_SIZE / sizeof(struct eth_rx_bd))
 #define MAX_RX_DESC_CNT			(RX_DESC_CNT - 2)
@@ -373,9 +357,7 @@ struct bnx2x_fastpath {
 				  (MAX_RX_DESC_CNT - 1)) ? (x) + 3 : (x) + 1)
 #define RX_BD(x)			((x) & MAX_RX_BD)
 
-/* As long as CQE is 4 times bigger than BD entry we have to allocate
-   4 times more pages for CQ ring in order to keep it balanced with
-   BD ring */
+
 #define NUM_RCQ_RINGS			(NUM_RX_RINGS * 4)
 #define RCQ_DESC_CNT		(BCM_PAGE_SIZE / sizeof(union eth_rx_cqe))
 #define MAX_RCQ_DESC_CNT		(RCQ_DESC_CNT - 1)
@@ -387,7 +369,7 @@ struct bnx2x_fastpath {
 #define RCQ_BD(x)			((x) & MAX_RCQ_BD)
 
 
-/* This is needed for determining of last_max */
+
 #define SUB_S16(a, b)			(s16)((s16)(a) - (s16)(b))
 
 #define __SGE_MASK_SET_BIT(el, bit) \
@@ -409,7 +391,7 @@ struct bnx2x_fastpath {
 			     ((idx) & RX_SGE_MASK_ELEM_MASK))
 
 
-/* used on a CID received from the HW */
+
 #define SW_CID(x)			(le32_to_cpu(x) & \
 					 (COMMON_RAMROD_ETH_RX_CQE_CID >> 7))
 #define CQE_CMD(x)			(le32_to_cpu(x) >> \
@@ -428,7 +410,7 @@ struct bnx2x_fastpath {
 	} while (0)
 
 
-/* TX CSUM helpers */
+
 #define SKB_CS_OFF(skb)		(offsetof(struct tcphdr, check) - \
 				 skb->csum_offset)
 #define SKB_CS(skb)		(*(u16 *)(skb_transport_header(skb) + \
@@ -447,7 +429,7 @@ struct bnx2x_fastpath {
 #define XMIT_GSO			(XMIT_GSO_V4 | XMIT_GSO_V6)
 
 
-/* stuff added to make the code fit 80Col */
+
 
 #define CQE_TYPE(cqe_fp_flags)	((cqe_fp_flags) & ETH_FAST_PATH_RX_CQE_TYPE)
 
@@ -507,14 +489,14 @@ struct bnx2x_fastpath {
 	(&fp->status_blk->c_status_block.index_values[C_SB_ETH_TX_CQ_INDEX])
 
 
-/* end of fast path */
 
-/* common */
+
+
 
 struct bnx2x_common {
 
 	u32			chip_id;
-/* chip num:16-31, rev:12-15, metal:4-11, bond_id:0-3 */
+
 #define CHIP_ID(bp)			(bp->common.chip_id & 0xfffffff0)
 
 #define CHIP_NUM(bp)			(bp->common.chip_id >> 16)
@@ -530,12 +512,12 @@ struct bnx2x_common {
 
 #define CHIP_REV(bp)			(bp->common.chip_id & 0x0000f000)
 #define CHIP_REV_Ax			0x00000000
-/* assume maximum 5 revisions */
+
 #define CHIP_REV_IS_SLOW(bp)		(CHIP_REV(bp) > 0x00005000)
-/* Emul versions are A=>0xe, B=>0xc, C=>0xa, D=>8, E=>6 */
+
 #define CHIP_REV_IS_EMUL(bp)		((CHIP_REV_IS_SLOW(bp)) && \
 					 !(CHIP_REV(bp) & 0x00001000))
-/* FPGA versions are A=>0xf, B=>0xd, C=>0xb, D=>9, E=>7 */
+
 #define CHIP_REV_IS_FPGA(bp)		((CHIP_REV_IS_SLOW(bp)) && \
 					 (CHIP_REV(bp) & 0x00001000))
 
@@ -546,7 +528,7 @@ struct bnx2x_common {
 #define CHIP_BOND_ID(bp)		(bp->common.chip_id & 0x0000000f)
 
 	int			flash_size;
-#define NVRAM_1MB_SIZE			0x20000	/* 1M bit in bytes */
+#define NVRAM_1MB_SIZE			0x20000	
 #define NVRAM_TIMEOUT_COUNT		30000
 #define NVRAM_PAGE_SIZE			256
 
@@ -559,9 +541,9 @@ struct bnx2x_common {
 };
 
 
-/* end of common */
 
-/* port */
+
+
 
 struct nig_stats {
 	u32 brb_discard;
@@ -590,16 +572,16 @@ struct bnx2x_port {
 	u32			link_config;
 
 	u32			supported;
-/* link settings - missing defines */
+
 #define SUPPORTED_2500baseX_Full	(1 << 15)
 
 	u32			advertising;
-/* link settings - missing defines */
+
 #define ADVERTISED_2500baseX_Full	(1 << 15)
 
 	u32			phy_addr;
 
-	/* used to synchronize phy accesses */
+	
 	struct mutex		phy_mutex;
 	int			need_hw_lock;
 
@@ -608,7 +590,7 @@ struct bnx2x_port {
 	struct nig_stats	old_nig_stats;
 };
 
-/* end of port */
+
 
 
 enum bnx2x_stats_event {
@@ -771,14 +753,14 @@ union cdu_context {
 
 #define MAX_DMAE_C			8
 
-/* DMA memory not used in fastpath */
+
 struct bnx2x_slowpath {
 	union cdu_context		context[MAX_CONTEXT];
 	struct eth_stats_query		fw_stats;
 	struct mac_configuration_cmd	mac_config;
 	struct mac_configuration_cmd	mcast_config;
 
-	/* used by dmae command executer */
+	
 	struct dmae_command		dmae[MAX_DMAE_C];
 
 	u32				stats_comp;
@@ -797,7 +779,7 @@ struct bnx2x_slowpath {
 		(bp->slowpath_mapping + offsetof(struct bnx2x_slowpath, var))
 
 
-/* attn group wiring */
+
 #define MAX_DYNAMIC_ATTN_GRPS		8
 
 struct attn_route {
@@ -805,9 +787,7 @@ struct attn_route {
 };
 
 struct bnx2x {
-	/* Fields used in the tx and intr/napi performance paths
-	 * are grouped together in the beginning of the structure
-	 */
+	
 	struct bnx2x_fastpath	fp[MAX_CONTEXT];
 	void __iomem		*regview;
 	void __iomem		*doorbells;
@@ -830,12 +810,12 @@ struct bnx2x {
 
 	u32			rx_csum;
 	u32			rx_buf_size;
-#define ETH_OVREHEAD			(ETH_HLEN + 8)	/* 8 for CRC + VLAN */
+#define ETH_OVREHEAD			(ETH_HLEN + 8)	
 #define ETH_MIN_PACKET_SIZE		60
 #define ETH_MAX_PACKET_SIZE		1500
 #define ETH_MAX_JUMBO_PACKET_SIZE	9600
 
-	/* Max supported alignment is 256 (8 shift) */
+	
 #define BNX2X_RX_ALIGN_SHIFT		((L1_CACHE_SHIFT < 8) ? \
 					 L1_CACHE_SHIFT : 8)
 #define BNX2X_RX_ALIGN			(1 << BNX2X_RX_ALIGN_SHIFT)
@@ -850,23 +830,22 @@ struct bnx2x {
 	u32			attn_state;
 	struct attn_route	attn_group[MAX_DYNAMIC_ATTN_GRPS];
 
-	/* slow path ring */
+	
 	struct eth_spe		*spq;
 	dma_addr_t		spq_mapping;
 	u16			spq_prod_idx;
 	struct eth_spe		*spq_prod_bd;
 	struct eth_spe		*spq_last_bd;
 	__le16			*dsb_sp_prod;
-	u16			spq_left; /* serialize spq */
-	/* used to synchronize spq accesses */
+	u16			spq_left; 
+	
 	spinlock_t		spq_lock;
 
-	/* Flags for marking that there is a STAT_QUERY or
-	   SET_MAC ramrod pending */
+	
 	u8			stats_pending;
 	u8			set_mac_pending;
 
-	/* End of fields used in the performance code paths */
+	
 
 	int			panic;
 	int			msglevel;
@@ -979,12 +958,12 @@ struct bnx2x {
 	int			dropless_fc;
 
 	int			dmae_ready;
-	/* used to synchronize dmae accesses */
+	
 	struct mutex		dmae_mutex;
 
-	/* used to synchronize stats collecting */
+	
 	int			stats_state;
-	/* used by dmae command loader */
+	
 	struct dmae_command	stats_dmae;
 	int			executer_idx;
 
@@ -1001,11 +980,11 @@ struct bnx2x {
 #define GUNZIP_OUTLEN(bp)		(bp->gunzip_outlen)
 
 	struct raw_op		*init_ops;
-	/* Init blocks offsets inside init_ops */
+	
 	u16			*init_ops_offsets;
-	/* Data blob - has 32 bit granularity */
+	
 	u32			*init_data;
-	/* Zipped PRAM blobs - raw data */
+	
 	const u8		*tsem_int_table_data;
 	const u8		*tsem_pram_data;
 	const u8		*usem_int_table_data;
@@ -1075,7 +1054,7 @@ static inline u32 reg_poll(struct bnx2x *bp, u32 reg, u32 expected, int ms,
 }
 
 
-/* load/unload mode */
+
 #define LOAD_NORMAL			0
 #define LOAD_OPEN			1
 #define LOAD_DIAG			2
@@ -1083,7 +1062,7 @@ static inline u32 reg_poll(struct bnx2x *bp, u32 reg, u32 expected, int ms,
 #define UNLOAD_CLOSE			1
 
 
-/* DMAE command defines */
+
 #define DMAE_CMD_SRC_PCI		0
 #define DMAE_CMD_SRC_GRC		DMAE_COMMAND_SRC
 
@@ -1119,7 +1098,7 @@ static inline u32 reg_poll(struct bnx2x *bp, u32 reg, u32 expected, int ms,
 					 E1HVN_MAX)
 
 
-/* PCIE link and speed */
+
 #define PCICFG_LINK_WIDTH		0x1f00000
 #define PCICFG_LINK_WIDTH_SHIFT		20
 #define PCICFG_LINK_SPEED		0xf0000
@@ -1139,7 +1118,7 @@ static inline u32 reg_poll(struct bnx2x *bp, u32 reg, u32 expected, int ms,
 #define STROM_ASSERT_ARRAY_SIZE		50
 
 
-/* must be used on a CID before placing it on a HW ring */
+
 #define HW_CID(bp, x)			((BP_PORT(bp) << 23) | \
 					 (BP_E1HVN(bp) << 17) | (x))
 
@@ -1151,16 +1130,13 @@ static inline u32 reg_poll(struct bnx2x *bp, u32 reg, u32 expected, int ms,
 #define MAX_SPQ_PENDING			8
 
 
-/* CMNG constants
-   derived from lab experiments, and not from system spec calculations !!! */
+
 #define DEF_MIN_RATE			100
-/* resolution of the rate shaping timer - 100 usec */
+
 #define RS_PERIODIC_TIMEOUT_USEC	100
-/* resolution of fairness algorithm in usecs -
-   coefficient for calculating the actual t fair */
+
 #define T_FAIR_COEF			10000000
-/* number of bytes in single QM arbitration cycle -
-   coefficient for calculating the fairness timer */
+
 #define QM_ARB_BYTES			40000
 #define FAIR_MEM			2
 
@@ -1181,7 +1157,7 @@ static inline u32 reg_poll(struct bnx2x *bp, u32 reg, u32 expected, int ms,
 #define ATTENTION_ID			4
 
 
-/* stuff added to make the code fit 80Col */
+
 
 #define BNX2X_PMF_LINK_ASSERT \
 	GENERAL_ATTEN_OFFSET(LINK_SYNC_ATTENTION_BIT_FUNC_0 + BP_FUNC(bp))
@@ -1279,7 +1255,7 @@ static inline u32 reg_poll(struct bnx2x *bp, u32 reg, u32 expected, int ms,
 	(x.target_table_entry.flags = TSTORM_CAM_TARGET_TABLE_ENTRY_ACTION_TYPE)
 
 
-/* Number of u32 elements in MC hash array */
+
 #define MC_HASH_SIZE			8
 #define MC_HASH_OFFSET(bp, i)		(BAR_TSTRORM_INTMEM + \
 	TSTORM_APPROXIMATE_MATCH_MULTICAST_FILTERING_OFFSET(BP_FUNC(bp)) + i*4)
@@ -1289,6 +1265,6 @@ static inline u32 reg_poll(struct bnx2x *bp, u32 reg, u32 expected, int ms,
 #define PXP2_REG_PXP2_INT_STS		PXP2_REG_PXP2_INT_STS_0
 #endif
 
-/* MISC_REG_RESET_REG - this is here for the hsi to work don't touch */
 
-#endif /* bnx2x.h */
+
+#endif 

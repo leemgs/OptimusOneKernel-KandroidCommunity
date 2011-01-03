@@ -1,11 +1,4 @@
-/* bnx2x_fw_defs.h: Broadcom Everest network driver.
- *
- * Copyright (c) 2007-2009 Broadcom Corporation
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation.
- */
+
 
 
 #define CSTORM_ASSERT_LIST_INDEX_OFFSET \
@@ -358,9 +351,7 @@
 	* 0x4)) : (0x1978 + (function * 0x4)))
 #define COMMON_ASM_INVALID_ASSERT_OPCODE 0x0
 
-/**
-* This file defines HSI constants for the ETH flow
-*/
+
 #ifdef _EVEREST_MICROCODE
 #include "microcode_constants.h"
 #include "eth_rx_bd.h"
@@ -370,7 +361,7 @@
 #include "eth_rx_cqe_next_page.h"
 #endif
 
-/* RSS hash types */
+
 #define DEFAULT_HASH_TYPE 0
 #define IPV4_HASH_TYPE 1
 #define TCP_IPV4_HASH_TYPE 2
@@ -381,7 +372,7 @@
 #define DSCP_HASH_TYPE 7
 
 
-/* Ethernet Ring parameters */
+
 #define X_ETH_LOCAL_RING_SIZE 13
 #define FIRST_BD_IN_PKT 0
 #define PARSE_BD_INDEX 1
@@ -389,7 +380,7 @@
 #define U_ETH_NUM_OF_SGES_TO_FETCH 8
 #define U_ETH_MAX_SGES_FOR_PACKET 3
 
-/* Rx ring params */
+
 #define U_ETH_LOCAL_BD_RING_SIZE 8
 #define U_ETH_LOCAL_SGE_RING_SIZE 10
 #define U_ETH_SGL_SIZE 8
@@ -408,7 +399,7 @@
 
 #define U_ETH_UNDEFINED_Q 0xFF
 
-/* values of command IDs in the ramrod message */
+
 #define RAMROD_CMD_ID_ETH_PORT_SETUP 80
 #define RAMROD_CMD_ID_ETH_CLIENT_SETUP 85
 #define RAMROD_CMD_ID_ETH_STAT_QUERY 90
@@ -420,24 +411,24 @@
 #define RAMROD_CMD_ID_ETH_FORWARD_SETUP 125
 
 
-/* command values for set mac command */
+
 #define T_ETH_MAC_COMMAND_SET 0
 #define T_ETH_MAC_COMMAND_INVALIDATE 1
 
 #define T_ETH_INDIRECTION_TABLE_SIZE 128
 
-/*The CRC32 seed, that is used for the hash(reduction) multicast address */
+
 #define T_ETH_CRC32_HASH_SEED 0x00000000
 
-/* Maximal L2 clients supported */
+
 #define ETH_MAX_RX_CLIENTS_E1 18
 #define ETH_MAX_RX_CLIENTS_E1H 26
 
-/* Maximal aggregation queues supported */
+
 #define ETH_MAX_AGGREGATION_QUEUES_E1 32
 #define ETH_MAX_AGGREGATION_QUEUES_E1H 64
 
-/* ETH RSS modes */
+
 #define ETH_RSS_MODE_DISABLED 0
 #define ETH_RSS_MODE_REGULAR 1
 #define ETH_RSS_MODE_VLAN_PRI 2
@@ -445,11 +436,9 @@
 #define ETH_RSS_MODE_IP_DSCP 4
 
 
-/**
-* This file defines HSI constants common to all microcode flows
-*/
 
-/* Connection types */
+
+
 #define ETH_CONNECTION_TYPE 0
 #define TOE_CONNECTION_TYPE 1
 #define RDMA_CONNECTION_TYPE 2
@@ -466,13 +455,13 @@
 #define TOE_STATE (TOE_CONNECTION_TYPE << PROTOCOL_STATE_BIT_OFFSET)
 #define RDMA_STATE (RDMA_CONNECTION_TYPE << PROTOCOL_STATE_BIT_OFFSET)
 
-/* microcode fixed page page size 4K (chains and ring segments) */
+
 #define MC_PAGE_SIZE 4096
 
 
-/* Host coalescing constants */
 
-/* index numbers */
+
+
 #define HC_USTORM_DEF_SB_NUM_INDICES 8
 #define HC_CSTORM_DEF_SB_NUM_INDICES 8
 #define HC_XSTORM_DEF_SB_NUM_INDICES 4
@@ -480,7 +469,7 @@
 #define HC_USTORM_SB_NUM_INDICES 4
 #define HC_CSTORM_SB_NUM_INDICES 4
 
-/* index values - which counter to update */
+
 
 #define HC_INDEX_U_TOE_RX_CQ_CONS 0
 #define HC_INDEX_U_ETH_RX_CQ_CONS 1
@@ -508,22 +497,22 @@
 #define HC_INDEX_DEF_U_ETH_FCOE_RX_CQ_CONS 4
 #define HC_INDEX_DEF_U_ETH_FCOE_RX_BD_CONS 5
 
-/* used by the driver to get the SB offset */
+
 #define USTORM_ID 0
 #define CSTORM_ID 1
 #define XSTORM_ID 2
 #define TSTORM_ID 3
 #define ATTENTION_ID 4
 
-/* max number of slow path commands per port */
+
 #define MAX_RAMRODS_PER_PORT 8
 
-/* values for RX ETH CQE type field */
+
 #define RX_ETH_CQE_TYPE_ETH_FASTPATH 0
 #define RX_ETH_CQE_TYPE_ETH_RAMROD 1
 
 
-/**** DEFINES FOR TIMERS/CLOCKS RESOLUTIONS ****/
+
 #define EMULATION_FREQUENCY_FACTOR 1600
 #define FPGA_FREQUENCY_FACTOR 100
 
@@ -562,7 +551,7 @@
  ((SDM_TIMER_TICK_RESUL_CHIP)/(FPGA_FREQUENCY_FACTOR))
 
 
-/**** END DEFINES FOR TIMERS/CLOCKS RESOLUTIONS ****/
+
 #define XSTORM_IP_ID_ROLL_HALF 0x8000
 #define XSTORM_IP_ID_ROLL_ALL 0
 

@@ -1,30 +1,4 @@
-/*******************************************************************************
-  This is the driver for the MAC 10/100 on-chip Ethernet controller
-  currently tested on all the ST boards based on STb7109 and stx7200 SoCs.
 
-  DWC Ether MAC 10/100 Universal version 4.0 has been used for developing
-  this code.
-
-  Copyright (C) 2007-2009  STMicroelectronics Ltd
-
-  This program is free software; you can redistribute it and/or modify it
-  under the terms and conditions of the GNU General Public License,
-  version 2, as published by the Free Software Foundation.
-
-  This program is distributed in the hope it will be useful, but WITHOUT
-  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-  more details.
-
-  You should have received a copy of the GNU General Public License along with
-  this program; if not, write to the Free Software Foundation, Inc.,
-  51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
-
-  The full GNU General Public License is included in this distribution in
-  the file called "COPYING".
-
-  Author: Giuseppe Cavallaro <peppe.cavallaro@st.com>
-*******************************************************************************/
 
 #include <linux/netdevice.h>
 #include <linux/crc32.h>
@@ -35,7 +9,7 @@
 #include "mac100.h"
 
 #undef MAC100_DEBUG
-/*#define MAC100_DEBUG*/
+
 #ifdef MAC100_DEBUG
 #define DBG(fmt, args...)  printk(fmt, ## args)
 #else
@@ -94,29 +68,26 @@ static int mac100_dma_init(unsigned long ioaddr, int pbl, u32 dma_tx,
 			   u32 dma_rx)
 {
 	u32 value = readl(ioaddr + DMA_BUS_MODE);
-	/* DMA SW reset */
+	
 	value |= DMA_BUS_MODE_SFT_RESET;
 	writel(value, ioaddr + DMA_BUS_MODE);
 	do {} while ((readl(ioaddr + DMA_BUS_MODE) & DMA_BUS_MODE_SFT_RESET));
 
-	/* Enable Application Access by writing to DMA CSR0 */
+	
 	writel(DMA_BUS_MODE_DEFAULT | (pbl << DMA_BUS_MODE_PBL_SHIFT),
 	       ioaddr + DMA_BUS_MODE);
 
-	/* Mask interrupts by writing to CSR7 */
+	
 	writel(DMA_INTR_DEFAULT_MASK, ioaddr + DMA_INTR_ENA);
 
-	/* The base address of the RX/TX descriptor lists must be written into
-	 * DMA CSR3 and CSR4, respectively. */
+	
 	writel(dma_tx, ioaddr + DMA_TX_BASE_ADDR);
 	writel(dma_rx, ioaddr + DMA_RCV_BASE_ADDR);
 
 	return 0;
 }
 
-/* Store and Forward capability is not used at all..
- * The transmit threshold can be programmed by
- * setting the TTC bits in the DMA control register.*/
+
 static void mac100_dma_operation_mode(unsigned long ioaddr, int txmode,
 				      int rxmode)
 {
@@ -150,8 +121,7 @@ static void mac100_dump_dma_regs(unsigned long ioaddr)
 	return;
 }
 
-/* DMA controller has two counters to track the number of
-   the receive missed frames. */
+
 static void mac100_dma_diagnostic_fr(void *data, struct stmmac_extra_stats *x,
 				     unsigned long ioaddr)
 {
@@ -222,10 +192,7 @@ static int mac100_get_tx_len(struct dma_desc *p)
 	return p->des01.tx.buffer1_size;
 }
 
-/* This function verifies if each incoming frame has some errors
- * and, if required, updates the multicast statistics.
- * In case of success, it returns csum_none becasue the device
- * is not able to compute the csum in HW. */
+
 static int mac100_get_rx_frame_status(void *data, struct stmmac_extra_stats *x,
 				      struct dma_desc *p)
 {
@@ -308,7 +275,7 @@ static void mac100_set_filter(struct net_device *dev)
 		value &= ~(MAC_CONTROL_PR | MAC_CONTROL_IF | MAC_CONTROL_HO);
 		writel(0xffffffff, ioaddr + MAC_HASH_HIGH);
 		writel(0xffffffff, ioaddr + MAC_HASH_LOW);
-	} else if (dev->mc_count == 0) {	/* no multicast */
+	} else if (dev->mc_count == 0) {	
 		value &= ~(MAC_CONTROL_PM | MAC_CONTROL_PR | MAC_CONTROL_IF |
 			   MAC_CONTROL_HO | MAC_CONTROL_HP);
 	} else {
@@ -316,8 +283,7 @@ static void mac100_set_filter(struct net_device *dev)
 		u32 mc_filter[2];
 		struct dev_mc_list *mclist;
 
-		/* Perfect filter mode for physical address and Hash
-		   filter for multicast */
+		
 		value |= MAC_CONTROL_HP;
 		value &= ~(MAC_CONTROL_PM | MAC_CONTROL_PR | MAC_CONTROL_IF
 			   | MAC_CONTROL_HO);
@@ -325,13 +291,10 @@ static void mac100_set_filter(struct net_device *dev)
 		memset(mc_filter, 0, sizeof(mc_filter));
 		for (i = 0, mclist = dev->mc_list;
 		     mclist && i < dev->mc_count; i++, mclist = mclist->next) {
-			/* The upper 6 bits of the calculated CRC are used to
-			 * index the contens of the hash table */
+			
 			int bit_nr =
 			    ether_crc(ETH_ALEN, mclist->dmi_addr) >> 26;
-			/* The most significant bit determines the register to
-			 * use (H/L) while the other 5 bits determine the bit
-			 * within the register. */
+			
 			mc_filter[bit_nr >> 5] |= 1 << (bit_nr & 31);
 		}
 		writel(mc_filter[0], ioaddr + MAC_HASH_LOW);
@@ -359,7 +322,7 @@ static void mac100_flow_ctrl(unsigned long ioaddr, unsigned int duplex,
 	return;
 }
 
-/* No PMT module supported in our SoC  for the Ethernet Controller. */
+
 static void mac100_pmt(unsigned long ioaddr, unsigned long mode)
 {
 	return;
@@ -422,12 +385,12 @@ static void mac100_release_tx_desc(struct dma_desc *p)
 {
 	int ter = p->des01.tx.end_ring;
 
-	/* clean field used within the xmit */
+	
 	p->des01.tx.first_segment = 0;
 	p->des01.tx.last_segment = 0;
 	p->des01.tx.buffer1_size = 0;
 
-	/* clean status reported */
+	
 	p->des01.tx.error_summary = 0;
 	p->des01.tx.underflow_error = 0;
 	p->des01.tx.no_carrier = 0;
@@ -438,7 +401,7 @@ static void mac100_release_tx_desc(struct dma_desc *p)
 	p->des01.tx.heartbeat_fail = 0;
 	p->des01.tx.deferred = 0;
 
-	/* set termination field */
+	
 	p->des01.tx.end_ring = ter;
 
 	return;

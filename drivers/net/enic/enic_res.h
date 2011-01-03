@@ -1,21 +1,4 @@
-/*
- * Copyright 2008 Cisco Systems, Inc.  All rights reserved.
- * Copyright 2007 Nuova Systems, Inc.  All rights reserved.
- *
- * This program is free software; you may redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; version 2 of the License.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- */
+
 
 #ifndef _ENIC_RES_H_
 #define _ENIC_RES_H_
@@ -30,7 +13,7 @@
 #define ENIC_MIN_RQ_DESCS		64
 #define ENIC_MAX_RQ_DESCS		4096
 
-#define ENIC_MIN_MTU			576  /* minimum for IPv4 */
+#define ENIC_MIN_MTU			576  
 #define ENIC_MAX_MTU			9000
 
 #define ENIC_MULTICAST_PERFECT_FILTERS	32
@@ -53,10 +36,10 @@ static inline void enic_queue_wq_desc_ex(struct vnic_wq *wq,
 		(u16)mss_or_csum_offset,
 		(u16)hdr_len, (u8)offload_mode,
 		(u8)eop, (u8)cq_entry,
-		0, /* fcoe_encap */
+		0, 
 		(u8)vlan_tag_insert,
 		(u16)vlan_tag,
-		0 /* loopback */);
+		0 );
 
 	vnic_wq_post(wq, os_buf, dma_addr, len, sop, eop);
 }
@@ -66,7 +49,7 @@ static inline void enic_queue_wq_desc_cont(struct vnic_wq *wq,
 {
 	enic_queue_wq_desc_ex(wq, os_buf, dma_addr, len,
 		0, 0, 0, 0, 0,
-		eop, 0 /* !SOP */, eop);
+		eop, 0 , eop);
 }
 
 static inline void enic_queue_wq_desc(struct vnic_wq *wq, void *os_buf,
@@ -76,7 +59,7 @@ static inline void enic_queue_wq_desc(struct vnic_wq *wq, void *os_buf,
 	enic_queue_wq_desc_ex(wq, os_buf, dma_addr, len,
 		0, 0, vlan_tag_insert, vlan_tag,
 		WQ_ENET_OFFLOAD_MODE_CSUM,
-		eop, 1 /* SOP */, eop);
+		eop, 1 , eop);
 }
 
 static inline void enic_queue_wq_desc_csum(struct vnic_wq *wq,
@@ -88,7 +71,7 @@ static inline void enic_queue_wq_desc_csum(struct vnic_wq *wq,
 		(ip_csum ? 1 : 0) + (tcpudp_csum ? 2 : 0),
 		0, vlan_tag_insert, vlan_tag,
 		WQ_ENET_OFFLOAD_MODE_CSUM,
-		eop, 1 /* SOP */, eop);
+		eop, 1 , eop);
 }
 
 static inline void enic_queue_wq_desc_csum_l4(struct vnic_wq *wq,
@@ -99,7 +82,7 @@ static inline void enic_queue_wq_desc_csum_l4(struct vnic_wq *wq,
 	enic_queue_wq_desc_ex(wq, os_buf, dma_addr, len,
 		csum_offset, hdr_len, vlan_tag_insert, vlan_tag,
 		WQ_ENET_OFFLOAD_MODE_CSUM_L4,
-		eop, 1 /* SOP */, eop);
+		eop, 1 , eop);
 }
 
 static inline void enic_queue_wq_desc_tso(struct vnic_wq *wq,
@@ -110,7 +93,7 @@ static inline void enic_queue_wq_desc_tso(struct vnic_wq *wq,
 	enic_queue_wq_desc_ex(wq, os_buf, dma_addr, len,
 		mss, hdr_len, vlan_tag_insert, vlan_tag,
 		WQ_ENET_OFFLOAD_MODE_TSO,
-		eop, 1 /* SOP */, eop);
+		eop, 1 , eop);
 }
 
 static inline void enic_queue_rq_desc(struct vnic_rq *rq,
@@ -146,4 +129,4 @@ void enic_init_vnic_resources(struct enic *enic);
 int enic_alloc_vnic_resources(struct enic *);
 void enic_free_vnic_resources(struct enic *);
 
-#endif /* _ENIC_RES_H_ */
+#endif 

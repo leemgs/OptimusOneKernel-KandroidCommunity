@@ -1,30 +1,4 @@
-/* drivers/net/ifb.c:
 
-	The purpose of this driver is to provide a device that allows
-	for sharing of resources:
-
-	1) qdiscs/policies that are per device as opposed to system wide.
-	ifb allows for a device which can be redirected to thus providing
-	an impression of sharing.
-
-	2) Allows for queueing incoming traffic for shaping instead of
-	dropping.
-
-	The original concept is based on what is known as the IMQ
-	driver initially written by Martin Devera, later rewritten
-	by Patrick McHardy and then maintained by Andre Correa.
-
-	You need the tc action  mirror or redirect to feed this device
-       	packets.
-
-	This program is free software; you can redistribute it and/or
-	modify it under the terms of the GNU General Public License
-	as published by the Free Software Foundation; either version
-	2 of the License, or (at your option) any later version.
-
-  	Authors:	Jamal Hadi Salim (2005)
-
-*/
 
 
 #include <linux/module.h>
@@ -42,14 +16,14 @@
 struct ifb_private {
 	struct tasklet_struct   ifb_tasklet;
 	int     tasklet_pending;
-	/* mostly debug stats leave in for now */
-	unsigned long   st_task_enter; /* tasklet entered */
-	unsigned long   st_txq_refl_try; /* transmit queue refill attempt */
-	unsigned long   st_rxq_enter; /* receive queue entered */
-	unsigned long   st_rx2tx_tran; /* receive to trasmit transfers */
-	unsigned long   st_rxq_notenter; /*receiveQ not entered, resched */
-	unsigned long   st_rx_frm_egr; /* received from egress path */
-	unsigned long   st_rx_frm_ing; /* received from ingress path */
+	
+	unsigned long   st_task_enter; 
+	unsigned long   st_txq_refl_try; 
+	unsigned long   st_rxq_enter; 
+	unsigned long   st_rx2tx_tran; 
+	unsigned long   st_rxq_notenter; 
+	unsigned long   st_rx_frm_egr; 
+	unsigned long   st_rx_frm_ing; 
 	unsigned long   st_rxq_check;
 	unsigned long   st_rxq_rsch;
 	struct sk_buff_head     rq;
@@ -84,7 +58,7 @@ static void ri_tasklet(unsigned long dev)
 			}
 			__netif_tx_unlock(txq);
 		} else {
-			/* reschedule */
+			
 			dp->st_rxq_notenter++;
 			goto resched;
 		}
@@ -147,11 +121,11 @@ static const struct net_device_ops ifb_netdev_ops = {
 
 static void ifb_setup(struct net_device *dev)
 {
-	/* Initialize the device structure. */
+	
 	dev->destructor = free_netdev;
 	dev->netdev_ops = &ifb_netdev_ops;
 
-	/* Fill in device structure with ethernet-generic values. */
+	
 	ether_setup(dev);
 	dev->tx_queue_len = TX_Q_LIMIT;
 
@@ -231,7 +205,7 @@ static struct rtnl_link_ops ifb_link_ops __read_mostly = {
 	.validate	= ifb_validate,
 };
 
-/* Number of ifb devices to be set up by this module. */
+
 module_param(numifbs, int, 0);
 MODULE_PARM_DESC(numifbs, "Number of ifb devices");
 

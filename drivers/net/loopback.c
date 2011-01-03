@@ -1,33 +1,4 @@
-/*
- * INET		An implementation of the TCP/IP protocol suite for the LINUX
- *		operating system.  INET is implemented using the  BSD Socket
- *		interface as the means of communication with the user level.
- *
- *		Pseudo-driver for the loopback interface.
- *
- * Version:	@(#)loopback.c	1.0.4b	08/16/93
- *
- * Authors:	Ross Biro
- *		Fred N. van Kempen, <waltje@uWalt.NL.Mugnet.ORG>
- *		Donald Becker, <becker@scyld.com>
- *
- *		Alan Cox	:	Fixed oddments for NET3.014
- *		Alan Cox	:	Rejig for NET3.029 snap #3
- *		Alan Cox	: 	Fixed NET3.029 bugs and sped up
- *		Larry McVoy	:	Tiny tweak to double performance
- *		Alan Cox	:	Backed out LMV's tweak - the linux mm
- *					can't take it...
- *              Michael Griffith:       Don't bother computing the checksums
- *                                      on packets received on the loopback
- *                                      interface.
- *		Alexey Kuznetsov:	Potential hang under some extreme
- *					cases removed.
- *
- *		This program is free software; you can redistribute it and/or
- *		modify it under the terms of the GNU General Public License
- *		as published by the Free Software Foundation; either version
- *		2 of the License, or (at your option) any later version.
- */
+
 #include <linux/kernel.h>
 #include <linux/jiffies.h>
 #include <linux/module.h>
@@ -52,8 +23,8 @@
 #include <linux/ethtool.h>
 #include <net/sock.h>
 #include <net/checksum.h>
-#include <linux/if_ether.h>	/* For the statistics structure. */
-#include <linux/if_arp.h>	/* For ARPHRD_ETHER */
+#include <linux/if_ether.h>	
+#include <linux/if_arp.h>	
 #include <linux/ip.h>
 #include <linux/tcp.h>
 #include <linux/percpu.h>
@@ -65,10 +36,7 @@ struct pcpu_lstats {
 	unsigned long drops;
 };
 
-/*
- * The higher levels take care of making this non-reentrant (it's
- * called with bh's disabled).
- */
+
 static netdev_tx_t loopback_xmit(struct sk_buff *skb,
 				 struct net_device *dev)
 {
@@ -79,7 +47,7 @@ static netdev_tx_t loopback_xmit(struct sk_buff *skb,
 
 	skb->protocol = eth_type_trans(skb, dev);
 
-	/* it's OK to use per_cpu_ptr() because BHs are off */
+	
 	pcpu_lstats = dev->ml_priv;
 	lb_stats = per_cpu_ptr(pcpu_lstats, smp_processor_id());
 
@@ -159,17 +127,14 @@ static const struct net_device_ops loopback_ops = {
 	.ndo_get_stats = loopback_get_stats,
 };
 
-/*
- * The loopback device is special. There is only one instance
- * per network namespace.
- */
+
 static void loopback_setup(struct net_device *dev)
 {
 	dev->mtu		= (16 * 1024) + 20 + 20 + 12;
-	dev->hard_header_len	= ETH_HLEN;	/* 14	*/
-	dev->addr_len		= ETH_ALEN;	/* 6	*/
+	dev->hard_header_len	= ETH_HLEN;	
+	dev->addr_len		= ETH_ALEN;	
 	dev->tx_queue_len	= 0;
-	dev->type		= ARPHRD_LOOPBACK;	/* 0x0001*/
+	dev->type		= ARPHRD_LOOPBACK;	
 	dev->flags		= IFF_LOOPBACK;
 	dev->priv_flags	       &= ~IFF_XMIT_DST_RELEASE;
 	dev->features 		= NETIF_F_SG | NETIF_F_FRAGLIST
@@ -184,7 +149,7 @@ static void loopback_setup(struct net_device *dev)
 	dev->destructor		= loopback_dev_free;
 }
 
-/* Setup and register the loopback device. */
+
 static __net_init int loopback_net_init(struct net *net)
 {
 	struct net_device *dev;
@@ -219,7 +184,7 @@ static __net_exit void loopback_net_exit(struct net *net)
 	unregister_netdev(dev);
 }
 
-/* Registered in net/core/dev.c */
+
 struct pernet_operations __net_initdata loopback_net_ops = {
        .init = loopback_net_init,
        .exit = loopback_net_exit,

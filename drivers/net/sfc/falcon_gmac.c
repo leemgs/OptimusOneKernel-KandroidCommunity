@@ -1,12 +1,4 @@
-/****************************************************************************
- * Driver for Solarflare Solarstorm network controllers and boards
- * Copyright 2005-2006 Fen Systems Ltd.
- * Copyright 2006-2008 Solarflare Communications Inc.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published
- * by the Free Software Foundation, incorporated herein by reference.
- */
+
 
 #include <linux/delay.h>
 #include "net_driver.h"
@@ -17,11 +9,7 @@
 #include "falcon_io.h"
 #include "gmii.h"
 
-/**************************************************************************
- *
- * MAC operations
- *
- *************************************************************************/
+
 
 static void falcon_reconfigure_gmac(struct efx_nic *efx)
 {
@@ -30,7 +18,7 @@ static void falcon_reconfigure_gmac(struct efx_nic *efx)
 	unsigned int max_frame_len;
 	efx_oword_t reg;
 
-	/* Configuration register 1 */
+	
 	tx_fc = (efx->link_fc & EFX_FC_TX) || !efx->link_fd;
 	rx_fc = !!(efx->link_fc & EFX_FC_RX);
 	loopback = (efx->loopback_mode == LOOPBACK_GMAC);
@@ -45,25 +33,25 @@ static void falcon_reconfigure_gmac(struct efx_nic *efx)
 	falcon_write(efx, &reg, GM_CFG1_REG);
 	udelay(10);
 
-	/* Configuration register 2 */
+	
 	if_mode = (bytemode) ? 2 : 1;
 	EFX_POPULATE_OWORD_5(reg,
 			     GM_IF_MODE, if_mode,
 			     GM_PAD_CRC_EN, 1,
 			     GM_LEN_CHK, 1,
 			     GM_FD, efx->link_fd,
-			     GM_PAMBL_LEN, 0x7/*datasheet recommended */);
+			     GM_PAMBL_LEN, 0x7);
 
 	falcon_write(efx, &reg, GM_CFG2_REG);
 	udelay(10);
 
-	/* Max frame len register */
+	
 	max_frame_len = EFX_MAX_FRAME_LEN(efx->net_dev->mtu);
 	EFX_POPULATE_OWORD_1(reg, GM_MAX_FLEN, max_frame_len);
 	falcon_write(efx, &reg, GM_MAX_FLEN_REG);
 	udelay(10);
 
-	/* FIFO configuration register 0 */
+	
 	EFX_POPULATE_OWORD_5(reg,
 			     GMF_FTFENREQ, 1,
 			     GMF_STFENREQ, 1,
@@ -73,33 +61,33 @@ static void falcon_reconfigure_gmac(struct efx_nic *efx)
 	falcon_write(efx, &reg, GMF_CFG0_REG);
 	udelay(10);
 
-	/* FIFO configuration register 1 */
+	
 	EFX_POPULATE_OWORD_2(reg,
 			     GMF_CFGFRTH, 0x12,
 			     GMF_CFGXOFFRTX, 0xffff);
 	falcon_write(efx, &reg, GMF_CFG1_REG);
 	udelay(10);
 
-	/* FIFO configuration register 2 */
+	
 	EFX_POPULATE_OWORD_2(reg,
 			     GMF_CFGHWM, 0x3f,
 			     GMF_CFGLWM, 0xa);
 	falcon_write(efx, &reg, GMF_CFG2_REG);
 	udelay(10);
 
-	/* FIFO configuration register 3 */
+	
 	EFX_POPULATE_OWORD_2(reg,
 			     GMF_CFGHWMFT, 0x1c,
 			     GMF_CFGFTTH, 0x08);
 	falcon_write(efx, &reg, GMF_CFG3_REG);
 	udelay(10);
 
-	/* FIFO configuration register 4 */
+	
 	EFX_POPULATE_OWORD_1(reg, GMF_HSTFLTRFRM_PAUSE, 1);
 	falcon_write(efx, &reg, GMF_CFG4_REG);
 	udelay(10);
 
-	/* FIFO configuration register 5 */
+	
 	falcon_read(efx, &reg, GMF_CFG5_REG);
 	EFX_SET_OWORD_FIELD(reg, GMF_CFGBYTMODE, bytemode);
 	EFX_SET_OWORD_FIELD(reg, GMF_CFGHDPLX, !efx->link_fd);
@@ -108,7 +96,7 @@ static void falcon_reconfigure_gmac(struct efx_nic *efx)
 	falcon_write(efx, &reg, GMF_CFG5_REG);
 	udelay(10);
 
-	/* MAC address */
+	
 	EFX_POPULATE_OWORD_4(reg,
 			     GM_HWADDR_5, efx->net_dev->dev_addr[5],
 			     GM_HWADDR_4, efx->net_dev->dev_addr[4],
@@ -136,11 +124,11 @@ static void falcon_update_stats_gmac(struct efx_nic *efx)
 	if (rc)
 		return;
 
-	/* Pause frames are erroneously counted as errors (SFC bug 3269) */
+	
 	old_rx_pause = mac_stats->rx_pause;
 	old_tx_pause = mac_stats->tx_pause;
 
-	/* Update MAC stats from DMAed values */
+	
 	FALCON_STAT(efx, GRxGoodOct, rx_good_bytes);
 	FALCON_STAT(efx, GRxBadOct, rx_bad_bytes);
 	FALCON_STAT(efx, GRxMissPkt, rx_missed);
@@ -189,13 +177,13 @@ static void falcon_update_stats_gmac(struct efx_nic *efx)
 	FALCON_STAT(efx, GTxMacSrcErrPkt, tx_mac_src_error);
 	FALCON_STAT(efx, GTxIpSrcErrPkt, tx_ip_src_error);
 
-	/* Pause frames are erroneously counted as errors (SFC bug 3269) */
+	
 	new_rx_pause = mac_stats->rx_pause;
 	new_tx_pause = mac_stats->tx_pause;
 	mac_stats->rx_bad -= (new_rx_pause - old_rx_pause);
 	mac_stats->tx_bad -= (new_tx_pause - old_tx_pause);
 
-	/* Derive stats that the MAC doesn't provide directly */
+	
 	mac_stats->tx_bad_bytes =
 		mac_stats->tx_bytes - mac_stats->tx_good_bytes;
 	mac_stats->tx_packets =

@@ -1,23 +1,4 @@
- /***************************************************************************
- *
- * Copyright (C) 2007,2008  SMSC
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- ***************************************************************************
- */
+ 
 
 #ifndef _SMSC9420_H
 #define _SMSC9420_H
@@ -25,14 +6,14 @@
 #define TX_RING_SIZE			(32)
 #define RX_RING_SIZE			(128)
 
-/* interrupt deassertion in multiples of 10us */
+
 #define INT_DEAS_TIME			(50)
 
 #define NAPI_WEIGHT			(64)
 #define SMSC_BAR			(3)
 
 #ifdef __BIG_ENDIAN
-/* Register set is duplicated for BE at an offset of 0x200 */
+
 #define LAN9420_CPSR_ENDIAN_OFFSET	(0x200)
 #else
 #define LAN9420_CPSR_ENDIAN_OFFSET	(0)
@@ -48,9 +29,9 @@
 
 #define PKT_BUF_SZ			(VLAN_ETH_FRAME_LEN + NET_IP_ALIGN + 4)
 
-/***********************************************/
-/* DMA Controller Control and Status Registers */
-/***********************************************/
+
+
+
 #define BUS_MODE			(0x00)
 #define BUS_MODE_SWR_			(BIT(0))
 #define BUS_MODE_DMA_BURST_LENGTH_1	(BIT(8))
@@ -107,7 +88,7 @@
 
 #define RX_BUFF_ADDR			(0x54)
 
-/* Transmit Descriptor Bit Defs */
+
 #define TDES0_OWN_			(0x80000000)
 #define TDES0_ERROR_SUMMARY_		(0x00008000)
 #define TDES0_LOSS_OF_CARRIER_		(0x00000800)
@@ -127,7 +108,7 @@
 #define TDES1_TER_			(BIT(25))
 #define TDES1_TCH_			0x01000000
 
-/* Receive Descriptor 0 Bit Defs */
+
 #define RDES0_OWN_			(0x80000000)
 #define RDES0_FRAME_LENGTH_MASK_	(0x07FF0000)
 #define RDES0_FRAME_LENGTH_SHFT_	(16)
@@ -146,12 +127,12 @@
 #define RDES0_DRIBBLING_BIT_		(0x00000004)
 #define RDES0_CRC_ERROR_		(0x00000002)
 
-/* Receive Descriptor 1 Bit Defs */
+
 #define RDES1_RER_			(0x02000000)
 
-/***********************************************/
-/*       MAC Control and Status Registers      */
-/***********************************************/
+
+
+
 #define MAC_CR				(0x80)
 #define MAC_CR_RXALL_			(0x80000000)
 #define MAC_CR_DIS_RXOWN_		(0x00800000)
@@ -206,9 +187,9 @@
 #define RX_COE_MODE			(0x00000002)
 #define RX_COE_EN			(0x00000001)
 
-/***********************************************/
-/*     System Control and Status Registers     */
-/***********************************************/
+
+
+
 #define ID_REV				(0xC0)
 
 #define INT_CTL				(0xC4)
@@ -273,4 +254,4 @@
 #define E2P_DATA			(0xFC)
 #define E2P_DATA_EEPROM_DATA_		(0x000000FF)
 
-#endif /* _SMSC9420_H */
+#endif 

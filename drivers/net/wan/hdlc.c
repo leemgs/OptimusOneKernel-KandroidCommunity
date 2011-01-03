@@ -1,26 +1,4 @@
-/*
- * Generic HDLC support routines for Linux
- *
- * Copyright (C) 1999 - 2008 Krzysztof Halasa <khc@pm.waw.pl>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of version 2 of the GNU General Public License
- * as published by the Free Software Foundation.
- *
- * Currently supported:
- *	* raw IP-in-HDLC
- *	* Cisco HDLC
- *	* Frame Relay with ANSI or CCITT LMI (both user and network side)
- *	* PPP
- *	* X.25
- *
- * Use sethdlc utility to set line parameters, protocol and PVCs
- *
- * How does it work:
- * - proto->open(), close(), start(), stop() calls are serialized.
- *   The order is: open, [ start, stop ... ] close ...
- * - proto->start() and stop() are called with spin_lock_irq held.
- */
+
 
 #include <linux/errno.h>
 #include <linux/hdlc.h>
@@ -73,7 +51,7 @@ netdev_tx_t hdlc_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	if (hdlc->proto->xmit)
 		return hdlc->proto->xmit(skb, dev);
 
-	return hdlc->xmit(skb, dev); /* call hardware driver directly */
+	return hdlc->xmit(skb, dev); 
 }
 
 static inline void hdlc_proto_start(struct net_device *dev)
@@ -106,10 +84,10 @@ static int hdlc_device_event(struct notifier_block *this, unsigned long event,
 		return NOTIFY_DONE;
 
 	if (!(dev->priv_flags & IFF_WAN_HDLC))
-		return NOTIFY_DONE; /* not an HDLC device */
+		return NOTIFY_DONE; 
 
 	if (event != NETDEV_CHANGE)
-		return NOTIFY_DONE; /* Only interrested in carrier changes */
+		return NOTIFY_DONE; 
 
 	on = netif_carrier_ok(dev);
 
@@ -122,7 +100,7 @@ static int hdlc_device_event(struct notifier_block *this, unsigned long event,
 	spin_lock_irqsave(&hdlc->state_lock, flags);
 
 	if (hdlc->carrier == on)
-		goto carrier_exit; /* no change in DCD line level */
+		goto carrier_exit; 
 
 	hdlc->carrier = on;
 
@@ -144,7 +122,7 @@ carrier_exit:
 
 
 
-/* Must be called by hardware driver when HDLC device is being opened */
+
 int hdlc_open(struct net_device *dev)
 {
 	hdlc_device *hdlc = dev_to_hdlc(dev);
@@ -154,7 +132,7 @@ int hdlc_open(struct net_device *dev)
 #endif
 
 	if (hdlc->proto == NULL)
-		return -ENOSYS;	/* no protocol attached */
+		return -ENOSYS;	
 
 	if (hdlc->proto->open) {
 		int result = hdlc->proto->open(dev);
@@ -178,7 +156,7 @@ int hdlc_open(struct net_device *dev)
 
 
 
-/* Must be called by hardware driver when HDLC device is being closed */
+
 void hdlc_close(struct net_device *dev)
 {
 	hdlc_device *hdlc = dev_to_hdlc(dev);
@@ -215,7 +193,7 @@ int hdlc_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 			return result;
 	}
 
-	/* Not handled by currently attached protocol (if any) */
+	
 
 	while (proto) {
 		if ((result = proto->ioctl(dev, ifr)) != -EINVAL)
@@ -229,9 +207,7 @@ static const struct header_ops hdlc_null_ops;
 
 static void hdlc_setup_dev(struct net_device *dev)
 {
-	/* Re-init all variables changed by HDLC protocol drivers,
-	 * including ether_setup() called from hdlc_raw_eth.c.
-	 */
+	
 	dev->flags		 = IFF_POINTOPOINT | IFF_NOARP;
 	dev->priv_flags		 = IFF_WAN_HDLC;
 	dev->mtu		 = HDLC_MAX_MTU;

@@ -1,28 +1,9 @@
-/*
- * drivers/net/ibm_newemac/tah.h
- *
- * Driver for PowerPC 4xx on-chip ethernet controller, TAH support.
- *
- * Copyright 2007 Benjamin Herrenschmidt, IBM Corp.
- *                <benh@kernel.crashing.org>
- *
- * Based on the arch/ppc version of the driver:
- *
- * Copyright 2004 MontaVista Software, Inc.
- * Matt Porter <mporter@kernel.crashing.org>
- *
- * Copyright (c) 2005 Eugene Surovegin <ebs@ebshome.net>
- *
- * This program is free software; you can redistribute  it and/or modify it
- * under  the terms of  the GNU General  Public License as published by the
- * Free Software Foundation;  either version 2 of the  License, or (at your
- * option) any later version.
- */
+
 
 #ifndef __IBM_NEWEMAC_TAH_H
 #define __IBM_NEWEMAC_TAH_H
 
-/* TAH */
+
 struct tah_regs {
 	u32 revid;
 	u32 pad[3];
@@ -37,22 +18,22 @@ struct tah_regs {
 };
 
 
-/* TAH device */
+
 struct tah_instance {
 	struct tah_regs __iomem		*base;
 
-	/* Only one EMAC whacks us at a time */
+	
 	struct mutex			lock;
 
-	/* number of EMACs using this TAH */
+	
 	int				users;
 
-	/* OF device instance */
+	
 	struct of_device		*ofdev;
 };
 
 
-/* TAH engine */
+
 #define TAH_MR_CVR		0x80000000
 #define TAH_MR_SR		0x40000000
 #define TAH_MR_ST_256		0x01000000
@@ -90,6 +71,6 @@ extern void *tah_dump_regs(struct of_device *ofdev, void *buf);
 # define tah_get_regs_len(x)	0
 # define tah_dump_regs(x,buf)	(buf)
 
-#endif				/* !CONFIG_IBM_NEW_EMAC_TAH */
+#endif				
 
-#endif /* __IBM_NEWEMAC_TAH_H */
+#endif 

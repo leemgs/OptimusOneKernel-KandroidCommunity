@@ -1,16 +1,8 @@
-/*
- * Atmel MACB Ethernet Controller driver
- *
- * Copyright (C) 2004-2006 Atmel Corporation
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #ifndef _MACB_H
 #define _MACB_H
 
-/* MACB register offsets */
+
 #define MACB_NCR				0x0000
 #define MACB_NCFGR				0x0004
 #define MACB_NSR				0x0008
@@ -60,7 +52,7 @@
 #define MACB_USRIO				0x00c0
 #define MACB_WOL				0x00c4
 
-/* Bitfields in NCR */
+
 #define MACB_LB_OFFSET				0
 #define MACB_LB_SIZE				1
 #define MACB_LLB_OFFSET				1
@@ -88,7 +80,7 @@
 #define MACB_TZQ_OFFSET				12
 #define MACB_TZQ_SIZE				1
 
-/* Bitfields in NCFGR */
+
 #define MACB_SPD_OFFSET				0
 #define MACB_SPD_SIZE				1
 #define MACB_FD_OFFSET				1
@@ -126,7 +118,7 @@
 #define MACB_IRXFCS_OFFSET			19
 #define MACB_IRXFCS_SIZE			1
 
-/* Bitfields in NSR */
+
 #define MACB_NSR_LINK_OFFSET			0
 #define MACB_NSR_LINK_SIZE			1
 #define MACB_MDIO_OFFSET			1
@@ -134,7 +126,7 @@
 #define MACB_IDLE_OFFSET			2
 #define MACB_IDLE_SIZE				1
 
-/* Bitfields in TSR */
+
 #define MACB_UBR_OFFSET				0
 #define MACB_UBR_SIZE				1
 #define MACB_COL_OFFSET				1
@@ -150,7 +142,7 @@
 #define MACB_UND_OFFSET				6
 #define MACB_UND_SIZE				1
 
-/* Bitfields in RSR */
+
 #define MACB_BNA_OFFSET				0
 #define MACB_BNA_SIZE				1
 #define MACB_REC_OFFSET				1
@@ -158,7 +150,7 @@
 #define MACB_OVR_OFFSET				2
 #define MACB_OVR_SIZE				1
 
-/* Bitfields in ISR/IER/IDR/IMR */
+
 #define MACB_MFD_OFFSET				0
 #define MACB_MFD_SIZE				1
 #define MACB_RCOMP_OFFSET			1
@@ -186,7 +178,7 @@
 #define MACB_PTZ_OFFSET				13
 #define MACB_PTZ_SIZE				1
 
-/* Bitfields in MAN */
+
 #define MACB_DATA_OFFSET			0
 #define MACB_DATA_SIZE				16
 #define MACB_CODE_OFFSET			16
@@ -200,7 +192,7 @@
 #define MACB_SOF_OFFSET				30
 #define MACB_SOF_SIZE				2
 
-/* Bitfields in USRIO (AVR32) */
+
 #define MACB_MII_OFFSET				0
 #define MACB_MII_SIZE				1
 #define MACB_EAM_OFFSET				1
@@ -210,13 +202,13 @@
 #define MACB_TX_PAUSE_ZERO_OFFSET		3
 #define MACB_TX_PAUSE_ZERO_SIZE			1
 
-/* Bitfields in USRIO (AT91) */
+
 #define MACB_RMII_OFFSET			0
 #define MACB_RMII_SIZE				1
 #define MACB_CLKEN_OFFSET			1
 #define MACB_CLKEN_SIZE				1
 
-/* Bitfields in WOL */
+
 #define MACB_IP_OFFSET				0
 #define MACB_IP_SIZE				16
 #define MACB_MAG_OFFSET				16
@@ -228,19 +220,19 @@
 #define MACB_WOL_MTI_OFFSET			19
 #define MACB_WOL_MTI_SIZE			1
 
-/* Constants for CLK */
+
 #define MACB_CLK_DIV8				0
 #define MACB_CLK_DIV16				1
 #define MACB_CLK_DIV32				2
 #define MACB_CLK_DIV64				3
 
-/* Constants for MAN register */
+
 #define MACB_MAN_SOF				1
 #define MACB_MAN_WRITE				1
 #define MACB_MAN_READ				2
 #define MACB_MAN_CODE				2
 
-/* Bit manipulation macros */
+
 #define MACB_BIT(name)					\
 	(1 << MACB_##name##_OFFSET)
 #define MACB_BF(name,value)				\
@@ -254,7 +246,7 @@
 		    << MACB_##name##_OFFSET))		\
 	 | MACB_BF(name,value))
 
-/* Register access macros */
+
 #define macb_readl(port,reg)				\
 	__raw_readl((port)->regs + MACB_##reg)
 #define macb_writel(port,reg,value)			\
@@ -265,7 +257,7 @@ struct dma_desc {
 	u32	ctrl;
 };
 
-/* DMA descriptor bitfields */
+
 #define MACB_RX_USED_OFFSET			0
 #define MACB_RX_USED_SIZE			1
 #define MACB_RX_WRAP_OFFSET			1
@@ -330,10 +322,7 @@ struct ring_info {
 	dma_addr_t		mapping;
 };
 
-/*
- * Hardware-collected statistics. Used when updating the network
- * device stats by a periodic timer.
- */
+
 struct macb_stats {
 	u32	rx_pause_frames;
 	u32	tx_ok;
@@ -391,4 +380,4 @@ struct macb {
 	unsigned int 		duplex;
 };
 
-#endif /* _MACB_H */
+#endif 

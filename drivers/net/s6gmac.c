@@ -1,14 +1,4 @@
-/*
- * Ethernet driver for S6105 on chip network device
- * (c)2008 emlix GmbH http://www.emlix.com
- * Authors:	Oskar Schirmer <os@emlix.com>
- *		Daniel Gloeckner <dg@emlix.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version
- * 2 of the License, or (at your option) any later version.
- */
+
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/interrupt.h>
@@ -30,7 +20,7 @@
 #define DRV_PRMT DRV_NAME ": "
 
 
-/* register declarations */
+
 
 #define S6_GMAC_MACCONF1	0x000
 #define S6_GMAC_MACCONF1_TXENA		0
@@ -337,9 +327,9 @@
 #define S6_GMAC_BURST_POSTRD_DROP	20
 
 
-/* data handling */
 
-#define S6_NUM_TX_SKB	8	/* must be larger than TX fifo size */
+
+#define S6_NUM_TX_SKB	8	
 #define S6_NUM_RX_SKB	16
 #define S6_MAX_FRLEN	1536
 
@@ -416,7 +406,7 @@ static void s6gmac_tx_interrupt(struct net_device *dev)
 }
 
 struct s6gmac_statinf {
-	unsigned reg_size : 4; /* 0: unused */
+	unsigned reg_size : 4; 
 	unsigned reg_off : 6;
 	unsigned net_index : 6;
 };

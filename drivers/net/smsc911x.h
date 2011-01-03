@@ -1,23 +1,4 @@
-/***************************************************************************
- *
- * Copyright (C) 2004-2008 SMSC
- * Copyright (C) 2005-2008 ARM
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- ***************************************************************************/
+
 #ifndef __SMSC911X_H__
 #define __SMSC911X_H__
 
@@ -25,12 +6,10 @@
 #define SMSC911X_EEPROM_SIZE	((u32)7)
 #define USE_DEBUG		0
 
-/* This is the maximum number of packets to be received every
- * NAPI poll */
+
 #define SMSC_NAPI_WEIGHT	16
 
-/* implements a PHY loopback test at initialisation time, to ensure a packet
- * can be succesfully looped back */
+
 #define USE_PHY_WORK_AROUND
 
 #define DPRINTK(nlevel, klevel, fmt, args...) \
@@ -59,9 +38,9 @@
 		WARN_ON(!spin_is_locked(&pdata->mac_lock))
 #else
 #define SMSC_ASSERT_MAC_LOCK(pdata) do {} while (0)
-#endif				/* CONFIG_DEBUG_SPINLOCK */
+#endif				
 
-/* SMSC911x registers and bitfields */
+
 #define RX_DATA_FIFO			0x00
 
 #define TX_DATA_FIFO			0x20
@@ -196,7 +175,7 @@
 #define HW_CFG_TR_			0x00003000
 #define HW_CFG_SRST_			0x00000001
 
-/* only available on 115/117 */
+
 #define HW_CFG_PHY_CLK_SEL_		0x00000060
 #define HW_CFG_PHY_CLK_SEL_INT_PHY_	0x00000000
 #define HW_CFG_PHY_CLK_SEL_EXT_PHY_	0x00000020
@@ -206,7 +185,7 @@
 #define HW_CFG_EXT_PHY_EN_		0x00000004
 #define HW_CFG_SRST_TO_			0x00000002
 
-/* only available  on 116/118 */
+
 #define HW_CFG_32_16_BIT_MODE_		0x00000004
 
 #define RX_DP_CTRL			0x78
@@ -308,10 +287,7 @@
 #define E2P_DATA_EEPROM_DATA_		0x000000FF
 #define LAN_REGISTER_EXTENT		0x00000100
 
-/*
- * MAC Control and Status Register (Indirect Address)
- * Offset (through the MAC_CSR CMD and DATA port)
- */
+
 #define MAC_CR				0x01
 #define MAC_CR_RXALL_			0x80000000
 #define MAC_CR_HBDIS_			0x10000000
@@ -368,9 +344,7 @@
 #define WUCSR_WAKE_EN_			0x00000004
 #define WUCSR_MPEN_			0x00000002
 
-/*
- * Phy definitions (vendor-specific)
- */
+
 #define LAN9118_PHY_ID			0x00C0001C
 
 #define MII_INTSTS			0x1D
@@ -394,4 +368,4 @@
 #define LPA_PAUSE_ALL			(LPA_PAUSE_CAP | \
 					 LPA_PAUSE_ASYM)
 
-#endif				/* __SMSC911X_H__ */
+#endif				

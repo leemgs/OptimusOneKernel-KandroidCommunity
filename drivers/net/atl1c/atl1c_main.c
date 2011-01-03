@@ -1,23 +1,4 @@
-/*
- * Copyright(c) 2008 - 2009 Atheros Corporation. All rights reserved.
- *
- * Derived from Intel e1000 driver
- * Copyright(c) 1999 - 2005 Intel Corporation. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 59
- * Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
+
 
 #include "atl1c.h"
 
@@ -26,19 +7,11 @@ char atl1c_driver_name[] = "atl1c";
 char atl1c_driver_version[] = ATL1C_DRV_VERSION;
 #define PCI_DEVICE_ID_ATTANSIC_L2C      0x1062
 #define PCI_DEVICE_ID_ATTANSIC_L1C      0x1063
-/*
- * atl1c_pci_tbl - PCI Device ID Table
- *
- * Wildcard entries (PCI_ANY_ID) should come last
- * Last entry must be all 0s
- *
- * { Vendor ID, Device ID, SubVendor ID, SubDevice ID,
- *   Class, Class Mask, private data (not used) }
- */
+
 static struct pci_device_id atl1c_pci_tbl[] = {
 	{PCI_DEVICE(PCI_VENDOR_ID_ATTANSIC, PCI_DEVICE_ID_ATTANSIC_L1C)},
 	{PCI_DEVICE(PCI_VENDOR_ID_ATTANSIC, PCI_DEVICE_ID_ATTANSIC_L2C)},
-	/* required last entry */
+	
 	{ 0 }
 };
 MODULE_DEVICE_TABLE(pci, atl1c_pci_tbl);
@@ -88,9 +61,7 @@ static const u16 atl1c_rrd_addr_lo_regs[AT_MAX_RECEIVE_QUEUE] =
 static const u32 atl1c_default_msg = NETIF_MSG_DRV | NETIF_MSG_PROBE |
 	NETIF_MSG_LINK | NETIF_MSG_TIMER | NETIF_MSG_IFDOWN | NETIF_MSG_IFUP;
 
-/*
- * atl1c_init_pcie - init PCIE module
- */
+
 static void atl1c_reset_pcie(struct atl1c_hw *hw, u32 flag)
 {
 	u32 data;
@@ -103,15 +74,11 @@ static void atl1c_reset_pcie(struct atl1c_hw *hw, u32 flag)
 		PCI_COMMAND_IO);
 	AT_WRITE_REG(hw, PCI_COMMAND, pci_cmd);
 
-	/*
-	 * Clear any PowerSaveing Settings
-	 */
+	
 	pci_enable_wake(pdev, PCI_D3hot, 0);
 	pci_enable_wake(pdev, PCI_D3cold, 0);
 
-	/*
-	 * Mask some pcie error bits
-	 */
+	
 	AT_READ_REG(hw, REG_PCIE_UC_SEVERITY, &data);
 	data &= ~PCIE_UC_SERVRITY_DLP;
 	data &= ~PCIE_UC_SERVRITY_FCP;
@@ -128,10 +95,7 @@ static void atl1c_reset_pcie(struct atl1c_hw *hw, u32 flag)
 	msleep(1);
 }
 
-/*
- * atl1c_irq_enable - Enable default interrupt generation settings
- * @adapter: board private structure
- */
+
 static inline void atl1c_irq_enable(struct atl1c_adapter *adapter)
 {
 	if (likely(atomic_dec_and_test(&adapter->irq_sem))) {
@@ -141,10 +105,7 @@ static inline void atl1c_irq_enable(struct atl1c_adapter *adapter)
 	}
 }
 
-/*
- * atl1c_irq_disable - Mask off interrupt generation on the NIC
- * @adapter: board private structure
- */
+
 static inline void atl1c_irq_disable(struct atl1c_adapter *adapter)
 {
 	atomic_inc(&adapter->irq_sem);
@@ -153,20 +114,14 @@ static inline void atl1c_irq_disable(struct atl1c_adapter *adapter)
 	synchronize_irq(adapter->pdev->irq);
 }
 
-/*
- * atl1c_irq_reset - reset interrupt confiure on the NIC
- * @adapter: board private structure
- */
+
 static inline void atl1c_irq_reset(struct atl1c_adapter *adapter)
 {
 	atomic_set(&adapter->irq_sem, 1);
 	atl1c_irq_enable(adapter);
 }
 
-/*
- * atl1c_wait_until_idle - wait up to AT_HW_MAX_IDLE_DELAY reads
- * of the idle status register until the device is actually idle
- */
+
 static u32 atl1c_wait_until_idle(struct atl1c_hw *hw)
 {
 	int timeout;
@@ -181,10 +136,7 @@ static u32 atl1c_wait_until_idle(struct atl1c_hw *hw)
 	return data;
 }
 
-/*
- * atl1c_phy_config - Timer Call-back
- * @data: pointer to netdev cast into an unsigned long
- */
+
 static void atl1c_phy_config(unsigned long data)
 {
 	struct atl1c_adapter *adapter = (struct atl1c_adapter *) data;
@@ -214,13 +166,13 @@ static void atl1c_check_link_status(struct atl1c_adapter *adapter)
 	u16 speed, duplex, phy_data;
 
 	spin_lock_irqsave(&adapter->mdio_lock, flags);
-	/* MII_BMSR must read twise */
+	
 	atl1c_read_phy_reg(hw, MII_BMSR, &phy_data);
 	atl1c_read_phy_reg(hw, MII_BMSR, &phy_data);
 	spin_unlock_irqrestore(&adapter->mdio_lock, flags);
 
 	if ((phy_data & BMSR_LSTATUS) == 0) {
-		/* link down */
+		
 		if (netif_carrier_ok(netdev)) {
 			hw->hibernate = true;
 			if (atl1c_stop_mac(hw) != 0)
@@ -231,14 +183,14 @@ static void atl1c_check_link_status(struct atl1c_adapter *adapter)
 		}
 		netif_carrier_off(netdev);
 	} else {
-		/* Link Up */
+		
 		hw->hibernate = false;
 		spin_lock_irqsave(&adapter->mdio_lock, flags);
 		err = atl1c_get_speed_and_duplex(hw, &speed, &duplex);
 		spin_unlock_irqrestore(&adapter->mdio_lock, flags);
 		if (unlikely(err))
 			return;
-		/* link result is our setting */
+		
 		if (adapter->link_speed != speed ||
 		    adapter->link_duplex != duplex) {
 			adapter->link_speed  = speed;
@@ -272,10 +224,10 @@ static void atl1c_link_chg_event(struct atl1c_adapter *adapter)
 	atl1c_read_phy_reg(&adapter->hw, MII_BMSR, &phy_data);
 	spin_unlock(&adapter->mdio_lock);
 	link_up = phy_data & BMSR_LSTATUS;
-	/* notify upper layer link down ASAP */
+	
 	if (!link_up) {
 		if (netif_carrier_ok(netdev)) {
-			/* old link state: Up */
+			
 			netif_carrier_off(netdev);
 			if (netif_msg_link(adapter))
 				dev_info(&pdev->dev,
@@ -318,28 +270,17 @@ static void atl1c_del_timer(struct atl1c_adapter *adapter)
 }
 
 
-/*
- * atl1c_tx_timeout - Respond to a Tx Hang
- * @netdev: network interface device structure
- */
+
 static void atl1c_tx_timeout(struct net_device *netdev)
 {
 	struct atl1c_adapter *adapter = netdev_priv(netdev);
 
-	/* Do the reset outside of interrupt context */
+	
 	adapter->work_event |= ATL1C_WORK_EVENT_RESET;
 	schedule_work(&adapter->common_task);
 }
 
-/*
- * atl1c_set_multi - Multicast and Promiscuous mode set
- * @netdev: network interface device structure
- *
- * The set_multi entry point is called whenever the multicast address
- * list or the network interface flags are updated.  This routine is
- * responsible for configuring the hardware for proper multicast,
- * promiscuous mode, and all-multi behavior.
- */
+
 static void atl1c_set_multi(struct net_device *netdev)
 {
 	struct atl1c_adapter *adapter = netdev_priv(netdev);
@@ -348,7 +289,7 @@ static void atl1c_set_multi(struct net_device *netdev)
 	u32 mac_ctrl_data;
 	u32 hash_value;
 
-	/* Check for Promiscuous and All Multicast modes */
+	
 	AT_READ_REG(hw, REG_MAC_CTRL, &mac_ctrl_data);
 
 	if (netdev->flags & IFF_PROMISC) {
@@ -362,11 +303,11 @@ static void atl1c_set_multi(struct net_device *netdev)
 
 	AT_WRITE_REG(hw, REG_MAC_CTRL, mac_ctrl_data);
 
-	/* clear the old settings from the multicast hash table */
+	
 	AT_WRITE_REG(hw, REG_RX_HASH_TABLE, 0);
 	AT_WRITE_REG_ARRAY(hw, REG_RX_HASH_TABLE, 1, 0);
 
-	/* comoute mc addresses' hash value ,and put it into hash table */
+	
 	for (mc_ptr = netdev->mc_list; mc_ptr; mc_ptr = mc_ptr->next) {
 		hash_value = atl1c_hash_mc_addr(hw, mc_ptr->dmi_addr);
 		atl1c_hash_set(hw, hash_value);
@@ -389,10 +330,10 @@ static void atl1c_vlan_rx_register(struct net_device *netdev,
 	AT_READ_REG(&adapter->hw, REG_MAC_CTRL, &mac_ctrl_data);
 
 	if (grp) {
-		/* enable VLAN tag insert/strip */
+		
 		mac_ctrl_data |= MAC_CTRL_RMV_VLAN;
 	} else {
-		/* disable VLAN tag insert/strip */
+		
 		mac_ctrl_data &= ~MAC_CTRL_RMV_VLAN;
 	}
 
@@ -408,13 +349,7 @@ static void atl1c_restore_vlan(struct atl1c_adapter *adapter)
 		dev_dbg(&pdev->dev, "atl1c_restore_vlan !");
 	atl1c_vlan_rx_register(adapter->netdev, adapter->vlgrp);
 }
-/*
- * atl1c_set_mac - Change the Ethernet Address of the NIC
- * @netdev: network interface device structure
- * @p: pointer to an address structure
- *
- * Returns 0 on success, negative on failure
- */
+
 static int atl1c_set_mac_addr(struct net_device *netdev, void *p)
 {
 	struct atl1c_adapter *adapter = netdev_priv(netdev);
@@ -442,13 +377,7 @@ static void atl1c_set_rxbufsize(struct atl1c_adapter *adapter,
 	adapter->rx_buffer_len = mtu > AT_RX_BUF_SIZE ?
 		roundup(mtu + ETH_HLEN + ETH_FCS_LEN + VLAN_HLEN, 8) : AT_RX_BUF_SIZE;
 }
-/*
- * atl1c_change_mtu - Change the Maximum Transfer Unit
- * @netdev: network interface device structure
- * @new_mtu: new value for maximum frame size
- *
- * Returns 0 on success, negative on failure
- */
+
 static int atl1c_change_mtu(struct net_device *netdev, int new_mtu)
 {
 	struct atl1c_adapter *adapter = netdev_priv(netdev);
@@ -461,7 +390,7 @@ static int atl1c_change_mtu(struct net_device *netdev, int new_mtu)
 			dev_warn(&adapter->pdev->dev, "invalid MTU setting\n");
 		return -EINVAL;
 	}
-	/* set MTU */
+	
 	if (old_mtu != new_mtu && netif_running(netdev)) {
 		while (test_and_set_bit(__AT_RESETTING, &adapter->flags))
 			msleep(1);
@@ -483,9 +412,7 @@ static int atl1c_change_mtu(struct net_device *netdev, int new_mtu)
 	return 0;
 }
 
-/*
- *  caller should hold mdio_lock
- */
+
 static int atl1c_mdio_read(struct net_device *netdev, int phy_id, int reg_num)
 {
 	struct atl1c_adapter *adapter = netdev_priv(netdev);
@@ -503,12 +430,7 @@ static void atl1c_mdio_write(struct net_device *netdev, int phy_id,
 	atl1c_write_phy_reg(&adapter->hw, reg_num & MDIO_REG_ADDR_MASK, val);
 }
 
-/*
- * atl1c_mii_ioctl -
- * @netdev:
- * @ifreq:
- * @cmd:
- */
+
 static int atl1c_mii_ioctl(struct net_device *netdev,
 			   struct ifreq *ifr, int cmd)
 {
@@ -559,12 +481,7 @@ out:
 	return retval;
 }
 
-/*
- * atl1c_ioctl -
- * @netdev:
- * @ifreq:
- * @cmd:
- */
+
 static int atl1c_ioctl(struct net_device *netdev, struct ifreq *ifr, int cmd)
 {
 	switch (cmd) {
@@ -577,11 +494,7 @@ static int atl1c_ioctl(struct net_device *netdev, struct ifreq *ifr, int cmd)
 	}
 }
 
-/*
- * atl1c_alloc_queues - Allocate memory for all rings
- * @adapter: board private structure to initialize
- *
- */
+
 static int __devinit atl1c_alloc_queues(struct atl1c_adapter *adapter)
 {
 	return 0;
@@ -627,14 +540,7 @@ static int atl1c_setup_mac_funcs(struct atl1c_hw *hw)
 	}
 	return 0;
 }
-/*
- * atl1c_sw_init - Initialize general software structures (struct atl1c_adapter)
- * @adapter: board private structure to initialize
- *
- * atl1c_sw_init initializes the Adapter private data structure.
- * Fields are initialized based on PCI device information and
- * OS network device settings (MTU size).
- */
+
 static int __devinit atl1c_sw_init(struct atl1c_adapter *adapter)
 {
 	struct atl1c_hw *hw   = &adapter->hw;
@@ -652,7 +558,7 @@ static int __devinit atl1c_sw_init(struct atl1c_adapter *adapter)
 	hw->subsystem_vendor_id = pdev->subsystem_vendor;
 	hw->subsystem_id = pdev->subsystem_device;
 
-	/* before link up, we assume hibernate is true */
+	
 	hw->hibernate = true;
 	hw->media_type = MEDIA_TYPE_AUTO_SENSOR;
 	if (atl1c_setup_mac_funcs(hw) != 0) {
@@ -675,10 +581,10 @@ static int __devinit atl1c_sw_init(struct atl1c_adapter *adapter)
 	hw->indirect_tab = 0xE4E4E4E4;
 	hw->base_cpu = 0;
 
-	hw->ict = 50000;		/* 100ms */
-	hw->smb_timer = 200000;	  	/* 400ms */
+	hw->ict = 50000;		
+	hw->smb_timer = 200000;	  	
 	hw->cmb_tpd = 4;
-	hw->cmb_tx_timer = 1;		/* 2 us  */
+	hw->cmb_tx_timer = 1;		
 	hw->rx_imt = 200;
 	hw->tx_imt = 1000;
 
@@ -694,7 +600,7 @@ static int __devinit atl1c_sw_init(struct atl1c_adapter *adapter)
 		dev_err(&pdev->dev, "Unable to allocate memory for queues\n");
 		return -ENOMEM;
 	}
-	/* TODO */
+	
 	atl1c_set_rxbufsize(adapter, adapter->netdev);
 	atomic_set(&adapter->irq_sem, 1);
 	spin_lock_init(&adapter->mdio_lock);
@@ -704,10 +610,7 @@ static int __devinit atl1c_sw_init(struct atl1c_adapter *adapter)
 	return 0;
 }
 
-/*
- * atl1c_clean_tx_ring - Free Tx-skb
- * @adapter: board private structure
- */
+
 static void atl1c_clean_tx_ring(struct atl1c_adapter *adapter,
 				enum atl1c_trans_queue type)
 {
@@ -732,17 +635,14 @@ static void atl1c_clean_tx_ring(struct atl1c_adapter *adapter,
 		buffer_info->state = ATL1_BUFFER_FREE;
 	}
 
-	/* Zero out Tx-buffers */
+	
 	memset(tpd_ring->desc, 0, sizeof(struct atl1c_tpd_desc) *
 				ring_count);
 	atomic_set(&tpd_ring->next_to_clean, 0);
 	tpd_ring->next_to_use = 0;
 }
 
-/*
- * atl1c_clean_rx_ring - Free rx-reservation skbs
- * @adapter: board private structure
- */
+
 static void atl1c_clean_rx_ring(struct atl1c_adapter *adapter)
 {
 	struct atl1c_rfd_ring *rfd_ring = adapter->rfd_ring;
@@ -765,7 +665,7 @@ static void atl1c_clean_rx_ring(struct atl1c_adapter *adapter)
 			buffer_info->state = ATL1_BUFFER_FREE;
 			buffer_info->skb = NULL;
 		}
-		/* zero out the descriptor ring */
+		
 		memset(rfd_ring[i].desc, 0, rfd_ring[i].size);
 		rfd_ring[i].next_to_clean = 0;
 		rfd_ring[i].next_to_use = 0;
@@ -774,9 +674,7 @@ static void atl1c_clean_rx_ring(struct atl1c_adapter *adapter)
 	}
 }
 
-/*
- * Read / Write Ptr Initialize:
- */
+
 static void atl1c_init_ring_ptrs(struct atl1c_adapter *adapter)
 {
 	struct atl1c_tpd_ring *tpd_ring = adapter->tpd_ring;
@@ -804,12 +702,7 @@ static void atl1c_init_ring_ptrs(struct atl1c_adapter *adapter)
 	}
 }
 
-/*
- * atl1c_free_ring_resources - Free Tx / RX descriptor Resources
- * @adapter: board private structure
- *
- * Free all transmit software resources
- */
+
 static void atl1c_free_ring_resources(struct atl1c_adapter *adapter)
 {
 	struct pci_dev *pdev = adapter->pdev;
@@ -819,20 +712,14 @@ static void atl1c_free_ring_resources(struct atl1c_adapter *adapter)
 					adapter->ring_header.dma);
 	adapter->ring_header.desc = NULL;
 
-	/* Note: just free tdp_ring.buffer_info,
-	*  it contain rfd_ring.buffer_info, do not double free */
+	
 	if (adapter->tpd_ring[0].buffer_info) {
 		kfree(adapter->tpd_ring[0].buffer_info);
 		adapter->tpd_ring[0].buffer_info = NULL;
 	}
 }
 
-/*
- * atl1c_setup_mem_resources - allocate Tx / RX descriptor resources
- * @adapter: board private structure
- *
- * Return 0 on success, negative on failure
- */
+
 static int atl1c_setup_ring_resources(struct atl1c_adapter *adapter)
 {
 	struct pci_dev *pdev = adapter->pdev;
@@ -854,8 +741,7 @@ static int atl1c_setup_ring_resources(struct atl1c_adapter *adapter)
 	for (i = 1; i < adapter->num_rx_queues; i++)
 		rfd_ring[i].count = rrd_ring[i].count = rfd_ring[0].count;
 
-	/* 2 tpd queue, one high priority queue,
-	 * another normal priority queue */
+	
 	size = sizeof(struct atl1c_buffer) * (tpd_ring->count * 2 +
 		rfd_ring->count * num_rx_queues);
 	tpd_ring->buffer_info = kzalloc(size, GFP_KERNEL);
@@ -876,11 +762,7 @@ static int atl1c_setup_ring_resources(struct atl1c_adapter *adapter)
 		count += rfd_ring[i].count;
 		rx_desc_count += rfd_ring[i].count;
 	}
-	/*
-	 * real ring DMA buffer
-	 * each ring/block may need up to 8 bytes for alignment, hence the
-	 * additional bytes tacked onto the end.
-	 */
+	
 	ring_header->size = size =
 		sizeof(struct atl1c_tpd_desc) * tpd_ring->count * 2 +
 		sizeof(struct atl1c_rx_free_desc) * rx_desc_count +
@@ -895,7 +777,7 @@ static int atl1c_setup_ring_resources(struct atl1c_adapter *adapter)
 		goto err_nomem;
 	}
 	memset(ring_header->desc, 0, ring_header->size);
-	/* init TPD ring */
+	
 
 	tpd_ring[0].dma = roundup(ring_header->dma, 8);
 	offset = tpd_ring[0].dma - ring_header->dma;
@@ -906,7 +788,7 @@ static int atl1c_setup_ring_resources(struct atl1c_adapter *adapter)
 			sizeof(struct atl1c_tpd_desc) * tpd_ring[i].count;
 		offset += roundup(tpd_ring[i].size, 8);
 	}
-	/* init RFD ring */
+	
 	for (i = 0; i < num_rx_queues; i++) {
 		rfd_ring[i].dma = ring_header->dma + offset;
 		rfd_ring[i].desc = (u8 *) ring_header->desc + offset;
@@ -915,7 +797,7 @@ static int atl1c_setup_ring_resources(struct atl1c_adapter *adapter)
 		offset += roundup(rfd_ring[i].size, 8);
 	}
 
-	/* init RRD ring */
+	
 	for (i = 0; i < num_rx_queues; i++) {
 		rrd_ring[i].dma = ring_header->dma + offset;
 		rrd_ring[i].desc = (u8 *) ring_header->desc + offset;
@@ -946,11 +828,11 @@ static void atl1c_configure_des_ring(struct atl1c_adapter *adapter)
 	struct atl1c_smb *smb = (struct atl1c_smb *) &adapter->smb;
 	int i;
 
-	/* TPD */
+	
 	AT_WRITE_REG(hw, REG_TX_BASE_ADDR_HI,
 			(u32)((tpd_ring[atl1c_trans_normal].dma &
 				AT_DMA_HI_ADDR_MASK) >> 32));
-	/* just enable normal priority TX queue */
+	
 	AT_WRITE_REG(hw, REG_NTPD_HEAD_ADDR_LO,
 			(u32)(tpd_ring[atl1c_trans_normal].dma &
 				AT_DMA_LO_ADDR_MASK));
@@ -961,7 +843,7 @@ static void atl1c_configure_des_ring(struct atl1c_adapter *adapter)
 			(u32)(tpd_ring[0].count & TPD_RING_SIZE_MASK));
 
 
-	/* RFD */
+	
 	AT_WRITE_REG(hw, REG_RX_BASE_ADDR_HI,
 			(u32)((rfd_ring[0].dma & AT_DMA_HI_ADDR_MASK) >> 32));
 	for (i = 0; i < adapter->num_rx_queues; i++)
@@ -973,22 +855,22 @@ static void atl1c_configure_des_ring(struct atl1c_adapter *adapter)
 	AT_WRITE_REG(hw, REG_RX_BUF_SIZE,
 			adapter->rx_buffer_len & RX_BUF_SIZE_MASK);
 
-	/* RRD */
+	
 	for (i = 0; i < adapter->num_rx_queues; i++)
 		AT_WRITE_REG(hw, atl1c_rrd_addr_lo_regs[i],
 			(u32)(rrd_ring[i].dma & AT_DMA_LO_ADDR_MASK));
 	AT_WRITE_REG(hw, REG_RRD_RING_SIZE,
 			(rrd_ring[0].count & RRD_RING_SIZE_MASK));
 
-	/* CMB */
+	
 	AT_WRITE_REG(hw, REG_CMB_BASE_ADDR_LO, cmb->dma & AT_DMA_LO_ADDR_MASK);
 
-	/* SMB */
+	
 	AT_WRITE_REG(hw, REG_SMB_BASE_ADDR_HI,
 			(u32)((smb->dma & AT_DMA_HI_ADDR_MASK) >> 32));
 	AT_WRITE_REG(hw, REG_SMB_BASE_ADDR_LO,
 			(u32)(smb->dma & AT_DMA_LO_ADDR_MASK));
-	/* Load all of base address above */
+	
 	AT_WRITE_REG(hw, REG_LOAD_PTR, 1);
 }
 
@@ -999,7 +881,7 @@ static void atl1c_configure_tx(struct atl1c_adapter *adapter)
 	u32 max_pay_load;
 	u16 tx_offload_thresh;
 	u32 txq_ctrl_data;
-	u32 extra_size = 0;     /* Jumbo frame threshold in QWORD unit */
+	u32 extra_size = 0;     
 
 	extra_size = ETH_HLEN + VLAN_HLEN + ETH_FCS_LEN;
 	tx_offload_thresh = MAX_TX_OFFLOAD_THRESH;
@@ -1102,11 +984,7 @@ static void atl1c_configure_dma(struct atl1c_adapter *adapter)
 	AT_WRITE_REG(hw, REG_DMA_CTRL, dma_ctrl_data);
 }
 
-/*
- * Stop the mac, transmit and receive units
- * hw - Struct containing variables accessed by shared code
- * return : 0  or  idle status (if error)
- */
+
 static int atl1c_stop_mac(struct atl1c_hw *hw)
 {
 	u32 data;
@@ -1160,11 +1038,7 @@ static void atl1c_enable_tx_ctrl(struct atl1c_hw *hw)
 	AT_WRITE_REG(hw, REG_TXQ_CTRL, data);
 }
 
-/*
- * Reset the transmit and receive units; mask and clear all interrupts.
- * hw - Struct containing variables accessed by shared code
- * return : 0  or  idle status (if error)
- */
+
 static int atl1c_reset_mac(struct atl1c_hw *hw)
 {
 	struct atl1c_adapter *adapter = (struct atl1c_adapter *)hw->adapter;
@@ -1177,16 +1051,11 @@ static int atl1c_reset_mac(struct atl1c_hw *hw)
 	ret = atl1c_stop_mac(hw);
 	if (ret)
 		return ret;
-	/*
-	 * Issue Soft Reset to the MAC.  This will reset the chip's
-	 * transmit, receive, DMA.  It will not effect
-	 * the current PCI configuration.  The global reset bit is self-
-	 * clearing, and should clear within a microsecond.
-	 */
+	
 	AT_WRITE_REGW(hw, REG_MASTER_CTRL, MASTER_CTRL_SOFT_RST);
 	AT_WRITE_FLUSH(hw);
 	msleep(10);
-	/* Wait at least 10ms for All module to be Idle */
+	
 
 	if (atl1c_wait_until_idle(hw)) {
 		dev_err(&pdev->dev,
@@ -1216,10 +1085,7 @@ static void atl1c_disable_l0s_l1(struct atl1c_hw *hw)
 	AT_WRITE_REG(hw, REG_PM_CTRL, pm_ctrl_data);
 }
 
-/*
- * Set ASPM state.
- * Enable/disable L0s/L1 depend on link state.
- */
+
 static void atl1c_set_aspm(struct atl1c_hw *hw, bool linkup)
 {
 	u32 pm_ctrl_data;
@@ -1294,26 +1160,18 @@ static void atl1c_setup_mac_ctrl(struct atl1c_adapter *adapter)
 	AT_WRITE_REG(hw, REG_MAC_CTRL, mac_ctrl_data);
 }
 
-/*
- * atl1c_configure - Configure Transmit&Receive Unit after Reset
- * @adapter: board private structure
- *
- * Configure the Tx /Rx unit of the MAC after a reset.
- */
+
 static int atl1c_configure(struct atl1c_adapter *adapter)
 {
 	struct atl1c_hw *hw = &adapter->hw;
 	u32 master_ctrl_data = 0;
 	u32 intr_modrt_data;
 
-	/* clear interrupt status */
+	
 	AT_WRITE_REG(hw, REG_ISR, 0xFFFFFFFF);
-	/*  Clear any WOL status */
+	
 	AT_WRITE_REG(hw, REG_WOL_CTRL, 0);
-	/* set Interrupt Clear Timer
-	 * HW will enable self to assert interrupt event to system after
-	 * waiting x-time for software to notify it accept interrupt.
-	 */
+	
 	AT_WRITE_REG(hw, REG_INT_RETRIG_TIMER,
 		hw->ict & INT_RETRIG_TIMER_MASK);
 
@@ -1344,10 +1202,10 @@ static int atl1c_configure(struct atl1c_adapter *adapter)
 	if (hw->ctrl_flags & ATL1C_SMB_ENABLE)
 		AT_WRITE_REG(hw, REG_SMB_STAT_TIMER,
 			hw->smb_timer & SMB_STAT_TIMER_MASK);
-	/* set MTU */
+	
 	AT_WRITE_REG(hw, REG_MTU, hw->max_frame_size + ETH_HLEN +
 			VLAN_HLEN + ETH_FCS_LEN);
-	/* HDS, disable */
+	
 	AT_WRITE_REG(hw, REG_HDS_CTRL, 0);
 
 	atl1c_configure_tx(adapter);
@@ -1364,7 +1222,7 @@ static void atl1c_update_hw_stats(struct atl1c_adapter *adapter)
 	unsigned long *stats_item = NULL;
 	u32 data;
 
-	/* update rx status */
+	
 	hw_reg_addr = REG_MAC_RX_STATUS_BIN;
 	stats_item  = &adapter->hw_stats.rx_ok;
 	while (hw_reg_addr <= REG_MAC_RX_STATUS_END) {
@@ -1373,7 +1231,7 @@ static void atl1c_update_hw_stats(struct atl1c_adapter *adapter)
 		stats_item++;
 		hw_reg_addr += 4;
 	}
-/* update tx status */
+
 	hw_reg_addr = REG_MAC_TX_STATUS_BIN;
 	stats_item  = &adapter->hw_stats.tx_ok;
 	while (hw_reg_addr <= REG_MAC_TX_STATUS_END) {
@@ -1384,13 +1242,7 @@ static void atl1c_update_hw_stats(struct atl1c_adapter *adapter)
 	}
 }
 
-/*
- * atl1c_get_stats - Get System Network Statistics
- * @netdev: network interface device structure
- *
- * Returns the address of the device statistics structure.
- * The statistics are actually updated from the timer callback.
- */
+
 static struct net_device_stats *atl1c_get_stats(struct net_device *netdev)
 {
 	struct atl1c_adapter *adapter = netdev_priv(netdev);
@@ -1479,12 +1331,7 @@ static bool atl1c_clean_tx_irq(struct atl1c_adapter *adapter,
 	return true;
 }
 
-/*
- * atl1c_intr - Interrupt Handler
- * @irq: interrupt number
- * @data: pointer to a network interface device structure
- * @pt_regs: CPU registers structure
- */
+
 static irqreturn_t atl1c_intr(int irq, void *data)
 {
 	struct net_device *netdev  = data;
@@ -1505,10 +1352,10 @@ static irqreturn_t atl1c_intr(int irq, void *data)
 				handled = IRQ_HANDLED;
 			break;
 		}
-		/* link event */
+		
 		if (status & ISR_GPHY)
 			atl1c_clear_phy_int(adapter);
-		/* Ack ISR */
+		
 		AT_WRITE_REG(hw, REG_ISR, status | ISR_DIS_INT);
 		if (status & ISR_RX_PKT) {
 			if (likely(napi_schedule_prep(&adapter->napi))) {
@@ -1521,13 +1368,13 @@ static irqreturn_t atl1c_intr(int irq, void *data)
 			atl1c_clean_tx_irq(adapter, atl1c_trans_normal);
 
 		handled = IRQ_HANDLED;
-		/* check if PCIE PHY Link down */
+		
 		if (status & ISR_ERROR) {
 			if (netif_msg_hw(adapter))
 				dev_err(&pdev->dev,
 					"atl1c hardware error (status = 0x%x)\n",
 					status & ISR_ERROR);
-			/* reset MAC */
+			
 			hw->intr_mask &= ~ISR_ERROR;
 			AT_WRITE_REG(hw, REG_IMR, hw->intr_mask);
 			adapter->work_event |= ATL1C_WORK_EVENT_RESET;
@@ -1541,7 +1388,7 @@ static irqreturn_t atl1c_intr(int irq, void *data)
 					"TX/RX over flow (status = 0x%x)\n",
 					status & ISR_OVER);
 
-		/* link event */
+		
 		if (status & (ISR_GPHY | ISR_MANUAL)) {
 			adapter->net_stats.tx_carrier_errors++;
 			atl1c_link_chg_event(adapter);
@@ -1549,7 +1396,7 @@ static irqreturn_t atl1c_intr(int irq, void *data)
 		}
 
 	} while (--max_ints > 0);
-	/* re-enable Interrupt*/
+	
 	AT_WRITE_REG(&adapter->hw, REG_ISR, 0);
 	return handled;
 }
@@ -1557,11 +1404,7 @@ static irqreturn_t atl1c_intr(int irq, void *data)
 static inline void atl1c_rx_checksum(struct atl1c_adapter *adapter,
 		  struct sk_buff *skb, struct atl1c_recv_ret_status *prrs)
 {
-	/*
-	 * The pid field in RRS in not correct sometimes, so we
-	 * cannot figure out if the packet is fragmented or not,
-	 * so we tell the KERNEL CHECKSUM_NONE
-	 */
+	
 	skb->ip_summed = CHECKSUM_NONE;
 }
 
@@ -1592,11 +1435,7 @@ static int atl1c_alloc_rx_buffer(struct atl1c_adapter *adapter, const int ringid
 			break;
 		}
 
-		/*
-		 * Make buffer alignment 2 beyond a 16 byte boundary
-		 * this will result in a 16 byte aligned IP header after
-		 * the 14 byte MAC header is removed
-		 */
+		
 		vir_addr = skb->data;
 		buffer_info->state = ATL1_BUFFER_BUSY;
 		buffer_info->skb = skb;
@@ -1614,7 +1453,7 @@ static int atl1c_alloc_rx_buffer(struct atl1c_adapter *adapter, const int ringid
 	}
 
 	if (num_alloc) {
-		/* TODO: update mailbox here */
+		
 		wmb();
 		rfd_ring->next_to_use = rfd_next_to_use;
 		AT_WRITE_REG(&adapter->hw, atl1c_rfd_prod_idx_regs[ringid],
@@ -1628,7 +1467,7 @@ static void atl1c_clean_rrd(struct atl1c_rrd_ring *rrd_ring,
 			struct	atl1c_recv_ret_status *rrs, u16 num)
 {
 	u16 i;
-	/* the relationship between rrd and rfd is one map one */
+	
 	for (i = 0; i < num; i++, rrs = ATL1C_RRD_DESC(rrd_ring,
 					rrd_ring->next_to_clean)) {
 		rrs->word3 &= ~RRS_RXD_UPDATED;
@@ -1677,7 +1516,7 @@ static void atl1c_clean_rx_irq(struct atl1c_adapter *adapter, u8 que,
 			rfd_num = (rrs->word0 >> RRS_RX_RFD_CNT_SHIFT) &
 				RRS_RX_RFD_CNT_MASK;
 			if (unlikely(rfd_num != 1))
-				/* TODO support mul rfd*/
+				
 				if (netif_msg_rx_err(adapter))
 					dev_warn(&pdev->dev,
 						"Multi rfd not support yet!\n");
@@ -1698,7 +1537,7 @@ rrs_checked:
 
 		length = le16_to_cpu((rrs->word3 >> RRS_PKT_SIZE_SHIFT) &
 				RRS_PKT_SIZE_MASK);
-		/* Good Receive */
+		
 		if (likely(rfd_num == 1)) {
 			rfd_index = (rrs->word0 >> RRS_RX_RFD_INDEX_SHIFT) &
 					RRS_RX_RFD_INDEX_MASK;
@@ -1707,7 +1546,7 @@ rrs_checked:
 				buffer_info->length, PCI_DMA_FROMDEVICE);
 			skb = buffer_info->skb;
 		} else {
-			/* TODO */
+			
 			if (netif_msg_rx_err(adapter))
 				dev_warn(&pdev->dev,
 					"Multi rfd not support yet!\n");
@@ -1734,20 +1573,17 @@ rrs_checked:
 		atl1c_alloc_rx_buffer(adapter, que);
 }
 
-/*
- * atl1c_clean - NAPI Rx polling callback
- * @adapter: board private structure
- */
+
 static int atl1c_clean(struct napi_struct *napi, int budget)
 {
 	struct atl1c_adapter *adapter =
 			container_of(napi, struct atl1c_adapter, napi);
 	int work_done = 0;
 
-	/* Keep link state information with original netdev */
+	
 	if (!netif_carrier_ok(adapter->netdev))
 		goto quit_polling;
-	/* just enable one RXQ */
+	
 	atl1c_clean_rx_irq(adapter, 0, &work_done, budget);
 
 	if (work_done < budget) {
@@ -1761,11 +1597,7 @@ quit_polling:
 
 #ifdef CONFIG_NET_POLL_CONTROLLER
 
-/*
- * Polling 'interrupt' - used by things like netconsole to send skbs
- * without having to re-enable interrupts. It's not called while
- * the interrupt routine is executing.
- */
+
 static void atl1c_netpoll(struct net_device *netdev)
 {
 	struct atl1c_adapter *adapter = netdev_priv(netdev);
@@ -1790,11 +1622,7 @@ static inline u16 atl1c_tpd_avail(struct atl1c_adapter *adapter, enum atl1c_tran
 		(tpd_ring->count + next_to_clean - next_to_use - 1);
 }
 
-/*
- * get next usable tpd
- * Note: should call atl1c_tdp_avail to make sure
- * there is enough tpd to use
- */
+
 static struct atl1c_tpd_desc *atl1c_get_tpd(struct atl1c_adapter *adapter,
 	enum atl1c_trans_queue type)
 {
@@ -1819,7 +1647,7 @@ atl1c_get_tx_buffer(struct atl1c_adapter *adapter, struct atl1c_tpd_desc *tpd)
 			(struct atl1c_tpd_desc *)tpd_ring->desc];
 }
 
-/* Calculate the transmit packet descript needed*/
+
 static u16 atl1c_cal_tpd_req(const struct sk_buff *skb)
 {
 	u16 tpd_req;
@@ -1865,7 +1693,7 @@ static int atl1c_tso_csum(struct atl1c_adapter *adapter,
 
 			hdr_len = (skb_transport_offset(skb) + tcp_hdrlen(skb));
 			if (unlikely(skb->len == hdr_len)) {
-				/* only xsum need */
+				
 				if (netif_msg_tx_queued(adapter))
 					dev_warn(&pdev->dev,
 						"IPV4 tso with zero data??\n");
@@ -1887,10 +1715,10 @@ static int atl1c_tso_csum(struct atl1c_adapter *adapter,
 			memset(etpd, 0, sizeof(struct atl1c_tpd_ext_desc));
 			*tpd = atl1c_get_tpd(adapter, type);
 			ipv6_hdr(skb)->payload_len = 0;
-			/* check payload == 0 byte ? */
+			
 			hdr_len = (skb_transport_offset(skb) + tcp_hdrlen(skb));
 			if (unlikely(skb->len == hdr_len)) {
-				/* only xsum need */
+				
 				if (netif_msg_tx_queued(adapter))
 					dev_warn(&pdev->dev,
 						"IPV6 tso with zero data??\n");
@@ -1954,7 +1782,7 @@ static void atl1c_tx_map(struct atl1c_adapter *adapter,
 	nr_frags = skb_shinfo(skb)->nr_frags;
 	tso = (tpd->word1 >> TPD_LSO_EN_SHIFT) & TPD_LSO_EN_MASK;
 	if (tso) {
-		/* TSO */
+		
 		map_len = hdr_len = skb_transport_offset(skb) + tcp_hdrlen(skb);
 		use_tpd = tpd;
 
@@ -1969,8 +1797,7 @@ static void atl1c_tx_map(struct atl1c_adapter *adapter,
 	}
 
 	if (mapped_len < buf_len) {
-		/* mapped_len == 0, means we should use the first tpd,
-		   which is given by caller  */
+		
 		if (mapped_len == 0)
 			use_tpd = tpd;
 		else {
@@ -2011,10 +1838,9 @@ static void atl1c_tx_map(struct atl1c_adapter *adapter,
 		use_tpd->buffer_len  = cpu_to_le16(buffer_info->length);
 	}
 
-	/* The last tpd */
+	
 	use_tpd->word1 |= 1 << TPD_EOP_SHIFT;
-	/* The last buffer info contain the skb address,
-	   so it will be free after unmap */
+	
 	buffer_info->skb = skb;
 }
 
@@ -2067,7 +1893,7 @@ static netdev_tx_t atl1c_xmit_frame(struct sk_buff *skb,
 		type = atl1c_trans_normal;
 
 	if (atl1c_tpd_avail(adapter, type) < tpd_req) {
-		/* no enough descriptor, just stop queue */
+		
 		netif_stop_queue(netdev);
 		spin_unlock_irqrestore(&adapter->tx_lock, flags);
 		return NETDEV_TX_BUSY;
@@ -2075,7 +1901,7 @@ static netdev_tx_t atl1c_xmit_frame(struct sk_buff *skb,
 
 	tpd = atl1c_get_tpd(adapter, type);
 
-	/* do TSO and check sum */
+	
 	if (atl1c_tso_csum(adapter, skb, &tpd, type) != 0) {
 		spin_unlock_irqrestore(&adapter->tx_lock, flags);
 		dev_kfree_skb_any(skb);
@@ -2093,7 +1919,7 @@ static netdev_tx_t atl1c_xmit_frame(struct sk_buff *skb,
 	}
 
 	if (skb_network_offset(skb) != ETH_HLEN)
-		tpd->word1 |= 1 << TPD_ETH_TYPE_SHIFT; /* Ethernet frame */
+		tpd->word1 |= 1 << TPD_ETH_TYPE_SHIFT; 
 
 	atl1c_tx_map(adapter, skb, tpd, type);
 	atl1c_tx_queue(adapter, skb, tpd, type);
@@ -2195,16 +2021,15 @@ void atl1c_down(struct atl1c_adapter *adapter)
 	struct net_device *netdev = adapter->netdev;
 
 	atl1c_del_timer(adapter);
-	adapter->work_event = 0; /* clear all event */
-	/* signal that we're down so the interrupt handler does not
-	 * reschedule our watchdog timer */
+	adapter->work_event = 0; 
+	
 	set_bit(__AT_DOWN, &adapter->flags);
 	netif_carrier_off(netdev);
 	napi_disable(&adapter->napi);
 	atl1c_irq_disable(adapter);
 	atl1c_free_irq(adapter);
 	AT_WRITE_REG(&adapter->hw, REG_ISR, ISR_DIS_INT);
-	/* reset MAC to disable all RX/TX */
+	
 	atl1c_reset_mac(&adapter->hw);
 	msleep(1);
 
@@ -2215,28 +2040,17 @@ void atl1c_down(struct atl1c_adapter *adapter)
 	atl1c_clean_rx_ring(adapter);
 }
 
-/*
- * atl1c_open - Called when a network interface is made active
- * @netdev: network interface device structure
- *
- * Returns 0 on success, negative value on failure
- *
- * The open entry point is called when a network interface is made
- * active by the system (IFF_UP).  At this point all resources needed
- * for transmit and receive operations are allocated, the interrupt
- * handler is registered with the OS, the watchdog timer is started,
- * and the stack is notified that the interface is ready.
- */
+
 static int atl1c_open(struct net_device *netdev)
 {
 	struct atl1c_adapter *adapter = netdev_priv(netdev);
 	int err;
 
-	/* disallow open during test */
+	
 	if (test_bit(__AT_TESTING, &adapter->flags))
 		return -EBUSY;
 
-	/* allocate rx/tx dma buffer & descriptors */
+	
 	err = atl1c_setup_ring_resources(adapter);
 	if (unlikely(err))
 		return err;
@@ -2261,17 +2075,7 @@ err_up:
 	return err;
 }
 
-/*
- * atl1c_close - Disables a network interface
- * @netdev: network interface device structure
- *
- * Returns 0, this is not allowed to fail
- *
- * The close entry point is called when an interface is de-activated
- * by the OS.  The hardware is still under the drivers control, but
- * needs to be disabled.  A global MAC reset is issued to stop the
- * hardware, and all transmit and receive resources are freed.
- */
+
 static int atl1c_close(struct net_device *netdev)
 {
 	struct atl1c_adapter *adapter = netdev_priv(netdev);
@@ -2311,7 +2115,7 @@ static int atl1c_suspend(struct pci_dev *pdev, pm_message_t state)
 		AT_READ_REG(hw, REG_MASTER_CTRL, &master_ctrl_data);
 		master_ctrl_data &= ~MASTER_CTRL_CLK_SEL_DIS;
 
-		/* get link status */
+		
 		atl1c_read_phy_reg(hw, MII_BMSR, (u16 *)&mii_bmsr_data);
 		atl1c_read_phy_reg(hw, MII_BMSR, (u16 *)&mii_bmsr_data);
 		save_autoneg_advertised = hw->autoneg_advertised;
@@ -2319,9 +2123,9 @@ static int atl1c_suspend(struct pci_dev *pdev, pm_message_t state)
 		if (atl1c_restart_autoneg(hw) != 0)
 			if (netif_msg_link(adapter))
 				dev_warn(&pdev->dev, "phy autoneg failed\n");
-		hw->phy_configured = false; /* re-init PHY when resume */
+		hw->phy_configured = false; 
 		hw->autoneg_advertised = save_autoneg_advertised;
-		/* turn on magic packet wol */
+		
 		if (wufc & AT_WUFC_MAG)
 			wol_ctrl_data = WOL_MAGIC_EN | WOL_MAGIC_PME_EN;
 
@@ -2340,7 +2144,7 @@ static int atl1c_suspend(struct pci_dev *pdev, pm_message_t state)
 						"when suspend\n",
 						atl1c_driver_name);
 			wol_ctrl_data |=  WOL_LINK_CHG_EN | WOL_LINK_CHG_PME_EN;
-			/* only link up can wake up */
+			
 			if (atl1c_write_phy_reg(hw, MII_IER, IER_LINK_UP) != 0) {
 				if (netif_msg_link(adapter))
 					dev_err(&pdev->dev,
@@ -2350,11 +2154,11 @@ static int atl1c_suspend(struct pci_dev *pdev, pm_message_t state)
 				goto wol_dis;
 			}
 		}
-		/* clear phy interrupt */
+		
 		atl1c_read_phy_reg(hw, MII_ISR, &mii_intr_status_data);
-		/* Config MAC Ctrl register */
+		
 		mac_ctrl_data = MAC_CTRL_RX_EN;
-		/* set to 10/100M halt duplex */
+		
 		mac_ctrl_data |= atl1c_mac_speed_10_100 << MAC_CTRL_SPEED_SHIFT;
 		mac_ctrl_data |= (((u32)adapter->hw.preamble_len &
 				 MAC_CTRL_PRMLEN_MASK) <<
@@ -2363,7 +2167,7 @@ static int atl1c_suspend(struct pci_dev *pdev, pm_message_t state)
 		if (adapter->vlgrp)
 			mac_ctrl_data |= MAC_CTRL_RMV_VLAN;
 
-		/* magic packet maybe Broadcast&multicast&Unicast frame */
+		
 		if (wufc & AT_WUFC_MAG)
 			mac_ctrl_data |= MAC_CTRL_BC_EN;
 
@@ -2375,7 +2179,7 @@ static int atl1c_suspend(struct pci_dev *pdev, pm_message_t state)
 		AT_WRITE_REG(hw, REG_WOL_CTRL, wol_ctrl_data);
 		AT_WRITE_REG(hw, REG_MAC_CTRL, mac_ctrl_data);
 
-		/* pcie patch */
+		
 		AT_READ_REG(hw, REG_PCIE_PHYMISC, &ctrl);
 		ctrl |= PCIE_PHYMISC_FORCE_RCV_DET;
 		AT_WRITE_REG(hw, REG_PCIE_PHYMISC, ctrl);
@@ -2385,16 +2189,16 @@ static int atl1c_suspend(struct pci_dev *pdev, pm_message_t state)
 	}
 wol_dis:
 
-	/* WOL disabled */
+	
 	AT_WRITE_REG(hw, REG_WOL_CTRL, 0);
 
-	/* pcie patch */
+	
 	AT_READ_REG(hw, REG_PCIE_PHYMISC, &ctrl);
 	ctrl |= PCIE_PHYMISC_FORCE_RCV_DET;
 	AT_WRITE_REG(hw, REG_PCIE_PHYMISC, ctrl);
 
 	atl1c_phy_disable(hw);
-	hw->phy_configured = false; /* re-init PHY when resume */
+	hw->phy_configured = false; 
 
 	pci_enable_wake(pdev, pci_choose_state(pdev, state), 0);
 suspend_exit:
@@ -2458,7 +2262,7 @@ static int atl1c_init_netdev(struct net_device *netdev, struct pci_dev *pdev)
 	netdev->watchdog_timeo = AT_TX_WATCHDOG;
 	atl1c_set_ethtool_ops(netdev);
 
-	/* TODO: add when ready */
+	
 	netdev->features =	NETIF_F_SG	   |
 				NETIF_F_HW_CSUM	   |
 				NETIF_F_HW_VLAN_TX |
@@ -2468,17 +2272,7 @@ static int atl1c_init_netdev(struct net_device *netdev, struct pci_dev *pdev)
 	return 0;
 }
 
-/*
- * atl1c_probe - Device Initialization Routine
- * @pdev: PCI device information struct
- * @ent: entry in atl1c_pci_tbl
- *
- * Returns 0 on success, negative on failure
- *
- * atl1c_probe initializes an adapter identified by a pci_dev structure.
- * The OS initialization, configuring of the adapter private structure,
- * and a hardware reset occur.
- */
+
 static int __devinit atl1c_probe(struct pci_dev *pdev,
 				 const struct pci_device_id *ent)
 {
@@ -2488,23 +2282,14 @@ static int __devinit atl1c_probe(struct pci_dev *pdev,
 
 	int err = 0;
 
-	/* enable device (incl. PCI PM wakeup and hotplug setup) */
+	
 	err = pci_enable_device_mem(pdev);
 	if (err) {
 		dev_err(&pdev->dev, "cannot enable PCI device\n");
 		return err;
 	}
 
-	/*
-	 * The atl1c chip can DMA to 64-bit addresses, but it uses a single
-	 * shared register for the high 32 bits, so only a single, aligned,
-	 * 4 GB physical address range can be used at a time.
-	 *
-	 * Supporting 64-bit DMA on this hardware is more trouble than it's
-	 * worth.  It is far easier to limit to 32-bit DMA than update
-	 * various kernel subsystems to support the mechanics required by a
-	 * fixed-high-32-bit system.
-	 */
+	
 	if ((pci_set_dma_mask(pdev, DMA_BIT_MASK(32)) != 0) ||
 	    (pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32)) != 0)) {
 		dev_err(&pdev->dev, "No usable DMA configuration,aborting\n");
@@ -2545,7 +2330,7 @@ static int __devinit atl1c_probe(struct pci_dev *pdev,
 	}
 	netdev->base_addr = (unsigned long)adapter->hw.hw_addr;
 
-	/* init mii data */
+	
 	adapter->mii.dev = netdev;
 	adapter->mii.mdio_read  = atl1c_mdio_read;
 	adapter->mii.mdio_write = atl1c_mdio_write;
@@ -2554,7 +2339,7 @@ static int __devinit atl1c_probe(struct pci_dev *pdev,
 	netif_napi_add(netdev, &adapter->napi, atl1c_clean, 64);
 	setup_timer(&adapter->phy_config_timer, atl1c_phy_config,
 			(unsigned long)adapter);
-	/* setup the private structure */
+	
 	err = atl1c_sw_init(adapter);
 	if (err) {
 		dev_err(&pdev->dev, "net device private data init failed\n");
@@ -2563,7 +2348,7 @@ static int __devinit atl1c_probe(struct pci_dev *pdev,
 	atl1c_reset_pcie(&adapter->hw, ATL1C_PCIE_L0S_L1_DISABLE |
 			ATL1C_PCIE_PHY_RESET);
 
-	/* Init GPHY as early as possible due to power saving issue  */
+	
 	atl1c_phy_reset(&adapter->hw);
 
 	err = atl1c_reset_mac(&adapter->hw);
@@ -2573,8 +2358,7 @@ static int __devinit atl1c_probe(struct pci_dev *pdev,
 	}
 
 	device_init_wakeup(&pdev->dev, 1);
-	/* reset the controller to
-	 * put the device in a known good starting state */
+	
 	err = atl1c_phy_init(&adapter->hw);
 	if (err) {
 		err = -EIO;
@@ -2624,15 +2408,7 @@ err_dma:
 	return err;
 }
 
-/*
- * atl1c_remove - Device Removal Routine
- * @pdev: PCI device information struct
- *
- * atl1c_remove is called by the PCI subsystem to alert the driver
- * that it should release a PCI device.  The could be caused by a
- * Hot-Plug event, or because the driver is going to be removed from
- * memory.
- */
+
 static void __devexit atl1c_remove(struct pci_dev *pdev)
 {
 	struct net_device *netdev = pci_get_drvdata(pdev);
@@ -2648,14 +2424,7 @@ static void __devexit atl1c_remove(struct pci_dev *pdev)
 	free_netdev(netdev);
 }
 
-/*
- * atl1c_io_error_detected - called when PCI error is detected
- * @pdev: Pointer to PCI device
- * @state: The current pci connection state
- *
- * This function is called after a PCI bus error affecting
- * this device has been detected.
- */
+
 static pci_ers_result_t atl1c_io_error_detected(struct pci_dev *pdev,
 						pci_channel_state_t state)
 {
@@ -2672,17 +2441,11 @@ static pci_ers_result_t atl1c_io_error_detected(struct pci_dev *pdev,
 
 	pci_disable_device(pdev);
 
-	/* Request a slot slot reset. */
+	
 	return PCI_ERS_RESULT_NEED_RESET;
 }
 
-/*
- * atl1c_io_slot_reset - called after the pci bus has been reset.
- * @pdev: Pointer to PCI device
- *
- * Restart the card from scratch, as if from a cold-boot. Implementation
- * resembles the first-half of the e1000_resume routine.
- */
+
 static pci_ers_result_t atl1c_io_slot_reset(struct pci_dev *pdev)
 {
 	struct net_device *netdev = pci_get_drvdata(pdev);
@@ -2704,14 +2467,7 @@ static pci_ers_result_t atl1c_io_slot_reset(struct pci_dev *pdev)
 	return PCI_ERS_RESULT_RECOVERED;
 }
 
-/*
- * atl1c_io_resume - called when traffic can start flowing again.
- * @pdev: Pointer to PCI device
- *
- * This callback is called when the error recovery driver tells us that
- * its OK to resume normal operation. Implementation resembles the
- * second-half of the atl1c_resume routine.
- */
+
 static void atl1c_io_resume(struct pci_dev *pdev)
 {
 	struct net_device *netdev = pci_get_drvdata(pdev);
@@ -2740,30 +2496,20 @@ static struct pci_driver atl1c_driver = {
 	.id_table = atl1c_pci_tbl,
 	.probe    = atl1c_probe,
 	.remove   = __devexit_p(atl1c_remove),
-	/* Power Managment Hooks */
+	
 	.suspend  = atl1c_suspend,
 	.resume   = atl1c_resume,
 	.shutdown = atl1c_shutdown,
 	.err_handler = &atl1c_err_handler
 };
 
-/*
- * atl1c_init_module - Driver Registration Routine
- *
- * atl1c_init_module is the first routine called when the driver is
- * loaded. All it does is register with the PCI subsystem.
- */
+
 static int __init atl1c_init_module(void)
 {
 	return pci_register_driver(&atl1c_driver);
 }
 
-/*
- * atl1c_exit_module - Driver Exit Cleanup Routine
- *
- * atl1c_exit_module is called just before the driver is removed
- * from memory.
- */
+
 static void __exit atl1c_exit_module(void)
 {
 	pci_unregister_driver(&atl1c_driver);

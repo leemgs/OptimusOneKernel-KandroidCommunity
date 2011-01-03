@@ -1,9 +1,4 @@
-/*
- * QLogic QLA41xx NIC HBA Driver
- * Copyright (c)  2003-2006 QLogic Corporation
- *
- * See LICENSE.qlge for copyright and licensing details.
- */
+
 #ifndef _QLGE_H_
 #define _QLGE_H_
 
@@ -11,9 +6,7 @@
 #include <linux/netdevice.h>
 #include <linux/rtnetlink.h>
 
-/*
- * General definitions...
- */
+
 #define DRV_NAME  	"qlge"
 #define DRV_STRING 	"QLogic 10 Gigabit PCI-E Ethernet Driver "
 #define DRV_VERSION	"v1.00.00-b3"
@@ -28,7 +21,7 @@
 			   "%s: " fmt, __func__, ##args);  \
        } while (0)
 
-#define WQ_ADDR_ALIGN	0x3	/* 4 byte alignment */
+#define WQ_ADDR_ALIGN	0x3	
 
 #define QLGE_VENDOR_ID    0x1077
 #define QLGE_DEVICE_ID_8012	0x8012
@@ -44,9 +37,7 @@
 #define NUM_LARGE_BUFFERS   512
 #define DB_PAGE_SIZE 4096
 
-/* Calculate the number of (4k) pages required to
- * contain a buffer queue of the given length.
- */
+
 #define MAX_DB_PAGES_PER_BQ(x) \
 		(((x * sizeof(u64)) / DB_PAGE_SIZE) + \
 		(((x * sizeof(u64)) % DB_PAGE_SIZE) ? 1 : 0))
@@ -60,27 +51,22 @@
 #define QLGE_SB_PAD 32
 
 #define MAX_CQ 128
-#define DFLT_COALESCE_WAIT 100	/* 100 usec wait for coalescing */
-#define MAX_INTER_FRAME_WAIT 10	/* 10 usec max interframe-wait for coalescing */
+#define DFLT_COALESCE_WAIT 100	
+#define MAX_INTER_FRAME_WAIT 10	
 #define DFLT_INTER_FRAME_WAIT (MAX_INTER_FRAME_WAIT/2)
 #define UDELAY_COUNT 3
 #define UDELAY_DELAY 100
 
 
 #define TX_DESC_PER_IOCB 8
-/* The maximum number of frags we handle is based
- * on PAGE_SIZE...
- */
-#if (PAGE_SHIFT == 12) || (PAGE_SHIFT == 13)	/* 4k & 8k pages */
+
+#if (PAGE_SHIFT == 12) || (PAGE_SHIFT == 13)	
 #define TX_DESC_PER_OAL ((MAX_SKB_FRAGS - TX_DESC_PER_IOCB) + 2)
-#else /* all other page sizes */
+#else 
 #define TX_DESC_PER_OAL 0
 #endif
 
-/* MPI test register definitions. This register
- * is used for determining alternate NIC function's
- * PCI->func number.
- */
+
 enum {
 	MPI_TEST_FUNC_PORT_CFG = 0x1002,
 	MPI_TEST_NIC1_FUNC_SHIFT = 1,
@@ -88,12 +74,10 @@ enum {
 	MPI_TEST_NIC_FUNC_MASK = 0x00000007,
 };
 
-/*
- * Processor Address Register (PROC_ADDR) bit definitions.
- */
+
 enum {
 
-	/* Misc. stuff */
+	
 	MAILBOX_COUNT = 16,
 	MAILBOX_TIMEOUT = 5,
 
@@ -113,9 +97,7 @@ enum {
 	PROC_ADDR_RISC_REG = 0x00030000,
 };
 
-/*
- * System Register (SYS) bit definitions.
- */
+
 enum {
 	SYS_EFE = (1 << 0),
 	SYS_FAE = (1 << 1),
@@ -124,15 +106,11 @@ enum {
 	SYS_DWC = (1 << 4),
 	SYS_EVW = (1 << 5),
 	SYS_OMP_DLY_MASK = 0x3f000000,
-	/*
-	 * There are no values defined as of edit #15.
-	 */
+	
 	SYS_ODI = (1 << 14),
 };
 
-/*
- *  Reset/Failover Register (RST_FO) bit definitions.
- */
+
 enum {
 	RST_FO_TFO = (1 << 0),
 	RST_FO_RR_MASK = 0x00060000,
@@ -146,9 +124,7 @@ enum {
 	RST_FO_FR = (1 << 15),
 };
 
-/*
- * Function Specific Control Register (FSC) bit definitions.
- */
+
 enum {
 	FSC_DBRST_MASK = 0x00070000,
 	FSC_DBRST_256 = 0x00000000,
@@ -175,14 +151,10 @@ enum {
 	FSC_FE = (1 << 15),
 };
 
-/*
- *  Host Command Status Register (CSR) bit definitions.
- */
+
 enum {
 	CSR_ERR_STS_MASK = 0x0000003f,
-	/*
-	 * There are no valued defined as of edit #15.
-	 */
+	
 	CSR_RR = (1 << 8),
 	CSR_HRI = (1 << 9),
 	CSR_RP = (1 << 10),
@@ -200,9 +172,7 @@ enum {
 	CSR_CMD_CLR_R2PCI_INT = 0xa0000000,
 };
 
-/*
- *  Configuration Register (CFG) bit definitions.
- */
+
 enum {
 	CFG_LRQ = (1 << 0),
 	CFG_DRQ = (1 << 1),
@@ -215,9 +185,7 @@ enum {
 	CFG_Q_MASK = 0x7f000000,
 };
 
-/*
- *  Status Register (STS) bit definitions.
- */
+
 enum {
 	STS_FE = (1 << 0),
 	STS_PI = (1 << 1),
@@ -234,9 +202,7 @@ enum {
 	STS_NFE = (1 << 12),
 };
 
-/*
- * Interrupt Enable Register (INTR_EN) bit definitions.
- */
+
 enum {
 	INTR_EN_INTR_MASK = 0x007f0000,
 	INTR_EN_TYPE_MASK = 0x03000000,
@@ -249,9 +215,7 @@ enum {
 	INTR_EN_EN = (1 << 15),
 };
 
-/*
- * Interrupt Mask Register (INTR_MASK) bit definitions.
- */
+
 enum {
 	INTR_MASK_PI = (1 << 0),
 	INTR_MASK_HL0 = (1 << 1),
@@ -264,9 +228,7 @@ enum {
 	INTR_MASK_LINK_IRQS = INTR_MASK_LSC | INTR_MASK_SE | INTR_MASK_MC,
 };
 
-/*
- *  Register (REV_ID) bit definitions.
- */
+
 enum {
 	REV_ID_MASK = 0x0000000f,
 	REV_ID_NICROLL_SHIFT = 0,
@@ -276,9 +238,7 @@ enum {
 	REV_ID_CHIPREV_SHIFT = 28,
 };
 
-/*
- *  Force ECC Error Register (FRC_ECC_ERR) bit definitions.
- */
+
 enum {
 	FRC_ECC_ERR_VW = (1 << 12),
 	FRC_ECC_ERR_VB = (1 << 13),
@@ -289,9 +249,7 @@ enum {
 	FRC_ECC_P14 = (1 << 19),
 };
 
-/*
- *  Error Status Register (ERR_STS) bit definitions.
- */
+
 enum {
 	ERR_STS_NOF = (1 << 0),
 	ERR_STS_NIF = (1 << 1),
@@ -315,22 +273,15 @@ enum {
 	ERR_STS_LOC_SHIFT = 27,
 };
 
-/*
- *  RAM Debug Address Register (RAM_DBG_ADDR) bit definitions.
- */
+
 enum {
 	RAM_DBG_ADDR_FW = (1 << 30),
 	RAM_DBG_ADDR_FR = (1 << 31),
 };
 
-/*
- * Semaphore Register (SEM) bit definitions.
- */
+
 enum {
-	/*
-	 * Example:
-	 * reg = SEM_XGMAC0_MASK | (SEM_SET << SEM_XGMAC0_SHIFT)
-	 */
+	
 	SEM_CLEAR = 0,
 	SEM_SET = 1,
 	SEM_FORCE = 3,
@@ -352,15 +303,13 @@ enum {
 	SEM_PROC_REG_MASK = 0xc0000000,
 };
 
-/*
- *  10G MAC Address  Register (XGMAC_ADDR) bit definitions.
- */
+
 enum {
 	XGMAC_ADDR_RDY = (1 << 31),
 	XGMAC_ADDR_R = (1 << 30),
 	XGMAC_ADDR_XME = (1 << 29),
 
-	/* XGMAC control registers */
+	
 	PAUSE_SRC_LO = 0x00000100,
 	PAUSE_SRC_HI = 0x00000104,
 	GLOBAL_CFG = 0x00000108,
@@ -391,7 +340,7 @@ enum {
 	MAC_MGMT_IN_MASK = 0x00000150,
 	EXT_ARB_MODE = 0x000001fc,
 
-	/* XGMAC TX statistics  registers */
+	
 	TX_PKTS = 0x00000200,
 	TX_BYTES = 0x00000208,
 	TX_MCAST_PKTS = 0x00000210,
@@ -409,7 +358,7 @@ enum {
 	TX_UNDERSIZE_PKT = 0x00000270,
 	TX_OVERSIZE_PKT = 0x00000278,
 
-	/* XGMAC statistics control registers */
+	
 	RX_HALF_FULL_DET = 0x000002a0,
 	TX_HALF_FULL_DET = 0x000002a4,
 	RX_OVERFLOW_DET = 0x000002a8,
@@ -430,7 +379,7 @@ enum {
 	AUX_RX_OVERFLOW_MASK = 0x000002f8,
 	AUX_TX_OVERFLOW_MASK = 0x000002fc,
 
-	/* XGMAC RX statistics  registers */
+	
 	RX_BYTES = 0x00000300,
 	RX_BYTES_OK = 0x00000308,
 	RX_PKTS = 0x00000310,
@@ -458,7 +407,7 @@ enum {
 	RX_1519_TO_MAX_PKTS = 0x000003c0,
 	RX_LEN_ERR_PKTS = 0x000003c8,
 
-	/* XGMAC MDIO control registers */
+	
 	MDIO_TX_DATA = 0x00000400,
 	MDIO_RX_DATA = 0x00000410,
 	MDIO_CMD = 0x00000420,
@@ -466,12 +415,10 @@ enum {
 	MDIO_PORT = 0x00000440,
 	MDIO_STATUS = 0x00000450,
 
-	/* XGMAC AUX statistics  registers */
+	
 };
 
-/*
- *  Enhanced Transmission Schedule Registers (NIC_ETS,CNA_ETS) bit definitions.
- */
+
 enum {
 	ETS_QUEUE_SHIFT = 29,
 	ETS_REF = (1 << 26),
@@ -480,18 +427,14 @@ enum {
 	ETS_FC_COS_SHIFT = 23,
 };
 
-/*
- *  Flash Address Register (FLASH_ADDR) bit definitions.
- */
+
 enum {
 	FLASH_ADDR_RDY = (1 << 31),
 	FLASH_ADDR_R = (1 << 30),
 	FLASH_ADDR_ERR = (1 << 29),
 };
 
-/*
- *  Stop CQ Processing Register (CQ_STOP) bit definitions.
- */
+
 enum {
 	CQ_STOP_QUEUE_MASK = (0x007f0000),
 	CQ_STOP_TYPE_MASK = (0x03000000),
@@ -501,9 +444,7 @@ enum {
 	CQ_STOP_EN = (1 << 15),
 };
 
-/*
- *  MAC Protocol Address Index Register (MAC_ADDR_IDX) bit definitions.
- */
+
 enum {
 	MAC_ADDR_IDX_SHIFT = 4,
 	MAC_ADDR_TYPE_SHIFT = 16,
@@ -526,16 +467,12 @@ enum {
 	MAX_MULTICAST_ENTRIES = 32,
 };
 
-/*
- *  MAC Protocol Address Index Register (SPLT_HDR) bit definitions.
- */
+
 enum {
 	SPLT_HDR_EP = (1 << 31),
 };
 
-/*
- *  FCoE Receive Configuration Register (FC_RCV_CFG) bit definitions.
- */
+
 enum {
 	FC_RCV_CFG_ECT = (1 << 15),
 	FC_RCV_CFG_DFH = (1 << 20),
@@ -547,9 +484,7 @@ enum {
 	FC_RCV_CFG_TFE = (1 << 31),
 };
 
-/*
- *  NIC Receive Configuration Register (NIC_RCV_CFG) bit definitions.
- */
+
 enum {
 	NIC_RCV_CFG_PPE = (1 << 0),
 	NIC_RCV_CFG_VLAN_MASK = 0x00060000,
@@ -560,12 +495,10 @@ enum {
 	NIC_RCV_CFG_RV = (1 << 3),
 	NIC_RCV_CFG_DFQ_MASK = (0x7f000000),
 	NIC_RCV_CFG_DFQ_SHIFT = 8,
-	NIC_RCV_CFG_DFQ = 0,	/* HARDCODE default queue to 0. */
+	NIC_RCV_CFG_DFQ = 0,	
 };
 
-/*
- *   Mgmt Receive Configuration Register (MGMT_RCV_CFG) bit definitions.
- */
+
 enum {
 	MGMT_RCV_CFG_ARP = (1 << 0),
 	MGMT_RCV_CFG_DHC = (1 << 1),
@@ -588,9 +521,7 @@ enum {
 	MGMT_RCV_CFG_VLAN_NONE_AND_NON = 0x0000c000,
 };
 
-/*
- *  Routing Index Register (RT_IDX) bit definitions.
- */
+
 enum {
 	RT_IDX_IDX_SHIFT = 8,
 	RT_IDX_TYPE_MASK = 0x000f0000,
@@ -609,7 +540,7 @@ enum {
 	RT_IDX_MR = (1 << 30),
 	RT_IDX_MW = (1 << 31),
 
-	/* Nic Queue format - type 2 bits */
+	
 	RT_IDX_BCAST = (1 << 0),
 	RT_IDX_MCAST = (1 << 1),
 	RT_IDX_MCAST_MATCH = (1 << 2),
@@ -643,7 +574,7 @@ enum {
 	RT_IDX_RSS_IPV4 = (1 << 30),
 	RT_IDX_RSS_MATCH = (1 << 31),
 
-	/* Hierarchy for the NIC Queue Mask */
+	
 	RT_IDX_ALL_ERR_SLOT = 0,
 	RT_IDX_MAC_ERR_SLOT = 0,
 	RT_IDX_IP_CSUM_ERR_SLOT = 1,
@@ -665,20 +596,18 @@ enum {
 	RT_IDX_MAX_SLOTS = 16,
 };
 
-/*
- * Control Register Set Map
- */
+
 enum {
-	PROC_ADDR = 0,		/* Use semaphore */
-	PROC_DATA = 0x04,	/* Use semaphore */
+	PROC_ADDR = 0,		
+	PROC_DATA = 0x04,	
 	SYS = 0x08,
 	RST_FO = 0x0c,
 	FSC = 0x10,
 	CSR = 0x14,
 	LED = 0x18,
-	ICB_RID = 0x1c,		/* Use semaphore */
-	ICB_L = 0x20,		/* Use semaphore */
-	ICB_H = 0x24,		/* Use semaphore */
+	ICB_RID = 0x1c,		
+	ICB_L = 0x20,		
+	ICB_H = 0x24,		
 	CFG = 0x28,
 	BIOS_ADDR = 0x2c,
 	STS = 0x30,
@@ -695,24 +624,24 @@ enum {
 	RAM_DBG_DATA = 0x5c,
 	ECC_ERR_CNT = 0x60,
 	SEM = 0x64,
-	GPIO_1 = 0x68,		/* Use semaphore */
-	GPIO_2 = 0x6c,		/* Use semaphore */
-	GPIO_3 = 0x70,		/* Use semaphore */
+	GPIO_1 = 0x68,		
+	GPIO_2 = 0x6c,		
+	GPIO_3 = 0x70,		
 	RSVD2 = 0x74,
-	XGMAC_ADDR = 0x78,	/* Use semaphore */
-	XGMAC_DATA = 0x7c,	/* Use semaphore */
+	XGMAC_ADDR = 0x78,	
+	XGMAC_DATA = 0x7c,	
 	NIC_ETS = 0x80,
 	CNA_ETS = 0x84,
-	FLASH_ADDR = 0x88,	/* Use semaphore */
-	FLASH_DATA = 0x8c,	/* Use semaphore */
+	FLASH_ADDR = 0x88,	
+	FLASH_DATA = 0x8c,	
 	CQ_STOP = 0x90,
 	PAGE_TBL_RID = 0x94,
 	WQ_PAGE_TBL_LO = 0x98,
 	WQ_PAGE_TBL_HI = 0x9c,
 	CQ_PAGE_TBL_LO = 0xa0,
 	CQ_PAGE_TBL_HI = 0xa4,
-	MAC_ADDR_IDX = 0xa8,	/* Use semaphore */
-	MAC_ADDR_DATA = 0xac,	/* Use semaphore */
+	MAC_ADDR_IDX = 0xa8,	
+	MAC_ADDR_DATA = 0xac,	
 	COS_DFLT_CQ1 = 0xb0,
 	COS_DFLT_CQ2 = 0xb4,
 	ETYPE_SKIP1 = 0xb8,
@@ -731,13 +660,11 @@ enum {
 	RSVD7 = 0xec,
 	XG_SERDES_ADDR = 0xf0,
 	XG_SERDES_DATA = 0xf4,
-	PRB_MX_ADDR = 0xf8,	/* Use semaphore */
-	PRB_MX_DATA = 0xfc,	/* Use semaphore */
+	PRB_MX_ADDR = 0xf8,	
+	PRB_MX_DATA = 0xfc,	
 };
 
-/*
- * CAM output format.
- */
+
 enum {
 	CAM_OUT_ROUTE_FC = 0,
 	CAM_OUT_ROUTE_NIC = 1,
@@ -747,11 +674,9 @@ enum {
 	CAM_OUT_CQ_ID_SHIFT = 5,
 };
 
-/*
- * Mailbox  definitions
- */
+
 enum {
-	/* Asynchronous Event Notifications */
+	
 	AEN_SYS_ERR = 0x00008002,
 	AEN_LINK_UP = 0x00008011,
 	AEN_LINK_DOWN = 0x00008012,
@@ -765,11 +690,11 @@ enum {
 	AEN_FW_INIT_DONE = 0x00008400,
 	AEN_FW_INIT_FAIL = 0x00008401,
 
-	/* Mailbox Command Opcodes. */
+	
 	MB_CMD_NOP = 0x00000000,
 	MB_CMD_EX_FW = 0x00000002,
 	MB_CMD_MB_TEST = 0x00000006,
-	MB_CMD_CSUM_TEST = 0x00000007,	/* Verify Checksum */
+	MB_CMD_CSUM_TEST = 0x00000007,	
 	MB_CMD_ABOUT_FW = 0x00000008,
 	MB_CMD_COPY_RISC_RAM = 0x0000000a,
 	MB_CMD_LOAD_RISC_RAM = 0x0000000b,
@@ -784,9 +709,9 @@ enum {
 	MB_CMD_INIT_FW = 0x00000060,
 	MB_CMD_GET_IFCB = 0x00000061,
 	MB_CMD_GET_FW_STATE = 0x00000069,
-	MB_CMD_IDC_REQ = 0x00000100,	/* Inter-Driver Communication */
-	MB_CMD_IDC_ACK = 0x00000101,	/* Inter-Driver Communication */
-	MB_CMD_SET_WOL_MODE = 0x00000110,	/* Wake On Lan */
+	MB_CMD_IDC_REQ = 0x00000100,	
+	MB_CMD_IDC_ACK = 0x00000101,	
+	MB_CMD_SET_WOL_MODE = 0x00000110,	
 	MB_WOL_DISABLE = 0,
 	MB_WOL_MAGIC_PKT = (1 << 1),
 	MB_WOL_FLTR = (1 << 2),
@@ -795,30 +720,30 @@ enum {
 	MB_WOL_BCAST = (1 << 5),
 	MB_WOL_LINK_UP = (1 << 6),
 	MB_WOL_LINK_DOWN = (1 << 7),
-	MB_CMD_SET_WOL_FLTR = 0x00000111,	/* Wake On Lan Filter */
-	MB_CMD_CLEAR_WOL_FLTR = 0x00000112, /* Wake On Lan Filter */
-	MB_CMD_SET_WOL_MAGIC = 0x00000113,	/* Wake On Lan Magic Packet */
-	MB_CMD_CLEAR_WOL_MAGIC = 0x00000114,/* Wake On Lan Magic Packet */
+	MB_CMD_SET_WOL_FLTR = 0x00000111,	
+	MB_CMD_CLEAR_WOL_FLTR = 0x00000112, 
+	MB_CMD_SET_WOL_MAGIC = 0x00000113,	
+	MB_CMD_CLEAR_WOL_MAGIC = 0x00000114,
 	MB_CMD_SET_WOL_IMMED = 0x00000115,
 	MB_CMD_PORT_RESET = 0x00000120,
 	MB_CMD_SET_PORT_CFG = 0x00000122,
 	MB_CMD_GET_PORT_CFG = 0x00000123,
 	MB_CMD_GET_LINK_STS = 0x00000124,
-	MB_CMD_SET_MGMNT_TFK_CTL = 0x00000160, /* Set Mgmnt Traffic Control */
+	MB_CMD_SET_MGMNT_TFK_CTL = 0x00000160, 
 	MB_SET_MPI_TFK_STOP = (1 << 0),
 	MB_SET_MPI_TFK_RESUME = (1 << 1),
-	MB_CMD_GET_MGMNT_TFK_CTL = 0x00000161, /* Get Mgmnt Traffic Control */
+	MB_CMD_GET_MGMNT_TFK_CTL = 0x00000161, 
 	MB_GET_MPI_TFK_STOPPED = (1 << 0),
 	MB_GET_MPI_TFK_FIFO_EMPTY = (1 << 1),
 
-	/* Mailbox Command Status. */
-	MB_CMD_STS_GOOD = 0x00004000,	/* Success. */
-	MB_CMD_STS_INTRMDT = 0x00001000,	/* Intermediate Complete. */
-	MB_CMD_STS_INVLD_CMD = 0x00004001,	/* Invalid. */
-	MB_CMD_STS_XFC_ERR = 0x00004002,	/* Interface Error. */
-	MB_CMD_STS_CSUM_ERR = 0x00004003,	/* Csum Error. */
-	MB_CMD_STS_ERR = 0x00004005,	/* System Error. */
-	MB_CMD_STS_PARAM_ERR = 0x00004006,	/* Parameter Error. */
+	
+	MB_CMD_STS_GOOD = 0x00004000,	
+	MB_CMD_STS_INTRMDT = 0x00001000,	
+	MB_CMD_STS_INVLD_CMD = 0x00004001,	
+	MB_CMD_STS_XFC_ERR = 0x00004002,	
+	MB_CMD_STS_CSUM_ERR = 0x00004003,	
+	MB_CMD_STS_ERR = 0x00004005,	
+	MB_CMD_STS_PARAM_ERR = 0x00004006,	
 };
 
 struct mbox_params {
@@ -838,15 +763,13 @@ struct flash_params_8012 {
 	__le16 res;
 };
 
-/* 8000 device's flash is a different structure
- * at a different offset in flash.
- */
+
 #define FUNC0_FLASH_OFFSET 0x140200
 #define FUNC1_FLASH_OFFSET 0x140600
 
-/* Flash related data structures. */
+
 struct flash_params_8000 {
-	u8 dev_id_str[4];	/* "8000" */
+	u8 dev_id_str[4];	
 	__le16 ver;
 	__le16 size;
 	__le16 csum;
@@ -876,29 +799,25 @@ union flash_params {
 	struct flash_params_8000 flash_params_8000;
 };
 
-/*
- * doorbell space for the rx ring context
- */
+
 struct rx_doorbell_context {
-	u32 cnsmr_idx;		/* 0x00 */
-	u32 valid;		/* 0x04 */
-	u32 reserved[4];	/* 0x08-0x14 */
-	u32 lbq_prod_idx;	/* 0x18 */
-	u32 sbq_prod_idx;	/* 0x1c */
+	u32 cnsmr_idx;		
+	u32 valid;		
+	u32 reserved[4];	
+	u32 lbq_prod_idx;	
+	u32 sbq_prod_idx;	
 };
 
-/*
- * doorbell space for the tx ring context
- */
+
 struct tx_doorbell_context {
-	u32 prod_idx;		/* 0x00 */
-	u32 valid;		/* 0x04 */
-	u32 reserved[4];	/* 0x08-0x14 */
-	u32 lbq_prod_idx;	/* 0x18 */
-	u32 sbq_prod_idx;	/* 0x1c */
+	u32 prod_idx;		
+	u32 valid;		
+	u32 reserved[4];	
+	u32 lbq_prod_idx;	
+	u32 sbq_prod_idx;	
 };
 
-/* DATA STRUCTURES SHARED WITH HARDWARE. */
+
 struct tx_buf_desc {
 	__le64 addr;
 	__le32 len;
@@ -907,9 +826,7 @@ struct tx_buf_desc {
 #define TX_DESC_E	0x80000000
 } __attribute((packed));
 
-/*
- * IOCB Definitions...
- */
+
 
 #define OPCODE_OB_MAC_IOCB 			0x01
 #define OPCODE_OB_MAC_TSO_IOCB		0x02
@@ -941,17 +858,17 @@ struct ob_mac_iocb_req {
 } __attribute((packed));
 
 struct ob_mac_iocb_rsp {
-	u8 opcode;		/* */
-	u8 flags1;		/* */
-#define OB_MAC_IOCB_RSP_OI	0x01	/* */
-#define OB_MAC_IOCB_RSP_I	0x02	/* */
-#define OB_MAC_IOCB_RSP_E	0x08	/* */
-#define OB_MAC_IOCB_RSP_S	0x10	/* too Short */
-#define OB_MAC_IOCB_RSP_L	0x20	/* too Large */
-#define OB_MAC_IOCB_RSP_P	0x40	/* Padded */
-	u8 flags2;		/* */
-	u8 flags3;		/* */
-#define OB_MAC_IOCB_RSP_B	0x80	/* */
+	u8 opcode;		
+	u8 flags1;		
+#define OB_MAC_IOCB_RSP_OI	0x01	
+#define OB_MAC_IOCB_RSP_I	0x02	
+#define OB_MAC_IOCB_RSP_E	0x08	
+#define OB_MAC_IOCB_RSP_S	0x10	
+#define OB_MAC_IOCB_RSP_L	0x20	
+#define OB_MAC_IOCB_RSP_P	0x40	
+	u8 flags2;		
+	u8 flags3;		
+#define OB_MAC_IOCB_RSP_B	0x80	
 	u32 tid;
 	u32 txq_idx;
 	__le32 reserved[13];
@@ -994,8 +911,8 @@ struct ob_mac_tso_iocb_rsp {
 #define OB_MAC_TSO_IOCB_RSP_S	0x10
 #define OB_MAC_TSO_IOCB_RSP_L	0x20
 #define OB_MAC_TSO_IOCB_RSP_P	0x40
-	u8 flags2;		/* */
-	u8 flags3;		/* */
+	u8 flags2;		
+	u8 flags3;		
 #define OB_MAC_TSO_IOCB_RSP_B	0x8000
 	u32 tid;
 	u32 txq_idx;
@@ -1003,51 +920,51 @@ struct ob_mac_tso_iocb_rsp {
 } __attribute((packed));
 
 struct ib_mac_iocb_rsp {
-	u8 opcode;		/* 0x20 */
+	u8 opcode;		
 	u8 flags1;
-#define IB_MAC_IOCB_RSP_OI	0x01	/* Overide intr delay */
-#define IB_MAC_IOCB_RSP_I	0x02	/* Disble Intr Generation */
-#define IB_MAC_CSUM_ERR_MASK 0x1c	/* A mask to use for csum errs */
-#define IB_MAC_IOCB_RSP_TE	0x04	/* Checksum error */
-#define IB_MAC_IOCB_RSP_NU	0x08	/* No checksum rcvd */
-#define IB_MAC_IOCB_RSP_IE	0x10	/* IPv4 checksum error */
-#define IB_MAC_IOCB_RSP_M_MASK	0x60	/* Multicast info */
-#define IB_MAC_IOCB_RSP_M_NONE	0x00	/* Not mcast frame */
-#define IB_MAC_IOCB_RSP_M_HASH	0x20	/* HASH mcast frame */
-#define IB_MAC_IOCB_RSP_M_REG 	0x40	/* Registered mcast frame */
-#define IB_MAC_IOCB_RSP_M_PROM 	0x60	/* Promiscuous mcast frame */
-#define IB_MAC_IOCB_RSP_B	0x80	/* Broadcast frame */
+#define IB_MAC_IOCB_RSP_OI	0x01	
+#define IB_MAC_IOCB_RSP_I	0x02	
+#define IB_MAC_CSUM_ERR_MASK 0x1c	
+#define IB_MAC_IOCB_RSP_TE	0x04	
+#define IB_MAC_IOCB_RSP_NU	0x08	
+#define IB_MAC_IOCB_RSP_IE	0x10	
+#define IB_MAC_IOCB_RSP_M_MASK	0x60	
+#define IB_MAC_IOCB_RSP_M_NONE	0x00	
+#define IB_MAC_IOCB_RSP_M_HASH	0x20	
+#define IB_MAC_IOCB_RSP_M_REG 	0x40	
+#define IB_MAC_IOCB_RSP_M_PROM 	0x60	
+#define IB_MAC_IOCB_RSP_B	0x80	
 	u8 flags2;
-#define IB_MAC_IOCB_RSP_P	0x01	/* Promiscuous frame */
-#define IB_MAC_IOCB_RSP_V	0x02	/* Vlan tag present */
-#define IB_MAC_IOCB_RSP_ERR_MASK	0x1c	/*  */
+#define IB_MAC_IOCB_RSP_P	0x01	
+#define IB_MAC_IOCB_RSP_V	0x02	
+#define IB_MAC_IOCB_RSP_ERR_MASK	0x1c	
 #define IB_MAC_IOCB_RSP_ERR_CODE_ERR	0x04
 #define IB_MAC_IOCB_RSP_ERR_OVERSIZE	0x08
 #define IB_MAC_IOCB_RSP_ERR_UNDERSIZE	0x10
 #define IB_MAC_IOCB_RSP_ERR_PREAMBLE	0x14
 #define IB_MAC_IOCB_RSP_ERR_FRAME_LEN	0x18
 #define IB_MAC_IOCB_RSP_ERR_CRC		0x1c
-#define IB_MAC_IOCB_RSP_U	0x20	/* UDP packet */
-#define IB_MAC_IOCB_RSP_T	0x40	/* TCP packet */
-#define IB_MAC_IOCB_RSP_FO	0x80	/* Failover port */
+#define IB_MAC_IOCB_RSP_U	0x20	
+#define IB_MAC_IOCB_RSP_T	0x40	
+#define IB_MAC_IOCB_RSP_FO	0x80	
 	u8 flags3;
-#define IB_MAC_IOCB_RSP_RSS_MASK	0x07	/* RSS mask */
-#define IB_MAC_IOCB_RSP_M_NONE	0x00	/* No RSS match */
-#define IB_MAC_IOCB_RSP_M_IPV4	0x04	/* IPv4 RSS match */
-#define IB_MAC_IOCB_RSP_M_IPV6	0x02	/* IPv6 RSS match */
-#define IB_MAC_IOCB_RSP_M_TCP_V4 	0x05	/* TCP with IPv4 */
-#define IB_MAC_IOCB_RSP_M_TCP_V6 	0x03	/* TCP with IPv6 */
-#define IB_MAC_IOCB_RSP_V4	0x08	/* IPV4 */
-#define IB_MAC_IOCB_RSP_V6	0x10	/* IPV6 */
-#define IB_MAC_IOCB_RSP_IH	0x20	/* Split after IP header */
-#define IB_MAC_IOCB_RSP_DS	0x40	/* data is in small buffer */
-#define IB_MAC_IOCB_RSP_DL	0x80	/* data is in large buffer */
-	__le32 data_len;	/* */
-	__le64 data_addr;	/* */
-	__le32 rss;		/* */
-	__le16 vlan_id;		/* 12 bits */
-#define IB_MAC_IOCB_RSP_C	0x1000	/* VLAN CFI bit */
-#define IB_MAC_IOCB_RSP_COS_SHIFT	12	/* class of service value */
+#define IB_MAC_IOCB_RSP_RSS_MASK	0x07	
+#define IB_MAC_IOCB_RSP_M_NONE	0x00	
+#define IB_MAC_IOCB_RSP_M_IPV4	0x04	
+#define IB_MAC_IOCB_RSP_M_IPV6	0x02	
+#define IB_MAC_IOCB_RSP_M_TCP_V4 	0x05	
+#define IB_MAC_IOCB_RSP_M_TCP_V6 	0x03	
+#define IB_MAC_IOCB_RSP_V4	0x08	
+#define IB_MAC_IOCB_RSP_V6	0x10	
+#define IB_MAC_IOCB_RSP_IH	0x20	
+#define IB_MAC_IOCB_RSP_DS	0x40	
+#define IB_MAC_IOCB_RSP_DL	0x80	
+	__le32 data_len;	
+	__le64 data_addr;	
+	__le32 rss;		
+	__le16 vlan_id;		
+#define IB_MAC_IOCB_RSP_C	0x1000	
+#define IB_MAC_IOCB_RSP_COS_SHIFT	12	
 #define IB_MAC_IOCB_RSP_VLAN_MASK	0x0ffff
 
 	__le16 reserved1;
@@ -1057,8 +974,8 @@ struct ib_mac_iocb_rsp {
 #define IB_MAC_IOCB_RSP_HV	0x20
 #define IB_MAC_IOCB_RSP_HS	0x40
 #define IB_MAC_IOCB_RSP_HL	0x80
-	__le32 hdr_len;		/* */
-	__le64 hdr_addr;	/* */
+	__le32 hdr_len;		
+	__le64 hdr_addr;	
 } __attribute((packed));
 
 struct ib_ae_iocb_rsp {
@@ -1082,10 +999,7 @@ struct ib_ae_iocb_rsp {
 	__le32 reserved[15];
 } __attribute((packed));
 
-/*
- * These three structures are for generic
- * handling of ib and ob iocbs.
- */
+
 struct ql_net_rsp_iocb {
 	u8 opcode;
 	u8 flags0;
@@ -1102,11 +1016,7 @@ struct net_req_iocb {
 	__le32 reserved1[30];
 } __attribute((packed));
 
-/*
- * tx ring initialization control block for chip.
- * It is defined as:
- * "Work Queue Initialization Control Block"
- */
+
 struct wqicb {
 	__le16 len;
 #define Q_LEN_V		(1 << 4)
@@ -1128,11 +1038,7 @@ struct wqicb {
 	__le64 cnsmr_idx_addr;
 } __attribute((packed));
 
-/*
- * rx ring initialization control block for chip.
- * It is defined as:
- * "Completion Queue Initialization Control Block"
- */
+
 struct cqicb {
 	u8 msix_vect;
 	u8 reserved1;
@@ -1156,10 +1062,10 @@ struct cqicb {
 	__le16 irq_delay;
 	__le64 lbq_addr;
 	__le16 lbq_buf_size;
-	__le16 lbq_len;		/* entry count */
+	__le16 lbq_len;		
 	__le64 sbq_addr;
 	__le16 sbq_buf_size;
-	__le16 sbq_len;		/* entry count */
+	__le16 sbq_len;		
 } __attribute((packed));
 
 struct ricb {
@@ -1180,7 +1086,7 @@ struct ricb {
 	__le32 ipv4_hash_key[4];
 } __attribute((packed));
 
-/* SOFTWARE/DRIVER DATA STRUCTURES. */
+
 
 struct oal {
 	struct tx_buf_desc oal[TX_DESC_PER_OAL];
@@ -1215,107 +1121,98 @@ struct bq_desc {
 #define QL_TXQ_IDX(qdev, skb) (smp_processor_id()%(qdev->tx_ring_count))
 
 struct tx_ring {
-	/*
-	 * queue info.
-	 */
-	struct wqicb wqicb;	/* structure used to inform chip of new queue */
-	void *wq_base;		/* pci_alloc:virtual addr for tx */
-	dma_addr_t wq_base_dma;	/* pci_alloc:dma addr for tx */
-	__le32 *cnsmr_idx_sh_reg;	/* shadow copy of consumer idx */
-	dma_addr_t cnsmr_idx_sh_reg_dma;	/* dma-shadow copy of consumer */
-	u32 wq_size;		/* size in bytes of queue area */
-	u32 wq_len;		/* number of entries in queue */
-	void __iomem *prod_idx_db_reg;	/* doorbell area index reg at offset 0x00 */
-	void __iomem *valid_db_reg;	/* doorbell area valid reg at offset 0x04 */
-	u16 prod_idx;		/* current value for prod idx */
-	u16 cq_id;		/* completion (rx) queue for tx completions */
-	u8 wq_id;		/* queue id for this entry */
+	
+	struct wqicb wqicb;	
+	void *wq_base;		
+	dma_addr_t wq_base_dma;	
+	__le32 *cnsmr_idx_sh_reg;	
+	dma_addr_t cnsmr_idx_sh_reg_dma;	
+	u32 wq_size;		
+	u32 wq_len;		
+	void __iomem *prod_idx_db_reg;	
+	void __iomem *valid_db_reg;	
+	u16 prod_idx;		
+	u16 cq_id;		
+	u8 wq_id;		
 	u8 reserved1[3];
-	struct tx_ring_desc *q;	/* descriptor list for the queue */
+	struct tx_ring_desc *q;	
 	spinlock_t lock;
-	atomic_t tx_count;	/* counts down for every outstanding IO */
-	atomic_t queue_stopped;	/* Turns queue off when full. */
+	atomic_t tx_count;	
+	atomic_t queue_stopped;	
 	struct delayed_work tx_work;
 	struct ql_adapter *qdev;
 };
 
-/*
- * Type of inbound queue.
- */
+
 enum {
-	DEFAULT_Q = 2,		/* Handles slow queue and chip/MPI events. */
-	TX_Q = 3,		/* Handles outbound completions. */
-	RX_Q = 4,		/* Handles inbound completions. */
+	DEFAULT_Q = 2,		
+	TX_Q = 3,		
+	RX_Q = 4,		
 };
 
 struct rx_ring {
-	struct cqicb cqicb;	/* The chip's completion queue init control block. */
+	struct cqicb cqicb;	
 
-	/* Completion queue elements. */
+	
 	void *cq_base;
 	dma_addr_t cq_base_dma;
 	u32 cq_size;
 	u32 cq_len;
 	u16 cq_id;
-	__le32 *prod_idx_sh_reg;	/* Shadowed producer register. */
+	__le32 *prod_idx_sh_reg;	
 	dma_addr_t prod_idx_sh_reg_dma;
-	void __iomem *cnsmr_idx_db_reg;	/* PCI doorbell mem area + 0 */
-	u32 cnsmr_idx;		/* current sw idx */
-	struct ql_net_rsp_iocb *curr_entry;	/* next entry on queue */
-	void __iomem *valid_db_reg;	/* PCI doorbell mem area + 0x04 */
+	void __iomem *cnsmr_idx_db_reg;	
+	u32 cnsmr_idx;		
+	struct ql_net_rsp_iocb *curr_entry;	
+	void __iomem *valid_db_reg;	
 
-	/* Large buffer queue elements. */
-	u32 lbq_len;		/* entry count */
-	u32 lbq_size;		/* size in bytes of queue */
+	
+	u32 lbq_len;		
+	u32 lbq_size;		
 	u32 lbq_buf_size;
 	void *lbq_base;
 	dma_addr_t lbq_base_dma;
 	void *lbq_base_indirect;
 	dma_addr_t lbq_base_indirect_dma;
-	struct bq_desc *lbq;	/* array of control blocks */
-	void __iomem *lbq_prod_idx_db_reg;	/* PCI doorbell mem area + 0x18 */
-	u32 lbq_prod_idx;	/* current sw prod idx */
-	u32 lbq_curr_idx;	/* next entry we expect */
-	u32 lbq_clean_idx;	/* beginning of new descs */
-	u32 lbq_free_cnt;	/* free buffer desc cnt */
+	struct bq_desc *lbq;	
+	void __iomem *lbq_prod_idx_db_reg;	
+	u32 lbq_prod_idx;	
+	u32 lbq_curr_idx;	
+	u32 lbq_clean_idx;	
+	u32 lbq_free_cnt;	
 
-	/* Small buffer queue elements. */
-	u32 sbq_len;		/* entry count */
-	u32 sbq_size;		/* size in bytes of queue */
+	
+	u32 sbq_len;		
+	u32 sbq_size;		
 	u32 sbq_buf_size;
 	void *sbq_base;
 	dma_addr_t sbq_base_dma;
 	void *sbq_base_indirect;
 	dma_addr_t sbq_base_indirect_dma;
-	struct bq_desc *sbq;	/* array of control blocks */
-	void __iomem *sbq_prod_idx_db_reg; /* PCI doorbell mem area + 0x1c */
-	u32 sbq_prod_idx;	/* current sw prod idx */
-	u32 sbq_curr_idx;	/* next entry we expect */
-	u32 sbq_clean_idx;	/* beginning of new descs */
-	u32 sbq_free_cnt;	/* free buffer desc cnt */
+	struct bq_desc *sbq;	
+	void __iomem *sbq_prod_idx_db_reg; 
+	u32 sbq_prod_idx;	
+	u32 sbq_curr_idx;	
+	u32 sbq_clean_idx;	
+	u32 sbq_free_cnt;	
 
-	/* Misc. handler elements. */
-	u32 type;		/* Type of queue, tx, rx. */
-	u32 irq;		/* Which vector this ring is assigned. */
-	u32 cpu;		/* Which CPU this should run on. */
+	
+	u32 type;		
+	u32 irq;		
+	u32 cpu;		
 	char name[IFNAMSIZ + 5];
 	struct napi_struct napi;
 	u8 reserved;
 	struct ql_adapter *qdev;
 };
 
-/*
- * RSS Initialization Control Block
- */
+
 struct hash_id {
 	u8 value[4];
 };
 
 struct nic_stats {
-	/*
-	 * These stats come from offset 200h to 278h
-	 * in the XGMAC register.
-	 */
+	
 	u64 tx_pkts;
 	u64 tx_bytes;
 	u64 tx_mcast_pkts;
@@ -1333,10 +1230,7 @@ struct nic_stats {
 	u64 tx_undersize_pkt;
 	u64 tx_oversize_pkt;
 
-	/*
-	 * These stats come from offset 300h to 3C8h
-	 * in the XGMAC register.
-	 */
+	
 	u64 rx_bytes;
 	u64 rx_bytes_ok;
 	u64 rx_pkts;
@@ -1365,31 +1259,23 @@ struct nic_stats {
 	u64 rx_len_err_pkts;
 };
 
-/*
- * intr_context structure is used during initialization
- * to hook the interrupts.  It is also used in a single
- * irq environment as a context to the ISR.
- */
+
 struct intr_context {
 	struct ql_adapter *qdev;
 	u32 intr;
-	u32 irq_mask;		/* Mask of which rings the vector services. */
+	u32 irq_mask;		
 	u32 hooked;
-	u32 intr_en_mask;	/* value/mask used to enable this intr */
-	u32 intr_dis_mask;	/* value/mask used to disable this intr */
-	u32 intr_read_mask;	/* value/mask used to read this intr */
+	u32 intr_en_mask;	
+	u32 intr_dis_mask;	
+	u32 intr_read_mask;	
 	char name[IFNAMSIZ * 2];
-	atomic_t irq_cnt;	/* irq_cnt is used in single vector
-				 * environment.  It's incremented for each
-				 * irq handler that is scheduled.  When each
-				 * handler finishes it decrements irq_cnt and
-				 * enables interrupts if it's zero. */
+	atomic_t irq_cnt;	
 	irq_handler_t handler;
 };
 
-/* adapter flags definitions. */
+
 enum {
-	QL_ADAPTER_UP = 0,	/* Adapter has been brought up. */
+	QL_ADAPTER_UP = 0,	
 	QL_LEGACY_ENABLED = 1,
 	QL_MSI_ENABLED = 2,
 	QL_MSIX_ENABLED = 3,
@@ -1400,7 +1286,7 @@ enum {
 	QL_CAM_RT_SET = 8,
 };
 
-/* link_status bit definitions */
+
 enum {
 	STS_LOOPBACK_MASK = 0x00000700,
 	STS_LOOPBACK_PCS = 0x00000100,
@@ -1421,7 +1307,7 @@ enum {
 	STS_LINK_TYPE_10GBASET = 0x00000005,
 };
 
-/* link_config bit definitions */
+
 enum {
 	CFG_JUMBO_FRAME_SIZE = 0x00010000,
 	CFG_PAUSE_MASK = 0x00000060,
@@ -1441,10 +1327,7 @@ struct nic_operations {
 	int (*port_initialize) (struct ql_adapter *);
 };
 
-/*
- * The main Adapter structure definition.
- * This structure has all fields relevant to the hardware.
- */
+
 struct ql_adapter {
 	struct ricb ricb;
 	unsigned long flags;
@@ -1454,29 +1337,29 @@ struct ql_adapter {
 
 	struct vlan_group *vlgrp;
 
-	/* PCI Configuration information for this device */
+	
 	struct pci_dev *pdev;
-	struct net_device *ndev;	/* Parent NET device */
+	struct net_device *ndev;	
 
-	/* Hardware information */
+	
 	u32 chip_rev_id;
 	u32 fw_rev_id;
-	u32 func;		/* PCI function for this adapter */
-	u32 alt_func;		/* PCI function for alternate adapter */
-	u32 port;		/* Port number this adapter */
+	u32 func;		
+	u32 alt_func;		
+	u32 port;		
 
 	spinlock_t adapter_lock;
 	spinlock_t hw_lock;
 	spinlock_t stats_lock;
 
-	/* PCI Bus Relative Register Addresses */
+	
 	void __iomem *reg_base;
 	void __iomem *doorbell_area;
 	u32 doorbell_area_size;
 
 	u32 msg_enable;
 
-	/* Page for Shadow Registers */
+	
 	void *rx_ring_shadow_reg_area;
 	dma_addr_t rx_ring_shadow_reg_dma;
 	void *tx_ring_shadow_reg_area;
@@ -1492,13 +1375,9 @@ struct ql_adapter {
 	struct msix_entry *msi_x_entry;
 	struct intr_context intr_context[MAX_RX_RINGS];
 
-	int tx_ring_count;	/* One per online CPU. */
-	u32 rss_ring_count;	/* One per irq vector.  */
-	/*
-	 * rx_ring_count =
-	 *  (CPU count * outbound completion rx_ring) +
-	 *  (irq_vector_cnt * inbound (RSS) completion rx_ring)
-	 */
+	int tx_ring_count;	
+	u32 rss_ring_count;	
+	
 	int rx_ring_count;
 	int ring_mem_size;
 	void *ring_mem;
@@ -1509,10 +1388,10 @@ struct ql_adapter {
 	int rx_csum;
 	u32 default_rx_queue;
 
-	u16 rx_coalesce_usecs;	/* cqicb->int_delay */
-	u16 rx_max_coalesced_frames;	/* cqicb->pkt_int_delay */
-	u16 tx_coalesce_usecs;	/* cqicb->int_delay */
-	u16 tx_max_coalesced_frames;	/* cqicb->pkt_int_delay */
+	u16 rx_coalesce_usecs;	
+	u16 rx_max_coalesced_frames;	
+	u16 tx_coalesce_usecs;	
+	u16 tx_max_coalesced_frames;	
 
 	u32 xg_sem_mask;
 	u32 port_link_up;
@@ -1535,48 +1414,26 @@ struct ql_adapter {
 	u16 device_id;
 };
 
-/*
- * Typical Register accessor for memory mapped device.
- */
+
 static inline u32 ql_read32(const struct ql_adapter *qdev, int reg)
 {
 	return readl(qdev->reg_base + reg);
 }
 
-/*
- * Typical Register accessor for memory mapped device.
- */
+
 static inline void ql_write32(const struct ql_adapter *qdev, int reg, u32 val)
 {
 	writel(val, qdev->reg_base + reg);
 }
 
-/*
- * Doorbell Registers:
- * Doorbell registers are virtual registers in the PCI memory space.
- * The space is allocated by the chip during PCI initialization.  The
- * device driver finds the doorbell address in BAR 3 in PCI config space.
- * The registers are used to control outbound and inbound queues. For
- * example, the producer index for an outbound queue.  Each queue uses
- * 1 4k chunk of memory.  The lower half of the space is for outbound
- * queues. The upper half is for inbound queues.
- */
+
 static inline void ql_write_db_reg(u32 val, void __iomem *addr)
 {
 	writel(val, addr);
 	mmiowb();
 }
 
-/*
- * Shadow Registers:
- * Outbound queues have a consumer index that is maintained by the chip.
- * Inbound queues have a producer index that is maintained by the chip.
- * For lower overhead, these registers are "shadowed" to host memory
- * which allows the device driver to track the queue progress without
- * PCI reads. When an entry is placed on an inbound queue, the chip will
- * update the relevant index register and then copy the value to the
- * shadow register in host memory.
- */
+
 static inline u32 ql_read_sh_reg(__le32  *addr)
 {
 	u32 reg;
@@ -1621,8 +1478,8 @@ int ql_wait_fifo_empty(struct ql_adapter *qdev);
 #define QL_REG_DUMP
 #define QL_DEV_DUMP
 #define QL_CB_DUMP
-/* #define QL_IB_DUMP */
-/* #define QL_OB_DUMP */
+
+
 #endif
 
 #ifdef QL_REG_DUMP
@@ -1700,4 +1557,4 @@ extern void ql_dump_all(struct ql_adapter *qdev);
 #define QL_DUMP_ALL(qdev)
 #endif
 
-#endif /* _QLGE_H_ */
+#endif 

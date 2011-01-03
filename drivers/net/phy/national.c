@@ -1,19 +1,4 @@
-/*
- * drivers/net/phy/national.c
- *
- * Driver for National Semiconductor PHYs
- *
- * Author: Stuart Menefy <stuart.menefy@st.com>
- * Maintainer: Giuseppe Cavallaro <peppe.cavallaro@st.com>
- *
- * Copyright (c) 2008 STMicroelectronics Limited
- *
- * This program is free software; you can redistribute  it and/or modify it
- * under  the terms of  the GNU General  Public License as published by the
- * Free Software Foundation;  either version 2 of the  License, or (at your
- * option) any later version.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -22,7 +7,7 @@
 #include <linux/phy.h>
 #include <linux/netdevice.h>
 
-/* DP83865 phy identifier values */
+
 #define DP83865_PHY_ID	0x20005c7a
 
 #define DP83865_INT_MASK_REG 0x15
@@ -35,7 +20,7 @@
 				DP83865_INT_ANE_COMPLETED | \
 				DP83865_INT_LINK_CHANGE)
 
-/* Advanced proprietary configuration */
+
 #define NS_EXP_MEM_CTL	0x16
 #define NS_EXP_MEM_DATA	0x1d
 #define NS_EXP_MEM_ADD	0x1e
@@ -91,7 +76,7 @@ static void ns_giga_speed_fallback(struct phy_device *phydev, int mode)
 
 	phy_write(phydev, MII_BMCR, (bmcr | BMCR_PDOWN));
 
-	/* Enable 8 bit expended memory read/write (no auto increment) */
+	
 	phy_write(phydev, NS_EXP_MEM_CTL, 0);
 	phy_write(phydev, NS_EXP_MEM_ADD, 0x1C0);
 	phy_write(phydev, NS_EXP_MEM_DATA, 0x0008);
@@ -117,8 +102,7 @@ static void ns_10_base_t_hdx_loopack(struct phy_device *phydev, int disable)
 static int ns_config_init(struct phy_device *phydev)
 {
 	ns_giga_speed_fallback(phydev, ALL_FALLBACK_ON);
-	/* In the latest MAC or switches design, the 10 Mbps loopback
-	   is desired to be turned off. */
+	
 	ns_10_base_t_hdx_loopack(phydev, hdx_loopback_off);
 	return ns_ack_interrupt(phydev);
 }

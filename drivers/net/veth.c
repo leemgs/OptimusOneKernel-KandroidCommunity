@@ -1,12 +1,4 @@
-/*
- *  drivers/net/veth.c
- *
- *  Copyright (C) 2007 OpenVZ http://openvz.org, SWsoft Inc
- *
- * Author: Pavel Emelianov <xemul@openvz.org>
- * Ethtool interface from: Eric W. Biederman <ebiederm@xmission.com>
- *
- */
+
 
 #include <linux/netdevice.h>
 #include <linux/ethtool.h>
@@ -19,9 +11,9 @@
 #define DRV_NAME	"veth"
 #define DRV_VERSION	"1.0"
 
-#define MIN_MTU 68		/* Min L3 MTU */
-#define MAX_MTU 65535		/* Max L3 MTU (arbitrary) */
-#define MTU_PAD (ETH_HLEN + 4)  /* Max difference between L2 and L3 size MTU */
+#define MIN_MTU 68		
+#define MAX_MTU 65535		
+#define MTU_PAD (ETH_HLEN + 4)  
 
 struct veth_net_stats {
 	unsigned long	rx_packets;
@@ -38,9 +30,7 @@ struct veth_priv {
 	unsigned ip_summed;
 };
 
-/*
- * ethtool interface
- */
+
 
 static struct {
 	const char string[ETH_GSTRING_LEN];
@@ -144,9 +134,7 @@ static const struct ethtool_ops veth_ethtool_ops = {
 	.get_ethtool_stats	= veth_get_ethtool_stats,
 };
 
-/*
- * xmit
- */
+
 
 static netdev_tx_t veth_xmit(struct sk_buff *skb, struct net_device *dev)
 {
@@ -203,9 +191,7 @@ rx_drop:
 	return NETDEV_TX_OK;
 }
 
-/*
- * general routines
- */
+
 
 static struct net_device_stats *veth_get_stats(struct net_device *dev)
 {
@@ -316,9 +302,7 @@ static void veth_setup(struct net_device *dev)
 	dev->destructor = veth_dev_free;
 }
 
-/*
- * netlink interface
- */
+
 
 static int veth_validate(struct nlattr *tb[], struct nlattr *data[])
 {
@@ -346,12 +330,7 @@ static int veth_newlink(struct net_device *dev,
 	char ifname[IFNAMSIZ];
 	struct nlattr *peer_tb[IFLA_MAX + 1], **tbp;
 
-	/*
-	 * create and register peer first
-	 *
-	 * struct ifinfomsg is at the head of VETH_INFO_PEER, but we
-	 * skip it since no info from it is useful yet
-	 */
+	
 
 	if (data != NULL && data[VETH_INFO_PEER] != NULL) {
 		struct nlattr *nla_peer;
@@ -390,12 +369,7 @@ static int veth_newlink(struct net_device *dev,
 
 	netif_carrier_off(peer);
 
-	/*
-	 * register dev last
-	 *
-	 * note, that since we've registered new device the dev's name
-	 * should be re-allocated
-	 */
+	
 
 	if (tb[IFLA_ADDRESS] == NULL)
 		random_ether_addr(dev->dev_addr);
@@ -417,9 +391,7 @@ static int veth_newlink(struct net_device *dev,
 
 	netif_carrier_off(dev);
 
-	/*
-	 * tie the deviced together
-	 */
+	
 
 	priv = netdev_priv(dev);
 	priv->peer = peer;
@@ -429,7 +401,7 @@ static int veth_newlink(struct net_device *dev,
 	return 0;
 
 err_register_dev:
-	/* nothing to do */
+	
 err_alloc_name:
 	unregister_netdevice(peer);
 	return err;
@@ -464,9 +436,7 @@ static struct rtnl_link_ops veth_link_ops = {
 	.maxtype	= VETH_INFO_MAX,
 };
 
-/*
- * init/fini
- */
+
 
 static __init int veth_init(void)
 {

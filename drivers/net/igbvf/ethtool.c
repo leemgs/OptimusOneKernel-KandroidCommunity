@@ -1,31 +1,6 @@
-/*******************************************************************************
 
-  Intel(R) 82576 Virtual Function Linux driver
-  Copyright(c) 2009 Intel Corporation.
 
-  This program is free software; you can redistribute it and/or modify it
-  under the terms and conditions of the GNU General Public License,
-  version 2, as published by the Free Software Foundation.
 
-  This program is distributed in the hope it will be useful, but WITHOUT
-  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-  more details.
-
-  You should have received a copy of the GNU General Public License along with
-  this program; if not, write to the Free Software Foundation, Inc.,
-  51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
-
-  The full GNU General Public License is included in this distribution in
-  the file called "COPYING".
-
-  Contact Information:
-  e1000-devel Mailing List <e1000-devel@lists.sourceforge.net>
-  Intel Corporation, 5200 N.E. Elam Young Parkway, Hillsboro, OR 97124-6497
-
-*******************************************************************************/
-
-/* ethtool support for igbvf */
 
 #include <linux/netdevice.h>
 #include <linux/ethtool.h>
@@ -295,7 +270,7 @@ static int igbvf_set_ringparam(struct net_device *netdev,
 
 	if ((new_tx_count == adapter->tx_ring->count) &&
 	    (new_rx_count == adapter->rx_ring->count)) {
-		/* nothing to do */
+		
 		return 0;
 	}
 
@@ -316,11 +291,7 @@ static int igbvf_set_ringparam(struct net_device *netdev,
 
 	igbvf_down(adapter);
 
-	/*
-	 * We can't just free everything and then setup again,
-	 * because the ISRs in MSI-X mode get passed pointers
-	 * to the tx and rx ring structs.
-	 */
+	
 	if (new_tx_count != adapter->tx_ring->count) {
 		memcpy(temp_ring, adapter->tx_ring, sizeof(struct igbvf_ring));
 
@@ -384,10 +355,7 @@ static void igbvf_diag_test(struct net_device *netdev,
 
 	set_bit(__IGBVF_TESTING, &adapter->state);
 
-	/*
-	 * Link test performed before hardware reset so autoneg doesn't
-	 * interfere with test result
-	 */
+	
 	if (igbvf_link_test(adapter, &data[0]))
 		eth_test->flags |= ETH_TEST_FL_FAILED;
 
@@ -440,7 +408,7 @@ static int igbvf_set_coalesce(struct net_device *netdev,
 	    (ec->rx_coalesce_usecs == 2))
 		return -EINVAL;
 
-	/* convert to rate of irq's per second */
+	
 	if (ec->rx_coalesce_usecs && ec->rx_coalesce_usecs <= 3) {
 		adapter->itr = IGBVF_START_ITR;
 		adapter->itr_setting = ec->rx_coalesce_usecs;
@@ -543,6 +511,6 @@ static const struct ethtool_ops igbvf_ethtool_ops = {
 
 void igbvf_set_ethtool_ops(struct net_device *netdev)
 {
-	/* have to "undeclare" const on this struct to remove warnings */
+	
 	SET_ETHTOOL_OPS(netdev, (struct ethtool_ops *)&igbvf_ethtool_ops);
 }

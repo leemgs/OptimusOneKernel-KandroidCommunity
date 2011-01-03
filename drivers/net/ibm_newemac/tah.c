@@ -1,23 +1,4 @@
-/*
- * drivers/net/ibm_newemac/tah.c
- *
- * Driver for PowerPC 4xx on-chip ethernet controller, TAH support.
- *
- * Copyright 2007 Benjamin Herrenschmidt, IBM Corp.
- *                <benh@kernel.crashing.org>
- *
- * Based on the arch/ppc version of the driver:
- *
- * Copyright 2004 MontaVista Software, Inc.
- * Matt Porter <mporter@kernel.crashing.org>
- *
- * Copyright (c) 2005 Eugene Surovegin <ebs@ebshome.net>
- *
- * This program is free software; you can redistribute  it and/or modify it
- * under  the terms of  the GNU General  Public License as published by the
- * Free Software Foundation;  either version 2 of the  License, or (at your
- * option) any later version.
- */
+
 #include <asm/io.h>
 
 #include "emac.h"
@@ -28,7 +9,7 @@ int __devinit tah_attach(struct of_device *ofdev, int channel)
 	struct tah_instance *dev = dev_get_drvdata(&ofdev->dev);
 
 	mutex_lock(&dev->lock);
-	/* Reset has been done at probe() time... nothing else to do for now */
+	
 	++dev->users;
 	mutex_unlock(&dev->lock);
 
@@ -50,7 +31,7 @@ void tah_reset(struct of_device *ofdev)
 	struct tah_regs __iomem *p = dev->base;
 	int n;
 
-	/* Reset TAH */
+	
 	out_be32(&p->mr, TAH_MR_SR);
 	n = 100;
 	while ((in_be32(&p->mr) & TAH_MR_SR) && n)
@@ -59,7 +40,7 @@ void tah_reset(struct of_device *ofdev)
 	if (unlikely(!n))
 		printk(KERN_ERR "%s: reset timeout\n", ofdev->node->full_name);
 
-	/* 10KB TAH TX FIFO accomodates the max MTU of 9000 */
+	
 	out_be32(&p->mr,
 		 TAH_MR_CVR | TAH_MR_ST_768 | TAH_MR_TFS_10KB | TAH_MR_DTFP |
 		 TAH_MR_DIG);
@@ -78,10 +59,7 @@ void *tah_dump_regs(struct of_device *ofdev, void *buf)
 	struct tah_regs *regs = (struct tah_regs *)(hdr + 1);
 
 	hdr->version = 0;
-	hdr->index = 0; /* for now, are there chips with more than one
-			 * zmii ? if yes, then we'll add a cell_index
-			 * like we do for emac
-			 */
+	hdr->index = 0; 
 	memcpy_fromio(regs, dev->base, sizeof(struct tah_regs));
 	return regs + 1;
 }
@@ -123,7 +101,7 @@ static int __devinit tah_probe(struct of_device *ofdev,
 
 	dev_set_drvdata(&ofdev->dev, dev);
 
-	/* Initialize TAH and enable IPv4 checksum verification, no TSO yet */
+	
 	tah_reset(ofdev);
 
 	printk(KERN_INFO
@@ -157,7 +135,7 @@ static struct of_device_id tah_match[] =
 	{
 		.compatible	= "ibm,tah",
 	},
-	/* For backward compat with old DT */
+	
 	{
 		.type		= "tah",
 	},

@@ -1,40 +1,4 @@
-/*****************************************************************************
- *                                                                           *
- * File: cpl5_cmd.h                                                          *
- * $Revision: 1.6 $                                                          *
- * $Date: 2005/06/21 18:29:47 $                                              *
- * Description:                                                              *
- *  part of the Chelsio 10Gb Ethernet Driver.                                *
- *                                                                           *
- * This program is free software; you can redistribute it and/or modify      *
- * it under the terms of the GNU General Public License, version 2, as       *
- * published by the Free Software Foundation.                                *
- *                                                                           *
- * You should have received a copy of the GNU General Public License along   *
- * with this program; if not, write to the Free Software Foundation, Inc.,   *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.                 *
- *                                                                           *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR IMPLIED    *
- * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF      *
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.                     *
- *                                                                           *
- * http://www.chelsio.com                                                    *
- *                                                                           *
- * Copyright (c) 2003 - 2005 Chelsio Communications, Inc.                    *
- * All rights reserved.                                                      *
- *                                                                           *
- * Maintainers: maintainers@chelsio.com                                      *
- *                                                                           *
- * Authors: Dimitrios Michailidis   <dm@chelsio.com>                         *
- *          Tina Yang               <tainay@chelsio.com>                     *
- *          Felix Marti             <felix@chelsio.com>                      *
- *          Scott Bardone           <sbardone@chelsio.com>                   *
- *          Kurt Ottaway            <kottaway@chelsio.com>                   *
- *          Frank DiMambro          <frank@chelsio.com>                      *
- *                                                                           *
- * History:                                                                  *
- *                                                                           *
- ****************************************************************************/
+
 
 #ifndef _CXGB_CPL5_CMD_H_
 #define _CXGB_CPL5_CMD_H_
@@ -103,7 +67,7 @@ enum CPL_opcode {
 	CPL_MIGRATE_C2T_RPL   = 0xDD,
 	CPL_ERROR             = 0xD7,
 
-	/* internal: driver -> TOM */
+	
 	CPL_MSS_CHANGE        = 0xE1
 };
 
@@ -151,7 +115,7 @@ enum {
 	CPL_ABORT_POST_CLOSE_REQ = 2
 };
 
-enum {                // TX_PKT_LSO ethernet types
+enum {                
 	CPL_ETH_II,
 	CPL_ETH_II_VLAN,
 	CPL_ETH_802_3,
@@ -168,12 +132,12 @@ union opcode_tid {
 #define G_OPCODE(x) (((x) >> S_OPCODE) & 0xFF)
 #define G_TID(x)    ((x) & 0xFFFFFF)
 
-/* tid is assumed to be 24-bits */
+
 #define MK_OPCODE_TID(opcode, tid) (V_OPCODE(opcode) | (tid))
 
 #define OPCODE_TID(cmd) ((cmd)->ot.opcode_tid)
 
-/* extract the TID from a CPL command */
+
 #define GET_TID(cmd) (G_TID(ntohl(OPCODE_TID(cmd))))
 
 struct tcp_options {
@@ -428,11 +392,7 @@ struct cpl_rx_data_ddp {
 	u8  status;
 };
 
-/*
- * We want this header's alignment to be no more stringent than 2-byte aligned.
- * All fields are u8 or u16 except for the length.  However that field is not
- * used so we break it into 2 16-bit parts to easily meet our alignment needs.
- */
+
 struct cpl_tx_pkt {
 	u8 opcode;
 #if defined(__LITTLE_ENDIAN_BITFIELD)
@@ -635,5 +595,5 @@ struct cpl_mss_change {
 	u32 mss;
 };
 
-#endif /* _CXGB_CPL5_CMD_H_ */
+#endif 
 

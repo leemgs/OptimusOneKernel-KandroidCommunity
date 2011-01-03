@@ -1,19 +1,4 @@
-/*
- *  drivers/net/gianfar_ethtool.c
- *
- *  Gianfar Ethernet Driver
- *  Ethtool support for Gianfar Enet
- *  Based on e1000 ethtool support
- *
- *  Author: Andy Fleming
- *  Maintainer: Kumar Gala
- *
- *  Copyright (c) 2003,2004 Freescale Semiconductor, Inc.
- *
- *  This software may be used and distributed according to
- *  the terms of the GNU Public License, Version 2, incorporated herein
- *  by reference.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/string.h>
@@ -115,8 +100,7 @@ static char stat_gstrings[][ETH_GSTRING_LEN] = {
 	"tx-fragmented-frames",
 };
 
-/* Fill in a buffer with the strings which correspond to the
- * stats */
+
 static void gfar_gstrings(struct net_device *dev, u32 stringset, u8 * buf)
 {
 	struct gfar_private *priv = netdev_priv(dev);
@@ -128,10 +112,7 @@ static void gfar_gstrings(struct net_device *dev, u32 stringset, u8 * buf)
 				GFAR_EXTRA_STATS_LEN * ETH_GSTRING_LEN);
 }
 
-/* Fill in an array of 64-bit statistics from various sources.
- * This array will be appended to the end of the ethtool_stats
- * structure, and returned to user space
- */
+
 static void gfar_fill_stats(struct net_device *dev, struct ethtool_stats *dummy, u64 * buf)
 {
 	int i;
@@ -167,7 +148,7 @@ static int gfar_sset_count(struct net_device *dev, int sset)
 	}
 }
 
-/* Fills in the drvinfo structure with some basic info */
+
 static void gfar_gdrvinfo(struct net_device *dev, struct
 	      ethtool_drvinfo *drvinfo)
 {
@@ -192,7 +173,7 @@ static int gfar_ssettings(struct net_device *dev, struct ethtool_cmd *cmd)
 }
 
 
-/* Return the current settings in the ethtool_cmd structure */
+
 static int gfar_gsettings(struct net_device *dev, struct ethtool_cmd *cmd)
 {
 	struct gfar_private *priv = netdev_priv(dev);
@@ -207,13 +188,13 @@ static int gfar_gsettings(struct net_device *dev, struct ethtool_cmd *cmd)
 	return phy_ethtool_gset(phydev, cmd);
 }
 
-/* Return the length of the register structure */
+
 static int gfar_reglen(struct net_device *dev)
 {
 	return sizeof (struct gfar);
 }
 
-/* Return a dump of the GFAR register space */
+
 static void gfar_get_regs(struct net_device *dev, struct ethtool_regs *regs, void *regbuf)
 {
 	int i;
@@ -225,13 +206,12 @@ static void gfar_get_regs(struct net_device *dev, struct ethtool_regs *regs, voi
 		buf[i] = gfar_read(&theregs[i]);
 }
 
-/* Convert microseconds to ethernet clock ticks, which changes
- * depending on what speed the controller is running at */
+
 static unsigned int gfar_usecs2ticks(struct gfar_private *priv, unsigned int usecs)
 {
 	unsigned int count;
 
-	/* The timer is different, depending on the interface speed */
+	
 	switch (priv->phydev->speed) {
 	case SPEED_1000:
 		count = GFAR_GBIT_TIME;
@@ -245,17 +225,16 @@ static unsigned int gfar_usecs2ticks(struct gfar_private *priv, unsigned int use
 		break;
 	}
 
-	/* Make sure we return a number greater than 0
-	 * if usecs > 0 */
+	
 	return ((usecs * 1000 + count - 1) / count);
 }
 
-/* Convert ethernet clock ticks to microseconds */
+
 static unsigned int gfar_ticks2usecs(struct gfar_private *priv, unsigned int ticks)
 {
 	unsigned int count;
 
-	/* The timer is different, depending on the interface speed */
+	
 	switch (priv->phydev->speed) {
 	case SPEED_1000:
 		count = GFAR_GBIT_TIME;
@@ -269,13 +248,12 @@ static unsigned int gfar_ticks2usecs(struct gfar_private *priv, unsigned int tic
 		break;
 	}
 
-	/* Make sure we return a number greater than 0 */
-	/* if ticks is > 0 */
+	
+	
 	return ((ticks * count) / 1000);
 }
 
-/* Get the coalescing parameters, and put them in the cvals
- * structure.  */
+
 static int gfar_gcoalesce(struct net_device *dev, struct ethtool_coalesce *cvals)
 {
 	struct gfar_private *priv = netdev_priv(dev);
@@ -309,33 +287,22 @@ static int gfar_gcoalesce(struct net_device *dev, struct ethtool_coalesce *cvals
 	cvals->tx_coalesce_usecs_low = 0;
 	cvals->tx_max_coalesced_frames_low = 0;
 
-	/* When the packet rate is below pkt_rate_high but above
-	 * pkt_rate_low (both measured in packets per second) the
-	 * normal {rx,tx}_* coalescing parameters are used.
-	 */
+	
 
-	/* When the packet rate is (measured in packets per second)
-	 * is above pkt_rate_high, the {rx,tx}_*_high parameters are
-	 * used.
-	 */
+	
 	cvals->pkt_rate_high = 0;
 	cvals->rx_coalesce_usecs_high = 0;
 	cvals->rx_max_coalesced_frames_high = 0;
 	cvals->tx_coalesce_usecs_high = 0;
 	cvals->tx_max_coalesced_frames_high = 0;
 
-	/* How often to do adaptive coalescing packet rate sampling,
-	 * measured in seconds.  Must not be zero.
-	 */
+	
 	cvals->rate_sample_interval = 0;
 
 	return 0;
 }
 
-/* Change the coalescing values.
- * Both cvals->*_usecs and cvals->*_frames have to be > 0
- * in order for coalescing to be active
- */
+
 static int gfar_scoalesce(struct net_device *dev, struct ethtool_coalesce *cvals)
 {
 	struct gfar_private *priv = netdev_priv(dev);
@@ -343,7 +310,7 @@ static int gfar_scoalesce(struct net_device *dev, struct ethtool_coalesce *cvals
 	if (!(priv->device_flags & FSL_GIANFAR_DEV_HAS_COALESCE))
 		return -EOPNOTSUPP;
 
-	/* Set up rx coalescing */
+	
 	if ((cvals->rx_coalesce_usecs == 0) ||
 	    (cvals->rx_max_coalesced_frames == 0))
 		priv->rxcoalescing = 0;
@@ -353,7 +320,7 @@ static int gfar_scoalesce(struct net_device *dev, struct ethtool_coalesce *cvals
 	if (NULL == priv->phydev)
 		return -ENODEV;
 
-	/* Check the bounds of the values */
+	
 	if (cvals->rx_coalesce_usecs > GFAR_MAX_COAL_USECS) {
 		pr_info("Coalescing is limited to %d microseconds\n",
 				GFAR_MAX_COAL_USECS);
@@ -369,14 +336,14 @@ static int gfar_scoalesce(struct net_device *dev, struct ethtool_coalesce *cvals
 	priv->rxic = mk_ic_value(cvals->rx_max_coalesced_frames,
 		gfar_usecs2ticks(priv, cvals->rx_coalesce_usecs));
 
-	/* Set up tx coalescing */
+	
 	if ((cvals->tx_coalesce_usecs == 0) ||
 	    (cvals->tx_max_coalesced_frames == 0))
 		priv->txcoalescing = 0;
 	else
 		priv->txcoalescing = 1;
 
-	/* Check the bounds of the values */
+	
 	if (cvals->tx_coalesce_usecs > GFAR_MAX_COAL_USECS) {
 		pr_info("Coalescing is limited to %d microseconds\n",
 				GFAR_MAX_COAL_USECS);
@@ -403,9 +370,7 @@ static int gfar_scoalesce(struct net_device *dev, struct ethtool_coalesce *cvals
 	return 0;
 }
 
-/* Fills in rvals with the current ring parameters.  Currently,
- * rx, rx_mini, and rx_jumbo rings are the same size, as mini and
- * jumbo are ignored by the driver */
+
 static void gfar_gringparam(struct net_device *dev, struct ethtool_ringparam *rvals)
 {
 	struct gfar_private *priv = netdev_priv(dev);
@@ -415,19 +380,14 @@ static void gfar_gringparam(struct net_device *dev, struct ethtool_ringparam *rv
 	rvals->rx_jumbo_max_pending = GFAR_RX_MAX_RING_SIZE;
 	rvals->tx_max_pending = GFAR_TX_MAX_RING_SIZE;
 
-	/* Values changeable by the user.  The valid values are
-	 * in the range 1 to the "*_max_pending" counterpart above.
-	 */
+	
 	rvals->rx_pending = priv->rx_ring_size;
 	rvals->rx_mini_pending = priv->rx_ring_size;
 	rvals->rx_jumbo_pending = priv->rx_ring_size;
 	rvals->tx_pending = priv->tx_ring_size;
 }
 
-/* Change the current ring parameters, stopping the controller if
- * necessary so that we don't mess things up while we're in
- * motion.  We wait for the ring to be clean before reallocating
- * the rings. */
+
 static int gfar_sringparam(struct net_device *dev, struct ethtool_ringparam *rvals)
 {
 	struct gfar_private *priv = netdev_priv(dev);
@@ -454,8 +414,7 @@ static int gfar_sringparam(struct net_device *dev, struct ethtool_ringparam *rva
 	if (dev->flags & IFF_UP) {
 		unsigned long flags;
 
-		/* Halt TX and RX, and process the frames which
-		 * have already been received */
+		
 		spin_lock_irqsave(&priv->txlock, flags);
 		spin_lock(&priv->rxlock);
 
@@ -466,16 +425,16 @@ static int gfar_sringparam(struct net_device *dev, struct ethtool_ringparam *rva
 
 		gfar_clean_rx_ring(dev, priv->rx_ring_size);
 
-		/* Now we take down the rings to rebuild them */
+		
 		stop_gfar(dev);
 	}
 
-	/* Change the size */
+	
 	priv->rx_ring_size = rvals->rx_pending;
 	priv->tx_ring_size = rvals->tx_pending;
 	priv->num_txbdfree = priv->tx_ring_size;
 
-	/* Rebuild the rings with the new size */
+	
 	if (dev->flags & IFF_UP) {
 		err = startup_gfar(dev);
 		netif_wake_queue(dev);
@@ -493,8 +452,7 @@ static int gfar_set_rx_csum(struct net_device *dev, uint32_t data)
 		return -EOPNOTSUPP;
 
 	if (dev->flags & IFF_UP) {
-		/* Halt TX and RX, and process the frames which
-		 * have already been received */
+		
 		spin_lock_irqsave(&priv->txlock, flags);
 		spin_lock(&priv->rxlock);
 
@@ -505,7 +463,7 @@ static int gfar_set_rx_csum(struct net_device *dev, uint32_t data)
 
 		gfar_clean_rx_ring(dev, priv->rx_ring_size);
 
-		/* Now we take down the rings to rebuild them */
+		
 		stop_gfar(dev);
 	}
 

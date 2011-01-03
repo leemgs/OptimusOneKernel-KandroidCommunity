@@ -1,14 +1,5 @@
-/****************************************************************************
- * Driver for Solarflare Solarstorm network controllers and boards
- * Copyright 2006-2008 Solarflare Communications Inc.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published
- * by the Free Software Foundation, incorporated herein by reference.
- */
-/*
- * Useful functions for working with MDIO clause 45 PHYs
- */
+
+
 #include <linux/types.h>
 #include <linux/ethtool.h>
 #include <linux/delay.h>
@@ -22,9 +13,7 @@ unsigned efx_mdio_id_oui(u32 id)
 	unsigned oui = 0;
 	int i;
 
-	/* The bits of the OUI are designated a..x, with a=0 and b variable.
-	 * In the id register c is the MSB but the OUI is conventionally
-	 * written as bytes h..a, p..i, x..q.  Reorder the bits accordingly. */
+	
 	for (i = 0; i < 22; ++i)
 		if (id & (1 << (i + 10)))
 			oui |= 1 << (i ^ 7);
@@ -37,11 +26,11 @@ int efx_mdio_reset_mmd(struct efx_nic *port, int mmd,
 {
 	u32 ctrl;
 
-	/* Catch callers passing values in the wrong units (or just silly) */
+	
 	EFX_BUG_ON_PARANOID(spins * spintime >= 5000);
 
 	efx_mdio_write(port, mmd, MDIO_CTRL1, MDIO_CTRL1_RESET);
-	/* Wait for the reset bit to clear. */
+	
 	do {
 		msleep(spintime);
 		ctrl = efx_mdio_read(port, mmd, MDIO_CTRL1);
@@ -60,7 +49,7 @@ static int efx_mdio_check_mmd(struct efx_nic *efx, int mmd, int fault_fatal)
 		return 0;
 
 	if (mmd != MDIO_MMD_AN) {
-		/* Read MMD STATUS2 to check it is responding. */
+		
 		status = efx_mdio_read(efx, mmd, MDIO_STAT2);
 		if ((status & MDIO_STAT2_DEVPRST) != MDIO_STAT2_DEVPRST_VAL) {
 			EFX_ERR(efx, "PHY MMD %d not responding.\n", mmd);
@@ -68,7 +57,7 @@ static int efx_mdio_check_mmd(struct efx_nic *efx, int mmd, int fault_fatal)
 		}
 	}
 
-	/* Read MMD STATUS 1 to check for fault. */
+	
 	status = efx_mdio_read(efx, mmd, MDIO_STAT1);
 	if (status & MDIO_STAT1_FAULT) {
 		if (fault_fatal) {
@@ -83,8 +72,8 @@ static int efx_mdio_check_mmd(struct efx_nic *efx, int mmd, int fault_fatal)
 	return 0;
 }
 
-/* This ought to be ridiculous overkill. We expect it to fail rarely */
-#define MDIO45_RESET_TIME	1000 /* ms */
+
+#define MDIO45_RESET_TIME	1000 
 #define MDIO45_RESET_ITERS	100
 
 int efx_mdio_wait_reset_mmds(struct efx_nic *efx, unsigned int mmd_mask)
@@ -132,13 +121,11 @@ int efx_mdio_check_mmds(struct efx_nic *efx,
 	int mmd = 0, probe_mmd, devs1, devs2;
 	u32 devices;
 
-	/* Historically we have probed the PHYXS to find out what devices are
-	 * present,but that doesn't work so well if the PHYXS isn't expected
-	 * to exist, if so just find the first item in the list supplied. */
+	
 	probe_mmd = (mmd_mask & MDIO_DEVS_PHYXS) ? MDIO_MMD_PHYXS :
 	    __ffs(mmd_mask);
 
-	/* Check all the expected MMDs are present */
+	
 	devs1 = efx_mdio_read(efx, probe_mmd, MDIO_DEVS1);
 	devs2 = efx_mdio_read(efx, probe_mmd, MDIO_DEVS2);
 	if (devs1 < 0 || devs2 < 0) {
@@ -153,7 +140,7 @@ int efx_mdio_check_mmds(struct efx_nic *efx,
 	}
 	EFX_TRACE(efx, "Devices present: %x\n", devices);
 
-	/* Check all required MMDs are responding and happy. */
+	
 	while (mmd_mask) {
 		if (mmd_mask & 1) {
 			int fault_fatal = fatal_mask & 1;
@@ -170,8 +157,7 @@ int efx_mdio_check_mmds(struct efx_nic *efx,
 
 bool efx_mdio_links_ok(struct efx_nic *efx, unsigned int mmd_mask)
 {
-	/* If the port is in loopback, then we should only consider a subset
-	 * of mmd's */
+	
 	if (LOOPBACK_INTERNAL(efx))
 		return true;
 	else if (efx->loopback_mode == LOOPBACK_NETWORK)
@@ -241,11 +227,7 @@ void efx_mdio_set_mmds_lpower(struct efx_nic *efx,
 	}
 }
 
-/**
- * efx_mdio_set_settings - Set (some of) the PHY settings over MDIO.
- * @efx:		Efx NIC
- * @ecmd: 		New settings
- */
+
 int efx_mdio_set_settings(struct efx_nic *efx, struct ethtool_cmd *ecmd)
 {
 	struct ethtool_cmd prev;
@@ -261,11 +243,11 @@ int efx_mdio_set_settings(struct efx_nic *efx, struct ethtool_cmd *ecmd)
 	    ecmd->autoneg == prev.autoneg)
 		return 0;
 
-	/* We can only change these settings for -T PHYs */
+	
 	if (prev.port != PORT_TP || ecmd->port != PORT_TP)
 		return -EINVAL;
 
-	/* Check that PHY supports these settings */
+	
 	if (ecmd->autoneg) {
 		required = SUPPORTED_Autoneg;
 	} else if (ecmd->duplex) {
@@ -289,7 +271,7 @@ int efx_mdio_set_settings(struct efx_nic *efx, struct ethtool_cmd *ecmd)
 		bool xnp = (ecmd->advertising & ADVERTISED_10000baseT_Full
 			    || EFX_WORKAROUND_13204(efx));
 
-		/* Set up the base page */
+		
 		reg = ADVERTISE_CSMA;
 		if (ecmd->advertising & ADVERTISED_10baseT_Half)
 			reg |= ADVERTISE_10HALF;
@@ -307,11 +289,11 @@ int efx_mdio_set_settings(struct efx_nic *efx, struct ethtool_cmd *ecmd)
 		reg |= mii_advertise_flowctrl(efx->wanted_fc);
 		efx_mdio_write(efx, MDIO_MMD_AN, MDIO_AN_ADVERTISE, reg);
 
-		/* Set up the (extended) next page if necessary */
+		
 		if (efx->phy_op->set_npage_adv)
 			efx->phy_op->set_npage_adv(efx, ecmd->advertising);
 
-		/* Enable and restart AN */
+		
 		reg = efx_mdio_read(efx, MDIO_MMD_AN, MDIO_CTRL1);
 		reg |= MDIO_AN_CTRL1_ENABLE;
 		if (!(EFX_WORKAROUND_15195(efx) &&
@@ -323,11 +305,11 @@ int efx_mdio_set_settings(struct efx_nic *efx, struct ethtool_cmd *ecmd)
 			reg &= ~MDIO_AN_CTRL1_XNP;
 		efx_mdio_write(efx, MDIO_MMD_AN, MDIO_CTRL1, reg);
 	} else {
-		/* Disable AN */
+		
 		efx_mdio_set_flag(efx, MDIO_MMD_AN, MDIO_CTRL1,
 				  MDIO_AN_CTRL1_ENABLE, false);
 
-		/* Set the basic control bits */
+		
 		reg = efx_mdio_read(efx, MDIO_MMD_PMAPMD, MDIO_CTRL1);
 		reg &= ~(MDIO_CTRL1_SPEEDSEL | MDIO_CTRL1_FULLDPLX);
 		if (ecmd->speed == SPEED_100)

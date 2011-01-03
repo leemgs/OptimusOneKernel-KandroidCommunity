@@ -1,12 +1,4 @@
-/* cnic.h: Broadcom CNIC core network driver.
- *
- * Copyright (c) 2006-2009 Broadcom Corporation
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation.
- *
- */
+
 
 
 #ifndef CNIC_H
@@ -18,9 +10,7 @@
 #define KWQ_CID 		24
 #define KCQ_CID 		25
 
-/*
- *	krnlq_context definition
- */
+
 #define L5_KRNLQ_FLAGS	0x00000000
 #define L5_KRNLQ_SIZE	0x00000000
 #define L5_KRNLQ_TYPE	0x00000000
@@ -179,7 +169,7 @@ struct cnic_local {
 #define ULP_F_CALL_PENDING	2
 	struct cnic_ulp_ops *ulp_ops[MAX_CNIC_ULP_TYPE];
 
-	/* protected by ulp_lock */
+	
 	u32 cnic_local_flags;
 #define	CNIC_LCL_FL_KWQ_INIT	0x00000001
 
@@ -247,7 +237,7 @@ struct cnic_local {
 	int			max_iscsi_conn;
 	atomic_t		iscsi_conn;
 
-	/* per connection parameters */
+	
 	int			num_iscsi_tasks;
 	int			num_ccells;
 	int			task_array_size;

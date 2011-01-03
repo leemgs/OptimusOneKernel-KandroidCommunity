@@ -1,23 +1,4 @@
-/*
- * drivers/net/gianfar_sysfs.c
- *
- * Gianfar Ethernet Driver
- * This driver is designed for the non-CPM ethernet controllers
- * on the 85xx and 83xx family of integrated processors
- * Based on 8260_io/fcc_enet.c
- *
- * Author: Andy Fleming
- * Maintainer: Kumar Gala (galak@kernel.crashing.org)
- *
- * Copyright (c) 2002-2005 Freescale Semiconductor, Inc.
- *
- * This program is free software; you can redistribute  it and/or modify it
- * under  the terms of  the GNU General  Public License as published by the
- * Free Software Foundation;  either version 2 of the  License, or (at your
- * option) any later version.
- *
- * Sysfs file creation and management
- */
+
 
 #include <linux/kernel.h>
 #include <linux/string.h>
@@ -56,7 +37,7 @@ static ssize_t gfar_set_bd_stash(struct device *dev,
 	if (!(priv->device_flags & FSL_GIANFAR_DEV_HAS_BD_STASHING))
 		return count;
 
-	/* Find out the new setting */
+	
 	if (!strncmp("on", buf, count - 1) || !strncmp("1", buf, count - 1))
 		new_setting = 1;
 	else if (!strncmp("off", buf, count - 1)
@@ -67,7 +48,7 @@ static ssize_t gfar_set_bd_stash(struct device *dev,
 
 	spin_lock_irqsave(&priv->rxlock, flags);
 
-	/* Set the new stashing value */
+	
 	priv->bd_stash_en = new_setting;
 
 	temp = gfar_read(&priv->regs->attr);
@@ -120,7 +101,7 @@ static ssize_t gfar_set_rx_stash_size(struct device *dev,
 	temp |= ATTRELI_EL(length);
 	gfar_write(&priv->regs->attreli, temp);
 
-	/* Turn stashing on/off as appropriate */
+	
 	temp = gfar_read(&priv->regs->attr);
 
 	if (length)
@@ -139,7 +120,7 @@ out:
 static DEVICE_ATTR(rx_stash_size, 0644, gfar_show_rx_stash_size,
 		   gfar_set_rx_stash_size);
 
-/* Stashing will only be enabled when rx_stash_size != 0 */
+
 static ssize_t gfar_show_rx_stash_index(struct device *dev,
 					struct device_attribute *attr,
 					char *buf)
@@ -302,12 +283,12 @@ void gfar_init_sysfs(struct net_device *dev)
 	struct gfar_private *priv = netdev_priv(dev);
 	int rc;
 
-	/* Initialize the default values */
+	
 	priv->fifo_threshold = DEFAULT_FIFO_TX_THR;
 	priv->fifo_starve = DEFAULT_FIFO_TX_STARVE;
 	priv->fifo_starve_off = DEFAULT_FIFO_TX_STARVE_OFF;
 
-	/* Create our sysfs files */
+	
 	rc = device_create_file(&dev->dev, &dev_attr_bd_stash);
 	rc |= device_create_file(&dev->dev, &dev_attr_rx_stash_size);
 	rc |= device_create_file(&dev->dev, &dev_attr_rx_stash_index);

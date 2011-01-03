@@ -1,30 +1,4 @@
-/*
- * Linux ARCnet driver - COM20020 chipset support
- * 
- * Written 1997 by David Woodhouse.
- * Written 1994-1999 by Avery Pennarun.
- * Written 1999-2000 by Martin Mares <mj@ucw.cz>.
- * Derived from skeleton.c by Donald Becker.
- *
- * Special thanks to Contemporary Controls, Inc. (www.ccontrols.com)
- *  for sponsoring the further development of this driver.
- *
- * **********************
- *
- * The original copyright of skeleton.c was as follows:
- *
- * skeleton.c Written 1993 by Donald Becker.
- * Copyright 1993 United States Government as represented by the
- * Director, National Security Agency.  This software may only be used
- * and distributed according to the terms of the GNU General Public License as
- * modified by SRC, incorporated herein by reference.
- *
- * **********************
- *
- * For more details, see drivers/net/arcnet.c
- *
- * **********************
- */
+
 #include <linux/module.h>
 #include <linux/moduleparam.h>
 #include <linux/kernel.h>
@@ -44,10 +18,7 @@
 #define VERSION "arcnet: COM20020 ISA support (by David Woodhouse et al.)\n"
 
 
-/*
- * We cannot (yet) probe for an IO mapped card, although we can check that
- * it's where we were told it was, and even do autoirq.
- */
+
 static int __init com20020isa_probe(struct net_device *dev)
 {
 	int ioaddr;
@@ -79,10 +50,7 @@ static int __init com20020isa_probe(struct net_device *dev)
 	}
 
 	if (!dev->irq) {
-		/* if we do this, we're sure to get an IRQ since the
-		 * card has just reset and the NORXflag is on until
-		 * we tell it to start receiving.
-		 */
+		
 		BUGMSG(D_INIT_REASONS, "intmask was %02Xh\n", inb(_INTMASK));
 		outb(0, _INTMASK);
 		airqmask = probe_irq_on();
@@ -118,9 +86,9 @@ out:
 }
 
 static int node = 0;
-static int io = 0x0;		/* <--- EDIT THESE LINES FOR YOUR CONFIGURATION */
-static int irq = 0;		/* or use the insmod io= irq= shmem= options */
-static char device[9];		/* use eg. device="arc1" to change name */
+static int io = 0x0;		
+static int irq = 0;		
+static char device[9];		
 static int timeout = 3;
 static int backplane = 0;
 static int clockp = 0;
@@ -193,19 +161,19 @@ static int __init com20020isa_setup(char *s)
 		return 1;
 
 	switch (ints[0]) {
-	default:		/* ERROR */
+	default:		
 		printk("com90xx: Too many arguments.\n");
-	case 6:		/* Timeout */
+	case 6:		
 		timeout = ints[6];
-	case 5:		/* CKP value */
+	case 5:		
 		clockp = ints[5];
-	case 4:		/* Backplane flag */
+	case 4:		
 		backplane = ints[4];
-	case 3:		/* Node ID */
+	case 3:		
 		node = ints[3];
-	case 2:		/* IRQ */
+	case 2:		
 		irq = ints[2];
-	case 1:		/* IO address */
+	case 1:		
 		io = ints[1];
 	}
 	if (*s)
@@ -215,7 +183,7 @@ static int __init com20020isa_setup(char *s)
 
 __setup("com20020=", com20020isa_setup);
 
-#endif				/* MODULE */
+#endif				
 
 module_init(com20020_init)
 module_exit(com20020_exit)

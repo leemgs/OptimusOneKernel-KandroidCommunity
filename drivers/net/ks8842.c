@@ -1,24 +1,6 @@
-/*
- * ks8842_main.c timberdale KS8842 ethernet driver
- * Copyright (c) 2009 Intel Corporation
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
 
-/* Supports:
- * The Micrel KS8842 behind the timberdale FPGA
- */
+
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -29,32 +11,32 @@
 
 #define DRV_NAME "ks8842"
 
-/* Timberdale specific Registers */
+
 #define REG_TIMB_RST	0x1c
 
-/* KS8842 registers */
+
 
 #define REG_SELECT_BANK 0x0e
 
-/* bank 0 registers */
+
 #define REG_QRFCR	0x04
 
-/* bank 2 registers */
+
 #define REG_MARL	0x00
 #define REG_MARM	0x02
 #define REG_MARH	0x04
 
-/* bank 3 registers */
+
 #define REG_GRR		0x06
 
-/* bank 16 registers */
+
 #define REG_TXCR	0x00
 #define REG_TXSR	0x02
 #define REG_RXCR	0x04
 #define REG_TXMIR	0x08
 #define REG_RXMIR	0x0A
 
-/* bank 17 registers */
+
 #define REG_TXQCR	0x00
 #define REG_RXQCR	0x02
 #define REG_TXFDPR	0x04
@@ -62,7 +44,7 @@
 #define REG_QMU_DATA_LO 0x08
 #define REG_QMU_DATA_HI 0x0A
 
-/* bank 18 registers */
+
 #define REG_IER		0x00
 #define IRQ_LINK_CHANGE	0x8000
 #define IRQ_TX		0x4000
@@ -85,29 +67,29 @@
 #define RXSR_CRC_ERROR	0x01
 #define RXSR_ERROR	(RXSR_TOO_LONG | RXSR_RUNT | RXSR_CRC_ERROR)
 
-/* bank 32 registers */
+
 #define REG_SW_ID_AND_ENABLE	0x00
 #define REG_SGCR1		0x02
 #define REG_SGCR2		0x04
 #define REG_SGCR3		0x06
 
-/* bank 39 registers */
+
 #define REG_MACAR1		0x00
 #define REG_MACAR2		0x02
 #define REG_MACAR3		0x04
 
-/* bank 45 registers */
+
 #define REG_P1MBCR		0x00
 #define REG_P1MBSR		0x02
 
-/* bank 46 registers */
+
 #define REG_P2MBCR		0x00
 #define REG_P2MBSR		0x02
 
-/* bank 48 registers */
+
 #define REG_P1CR2		0x02
 
-/* bank 49 registers */
+
 #define REG_P1CR4		0x02
 #define REG_P1SR		0x04
 
@@ -115,7 +97,7 @@ struct ks8842_adapter {
 	void __iomem	*hw_addr;
 	int		irq;
 	struct tasklet_struct	tasklet;
-	spinlock_t	lock; /* spinlock to be interrupt safe */
+	spinlock_t	lock; 
 	struct platform_device *pdev;
 };
 
@@ -188,13 +170,7 @@ static inline u32 ks8842_read32(struct ks8842_adapter *adapter, u16 bank,
 
 static void ks8842_reset(struct ks8842_adapter *adapter)
 {
-	/* The KS8842 goes haywire when doing softare reset
-	 * a work around in the timberdale IP is implemented to
-	 * do a hardware reset instead
-	ks8842_write16(adapter, 3, 1, REG_GRR);
-	msleep(10);
-	iowrite16(0, adapter->hw_addr + REG_GRR);
-	*/
+	
 	iowrite16(32, adapter->hw_addr + REG_SELECT_BANK);
 	iowrite32(0x1, adapter->hw_addr + REG_TIMB_RST);
 	msleep(20);
@@ -203,7 +179,7 @@ static void ks8842_reset(struct ks8842_adapter *adapter)
 static void ks8842_update_link_status(struct net_device *netdev,
 	struct ks8842_adapter *adapter)
 {
-	/* check the status of the link */
+	
 	if (ks8842_read16(adapter, 45, REG_P1MBSR) & 0x4) {
 		netif_carrier_on(netdev);
 		netif_wake_queue(netdev);
@@ -235,53 +211,52 @@ static void ks8842_disable_rx(struct ks8842_adapter *adapter)
 
 static void ks8842_reset_hw(struct ks8842_adapter *adapter)
 {
-	/* reset the HW */
+	
 	ks8842_reset(adapter);
 
-	/* Enable QMU Transmit flow control / transmit padding / Transmit CRC */
+	
 	ks8842_write16(adapter, 16, 0x000E, REG_TXCR);
 
-	/* enable the receiver, uni + multi + broadcast + flow ctrl
-		+ crc strip */
+	
 	ks8842_write16(adapter, 16, 0x8 | 0x20 | 0x40 | 0x80 | 0x400,
 		REG_RXCR);
 
-	/* TX frame pointer autoincrement */
+	
 	ks8842_write16(adapter, 17, 0x4000, REG_TXFDPR);
 
-	/* RX frame pointer autoincrement */
+	
 	ks8842_write16(adapter, 17, 0x4000, REG_RXFDPR);
 
-	/* RX 2 kb high watermark */
+	
 	ks8842_write16(adapter, 0, 0x1000, REG_QRFCR);
 
-	/* aggresive back off in half duplex */
+	
 	ks8842_enable_bits(adapter, 32, 1 << 8, REG_SGCR1);
 
-	/* enable no excessive collison drop */
+	
 	ks8842_enable_bits(adapter, 32, 1 << 3, REG_SGCR2);
 
-	/* Enable port 1 force flow control / back pressure / transmit / recv */
+	
 	ks8842_write16(adapter, 48, 0x1E07, REG_P1CR2);
 
-	/* restart port auto-negotiation */
+	
 	ks8842_enable_bits(adapter, 49, 1 << 13, REG_P1CR4);
-	/* only advertise 10Mbps */
+	
 	ks8842_clear_bits(adapter, 49, 3 << 2, REG_P1CR4);
 
-	/* Enable the transmitter */
+	
 	ks8842_enable_tx(adapter);
 
-	/* Enable the receiver */
+	
 	ks8842_enable_rx(adapter);
 
-	/* clear all interrupts */
+	
 	ks8842_write16(adapter, 18, 0xffff, REG_ISR);
 
-	/* enable interrupts */
+	
 	ks8842_write16(adapter, 18, ENABLED_IRQS, REG_IER);
 
-	/* enable the switch */
+	
 	ks8842_write16(adapter, 32, 0x1, REG_SW_ID_AND_ENABLE);
 }
 
@@ -293,7 +268,7 @@ static void ks8842_read_mac_addr(struct ks8842_adapter *adapter, u8 *dest)
 	for (i = 0; i < ETH_ALEN; i++)
 		dest[ETH_ALEN - i - 1] = ks8842_read8(adapter, 2, REG_MARL + i);
 
-	/* make sure the switch port uses the same MAC as the QMU */
+	
 	mac = ks8842_read16(adapter, 2, REG_MARL);
 	ks8842_write16(adapter, 39, mac, REG_MACAR1);
 	mac = ks8842_read16(adapter, 2, REG_MARM);
@@ -319,24 +294,24 @@ static int ks8842_tx_frame(struct sk_buff *skb, struct net_device *netdev)
 		__func__, skb->len, skb->head, skb->data,
 		skb_tail_pointer(skb), skb_end_pointer(skb));
 
-	/* check FIFO buffer space, we need space for CRC and command bits */
+	
 	if (ks8842_tx_fifo_space(adapter) < len + 8)
 		return NETDEV_TX_BUSY;
 
-	/* the control word, enable IRQ, port 1 and the length */
+	
 	ctrl = 0x8000 | 0x100 | (len << 16);
 	ks8842_write32(adapter, 17, ctrl, REG_QMU_DATA_LO);
 
 	netdev->stats.tx_bytes += len;
 
-	/* copy buffer */
+	
 	while (len > 0) {
 		iowrite32(*ptr, adapter->hw_addr + REG_QMU_DATA_LO);
 		len -= sizeof(u32);
 		ptr++;
 	}
 
-	/* enqueue packet */
+	
 	ks8842_write16(adapter, 17, 1, REG_TXQCR);
 
 	dev_kfree_skb(skb);
@@ -355,7 +330,7 @@ static void ks8842_rx_frame(struct net_device *netdev,
 	dev_dbg(&adapter->pdev->dev, "%s - rx_data: status: %x\n",
 		__func__, status);
 
-	/* check the status */
+	
 	if ((status & RXSR_VALID) && !(status & RXSR_ERROR)) {
 		struct sk_buff *skb = netdev_alloc_skb(netdev, len + 2);
 
@@ -369,8 +344,7 @@ static void ks8842_rx_frame(struct net_device *netdev,
 			if (status & RXSR_MULTICAST)
 				netdev->stats.multicast++;
 
-			/* Align socket buffer in 4-byte boundary for
-				 better performance. */
+			
 			skb_reserve(skb, 2);
 			data = (u32 *)skb_put(skb, len);
 
@@ -396,13 +370,13 @@ static void ks8842_rx_frame(struct net_device *netdev,
 			netdev->stats.rx_frame_errors++;
 	}
 
-	/* set high watermark to 3K */
+	
 	ks8842_clear_bits(adapter, 0, 1 << 12, REG_QRFCR);
 
-	/* release the frame */
+	
 	ks8842_write16(adapter, 17, 0x01, REG_RXQCR);
 
-	/* set high watermark to 2K */
+	
 	ks8842_enable_bits(adapter, 0, 1 << 12, REG_QRFCR);
 }
 
@@ -442,7 +416,7 @@ void ks8842_tasklet(unsigned long arg)
 	unsigned long flags;
 	u16 entry_bank;
 
-	/* read current bank to be able to set it back */
+	
 	spin_lock_irqsave(&adapter->lock, flags);
 	entry_bank = ioread16(adapter->hw_addr + REG_SELECT_BANK);
 	spin_unlock_irqrestore(&adapter->lock, flags);
@@ -450,7 +424,7 @@ void ks8842_tasklet(unsigned long arg)
 	isr = ks8842_read16(adapter, 18, REG_ISR);
 	dev_dbg(&adapter->pdev->dev, "%s - ISR: 0x%x\n", __func__, isr);
 
-	/* Ack */
+	
 	ks8842_write16(adapter, 18, isr, REG_ISR);
 
 	if (!netif_running(netdev))
@@ -478,7 +452,7 @@ void ks8842_tasklet(unsigned long arg)
 		ks8842_enable_rx(adapter);
 	}
 
-	/* re-enable interrupts, put back the bank selection register */
+	
 	spin_lock_irqsave(&adapter->lock, flags);
 	ks8842_write16(adapter, 18, ENABLED_IRQS, REG_IER);
 	iowrite16(entry_bank, adapter->hw_addr + REG_SELECT_BANK);
@@ -496,10 +470,10 @@ static irqreturn_t ks8842_irq(int irq, void *devid)
 	dev_dbg(&adapter->pdev->dev, "%s - ISR: 0x%x\n", __func__, isr);
 
 	if (isr) {
-		/* disable IRQ */
+		
 		ks8842_write16(adapter, 18, 0x00, REG_IER);
 
-		/* schedule tasklet */
+		
 		tasklet_schedule(&adapter->tasklet);
 
 		ret = IRQ_HANDLED;
@@ -511,7 +485,7 @@ static irqreturn_t ks8842_irq(int irq, void *devid)
 }
 
 
-/* Netdevice operations */
+
 
 static int ks8842_open(struct net_device *netdev)
 {
@@ -520,7 +494,7 @@ static int ks8842_open(struct net_device *netdev)
 
 	dev_dbg(&adapter->pdev->dev, "%s - entry\n", __func__);
 
-	/* reset the HW */
+	
 	ks8842_reset_hw(adapter);
 
 	ks8842_update_link_status(netdev, adapter);
@@ -542,10 +516,10 @@ static int ks8842_close(struct net_device *netdev)
 
 	dev_dbg(&adapter->pdev->dev, "%s - entry\n", __func__);
 
-	/* free the irq */
+	
 	free_irq(adapter->irq, adapter);
 
-	/* disable the switch */
+	
 	ks8842_write16(adapter, 32, 0x0, REG_SW_ID_AND_ENABLE);
 
 	return 0;
@@ -600,7 +574,7 @@ static void ks8842_tx_timeout(struct net_device *netdev)
 	dev_dbg(&adapter->pdev->dev, "%s: entry\n", __func__);
 
 	spin_lock_irqsave(&adapter->lock, flags);
-	/* disable interrupts */
+	
 	ks8842_write16(adapter, 18, 0, REG_IER);
 	ks8842_write16(adapter, 18, 0xFFFF, REG_ISR);
 	spin_unlock_irqrestore(&adapter->lock, flags);

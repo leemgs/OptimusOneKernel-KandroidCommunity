@@ -1,13 +1,4 @@
-/*
- * Blackfin Infra-red Driver
- *
- * Copyright 2006-2009 Analog Devices Inc.
- *
- * Enter bugs at http://blackfin.uclinux.org/
- *
- * Licensed under the GPL-2 or later.
- *
- */
+
 
 #include <linux/serial.h>
 #include <linux/module.h>
@@ -140,7 +131,7 @@ static inline void SIR_UART_CLEAR_LSR(struct bfin_sir_port *port)
 #endif
 
 static const unsigned short per[][4] = {
-	/* rx pin      tx pin     NULL  uart_number */
+	
 	{P_UART0_RX, P_UART0_TX,    0,    0},
 	{P_UART1_RX, P_UART1_TX,    0,    1},
 	{P_UART2_RX, P_UART2_TX,    0,    2},

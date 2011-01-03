@@ -1,26 +1,4 @@
-/*******************************************************************************
-  STMMAC Ethtool support
 
-  Copyright (C) 2007-2009  STMicroelectronics Ltd
-
-  This program is free software; you can redistribute it and/or modify it
-  under the terms and conditions of the GNU General Public License,
-  version 2, as published by the Free Software Foundation.
-
-  This program is distributed in the hope it will be useful, but WITHOUT
-  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-  more details.
-
-  You should have received a copy of the GNU General Public License along with
-  this program; if not, write to the Free Software Foundation, Inc.,
-  51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
-
-  The full GNU General Public License is included in this distribution in
-  the file called "COPYING".
-
-  Author: Giuseppe Cavallaro <peppe.cavallaro@st.com>
-*******************************************************************************/
 
 #include <linux/etherdevice.h>
 #include <linux/ethtool.h>
@@ -175,20 +153,20 @@ void stmmac_ethtool_gregs(struct net_device *dev,
 	memset(reg_space, 0x0, REG_SPACE_SIZE);
 
 	if (!priv->is_gmac) {
-		/* MAC registers */
+		
 		for (i = 0; i < 12; i++)
 			reg_space[i] = readl(dev->base_addr + (i * 4));
-		/* DMA registers */
+		
 		for (i = 0; i < 9; i++)
 			reg_space[i + 12] =
 			    readl(dev->base_addr + (DMA_BUS_MODE + (i * 4)));
 		reg_space[22] = readl(dev->base_addr + DMA_CUR_TX_BUF_ADDR);
 		reg_space[23] = readl(dev->base_addr + DMA_CUR_RX_BUF_ADDR);
 	} else {
-		/* MAC registers */
+		
 		for (i = 0; i < 55; i++)
 			reg_space[i] = readl(dev->base_addr + (i * 4));
-		/* DMA registers */
+		
 		for (i = 0; i < 22; i++)
 			reg_space[i + 55] =
 			    readl(dev->base_addr + (DMA_BUS_MODE + (i * 4)));
@@ -256,7 +234,7 @@ stmmac_set_pauseparam(struct net_device *netdev,
 	if (phy->autoneg) {
 		if (netif_running(netdev)) {
 			struct ethtool_cmd cmd;
-			/* auto-negotiation automatically restarted */
+			
 			cmd.cmd = ETHTOOL_NWAY_RST;
 			cmd.supported = phy->supported;
 			cmd.advertising = phy->advertising;
@@ -282,7 +260,7 @@ static void stmmac_get_ethtool_stats(struct net_device *dev,
 	unsigned long ioaddr = dev->base_addr;
 	int i;
 
-	/* Update HW stats if supported */
+	
 	priv->mac_type->ops->dma_diagnostic_fr(&dev->stats, &priv->xstats,
 					       ioaddr);
 
@@ -325,7 +303,7 @@ static void stmmac_get_strings(struct net_device *dev, u32 stringset, u8 *data)
 	return;
 }
 
-/* Currently only support WOL through Magic packet. */
+
 static void stmmac_get_wol(struct net_device *dev, struct ethtool_wolinfo *wol)
 {
 	struct stmmac_priv *priv = netdev_priv(dev);

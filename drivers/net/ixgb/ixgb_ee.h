@@ -1,46 +1,20 @@
-/*******************************************************************************
 
-  Intel PRO/10GbE Linux driver
-  Copyright(c) 1999 - 2008 Intel Corporation.
-
-  This program is free software; you can redistribute it and/or modify it
-  under the terms and conditions of the GNU General Public License,
-  version 2, as published by the Free Software Foundation.
-
-  This program is distributed in the hope it will be useful, but WITHOUT
-  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-  more details.
-
-  You should have received a copy of the GNU General Public License along with
-  this program; if not, write to the Free Software Foundation, Inc.,
-  51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
-
-  The full GNU General Public License is included in this distribution in
-  the file called "COPYING".
-
-  Contact Information:
-  Linux NICS <linux.nics@intel.com>
-  e1000-devel Mailing List <e1000-devel@lists.sourceforge.net>
-  Intel Corporation, 5200 N.E. Elam Young Parkway, Hillsboro, OR 97124-6497
-
-*******************************************************************************/
 
 #ifndef _IXGB_EE_H_
 #define _IXGB_EE_H_
 
-#define IXGB_EEPROM_SIZE    64	/* Size in words */
+#define IXGB_EEPROM_SIZE    64	
 
 #define IXGB_ETH_LENGTH_OF_ADDRESS   6
 
-/* EEPROM Commands */
-#define EEPROM_READ_OPCODE  0x6	/* EEPROM read opcode */
-#define EEPROM_WRITE_OPCODE 0x5	/* EEPROM write opcode */
-#define EEPROM_ERASE_OPCODE 0x7	/* EEPROM erase opcode */
-#define EEPROM_EWEN_OPCODE  0x13	/* EEPROM erase/write enable */
-#define EEPROM_EWDS_OPCODE  0x10	/* EEPROM erase/write disable */
 
-/* EEPROM MAP (Word Offsets) */
+#define EEPROM_READ_OPCODE  0x6	
+#define EEPROM_WRITE_OPCODE 0x5	
+#define EEPROM_ERASE_OPCODE 0x7	
+#define EEPROM_EWEN_OPCODE  0x13	
+#define EEPROM_EWDS_OPCODE  0x10	
+
+
 #define EEPROM_IA_1_2_REG        0x0000
 #define EEPROM_IA_3_4_REG        0x0001
 #define EEPROM_IA_5_6_REG        0x0002
@@ -59,21 +33,21 @@
 #define EEPROM_FLASH_VERSION     0x0032
 #define EEPROM_CHECKSUM_REG      0x003F
 
-/* Mask bits for fields in Word 0x0a of the EEPROM */
+
 
 #define EEPROM_ICW1_SIGNATURE_MASK  0xC000
 #define EEPROM_ICW1_SIGNATURE_VALID 0x4000
 #define EEPROM_ICW1_SIGNATURE_CLEAR 0x0000
 
-/* For checksumming, the sum of all words in the EEPROM should equal 0xBABA. */
+
 #define EEPROM_SUM 0xBABA
 
-/* EEPROM Map Sizes (Byte Counts) */
+
 #define PBA_SIZE 4
 
-/* EEPROM Map defines (WORD OFFSETS)*/
 
-/* EEPROM structure */
+
+
 struct ixgb_ee_map_type {
 	u8 mac_addr[IXGB_ETH_LENGTH_OF_ADDRESS];
 	__le16 compatibility;
@@ -94,7 +68,7 @@ struct ixgb_ee_map_type {
 	__le16 checksum;
 };
 
-/* EEPROM Functions */
+
 u16 ixgb_read_eeprom(struct ixgb_hw *hw, u16 reg);
 
 bool ixgb_validate_eeprom_checksum(struct ixgb_hw *hw);
@@ -103,4 +77,4 @@ void ixgb_update_eeprom_checksum(struct ixgb_hw *hw);
 
 void ixgb_write_eeprom(struct ixgb_hw *hw, u16 reg, u16 data);
 
-#endif				/* IXGB_EE_H */
+#endif				

@@ -1,27 +1,4 @@
-/*
- * Copyright (C) 2003 - 2009 NetXen, Inc.
- * Copyright (C) 2009 - QLogic Corporation.
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA  02111-1307, USA.
- *
- * The full GNU General Public License is included in this distribution
- * in the file called LICENSE.
- *
- */
+
 
 #include "netxen_nic.h"
 #include "netxen_nic_hw.h"
@@ -83,8 +60,8 @@ static void __iomem *pci_base_offset(struct netxen_adapter *adapter,
 
 static crb_128M_2M_block_map_t
 crb_128M_2M_map[64] __cacheline_aligned_in_smp = {
-    {{{0, 0,         0,         0} } },		/* 0: PCI */
-    {{{1, 0x0100000, 0x0102000, 0x120000},	/* 1: PCIE */
+    {{{0, 0,         0,         0} } },		
+    {{{1, 0x0100000, 0x0102000, 0x120000},	
 	  {1, 0x0110000, 0x0120000, 0x130000},
 	  {1, 0x0120000, 0x0122000, 0x124000},
 	  {1, 0x0130000, 0x0132000, 0x126000},
@@ -100,13 +77,13 @@ crb_128M_2M_map[64] __cacheline_aligned_in_smp = {
 	  {0, 0x0000000, 0x0000000, 0x000000},
 	  {1, 0x01e0000, 0x01e0800, 0x122000},
 	  {0, 0x0000000, 0x0000000, 0x000000} } },
-	{{{1, 0x0200000, 0x0210000, 0x180000} } },/* 2: MN */
-    {{{0, 0,         0,         0} } },	    /* 3: */
-    {{{1, 0x0400000, 0x0401000, 0x169000} } },/* 4: P2NR1 */
-    {{{1, 0x0500000, 0x0510000, 0x140000} } },/* 5: SRE   */
-    {{{1, 0x0600000, 0x0610000, 0x1c0000} } },/* 6: NIU   */
-    {{{1, 0x0700000, 0x0704000, 0x1b8000} } },/* 7: QM    */
-    {{{1, 0x0800000, 0x0802000, 0x170000},  /* 8: SQM0  */
+	{{{1, 0x0200000, 0x0210000, 0x180000} } },
+    {{{0, 0,         0,         0} } },	    
+    {{{1, 0x0400000, 0x0401000, 0x169000} } },
+    {{{1, 0x0500000, 0x0510000, 0x140000} } },
+    {{{1, 0x0600000, 0x0610000, 0x1c0000} } },
+    {{{1, 0x0700000, 0x0704000, 0x1b8000} } },
+    {{{1, 0x0800000, 0x0802000, 0x170000},  
       {0, 0x0000000, 0x0000000, 0x000000},
       {0, 0x0000000, 0x0000000, 0x000000},
       {0, 0x0000000, 0x0000000, 0x000000},
@@ -122,7 +99,7 @@ crb_128M_2M_map[64] __cacheline_aligned_in_smp = {
       {0, 0x0000000, 0x0000000, 0x000000},
       {0, 0x0000000, 0x0000000, 0x000000},
       {1, 0x08f0000, 0x08f2000, 0x172000} } },
-    {{{1, 0x0900000, 0x0902000, 0x174000},	/* 9: SQM1*/
+    {{{1, 0x0900000, 0x0902000, 0x174000},	
       {0, 0x0000000, 0x0000000, 0x000000},
       {0, 0x0000000, 0x0000000, 0x000000},
       {0, 0x0000000, 0x0000000, 0x000000},
@@ -138,7 +115,7 @@ crb_128M_2M_map[64] __cacheline_aligned_in_smp = {
       {0, 0x0000000, 0x0000000, 0x000000},
       {0, 0x0000000, 0x0000000, 0x000000},
       {1, 0x09f0000, 0x09f2000, 0x176000} } },
-    {{{0, 0x0a00000, 0x0a02000, 0x178000},	/* 10: SQM2*/
+    {{{0, 0x0a00000, 0x0a02000, 0x178000},	
       {0, 0x0000000, 0x0000000, 0x000000},
       {0, 0x0000000, 0x0000000, 0x000000},
       {0, 0x0000000, 0x0000000, 0x000000},
@@ -154,7 +131,7 @@ crb_128M_2M_map[64] __cacheline_aligned_in_smp = {
       {0, 0x0000000, 0x0000000, 0x000000},
       {0, 0x0000000, 0x0000000, 0x000000},
       {1, 0x0af0000, 0x0af2000, 0x17a000} } },
-    {{{0, 0x0b00000, 0x0b02000, 0x17c000},	/* 11: SQM3*/
+    {{{0, 0x0b00000, 0x0b02000, 0x17c000},	
       {0, 0x0000000, 0x0000000, 0x000000},
       {0, 0x0000000, 0x0000000, 0x000000},
       {0, 0x0000000, 0x0000000, 0x000000},
@@ -170,28 +147,28 @@ crb_128M_2M_map[64] __cacheline_aligned_in_smp = {
       {0, 0x0000000, 0x0000000, 0x000000},
       {0, 0x0000000, 0x0000000, 0x000000},
       {1, 0x0bf0000, 0x0bf2000, 0x17e000} } },
-	{{{1, 0x0c00000, 0x0c04000, 0x1d4000} } },/* 12: I2Q */
-	{{{1, 0x0d00000, 0x0d04000, 0x1a4000} } },/* 13: TMR */
-	{{{1, 0x0e00000, 0x0e04000, 0x1a0000} } },/* 14: ROMUSB */
-	{{{1, 0x0f00000, 0x0f01000, 0x164000} } },/* 15: PEG4 */
-	{{{0, 0x1000000, 0x1004000, 0x1a8000} } },/* 16: XDMA */
-	{{{1, 0x1100000, 0x1101000, 0x160000} } },/* 17: PEG0 */
-	{{{1, 0x1200000, 0x1201000, 0x161000} } },/* 18: PEG1 */
-	{{{1, 0x1300000, 0x1301000, 0x162000} } },/* 19: PEG2 */
-	{{{1, 0x1400000, 0x1401000, 0x163000} } },/* 20: PEG3 */
-	{{{1, 0x1500000, 0x1501000, 0x165000} } },/* 21: P2ND */
-	{{{1, 0x1600000, 0x1601000, 0x166000} } },/* 22: P2NI */
-	{{{0, 0,         0,         0} } },	/* 23: */
-	{{{0, 0,         0,         0} } },	/* 24: */
-	{{{0, 0,         0,         0} } },	/* 25: */
-	{{{0, 0,         0,         0} } },	/* 26: */
-	{{{0, 0,         0,         0} } },	/* 27: */
-	{{{0, 0,         0,         0} } },	/* 28: */
-	{{{1, 0x1d00000, 0x1d10000, 0x190000} } },/* 29: MS */
-    {{{1, 0x1e00000, 0x1e01000, 0x16a000} } },/* 30: P2NR2 */
-    {{{1, 0x1f00000, 0x1f10000, 0x150000} } },/* 31: EPG */
-	{{{0} } },				/* 32: PCI */
-	{{{1, 0x2100000, 0x2102000, 0x120000},	/* 33: PCIE */
+	{{{1, 0x0c00000, 0x0c04000, 0x1d4000} } },
+	{{{1, 0x0d00000, 0x0d04000, 0x1a4000} } },
+	{{{1, 0x0e00000, 0x0e04000, 0x1a0000} } },
+	{{{1, 0x0f00000, 0x0f01000, 0x164000} } },
+	{{{0, 0x1000000, 0x1004000, 0x1a8000} } },
+	{{{1, 0x1100000, 0x1101000, 0x160000} } },
+	{{{1, 0x1200000, 0x1201000, 0x161000} } },
+	{{{1, 0x1300000, 0x1301000, 0x162000} } },
+	{{{1, 0x1400000, 0x1401000, 0x163000} } },
+	{{{1, 0x1500000, 0x1501000, 0x165000} } },
+	{{{1, 0x1600000, 0x1601000, 0x166000} } },
+	{{{0, 0,         0,         0} } },	
+	{{{0, 0,         0,         0} } },	
+	{{{0, 0,         0,         0} } },	
+	{{{0, 0,         0,         0} } },	
+	{{{0, 0,         0,         0} } },	
+	{{{0, 0,         0,         0} } },	
+	{{{1, 0x1d00000, 0x1d10000, 0x190000} } },
+    {{{1, 0x1e00000, 0x1e01000, 0x16a000} } },
+    {{{1, 0x1f00000, 0x1f10000, 0x150000} } },
+	{{{0} } },				
+	{{{1, 0x2100000, 0x2102000, 0x120000},	
 	  {1, 0x2110000, 0x2120000, 0x130000},
 	  {1, 0x2120000, 0x2122000, 0x124000},
 	  {1, 0x2130000, 0x2132000, 0x126000},
@@ -207,41 +184,39 @@ crb_128M_2M_map[64] __cacheline_aligned_in_smp = {
 	  {0, 0x0000000, 0x0000000, 0x000000},
 	  {0, 0x0000000, 0x0000000, 0x000000},
 	  {0, 0x0000000, 0x0000000, 0x000000} } },
-	{{{1, 0x2200000, 0x2204000, 0x1b0000} } },/* 34: CAM */
-	{{{0} } },				/* 35: */
-	{{{0} } },				/* 36: */
-	{{{0} } },				/* 37: */
-	{{{0} } },				/* 38: */
-	{{{0} } },				/* 39: */
-	{{{1, 0x2800000, 0x2804000, 0x1a4000} } },/* 40: TMR */
-	{{{1, 0x2900000, 0x2901000, 0x16b000} } },/* 41: P2NR3 */
-	{{{1, 0x2a00000, 0x2a00400, 0x1ac400} } },/* 42: RPMX1 */
-	{{{1, 0x2b00000, 0x2b00400, 0x1ac800} } },/* 43: RPMX2 */
-	{{{1, 0x2c00000, 0x2c00400, 0x1acc00} } },/* 44: RPMX3 */
-	{{{1, 0x2d00000, 0x2d00400, 0x1ad000} } },/* 45: RPMX4 */
-	{{{1, 0x2e00000, 0x2e00400, 0x1ad400} } },/* 46: RPMX5 */
-	{{{1, 0x2f00000, 0x2f00400, 0x1ad800} } },/* 47: RPMX6 */
-	{{{1, 0x3000000, 0x3000400, 0x1adc00} } },/* 48: RPMX7 */
-	{{{0, 0x3100000, 0x3104000, 0x1a8000} } },/* 49: XDMA */
-	{{{1, 0x3200000, 0x3204000, 0x1d4000} } },/* 50: I2Q */
-	{{{1, 0x3300000, 0x3304000, 0x1a0000} } },/* 51: ROMUSB */
-	{{{0} } },				/* 52: */
-	{{{1, 0x3500000, 0x3500400, 0x1ac000} } },/* 53: RPMX0 */
-	{{{1, 0x3600000, 0x3600400, 0x1ae000} } },/* 54: RPMX8 */
-	{{{1, 0x3700000, 0x3700400, 0x1ae400} } },/* 55: RPMX9 */
-	{{{1, 0x3800000, 0x3804000, 0x1d0000} } },/* 56: OCM0 */
-	{{{1, 0x3900000, 0x3904000, 0x1b4000} } },/* 57: CRYPTO */
-	{{{1, 0x3a00000, 0x3a04000, 0x1d8000} } },/* 58: SMB */
-	{{{0} } },				/* 59: I2C0 */
-	{{{0} } },				/* 60: I2C1 */
-	{{{1, 0x3d00000, 0x3d04000, 0x1d8000} } },/* 61: LPC */
-	{{{1, 0x3e00000, 0x3e01000, 0x167000} } },/* 62: P2NC */
-	{{{1, 0x3f00000, 0x3f01000, 0x168000} } }	/* 63: P2NR0 */
+	{{{1, 0x2200000, 0x2204000, 0x1b0000} } },
+	{{{0} } },				
+	{{{0} } },				
+	{{{0} } },				
+	{{{0} } },				
+	{{{0} } },				
+	{{{1, 0x2800000, 0x2804000, 0x1a4000} } },
+	{{{1, 0x2900000, 0x2901000, 0x16b000} } },
+	{{{1, 0x2a00000, 0x2a00400, 0x1ac400} } },
+	{{{1, 0x2b00000, 0x2b00400, 0x1ac800} } },
+	{{{1, 0x2c00000, 0x2c00400, 0x1acc00} } },
+	{{{1, 0x2d00000, 0x2d00400, 0x1ad000} } },
+	{{{1, 0x2e00000, 0x2e00400, 0x1ad400} } },
+	{{{1, 0x2f00000, 0x2f00400, 0x1ad800} } },
+	{{{1, 0x3000000, 0x3000400, 0x1adc00} } },
+	{{{0, 0x3100000, 0x3104000, 0x1a8000} } },
+	{{{1, 0x3200000, 0x3204000, 0x1d4000} } },
+	{{{1, 0x3300000, 0x3304000, 0x1a0000} } },
+	{{{0} } },				
+	{{{1, 0x3500000, 0x3500400, 0x1ac000} } },
+	{{{1, 0x3600000, 0x3600400, 0x1ae000} } },
+	{{{1, 0x3700000, 0x3700400, 0x1ae400} } },
+	{{{1, 0x3800000, 0x3804000, 0x1d0000} } },
+	{{{1, 0x3900000, 0x3904000, 0x1b4000} } },
+	{{{1, 0x3a00000, 0x3a04000, 0x1d8000} } },
+	{{{0} } },				
+	{{{0} } },				
+	{{{1, 0x3d00000, 0x3d04000, 0x1d8000} } },
+	{{{1, 0x3e00000, 0x3e01000, 0x167000} } },
+	{{{1, 0x3f00000, 0x3f01000, 0x168000} } }	
 };
 
-/*
- * top 12 bits of crb internal address (hub, agent)
- */
+
 static unsigned crb_hub_agt[64] =
 {
 	0,
@@ -310,9 +285,9 @@ static unsigned crb_hub_agt[64] =
 	0,
 };
 
-/*  PCI Windowing for DDR regions.  */
 
-#define NETXEN_WINDOW_ONE 	0x2000000 /*CRB Window: bit 25 of CRB address */
+
+#define NETXEN_WINDOW_ONE 	0x2000000 
 
 #define NETXEN_PCIE_SEM_TIMEOUT	10000
 
@@ -353,7 +328,7 @@ int netxen_niu_xg_init_port(struct netxen_adapter *adapter, int port)
 	return 0;
 }
 
-/* Disable an XG interface */
+
 int netxen_niu_disable_xg_port(struct netxen_adapter *adapter)
 {
 	__u32 mac_cfg;
@@ -449,7 +424,7 @@ int netxen_p2_nic_set_mac_addr(struct netxen_adapter *adapter, u8 *addr)
 	reg_lo = NETXEN_NIU_XGE_STATION_ADDR_0_1 + (0x10000 * phy);
 	reg_hi = NETXEN_NIU_XGE_STATION_ADDR_0_HI + (0x10000 * phy);
 
-	/* write twice to flush */
+	
 	if (NXWR32(adapter, reg_lo, mac_lo) || NXWR32(adapter, reg_hi, mac_hi))
 		return -EIO;
 	if (NXWR32(adapter, reg_lo, mac_lo) || NXWR32(adapter, reg_hi, mac_hi))
@@ -472,12 +447,12 @@ netxen_nic_enable_mcast_filter(struct netxen_adapter *adapter)
 	val |= (1UL << (28+port));
 	NXWR32(adapter, NETXEN_MAC_ADDR_CNTL_REG, val);
 
-	/* add broadcast addr to filter */
+	
 	val = 0xffffff;
 	NXWR32(adapter, NETXEN_UNICAST_ADDR(port, 0), val);
 	NXWR32(adapter, NETXEN_UNICAST_ADDR(port, 0)+4, val);
 
-	/* add station addr to filter */
+	
 	val = MAC_HI(addr);
 	NXWR32(adapter, NETXEN_UNICAST_ADDR(port, 1), val);
 	val = MAC_LO(addr);
@@ -543,7 +518,7 @@ void netxen_p2_nic_set_multi(struct net_device *netdev)
 		adapter->set_promisc(adapter,
 				NETXEN_NIU_PROMISC_MODE);
 
-		/* Full promiscuous mode */
+		
 		netxen_nic_disable_mcast_filter(adapter);
 
 		return;
@@ -572,7 +547,7 @@ void netxen_p2_nic_set_multi(struct net_device *netdev)
 		printk(KERN_WARNING "%s: %s multicast address count mismatch\n",
 			netxen_nic_driver_name, netdev->name);
 
-	/* Clear out remaining addresses */
+	
 	for (; index < adapter->max_mc_count; index++)
 		netxen_nic_set_mcast_addr(adapter, index, null_addr);
 }
@@ -653,7 +628,7 @@ static int nx_p3_nic_add_mac(struct netxen_adapter *adapter,
 	struct list_head *head;
 	nx_mac_list_t *cur;
 
-	/* look up if already exists */
+	
 	list_for_each(head, del_list) {
 		cur = list_entry(head, nx_mac_list_t, list);
 
@@ -756,16 +731,14 @@ void netxen_p3_free_mac_list(struct netxen_adapter *adapter)
 
 int netxen_p3_nic_set_mac_addr(struct netxen_adapter *adapter, u8 *addr)
 {
-	/* assuming caller has already copied new addr to netdev */
+	
 	netxen_p3_nic_set_multi(adapter->netdev);
 	return 0;
 }
 
 #define	NETXEN_CONFIG_INTR_COALESCE	3
 
-/*
- * Send the interrupt coalescing parameter set by ethtool to the card.
- */
+
 int netxen_config_intr_coalesce(struct netxen_adapter *adapter)
 {
 	nx_nic_req_t req;
@@ -869,16 +842,7 @@ int netxen_config_rss(struct netxen_adapter *adapter, int enable)
 	word = NX_NIC_H2C_OPCODE_CONFIG_RSS | ((u64)adapter->portnum << 16);
 	req.req_hdr = cpu_to_le64(word);
 
-	/*
-	 * RSS request:
-	 * bits 3-0: hash_method
-	 *      5-4: hash_type_ipv4
-	 *	7-6: hash_type_ipv6
-	 *	  8: enable
-	 *        9: use indirection table
-	 *    47-10: reserved
-	 *    63-48: indirection table mask
-	 */
+	
 	word =  ((u64)(RSS_HASHTYPE_IP_TCP & 0x3) << 4) |
 		((u64)(RSS_HASHTYPE_IP_TCP & 0x3) << 6) |
 		((u64)(enable & 0x1) << 8) |
@@ -966,10 +930,7 @@ int netxen_send_lro_cleanup(struct netxen_adapter *adapter)
 	return rv;
 }
 
-/*
- * netxen_nic_change_mtu - Change the Maximum Transfer Unit
- * @returns 0 on success, negative on failure
- */
+
 
 #define MTU_FUDGE_FACTOR	100
 
@@ -1069,9 +1030,7 @@ int netxen_p3_get_mac_addr(struct netxen_adapter *adapter, __le64 *mac)
 	return 0;
 }
 
-/*
- * Changes the CRB window to the specified window.
- */
+
 static void
 netxen_nic_pci_change_crbwindow_128M(struct netxen_adapter *adapter, u32 wndw)
 {
@@ -1082,14 +1041,7 @@ netxen_nic_pci_change_crbwindow_128M(struct netxen_adapter *adapter, u32 wndw)
 
 	if (adapter->curr_window == wndw)
 		return;
-	/*
-	 * Move the CRB window.
-	 * We need to write to the "direct access" region of PCI
-	 * to avoid a race condition where the window register has
-	 * not been successfully written across CRB before the target
-	 * register address is received by PCI. The direct region bypasses
-	 * the CRB bus.
-	 */
+	
 	offset = PCI_OFFSET_SECOND_RANGE(adapter,
 			NETXEN_PCIX_PH_REG(PCIE_CRB_WINDOW_REG(func)));
 
@@ -1098,7 +1050,7 @@ netxen_nic_pci_change_crbwindow_128M(struct netxen_adapter *adapter, u32 wndw)
 
 	writel(wndw, offset);
 
-	/* MUST make sure window is set before we forge on... */
+	
 	while ((tmp = readl(offset)) != wndw) {
 		printk(KERN_WARNING "%s: %s WARNING: CRB window value not "
 		       "registered properly: 0x%08x.\n",
@@ -1115,13 +1067,7 @@ netxen_nic_pci_change_crbwindow_128M(struct netxen_adapter *adapter, u32 wndw)
 		adapter->curr_window = 0;
 }
 
-/*
- * Return -1 if off is not valid,
- *	 1 if window access is needed. 'off' is set to offset from
- *	   CRB space in 128M pci map
- *	 0 if no window access is needed. 'off' is set to 2M addr
- * In: 'off' is offset from base in 128M pci map
- */
+
 static int
 netxen_nic_pci_get_crb_addr_2M(struct netxen_adapter *adapter, ulong *off)
 {
@@ -1142,9 +1088,7 @@ netxen_nic_pci_get_crb_addr_2M(struct netxen_adapter *adapter, ulong *off)
 
 	*off -= NETXEN_PCI_CRBSPACE;
 
-	/*
-	 * Try direct map
-	 */
+	
 	m = &crb_128M_2M_map[CRB_BLK(*off)].sub_block[CRB_SUBBLK(*off)];
 
 	if (m->valid && (m->start_128M <= *off) && (m->end_128M > *off)) {
@@ -1153,17 +1097,11 @@ netxen_nic_pci_get_crb_addr_2M(struct netxen_adapter *adapter, ulong *off)
 		return 0;
 	}
 
-	/*
-	 * Not in direct map, use crb window
-	 */
+	
 	return 1;
 }
 
-/*
- * In: 'off' is offset from CRB space in 128M pci map
- * Out: 'off' is 2M pci map addr
- * side effect: lock crb window
- */
+
 static void
 netxen_nic_pci_set_crbwindow_2M(struct netxen_adapter *adapter, ulong *off)
 {
@@ -1171,10 +1109,7 @@ netxen_nic_pci_set_crbwindow_2M(struct netxen_adapter *adapter, ulong *off)
 
 	adapter->crb_win = CRB_HI(*off);
 	writel(adapter->crb_win, (adapter->ahw.pci_base0 + CRB_WINDOW_2M));
-	/*
-	 * Read back value to make sure write has gone through before trying
-	 * to use it.
-	 */
+	
 	win_read = readl(adapter->ahw.pci_base0 + CRB_WINDOW_2M);
 	if (win_read != adapter->crb_win) {
 		printk(KERN_ERR "%s: Written crbwin (0x%x) != "
@@ -1198,11 +1133,11 @@ netxen_nic_hw_write_wx_128M(struct netxen_adapter *adapter, ulong off, u32 data)
 
 	BUG_ON(!addr);
 
-	if (ADDR_IN_WINDOW1(off)) {	/* Window 1 */
+	if (ADDR_IN_WINDOW1(off)) {	
 		read_lock(&adapter->adapter_lock);
 		writel(data, addr);
 		read_unlock(&adapter->adapter_lock);
-	} else {		/* Window 0 */
+	} else {		
 		write_lock_irqsave(&adapter->adapter_lock, flags);
 		addr = pci_base_offset(adapter, off);
 		netxen_nic_pci_change_crbwindow_128M(adapter, 0);
@@ -1228,11 +1163,11 @@ netxen_nic_hw_read_wx_128M(struct netxen_adapter *adapter, ulong off)
 
 	BUG_ON(!addr);
 
-	if (ADDR_IN_WINDOW1(off)) {	/* Window 1 */
+	if (ADDR_IN_WINDOW1(off)) {	
 		read_lock(&adapter->adapter_lock);
 		data = readl(addr);
 		read_unlock(&adapter->adapter_lock);
-	} else {		/* Window 0 */
+	} else {		
 		write_lock_irqsave(&adapter->adapter_lock, flags);
 		netxen_nic_pci_change_crbwindow_128M(adapter, 0);
 		data = readl(addr);
@@ -1319,7 +1254,7 @@ netxen_nic_pci_set_window_128M(struct netxen_adapter *adapter,
 	}
 
 	if (ADDR_IN_RANGE(addr, NETXEN_ADDR_DDR_NET, NETXEN_ADDR_DDR_NET_MAX)) {
-		/* DDR network side */
+		
 		addr -= NETXEN_ADDR_DDR_NET;
 		window = (addr >> 25) & 0x3ff;
 		if (adapter->ahw.ddr_mn_window != window) {
@@ -1327,7 +1262,7 @@ netxen_nic_pci_set_window_128M(struct netxen_adapter *adapter,
 			offset = PCI_OFFSET_SECOND_RANGE(adapter,
 				NETXEN_PCIX_PH_REG(PCIE_MN_WINDOW_REG(func)));
 			writel(window, offset);
-			/* MUST make sure window is set before we forge on... */
+			
 			readl(offset);
 		}
 		addr -= (window * NETXEN_WINDOW_ONE);
@@ -1339,7 +1274,7 @@ netxen_nic_pci_set_window_128M(struct netxen_adapter *adapter,
 		addr -= NETXEN_ADDR_OCM1;
 		addr += NETXEN_PCI_OCM1;
 	} else if (ADDR_IN_RANGE(addr, NETXEN_ADDR_QDR_NET, qdr_max)) {
-		/* QDR network side */
+		
 		addr -= NETXEN_ADDR_QDR_NET;
 		window = (addr >> 22) & 0x3f;
 		if (adapter->ahw.qdr_sn_window != window) {
@@ -1347,16 +1282,13 @@ netxen_nic_pci_set_window_128M(struct netxen_adapter *adapter,
 			offset = PCI_OFFSET_SECOND_RANGE(adapter,
 				NETXEN_PCIX_PH_REG(PCIE_SN_WINDOW_REG(func)));
 			writel((window << 22), offset);
-			/* MUST make sure window is set before we forge on... */
+			
 			readl(offset);
 		}
 		addr -= (window * 0x400000);
 		addr += NETXEN_PCI_QDR_NET;
 	} else {
-		/*
-		 * peg gdb frequently accesses memory that doesn't exist,
-		 * this limits the chit chat so debugging isn't slowed down.
-		 */
+		
 		if ((netxen_pci_set_window_warning_count++ < 8)
 		    || (netxen_pci_set_window_warning_count % 64 == 0))
 			printk("%s: Warning:netxen_nic_pci_set_window()"
@@ -1367,7 +1299,7 @@ netxen_nic_pci_set_window_128M(struct netxen_adapter *adapter,
 	return addr;
 }
 
-/* window 1 registers only */
+
 static void netxen_nic_io_write_128M(struct netxen_adapter *adapter,
 		void __iomem *addr, u32 data)
 {
@@ -1424,7 +1356,7 @@ netxen_nic_pci_set_window_2M(struct netxen_adapter *adapter,
 	u32 win_read;
 
 	if (ADDR_IN_RANGE(addr, NETXEN_ADDR_DDR_NET, NETXEN_ADDR_DDR_NET_MAX)) {
-		/* DDR network side */
+		
 		window = MN_WIN(addr);
 		adapter->ahw.ddr_mn_window = window;
 		NXWR32(adapter, adapter->ahw.mn_win_crb, window);
@@ -1454,7 +1386,7 @@ netxen_nic_pci_set_window_2M(struct netxen_adapter *adapter,
 
 	} else if (ADDR_IN_RANGE(addr,
 			NETXEN_ADDR_QDR_NET, NETXEN_ADDR_QDR_NET_MAX_P3)) {
-		/* QDR network side */
+		
 		window = MS_WIN(addr);
 		adapter->ahw.qdr_sn_window = window;
 		NXWR32(adapter, adapter->ahw.ms_win_crb, window);
@@ -1467,10 +1399,7 @@ netxen_nic_pci_set_window_2M(struct netxen_adapter *adapter,
 		addr = GET_MEM_OFFS_2M(addr) + NETXEN_PCI_QDR_NET;
 
 	} else {
-		/*
-		 * peg gdb frequently accesses memory that doesn't exist,
-		 * this limits the chit chat so debugging isn't slowed down.
-		 */
+		
 		if ((netxen_pci_set_window_warning_count++ < 8)
 			|| (netxen_pci_set_window_warning_count%64 == 0)) {
 			printk("%s: Warning:%s Unknown address range!\n",
@@ -1749,11 +1678,7 @@ correct:
 		word[1] |= tmpw >> (sz[0] * 8);
 	}
 
-	/*
-	 * don't lock here - write_wx gets the lock if each time
-	 * write_lock_irqsave(&adapter->adapter_lock, flags);
-	 * netxen_nic_pci_change_crbwindow_128M(adapter, 0);
-	 */
+	
 
 	for (i = 0; i < loop; i++) {
 		writel(off8 + (i << 3), mem_crb+MIU_TEST_AGT_ADDR_LO);
@@ -1781,10 +1706,7 @@ correct:
 		}
 	}
 
-	/*
-	 * netxen_nic_pci_change_crbwindow_128M(adapter, 1);
-	 * write_unlock_irqrestore(&adapter->adapter_lock, flags);
-	 */
+	
 	return ret;
 }
 
@@ -1821,11 +1743,7 @@ correct:
 	sz[1] = size - sz[0];
 	loop = ((off0[0] + size - 1) >> 3) + 1;
 
-	/*
-	 * don't lock here - write_wx gets the lock if each time
-	 * write_lock_irqsave(&adapter->adapter_lock, flags);
-	 * netxen_nic_pci_change_crbwindow_128M(adapter, 0);
-	 */
+	
 
 	for (i = 0; i < loop; i++) {
 		writel(off8 + (i << 3), mem_crb + MIU_TEST_AGT_ADDR_LO);
@@ -1855,10 +1773,7 @@ correct:
 		}
 	}
 
-	/*
-	 * netxen_nic_pci_change_crbwindow_128M(adapter, 1);
-	 * write_unlock_irqrestore(&adapter->adapter_lock, flags);
-	 */
+	
 
 	if (j >= MAX_CTL_CHECK)
 		return -1;
@@ -1995,7 +1910,7 @@ int netxen_nic_get_board_info(struct netxen_adapter *adapter)
 	return 0;
 }
 
-/* NIU access sections */
+
 
 int netxen_nic_set_mtu_gb(struct netxen_adapter *adapter, int new_mtu)
 {

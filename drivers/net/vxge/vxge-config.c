@@ -1,16 +1,4 @@
-/******************************************************************************
- * This software may be used and distributed according to the terms of
- * the GNU General Public License (GPL), incorporated herein by reference.
- * Drivers based on or derived from this code fall under the GPL and must
- * retain the authorship, copyright and license notice.  This file is not
- * a complete program and may only be used when the entire operating
- * system is licensed under the GPL.
- * See the file COPYING in this distribution for more information.
- *
- * vxge-config.c: Driver for Neterion Inc's X3100 Series 10GbE PCIe I/O
- *                Virtualized Server Adapter.
- * Copyright(c) 2002-2009 Neterion Inc.
- ******************************************************************************/
+
 #include <linux/vmalloc.h>
 #include <linux/etherdevice.h>
 #include <linux/pci.h>
@@ -19,11 +7,7 @@
 #include "vxge-traffic.h"
 #include "vxge-config.h"
 
-/*
- * __vxge_hw_channel_allocate - Allocate memory for channel
- * This function allocates required memory for the channel and various arrays
- * in the channel
- */
+
 struct __vxge_hw_channel*
 __vxge_hw_channel_allocate(struct __vxge_hw_vpath_handle *vph,
 			   enum __vxge_hw_channel_type type,
@@ -90,11 +74,7 @@ exit0:
 	return NULL;
 }
 
-/*
- * __vxge_hw_channel_free - Free memory allocated for channel
- * This function deallocates memory from the channel and various arrays
- * in the channel
- */
+
 void __vxge_hw_channel_free(struct __vxge_hw_channel *channel)
 {
 	kfree(channel->work_arr);
@@ -104,11 +84,7 @@ void __vxge_hw_channel_free(struct __vxge_hw_channel *channel)
 	kfree(channel);
 }
 
-/*
- * __vxge_hw_channel_initialize - Initialize a channel
- * This function initializes a channel by properly setting the
- * various references
- */
+
 enum vxge_hw_status
 __vxge_hw_channel_initialize(struct __vxge_hw_channel *channel)
 {
@@ -140,10 +116,7 @@ __vxge_hw_channel_initialize(struct __vxge_hw_channel *channel)
 	return VXGE_HW_OK;
 }
 
-/*
- * __vxge_hw_channel_reset - Resets a channel
- * This function resets a channel by properly setting the various references
- */
+
 enum vxge_hw_status
 __vxge_hw_channel_reset(struct __vxge_hw_channel *channel)
 {
@@ -166,17 +139,13 @@ __vxge_hw_channel_reset(struct __vxge_hw_channel *channel)
 	return VXGE_HW_OK;
 }
 
-/*
- * __vxge_hw_device_pci_e_init
- * Initialize certain PCI/PCI-X configuration registers
- * with recommended values. Save config space for future hw resets.
- */
+
 void
 __vxge_hw_device_pci_e_init(struct __vxge_hw_device *hldev)
 {
 	u16 cmd = 0;
 
-	/* Set the PErr Repconse bit and SERR in PCI command register. */
+	
 	pci_read_config_word(hldev->pdev, PCI_COMMAND, &cmd);
 	cmd |= 0x140;
 	pci_write_config_word(hldev->pdev, PCI_COMMAND, cmd);
@@ -186,11 +155,7 @@ __vxge_hw_device_pci_e_init(struct __vxge_hw_device *hldev)
 	return;
 }
 
-/*
- * __vxge_hw_device_register_poll
- * Will poll certain register for specified amount of time.
- * Will poll until masked bit is not cleared.
- */
+
 enum vxge_hw_status
 __vxge_hw_device_register_poll(void __iomem *reg, u64 mask, u32 max_millis)
 {
@@ -218,10 +183,7 @@ __vxge_hw_device_register_poll(void __iomem *reg, u64 mask, u32 max_millis)
 	return ret;
 }
 
- /* __vxge_hw_device_vpath_reset_in_prog_check - Check if vpath reset
- * in progress
- * This routine checks the vpath reset in progress register is turned zero
- */
+ 
 enum vxge_hw_status
 __vxge_hw_device_vpath_reset_in_prog_check(u64 __iomem *vpath_rst_in_prog)
 {
@@ -232,11 +194,7 @@ __vxge_hw_device_vpath_reset_in_prog_check(u64 __iomem *vpath_rst_in_prog)
 	return status;
 }
 
-/*
- * __vxge_hw_device_toc_get
- * This routine sets the swapper and reads the toc pointer and returns the
- * memory mapped address of the toc
- */
+
 struct vxge_hw_toc_reg __iomem *
 __vxge_hw_device_toc_get(void __iomem *bar0)
 {
@@ -257,12 +215,7 @@ exit:
 	return toc;
 }
 
-/*
- * __vxge_hw_device_reg_addr_get
- * This routine sets the swapper and reads the toc pointer and initializes the
- * register location pointers in the device object. It waits until the ric is
- * completed initializing registers.
- */
+
 enum vxge_hw_status
 __vxge_hw_device_reg_addr_get(struct __vxge_hw_device *hldev)
 {
@@ -323,11 +276,7 @@ exit:
 	return status;
 }
 
-/*
- * __vxge_hw_device_id_get
- * This routine returns sets the device id and revision numbers into the device
- * structure
- */
+
 void __vxge_hw_device_id_get(struct __vxge_hw_device *hldev)
 {
 	u64 val64;
@@ -345,10 +294,7 @@ void __vxge_hw_device_id_get(struct __vxge_hw_device *hldev)
 	return;
 }
 
-/*
- * __vxge_hw_device_access_rights_get: Get Access Rights of the driver
- * This routine returns the Access Rights of the driver
- */
+
 static u32
 __vxge_hw_device_access_rights_get(u32 host_type, u32 func_id)
 {
@@ -381,10 +327,7 @@ __vxge_hw_device_access_rights_get(u32 host_type, u32 func_id)
 
 	return access_rights;
 }
-/*
- * __vxge_hw_device_host_info_get
- * This routine returns the host type assignments
- */
+
 void __vxge_hw_device_host_info_get(struct __vxge_hw_device *hldev)
 {
 	u64 val64;
@@ -415,17 +358,14 @@ void __vxge_hw_device_host_info_get(struct __vxge_hw_device *hldev)
 	return;
 }
 
-/*
- * __vxge_hw_verify_pci_e_info - Validate the pci-e link parameters such as
- * link width and signalling rate.
- */
+
 static enum vxge_hw_status
 __vxge_hw_verify_pci_e_info(struct __vxge_hw_device *hldev)
 {
 	int exp_cap;
 	u16 lnk;
 
-	/* Get the negotiated link width and speed from PCI config space */
+	
 	exp_cap = pci_find_capability(hldev->pdev, PCI_CAP_ID_EXP);
 	pci_read_config_word(hldev->pdev, exp_cap + PCI_EXP_LNKSTA, &lnk);
 
@@ -458,10 +398,7 @@ __vxge_hw_device_is_privilaged(struct __vxge_hw_device *hldev)
 		return VXGE_HW_ERR_PRIVILAGED_OPEARATION;
 }
 
-/*
- * vxge_hw_wrr_rebalance - Rebalance the RX_WRR and KDFC_WRR calandars.
- * Rebalance the RX_WRR and KDFC_WRR calandars.
- */
+
 static enum
 vxge_hw_status vxge_hw_wrr_rebalance(struct __vxge_hw_device *hldev)
 {
@@ -474,18 +411,17 @@ vxge_hw_status vxge_hw_wrr_rebalance(struct __vxge_hw_device *hldev)
 	if (status != VXGE_HW_OK)
 		goto exit;
 
-	/* Reset the priorities assigned to the WRR arbitration
-	phases for the receive traffic */
+	
 	for (i = 0; i < VXGE_HW_WRR_RING_COUNT; i++)
 		writeq(0, ((&hldev->mrpcim_reg->rx_w_round_robin_0) + i));
 
-	/* Reset the transmit FIFO servicing calendar for FIFOs */
+	
 	for (i = 0; i < VXGE_HW_WRR_FIFO_COUNT; i++) {
 		writeq(0, ((&hldev->mrpcim_reg->kdfc_w_round_robin_0) + i));
 		writeq(0, ((&hldev->mrpcim_reg->kdfc_w_round_robin_20) + i));
 	}
 
-	/* Assign WRR priority  0 for all FIFOs */
+	
 	for (i = 1; i < VXGE_HW_MAX_VIRTUAL_PATHS; i++) {
 		writeq(VXGE_HW_KDFC_FIFO_0_CTRL_WRR_NUMBER(0),
 				((&hldev->mrpcim_reg->kdfc_fifo_0_ctrl)  + i));
@@ -494,20 +430,20 @@ vxge_hw_status vxge_hw_wrr_rebalance(struct __vxge_hw_device *hldev)
 			((&hldev->mrpcim_reg->kdfc_fifo_17_ctrl) + i));
 	}
 
-	/* Reset to service non-offload doorbells */
+	
 	writeq(0, &hldev->mrpcim_reg->kdfc_entry_type_sel_0);
 	writeq(0, &hldev->mrpcim_reg->kdfc_entry_type_sel_1);
 
-	/* Set priority 0 to all receive queues */
+	
 	writeq(0, &hldev->mrpcim_reg->rx_queue_priority_0);
 	writeq(0, &hldev->mrpcim_reg->rx_queue_priority_1);
 	writeq(0, &hldev->mrpcim_reg->rx_queue_priority_2);
 
-	/* Initialize all the slots as unused */
+	
 	for (i = 0; i < VXGE_HW_WEIGHTED_RR_SERVICE_STATES; i++)
 		wrr_states[i] = -1;
 
-	/* Prepare the Fifo service states */
+	
 	for (i = 0; i < VXGE_HW_MAX_VIRTUAL_PATHS; i++) {
 
 		if (!hldev->config.vp_config[i].min_bandwidth)
@@ -520,8 +456,7 @@ vxge_hw_status vxge_hw_wrr_rebalance(struct __vxge_hw_device *hldev)
 			for (j = 0; j < VXGE_HW_WRR_FIFO_SERVICE_STATES;) {
 				if (wrr_states[j] == -1) {
 					wrr_states[j] = i;
-					/* Make sure each fifo is serviced
-					 * atleast once */
+					
 					if (i == j)
 						j += VXGE_HW_MAX_VIRTUAL_PATHS;
 					else
@@ -532,13 +467,13 @@ vxge_hw_status vxge_hw_wrr_rebalance(struct __vxge_hw_device *hldev)
 		}
 	}
 
-	/* Fill the unused slots with 0 */
+	
 	for (j = 0; j < VXGE_HW_WEIGHTED_RR_SERVICE_STATES; j++) {
 		if (wrr_states[j] == -1)
 			wrr_states[j] = 0;
 	}
 
-	/* Assign WRR priority number for FIFOs */
+	
 	for (i = 0; i < VXGE_HW_MAX_VIRTUAL_PATHS; i++) {
 		writeq(VXGE_HW_KDFC_FIFO_0_CTRL_WRR_NUMBER(i),
 				((&hldev->mrpcim_reg->kdfc_fifo_0_ctrl) + i));
@@ -547,8 +482,7 @@ vxge_hw_status vxge_hw_wrr_rebalance(struct __vxge_hw_device *hldev)
 			((&hldev->mrpcim_reg->kdfc_fifo_17_ctrl) + i));
 	}
 
-	/* Modify the servicing algorithm applied to the 3 types of doorbells.
-	i.e, none-offload, message and offload */
+	
 	writeq(VXGE_HW_KDFC_ENTRY_TYPE_SEL_0_NUMBER_0(0) |
 				VXGE_HW_KDFC_ENTRY_TYPE_SEL_0_NUMBER_1(0) |
 				VXGE_HW_KDFC_ENTRY_TYPE_SEL_0_NUMBER_2(0) |
@@ -577,7 +511,7 @@ vxge_hw_status vxge_hw_wrr_rebalance(struct __vxge_hw_device *hldev)
 		writeq(val64, (&hldev->mrpcim_reg->kdfc_w_round_robin_20 + i));
 	}
 
-	/* Set up the priorities assigned to receive queues */
+	
 	writeq(VXGE_HW_RX_QUEUE_PRIORITY_0_RX_Q_NUMBER_0(0) |
 			VXGE_HW_RX_QUEUE_PRIORITY_0_RX_Q_NUMBER_1(1) |
 			VXGE_HW_RX_QUEUE_PRIORITY_0_RX_Q_NUMBER_2(2) |
@@ -601,11 +535,11 @@ vxge_hw_status vxge_hw_wrr_rebalance(struct __vxge_hw_device *hldev)
 	writeq(VXGE_HW_RX_QUEUE_PRIORITY_2_RX_Q_NUMBER_16(16),
 				&hldev->mrpcim_reg->rx_queue_priority_2);
 
-	/* Initialize all the slots as unused */
+	
 	for (i = 0; i < VXGE_HW_WEIGHTED_RR_SERVICE_STATES; i++)
 		wrr_states[i] = -1;
 
-	/* Prepare the Ring service states */
+	
 	for (i = 0; i < VXGE_HW_MAX_VIRTUAL_PATHS; i++) {
 
 		if (!hldev->config.vp_config[i].min_bandwidth)
@@ -618,8 +552,7 @@ vxge_hw_status vxge_hw_wrr_rebalance(struct __vxge_hw_device *hldev)
 			for (j = 0; j < VXGE_HW_WRR_RING_SERVICE_STATES;) {
 				if (wrr_states[j] == -1) {
 					wrr_states[j] = i;
-					/* Make sure each ring is
-					 * serviced atleast once */
+					
 					if (i == j)
 						j += VXGE_HW_MAX_VIRTUAL_PATHS;
 					else
@@ -630,7 +563,7 @@ vxge_hw_status vxge_hw_wrr_rebalance(struct __vxge_hw_device *hldev)
 		}
 	}
 
-	/* Fill the unused slots with 0 */
+	
 	for (j = 0; j < VXGE_HW_WEIGHTED_RR_SERVICE_STATES; j++) {
 		if (wrr_states[j] == -1)
 			wrr_states[j] = 0;
@@ -660,16 +593,13 @@ exit:
 	return status;
 }
 
-/*
- * __vxge_hw_device_initialize
- * Initialize Titan-V hardware.
- */
+
 enum vxge_hw_status __vxge_hw_device_initialize(struct __vxge_hw_device *hldev)
 {
 	enum vxge_hw_status status = VXGE_HW_OK;
 
 	if (VXGE_HW_OK == __vxge_hw_device_is_privilaged(hldev)) {
-		/* Validate the pci-e link width and speed */
+		
 		status = __vxge_hw_verify_pci_e_info(hldev);
 		if (status != VXGE_HW_OK)
 			goto exit;
@@ -680,12 +610,7 @@ exit:
 	return status;
 }
 
-/**
- * vxge_hw_device_hw_info_get - Get the hw information
- * Returns the vpath mask that has the bits set for each vpath allocated
- * for the driver, FW version information and the first mac addresse for
- * each vpath
- */
+
 enum vxge_hw_status __devinit
 vxge_hw_device_hw_info_get(void __iomem *bar0,
 			   struct vxge_hw_device_hw_info *hw_info)
@@ -782,15 +707,7 @@ exit:
 	return status;
 }
 
-/*
- * vxge_hw_device_initialize - Initialize Titan device.
- * Initialize Titan device. Note that all the arguments of this public API
- * are 'IN', including @hldev. Driver cooperates with
- * OS to find new Titan device, locate its PCI and memory spaces.
- *
- * When done, the driver allocates sizeof(struct __vxge_hw_device) bytes for HW
- * to enable the latter to perform Titan hardware initialization.
- */
+
 enum vxge_hw_status __devinit
 vxge_hw_device_initialize(
 	struct __vxge_hw_device **devh,
@@ -818,7 +735,7 @@ vxge_hw_device_initialize(
 
 	vxge_hw_device_debug_set(hldev, VXGE_ERR, VXGE_COMPONENT_ALL);
 
-	/* apply config */
+	
 	memcpy(&hldev->config, device_config,
 		sizeof(struct vxge_hw_device_config));
 
@@ -838,7 +755,7 @@ vxge_hw_device_initialize(
 
 	__vxge_hw_device_host_info_get(hldev);
 
-	/* Incrementing for stats blocks */
+	
 	nblocks++;
 
 	for (i = 0; i < VXGE_HW_MAX_VIRTUAL_PATHS; i++) {
@@ -878,10 +795,7 @@ exit:
 	return status;
 }
 
-/*
- * vxge_hw_device_terminate - Terminate Titan device.
- * Terminate HW device.
- */
+
 void
 vxge_hw_device_terminate(struct __vxge_hw_device *hldev)
 {
@@ -892,10 +806,7 @@ vxge_hw_device_terminate(struct __vxge_hw_device *hldev)
 	vfree(hldev);
 }
 
-/*
- * vxge_hw_device_stats_get - Get the device hw statistics.
- * Returns the vpath h/w stats for the device.
- */
+
 enum vxge_hw_status
 vxge_hw_device_stats_get(struct __vxge_hw_device *hldev,
 			struct vxge_hw_device_stats_hw_info *hw_stats)
@@ -925,10 +836,7 @@ vxge_hw_device_stats_get(struct __vxge_hw_device *hldev,
 	return status;
 }
 
-/*
- * vxge_hw_driver_stats_get - Get the device sw statistics.
- * Returns the vpath s/w stats for the device.
- */
+
 enum vxge_hw_status vxge_hw_driver_stats_get(
 			struct __vxge_hw_device *hldev,
 			struct vxge_hw_device_stats_sw_info *sw_stats)
@@ -941,11 +849,7 @@ enum vxge_hw_status vxge_hw_driver_stats_get(
 	return status;
 }
 
-/*
- * vxge_hw_mrpcim_stats_access - Access the statistics from the given location
- *                           and offset and perform an operation
- * Get the statistics from the given location and offset.
- */
+
 enum vxge_hw_status
 vxge_hw_mrpcim_stats_access(struct __vxge_hw_device *hldev,
 			    u32 operation, u32 location, u32 offset, u64 *stat)
@@ -975,10 +879,7 @@ exit:
 	return status;
 }
 
-/*
- * vxge_hw_device_xmac_aggr_stats_get - Get the Statistics on aggregate port
- * Get the Statistics on aggregate port
- */
+
 enum vxge_hw_status
 vxge_hw_device_xmac_aggr_stats_get(struct __vxge_hw_device *hldev, u32 port,
 				   struct vxge_hw_xmac_aggr_stats *aggr_stats)
@@ -1009,10 +910,7 @@ exit:
 	return status;
 }
 
-/*
- * vxge_hw_device_xmac_port_stats_get - Get the Statistics on a port
- * Get the Statistics on port
- */
+
 enum vxge_hw_status
 vxge_hw_device_xmac_port_stats_get(struct __vxge_hw_device *hldev, u32 port,
 				   struct vxge_hw_xmac_port_stats *port_stats)
@@ -1043,10 +941,7 @@ exit:
 	return status;
 }
 
-/*
- * vxge_hw_device_xmac_stats_get - Get the XMAC Statistics
- * Get the XMAC Statistics
- */
+
 enum vxge_hw_status
 vxge_hw_device_xmac_stats_get(struct __vxge_hw_device *hldev,
 			      struct vxge_hw_xmac_stats *xmac_stats)
@@ -1094,10 +989,7 @@ exit:
 	return status;
 }
 
-/*
- * vxge_hw_device_debug_set - Set the debug module, level and timestamp
- * This routine is used to dynamically change the debug output
- */
+
 void vxge_hw_device_debug_set(struct __vxge_hw_device *hldev,
 			      enum vxge_debug_level level, u32 mask)
 {
@@ -1119,10 +1011,7 @@ void vxge_hw_device_debug_set(struct __vxge_hw_device *hldev,
 #endif
 }
 
-/*
- * vxge_hw_device_error_level_get - Get the error level
- * This routine returns the current error level set
- */
+
 u32 vxge_hw_device_error_level_get(struct __vxge_hw_device *hldev)
 {
 #if defined(VXGE_DEBUG_ERR_MASK)
@@ -1135,10 +1024,7 @@ u32 vxge_hw_device_error_level_get(struct __vxge_hw_device *hldev)
 #endif
 }
 
-/*
- * vxge_hw_device_trace_level_get - Get the trace level
- * This routine returns the current trace level set
- */
+
 u32 vxge_hw_device_trace_level_get(struct __vxge_hw_device *hldev)
 {
 #if defined(VXGE_DEBUG_TRACE_MASK)
@@ -1150,10 +1036,7 @@ u32 vxge_hw_device_trace_level_get(struct __vxge_hw_device *hldev)
 	return 0;
 #endif
 }
-/*
- * vxge_hw_device_debug_mask_get - Get the debug mask
- * This routine returns the current debug mask set
- */
+
 u32 vxge_hw_device_debug_mask_get(struct __vxge_hw_device *hldev)
 {
 #if defined(VXGE_DEBUG_TRACE_MASK) || defined(VXGE_DEBUG_ERR_MASK)
@@ -1165,10 +1048,7 @@ u32 vxge_hw_device_debug_mask_get(struct __vxge_hw_device *hldev)
 #endif
 }
 
-/*
- * vxge_hw_getpause_data -Pause frame frame generation and reception.
- * Returns the Pause frame generation and reception capability of the NIC.
- */
+
 enum vxge_hw_status vxge_hw_device_getpause_data(struct __vxge_hw_device *hldev,
 						 u32 port, u32 *tx, u32 *rx)
 {
@@ -1199,11 +1079,7 @@ exit:
 	return status;
 }
 
-/*
- * vxge_hw_device_setpause_data -  set/reset pause frame generation.
- * It can be used to set or reset Pause frame generation or reception
- * support of the NIC.
- */
+
 
 enum vxge_hw_status vxge_hw_device_setpause_data(struct __vxge_hw_device *hldev,
 						 u32 port, u32 tx, u32 rx)
@@ -1251,42 +1127,28 @@ u16 vxge_hw_device_link_width_get(struct __vxge_hw_device *hldev)
 	return link_width;
 }
 
-/*
- * __vxge_hw_ring_block_memblock_idx - Return the memblock index
- * This function returns the index of memory block
- */
+
 static inline u32
 __vxge_hw_ring_block_memblock_idx(u8 *block)
 {
 	return (u32)*((u64 *)(block + VXGE_HW_RING_MEMBLOCK_IDX_OFFSET));
 }
 
-/*
- * __vxge_hw_ring_block_memblock_idx_set - Sets the memblock index
- * This function sets index to a memory block
- */
+
 static inline void
 __vxge_hw_ring_block_memblock_idx_set(u8 *block, u32 memblock_idx)
 {
 	*((u64 *)(block + VXGE_HW_RING_MEMBLOCK_IDX_OFFSET)) = memblock_idx;
 }
 
-/*
- * __vxge_hw_ring_block_next_pointer_set - Sets the next block pointer
- * in RxD block
- * Sets the next block pointer in RxD block
- */
+
 static inline void
 __vxge_hw_ring_block_next_pointer_set(u8 *block, dma_addr_t dma_next)
 {
 	*((u64 *)(block + VXGE_HW_RING_NEXT_BLOCK_POINTER_OFFSET)) = dma_next;
 }
 
-/*
- * __vxge_hw_ring_first_block_address_get - Returns the dma address of the
- *             first block
- * Returns the dma address of the first RxD block
- */
+
 u64 __vxge_hw_ring_first_block_address_get(struct __vxge_hw_ring *ring)
 {
 	struct vxge_hw_mempool_dma *dma_object;
@@ -1297,10 +1159,7 @@ u64 __vxge_hw_ring_first_block_address_get(struct __vxge_hw_ring *ring)
 	return dma_object->addr;
 }
 
-/*
- * __vxge_hw_ring_item_dma_addr - Return the dma address of an item
- * This function returns the dma address of a given item
- */
+
 static dma_addr_t __vxge_hw_ring_item_dma_addr(struct vxge_hw_mempool *mempoolh,
 					       void *item)
 {
@@ -1309,25 +1168,22 @@ static dma_addr_t __vxge_hw_ring_item_dma_addr(struct vxge_hw_mempool *mempoolh,
 	struct vxge_hw_mempool_dma *memblock_dma_object;
 	ptrdiff_t dma_item_offset;
 
-	/* get owner memblock index */
+	
 	memblock_idx = __vxge_hw_ring_block_memblock_idx(item);
 
-	/* get owner memblock by memblock index */
+	
 	memblock = mempoolh->memblocks_arr[memblock_idx];
 
-	/* get memblock DMA object by memblock index */
+	
 	memblock_dma_object = mempoolh->memblocks_dma_arr + memblock_idx;
 
-	/* calculate offset in the memblock of this item */
+	
 	dma_item_offset = (u8 *)item - (u8 *)memblock;
 
 	return memblock_dma_object->addr + dma_item_offset;
 }
 
-/*
- * __vxge_hw_ring_rxdblock_link - Link the RxD blocks
- * This function returns the dma address of a given item
- */
+
 static void __vxge_hw_ring_rxdblock_link(struct vxge_hw_mempool *mempoolh,
 					 struct __vxge_hw_ring *ring, u32 from,
 					 u32 to)
@@ -1335,28 +1191,22 @@ static void __vxge_hw_ring_rxdblock_link(struct vxge_hw_mempool *mempoolh,
 	u8 *to_item , *from_item;
 	dma_addr_t to_dma;
 
-	/* get "from" RxD block */
+	
 	from_item = mempoolh->items_arr[from];
 	vxge_assert(from_item);
 
-	/* get "to" RxD block */
+	
 	to_item = mempoolh->items_arr[to];
 	vxge_assert(to_item);
 
-	/* return address of the beginning of previous RxD block */
+	
 	to_dma = __vxge_hw_ring_item_dma_addr(mempoolh, to_item);
 
-	/* set next pointer for this RxD block to point on
-	 * previous item's DMA start address */
+	
 	__vxge_hw_ring_block_next_pointer_set(from_item, to_dma);
 }
 
-/*
- * __vxge_hw_ring_mempool_item_alloc - Allocate List blocks for RxD
- * block callback
- * This function is callback passed to __vxge_hw_mempool_create to create memory
- * pool for RxD block
- */
+
 static void
 __vxge_hw_ring_mempool_item_alloc(struct vxge_hw_mempool *mempoolh,
 				  u32 memblock_index,
@@ -1368,7 +1218,7 @@ __vxge_hw_ring_mempool_item_alloc(struct vxge_hw_mempool *mempoolh,
 	struct __vxge_hw_ring *ring =
 		(struct __vxge_hw_ring *)mempoolh->userdata;
 
-	/* format rxds array */
+	
 	for (i = 0; i < ring->rxds_per_block; i++) {
 		void *rxdblock_priv;
 		void *uld_priv;
@@ -1381,9 +1231,7 @@ __vxge_hw_ring_mempool_item_alloc(struct vxge_hw_mempool *mempoolh,
 		ring->channel.reserve_arr[reserve_index] = ((u8 *)item) +
 						i * ring->rxd_size;
 
-		/* Note: memblock_item_idx is index of the item within
-		 *       the memblock. For instance, in case of three RxD-blocks
-		 *       per memblock this value can be 0, 1 or 2. */
+		
 		rxdblock_priv = __vxge_hw_mempool_item_priv(mempoolh,
 					memblock_index, item,
 					&memblock_item_idx);
@@ -1393,29 +1241,26 @@ __vxge_hw_ring_mempool_item_alloc(struct vxge_hw_mempool *mempoolh,
 
 		uld_priv = ((u8 *)rxdblock_priv + ring->rxd_priv_size * i);
 
-		/* pre-format Host_Control */
+		
 		rxdp->host_control = (u64)(size_t)uld_priv;
 	}
 
 	__vxge_hw_ring_block_memblock_idx_set(item, memblock_index);
 
 	if (is_last) {
-		/* link last one with first one */
+		
 		__vxge_hw_ring_rxdblock_link(mempoolh, ring, index, 0);
 	}
 
 	if (index > 0) {
-		/* link this RxD block with previous one */
+		
 		__vxge_hw_ring_rxdblock_link(mempoolh, ring, index - 1, index);
 	}
 
 	return;
 }
 
-/*
- * __vxge_hw_ring_initial_replenish - Initial replenish of RxDs
- * This function replenishes the RxDs from reserve array to work array
- */
+
 enum vxge_hw_status
 vxge_hw_ring_replenish(struct __vxge_hw_ring *ring, u16 min_flag)
 {
@@ -1452,11 +1297,7 @@ exit:
 	return status;
 }
 
-/*
- * __vxge_hw_ring_create - Create a Ring
- * This function creates Ring and initializes it.
- *
- */
+
 enum vxge_hw_status
 __vxge_hw_ring_create(struct __vxge_hw_vpath_handle *vp,
 		      struct vxge_hw_ring_attr *attr)
@@ -1514,12 +1355,11 @@ __vxge_hw_ring_create(struct __vxge_hw_vpath_handle *vp,
 		((ring->rxd_priv_size + VXGE_CACHE_LINE_SIZE - 1) /
 		VXGE_CACHE_LINE_SIZE) * VXGE_CACHE_LINE_SIZE;
 
-	/* how many RxDs can fit into one block. Depends on configured
-	 * buffer_mode. */
+	
 	ring->rxds_per_block =
 		vxge_hw_ring_rxds_per_block_get(config->buffer_mode);
 
-	/* calculate actual RxD block private size */
+	
 	ring->rxdblock_priv_size = ring->rxd_priv_size * ring->rxds_per_block;
 	ring_mp_callback.item_func_alloc = __vxge_hw_ring_mempool_item_alloc;
 	ring->mempool = __vxge_hw_mempool_create(hldev,
@@ -1542,13 +1382,7 @@ __vxge_hw_ring_create(struct __vxge_hw_vpath_handle *vp,
 		goto exit;
 	}
 
-	/* Note:
-	 * Specifying rxd_init callback means two things:
-	 * 1) rxds need to be initialized by driver at channel-open time;
-	 * 2) rxds need to be posted at channel-open time
-	 *    (that's what the initial_replenish() below does)
-	 * Currently we don't have a case when the 1) is done without the 2).
-	 */
+	
 	if (ring->rxd_init) {
 		status = vxge_hw_ring_replenish(ring, 1);
 		if (status != VXGE_HW_OK) {
@@ -1557,17 +1391,13 @@ __vxge_hw_ring_create(struct __vxge_hw_vpath_handle *vp,
 		}
 	}
 
-	/* initial replenish will increment the counter in its post() routine,
-	 * we have to reset it */
+	
 	ring->stats->common_stats.usage_cnt = 0;
 exit:
 	return status;
 }
 
-/*
- * __vxge_hw_ring_abort - Returns the RxD
- * This function terminates the RxDs of ring
- */
+
 enum vxge_hw_status __vxge_hw_ring_abort(struct __vxge_hw_ring *ring)
 {
 	void *rxdh;
@@ -1593,10 +1423,7 @@ enum vxge_hw_status __vxge_hw_ring_abort(struct __vxge_hw_ring *ring)
 	return VXGE_HW_OK;
 }
 
-/*
- * __vxge_hw_ring_reset - Resets the ring
- * This function resets the ring during vpath reset operation
- */
+
 enum vxge_hw_status __vxge_hw_ring_reset(struct __vxge_hw_ring *ring)
 {
 	enum vxge_hw_status status = VXGE_HW_OK;
@@ -1620,10 +1447,7 @@ exit:
 	return status;
 }
 
-/*
- * __vxge_hw_ring_delete - Removes the ring
- * This function freeup the memory pool and removes the ring
- */
+
 enum vxge_hw_status __vxge_hw_ring_delete(struct __vxge_hw_vpath_handle *vp)
 {
 	struct __vxge_hw_ring *ring = vp->vpath->ringh;
@@ -1639,10 +1463,7 @@ enum vxge_hw_status __vxge_hw_ring_delete(struct __vxge_hw_vpath_handle *vp)
 	return VXGE_HW_OK;
 }
 
-/*
- * __vxge_hw_mempool_grow
- * Will resize mempool up to %num_allocate value.
- */
+
 enum vxge_hw_status
 __vxge_hw_mempool_grow(struct vxge_hw_mempool *mempool, u32 num_allocate,
 		       u32 *num_allocated)
@@ -1667,11 +1488,7 @@ __vxge_hw_mempool_grow(struct vxge_hw_mempool *mempool, u32 num_allocate,
 			mempool->memblocks_dma_arr + i;
 		void *the_memblock;
 
-		/* allocate memblock's private part. Each DMA memblock
-		 * has a space allocated for item's private usage upon
-		 * mempool's user request. Each time mempool grows, it will
-		 * allocate new memblock and its private part at once.
-		 * This helps to minimize memory usage a lot. */
+		
 		mempool->memblocks_priv_arr[i] =
 				vmalloc(mempool->items_priv_size * n_items);
 		if (mempool->memblocks_priv_arr[i] == NULL) {
@@ -1682,7 +1499,7 @@ __vxge_hw_mempool_grow(struct vxge_hw_mempool *mempool, u32 num_allocate,
 		memset(mempool->memblocks_priv_arr[i], 0,
 			     mempool->items_priv_size * n_items);
 
-		/* allocate DMA-capable memblock */
+		
 		mempool->memblocks_arr[i] =
 			__vxge_hw_blockpool_malloc(mempool->devh,
 				mempool->memblock_size, dma_object);
@@ -1699,7 +1516,7 @@ __vxge_hw_mempool_grow(struct vxge_hw_mempool *mempool, u32 num_allocate,
 
 		the_memblock = mempool->memblocks_arr[i];
 
-		/* fill the items hash array */
+		
 		for (j = 0; j < n_items; j++) {
 			u32 index = i * n_items + j;
 
@@ -1709,7 +1526,7 @@ __vxge_hw_mempool_grow(struct vxge_hw_mempool *mempool, u32 num_allocate,
 			mempool->items_arr[index] =
 				((char *)the_memblock + j*mempool->item_size);
 
-			/* let caller to do more job on each item */
+			
 			if (mempool->item_func_alloc != NULL)
 				mempool->item_func_alloc(mempool, i,
 					dma_object, index, is_last);
@@ -1725,13 +1542,7 @@ exit:
 	return status;
 }
 
-/*
- * vxge_hw_mempool_create
- * This function will create memory pool object. Pool may grow but will
- * never shrink. Pool consists of number of dynamically allocated blocks
- * with size enough to hold %items_initial number of items. Memory is
- * DMA-able but client must map/unmap before interoperating with the device.
- */
+
 struct vxge_hw_mempool*
 __vxge_hw_mempool_create(
 	struct __vxge_hw_device *devh,
@@ -1777,7 +1588,7 @@ __vxge_hw_mempool_create(
 	mempool->memblocks_max = (items_max + mempool->items_per_memblock - 1) /
 					mempool->items_per_memblock;
 
-	/* allocate array of memblocks */
+	
 	mempool->memblocks_arr =
 		(void **) vmalloc(sizeof(void *) * mempool->memblocks_max);
 	if (mempool->memblocks_arr == NULL) {
@@ -1789,7 +1600,7 @@ __vxge_hw_mempool_create(
 	memset(mempool->memblocks_arr, 0,
 		sizeof(void *) * mempool->memblocks_max);
 
-	/* allocate array of private parts of items per memblocks */
+	
 	mempool->memblocks_priv_arr =
 		(void **) vmalloc(sizeof(void *) * mempool->memblocks_max);
 	if (mempool->memblocks_priv_arr == NULL) {
@@ -1801,7 +1612,7 @@ __vxge_hw_mempool_create(
 	memset(mempool->memblocks_priv_arr, 0,
 		    sizeof(void *) * mempool->memblocks_max);
 
-	/* allocate array of memblocks DMA objects */
+	
 	mempool->memblocks_dma_arr = (struct vxge_hw_mempool_dma *)
 		vmalloc(sizeof(struct vxge_hw_mempool_dma) *
 			mempool->memblocks_max);
@@ -1816,7 +1627,7 @@ __vxge_hw_mempool_create(
 			sizeof(struct vxge_hw_mempool_dma) *
 			mempool->memblocks_max);
 
-	/* allocate hash array of items */
+	
 	mempool->items_arr =
 		(void **) vmalloc(sizeof(void *) * mempool->items_max);
 	if (mempool->items_arr == NULL) {
@@ -1827,12 +1638,12 @@ __vxge_hw_mempool_create(
 	}
 	memset(mempool->items_arr, 0, sizeof(void *) * mempool->items_max);
 
-	/* calculate initial number of memblocks */
+	
 	memblocks_to_allocate = (mempool->items_initial +
 				 mempool->items_per_memblock - 1) /
 						mempool->items_per_memblock;
 
-	/* pre-allocate the mempool */
+	
 	status = __vxge_hw_mempool_grow(mempool, memblocks_to_allocate,
 					&allocated);
 	if (status != VXGE_HW_OK) {
@@ -1846,9 +1657,7 @@ exit:
 	return mempool;
 }
 
-/*
- * vxge_hw_mempool_destroy
- */
+
 void __vxge_hw_mempool_destroy(struct vxge_hw_mempool *mempool)
 {
 	u32 i, j;
@@ -1865,7 +1674,7 @@ void __vxge_hw_mempool_destroy(struct vxge_hw_mempool *mempool)
 		for (j = 0; j < mempool->items_per_memblock; j++) {
 			u32 index = i * mempool->items_per_memblock + j;
 
-			/* to skip last partially filled(if any) memblock */
+			
 			if (index >= mempool->items_current)
 				break;
 		}
@@ -1887,10 +1696,7 @@ void __vxge_hw_mempool_destroy(struct vxge_hw_mempool *mempool)
 	vfree(mempool);
 }
 
-/*
- * __vxge_hw_device_fifo_config_check - Check fifo configuration.
- * Check the fifo configuration
- */
+
 enum vxge_hw_status
 __vxge_hw_device_fifo_config_check(struct vxge_hw_fifo_config *fifo_config)
 {
@@ -1901,10 +1707,7 @@ __vxge_hw_device_fifo_config_check(struct vxge_hw_fifo_config *fifo_config)
 	return VXGE_HW_OK;
 }
 
-/*
- * __vxge_hw_device_vpath_config_check - Check vpath configuration.
- * Check the vpath configuration
- */
+
 enum vxge_hw_status
 __vxge_hw_device_vpath_config_check(struct vxge_hw_vp_config *vp_config)
 {
@@ -1935,10 +1738,7 @@ __vxge_hw_device_vpath_config_check(struct vxge_hw_vp_config *vp_config)
 	return VXGE_HW_OK;
 }
 
-/*
- * __vxge_hw_device_config_check - Check device configuration.
- * Check the device configuration
- */
+
 enum vxge_hw_status
 __vxge_hw_device_config_check(struct vxge_hw_device_config *new_config)
 {
@@ -1965,10 +1765,7 @@ __vxge_hw_device_config_check(struct vxge_hw_device_config *new_config)
 	return VXGE_HW_OK;
 }
 
-/*
- * vxge_hw_device_config_default_get - Initialize device config with defaults.
- * Initialize Titan device config with default values.
- */
+
 enum vxge_hw_status __devinit
 vxge_hw_device_config_default_get(struct vxge_hw_device_config *device_config)
 {
@@ -2123,10 +1920,7 @@ vxge_hw_device_config_default_get(struct vxge_hw_device_config *device_config)
 	return VXGE_HW_OK;
 }
 
-/*
- * _hw_legacy_swapper_set - Set the swapper bits for the legacy secion.
- * Set the swapper bits appropriately for the lagacy section.
- */
+
 enum vxge_hw_status
 __vxge_hw_legacy_swapper_set(struct vxge_hw_legacy_reg __iomem *legacy_reg)
 {
@@ -2178,10 +1972,7 @@ __vxge_hw_legacy_swapper_set(struct vxge_hw_legacy_reg __iomem *legacy_reg)
 	return status;
 }
 
-/*
- * __vxge_hw_vpath_swapper_set - Set the swapper bits for the vpath.
- * Set the swapper bits appropriately for the vpath.
- */
+
 enum vxge_hw_status
 __vxge_hw_vpath_swapper_set(struct vxge_hw_vpath_reg __iomem *vpath_reg)
 {
@@ -2197,10 +1988,7 @@ __vxge_hw_vpath_swapper_set(struct vxge_hw_vpath_reg __iomem *vpath_reg)
 	return VXGE_HW_OK;
 }
 
-/*
- * __vxge_hw_kdfc_swapper_set - Set the swapper bits for the kdfc.
- * Set the swapper bits appropriately for the vpath.
- */
+
 enum vxge_hw_status
 __vxge_hw_kdfc_swapper_set(
 	struct vxge_hw_legacy_reg __iomem *legacy_reg,
@@ -2225,11 +2013,7 @@ __vxge_hw_kdfc_swapper_set(
 	return VXGE_HW_OK;
 }
 
-/*
- * vxge_hw_mgmt_device_config - Retrieve device configuration.
- * Get device configuration. Permits to retrieve at run-time configuration
- * values that were used to initialize and configure the device.
- */
+
 enum vxge_hw_status
 vxge_hw_mgmt_device_config(struct __vxge_hw_device *hldev,
 			   struct vxge_hw_device_config *dev_config, int size)
@@ -2247,9 +2031,7 @@ vxge_hw_mgmt_device_config(struct __vxge_hw_device *hldev,
 	return VXGE_HW_OK;
 }
 
-/*
- * vxge_hw_mgmt_reg_read - Read Titan register.
- */
+
 enum vxge_hw_status
 vxge_hw_mgmt_reg_read(struct __vxge_hw_device *hldev,
 		      enum vxge_hw_mgmt_reg_type type,
@@ -2352,9 +2134,7 @@ exit:
 	return status;
 }
 
-/*
- * vxge_hw_mgmt_reg_Write - Write Titan register.
- */
+
 enum vxge_hw_status
 vxge_hw_mgmt_reg_write(struct __vxge_hw_device *hldev,
 		      enum vxge_hw_mgmt_reg_type type,
@@ -2453,12 +2233,7 @@ exit:
 	return status;
 }
 
-/*
- * __vxge_hw_fifo_mempool_item_alloc - Allocate List blocks for TxD
- * list callback
- * This function is callback passed to __vxge_hw_mempool_create to create memory
- * pool for TxD list
- */
+
 static void
 __vxge_hw_fifo_mempool_item_alloc(
 	struct vxge_hw_mempool *mempoolh,
@@ -2485,7 +2260,7 @@ __vxge_hw_fifo_mempool_item_alloc(
 
 	fifo->channel.reserve_arr[fifo->channel.reserve_ptr - 1 - index] = txdp;
 
-	/* pre-format HW's TxDL's private */
+	
 	txdl_priv->dma_offset = (char *)txdp - (char *)memblock;
 	txdl_priv->dma_addr = dma_object->addr + txdl_priv->dma_offset;
 	txdl_priv->dma_handle = dma_object->handle;
@@ -2497,10 +2272,7 @@ __vxge_hw_fifo_mempool_item_alloc(
 	return;
 }
 
-/*
- * __vxge_hw_fifo_create - Create a FIFO
- * This function creates FIFO and initializes it.
- */
+
 enum vxge_hw_status
 __vxge_hw_fifo_create(struct __vxge_hw_vpath_handle *vp,
 		      struct vxge_hw_fifo_attr *attr)
@@ -2542,7 +2314,7 @@ __vxge_hw_fifo_create(struct __vxge_hw_vpath_handle *vp,
 
 	fifo->config = config;
 
-	/* apply "interrupts per txdl" attribute */
+	
 	fifo->interrupt_type = VXGE_HW_FIFO_TXD_INT_TYPE_UTILZ;
 
 	if (fifo->config->intr)
@@ -2550,26 +2322,9 @@ __vxge_hw_fifo_create(struct __vxge_hw_vpath_handle *vp,
 
 	fifo->no_snoop_bits = config->no_snoop_bits;
 
-	/*
-	 * FIFO memory management strategy:
-	 *
-	 * TxDL split into three independent parts:
-	 *	- set of TxD's
-	 *	- TxD HW private part
-	 *	- driver private part
-	 *
-	 * Adaptative memory allocation used. i.e. Memory allocated on
-	 * demand with the size which will fit into one memory block.
-	 * One memory block may contain more than one TxDL.
-	 *
-	 * During "reserve" operations more memory can be allocated on demand
-	 * for example due to FIFO full condition.
-	 *
-	 * Pool of memory memblocks never shrinks except in __vxge_hw_fifo_close
-	 * routine which will essentially stop the channel and free resources.
-	 */
+	
 
-	/* TxDL common private size == TxDL private  +  driver private */
+	
 	fifo->priv_size =
 		sizeof(struct __vxge_hw_fifo_txdl_priv) + attr->per_txdl_space;
 	fifo->priv_size = ((fifo->priv_size  +  VXGE_CACHE_LINE_SIZE - 1) /
@@ -2577,7 +2332,7 @@ __vxge_hw_fifo_create(struct __vxge_hw_vpath_handle *vp,
 
 	fifo->per_txdl_space = attr->per_txdl_space;
 
-	/* recompute txdl size to be cacheline aligned */
+	
 	fifo->txdl_size = txdl_size;
 	fifo->txdl_per_memblock = txdl_per_memblock;
 
@@ -2619,10 +2374,7 @@ exit:
 	return status;
 }
 
-/*
- * __vxge_hw_fifo_abort - Returns the TxD
- * This function terminates the TxDs of fifo
- */
+
 enum vxge_hw_status __vxge_hw_fifo_abort(struct __vxge_hw_fifo *fifo)
 {
 	void *txdlh;
@@ -2647,10 +2399,7 @@ enum vxge_hw_status __vxge_hw_fifo_abort(struct __vxge_hw_fifo *fifo)
 	return VXGE_HW_OK;
 }
 
-/*
- * __vxge_hw_fifo_reset - Resets the fifo
- * This function resets the fifo during vpath reset operation
- */
+
 enum vxge_hw_status __vxge_hw_fifo_reset(struct __vxge_hw_fifo *fifo)
 {
 	enum vxge_hw_status status = VXGE_HW_OK;
@@ -2661,10 +2410,7 @@ enum vxge_hw_status __vxge_hw_fifo_reset(struct __vxge_hw_fifo *fifo)
 	return status;
 }
 
-/*
- * __vxge_hw_fifo_delete - Removes the FIFO
- * This function freeup the memory pool and removes the FIFO
- */
+
 enum vxge_hw_status __vxge_hw_fifo_delete(struct __vxge_hw_vpath_handle *vp)
 {
 	struct __vxge_hw_fifo *fifo = vp->vpath->fifoh;
@@ -2681,11 +2427,7 @@ enum vxge_hw_status __vxge_hw_fifo_delete(struct __vxge_hw_vpath_handle *vp)
 	return VXGE_HW_OK;
 }
 
-/*
- * __vxge_hw_vpath_pci_read - Read the content of given address
- *                          in pci config space.
- * Read from the vpath pci config space.
- */
+
 enum vxge_hw_status
 __vxge_hw_vpath_pci_read(struct __vxge_hw_virtualpath *vpath,
 			 u32 phy_func_0, u32 offset, u32 *val)
@@ -2723,10 +2465,7 @@ exit:
 	return status;
 }
 
-/*
- * __vxge_hw_vpath_func_id_get - Get the function id of the vpath.
- * Returns the function number of the vpath.
- */
+
 u32
 __vxge_hw_vpath_func_id_get(u32 vp_id,
 	struct vxge_hw_vpmgmt_reg __iomem *vpmgmt_reg)
@@ -2739,9 +2478,7 @@ __vxge_hw_vpath_func_id_get(u32 vp_id,
 	 (u32)VXGE_HW_VPATH_TO_FUNC_MAP_CFG1_GET_VPATH_TO_FUNC_MAP_CFG1(val64);
 }
 
-/*
- * __vxge_hw_read_rts_ds - Program RTS steering critieria
- */
+
 static inline void
 __vxge_hw_read_rts_ds(struct vxge_hw_vpath_reg __iomem *vpath_reg,
 		      u64 dta_struct_sel)
@@ -2755,10 +2492,7 @@ __vxge_hw_read_rts_ds(struct vxge_hw_vpath_reg __iomem *vpath_reg,
 }
 
 
-/*
- * __vxge_hw_vpath_card_info_get - Get the serial numbers,
- * part number and product description.
- */
+
 enum vxge_hw_status
 __vxge_hw_vpath_card_info_get(
 	u32 vp_id,
@@ -2877,10 +2611,7 @@ __vxge_hw_vpath_card_info_get(
 	return status;
 }
 
-/*
- * __vxge_hw_vpath_fw_ver_get - Get the fw version
- * Returns FW Version
- */
+
 enum vxge_hw_status
 __vxge_hw_vpath_fw_ver_get(
 	u32 vp_id,
@@ -2971,10 +2702,7 @@ exit:
 	return status;
 }
 
-/*
- * __vxge_hw_vpath_pci_func_mode_get - Get the pci mode
- * Returns pci function mode
- */
+
 u64
 __vxge_hw_vpath_pci_func_mode_get(
 	u32  vp_id,
@@ -3015,13 +2743,7 @@ exit:
 	return data1;
 }
 
-/**
- * vxge_hw_device_flick_link_led - Flick (blink) link LED.
- * @hldev: HW device.
- * @on_off: TRUE if flickering to be on, FALSE to be off
- *
- * Flicker the link LED.
- */
+
 enum vxge_hw_status
 vxge_hw_device_flick_link_led(struct __vxge_hw_device *hldev,
 			       u64 on_off)
@@ -3058,9 +2780,7 @@ exit:
 	return status;
 }
 
-/*
- * __vxge_hw_vpath_rts_table_get - Get the entries from RTS access tables
- */
+
 enum vxge_hw_status
 __vxge_hw_vpath_rts_table_get(
 	struct __vxge_hw_vpath_handle *vp,
@@ -3123,9 +2843,7 @@ exit:
 	return status;
 }
 
-/*
- * __vxge_hw_vpath_rts_table_set - Set the entries of RTS access tables
- */
+
 enum vxge_hw_status
 __vxge_hw_vpath_rts_table_set(
 	struct __vxge_hw_vpath_handle *vp, u32 action, u32 rts_table,
@@ -3177,10 +2895,7 @@ exit:
 	return status;
 }
 
-/*
- * __vxge_hw_vpath_addr_get - Get the hw address entry for this vpath
- *               from MAC address table.
- */
+
 enum vxge_hw_status
 __vxge_hw_vpath_addr_get(
 	u32 vp_id, struct vxge_hw_vpath_reg __iomem *vpath_reg,
@@ -3232,9 +2947,7 @@ exit:
 	return status;
 }
 
-/*
- * vxge_hw_vpath_rts_rth_set - Set/configure RTS hashing.
- */
+
 enum vxge_hw_status vxge_hw_vpath_rts_rth_set(
 			struct __vxge_hw_vpath_handle *vp,
 			enum vxge_hw_rth_algoritms algorithm,
@@ -3324,9 +3037,7 @@ vxge_hw_rts_rth_data0_data1_get(u32 j, u64 *data0, u64 *data1,
 		return;
 	}
 }
-/*
- * vxge_hw_vpath_rts_rth_itable_set - Set/configure indirection table (IT).
- */
+
 enum vxge_hw_status vxge_hw_vpath_rts_rth_itable_set(
 			struct __vxge_hw_vpath_handle **vpath_handles,
 			u32 vpath_count,
@@ -3456,15 +3167,7 @@ exit:
 	return status;
 }
 
-/**
- * vxge_hw_vpath_check_leak - Check for memory leak
- * @ringh: Handle to the ring object used for receive
- *
- * If PRC_RXD_DOORBELL_VPn.NEW_QW_CNT is larger or equal to
- * PRC_CFG6_VPn.RXD_SPAT then a leak has occurred.
- * Returns: VXGE_HW_FAIL, if leak has occurred.
- *
- */
+
 enum vxge_hw_status
 vxge_hw_vpath_check_leak(struct __vxge_hw_ring *ring)
 {
@@ -3484,10 +3187,7 @@ vxge_hw_vpath_check_leak(struct __vxge_hw_ring *ring)
 	return status;
 }
 
-/*
- * __vxge_hw_vpath_mgmt_read
- * This routine reads the vpath_mgmt registers
- */
+
 static enum vxge_hw_status
 __vxge_hw_vpath_mgmt_read(
 	struct __vxge_hw_device *hldev,
@@ -3528,11 +3228,7 @@ __vxge_hw_vpath_mgmt_read(
 	return status;
 }
 
-/*
- * __vxge_hw_vpath_reset_check - Check if resetting the vpath completed
- * This routine checks the vpath_rst_in_prog register to see if
- * adapter completed the reset process for the vpath
- */
+
 enum vxge_hw_status
 __vxge_hw_vpath_reset_check(struct __vxge_hw_virtualpath *vpath)
 {
@@ -3547,10 +3243,7 @@ __vxge_hw_vpath_reset_check(struct __vxge_hw_virtualpath *vpath)
 	return status;
 }
 
-/*
- * __vxge_hw_vpath_reset
- * This routine resets the vpath on the device
- */
+
 enum vxge_hw_status
 __vxge_hw_vpath_reset(struct __vxge_hw_device *hldev, u32 vp_id)
 {
@@ -3565,10 +3258,7 @@ __vxge_hw_vpath_reset(struct __vxge_hw_device *hldev, u32 vp_id)
 	return status;
 }
 
-/*
- * __vxge_hw_vpath_sw_reset
- * This routine resets the vpath structures
- */
+
 enum vxge_hw_status
 __vxge_hw_vpath_sw_reset(struct __vxge_hw_device *hldev, u32 vp_id)
 {
@@ -3589,11 +3279,7 @@ exit:
 	return status;
 }
 
-/*
- * __vxge_hw_vpath_prc_configure
- * This routine configures the prc registers of virtual path using the config
- * passed
- */
+
 void
 __vxge_hw_vpath_prc_configure(struct __vxge_hw_device *hldev, u32 vp_id)
 {
@@ -3662,11 +3348,7 @@ __vxge_hw_vpath_prc_configure(struct __vxge_hw_device *hldev, u32 vp_id)
 	return;
 }
 
-/*
- * __vxge_hw_vpath_kdfc_configure
- * This routine configures the kdfc registers of virtual path using the
- * config passed
- */
+
 enum vxge_hw_status
 __vxge_hw_vpath_kdfc_configure(struct __vxge_hw_device *hldev, u32 vp_id)
 {
@@ -3736,10 +3418,7 @@ exit:
 	return status;
 }
 
-/*
- * __vxge_hw_vpath_mac_configure
- * This routine configures the mac of virtual path using the config passed
- */
+
 enum vxge_hw_status
 __vxge_hw_vpath_mac_configure(struct __vxge_hw_device *hldev, u32 vp_id)
 {
@@ -3803,11 +3482,7 @@ __vxge_hw_vpath_mac_configure(struct __vxge_hw_device *hldev, u32 vp_id)
 	return status;
 }
 
-/*
- * __vxge_hw_vpath_tim_configure
- * This routine configures the tim registers of virtual path using the config
- * passed
- */
+
 enum vxge_hw_status
 __vxge_hw_vpath_tim_configure(struct __vxge_hw_device *hldev, u32 vp_id)
 {
@@ -4056,11 +3731,7 @@ __vxge_hw_vpath_tim_configure(struct __vxge_hw_device *hldev, u32 vp_id)
 	return status;
 }
 
-/*
- * __vxge_hw_vpath_initialize
- * This routine is the final phase of init which initializes the
- * registers of the vpath using the configuration passed.
- */
+
 enum vxge_hw_status
 __vxge_hw_vpath_initialize(struct __vxge_hw_device *hldev, u32 vp_id)
 {
@@ -4102,7 +3773,7 @@ __vxge_hw_vpath_initialize(struct __vxge_hw_device *hldev, u32 vp_id)
 
 	val64 = readq(&vp_reg->rtdma_rd_optimization_ctrl);
 
-	/* Get MRRS value from device control */
+	
 	status  = __vxge_hw_vpath_pci_read(vpath, 1, 0x78, &val32);
 
 	if (status == VXGE_HW_OK) {
@@ -4127,11 +3798,7 @@ exit:
 	return status;
 }
 
-/*
- * __vxge_hw_vp_initialize - Initialize Virtual Path structure
- * This routine is the initial phase of init which resets the vpath and
- * initializes the software support structures.
- */
+
 enum vxge_hw_status
 __vxge_hw_vp_initialize(struct __vxge_hw_device *hldev, u32 vp_id,
 			struct vxge_hw_vp_config *config)
@@ -4184,10 +3851,7 @@ exit:
 	return status;
 }
 
-/*
- * __vxge_hw_vp_terminate - Terminate Virtual Path structure
- * This routine closes all channels it opened and freeup memory
- */
+
 void
 __vxge_hw_vp_terminate(struct __vxge_hw_device *hldev, u32 vp_id)
 {
@@ -4207,11 +3871,7 @@ exit:
 	return;
 }
 
-/*
- * vxge_hw_vpath_mtu_set - Set MTU.
- * Set new MTU value. Example, to use jumbo frames:
- * vxge_hw_vpath_mtu_set(my_device, 9600);
- */
+
 enum vxge_hw_status
 vxge_hw_vpath_mtu_set(struct __vxge_hw_vpath_handle *vp, u32 new_mtu)
 {
@@ -4243,12 +3903,7 @@ exit:
 	return status;
 }
 
-/*
- * vxge_hw_vpath_open - Open a virtual path on a given adapter
- * This function is used to open access to virtual path of an
- * adapter for offload, GRO operations. This function returns
- * synchronously.
- */
+
 enum vxge_hw_status
 vxge_hw_vpath_open(struct __vxge_hw_device *hldev,
 		   struct vxge_hw_vpath_attr *attr,
@@ -4353,14 +4008,7 @@ vpath_open_exit1:
 	return status;
 }
 
-/**
- * vxge_hw_vpath_rx_doorbell_post - Close the handle got from previous vpath
- * (vpath) open
- * @vp: Handle got from previous vpath open
- *
- * This function is used to close access to virtual path opened
- * earlier.
- */
+
 void
 vxge_hw_vpath_rx_doorbell_init(struct __vxge_hw_vpath_handle *vp)
 {
@@ -4384,9 +4032,7 @@ vxge_hw_vpath_rx_doorbell_init(struct __vxge_hw_vpath_handle *vp)
 	val64 = VXGE_HW_PRC_CFG6_RXD_SPAT(val64);
 	val64 &= 0x1ff;
 
-	/*
-	 * Each RxD is of 4 qwords
-	 */
+	
 	new_count -= (val64 + 1);
 	val64 = min(val164, new_count) / 4;
 
@@ -4395,11 +4041,7 @@ vxge_hw_vpath_rx_doorbell_init(struct __vxge_hw_vpath_handle *vp)
 		ring->rxds_limit = 4;
 }
 
-/*
- * vxge_hw_vpath_close - Close the handle got from previous vpath (vpath) open
- * This function is used to close access to virtual path opened
- * earlier.
- */
+
 enum vxge_hw_status vxge_hw_vpath_close(struct __vxge_hw_vpath_handle *vp)
 {
 	struct __vxge_hw_virtualpath *vpath = NULL;
@@ -4449,10 +4091,7 @@ vpath_close_exit:
 	return status;
 }
 
-/*
- * vxge_hw_vpath_reset - Resets vpath
- * This function is used to request a reset of vpath
- */
+
 enum vxge_hw_status vxge_hw_vpath_reset(struct __vxge_hw_vpath_handle *vp)
 {
 	enum vxge_hw_status status;
@@ -4473,11 +4112,7 @@ exit:
 	return status;
 }
 
-/*
- * vxge_hw_vpath_recover_from_reset - Poll for reset complete and re-initialize.
- * This function poll's for the vpath reset completion and re initializes
- * the vpath.
- */
+
 enum vxge_hw_status
 vxge_hw_vpath_recover_from_reset(struct __vxge_hw_vpath_handle *vp)
 {
@@ -4525,11 +4160,7 @@ exit:
 	return status;
 }
 
-/*
- * vxge_hw_vpath_enable - Enable vpath.
- * This routine clears the vpath reset thereby enabling a vpath
- * to start forwarding frames and generating interrupts.
- */
+
 void
 vxge_hw_vpath_enable(struct __vxge_hw_vpath_handle *vp)
 {
@@ -4545,11 +4176,7 @@ vxge_hw_vpath_enable(struct __vxge_hw_vpath_handle *vp)
 		&hldev->common_reg->cmn_rsthdlr_cfg1);
 }
 
-/*
- * vxge_hw_vpath_stats_enable - Enable vpath h/wstatistics.
- * Enable the DMA vpath statistics. The function is to be called to re-enable
- * the adapter to update stats into the host memory
- */
+
 enum vxge_hw_status
 vxge_hw_vpath_stats_enable(struct __vxge_hw_vpath_handle *vp)
 {
@@ -4571,10 +4198,7 @@ exit:
 	return status;
 }
 
-/*
- * __vxge_hw_vpath_stats_access - Get the statistics from the given location
- *                           and offset and perform an operation
- */
+
 enum vxge_hw_status
 __vxge_hw_vpath_stats_access(struct __vxge_hw_virtualpath *vpath,
 			     u32 operation, u32 offset, u64 *stat)
@@ -4608,9 +4232,7 @@ vpath_stats_access_exit:
 	return status;
 }
 
-/*
- * __vxge_hw_vpath_xmac_tx_stats_get - Get the TX Statistics of a vpath
- */
+
 enum vxge_hw_status
 __vxge_hw_vpath_xmac_tx_stats_get(
 	struct __vxge_hw_virtualpath *vpath,
@@ -4641,9 +4263,7 @@ exit:
 	return status;
 }
 
-/*
- * __vxge_hw_vpath_xmac_rx_stats_get - Get the RX Statistics of a vpath
- */
+
 enum vxge_hw_status
 __vxge_hw_vpath_xmac_rx_stats_get(struct __vxge_hw_virtualpath *vpath,
 			struct vxge_hw_xmac_vpath_rx_stats *vpath_rx_stats)
@@ -4672,9 +4292,7 @@ exit:
 	return status;
 }
 
-/*
- * __vxge_hw_vpath_stats_get - Get the vpath hw statistics.
- */
+
 enum vxge_hw_status __vxge_hw_vpath_stats_get(
 			struct __vxge_hw_virtualpath *vpath,
 			struct vxge_hw_vpath_stats_hw_info *hw_stats)
@@ -4809,9 +4427,7 @@ exit:
 	return status;
 }
 
-/*
- * __vxge_hw_blockpool_create - Create block pool
- */
+
 
 enum vxge_hw_status
 __vxge_hw_blockpool_create(struct __vxge_hw_device *hldev,
@@ -4909,9 +4525,7 @@ blockpool_create_exit:
 	return status;
 }
 
-/*
- * __vxge_hw_blockpool_destroy - Deallocates the block pool
- */
+
 
 void __vxge_hw_blockpool_destroy(struct __vxge_hw_blockpool *blockpool)
 {
@@ -4954,9 +4568,7 @@ exit:
 	return;
 }
 
-/*
- * __vxge_hw_blockpool_blocks_add - Request additional blocks
- */
+
 static
 void __vxge_hw_blockpool_blocks_add(struct __vxge_hw_blockpool *blockpool)
 {
@@ -4974,9 +4586,7 @@ void __vxge_hw_blockpool_blocks_add(struct __vxge_hw_blockpool *blockpool)
 			blockpool->hldev, VXGE_HW_BLOCK_SIZE);
 }
 
-/*
- * __vxge_hw_blockpool_blocks_remove - Free additional blocks
- */
+
 static
 void __vxge_hw_blockpool_blocks_remove(struct __vxge_hw_blockpool *blockpool)
 {
@@ -5007,10 +4617,7 @@ void __vxge_hw_blockpool_blocks_remove(struct __vxge_hw_blockpool *blockpool)
 	}
 }
 
-/*
- * vxge_hw_blockpool_block_add - callback for vxge_os_dma_malloc_async
- * Adds a block to block pool
- */
+
 void vxge_hw_blockpool_block_add(
 			struct __vxge_hw_device *devh,
 			void *block_addr,
@@ -5075,11 +4682,7 @@ exit:
 	return;
 }
 
-/*
- * __vxge_hw_blockpool_malloc - Allocate a memory block from pool
- * Allocates a block of memory of given size, either from block pool
- * or by calling vxge_os_dma_malloc()
- */
+
 void *
 __vxge_hw_blockpool_malloc(struct __vxge_hw_device *devh, u32 size,
 				struct vxge_hw_mempool_dma *dma_object)
@@ -5140,10 +4743,7 @@ exit:
 	return memblock;
 }
 
-/*
- * __vxge_hw_blockpool_free - Frees the memory allcoated with
-				__vxge_hw_blockpool_malloc
- */
+
 void
 __vxge_hw_blockpool_free(struct __vxge_hw_device *devh,
 			void *memblock, u32 size,
@@ -5194,10 +4794,7 @@ __vxge_hw_blockpool_free(struct __vxge_hw_device *devh,
 	return;
 }
 
-/*
- * __vxge_hw_blockpool_block_allocate - Allocates a block from block pool
- * This function allocates a block from block pool or from the system
- */
+
 struct __vxge_hw_blockpool_entry *
 __vxge_hw_blockpool_block_allocate(struct __vxge_hw_device *devh, u32 size)
 {
@@ -5226,13 +4823,7 @@ __vxge_hw_blockpool_block_allocate(struct __vxge_hw_device *devh, u32 size)
 	return entry;
 }
 
-/*
- * __vxge_hw_blockpool_block_free - Frees a block from block pool
- * @devh: Hal device
- * @entry: Entry of block to be freed
- *
- * This function frees a block from block pool
- */
+
 void
 __vxge_hw_blockpool_block_free(struct __vxge_hw_device *devh,
 			struct __vxge_hw_blockpool_entry *entry)

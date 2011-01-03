@@ -1,18 +1,4 @@
-/*
- * drivers/net/phy/lxt.c
- *
- * Driver for Intel LXT PHYs
- *
- * Author: Andy Fleming
- *
- * Copyright (c) 2004 Freescale Semiconductor, Inc.
- *
- * This program is free software; you can redistribute  it and/or modify it
- * under  the terms of  the GNU General  Public License as published by the
- * Free Software Foundation;  either version 2 of the  License, or (at your
- * option) any later version.
- *
- */
+
 #include <linux/kernel.h>
 #include <linux/string.h>
 #include <linux/errno.h>
@@ -35,24 +21,24 @@
 #include <asm/irq.h>
 #include <asm/uaccess.h>
 
-/* The Level one LXT970 is used by many boards				     */
 
-#define MII_LXT970_IER       17  /* Interrupt Enable Register */
+
+#define MII_LXT970_IER       17  
 
 #define MII_LXT970_IER_IEN	0x0002
 
-#define MII_LXT970_ISR       18  /* Interrupt Status Register */
+#define MII_LXT970_ISR       18  
 
-#define MII_LXT970_CONFIG    19  /* Configuration Register    */
+#define MII_LXT970_CONFIG    19  
 
-/* ------------------------------------------------------------------------- */
-/* The Level one LXT971 is used on some of my custom boards                  */
 
-/* register definitions for the 971 */
-#define MII_LXT971_IER		18  /* Interrupt Enable Register */
+
+
+
+#define MII_LXT971_IER		18  
 #define MII_LXT971_IER_IEN	0x00f2
 
-#define MII_LXT971_ISR		19  /* Interrupt Status Register */
+#define MII_LXT971_ISR		19  
 
 
 MODULE_DESCRIPTION("Intel LXT PHY driver");

@@ -1,19 +1,4 @@
-/*
- * Copyright (C) 2009 Wolfgang Grandegger <wg@grandegger.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the version 2 of the GNU General Public License
- * as published by the Free Software Foundation
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -37,7 +22,7 @@ MODULE_AUTHOR("Wolfgang Grandegger <wg@grandegger.com>");
 MODULE_DESCRIPTION("Socket-CAN driver for SJA1000 on the ISA bus");
 MODULE_LICENSE("GPL v2");
 
-#define CLK_DEFAULT	16000000	/* 16 MHz */
+#define CLK_DEFAULT	16000000	
 #define CDR_DEFAULT	(CDR_CBP | CDR_CLK_OFF)
 #define OCR_DEFAULT	OCR_TX0_PUSHPULL
 

@@ -1,36 +1,4 @@
-/*
- * Copyright (c) 2004, 2005 Topspin Communications.  All rights reserved.
- * Copyright (c) 2005, 2006, 2007, 2008 Mellanox Technologies. All rights reserved.
- * Copyright (c) 2005, 2006, 2007 Cisco Systems, Inc.  All rights reserved.
- *
- * This software is available to you under a choice of one of two
- * licenses.  You may choose to be licensed under the terms of the GNU
- * General Public License (GPL) Version 2, available from the file
- * COPYING in the main directory of this source tree, or the
- * OpenIB.org BSD license below:
- *
- *     Redistribution and use in source and binary forms, with or
- *     without modification, are permitted provided that the following
- *     conditions are met:
- *
- *      - Redistributions of source code must retain the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer.
- *
- *      - Redistributions in binary form must reproduce the above
- *        copyright notice, this list of conditions and the following
- *        disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+
 
 #include <linux/sched.h>
 #include <linux/pci.h>
@@ -45,43 +13,43 @@
 #define CMD_POLL_TOKEN 0xffff
 
 enum {
-	/* command completed successfully: */
+	
 	CMD_STAT_OK		= 0x00,
-	/* Internal error (such as a bus error) occurred while processing command: */
+	
 	CMD_STAT_INTERNAL_ERR	= 0x01,
-	/* Operation/command not supported or opcode modifier not supported: */
+	
 	CMD_STAT_BAD_OP		= 0x02,
-	/* Parameter not supported or parameter out of range: */
+	
 	CMD_STAT_BAD_PARAM	= 0x03,
-	/* System not enabled or bad system state: */
+	
 	CMD_STAT_BAD_SYS_STATE	= 0x04,
-	/* Attempt to access reserved or unallocaterd resource: */
+	
 	CMD_STAT_BAD_RESOURCE	= 0x05,
-	/* Requested resource is currently executing a command, or is otherwise busy: */
+	
 	CMD_STAT_RESOURCE_BUSY	= 0x06,
-	/* Required capability exceeds device limits: */
+	
 	CMD_STAT_EXCEED_LIM	= 0x08,
-	/* Resource is not in the appropriate state or ownership: */
+	
 	CMD_STAT_BAD_RES_STATE	= 0x09,
-	/* Index out of range: */
+	
 	CMD_STAT_BAD_INDEX	= 0x0a,
-	/* FW image corrupted: */
+	
 	CMD_STAT_BAD_NVMEM	= 0x0b,
-	/* Error in ICM mapping (e.g. not enough auxiliary ICM pages to execute command): */
+	
 	CMD_STAT_ICM_ERROR	= 0x0c,
-	/* Attempt to modify a QP/EE which is not in the presumed state: */
+	
 	CMD_STAT_BAD_QP_STATE   = 0x10,
-	/* Bad segment parameters (Address/Size): */
+	
 	CMD_STAT_BAD_SEG_PARAM	= 0x20,
-	/* Memory Region has Memory Windows bound to: */
+	
 	CMD_STAT_REG_BOUND	= 0x21,
-	/* HCA local attached memory not present: */
+	
 	CMD_STAT_LAM_NOT_PRE	= 0x22,
-	/* Bad management packet (silently discarded): */
+	
 	CMD_STAT_BAD_PKT	= 0x30,
-	/* More outstanding CQEs in CQ than new CQ size: */
+	
 	CMD_STAT_BAD_SIZE	= 0x40,
-	/* Multi Function device support required: */
+	
 	CMD_STAT_MULTI_FUNC_REQ	= 0x50,
 };
 
@@ -170,12 +138,7 @@ static int mlx4_cmd_post(struct mlx4_dev *dev, u64 in_param, u64 out_param,
 		cond_resched();
 	}
 
-	/*
-	 * We use writel (instead of something like memcpy_toio)
-	 * because writes of less than 32 bits to the HCR don't work
-	 * (and some architectures such as ia64 implement memcpy_toio
-	 * in terms of writeb).
-	 */
+	
 	__raw_writel((__force u32) cpu_to_be32(in_param >> 32),		  hcr + 0);
 	__raw_writel((__force u32) cpu_to_be32(in_param & 0xfffffffful),  hcr + 1);
 	__raw_writel((__force u32) cpu_to_be32(in_modifier),		  hcr + 2);
@@ -183,7 +146,7 @@ static int mlx4_cmd_post(struct mlx4_dev *dev, u64 in_param, u64 out_param,
 	__raw_writel((__force u32) cpu_to_be32(out_param & 0xfffffffful), hcr + 4);
 	__raw_writel((__force u32) cpu_to_be32(token << 16),		  hcr + 5);
 
-	/* __raw_writel may not order writes. */
+	
 	wmb();
 
 	__raw_writel((__force u32) cpu_to_be32((1 << HCR_GO_BIT)		|
@@ -192,10 +155,7 @@ static int mlx4_cmd_post(struct mlx4_dev *dev, u64 in_param, u64 out_param,
 					       (op_modifier << HCR_OPMOD_SHIFT) |
 					       op),			  hcr + 6);
 
-	/*
-	 * Make sure that our HCR writes don't get mixed in with
-	 * writes from another CPU starting a FW command.
-	 */
+	
 	mmiowb();
 
 	cmd->toggle = cmd->toggle ^ 1;
@@ -253,7 +213,7 @@ void mlx4_cmd_event(struct mlx4_dev *dev, u16 token, u8 status, u64 out_param)
 	struct mlx4_cmd_context *context =
 		&priv->cmd.context[token & priv->cmd.token_mask];
 
-	/* previously timed out command completing at long last */
+	
 	if (token != context->token)
 		return;
 
@@ -355,10 +315,7 @@ void mlx4_cmd_cleanup(struct mlx4_dev *dev)
 	iounmap(priv->cmd.hcr);
 }
 
-/*
- * Switch to using events to issue FW commands (can only be called
- * after event queue for command events has been initialized).
- */
+
 int mlx4_cmd_use_events(struct mlx4_dev *dev)
 {
 	struct mlx4_priv *priv = mlx4_priv(dev);
@@ -384,7 +341,7 @@ int mlx4_cmd_use_events(struct mlx4_dev *dev)
 	for (priv->cmd.token_mask = 1;
 	     priv->cmd.token_mask < priv->cmd.max_cmds;
 	     priv->cmd.token_mask <<= 1)
-		; /* nothing */
+		; 
 	--priv->cmd.token_mask;
 
 	priv->cmd.use_events = 1;
@@ -394,9 +351,7 @@ int mlx4_cmd_use_events(struct mlx4_dev *dev)
 	return 0;
 }
 
-/*
- * Switch back to polling (used when shutting down the device)
- */
+
 void mlx4_cmd_use_polling(struct mlx4_dev *dev)
 {
 	struct mlx4_priv *priv = mlx4_priv(dev);

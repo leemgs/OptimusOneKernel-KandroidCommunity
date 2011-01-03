@@ -1,16 +1,4 @@
-/*
- * Freescale Ethernet controllers
- *
- * Copyright (c) 2005 Intracom S.A.
- *  by Pantelis Antoniou <panto@intracom.gr>
- *
- * 2005 (c) MontaVista Software, Inc.
- * Vitaly Bordug <vbordug@ru.mvista.com>
- *
- * This file is licensed under the terms of the GNU General Public License
- * version 2. This program is licensed "as is" without any warranty of any
- * kind, whether express or implied.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -47,37 +35,35 @@
 #include "fs_enet.h"
 #include "fec.h"
 
-/*************************************************/
+
 
 #if defined(CONFIG_CPM1)
-/* for a CPM1 __raw_xxx's are sufficient */
+
 #define __fs_out32(addr, x)	__raw_writel(x, addr)
 #define __fs_out16(addr, x)	__raw_writew(x, addr)
 #define __fs_in32(addr)	__raw_readl(addr)
 #define __fs_in16(addr)	__raw_readw(addr)
 #else
-/* for others play it safe */
+
 #define __fs_out32(addr, x)	out_be32(addr, x)
 #define __fs_out16(addr, x)	out_be16(addr, x)
 #define __fs_in32(addr)	in_be32(addr)
 #define __fs_in16(addr)	in_be16(addr)
 #endif
 
-/* write */
+
 #define FW(_fecp, _reg, _v) __fs_out32(&(_fecp)->fec_ ## _reg, (_v))
 
-/* read */
+
 #define FR(_fecp, _reg)	__fs_in32(&(_fecp)->fec_ ## _reg)
 
-/* set bits */
+
 #define FS(_fecp, _reg, _v) FW(_fecp, _reg, FR(_fecp, _reg) | (_v))
 
-/* clear bits */
+
 #define FC(_fecp, _reg, _v) FW(_fecp, _reg, FR(_fecp, _reg) & ~(_v))
 
-/*
- * Delay to wait for FEC reset command to complete (in us)
- */
+
 #define FEC_RESET_DELAY		50
 
 static int whack_reset(fec_t __iomem *fecp)
@@ -87,7 +73,7 @@ static int whack_reset(fec_t __iomem *fecp)
 	FW(fecp, ecntrl, FEC_ECNTRL_PINMUX | FEC_ECNTRL_RESET);
 	for (i = 0; i < FEC_RESET_DELAY; i++) {
 		if ((FR(fecp, ecntrl) & FEC_ECNTRL_RESET) == 0)
-			return 0;	/* OK */
+			return 0;	
 		udelay(1);
 	}
 
@@ -162,7 +148,7 @@ static void free_bd(struct net_device *dev)
 
 static void cleanup_data(struct net_device *dev)
 {
-	/* nothing */
+	
 }
 
 static void set_promiscuous_mode(struct net_device *dev)
@@ -218,7 +204,7 @@ static void set_multicast_finish(struct net_device *dev)
 	struct fs_enet_private *fep = netdev_priv(dev);
 	fec_t __iomem *fecp = fep->fec.fecp;
 
-	/* if all multi or too many multicasts; just enable all */
+	
 	if ((dev->flags & IFF_ALLMULTI) != 0 ||
 	    dev->mc_count > FEC_MAX_MULTICAST_ADDRS) {
 		fep->fec.hthi = 0xffffffffU;
@@ -259,9 +245,7 @@ static void restart(struct net_device *dev)
 	if (r != 0)
 		printk(KERN_ERR DRV_MODULE_NAME
 				": %s FEC Reset FAILED!\n", dev->name);
-	/*
-	 * Set station address.
-	 */
+	
 	addrhi = ((u32) dev->dev_addr[0] << 24) |
 		 ((u32) dev->dev_addr[1] << 16) |
 		 ((u32) dev->dev_addr[2] <<  8) |
@@ -271,67 +255,49 @@ static void restart(struct net_device *dev)
 	FW(fecp, addr_low, addrhi);
 	FW(fecp, addr_high, addrlo);
 
-	/*
-	 * Reset all multicast.
-	 */
+	
 	FW(fecp, hash_table_high, fep->fec.hthi);
 	FW(fecp, hash_table_low, fep->fec.htlo);
 
-	/*
-	 * Set maximum receive buffer size.
-	 */
+	
 	FW(fecp, r_buff_size, PKT_MAXBLR_SIZE);
 	FW(fecp, r_hash, PKT_MAXBUF_SIZE);
 
-	/* get physical address */
+	
 	rx_bd_base_phys = fep->ring_mem_addr;
 	tx_bd_base_phys = rx_bd_base_phys + sizeof(cbd_t) * fpi->rx_ring;
 
-	/*
-	 * Set receive and transmit descriptor base.
-	 */
+	
 	FW(fecp, r_des_start, rx_bd_base_phys);
 	FW(fecp, x_des_start, tx_bd_base_phys);
 
 	fs_init_bds(dev);
 
-	/*
-	 * Enable big endian and don't care about SDMA FC.
-	 */
+	
 	FW(fecp, fun_code, 0x78000000);
 
-	/*
-	 * Set MII speed.
-	 */
+	
 	FW(fecp, mii_speed, fec_inf->mii_speed);
 
-	/*
-	 * Clear any outstanding interrupt.
-	 */
+	
 	FW(fecp, ievent, 0xffc0);
 	FW(fecp, ivec, (virq_to_hw(fep->interrupt) / 2) << 29);
 
-	FW(fecp, r_cntrl, FEC_RCNTRL_MII_MODE);	/* MII enable */
-	/*
-	 * adjust to duplex mode
-	 */
+	FW(fecp, r_cntrl, FEC_RCNTRL_MII_MODE);	
+	
 	if (fep->phydev->duplex) {
 		FC(fecp, r_cntrl, FEC_RCNTRL_DRT);
-		FS(fecp, x_cntrl, FEC_TCNTRL_FDEN);	/* FD enable */
+		FS(fecp, x_cntrl, FEC_TCNTRL_FDEN);	
 	} else {
 		FS(fecp, r_cntrl, FEC_RCNTRL_DRT);
-		FC(fecp, x_cntrl, FEC_TCNTRL_FDEN);	/* FD disable */
+		FC(fecp, x_cntrl, FEC_TCNTRL_FDEN);	
 	}
 
-	/*
-	 * Enable interrupts we wish to service.
-	 */
+	
 	FW(fecp, imask, FEC_ENET_TXF | FEC_ENET_TXB |
 	   FEC_ENET_RXF | FEC_ENET_RXB);
 
-	/*
-	 * And last, enable the transmit and receive processing.
-	 */
+	
 	FW(fecp, ecntrl, FEC_ECNTRL_PINMUX | FEC_ECNTRL_ETHER_EN);
 	FW(fecp, r_des_active, 0x01000000);
 }
@@ -347,9 +313,9 @@ static void stop(struct net_device *dev)
 	int i;
 
 	if ((FR(fecp, ecntrl) & FEC_ECNTRL_ETHER_EN) == 0)
-		return;		/* already down */
+		return;		
 
-	FW(fecp, x_cntrl, 0x01);	/* Graceful transmit stop */
+	FW(fecp, x_cntrl, 0x01);	
 	for (i = 0; ((FR(fecp, ievent) & 0x10000000) == 0) &&
 	     i < FEC_RESET_DELAY; i++)
 		udelay(1);
@@ -358,17 +324,15 @@ static void stop(struct net_device *dev)
 		printk(KERN_WARNING DRV_MODULE_NAME
 		       ": %s FEC timeout on graceful transmit stop\n",
 		       dev->name);
-	/*
-	 * Disable FEC. Let only MII interrupts.
-	 */
+	
 	FW(fecp, imask, 0);
 	FC(fecp, ecntrl, FEC_ECNTRL_ETHER_EN);
 
 	fs_cleanup_bds(dev);
 
-	/* shut down FEC1? that's where the mii bus is */
+	
 	if (fpi->has_phy) {
-		FS(fecp, r_cntrl, FEC_RCNTRL_MII_MODE);	/* MII enable */
+		FS(fecp, r_cntrl, FEC_RCNTRL_MII_MODE);	
 		FS(fecp, ecntrl, FEC_ECNTRL_PINMUX | FEC_ECNTRL_ETHER_EN);
 		FW(fecp, ievent, FEC_ENET_MII);
 		FW(fecp, mii_speed, feci->mii_speed);
@@ -456,10 +420,10 @@ static int get_regs_len(struct net_device *dev)
 
 static void tx_restart(struct net_device *dev)
 {
-	/* nothing */
+	
 }
 
-/*************************************************************************/
+
 
 const struct fs_ops fs_fec_ops = {
 	.setup_data		= setup_data,

@@ -1,126 +1,23 @@
-/* ibmtr.c:  A shared-memory IBM Token Ring 16/4 driver for linux
- *
- *	Written 1993 by Mark Swanson and Peter De Schrijver.
- *	This software may be used and distributed according to the terms
- *	of the GNU General Public License, incorporated herein by reference.
- *
- *	This device driver should work with Any IBM Token Ring Card that does
- *	not use DMA.
- *
- *	I used Donald Becker's (becker@scyld.com) device driver work
- *	as a base for most of my initial work.
- *
- *	Changes by Peter De Schrijver
- *		(Peter.Deschrijver@linux.cc.kuleuven.ac.be) :
- *
- *	+ changed name to ibmtr.c in anticipation of other tr boards.
- *	+ changed reset code and adapter open code.
- *	+ added SAP open code.
- *	+ a first attempt to write interrupt, transmit and receive routines.
- *
- *	Changes by David W. Morris (dwm@shell.portal.com) :
- *	941003 dwm: - Restructure tok_probe for multiple adapters, devices.
- *	+ Add comments, misc reorg for clarity.
- *	+ Flatten interrupt handler levels.
- *
- *	Changes by Farzad Farid (farzy@zen.via.ecp.fr)
- *	and Pascal Andre (andre@chimay.via.ecp.fr) (March 9 1995) :
- *	+ multi ring support clean up.
- *	+ RFC1042 compliance enhanced.
- *
- *	Changes by Pascal Andre (andre@chimay.via.ecp.fr) (September 7 1995) :
- *	+ bug correction in tr_tx
- *	+ removed redundant information display
- *	+ some code reworking
- *
- *	Changes by Michel Lespinasse (walken@via.ecp.fr),
- *	Yann Doussot (doussot@via.ecp.fr) and Pascal Andre (andre@via.ecp.fr)
- *	(February 18, 1996) :
- *	+ modified shared memory and mmio access port the driver to
- *	  alpha platform (structure access -> readb/writeb)
- *
- *	Changes by Steve Kipisz (bungy@ibm.net or kipisz@vnet.ibm.com)
- *	(January 18 1996):
- *	+ swapped WWOR and WWCR in ibmtr.h
- *	+ moved some init code from tok_probe into trdev_init.  The
- *	  PCMCIA code can call trdev_init to complete initializing
- *	  the driver.
- *	+ added -DPCMCIA to support PCMCIA
- *	+ detecting PCMCIA Card Removal in interrupt handler.  If
- *	  ISRP is FF, then a PCMCIA card has been removed
- *        10/2000 Burt needed a new method to avoid crashing the OS
- *
- *	Changes by Paul Norton (pnorton@cts.com) :
- *	+ restructured the READ.LOG logic to prevent the transmit SRB
- *	  from being rudely overwritten before the transmit cycle is
- *	  complete. (August 15 1996)
- *	+ completed multiple adapter support. (November 20 1996)
- *	+ implemented csum_partial_copy in tr_rx and increased receive 
- *        buffer size and count. Minor fixes. (March 15, 1997)
- *
- *	Changes by Christopher Turcksin <wabbit@rtfc.demon.co.uk>
- *	+ Now compiles ok as a module again.
- *
- *	Changes by Paul Norton (pnorton@ieee.org) :
- *      + moved the header manipulation code in tr_tx and tr_rx to
- *        net/802/tr.c. (July 12 1997)
- *      + add retry and timeout on open if cable disconnected. (May 5 1998)
- *      + lifted 2000 byte mtu limit. now depends on shared-RAM size.
- *        May 25 1998)
- *      + can't allocate 2k recv buff at 8k shared-RAM. (20 October 1998)
- *
- *      Changes by Joel Sloan (jjs@c-me.com) :
- *      + disable verbose debug messages by default - to enable verbose
- *	  debugging, edit the IBMTR_DEBUG_MESSAGES define below 
- *	
- *	Changes by Mike Phillips <phillim@amtrak.com> :
- *	+ Added extra #ifdef's to work with new PCMCIA Token Ring Code.
- *	  The PCMCIA code now just sets up the card so it can be recognized
- *        by ibmtr_probe. Also checks allocated memory vs. on-board memory
- *	  for correct figure to use.
- *
- *	Changes by Tim Hockin (thockin@isunix.it.ilstu.edu) :
- *	+ added spinlocks for SMP sanity (10 March 1999)
- *
- *      Changes by Jochen Friedrich to enable RFC1469 Option 2 multicasting
- *      i.e. using functional address C0 00 00 04 00 00 to transmit and 
- *      receive multicast packets.
- *
- *      Changes by Mike Sullivan (based on original sram patch by Dave Grothe
- *      to support windowing into on adapter shared ram.
- *      i.e. Use LANAID to setup a PnP configuration with 16K RAM. Paging
- *      will shift this 16K window over the entire available shared RAM.
- *
- *      Changes by Peter De Schrijver (p2@mind.be) :
- *      + fixed a problem with PCMCIA card removal
- *
- *      Change by Mike Sullivan et al.:
- *      + added turbo card support. No need to use lanaid to configure
- *      the adapter into isa compatiblity mode.
- *
- *      Changes by Burt Silverman to allow the computer to behave nicely when
- *	a cable is pulled or not in place, or a PCMCIA card is removed hot.
- */
 
-/* change the define of IBMTR_DEBUG_MESSAGES to a nonzero value 
-in the event that chatty debug messages are desired - jjs 12/30/98 */
+
+
 
 #define IBMTR_DEBUG_MESSAGES 0
 
 #include <linux/module.h>
 #include <linux/sched.h>
 
-#ifdef PCMCIA		/* required for ibmtr_cs.c to build */
-#undef MODULE		/* yes, really */
+#ifdef PCMCIA		
+#undef MODULE		
 #undef ENABLE_PAGING
 #else
 #define ENABLE_PAGING 1		
 #endif
 
-/* changes the output format of driver initialization */
+
 #define TR_VERBOSE	0
 
-/* some 95 OS send many non UI frame; this allow removing the warning */
+
 #define TR_FILTERNONUI	1
 
 #include <linux/ioport.h>
@@ -136,7 +33,7 @@ in the event that chatty debug messages are desired - jjs 12/30/98 */
 #define DPRINTK(format, args...) printk("%s: " format, dev->name , ## args)
 #define DPRINTD(format, args...) DummyCall("%s: " format, dev->name , ## args)
 
-/* version and credits */
+
 #ifndef PCMCIA
 static char version[] __devinitdata =
     "\nibmtr.c: v1.3.57   8/ 7/94 Peter De Schrijver and Mark Swanson\n"
@@ -147,7 +44,7 @@ static char version[] __devinitdata =
     "         v2.4.0   03/01/01 Mike Sullivan <sullivan@us.ibm.com>\n";
 #endif
 
-/* this allows displaying full adapter information */
+
 
 static char *channel_def[] __devinitdata = { "ISA", "MCA", "ISA P&P" };
 
@@ -180,8 +77,8 @@ static char __devinit *adapter_def(char type)
 	};
 };
 
-#define TRC_INIT 0x01		/*  Trace initialization & PROBEs */
-#define TRC_INITV 0x02		/*  verbose init trace points     */
+#define TRC_INIT 0x01		
+#define TRC_INITV 0x02		
 static unsigned char ibmtr_debug_trace = 0;
 
 static int	ibmtr_probe1(struct net_device *dev, int ioaddr);
@@ -232,9 +129,7 @@ static void __devinit HWPrtChanID(void __iomem *pcid, short stride)
 	printk("\n");
 }
 
-/* We have to ioremap every checked address, because isa_readb is 
- * going away. 
- */
+
 
 static void __devinit find_turbo_adapters(int *iolist)
 {
@@ -299,7 +194,7 @@ static void __devinit find_turbo_adapters(int *iolist)
 			" %x but not a Turbo model\n",ram_addr);
 #endif
 	iounmap(ram_mapped) ; 	
-	} /* for */
+	} 
 	for(i=0; i<IBMTR_MAX_ADAPTERS; i++) {
 		if(!turbo_io[i]) break;
 		for (j=0; j<IBMTR_MAX_ADAPTERS; j++) {
@@ -315,7 +210,7 @@ static void ibmtr_cleanup_card(struct net_device *dev)
 	if (dev->base_addr) {
 		outb(0,dev->base_addr+ADAPTRESET);
 		
-		schedule_timeout_uninterruptible(TR_RST_TIME); /* wait 50ms */
+		schedule_timeout_uninterruptible(TR_RST_TIME); 
 
 		outb(0,dev->base_addr+ADAPTRESETREL);
 	}
@@ -332,26 +227,16 @@ static void ibmtr_cleanup_card(struct net_device *dev)
 #endif		
 }
 
-/****************************************************************************
- *	ibmtr_probe():  Routine specified in the network device structure
- *	to probe for an IBM Token Ring Adapter.  Routine outline:
- *	I.    Interrogate hardware to determine if an adapter exists
- *	      and what the speeds and feeds are
- *	II.   Setup data structures to control execution based upon
- *	      adapter characteristics.
- *
- *	We expect ibmtr_probe to be called once for each device entry
- *	which references it.
- ****************************************************************************/
+
 
 static int __devinit ibmtr_probe(struct net_device *dev)
 {
 	int i;
 	int base_addr = dev->base_addr;
 
-	if (base_addr && base_addr <= 0x1ff) /* Don't probe at all. */
+	if (base_addr && base_addr <= 0x1ff) 
 		return -ENXIO;
-	if (base_addr > 0x1ff) { /* Check a single specified location.  */
+	if (base_addr > 0x1ff) { 
 		if (!ibmtr_probe1(dev, base_addr)) return 0;
 		return -ENODEV;
 	}
@@ -375,7 +260,7 @@ int __devinit ibmtr_probe_card(struct net_device *dev)
 	return err;
 }
 
-/*****************************************************************************/
+
 
 static int __devinit ibmtr_probe1(struct net_device *dev, int PIOaddr)
 {
@@ -391,72 +276,58 @@ static int __devinit ibmtr_probe1(struct net_device *dev, int PIOaddr)
 	static int version_printed;
 #endif
 
-	/*    Query the adapter PIO base port which will return
-	 *    indication of where MMIO was placed. We also have a
-	 *    coded interrupt number.
-	 */
+	
 	segment = inb(PIOaddr);
 	if (segment < 0x40 || segment > 0xe0) {
-		/* Out of range values so we'll assume non-existent IO device
-		 * but this is not necessarily a problem, esp if a turbo
-		 * adapter is being used.  */
+		
 #if IBMTR_DEBUG_MESSAGES
 		DPRINTK("ibmtr_probe1(): unhappy that inb(0x%X) == 0x%X, "
 			"Hardware Problem?\n",PIOaddr,segment);
 #endif
 		return -ENODEV;
 	}
-	/*
-	 *    Compute the linear base address of the MMIO area
-	 *    as LINUX doesn't care about segments
-	 */
+	
 	t_mmio = ioremap(((__u32) (segment & 0xfc) << 11) + 0x80000,2048);
 	if (!t_mmio) { 
 		DPRINTK("Cannot remap mmiobase memory area") ; 
 		return -ENODEV ; 
 	} 
-	intr = segment & 0x03;	/* low bits is coded interrupt # */
+	intr = segment & 0x03;	
 	if (ibmtr_debug_trace & TRC_INIT)
 		DPRINTK("PIOaddr: %4hx seg/intr: %2x mmio base: %p intr: %d\n"
 				, PIOaddr, (int) segment, t_mmio, (int) intr);
 
-	/*
-	 *    Now we will compare expected 'channelid' strings with
-	 *    what we is there to learn of ISA/MCA or not TR card
-	 */
+	
 #ifdef PCMCIA
 	iounmap(t_mmio);
-	t_mmio = ti->mmio;	/*BMS to get virtual address */
-	irq = ti->irq;		/*BMS to display the irq!   */
+	t_mmio = ti->mmio;	
+	irq = ti->irq;		
 #endif
-	cd_chanid = (CHANNEL_ID + t_mmio);	/* for efficiency */
+	cd_chanid = (CHANNEL_ID + t_mmio);	
 	tchanid = pcchannelid;
-	cardpresent = TR_ISA;	/* try ISA */
+	cardpresent = TR_ISA;	
 
-	/*    Suboptimize knowing first byte different */
+	
 	ctemp = readb(cd_chanid) & 0x0f;
-	if (ctemp != *tchanid) {	/* NOT ISA card, try MCA */
+	if (ctemp != *tchanid) {	
 		tchanid = mcchannelid;
 		cardpresent = TR_MCA;
-		if (ctemp != *tchanid)	/* Neither ISA nor MCA */
+		if (ctemp != *tchanid)	
 			cardpresent = NOTOK;
 	}
 	if (cardpresent != NOTOK) {
-		/*       Know presumed type, try rest of ID */
+		
 		for (i = 2, j = 1; i <= 46; i = i + 2, j++) {
 			if( (readb(cd_chanid+i)&0x0f) == tchanid[j]) continue;
-			/* match failed, not TR card */
+			
 			cardpresent = NOTOK;
 			break;
 		}
 	}
-	/* 
-	 *    If we have an ISA board check for the ISA P&P version,
-	 *    as it has different IRQ settings 
-	 */
+	
 	if (cardpresent == TR_ISA && (readb(AIPFID + t_mmio) == 0x0e))
 		cardpresent = TR_ISAPNP;
-	if (cardpresent == NOTOK) {	/* "channel_id" did not match, report */
+	if (cardpresent == NOTOK) {	
 		if (!(ibmtr_debug_trace & TRC_INIT)) {
 #ifndef PCMCIA
 			iounmap(t_mmio);
@@ -468,16 +339,13 @@ static int __devinit ibmtr_probe1(struct net_device *dev, int PIOaddr)
 		DPRINTK("Expected for ISA: ");
 		PrtChanID(pcchannelid, 1);
 		DPRINTK("           found: ");
-/* BMS Note that this can be misleading, when hardware is flaky, because you
-   are reading it a second time here. So with my flaky hardware, I'll see my-
-   self in this block, with the HW ID matching the ISA ID exactly! */
+
 		HWPrtChanID(cd_chanid, 2);
 		DPRINTK("Expected for MCA: ");
 		PrtChanID(mcchannelid, 1);
 	}
-	/* Now, setup some of the pl0 buffers for this driver.. */
-	/* If called from PCMCIA, it is already set up, so no need to 
-	   waste the memory, just use the existing structure */
+	
+	
 #ifndef PCMCIA
 	ti->mmio = t_mmio;
         for (i = 0; i < IBMTR_MAX_ADAPTERS; i++) {
@@ -490,17 +358,16 @@ static int __devinit ibmtr_probe1(struct net_device *dev, int PIOaddr)
 		ti->turbo = 1;
 		t_irq = turbo_irq[i];
         }
-#endif /* !PCMCIA */
+#endif 
 	ti->readlog_pending = 0;
 	init_waitqueue_head(&ti->wait_for_reset);
 
-	/* if PCMCIA, the card can be recognized as either TR_ISA or TR_ISAPNP
-	 * depending which card is inserted.	*/
+	
 	
 #ifndef PCMCIA
 	switch (cardpresent) {
 	case TR_ISA:
-		if (intr == 0) irq = 9;	/* irq2 really is irq9 */
+		if (intr == 0) irq = 9;	
 		if (intr == 1) irq = 3;
 		if (intr == 2) irq = 6;
 		if (intr == 3) irq = 7;
@@ -534,23 +401,23 @@ static int __devinit ibmtr_probe1(struct net_device *dev, int PIOaddr)
 		     ((__u32)readb(ti->mmio+ACA_OFFSET+ACA_RW+RRR_EVEN)<<12);
 		ti->adapter_int_enable = PIOaddr + ADAPTINTREL;
 		break;
-	} /*end switch (cardpresent) */
-#endif	/*not PCMCIA */
+	} 
+#endif	
 
-	if (ibmtr_debug_trace & TRC_INIT) {	/* just report int */
+	if (ibmtr_debug_trace & TRC_INIT) {	
 		DPRINTK("irq=%d", irq);
 		printk(", sram_phys=0x%x", ti->sram_phys);
-		if(ibmtr_debug_trace&TRC_INITV){ /* full chat in verbose only */
+		if(ibmtr_debug_trace&TRC_INITV){ 
 			DPRINTK(", ti->mmio=%p", ti->mmio);
 			printk(", segment=%02X", segment);
 		}
 		printk(".\n");
 	}
 
-	/* Get hw address of token ring card */
+	
 	j = 0;
 	for (i = 0; i < 0x18; i = i + 2) {
-		/* technical reference states to do this */
+		
 		temp = readb(ti->mmio + AIP + i) & 0x0f;
 		ti->hw_address[j] = temp;
 		if (j & 1)
@@ -558,33 +425,33 @@ static int __devinit ibmtr_probe1(struct net_device *dev, int PIOaddr)
 				ti->hw_address[j]+ (ti->hw_address[j - 1] << 4);
 		++j;
 	}
-	/* get Adapter type:  'F' = Adapter/A, 'E' = 16/4 Adapter II,... */
+	
 	ti->adapter_type = readb(ti->mmio + AIPADAPTYPE);
 
-	/* get Data Rate:  F=4Mb, E=16Mb, D=4Mb & 16Mb ?? */
+	
 	ti->data_rate = readb(ti->mmio + AIPDATARATE);
 
-	/* Get Early Token Release support?: F=no, E=4Mb, D=16Mb, C=4&16Mb */
+	
 	ti->token_release = readb(ti->mmio + AIPEARLYTOKEN);
 
-	/* How much shared RAM is on adapter ? */
+	
 	if (ti->turbo) {
 		ti->avail_shared_ram=127;
 	} else {
-		ti->avail_shared_ram = get_sram_size(ti);/*in 512 byte units */
+		ti->avail_shared_ram = get_sram_size(ti);
 	}
-	/* We need to set or do a bunch of work here based on previous results*/
-	/* Support paging?  What sizes?:  F=no, E=16k, D=32k, C=16 & 32k */
+	
+	
 	ti->shared_ram_paging = readb(ti->mmio + AIPSHRAMPAGE);
 
-	/* Available DHB  4Mb size:   F=2048, E=4096, D=4464 */
+	
 	switch (readb(ti->mmio + AIP4MBDHB)) {
 	case 0xe: ti->dhb_size4mb = 4096; break;
 	case 0xd: ti->dhb_size4mb = 4464; break;
 	default:  ti->dhb_size4mb = 2048; break;
 	}
 
-	/* Available DHB 16Mb size:  F=2048, E=4096, D=8192, C=16384, B=17960 */
+	
 	switch (readb(ti->mmio + AIP16MBDHB)) {
 	case 0xe: ti->dhb_size16mb = 4096; break;
 	case 0xd: ti->dhb_size16mb = 8192; break;
@@ -593,37 +460,28 @@ static int __devinit ibmtr_probe1(struct net_device *dev, int PIOaddr)
 	default:  ti->dhb_size16mb = 2048; break;
 	}
 
-	/*    We must figure out how much shared memory space this adapter
-	 *    will occupy so that if there are two adapters we can fit both
-	 *    in.  Given a choice, we will limit this adapter to 32K.  The
-	 *    maximum space will will use for two adapters is 64K so if the
-	 *    adapter we are working on demands 64K (it also doesn't support
-	 *    paging), then only one adapter can be supported.  
-	 */
+	
 
-	/*
-	 *    determine how much of total RAM is mapped into PC space 
-	 */
-	ti->mapped_ram_size= /*sixteen to onehundredtwentyeight 512byte blocks*/
+	
+	ti->mapped_ram_size= 
 	    1<< ((readb(ti->mmio+ACA_OFFSET+ACA_RW+RRR_ODD) >> 2 & 0x03) + 4);
 	ti->page_mask = 0;
 	if (ti->turbo)  ti->page_mask=0xf0;
-	else if (ti->shared_ram_paging == 0xf);  /* No paging in adapter */
+	else if (ti->shared_ram_paging == 0xf);  
 	else {
 #ifdef ENABLE_PAGING
 		unsigned char pg_size = 0;
-		/* BMS:   page size: PCMCIA, use configuration register;
-		   ISAPNP, use LANAIDC config tool from www.ibm.com  */
+		
 		switch (ti->shared_ram_paging) {
 		case 0xf:
 			break;
 		case 0xe:
 			ti->page_mask = (ti->mapped_ram_size == 32) ? 0xc0 : 0;
-			pg_size = 32;	/* 16KB page size */
+			pg_size = 32;	
 			break;
 		case 0xd:
 			ti->page_mask = (ti->mapped_ram_size == 64) ? 0x80 : 0;
-			pg_size = 64;	/* 32KB page size */
+			pg_size = 64;	
 			break;
 		case 0xc:
 			switch (ti->mapped_ram_size) {
@@ -643,7 +501,7 @@ static int __devinit ibmtr_probe1(struct net_device *dev, int PIOaddr)
 			iounmap(t_mmio); 
 			return -ENODEV;
 			break;
-		} /*end switch shared_ram_paging */
+		} 
 
 		if (ibmtr_debug_trace & TRC_INIT)
 			DPRINTK("Shared RAM paging code: %02X, "
@@ -651,11 +509,11 @@ static int __devinit ibmtr_probe1(struct net_device *dev, int PIOaddr)
 				"page mask: %02X\n:",
 				ti->shared_ram_paging, ti->mapped_ram_size / 2,
 				ti->avail_shared_ram / 2, ti->page_mask);
-#endif	/*ENABLE_PAGING */
+#endif	
 	}
 
 #ifndef PCMCIA
-	/* finish figuring the shared RAM address */
+	
 	if (cardpresent == TR_ISA) {
 		static __u32 ram_bndry_mask[] =
 			{ 0xffffe000, 0xffffc000, 0xffff8000, 0xffff0000 };
@@ -663,7 +521,7 @@ static int __devinit ibmtr_probe1(struct net_device *dev, int PIOaddr)
 
 		rrr_32=readb(ti->mmio+ACA_OFFSET+ACA_RW+RRR_ODD) >> 2 & 0x03;
 		rbm = ram_bndry_mask[rrr_32];
-		new_base = (ibmtr_mem_base + (~rbm)) & rbm;/* up to boundary */
+		new_base = (ibmtr_mem_base + (~rbm)) & rbm;
 		chk_base = new_base + (ti->mapped_ram_size << 9);
 		if (chk_base > (ibmtr_mem_base + IBMTR_SHARED_RAM_SIZE)) {
 			DPRINTK("Shared RAM for this adapter (%05x) exceeds "
@@ -671,23 +529,22 @@ static int __devinit ibmtr_probe1(struct net_device *dev, int PIOaddr)
 			chk_base, ibmtr_mem_base + IBMTR_SHARED_RAM_SIZE);
 			iounmap(t_mmio);
 			return -ENODEV;
-		} else { /* seems cool, record what we have figured out */
+		} else { 
 			ti->sram_base = new_base >> 12;
 			ibmtr_mem_base = chk_base;
 		}
 	}
 	else  ti->sram_base = ti->sram_phys >> 12;
 
-	/* The PCMCIA has already got the interrupt line and the io port, 
-	   so no chance of anybody else getting it - MLP */
+	
 	if (request_irq(dev->irq = irq, &tok_interrupt, 0, "ibmtr", dev) != 0) {
 		DPRINTK("Could not grab irq %d.  Halting Token Ring driver.\n",
 					irq);
 		iounmap(t_mmio);
 		return -ENODEV;
 	}
-	/*?? Now, allocate some of the PIO PORTs for this driver.. */
-	/* record PIOaddr range as busy */
+	
+	
 	if (!request_region(PIOaddr, IBMTR_IO_EXTENT, "ibmtr")) {
 		DPRINTK("Could not grab PIO range. Halting driver.\n");
 		free_irq(dev->irq, dev);
@@ -698,7 +555,7 @@ static int __devinit ibmtr_probe1(struct net_device *dev, int PIOaddr)
 	if (!version_printed++) {
 		printk(version);
 	}
-#endif /* !PCMCIA */
+#endif 
 	DPRINTK("%s %s found\n",
 		channel_def[cardpresent - 1], adapter_def(ti->adapter_type));
 	DPRINTK("using irq %d, PIOaddr %hx, %dK shared RAM.\n",
@@ -712,19 +569,15 @@ static int __devinit ibmtr_probe1(struct net_device *dev, int PIOaddr)
 		DPRINTK("Shared RAM paging disabled. ti->page_mask %x\n",
 								ti->page_mask);
 
-	/* Calculate the maximum DHB we can use */
-	/* two cases where avail_shared_ram doesn't equal mapped_ram_size:
-	    1. avail_shared_ram is 127 but mapped_ram_size is 128 (typical)
-	    2. user has configured adapter for less than avail_shared_ram
-	       but is not using paging (she should use paging, I believe)
-	*/
+	
+	
 	if (!ti->page_mask) {
 		ti->avail_shared_ram=
 				min(ti->mapped_ram_size,ti->avail_shared_ram);
 	}
 
 	switch (ti->avail_shared_ram) {
-	case 16:		/* 8KB shared RAM */
+	case 16:		
 		ti->dhb_size4mb = min(ti->dhb_size4mb, (unsigned short)2048);
 		ti->rbuf_len4 = 1032;
 		ti->rbuf_cnt4=2;
@@ -732,15 +585,15 @@ static int __devinit ibmtr_probe1(struct net_device *dev, int PIOaddr)
 		ti->rbuf_len16 = 1032;
 		ti->rbuf_cnt16=2;
 		break;
-	case 32:		/* 16KB shared RAM */
+	case 32:		
 		ti->dhb_size4mb = min(ti->dhb_size4mb, (unsigned short)4464);
 		ti->rbuf_len4 = 1032;
 		ti->rbuf_cnt4=4;
 		ti->dhb_size16mb = min(ti->dhb_size16mb, (unsigned short)4096);
-		ti->rbuf_len16 = 1032;	/*1024 usable */
+		ti->rbuf_len16 = 1032;	
 		ti->rbuf_cnt16=4;
 		break;
-	case 64:		/* 32KB shared RAM */
+	case 64:		
 		ti->dhb_size4mb = min(ti->dhb_size4mb, (unsigned short)4464);
 		ti->rbuf_len4 = 1032;
 		ti->rbuf_cnt4=6;
@@ -748,7 +601,7 @@ static int __devinit ibmtr_probe1(struct net_device *dev, int PIOaddr)
 		ti->rbuf_len16 = 1032;
 		ti->rbuf_cnt16=6;
 		break;
-	case 127:		/* 63.5KB shared RAM */
+	case 127:		
 		ti->dhb_size4mb = min(ti->dhb_size4mb, (unsigned short)4464);
 		ti->rbuf_len4 = 1032;
 		ti->rbuf_cnt4=6;
@@ -756,7 +609,7 @@ static int __devinit ibmtr_probe1(struct net_device *dev, int PIOaddr)
 		ti->rbuf_len16 = 1032;
 		ti->rbuf_cnt16=16;
 		break;
-	case 128:		/* 64KB   shared RAM */
+	case 128:		
 		ti->dhb_size4mb = min(ti->dhb_size4mb, (unsigned short)4464);
 		ti->rbuf_len4 = 1032;
 		ti->rbuf_cnt4=6;
@@ -773,49 +626,39 @@ static int __devinit ibmtr_probe1(struct net_device *dev, int PIOaddr)
 		ti->rbuf_cnt16=2;
 		break;
 	}
-	/* this formula is not smart enough for the paging case
-	ti->rbuf_cnt<x> = (ti->avail_shared_ram * BLOCKSZ - ADAPT_PRIVATE -
-			ARBLENGTH - SSBLENGTH - DLC_MAX_SAP * SAPLENGTH -
-			DLC_MAX_STA * STALENGTH - ti->dhb_size<x>mb * NUM_DHB -
-			SRBLENGTH - ASBLENGTH) / ti->rbuf_len<x>;
-	*/
+	
 	ti->maxmtu16 = (ti->rbuf_len16 - 8) * ti->rbuf_cnt16  - TR_HLEN;
 	ti->maxmtu4 = (ti->rbuf_len4 - 8) * ti->rbuf_cnt4 - TR_HLEN;
-	/*BMS assuming 18 bytes of Routing Information (usually works) */
+	
 	DPRINTK("Maximum Receive Internet Protocol MTU 16Mbps: %d, 4Mbps: %d\n",
 						     ti->maxmtu16, ti->maxmtu4);
 
-	dev->base_addr = PIOaddr;	/* set the value for device */
+	dev->base_addr = PIOaddr;	
 	dev->mem_start = ti->sram_base << 12;
 	dev->mem_end = dev->mem_start + (ti->mapped_ram_size << 9) - 1;
 	trdev_init(dev);
-	return 0;   /* Return 0 to indicate we have found a Token Ring card. */
-}				/*ibmtr_probe1() */
+	return 0;   
+}				
 
-/*****************************************************************************/
 
-/* query the adapter for the size of shared RAM  */
-/* the function returns the RAM size in units of 512 bytes */
+
+
+
 
 static unsigned char __devinit get_sram_size(struct tok_info *adapt_info)
 {
 	unsigned char avail_sram_code;
 	static unsigned char size_code[] = { 0, 16, 32, 64, 127, 128 };
-	/* Adapter gives
-	   'F' -- use RRR bits 3,2
-	   'E' -- 8kb   'D' -- 16kb
-	   'C' -- 32kb  'A' -- 64KB
-	   'B' - 64KB less 512 bytes at top
-	   (WARNING ... must zero top bytes in INIT */
+	
 
 	avail_sram_code = 0xf - readb(adapt_info->mmio + AIPAVAILSHRAM);
 	if (avail_sram_code) return size_code[avail_sram_code];
-	else		/* for code 'F', must compute size from RRR(3,2) bits */
+	else		
 		return 1 <<
 		 ((readb(adapt_info->mmio+ACA_OFFSET+ACA_RW+RRR_ODD)>>2&3)+4);
 }
 
-/*****************************************************************************/
+
 
 static const struct net_device_ops trdev_netdev_ops = {
 	.ndo_open		= tok_open,
@@ -836,7 +679,7 @@ static int __devinit trdev_init(struct net_device *dev)
 	return 0;
 }
 
-/*****************************************************************************/
+
 
 static int tok_init_card(struct net_device *dev)
 {
@@ -846,13 +689,13 @@ static int tok_init_card(struct net_device *dev)
 
 	PIOaddr = dev->base_addr;
 	ti = netdev_priv(dev);
-	/* Special processing for first interrupt after reset */
+	
 	ti->do_tok_int = FIRST_INT;
-	/* Reset adapter */
+	
 	writeb(~INT_ENABLE, ti->mmio + ACA_OFFSET + ACA_RESET + ISRP_EVEN);
 	outb(0, PIOaddr + ADAPTRESET);
 
-	schedule_timeout_uninterruptible(TR_RST_TIME); /* wait 50ms */
+	schedule_timeout_uninterruptible(TR_RST_TIME); 
 
 	outb(0, PIOaddr + ADAPTRESETREL);
 #ifdef ENABLE_PAGING
@@ -864,25 +707,25 @@ static int tok_init_card(struct net_device *dev)
 	return i? 0 : -EAGAIN;
 }
 
-/*****************************************************************************/
+
 static int tok_open(struct net_device *dev)
 {
 	struct tok_info *ti = netdev_priv(dev);
 	int i;
 
-	/*the case we were left in a failure state during a previous open */
+	
 	if (ti->open_failure == YES) {
 		DPRINTK("Last time you were disconnected, how about now?\n");
 		printk("You can't insert with an ICS connector half-cocked.\n");
 	}
 
-	ti->open_status  = CLOSED; /* CLOSED or OPEN      */
-	ti->sap_status   = CLOSED; /* CLOSED or OPEN      */
-	ti->open_failure =     NO; /* NO     or YES       */
-	ti->open_mode    = MANUAL; /* MANUAL or AUTOMATIC */
+	ti->open_status  = CLOSED; 
+	ti->sap_status   = CLOSED; 
+	ti->open_failure =     NO; 
+	ti->open_mode    = MANUAL; 
 
-	ti->sram_phys &= ~1; /* to reverse what we do in tok_close */
-	/* init the spinlock */
+	ti->sram_phys &= ~1; 
+	
 	spin_lock_init(&ti->lock);
 	init_timer(&ti->tr_timer);
 	
@@ -892,8 +735,8 @@ static int tok_open(struct net_device *dev)
 	while (1){
 		tok_open_adapter((unsigned long) dev);
 		i= interruptible_sleep_on_timeout(&ti->wait_for_reset, 25 * HZ);
-		/* sig catch: estimate opening adapter takes more than .5 sec*/
-		if (i>(245*HZ)/10) break; /* fancier than if (i==25*HZ) */
+		
+		if (i>(245*HZ)/10) break; 
 		if (i==0) break;
 		if (ti->open_status == OPEN && ti->sap_status==OPEN) {
 			netif_start_queue(dev);
@@ -901,15 +744,15 @@ static int tok_open(struct net_device *dev)
 			return 0;
 		}
 		i=schedule_timeout_interruptible(TR_RETRY_INTERVAL);
-							/* wait 30 seconds */
-		if(i!=0) break; /*prob. a signal, like the i>24*HZ case above */
+							
+		if(i!=0) break; 
 	}
-	outb(0, dev->base_addr + ADAPTRESET);/* kill pending interrupts*/
-	DPRINTK("TERMINATED via signal\n");	/*BMS useful */
+	outb(0, dev->base_addr + ADAPTRESET);
+	DPRINTK("TERMINATED via signal\n");	
 	return -EAGAIN;
 }
 
-/*****************************************************************************/
+
 
 #define COMMAND_OFST             0
 #define OPEN_OPTIONS_OFST        8
@@ -942,10 +785,10 @@ static void tok_open_adapter(unsigned long dev_addr)
 		writew(htons(ti->rbuf_cnt4), ti->init_srb + NUM_RCV_BUF_OFST);
 		writew(htons(ti->rbuf_len4), ti->init_srb + RCV_BUF_LEN_OFST);
 	}
-	writeb(NUM_DHB,		/* always 2 */ ti->init_srb + NUM_DHB_OFST);
+	writeb(NUM_DHB,		 ti->init_srb + NUM_DHB_OFST);
 	writeb(DLC_MAX_SAP, ti->init_srb + DLC_MAX_SAP_OFST);
 	writeb(DLC_MAX_STA, ti->init_srb + DLC_MAX_STA_OFST);
-	ti->srb = ti->init_srb;	/* We use this one in the interrupt handler */
+	ti->srb = ti->init_srb;	
 	ti->srb_page = ti->init_srb_page;
 	DPRINTK("Opening adapter: Xmit bfrs: %d X %d, Rcv bfrs: %d X %d\n",
 		readb(ti->init_srb + NUM_DHB_OFST),
@@ -956,7 +799,7 @@ static void tok_open_adapter(unsigned long dev_addr)
 	writeb(CMD_IN_SRB, ti->mmio + ACA_OFFSET + ACA_SET + ISRA_ODD);
 }
 
-/*****************************************************************************/
+
 
 static void open_sap(unsigned char type, struct net_device *dev)
 {
@@ -981,7 +824,7 @@ static void open_sap(unsigned char type, struct net_device *dev)
 }
 
 
-/*****************************************************************************/
+
 
 static void tok_set_multicast_list(struct net_device *dev)
 {
@@ -991,9 +834,9 @@ static void tok_set_multicast_list(struct net_device *dev)
 
 	int i;
 
-	/*BMS the next line is CRUCIAL or you may be sad when you */
-	/*BMS ifconfig tr down or hot unplug a PCMCIA card ??hownowbrowncow*/
-	if (/*BMSHELPdev->start == 0 ||*/ ti->open_status != OPEN) return;
+	
+	
+	if ( ti->open_status != OPEN) return;
 	address[0] = address[1] = address[2] = address[3] = 0;
 	mclist = dev->mc_list;
 	for (i = 0; i < dev->mc_count; i++) {
@@ -1020,7 +863,7 @@ static void tok_set_multicast_list(struct net_device *dev)
 #endif
 }
 
-/*****************************************************************************/
+
 
 #define STATION_ID_OFST 4
 
@@ -1033,10 +876,10 @@ static netdev_tx_t tok_send_packet(struct sk_buff *skb,
 
         netif_stop_queue(dev);
 
-	/* lock against other CPUs */
+	
 	spin_lock_irqsave(&(ti->lock), flags);
 
-	/* Save skb; we'll need it when the adapter asks for the data */
+	
 	ti->current_skb = skb;
 	SET_PAGE(ti->srb_page);
 	writeb(XMIT_UI_FRAME, ti->srb + COMMAND_OFST);
@@ -1047,14 +890,14 @@ static netdev_tx_t tok_send_packet(struct sk_buff *skb,
 	return NETDEV_TX_OK;
 }
 
-/*****************************************************************************/
+
 
 static int tok_close(struct net_device *dev)
 {
 	struct tok_info *ti = netdev_priv(dev);
 
-	/* Important for PCMCIA hot unplug, otherwise, we'll pull the card, */
-	/* unloading the module from memory, and then if a timer pops, ouch */
+	
+	
 	del_timer_sync(&ti->tr_timer);
 	outb(0, dev->base_addr + ADAPTRESET);
 	ti->sram_phys |= 1;
@@ -1065,7 +908,7 @@ static int tok_close(struct net_device *dev)
 	return 0;
 }
 
-/*****************************************************************************/
+
 
 #define RETCODE_OFST		2
 #define OPEN_ERROR_CODE_OFST	6
@@ -1114,7 +957,7 @@ static void dir_open_adapter (struct net_device *dev)
         ret_code = readb(ti->init_srb + RETCODE_OFST);
         err = ntohs(readw(ti->init_srb + OPEN_ERROR_CODE_OFST));
         if (!ret_code) {
-		ti->open_status = OPEN; /* TR adapter is now available */
+		ti->open_status = OPEN; 
                 if (ti->open_mode == AUTOMATIC) {
 			DPRINTK("Adapter reopened.\n");
                 }
@@ -1170,12 +1013,12 @@ static void dir_open_adapter (struct net_device *dev)
 	DPRINTK("FAILURE, CAPUT\n");
 }
 
-/******************************************************************************/
+
 
 static irqreturn_t tok_interrupt(int irq, void *dev_id)
 {
 	unsigned char status;
-	/*  unsigned char status_even ; */
+	
 	struct tok_info *ti;
 	struct net_device *dev;
 #ifdef ENABLE_PAGING
@@ -1188,19 +1031,19 @@ static irqreturn_t tok_interrupt(int irq, void *dev_id)
 #endif
 	ti = netdev_priv(dev);
 	if (ti->sram_phys & 1)
-		return IRQ_NONE;         /* PCMCIA card extraction flag */
+		return IRQ_NONE;         
 	spin_lock(&(ti->lock));
 #ifdef ENABLE_PAGING
 	save_srpr = readb(ti->mmio + ACA_OFFSET + ACA_RW + SRPR_EVEN);
 #endif
 
-	/* Disable interrupts till processing is finished */
+	
 	writeb((~INT_ENABLE), ti->mmio + ACA_OFFSET + ACA_RESET + ISRP_EVEN);
 
-	/* Reset interrupt for ISA boards */
+	
 	if (ti->adapter_int_enable)
 		outb(0, ti->adapter_int_enable);
-	else /* used for PCMCIA cards */
+	else 
 		outb(0, ti->global_int_enable);
         if (ti->do_tok_int == FIRST_INT){
                 initial_tok_int(dev);
@@ -1210,12 +1053,11 @@ static irqreturn_t tok_interrupt(int irq, void *dev_id)
                 spin_unlock(&(ti->lock));
                 return IRQ_HANDLED;
         }
-	/*  Begin interrupt handler HERE inline to avoid the extra
-	    levels of logic and call depth for the original solution. */
+	
 	status = readb(ti->mmio + ACA_OFFSET + ACA_RW + ISRP_ODD);
-	/*BMSstatus_even = readb (ti->mmio + ACA_OFFSET + ACA_RW + ISRP_EVEN) */
-	/*BMSdebugprintk("tok_interrupt: ISRP_ODD = 0x%x ISRP_EVEN = 0x%x\n", */
-	/*BMS                                       status,status_even);      */
+	
+	
+	
 
 	if (status & ADAP_CHK_INT) {
 		int i;
@@ -1241,7 +1083,7 @@ static irqreturn_t tok_interrupt(int irq, void *dev_id)
 		netif_stop_queue(dev);
 		ti->open_action = RESTART;
 		outb(0, dev->base_addr + ADAPTRESET);
-		ibmtr_reset_timer(&(ti->tr_timer), dev);/*BMS try to reopen*/
+		ibmtr_reset_timer(&(ti->tr_timer), dev);
 		spin_unlock(&(ti->lock));
 		return IRQ_HANDLED;
 	}
@@ -1251,8 +1093,8 @@ static irqreturn_t tok_interrupt(int irq, void *dev_id)
 			(int)readb(ti->mmio+ ACA_OFFSET + ACA_RW + ISRP_EVEN));
 		writeb(~(TCR_INT | ERR_INT | ACCESS_INT),
 			ti->mmio + ACA_OFFSET + ACA_RESET + ISRP_EVEN);
-		status= readb(ti->mmio+ ACA_OFFSET + ACA_RW + ISRA_EVEN);/*BMS*/
-		DPRINTK("ISRA_EVEN == 0x02%x\n",status);/*BMS*/
+		status= readb(ti->mmio+ ACA_OFFSET + ACA_RW + ISRA_EVEN);
+		DPRINTK("ISRA_EVEN == 0x02%x\n",status);
                 writeb(INT_ENABLE, ti->mmio + ACA_OFFSET + ACA_SET + ISRP_EVEN);
 #ifdef ENABLE_PAGING
                 writeb(save_srpr, ti->mmio + ACA_OFFSET + ACA_RW + SRPR_EVEN);
@@ -1260,13 +1102,13 @@ static irqreturn_t tok_interrupt(int irq, void *dev_id)
                 spin_unlock(&(ti->lock));
                 return IRQ_HANDLED;
         }
-	if (status & SRB_RESP_INT) {	/* SRB response */
+	if (status & SRB_RESP_INT) {	
 		SET_PAGE(ti->srb_page);
 #if TR_VERBOSE
 		DPRINTK("SRB resp: cmd=%02X rsp=%02X\n",
 				readb(ti->srb), readb(ti->srb + RETCODE_OFST));
 #endif
-		switch (readb(ti->srb)) {	/* SRB command check */
+		switch (readb(ti->srb)) {	
 		case XMIT_DIR_FRAME:{
 			unsigned char xmit_ret_code;
 			xmit_ret_code = readb(ti->srb + RETCODE_OFST);
@@ -1277,7 +1119,7 @@ static irqreturn_t tok_interrupt(int irq, void *dev_id)
 				dev_kfree_skb_irq(ti->current_skb);
 				ti->current_skb = NULL;
 			}
-			/*dev->tbusy = 0;*/
+			
 			netif_wake_queue(dev);
 			if (ti->readlog_pending)
 				ibmtr_readlog(dev);
@@ -1312,7 +1154,7 @@ static irqreturn_t tok_interrupt(int irq, void *dev_id)
 				break;
 			}
 			ti->exsap_station_id = readw(ti->srb + STATION_ID_OFST);
-			ti->sap_status = OPEN;/* TR adapter is now available */
+			ti->sap_status = OPEN;
 			if (ti->open_mode==MANUAL){
 				wake_up(&ti->wait_for_reset);
 				break;
@@ -1372,16 +1214,16 @@ static irqreturn_t tok_interrupt(int irq, void *dev_id)
 		default:
 			DPRINTK("Unknown command %02X encountered\n",
 						(int) readb(ti->srb));
-        	}	/* end switch SRB command check */
+        	}	
 		writeb(~SRB_RESP_INT, ti->mmio+ ACA_OFFSET+ACA_RESET+ ISRP_ODD);
-	}	/* if SRB response */
-	if (status & ASB_FREE_INT) {	/* ASB response */
+	}	
+	if (status & ASB_FREE_INT) {	
 		SET_PAGE(ti->asb_page);
 #if TR_VERBOSE
 		DPRINTK("ASB resp: cmd=%02X\n", readb(ti->asb));
 #endif
 
-		switch (readb(ti->asb)) {	/* ASB command check */
+		switch (readb(ti->asb)) {	
 		case REC_DATA:
 		case XMIT_UI_FRAME:
 		case XMIT_DIR_FRAME:
@@ -1389,23 +1231,23 @@ static irqreturn_t tok_interrupt(int irq, void *dev_id)
 		default:
 			DPRINTK("unknown command in asb %02X\n",
 						(int) readb(ti->asb));
-		}	/* switch ASB command check */
-		if (readb(ti->asb + 2) != 0xff)	/* checks ret_code */
+		}	
+		if (readb(ti->asb + 2) != 0xff)	
 			DPRINTK("ASB error %02X in cmd %02X\n",
 				(int) readb(ti->asb + 2), (int) readb(ti->asb));
 		writeb(~ASB_FREE_INT, ti->mmio+ ACA_OFFSET+ACA_RESET+ ISRP_ODD);
-	}	/* if ASB response */
+	}	
 
 #define STATUS_OFST             6
 #define NETW_STATUS_OFST        6
 
-	if (status & ARB_CMD_INT) {	/* ARB response */
+	if (status & ARB_CMD_INT) {	
 		SET_PAGE(ti->arb_page);
 #if TR_VERBOSE
 		DPRINTK("ARB resp: cmd=%02X\n", readb(ti->arb));
 #endif
 
-		switch (readb(ti->arb)) {	/* ARB command check */
+		switch (readb(ti->arb)) {	
 		case DLC_STATUS:
 			DPRINTK("DLC_STATUS new status: %02X on station %02X\n",
 				ntohs(readw(ti->arb + STATUS_OFST)),
@@ -1428,12 +1270,12 @@ static irqreturn_t tok_interrupt(int irq, void *dev_id)
 				DPRINTK("We'll try to reopen the closed adapter"
 					" after a %d second delay.\n",
 						TR_RETRY_INTERVAL/HZ);
-				/*I was confused: I saw the TR reopening but */
-				/*forgot:with an RJ45 in an RJ45/ICS adapter */
-				/*but adapter not in the ring, the TR will   */
-				/* open, and then soon close and come here.  */
+				
+				
+				
+				
 				ti->open_mode = AUTOMATIC;
-				ti->open_status = CLOSED; /*12/2000 BMS*/
+				ti->open_status = CLOSED; 
 				ti->open_action = REOPEN;
 				ibmtr_reset_timer(&(ti->tr_timer), dev);
 			} else if (ring_status & LOG_OVERFLOW) {
@@ -1451,11 +1293,11 @@ static irqreturn_t tok_interrupt(int irq, void *dev_id)
 			DPRINTK("Unknown command %02X in arb\n",
 						(int) readb(ti->arb));
 			break;
-		}	/* switch ARB command check */
+		}	
 		writeb(~ARB_CMD_INT, ti->mmio+ ACA_OFFSET+ACA_RESET + ISRP_ODD);
 		writeb(ARB_FREE, ti->mmio + ACA_OFFSET + ACA_SET + ISRA_ODD);
-	}	/* if ARB response */
-	if (status & SSB_RESP_INT) {	/* SSB response */
+	}	
+	if (status & SSB_RESP_INT) {	
 		unsigned char retcode;
 		SET_PAGE(ti->ssb_page);
 #if TR_VERBOSE
@@ -1463,11 +1305,11 @@ static irqreturn_t tok_interrupt(int irq, void *dev_id)
 				readb(ti->ssb), readb(ti->ssb + 2));
 #endif
 
-		switch (readb(ti->ssb)) {	/* SSB command check */
+		switch (readb(ti->ssb)) {	
 		case XMIT_DIR_FRAME:
 		case XMIT_UI_FRAME:
 			retcode = readb(ti->ssb + 2);
-			if (retcode && (retcode != 0x22))/* checks ret_code */
+			if (retcode && (retcode != 0x22))
 				DPRINTK("xmit ret_code: %02X xmit error code: "
 					"%02X\n",
 					(int)retcode, (int)readb(ti->ssb + 6));
@@ -1480,19 +1322,19 @@ static irqreturn_t tok_interrupt(int irq, void *dev_id)
 		default:
 			DPRINTK("Unknown command %02X in ssb\n",
 						(int) readb(ti->ssb));
-		}	/* SSB command check */
+		}	
 		writeb(~SSB_RESP_INT, ti->mmio+ ACA_OFFSET+ACA_RESET+ ISRP_ODD);
 		writeb(SSB_FREE, ti->mmio + ACA_OFFSET + ACA_SET + ISRA_ODD);
-	}	/* if SSB response */
+	}	
 #ifdef ENABLE_PAGING
 	writeb(save_srpr, ti->mmio + ACA_OFFSET + ACA_RW + SRPR_EVEN);
 #endif
 	writeb(INT_ENABLE, ti->mmio + ACA_OFFSET + ACA_SET + ISRP_EVEN);
 	spin_unlock(&(ti->lock));
 	return IRQ_HANDLED;
-}				/*tok_interrupt */
+}				
 
-/*****************************************************************************/
+
 
 #define INIT_STATUS_OFST        1
 #define INIT_STATUS_2_OFST      2
@@ -1503,13 +1345,13 @@ static void initial_tok_int(struct net_device *dev)
 
 	__u32 encoded_addr, hw_encoded_addr;
 	struct tok_info *ti;
-        unsigned char init_status; /*BMS 12/2000*/
+        unsigned char init_status; 
 
 	ti = netdev_priv(dev);
 
 	ti->do_tok_int = NOT_FIRST;
 
-	/* we assign the shared-ram address for ISA devices */
+	
 	writeb(ti->sram_base, ti->mmio + ACA_OFFSET + ACA_RW + RRR_EVEN);
 #ifndef PCMCIA
         ti->sram_virt = ioremap(((__u32)ti->sram_base << 12), ti->avail_shared_ram);
@@ -1522,7 +1364,7 @@ static void initial_tok_int(struct net_device *dev)
 		__u8 last_512_page=0;
 		int i;
 		last_512 = map_address(ti, 0xfe00, &last_512_page);
-		/* initialize high section of ram (if necessary) */
+		
 		SET_PAGE(last_512_page);
 		for (i = 0; i < 512; i++)
 			writeb(0, last_512 + i);
@@ -1543,9 +1385,9 @@ static void initial_tok_int(struct net_device *dev)
 
 	hw_encoded_addr = readw(ti->init_srb + ENCODED_ADDRESS_OFST);
 	encoded_addr = ntohs(hw_encoded_addr);
-        init_status= /*BMS 12/2000 check for shallow mode possibility (Turbo)*/
+        init_status= 
 	readb(ti->init_srb+offsetof(struct srb_init_response,init_status));
-	/*printk("Initial interrupt: init_status= 0x%02x\n",init_status);*/
+	
 	ti->ring_speed = init_status & 0x01 ? 16 : 4;
 	DPRINTK("Initial interrupt : %d Mbps, shared RAM base %08x.\n",
 				ti->ring_speed, (unsigned int)dev->mem_start);
@@ -1554,9 +1396,9 @@ static void initial_tok_int(struct net_device *dev)
         if (ti->open_mode == MANUAL)	wake_up(&ti->wait_for_reset);
 	else				tok_open_adapter((unsigned long)dev);
         
-} /*initial_tok_int() */
+} 
 
-/*****************************************************************************/
+
 
 #define CMD_CORRELATE_OFST      1
 #define DHB_ADDRESS_OFST        6
@@ -1583,10 +1425,7 @@ static void tr_tx(struct net_device *dev)
 
 	if (readb(ti->asb+RETCODE_OFST) != 0xFF) DPRINTK("ASB not free !!!\n");
 
-	/* in providing the transmit interrupts, is telling us it is ready for
-	   data and providing a shared memory address for us to stuff with data.
-	   Here we compute the effective address where we will place data.
-	*/
+	
 	SET_PAGE(ti->arb_page);
 	dhb=dhb_base=ntohs(readw(ti->arb + DHB_ADDRESS_OFST));
 	if (ti->page_mask) {
@@ -1595,8 +1434,8 @@ static void tr_tx(struct net_device *dev)
 	}
 	dhbuf = ti->sram_virt + dhb;
 
-	/* Figure out the size of the 802.5 header */
-	if (!(trhdr->saddr[0] & 0x80))	/* RIF present? */
+	
+	if (!(trhdr->saddr[0] & 0x80))	
 		hdr_len = sizeof(struct trh_hdr) - TR_MAXRIFLEN;
 	else
 		hdr_len = ((ntohs(trhdr->rcf) & TR_RCF_LEN_MASK) >> 8)
@@ -1628,10 +1467,7 @@ static void tr_tx(struct net_device *dev)
 		writeb(RESP_IN_ASB, ti->mmio + ACA_OFFSET + ACA_SET + ISRA_ODD);
 		return;
 	}
-	/*
-	 *    the token ring packet is copied from sk_buff to the adapter
-	 *    buffer identified in the command data received with the interrupt.
-	 */
+	
 	writeb(hdr_len, ti->asb + HEADER_LENGTH_OFST);
 	writew(htons(ti->current_skb->len), ti->asb + FRAME_LENGTH_OFST);
 	src_len=ti->current_skb->len;
@@ -1641,7 +1477,7 @@ static void tr_tx(struct net_device *dev)
 		if (ti->page_mask) {
 			dhb_page=(dhb >> 8) & ti->page_mask;
 			dhb=dhb & ~(ti->page_mask << 8);
-			dhb_len=0x4000-dhb; /* remaining size of this page */
+			dhb_len=0x4000-dhb; 
 		}
 		dhbuf = ti->sram_virt + dhb;
 		SET_PAGE(dhb_page);
@@ -1664,9 +1500,9 @@ static void tr_tx(struct net_device *dev)
 	netif_wake_queue(dev);
 	if (ti->readlog_pending)
 		ibmtr_readlog(dev);
-}				/*tr_tx */
+}				
 
-/*****************************************************************************/
+
 
 
 #define RECEIVE_BUFFER_OFST     6
@@ -1712,7 +1548,7 @@ static void tr_rx(struct net_device *dev)
 	if (lan_hdr_len > sizeof(struct trh_hdr)) {
 		DPRINTK("Linux cannot handle greater than 18 bytes RIF\n");
 		return;
-	}			/*BMS I added this above just to be very safe */
+	}			
 	dlc_hdr_len = readb(ti->arb + DLC_HDR_LENGTH_OFST);
 	hdr_len = lan_hdr_len + sizeof(struct trllc) + sizeof(struct iphdr);
 
@@ -1764,7 +1600,7 @@ static void tr_rx(struct net_device *dev)
 	}
 #endif
 
-	/*BMS handle the case she comes in with few hops but leaves with many */
+	
         skb_size=length-lan_hdr_len+sizeof(struct trh_hdr)+sizeof(struct trllc);
 
 	if (!(skb = dev_alloc_skb(skb_size))) {
@@ -1775,7 +1611,7 @@ static void tr_rx(struct net_device *dev)
 		writeb(RESP_IN_ASB, ti->mmio + ACA_OFFSET + ACA_SET + ISRA_ODD);
 		return;
 	}
-	/*BMS again, if she comes in with few but leaves with many */
+	
 	skb_reserve(skb, sizeof(struct trh_hdr) - lan_hdr_len);
 	skb_put(skb, length);
 	data = skb->data;
@@ -1783,10 +1619,10 @@ static void tr_rx(struct net_device *dev)
 	rbufdata = rbuf + offsetof(struct rec_buf, data);
 
 	if (IPv4_p) {
-		/* Copy the headers without checksumming */
+		
 		memcpy_fromio(data, rbufdata, hdr_len);
 
-		/* Watch for padded packets and bogons */
+		
 		iph= (struct iphdr *)(data+ lan_hdr_len + sizeof(struct trllc));
 		ip_len = ntohs(iph->tot_len) - sizeof(struct iphdr);
 		length -= hdr_len;
@@ -1796,7 +1632,7 @@ static void tr_rx(struct net_device *dev)
 		rbuffer_len -= hdr_len;
 		rbufdata += hdr_len;
 	}
-	/* Copy the payload... */
+	
 #define BUFFER_POINTER_OFST	2
 #define BUFFER_LENGTH_OFST      6
 	for (;;) {
@@ -1834,9 +1670,9 @@ static void tr_rx(struct net_device *dev)
 		skb->ip_summed = CHECKSUM_COMPLETE;
 	}
 	netif_rx(skb);
-}				/*tr_rx */
+}				
 
-/*****************************************************************************/
+
 
 static void ibmtr_reset_timer(struct timer_list *tmr, struct net_device *dev)
 {
@@ -1847,7 +1683,7 @@ static void ibmtr_reset_timer(struct timer_list *tmr, struct net_device *dev)
 	add_timer(tmr);
 }
 
-/*****************************************************************************/
+
 
 static void tok_rerun(unsigned long dev_addr)
 {
@@ -1868,7 +1704,7 @@ static void tok_rerun(unsigned long dev_addr)
 		tok_open_adapter(dev_addr);
 }
 
-/*****************************************************************************/
+
 
 static void ibmtr_readlog(struct net_device *dev)
 {
@@ -1886,7 +1722,7 @@ static void ibmtr_readlog(struct net_device *dev)
 
 }
 
-/*****************************************************************************/
+
 
 static int ibmtr_change_mtu(struct net_device *dev, int mtu)
 {
@@ -1900,10 +1736,10 @@ static int ibmtr_change_mtu(struct net_device *dev, int mtu)
 	return 0;
 }
 
-/*****************************************************************************/
+
 #ifdef MODULE
 
-/* 3COM 3C619C supports 8 interrupts, 32 I/O ports */
+
 static struct net_device *dev_ibmtr[IBMTR_MAX_ADAPTERS];
 static int io[IBMTR_MAX_ADAPTERS] = { 0xa20, 0xa24 };
 static int irq[IBMTR_MAX_ADAPTERS];

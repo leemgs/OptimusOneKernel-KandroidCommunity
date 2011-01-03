@@ -1,16 +1,4 @@
-/******************************************************************************
- * This software may be used and distributed according to the terms of
- * the GNU General Public License (GPL), incorporated herein by reference.
- * Drivers based on or derived from this code fall under the GPL and must
- * retain the authorship, copyright and license notice.  This file is not
- * a complete program and may only be used when the entire operating
- * system is licensed under the GPL.
- * See the file COPYING in this distribution for more information.
- *
- * vxge-main.h: Driver for Neterion Inc's X3100 Series 10GbE PCIe I/O
- *              Virtualized Server Adapter.
- * Copyright(c) 2002-2009 Neterion Inc.
- ******************************************************************************/
+
 #ifndef VXGE_MAIN_H
 #define VXGE_MAIN_H
 
@@ -84,27 +72,27 @@
 #define RTI_RX_UFC_C	10
 #define RTI_RX_UFC_D	15
 
-/* Milli secs timer period */
+
 #define VXGE_TIMER_DELAY		10000
 
 #define VXGE_LL_MAX_FRAME_SIZE(dev) ((dev)->mtu + VXGE_HW_MAC_HEADER_MAX_SIZE)
 
 enum vxge_reset_event {
-	/* reset events */
+	
 	VXGE_LL_VPATH_RESET	= 0,
 	VXGE_LL_DEVICE_RESET	= 1,
 	VXGE_LL_FULL_RESET	= 2,
 	VXGE_LL_START_RESET	= 3,
 	VXGE_LL_COMPL_RESET	= 4
 };
-/* These flags represent the devices temporary state */
+
 enum vxge_device_state_t {
 __VXGE_STATE_RESET_CARD = 0,
 __VXGE_STATE_CARD_UP
 };
 
 enum vxge_mac_addr_state {
-	/* mac address states */
+	
 	VXGE_LL_MAC_ADDR_IN_LIST        = 0,
 	VXGE_LL_MAC_ADDR_IN_DA_TABLE    = 1
 };
@@ -156,37 +144,37 @@ struct vxge_config {
 };
 
 struct vxge_msix_entry {
-	/* Mimicing the msix_entry struct of Kernel. */
+	
 	u16 vector;
 	u16 entry;
 	u16 in_use;
 	void *arg;
 };
 
-/* Software Statistics */
+
 
 struct vxge_sw_stats {
-	/* Network Stats (interface stats) */
+	
 	struct net_device_stats net_stats;
 
-	/* Tx */
+	
 	u64 tx_frms;
 	u64 tx_errors;
 	u64 tx_bytes;
 	u64 txd_not_free;
 	u64 txd_out_of_desc;
 
-	/* Virtual Path */
+	
 	u64 vpaths_open;
 	u64 vpath_open_fail;
 
-	/* Rx */
+	
 	u64 rx_frms;
 	u64 rx_errors;
 	u64 rx_bytes;
 	u64 rx_mcast;
 
-	/* Misc. */
+	
 	u64 link_up;
 	u64 link_down;
 	u64 pci_map_fail;
@@ -216,19 +204,17 @@ struct vxge_fifo {
 	struct pci_dev		*pdev;
 	struct __vxge_hw_fifo *handle;
 
-	/* The vpath id maintained in the driver -
-	 * 0 to 'maximum_vpaths_in_function - 1'
-	 */
+	
 	int driver_id;
 	int tx_steering_type;
 	int indicate_max_pkts;
 	spinlock_t tx_lock;
-	/* flag used to maintain queue state when MULTIQ is not enabled */
+	
 #define VPATH_QUEUE_START       0
 #define VPATH_QUEUE_STOP        1
 	int queue_state;
 
-	/* Tx stats */
+	
 	struct vxge_fifo_stats stats;
 } ____cacheline_aligned;
 
@@ -247,12 +233,10 @@ struct vxge_ring {
 	struct net_device	*ndev;
 	struct pci_dev		*pdev;
 	struct __vxge_hw_ring	*handle;
-	/* The vpath id maintained in the driver -
-	 * 0 to 'maximum_vpaths_in_function - 1'
-	 */
+	
 	int driver_id;
 
-	 /* copy of the flag indicating whether rx_csum is to be used */
+	 
 	u32 rx_csum;
 
 	int pkts_processed;
@@ -269,7 +253,7 @@ struct vxge_ring {
 	int rx_vector_no;
 	enum vxge_hw_status last_status;
 
-	/* Rx stats */
+	
 	struct vxge_ring_stats stats;
 } ____cacheline_aligned;
 
@@ -280,7 +264,7 @@ struct vxge_vpath {
 
 	struct __vxge_hw_vpath_handle *handle;
 
-	/* Actual vpath id for this vpath in the device - 0 to 16 */
+	
 	int device_id;
 	int max_mac_addr_cnt;
 	int is_configured;
@@ -290,7 +274,7 @@ struct vxge_vpath {
 	u8 (macmask)[ETH_ALEN];
 
 #define VXGE_MAX_LEARN_MAC_ADDR_CNT	2048
-	/* mac addresses currently programmed into NIC */
+	
 	u16 mac_addr_cnt;
 	u16 mcast_addr_cnt;
 	struct list_head mac_addr_list;
@@ -316,30 +300,24 @@ struct vxgedev {
 	struct vxge_config	config;
 	unsigned long	state;
 
-	/* Indicates which vpath to reset */
+	
 	unsigned long  vp_reset;
 
-	/* Timer used for polling vpath resets */
+	
 	struct timer_list vp_reset_timer;
 
-	/* Timer used for polling vpath lockup */
+	
 	struct timer_list vp_lockup_timer;
 
-	/*
-	 * Flags to track whether device is in All Multicast
-	 * or in promiscuous mode.
-	 */
+	
 	u16		all_multi_flg;
 
-	 /* A flag indicating whether rx_csum is to be used or not. */
+	 
 	u32	rx_csum;
 
 	struct vxge_msix_entry *vxge_entries;
 	struct msix_entry *entries;
-	/*
-	 * 4 for each vpath * 17;
-	 * total is 68
-	 */
+	
 #define	VXGE_MAX_REQUESTED_MSIX	68
 #define VXGE_INTR_STRLEN 80
 	char desc[VXGE_MAX_REQUESTED_MSIX][VXGE_INTR_STRLEN];
@@ -350,14 +328,7 @@ struct vxgedev {
 	int no_of_vpath;
 
 	struct napi_struct napi;
-	/* A debug option, when enabled and if error condition occurs,
-	 * the driver will do following steps:
-	 * - mask all interrupts
-	 * - Not clear the source of the alarm
-	 * - gracefully stop all I/O
-	 * A diagnostic dump of register and stats at this point
-	 * reveals very useful information.
-	 */
+	
 	int exec_mode;
 	int max_config_port;
 	struct vxge_vpath	*vpaths;
@@ -366,7 +337,7 @@ struct vxgedev {
 	void __iomem *bar0;
 	struct vxge_sw_stats	stats;
 	int		mtu;
-	/* Below variables are used for vpath selection to transmit a packet */
+	
 	u8 		vpath_selector[VXGE_HW_MAX_VIRTUAL_PATHS];
 	u64		vpaths_deployed;
 
@@ -467,15 +438,7 @@ enum vxge_hw_status vxge_restore_vpath_vid_table(struct vxge_vpath *vpath);
 
 int do_vxge_close(struct net_device *dev, int do_io);
 extern void initialize_ethtool_ops(struct net_device *ndev);
-/**
- * #define VXGE_DEBUG_INIT: debug for initialization functions
- * #define VXGE_DEBUG_TX	 : debug transmit related functions
- * #define VXGE_DEBUG_RX  : debug recevice related functions
- * #define VXGE_DEBUG_MEM : debug memory module
- * #define VXGE_DEBUG_LOCK: debug locks
- * #define VXGE_DEBUG_SEM : debug semaphore
- * #define VXGE_DEBUG_ENTRYEXIT: debug functions by adding entry exit statements
-*/
+
 #define VXGE_DEBUG_INIT		0x00000001
 #define VXGE_DEBUG_TX		0x00000002
 #define VXGE_DEBUG_RX		0x00000004
@@ -486,7 +449,7 @@ extern void initialize_ethtool_ops(struct net_device *ndev);
 #define VXGE_DEBUG_INTR		0x00000080
 #define VXGE_DEBUG_LL_CONFIG	0x00000100
 
-/* Debug tracing for VXGE driver */
+
 #ifndef VXGE_DEBUG_MASK
 #define VXGE_DEBUG_MASK	0x0
 #endif
