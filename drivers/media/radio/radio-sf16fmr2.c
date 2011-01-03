@@ -1,27 +1,13 @@
-/* SF16FMR2 radio driver for Linux radio support
- * heavily based on fmi driver...
- * (c) 2000-2002 Ziglio Frediano, freddy77@angelfire.com
- *
- * Notes on the hardware
- *
- *  Frequency control is done digitally -- ie out(port,encodefreq(95.8));
- *  No volume control - only mute/unmute - you have to use line volume
- *
- *  For read stereo/mono you must wait 0.1 sec after set frequency and
- *  card unmuted so I set frequency on unmute
- *  Signal handling seem to work only on autoscanning (not implemented)
- *
- *  Converted to V4L2 API by Mauro Carvalho Chehab <mchehab@infradead.org>
- */
 
-#include <linux/module.h>	/* Modules 			*/
-#include <linux/init.h>		/* Initdata			*/
-#include <linux/ioport.h>	/* request_region		*/
-#include <linux/delay.h>	/* udelay			*/
-#include <linux/videodev2.h>	/* kernel radio structs		*/
+
+#include <linux/module.h>	
+#include <linux/init.h>		
+#include <linux/ioport.h>	
+#include <linux/delay.h>	
+#include <linux/videodev2.h>	
 #include <linux/mutex.h>
-#include <linux/version.h>      /* for KERNEL_VERSION MACRO     */
-#include <linux/io.h>		/* outb, outb_p			*/
+#include <linux/version.h>      
+#include <linux/io.h>		
 #include <media/v4l2-device.h>
 #include <media/v4l2-ioctl.h>
 
@@ -41,7 +27,7 @@ module_param(radio_nr, int, 0);
 #define AUD_VOL_INDEX 1
 
 #undef DEBUG
-//#define DEBUG 1
+
 
 #ifdef DEBUG
 # define  debug_print(s) printk s
@@ -49,26 +35,23 @@ module_param(radio_nr, int, 0);
 # define  debug_print(s)
 #endif
 
-/* this should be static vars for module size */
+
 struct fmr2
 {
 	struct v4l2_device v4l2_dev;
 	struct video_device vdev;
 	struct mutex lock;
 	int io;
-	int curvol; /* 0-15 */
+	int curvol; 
 	int mute;
-	int stereo; /* card is producing stereo audio */
-	unsigned long curfreq; /* freq in kHz */
+	int stereo; 
+	unsigned long curfreq; 
 	int card_type;
 };
 
 static struct fmr2 fmr2_card;
 
-/* hw precision is 12.5 kHz
- * It is only useful to give freq in interval of 200 (=0.0125Mhz),
- * other bits will be truncated
- */
+
 #define RSF16_ENCODE(x)	((x) / 200 + 856)
 #define RSF16_MINFREQ (87 * 16000)
 #define RSF16_MAXFREQ (108 * 16000)
@@ -123,18 +106,18 @@ static int fmr2_product_info(struct fmr2 *dev)
 
 	n &= 0xC1;
 	if (n == 0) {
-		/* this should support volume set */
+		
 		dev->card_type = 12;
 		return 0;
 	}
-	/* not volume (mine is 11) */
+	
 	dev->card_type = (n == 128) ? 11 : 0;
 	return n;
 }
 
 static inline int fmr2_getsigstr(struct fmr2 *dev)
 {
-	/* !!! works only if scanning freq */
+	
 	int res = 0xffff;
 
 	outb(5, dev->io);
@@ -145,32 +128,28 @@ static inline int fmr2_getsigstr(struct fmr2 *dev)
 	return res;
 }
 
-/* set frequency and unmute card */
+
 static int fmr2_setfreq(struct fmr2 *dev)
 {
 	unsigned long freq = dev->curfreq;
 
 	fmr2_mute(dev->io);
 
-	/* 0x42 for mono output
-	 * 0x102 forward scanning
-	 * 0x182 scansione avanti
-	 */
+	
 	outbits(9, 0x2, 3, dev->io);
 	outbits(16, RSF16_ENCODE(freq), 2, dev->io);
 
 	fmr2_unmute(dev->io);
 
-	/* wait 0.11 sec */
+	
 	msleep(110);
 
-	/* NOTE if mute this stop radio
-	   you must set freq on unmute */
+	
 	dev->stereo = fmr2_stereo_mode(dev->io);
 	return 0;
 }
 
-/* !!! not tested, in my card this does't work !!! */
+
 static int fmr2_setvolume(struct fmr2 *dev)
 {
 	int vol[16] = { 0x021, 0x084, 0x090, 0x104,
@@ -184,7 +163,7 @@ static int fmr2_setvolume(struct fmr2 *dev)
 		return 1;
 
 	for (i = 12; --i >= 0; ) {
-		a = ((n >> i) & 1) << 6; /* if (a==0) a = 0; else a = 0x40; */
+		a = ((n >> i) & 1) << 6; 
 		outb(a | 4, dev->io);
 		wait(4, dev->io);
 		outb(a | 0x24, dev->io);
@@ -254,11 +233,10 @@ static int vidioc_s_frequency(struct file *file, void *priv,
 	if (f->frequency < RSF16_MINFREQ ||
 			f->frequency > RSF16_MAXFREQ)
 		return -EINVAL;
-	/* rounding in steps of 200 to match the freq
-	   that will be used */
+	
 	fmr2->curfreq = (f->frequency / 200) * 200;
 
-	/* set card freq (if not muted) */
+	
 	if (fmr2->curvol && !fmr2->mute) {
 		mutex_lock(&fmr2->lock);
 		fmr2_setfreq(fmr2);
@@ -286,7 +264,7 @@ static int vidioc_queryctrl(struct file *file, void *priv,
 	case V4L2_CID_AUDIO_MUTE:
 		return v4l2_ctrl_query_fill(qc, 0, 1, 1, 1);
 	case V4L2_CID_AUDIO_VOLUME:
-		/* Only card_type == 11 implements volume */
+		
 		if (fmr2->card_type == 11)
 			return v4l2_ctrl_query_fill(qc, 0, 15, 1, 0);
 		return v4l2_ctrl_query_fill(qc, 0, 1, 1, 0);
@@ -336,7 +314,7 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
 	mutex_lock(&fmr2->lock);
 	if (fmr2->curvol && !fmr2->mute) {
 		fmr2_setvolume(fmr2);
-		/* Set frequency and unmute card */
+		
 		fmr2_setfreq(fmr2);
 	} else
 		fmr2_mute(fmr2->io);
@@ -427,7 +405,7 @@ static int __init fmr2_init(void)
 	}
 
 	v4l2_info(v4l2_dev, "SF16FMR2 radio card driver at 0x%x.\n", fmr2->io);
-	/* mute card - prevents noisy bootups */
+	
 	mutex_lock(&fmr2->lock);
 	fmr2_mute(fmr2->io);
 	fmr2_product_info(fmr2);

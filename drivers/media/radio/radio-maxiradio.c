@@ -1,36 +1,4 @@
-/*
- * Guillemot Maxi Radio FM 2000 PCI radio card driver for Linux
- * (C) 2001 Dimitromanolakis Apostolos <apdim@grecian.net>
- *
- * Based in the radio Maestro PCI driver. Actually it uses the same chip
- * for radio but different pci controller.
- *
- * I didn't have any specs I reversed engineered the protocol from
- * the windows driver (radio.dll).
- *
- * The card uses the TEA5757 chip that includes a search function but it
- * is useless as I haven't found any way to read back the frequency. If
- * anybody does please mail me.
- *
- * For the pdf file see:
- * http://www.semiconductors.philips.com/pip/TEA5757H/V1
- *
- *
- * CHANGES:
- *   0.75b
- *     - better pci interface thanks to Francois Romieu <romieu@cogenit.fr>
- *
- *   0.75      Sun Feb  4 22:51:27 EET 2001
- *     - tiding up
- *     - removed support for multiple devices as it didn't work anyway
- *
- * BUGS:
- *   - card unmutes if you change frequency
- *
- * (c) 2006, 2007 by Mauro Carvalho Chehab <mchehab@infradead.org>:
- *	- Conversion to V4L2 API
- *      - Uses video_ioctl2 for parsing and to add debug support
- */
+
 
 
 #include <linux/module.h>
@@ -40,7 +8,7 @@
 #include <linux/mutex.h>
 #include <linux/pci.h>
 #include <linux/videodev2.h>
-#include <linux/version.h>      /* for KERNEL_VERSION MACRO     */
+#include <linux/version.h>      
 #include <linux/io.h>
 #include <media/v4l2-device.h>
 #include <media/v4l2-ioctl.h>
@@ -73,16 +41,16 @@ MODULE_PARM_DESC(debug, "activates debug info");
 #endif
 
 
-/* TEA5757 pin mappings */
+
 static const int clk = 1, data = 2, wren = 4, mo_st = 8, power = 16;
 
 #define FREQ_LO		(50 * 16000)
 #define FREQ_HI		(150 * 16000)
 
-#define FREQ_IF         171200 /* 10.7*16000   */
-#define FREQ_STEP       200    /* 12.5*16      */
+#define FREQ_IF         171200 
+#define FREQ_STEP       200    
 
-/* (x==fmhz*16*1000) -> bits */
+
 #define FREQ2BITS(x) \
   ((((unsigned int)(x) + FREQ_IF + (FREQ_STEP << 1)) / (FREQ_STEP << 2)) << 2)
 
@@ -95,10 +63,10 @@ struct maxiradio
 	struct video_device vdev;
 	struct pci_dev *pdev;
 
-	u16	io;	/* base of radio io */
-	u16	muted;	/* VIDEO_AUDIO_MUTE */
-	u16	stereo;	/* VIDEO_TUNER_STEREO_ON */
-	u16	tuned;	/* signal strength (0 or 0xffff) */
+	u16	io;	
+	u16	muted;	
+	u16	stereo;	
+	u16	tuned;	
 
 	unsigned long freq;
 
@@ -140,21 +108,21 @@ static void set_freq(struct maxiradio *dev, u32 freq)
 	int io = dev->io;
 	int val = FREQ2BITS(freq);
 
-	/* TEA5757 shift register bits (see pdf) */
+	
 
-	outbit(0, io); /* 24  search */
-	outbit(1, io); /* 23  search up/down */
+	outbit(0, io); 
+	outbit(1, io); 
 
-	outbit(0, io); /* 22  stereo/mono */
+	outbit(0, io); 
 
-	outbit(0, io); /* 21  band */
-	outbit(0, io); /* 20  band (only 00=FM works I think) */
+	outbit(0, io); 
+	outbit(0, io); 
 
-	outbit(0, io); /* 19  port ? */
-	outbit(0, io); /* 18  port ? */
+	outbit(0, io); 
+	outbit(0, io); 
 
-	outbit(0, io); /* 17  search level */
-	outbit(0, io); /* 16  search level */
+	outbit(0, io); 
+	outbit(0, io); 
 
 	si = 0x8000;
 	for (bl = 1; bl <= 16; bl++) {

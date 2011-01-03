@@ -1,37 +1,12 @@
-/* radio-aztech.c - Aztech radio card driver for Linux 2.2
- *
- * Converted to V4L2 API by Mauro Carvalho Chehab <mchehab@infradead.org>
- * Adapted to support the Video for Linux API by
- * Russell Kroll <rkroll@exploits.org>.  Based on original tuner code by:
- *
- * Quay Ly
- * Donald Song
- * Jason Lewis      (jlewis@twilight.vtc.vsc.edu)
- * Scott McGrath    (smcgrath@twilight.vtc.vsc.edu)
- * William McGrath  (wmcgrath@twilight.vtc.vsc.edu)
- *
- * The basis for this code may be found at http://bigbang.vtc.vsc.edu/fmradio/
- * along with more information on the card itself.
- *
- * History:
- * 1999-02-24	Russell Kroll <rkroll@exploits.org>
- *		Fine tuning/VIDEO_TUNER_LOW
- * 		Range expanded to 87-108 MHz (from 87.9-107.8)
- *
- * Notable changes from the original source:
- * - includes stripped down to the essentials
- * - for loops used as delays replaced with udelay()
- * - #defines removed, changed to static values
- * - tuning structure changed - no more character arrays, other changes
-*/
 
-#include <linux/module.h>	/* Modules 			*/
-#include <linux/init.h>		/* Initdata			*/
-#include <linux/ioport.h>	/* request_region		*/
-#include <linux/delay.h>	/* udelay			*/
-#include <linux/videodev2.h>	/* kernel radio structs		*/
-#include <linux/version.h>      /* for KERNEL_VERSION MACRO     */
-#include <linux/io.h>		/* outb, outb_p			*/
+
+#include <linux/module.h>	
+#include <linux/init.h>		
+#include <linux/ioport.h>	
+#include <linux/delay.h>	
+#include <linux/videodev2.h>	
+#include <linux/version.h>      
+#include <linux/io.h>		
 #include <media/v4l2-device.h>
 #include <media/v4l2-ioctl.h>
 
@@ -39,7 +14,7 @@ MODULE_AUTHOR("Russell Kroll, Quay Lu, Donald Song, Jason Lewis, Scott McGrath, 
 MODULE_DESCRIPTION("A driver for the Aztech radio card.");
 MODULE_LICENSE("GPL");
 
-/* acceptable ports: 0x350 (JP3 shorted), 0x358 (JP3 open) */
+
 
 #ifndef CONFIG_RADIO_AZTECH_PORT
 #define CONFIG_RADIO_AZTECH_PORT -1
@@ -70,10 +45,10 @@ static struct aztech aztech_card;
 
 static int volconvert(int level)
 {
-	level >>= 14;		/* Map 16bits down to 2 bit */
+	level >>= 14;		
 	level &= 3;
 
-	/* convert to card-friendly values */
+	
 	switch (level) {
 	case 0:
 		return 0;
@@ -84,7 +59,7 @@ static int volconvert(int level)
 	case 3:
 		return 5;
 	}
-	return 0;	/* Quieten gcc */
+	return 0;	
 }
 
 static void send_0_byte(struct aztech *az)
@@ -109,20 +84,14 @@ static int az_setvol(struct aztech *az, int vol)
 	return 0;
 }
 
-/* thanks to Michael Dwyer for giving me a dose of clues in
- * the signal strength department..
- *
- * This card has a stereo bit - bit 0 set = mono, not set = stereo
- * It also has a "signal" bit - bit 1 set = bad signal, not set = good
- *
- */
+
 
 static int az_getsigstr(struct aztech *az)
 {
 	int sig = 1;
 
 	mutex_lock(&az->lock);
-	if (inb(az->io) & 2)	/* bit set = no signal present */
+	if (inb(az->io) & 2)	
 		sig = 0;
 	mutex_unlock(&az->lock);
 	return sig;
@@ -133,7 +102,7 @@ static int az_getstereo(struct aztech *az)
 	int stereo = 1;
 
 	mutex_lock(&az->lock);
-	if (inb(az->io) & 1) 	/* bit set = mono */
+	if (inb(az->io) & 1) 	
 		stereo = 0;
 	mutex_unlock(&az->lock);
 	return stereo;
@@ -146,33 +115,33 @@ static int az_setfreq(struct aztech *az, unsigned long frequency)
 	mutex_lock(&az->lock);
 
 	az->curfreq = frequency;
-	frequency += 171200;		/* Add 10.7 MHz IF		*/
-	frequency /= 800;		/* Convert to 50 kHz units	*/
+	frequency += 171200;		
+	frequency /= 800;		
 
-	send_0_byte(az);		/*  0: LSB of frequency       */
+	send_0_byte(az);		
 
-	for (i = 0; i < 13; i++)	/*   : frequency bits (1-13)  */
+	for (i = 0; i < 13; i++)	
 		if (frequency & (1 << i))
 			send_1_byte(az);
 		else
 			send_0_byte(az);
 
-	send_0_byte(az);		/* 14: test bit - always 0    */
-	send_0_byte(az);		/* 15: test bit - always 0    */
-	send_0_byte(az);		/* 16: band data 0 - always 0 */
-	if (az->stereo)		/* 17: stereo (1 to enable)   */
+	send_0_byte(az);		
+	send_0_byte(az);		
+	send_0_byte(az);		
+	if (az->stereo)		
 		send_1_byte(az);
 	else
 		send_0_byte(az);
 
-	send_1_byte(az);		/* 18: band data 1 - unknown  */
-	send_0_byte(az);		/* 19: time base - always 0   */
-	send_0_byte(az);		/* 20: spacing (0 = 25 kHz)   */
-	send_1_byte(az);		/* 21: spacing (1 = 25 kHz)   */
-	send_0_byte(az);		/* 22: spacing (0 = 25 kHz)   */
-	send_1_byte(az);		/* 23: AM/FM (FM = 1, always) */
+	send_1_byte(az);		
+	send_0_byte(az);		
+	send_0_byte(az);		
+	send_1_byte(az);		
+	send_0_byte(az);		
+	send_1_byte(az);		
 
-	/* latch frequency */
+	
 
 	udelay(radio_wait_time);
 	outb_p(128 + 64 + volconvert(az->curvol), az->io);
@@ -379,7 +348,7 @@ static int __init aztech_init(void)
 	}
 
 	v4l2_info(v4l2_dev, "Aztech radio card driver v1.00/19990224 rkroll@exploits.org\n");
-	/* mute card - prevents noisy bootups */
+	
 	outb(0, az->io);
 	return 0;
 }

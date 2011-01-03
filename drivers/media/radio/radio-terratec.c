@@ -1,36 +1,12 @@
-/* Terratec ActiveRadio ISA Standalone card driver for Linux radio support
- * (c) 1999 R. Offermanns (rolf@offermanns.de)
- * based on the aimslab radio driver from M. Kirkwood
- * many thanks to Michael Becker and Friedhelm Birth (from TerraTec)
- *
- *
- * History:
- * 1999-05-21	First preview release
- *
- *  Notes on the hardware:
- *  There are two "main" chips on the card:
- *  - Philips OM5610 (http://www-us.semiconductors.philips.com/acrobat/datasheets/OM5610_2.pdf)
- *  - Philips SAA6588 (http://www-us.semiconductors.philips.com/acrobat/datasheets/SAA6588_1.pdf)
- *  (you can get the datasheet at the above links)
- *
- *  Frequency control is done digitally -- ie out(port,encodefreq(95.8));
- *  Volume Control is done digitally
- *
- *  there is a I2C controlled RDS decoder (SAA6588)  onboard, which i would like to support someday
- *  (as soon i have understand how to get started :)
- *  If you can help me out with that, please contact me!!
- *
- *
- * Converted to V4L2 API by Mauro Carvalho Chehab <mchehab@infradead.org>
- */
 
-#include <linux/module.h>	/* Modules 			*/
-#include <linux/init.h>		/* Initdata			*/
-#include <linux/ioport.h>	/* request_region		*/
-#include <linux/videodev2.h>	/* kernel radio structs		*/
+
+#include <linux/module.h>	
+#include <linux/init.h>		
+#include <linux/ioport.h>	
+#include <linux/videodev2.h>	
 #include <linux/mutex.h>
-#include <linux/version.h>      /* for KERNEL_VERSION MACRO     */
-#include <linux/io.h>		/* outb, outb_p			*/
+#include <linux/version.h>      
+#include <linux/io.h>		
 #include <media/v4l2-device.h>
 #include <media/v4l2-ioctl.h>
 
@@ -91,13 +67,13 @@ struct terratec
 
 static struct terratec terratec_card;
 
-/* local things */
+
 
 static void tt_write_vol(struct terratec *tt, int volume)
 {
 	int i;
 
-	volume = volume + (volume * 32); /* change both channels */
+	volume = volume + (volume * 32); 
 	mutex_lock(&tt->lock);
 	for (i = 0; i < 8; i++) {
 		if (volume & (0x80 >> i))
@@ -118,17 +94,17 @@ static void tt_mute(struct terratec *tt)
 
 static int tt_setvol(struct terratec *tt, int vol)
 {
-	if (vol == tt->curvol) {	/* requested volume = current */
-		if (tt->muted) {	/* user is unmuting the card  */
+	if (vol == tt->curvol) {	
+		if (tt->muted) {	
 			tt->muted = 0;
-			tt_write_vol(tt, vol);	/* enable card */
+			tt_write_vol(tt, vol);	
 		}
 		return 0;
 	}
 
-	if (vol == 0) {			/* volume = 0 means mute the card */
-		tt_write_vol(tt, 0);	/* "turn off card" by setting vol to 0 */
-		tt->curvol = vol;	/* track the volume state!	*/
+	if (vol == 0) {			
+		tt_write_vol(tt, 0);	
+		tt->curvol = vol;	
 		return 0;
 	}
 
@@ -139,8 +115,8 @@ static int tt_setvol(struct terratec *tt, int vol)
 }
 
 
-/* this is the worst part in this driver */
-/* many more or less strange things are going on here, but hey, it works :) */
+
+
 
 static int tt_setfreq(struct terratec *tt, unsigned long freq1)
 {
@@ -149,17 +125,17 @@ static int tt_setfreq(struct terratec *tt, unsigned long freq1)
 	int p;
 	int  temp;
 	long rest;
-	unsigned char buffer[25];		/* we have to bit shift 25 registers */
+	unsigned char buffer[25];		
 
 	mutex_lock(&tt->lock);
 
 	tt->curfreq = freq1;
 
-	freq = freq1 / 160;			/* convert the freq. to a nice to handle value */
+	freq = freq1 / 160;			
 	memset(buffer, 0, sizeof(buffer));
 
-	rest = freq * 10 + 10700;	/* I once had understood what is going on here */
-					/* maybe some wise guy (friedhelm?) can comment this stuff */
+	rest = freq * 10 + 10700;	
+					
 	i = 13;
 	p = 10;
 	temp = 102400;
@@ -175,7 +151,7 @@ static int tt_setfreq(struct terratec *tt, unsigned long freq1)
 		temp = temp / 2;
 	}
 
-	for (i = 24; i > -1; i--) {	/* bit shift the values to the radiocard */
+	for (i = 24; i > -1; i--) {	
 		if (buffer[i] == 1) {
 			outb(WRT_EN | DATA, tt->io);
 			outb(WRT_EN | DATA | CLK_ON, tt->io);
@@ -194,9 +170,9 @@ static int tt_setfreq(struct terratec *tt, unsigned long freq1)
 
 static int tt_getsigstr(struct terratec *tt)
 {
-	if (inb(tt->io) & 2)	/* bit set = no signal present	*/
+	if (inb(tt->io) & 2)	
 		return 0;
-	return 1;		/* signal present		*/
+	return 1;		
 }
 
 static int vidioc_querycap(struct file *file, void *priv,
@@ -393,7 +369,7 @@ static int __init terratec_init(void)
 
 	v4l2_info(v4l2_dev, "TERRATEC ActivRadio Standalone card driver.\n");
 
-	/* mute card - prevents noisy bootups */
+	
 	tt_write_vol(tt, 0);
 	return 0;
 }

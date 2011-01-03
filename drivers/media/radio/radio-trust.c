@@ -1,25 +1,10 @@
-/* radio-trust.c - Trust FM Radio card driver for Linux 2.2
- * by Eric Lammerts <eric@scintilla.utwente.nl>
- *
- * Based on radio-aztech.c. Original notes:
- *
- * Adapted to support the Video for Linux API by
- * Russell Kroll <rkroll@exploits.org>.  Based on original tuner code by:
- *
- * Quay Ly
- * Donald Song
- * Jason Lewis      (jlewis@twilight.vtc.vsc.edu)
- * Scott McGrath    (smcgrath@twilight.vtc.vsc.edu)
- * William McGrath  (wmcgrath@twilight.vtc.vsc.edu)
- *
- * Converted to V4L2 API by Mauro Carvalho Chehab <mchehab@infradead.org>
- */
+
 
 #include <stdarg.h>
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/ioport.h>
-#include <linux/version.h>      /* for KERNEL_VERSION MACRO     */
+#include <linux/version.h>      
 #include <linux/videodev2.h>
 #include <linux/io.h>
 #include <media/v4l2-device.h>
@@ -29,7 +14,7 @@ MODULE_AUTHOR("Eric Lammerts, Russell Kroll, Quay Lu, Donald Song, Jason Lewis, 
 MODULE_DESCRIPTION("A driver for the Trust FM Radio card.");
 MODULE_LICENSE("GPL");
 
-/* acceptable ports: 0x350 (JP3 shorted), 0x358 (JP3 open) */
+
 
 #ifndef CONFIG_RADIO_TRUST_PORT
 #define CONFIG_RADIO_TRUST_PORT -1
@@ -61,7 +46,7 @@ struct trust {
 
 static struct trust trust_card;
 
-/* i2c addresses */
+
 #define TDA7318_ADDR 0x88
 #define TSA6060T_ADDR 0xc4
 
@@ -78,7 +63,7 @@ static void write_i2c(struct trust *tr, int n, ...)
 
 	va_start(args, n);
 
-	/* start condition */
+	
 	TR_SET_SDA;
 	TR_SET_SCL;
 	TR_DELAY;
@@ -98,7 +83,7 @@ static void write_i2c(struct trust *tr, int n, ...)
 			TR_CLR_SCL;
 			TR_DELAY;
 		}
-		/* acknowledge bit */
+		
 		TR_SET_SDA;
 		TR_SET_SCL;
 		TR_DELAY;
@@ -106,7 +91,7 @@ static void write_i2c(struct trust *tr, int n, ...)
 		TR_DELAY;
 	}
 
-	/* stop condition */
+	
 	TR_CLR_SDA;
 	TR_DELAY;
 	TR_SET_SCL;
@@ -176,7 +161,7 @@ static int tr_getsigstr(struct trust *tr)
 
 static int tr_getstereo(struct trust *tr)
 {
-	/* don't know how to determine it, just return the setting */
+	
 	return tr->curstereo;
 }
 
@@ -184,8 +169,8 @@ static void tr_setfreq(struct trust *tr, unsigned long f)
 {
 	mutex_lock(&tr->lock);
 	tr->curfreq = f;
-	f /= 160;	/* Convert to 10 kHz units	*/
-	f += 1070;	/* Add 10.7 MHz IF		*/
+	f /= 160;	
+	f += 1070;	
 	write_i2c(tr, 5, TSA6060T_ADDR, (f << 1) | 1, f >> 7, 0x60 | ((f >> 15) & 1), 0);
 	mutex_unlock(&tr->lock);
 }
@@ -400,18 +385,18 @@ static int __init trust_init(void)
 
 	v4l2_info(v4l2_dev, "Trust FM Radio card driver v1.0.\n");
 
-	write_i2c(tr, 2, TDA7318_ADDR, 0x80);	/* speaker att. LF = 0 dB */
-	write_i2c(tr, 2, TDA7318_ADDR, 0xa0);	/* speaker att. RF = 0 dB */
-	write_i2c(tr, 2, TDA7318_ADDR, 0xc0);	/* speaker att. LR = 0 dB */
-	write_i2c(tr, 2, TDA7318_ADDR, 0xe0);	/* speaker att. RR = 0 dB */
-	write_i2c(tr, 2, TDA7318_ADDR, 0x40);	/* stereo 1 input, gain = 18.75 dB */
+	write_i2c(tr, 2, TDA7318_ADDR, 0x80);	
+	write_i2c(tr, 2, TDA7318_ADDR, 0xa0);	
+	write_i2c(tr, 2, TDA7318_ADDR, 0xc0);	
+	write_i2c(tr, 2, TDA7318_ADDR, 0xe0);	
+	write_i2c(tr, 2, TDA7318_ADDR, 0x40);	
 
 	tr_setvol(tr, 0xffff);
 	tr_setbass(tr, 0x8000);
 	tr_settreble(tr, 0x8000);
 	tr_setstereo(tr, 1);
 
-	/* mute card - prevents noisy bootups */
+	
 	tr_setmute(tr, 1);
 
 	return 0;

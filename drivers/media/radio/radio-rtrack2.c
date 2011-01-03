@@ -1,22 +1,13 @@
-/* RadioTrack II driver for Linux radio support (C) 1998 Ben Pfaff
- *
- * Based on RadioTrack I/RadioReveal (C) 1997 M. Kirkwood
- * Converted to new API by Alan Cox <alan@lxorguk.ukuu.org.uk>
- * Various bugfixes and enhancements by Russell Kroll <rkroll@exploits.org>
- *
- * TODO: Allow for more than one of these foolish entities :-)
- *
- * Converted to V4L2 API by Mauro Carvalho Chehab <mchehab@infradead.org>
- */
 
-#include <linux/module.h>	/* Modules 			*/
-#include <linux/init.h>		/* Initdata			*/
-#include <linux/ioport.h>	/* request_region		*/
-#include <linux/delay.h>	/* udelay			*/
-#include <linux/videodev2.h>	/* kernel radio structs		*/
+
+#include <linux/module.h>	
+#include <linux/init.h>		
+#include <linux/ioport.h>	
+#include <linux/delay.h>	
+#include <linux/videodev2.h>	
 #include <linux/mutex.h>
-#include <linux/version.h>      /* for KERNEL_VERSION MACRO     */
-#include <linux/io.h>		/* outb, outb_p			*/
+#include <linux/version.h>      
+#include <linux/io.h>		
 #include <media/v4l2-device.h>
 #include <media/v4l2-ioctl.h>
 
@@ -50,7 +41,7 @@ struct rtrack2
 static struct rtrack2 rtrack2_card;
 
 
-/* local things */
+
 
 static void rt_mute(struct rtrack2 *dev)
 {
@@ -137,7 +128,7 @@ static int rt_getsigstr(struct rtrack2 *dev)
 	int sig = 1;
 
 	mutex_lock(&dev->lock);
-	if (inb(dev->io) & 2)	/* bit set = no signal present	*/
+	if (inb(dev->io) & 2)	
 		sig = 0;
 	mutex_unlock(&dev->lock);
 	return sig;
@@ -320,7 +311,7 @@ static int __init rtrack2_init(void)
 
 	v4l2_info(v4l2_dev, "AIMSlab Radiotrack II card driver.\n");
 
-	/* mute card - prevents noisy bootups */
+	
 	outb(1, dev->io);
 	dev->muted = 1;
 

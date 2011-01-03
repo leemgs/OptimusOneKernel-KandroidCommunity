@@ -1,40 +1,12 @@
-/* radiotrack (radioreveal) driver for Linux radio support
- * (c) 1997 M. Kirkwood
- * Converted to V4L2 API by Mauro Carvalho Chehab <mchehab@infradead.org>
- * Converted to new API by Alan Cox <alan@lxorguk.ukuu.org.uk>
- * Various bugfixes and enhancements by Russell Kroll <rkroll@exploits.org>
- *
- * History:
- * 1999-02-24	Russell Kroll <rkroll@exploits.org>
- * 		Fine tuning/VIDEO_TUNER_LOW
- *		Frequency range expanded to start at 87 MHz
- *
- * TODO: Allow for more than one of these foolish entities :-)
- *
- * Notes on the hardware (reverse engineered from other peoples'
- * reverse engineering of AIMS' code :-)
- *
- *  Frequency control is done digitally -- ie out(port,encodefreq(95.8));
- *
- *  The signal strength query is unsurprisingly inaccurate.  And it seems
- *  to indicate that (on my card, at least) the frequency setting isn't
- *  too great.  (I have to tune up .025MHz from what the freq should be
- *  to get a report that the thing is tuned.)
- *
- *  Volume control is (ugh) analogue:
- *   out(port, start_increasing_volume);
- *   wait(a_wee_while);
- *   out(port, stop_changing_the_volume);
- *
- */
 
-#include <linux/module.h>	/* Modules 			*/
-#include <linux/init.h>		/* Initdata			*/
-#include <linux/ioport.h>	/* request_region		*/
-#include <linux/delay.h>	/* udelay			*/
-#include <linux/videodev2.h>	/* kernel radio structs		*/
-#include <linux/version.h>	/* for KERNEL_VERSION MACRO	*/
-#include <linux/io.h>		/* outb, outb_p			*/
+
+#include <linux/module.h>	
+#include <linux/init.h>		
+#include <linux/ioport.h>	
+#include <linux/delay.h>	
+#include <linux/videodev2.h>	
+#include <linux/version.h>	
+#include <linux/io.h>		
 #include <media/v4l2-device.h>
 #include <media/v4l2-ioctl.h>
 
@@ -69,11 +41,11 @@ struct rtrack
 
 static struct rtrack rtrack_card;
 
-/* local things */
+
 
 static void sleep_delay(long n)
 {
-	/* Sleep nicely for 'n' uS */
+	
 	int d = n / msecs_to_jiffies(1000);
 	if (!d)
 		udelay(n);
@@ -83,23 +55,23 @@ static void sleep_delay(long n)
 
 static void rt_decvol(struct rtrack *rt)
 {
-	outb(0x58, rt->io);		/* volume down + sigstr + on	*/
+	outb(0x58, rt->io);		
 	sleep_delay(100000);
-	outb(0xd8, rt->io);		/* volume steady + sigstr + on	*/
+	outb(0xd8, rt->io);		
 }
 
 static void rt_incvol(struct rtrack *rt)
 {
-	outb(0x98, rt->io);		/* volume up + sigstr + on	*/
+	outb(0x98, rt->io);		
 	sleep_delay(100000);
-	outb(0xd8, rt->io);		/* volume steady + sigstr + on	*/
+	outb(0xd8, rt->io);		
 }
 
 static void rt_mute(struct rtrack *rt)
 {
 	rt->muted = 1;
 	mutex_lock(&rt->lock);
-	outb(0xd0, rt->io);		/* volume steady, off		*/
+	outb(0xd0, rt->io);		
 	mutex_unlock(&rt->lock);
 }
 
@@ -109,20 +81,20 @@ static int rt_setvol(struct rtrack *rt, int vol)
 
 	mutex_lock(&rt->lock);
 
-	if (vol == rt->curvol) {	/* requested volume = current */
-		if (rt->muted) {	/* user is unmuting the card  */
+	if (vol == rt->curvol) {	
+		if (rt->muted) {	
 			rt->muted = 0;
-			outb(0xd8, rt->io);	/* enable card */
+			outb(0xd8, rt->io);	
 		}
 		mutex_unlock(&rt->lock);
 		return 0;
 	}
 
-	if (vol == 0) {			/* volume = 0 means mute the card */
-		outb(0x48, rt->io);	/* volume down but still "on"	*/
-		sleep_delay(2000000);	/* make sure it's totally down	*/
-		outb(0xd0, rt->io);	/* volume steady, off		*/
-		rt->curvol = 0;		/* track the volume state!	*/
+	if (vol == 0) {			
+		outb(0x48, rt->io);	
+		sleep_delay(2000000);	
+		outb(0xd0, rt->io);	
+		rt->curvol = 0;		
 		mutex_unlock(&rt->lock);
 		return 0;
 	}
@@ -140,20 +112,17 @@ static int rt_setvol(struct rtrack *rt, int vol)
 	return 0;
 }
 
-/* the 128+64 on these outb's is to keep the volume stable while tuning
- * without them, the volume _will_ creep up with each frequency change
- * and bit 4 (+16) is to keep the signal strength meter enabled
- */
+
 
 static void send_0_byte(struct rtrack *rt)
 {
 	if (rt->curvol == 0 || rt->muted) {
-		outb_p(128+64+16+  1, rt->io);   /* wr-enable + data low */
-		outb_p(128+64+16+2+1, rt->io);   /* clock */
+		outb_p(128+64+16+  1, rt->io);   
+		outb_p(128+64+16+2+1, rt->io);   
 	}
 	else {
-		outb_p(128+64+16+8+  1, rt->io);  /* on + wr-enable + data low */
-		outb_p(128+64+16+8+2+1, rt->io);  /* clock */
+		outb_p(128+64+16+8+  1, rt->io);  
+		outb_p(128+64+16+8+2+1, rt->io);  
 	}
 	sleep_delay(1000);
 }
@@ -161,12 +130,12 @@ static void send_0_byte(struct rtrack *rt)
 static void send_1_byte(struct rtrack *rt)
 {
 	if (rt->curvol == 0 || rt->muted) {
-		outb_p(128+64+16+4  +1, rt->io);   /* wr-enable+data high */
-		outb_p(128+64+16+4+2+1, rt->io);   /* clock */
+		outb_p(128+64+16+4  +1, rt->io);   
+		outb_p(128+64+16+4+2+1, rt->io);   
 	}
 	else {
-		outb_p(128+64+16+8+4  +1, rt->io); /* on+wr-enable+data high */
-		outb_p(128+64+16+8+4+2+1, rt->io); /* clock */
+		outb_p(128+64+16+8+4  +1, rt->io); 
+		outb_p(128+64+16+8+4+2+1, rt->io); 
 	}
 
 	sleep_delay(1000);
@@ -176,40 +145,40 @@ static int rt_setfreq(struct rtrack *rt, unsigned long freq)
 {
 	int i;
 
-	mutex_lock(&rt->lock);			/* Stop other ops interfering */
+	mutex_lock(&rt->lock);			
 
 	rt->curfreq = freq;
 
-	/* now uses VIDEO_TUNER_LOW for fine tuning */
+	
 
-	freq += 171200;			/* Add 10.7 MHz IF 		*/
-	freq /= 800;			/* Convert to 50 kHz units	*/
+	freq += 171200;			
+	freq /= 800;			
 
-	send_0_byte(rt);		/*  0: LSB of frequency		*/
+	send_0_byte(rt);		
 
-	for (i = 0; i < 13; i++)	/*   : frequency bits (1-13)	*/
+	for (i = 0; i < 13; i++)	
 		if (freq & (1 << i))
 			send_1_byte(rt);
 		else
 			send_0_byte(rt);
 
-	send_0_byte(rt);		/* 14: test bit - always 0    */
-	send_0_byte(rt);		/* 15: test bit - always 0    */
+	send_0_byte(rt);		
+	send_0_byte(rt);		
 
-	send_0_byte(rt);		/* 16: band data 0 - always 0 */
-	send_0_byte(rt);		/* 17: band data 1 - always 0 */
-	send_0_byte(rt);		/* 18: band data 2 - always 0 */
-	send_0_byte(rt);		/* 19: time base - always 0   */
+	send_0_byte(rt);		
+	send_0_byte(rt);		
+	send_0_byte(rt);		
+	send_0_byte(rt);		
 
-	send_0_byte(rt);		/* 20: spacing (0 = 25 kHz)   */
-	send_1_byte(rt);		/* 21: spacing (1 = 25 kHz)   */
-	send_0_byte(rt);		/* 22: spacing (0 = 25 kHz)   */
-	send_1_byte(rt);		/* 23: AM/FM (FM = 1, always) */
+	send_0_byte(rt);		
+	send_1_byte(rt);		
+	send_0_byte(rt);		
+	send_1_byte(rt);		
 
 	if (rt->curvol == 0 || rt->muted)
-		outb(0xd0, rt->io);	/* volume steady + sigstr */
+		outb(0xd0, rt->io);	
 	else
-		outb(0xd8, rt->io);	/* volume steady + sigstr + on */
+		outb(0xd8, rt->io);	
 
 	mutex_unlock(&rt->lock);
 
@@ -221,7 +190,7 @@ static int rt_getsigstr(struct rtrack *rt)
 	int sig = 1;
 
 	mutex_lock(&rt->lock);
-	if (inb(rt->io) & 2)	/* bit set = no signal present	*/
+	if (inb(rt->io) & 2)	
 		sig = 0;
 	mutex_unlock(&rt->lock);
 	return sig;
@@ -415,16 +384,16 @@ static int __init rtrack_init(void)
 	}
 	v4l2_info(v4l2_dev, "AIMSlab RadioTrack/RadioReveal card driver.\n");
 
-	/* Set up the I/O locking */
+	
 
 	mutex_init(&rt->lock);
 
-	/* mute card - prevents noisy bootups */
+	
 
-	/* this ensures that the volume is all the way down  */
-	outb(0x48, rt->io);		/* volume down but still "on"	*/
-	sleep_delay(2000000);	/* make sure it's totally down	*/
-	outb(0xc0, rt->io);		/* steady volume, mute card	*/
+	
+	outb(0x48, rt->io);		
+	sleep_delay(2000000);	
+	outb(0xc0, rt->io);		
 
 	return 0;
 }

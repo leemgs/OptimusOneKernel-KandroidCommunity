@@ -1,42 +1,13 @@
-/* zoltrix radio plus driver for Linux radio support
- * (c) 1998 C. van Schaik <carl@leg.uct.ac.za>
- *
- * BUGS
- *  Due to the inconsistency in reading from the signal flags
- *  it is difficult to get an accurate tuned signal.
- *
- *  It seems that the card is not linear to 0 volume. It cuts off
- *  at a low volume, and it is not possible (at least I have not found)
- *  to get fine volume control over the low volume range.
- *
- *  Some code derived from code by Romolo Manfredini
- *				   romolo@bicnet.it
- *
- * 1999-05-06 - (C. van Schaik)
- *	      - Make signal strength and stereo scans
- *		kinder to cpu while in delay
- * 1999-01-05 - (C. van Schaik)
- *	      - Changed tuning to 1/160Mhz accuracy
- *	      - Added stereo support
- *		(card defaults to stereo)
- *		(can explicitly force mono on the card)
- *		(can detect if station is in stereo)
- *	      - Added unmute function
- *	      - Reworked ioctl functions
- * 2002-07-15 - Fix Stereo typo
- *
- * 2006-07-24 - Converted to V4L2 API
- *		by Mauro Carvalho Chehab <mchehab@infradead.org>
- */
 
-#include <linux/module.h>	/* Modules                        */
-#include <linux/init.h>		/* Initdata                       */
-#include <linux/ioport.h>	/* request_region		  */
-#include <linux/delay.h>	/* udelay, msleep                 */
-#include <linux/videodev2.h>	/* kernel radio structs           */
+
+#include <linux/module.h>	
+#include <linux/init.h>		
+#include <linux/ioport.h>	
+#include <linux/delay.h>	
+#include <linux/videodev2.h>	
 #include <linux/mutex.h>
-#include <linux/version.h>      /* for KERNEL_VERSION MACRO     */
-#include <linux/io.h>		/* outb, outb_p                   */
+#include <linux/version.h>      
+#include <linux/io.h>		
 #include <media/v4l2-device.h>
 #include <media/v4l2-ioctl.h>
 
@@ -80,7 +51,7 @@ static int zol_setvol(struct zoltrix *zol, int vol)
 	if (vol == 0) {
 		outb(0, zol->io);
 		outb(0, zol->io);
-		inb(zol->io + 3);    /* Zoltrix needs to be read to confirm */
+		inb(zol->io + 3);    
 		mutex_unlock(&zol->lock);
 		return 0;
 	}
@@ -98,7 +69,7 @@ static void zol_mute(struct zoltrix *zol)
 	mutex_lock(&zol->lock);
 	outb(0, zol->io);
 	outb(0, zol->io);
-	inb(zol->io + 3);            /* Zoltrix needs to be read to confirm */
+	inb(zol->io + 3);            
 	mutex_unlock(&zol->lock);
 }
 
@@ -110,7 +81,7 @@ static void zol_unmute(struct zoltrix *zol)
 
 static int zol_setfreq(struct zoltrix *zol, unsigned long freq)
 {
-	/* tunes the radio to the desired frequency */
+	
 	struct v4l2_device *v4l2_dev = &zol->v4l2_dev;
 	unsigned long long bitmask, f, m;
 	unsigned int stereo = zol->stereo;
@@ -133,7 +104,7 @@ static int zol_setfreq(struct zoltrix *zol, unsigned long freq)
 
 	outb(0, zol->io);
 	outb(0, zol->io);
-	inb(zol->io + 3);            /* Zoltrix needs to be read to confirm */
+	inb(zol->io + 3);            
 
 	outb(0x40, zol->io);
 	outb(0xc0, zol->io);
@@ -157,7 +128,7 @@ static int zol_setfreq(struct zoltrix *zol, unsigned long freq)
 		}
 		bitmask *= 2;
 	}
-	/* termination sequence */
+	
 	outb(0x80, zol->io);
 	outb(0xc0, zol->io);
 	outb(0x40, zol->io);
@@ -180,13 +151,13 @@ static int zol_setfreq(struct zoltrix *zol, unsigned long freq)
 	return 0;
 }
 
-/* Get signal strength */
+
 static int zol_getsigstr(struct zoltrix *zol)
 {
 	int a, b;
 
 	mutex_lock(&zol->lock);
-	outb(0x00, zol->io);         /* This stuff I found to do nothing */
+	outb(0x00, zol->io);         
 	outb(zol->curvol, zol->io);
 	msleep(20);
 
@@ -199,7 +170,7 @@ static int zol_getsigstr(struct zoltrix *zol)
 	if (a != b)
 		return 0;
 
-	/* I found this out by playing with a binary scanner on the card io */
+	
 	return a == 0xcf || a == 0xdf || a == 0xef;
 }
 
@@ -331,7 +302,7 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
 	if (zol_setfreq(zol, zol->curfreq) != 0)
 		return -EINVAL;
 #if 0
-/* FIXME: Implement stereo/mono switch on V4L2 */
+
 	if (v->mode & VIDEO_SOUND_STEREO) {
 		zol->stereo = 1;
 		zol_setfreq(zol, zol->curfreq);
@@ -436,9 +407,9 @@ static int __init zoltrix_init(void)
 
 	mutex_init(&zol->lock);
 
-	/* mute card - prevents noisy bootups */
+	
 
-	/* this ensures that the volume is all the way down  */
+	
 
 	outb(0, zol->io);
 	outb(0, zol->io);

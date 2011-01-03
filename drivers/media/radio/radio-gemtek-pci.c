@@ -1,43 +1,4 @@
-/*
- ***************************************************************************
- *
- *     radio-gemtek-pci.c - Gemtek PCI Radio driver
- *     (C) 2001 Vladimir Shebordaev <vshebordaev@mail.ru>
- *
- ***************************************************************************
- *
- *     This program is free software; you can redistribute it and/or
- *     modify it under the terms of the GNU General Public License as
- *     published by the Free Software Foundation; either version 2 of
- *     the License, or (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
- *
- *     You should have received a copy of the GNU General Public
- *     License along with this program; if not, write to the Free
- *     Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139,
- *     USA.
- *
- ***************************************************************************
- *
- *     Gemtek Corp still silently refuses to release any specifications
- *     of their multimedia devices, so the protocol still has to be
- *     reverse engineered.
- *
- *     The v4l code was inspired by Jonas Munsin's  Gemtek serial line
- *     radio device driver.
- *
- *     Please, let me know if this piece of code was useful :)
- *
- *     TODO: multiple device support and portability were not tested
- *
- *     Converted to V4L2 API by Mauro Carvalho Chehab <mchehab@infradead.org>
- *
- ***************************************************************************
- */
+
 
 #include <linux/types.h>
 #include <linux/list.h>
@@ -46,7 +7,7 @@
 #include <linux/pci.h>
 #include <linux/videodev2.h>
 #include <linux/errno.h>
-#include <linux/version.h>      /* for KERNEL_VERSION MACRO     */
+#include <linux/version.h>      
 #include <linux/io.h>
 #include <media/v4l2-device.h>
 #include <media/v4l2-ioctl.h>

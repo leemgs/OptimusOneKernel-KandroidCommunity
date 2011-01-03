@@ -1,31 +1,15 @@
-/* SF16FMI radio driver for Linux radio support
- * heavily based on rtrack driver...
- * (c) 1997 M. Kirkwood
- * (c) 1998 Petr Vandrovec, vandrove@vc.cvut.cz
- *
- * Fitted to new interface by Alan Cox <alan@lxorguk.ukuu.org.uk>
- * Made working and cleaned up functions <mikael.hedin@irf.se>
- * Support for ISAPnP by Ladislav Michl <ladis@psi.cz>
- *
- * Notes on the hardware
- *
- *  Frequency control is done digitally -- ie out(port,encodefreq(95.8));
- *  No volume control - only mute/unmute - you have to use line volume
- *  control on SB-part of SF16FMI
- *
- * Converted to V4L2 API by Mauro Carvalho Chehab <mchehab@infradead.org>
- */
+
 
 #include <linux/version.h>
-#include <linux/kernel.h>	/* __setup			*/
-#include <linux/module.h>	/* Modules 			*/
-#include <linux/init.h>		/* Initdata			*/
-#include <linux/ioport.h>	/* request_region		*/
-#include <linux/delay.h>	/* udelay			*/
+#include <linux/kernel.h>	
+#include <linux/module.h>	
+#include <linux/init.h>		
+#include <linux/ioport.h>	
+#include <linux/delay.h>	
 #include <linux/isapnp.h>
 #include <linux/mutex.h>
-#include <linux/videodev2.h>	/* kernel radio structs		*/
-#include <linux/io.h>		/* outb, outb_p			*/
+#include <linux/videodev2.h>	
+#include <linux/io.h>		
 #include <media/v4l2-device.h>
 #include <media/v4l2-ioctl.h>
 
@@ -47,19 +31,16 @@ struct fmi
 	struct v4l2_device v4l2_dev;
 	struct video_device vdev;
 	int io;
-	int curvol; /* 1 or 0 */
-	unsigned long curfreq; /* freq in kHz */
+	int curvol; 
+	unsigned long curfreq; 
 	struct mutex lock;
 };
 
 static struct fmi fmi_card;
 static struct pnp_dev *dev;
 
-/* freq is in 1/16 kHz to internal number, hw precision is 50 kHz */
-/* It is only useful to give freq in interval of 800 (=0.05Mhz),
- * other bits will be truncated, e.g 92.7400016 -> 92.7, but
- * 92.7400017 -> 92.75
- */
+
+
 #define RSF16_ENCODE(x)	((x) / 800 + 214)
 #define RSF16_MINFREQ (87 * 16000)
 #define RSF16_MAXFREQ (108 * 16000)
@@ -103,7 +84,7 @@ static inline int fmi_setfreq(struct fmi *fmi, unsigned long freq)
 
 	outbits(16, RSF16_ENCODE(freq), fmi->io);
 	outbits(8, 0xC0, fmi->io);
-	msleep(143);		/* was schedule_timeout(HZ/7) */
+	msleep(143);		
 	mutex_unlock(&fmi->lock);
 	if (fmi->curvol)
 		fmi_unmute(fmi);
@@ -116,10 +97,10 @@ static inline int fmi_getsigstr(struct fmi *fmi)
 	int res;
 
 	mutex_lock(&fmi->lock);
-	val = fmi->curvol ? 0x08 : 0x00;	/* unmute/mute */
+	val = fmi->curvol ? 0x08 : 0x00;	
 	outb(val, fmi->io);
 	outb(val | 0x10, fmi->io);
-	msleep(143); 		/* was schedule_timeout(HZ/7) */
+	msleep(143); 		
 	res = (int)inb(fmi->io + 1);
 	outb(val, fmi->io);
 
@@ -171,8 +152,7 @@ static int vidioc_s_frequency(struct file *file, void *priv,
 	if (f->frequency < RSF16_MINFREQ ||
 			f->frequency > RSF16_MAXFREQ)
 		return -EINVAL;
-	/* rounding in steps of 800 to match the freq
-	   that will be used */
+	
 	fmi_setfreq(fmi, (f->frequency / 800) * 800);
 	return 0;
 }
@@ -273,7 +253,7 @@ static const struct v4l2_ioctl_ops fmi_ioctl_ops = {
 	.vidioc_s_ctrl      = vidioc_s_ctrl,
 };
 
-/* ladis: this is my card. does any other types exist? */
+
 static struct isapnp_device_id id_table[] __devinitdata = {
 	{	ISAPNP_ANY_ID, ISAPNP_ANY_ID,
 		ISAPNP_VENDOR('M','F','R'), ISAPNP_FUNCTION(0xad10), 0},
@@ -357,7 +337,7 @@ static int __init fmi_init(void)
 	}
 
 	v4l2_info(v4l2_dev, "card driver at 0x%x\n", fmi->io);
-	/* mute card - prevents noisy bootups */
+	
 	fmi_mute(fmi);
 	return 0;
 }

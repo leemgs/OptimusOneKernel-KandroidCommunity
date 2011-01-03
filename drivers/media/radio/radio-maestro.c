@@ -1,28 +1,10 @@
-/* Maestro PCI sound card radio driver for Linux support
- * (c) 2000 A. Tlalka, atlka@pg.gda.pl
- * Notes on the hardware
- *
- *  + Frequency control is done digitally
- *  + No volume control - only mute/unmute - you have to use Aux line volume
- *  control on Maestro card to set the volume
- *  + Radio status (tuned/not_tuned and stereo/mono) is valid some time after
- *  frequency setting (>100ms) and only when the radio is unmuted.
- *  version 0.02
- *  + io port is automatically detected - only the first radio is used
- *  version 0.03
- *  + thread access locking additions
- *  version 0.04
- * + code improvements
- * + VIDEO_TUNER_LOW is permanent
- *
- * Converted to V4L2 API by Mauro Carvalho Chehab <mchehab@infradead.org>
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/ioport.h>
 #include <linux/delay.h>
-#include <linux/version.h>      /* for KERNEL_VERSION MACRO     */
+#include <linux/version.h>      
 #include <linux/pci.h>
 #include <linux/videodev2.h>
 #include <linux/io.h>
@@ -39,19 +21,17 @@ module_param(radio_nr, int, 0);
 #define RADIO_VERSION KERNEL_VERSION(0, 0, 6)
 #define DRIVER_VERSION	"0.06"
 
-#define GPIO_DATA	0x60   /* port offset from ESS_IO_BASE */
+#define GPIO_DATA	0x60   
 
-#define IO_MASK		4      /* mask      register offset from GPIO_DATA
-				bits 1=unmask write to given bit */
-#define IO_DIR		8      /* direction register offset from GPIO_DATA
-				bits 0/1=read/write direction */
+#define IO_MASK		4      
+#define IO_DIR		8      
 
-#define GPIO6		0x0040 /* mask bits for GPIO lines */
+#define GPIO6		0x0040 
 #define GPIO7		0x0080
 #define GPIO8		0x0100
 #define GPIO9		0x0200
 
-#define STR_DATA	GPIO6  /* radio TEA5757 pins and GPIO bits */
+#define STR_DATA	GPIO6  
 #define STR_CLK		GPIO7
 #define STR_WREN	GPIO8
 #define STR_MOST	GPIO9
@@ -59,11 +39,11 @@ module_param(radio_nr, int, 0);
 #define FREQ_LO		 50*16000
 #define FREQ_HI		150*16000
 
-#define FREQ_IF		171200 /* 10.7*16000   */
-#define FREQ_STEP	200    /* 12.5*16      */
+#define FREQ_IF		171200 
+#define FREQ_STEP	200    
 
 #define FREQ2BITS(x)	((((unsigned int)(x)+FREQ_IF+(FREQ_STEP<<1))\
-			/(FREQ_STEP<<2))<<2) /* (x==fmhz*16*1000) -> bits */
+			/(FREQ_STEP<<2))<<2) 
 
 #define BITS2FREQ(x)	((x) * FREQ_STEP - FREQ_IF)
 
@@ -73,10 +53,10 @@ struct maestro {
 	struct pci_dev *pdev;
 	struct mutex lock;
 
-	u16	io;	/* base of Maestro card radio io (GPIO_DATA)*/
-	u16	muted;	/* VIDEO_AUDIO_MUTE */
-	u16	stereo;	/* VIDEO_TUNER_STEREO_ON */
-	u16	tuned;	/* signal strength (0 or 0xffff) */
+	u16	io;	
+	u16	muted;	
+	u16	stereo;	
+	u16	tuned;	
 };
 
 static inline struct maestro *to_maestro(struct v4l2_device *v4l2_dev)
@@ -96,13 +76,13 @@ static u32 radio_bits_get(struct maestro *dev)
 	udelay(16);
 
 	for (l = 24; l--;) {
-		outw(STR_CLK, io);		/* HI state */
+		outw(STR_CLK, io);		
 		udelay(2);
 		if (!l)
 			dev->tuned = inw(io) & STR_MOST ? 0 : 0xffff;
-		outw(0, io);			/* LO state */
+		outw(0, io);			
 		udelay(2);
-		data <<= 1;			/* shift data */
+		data <<= 1;			
 		rdata = inw(io);
 		if (!l)
 			dev->stereo = (rdata & STR_MOST) ?  0 : 1;
@@ -132,12 +112,12 @@ static void radio_bits_set(struct maestro *dev, u32 data)
 	udelay(16);
 	for (l = 25; l; l--) {
 		bits = ((data >> 18) & STR_DATA) | STR_WREN;
-		data <<= 1;			/* shift data */
-		outw(bits, io);			/* start strobe */
+		data <<= 1;			
+		outw(bits, io);			
 		udelay(2);
-		outw(bits | STR_CLK, io);	/* HI level */
+		outw(bits | STR_CLK, io);	
 		udelay(2);
-		outw(bits, io);			/* LO level */
+		outw(bits, io);			
 		udelay(4);
 	}
 

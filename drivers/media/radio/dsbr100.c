@@ -1,93 +1,4 @@
-/* A driver for the D-Link DSB-R100 USB radio and Gemtek USB Radio 21.
- The device plugs into both the USB and an analog audio input, so this thing
- only deals with initialisation and frequency setting, the
- audio data has to be handled by a sound driver.
 
- Major issue: I can't find out where the device reports the signal
- strength, and indeed the windows software appearantly just looks
- at the stereo indicator as well.  So, scanning will only find
- stereo stations.  Sad, but I can't help it.
-
- Also, the windows program sends oodles of messages over to the
- device, and I couldn't figure out their meaning.  My suspicion
- is that they don't have any:-)
-
- You might find some interesting stuff about this module at
- http://unimut.fsk.uni-heidelberg.de/unimut/demi/dsbr
-
- Copyright (c) 2000 Markus Demleitner <msdemlei@cl.uni-heidelberg.de>
-
- This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-
- History:
-
- Version 0.46:
-	Removed usb_dsbr100_open/close calls and radio->users counter. Also,
-	radio->muted changed to radio->status and suspend/resume calls updated.
-
- Version 0.45:
-	Converted to v4l2_device.
-
- Version 0.44:
-	Add suspend/resume functions, fix unplug of device,
-	a lot of cleanups and fixes by Alexey Klimov <klimov.linux@gmail.com>
-
- Version 0.43:
-	Oliver Neukum: avoided DMA coherency issue
-
- Version 0.42:
-	Converted dsbr100 to use video_ioctl2
-	by Douglas Landgraf <dougsland@gmail.com>
-
- Version 0.41-ac1:
-	Alan Cox: Some cleanups and fixes
-
- Version 0.41:
-	Converted to V4L2 API by Mauro Carvalho Chehab <mchehab@infradead.org>
-
- Version 0.40:
-	Markus: Updates for 2.6.x kernels, code layout changes, name sanitizing
-
- Version 0.30:
-	Markus: Updates for 2.5.x kernel and more ISO compliant source
-
- Version 0.25:
-	PSL and Markus: Cleanup, radio now doesn't stop on device close
-
- Version 0.24:
-	Markus: Hope I got these silly VIDEO_TUNER_LOW issues finally
-	right.  Some minor cleanup, improved standalone compilation
-
- Version 0.23:
-	Markus: Sign extension bug fixed by declaring transfer_buffer unsigned
-
- Version 0.22:
-	Markus: Some (brown bag) cleanup in what VIDIOCSTUNER returns,
-	thanks to Mike Cox for pointing the problem out.
-
- Version 0.21:
-	Markus: Minor cleanup, warnings if something goes wrong, lame attempt
-	to adhere to Documentation/CodingStyle
-
- Version 0.2:
-	Brad Hards <bradh@dynamite.com.au>: Fixes to make it work as non-module
-	Markus: Copyright clarification
-
- Version 0.01: Markus: initial release
-
-*/
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -99,10 +10,8 @@
 #include <media/v4l2-ioctl.h>
 #include <linux/usb.h>
 
-/*
- * Version Information
- */
-#include <linux/version.h>	/* for KERNEL_VERSION MACRO	*/
+
+#include <linux/version.h>	
 
 #define DRIVER_VERSION "v0.46"
 #define RADIO_VERSION KERNEL_VERSION(0, 4, 6)
@@ -113,19 +22,18 @@
 #define DSB100_VENDOR 0x04b4
 #define DSB100_PRODUCT 0x1002
 
-/* Commands the device appears to understand */
+
 #define DSB100_TUNE 1
 #define DSB100_ONOFF 2
 
 #define TB_LEN 16
 
-/* Frequency limits in MHz -- these are European values.  For Japanese
-devices, that would be 76 and 91.  */
+
 #define FREQ_MIN  87.5
 #define FREQ_MAX 108.0
 #define FREQ_MUL 16000
 
-/* defines for radio->status */
+
 #define STARTED	0
 #define STOPPED	1
 
@@ -141,14 +49,14 @@ static int usb_dsbr100_resume(struct usb_interface *intf);
 static int radio_nr = -1;
 module_param(radio_nr, int, 0);
 
-/* Data for one (physical) device */
+
 struct dsbr100_device {
 	struct usb_device *usbdev;
 	struct video_device videodev;
 	struct v4l2_device v4l2_dev;
 
 	u8 *transfer_buffer;
-	struct mutex lock;	/* buffer locking */
+	struct mutex lock;	
 	int curfreq;
 	int stereo;
 	int removed;
@@ -157,12 +65,12 @@ struct dsbr100_device {
 
 static struct usb_device_id usb_dsbr100_device_table [] = {
 	{ USB_DEVICE(DSB100_VENDOR, DSB100_PRODUCT) },
-	{ }						/* Terminating entry */
+	{ }						
 };
 
 MODULE_DEVICE_TABLE (usb, usb_dsbr100_device_table);
 
-/* USB subsystem interface */
+
 static struct usb_driver usb_dsbr100_driver = {
 	.name			= "dsbr100",
 	.probe			= usb_dsbr100_probe,
@@ -174,9 +82,9 @@ static struct usb_driver usb_dsbr100_driver = {
 	.supports_autosuspend	= 0,
 };
 
-/* Low-level device interface begins here */
 
-/* switch on radio */
+
+
 static int dsbr100_start(struct dsbr100_device *radio)
 {
 	int retval;
@@ -219,7 +127,7 @@ usb_control_msg_failed:
 
 }
 
-/* switch off radio */
+
 static int dsbr100_stop(struct dsbr100_device *radio)
 {
 	int retval;
@@ -262,7 +170,7 @@ usb_control_msg_failed:
 
 }
 
-/* set a frequency, freq is defined by v4l's TUNER_LOW, i.e. 1/16th kHz */
+
 static int dsbr100_setfreq(struct dsbr100_device *radio)
 {
 	int retval;
@@ -318,8 +226,7 @@ usb_control_msg_failed:
 	return retval;
 }
 
-/* return the device status.  This is, in effect, just whether it
-sees a stereo signal or not.  Pity. */
+
 static void dsbr100_getstat(struct dsbr100_device *radio)
 {
 	int retval;
@@ -344,14 +251,9 @@ static void dsbr100_getstat(struct dsbr100_device *radio)
 	mutex_unlock(&radio->lock);
 }
 
-/* USB subsystem interface begins here */
 
-/*
- * Handle unplugging of the device.
- * We call video_unregister_device in any case.
- * The last function called in this procedure is
- * usb_dsbr100_video_device_release
- */
+
+
 static void usb_dsbr100_disconnect(struct usb_interface *intf)
 {
 	struct dsbr100_device *radio = usb_get_intfdata(intf);
@@ -385,7 +287,7 @@ static int vidioc_g_tuner(struct file *file, void *priv,
 {
 	struct dsbr100_device *radio = video_drvdata(file);
 
-	/* safety check */
+	
 	if (radio->removed)
 		return -EIO;
 
@@ -403,7 +305,7 @@ static int vidioc_g_tuner(struct file *file, void *priv,
 		v->audmode = V4L2_TUNER_MODE_STEREO;
 	else
 		v->audmode = V4L2_TUNER_MODE_MONO;
-	v->signal = 0xffff;     /* We can't get the signal strength */
+	v->signal = 0xffff;     
 	return 0;
 }
 
@@ -412,7 +314,7 @@ static int vidioc_s_tuner(struct file *file, void *priv,
 {
 	struct dsbr100_device *radio = video_drvdata(file);
 
-	/* safety check */
+	
 	if (radio->removed)
 		return -EIO;
 
@@ -428,7 +330,7 @@ static int vidioc_s_frequency(struct file *file, void *priv,
 	struct dsbr100_device *radio = video_drvdata(file);
 	int retval;
 
-	/* safety check */
+	
 	if (radio->removed)
 		return -EIO;
 
@@ -447,7 +349,7 @@ static int vidioc_g_frequency(struct file *file, void *priv,
 {
 	struct dsbr100_device *radio = video_drvdata(file);
 
-	/* safety check */
+	
 	if (radio->removed)
 		return -EIO;
 
@@ -472,7 +374,7 @@ static int vidioc_g_ctrl(struct file *file, void *priv,
 {
 	struct dsbr100_device *radio = video_drvdata(file);
 
-	/* safety check */
+	
 	if (radio->removed)
 		return -EIO;
 
@@ -490,7 +392,7 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
 	struct dsbr100_device *radio = video_drvdata(file);
 	int retval;
 
-	/* safety check */
+	
 	if (radio->removed)
 		return -EIO;
 
@@ -548,7 +450,7 @@ static int vidioc_s_audio(struct file *file, void *priv,
 	return 0;
 }
 
-/* Suspend device - stop device. */
+
 static int usb_dsbr100_suspend(struct usb_interface *intf, pm_message_t message)
 {
 	struct dsbr100_device *radio = usb_get_intfdata(intf);
@@ -559,11 +461,7 @@ static int usb_dsbr100_suspend(struct usb_interface *intf, pm_message_t message)
 		if (retval < 0)
 			dev_warn(&intf->dev, "dsbr100_stop failed\n");
 
-		/* After dsbr100_stop() status set to STOPPED.
-		 * If we want driver to start radio on resume
-		 * we set status equal to STARTED.
-		 * On resume we will check status and run radio if needed.
-		 */
+		
 
 		mutex_lock(&radio->lock);
 		radio->status = STARTED;
@@ -575,7 +473,7 @@ static int usb_dsbr100_suspend(struct usb_interface *intf, pm_message_t message)
 	return 0;
 }
 
-/* Resume device - start device. */
+
 static int usb_dsbr100_resume(struct usb_interface *intf)
 {
 	struct dsbr100_device *radio = usb_get_intfdata(intf);
@@ -592,7 +490,7 @@ static int usb_dsbr100_resume(struct usb_interface *intf)
 	return 0;
 }
 
-/* free data structures */
+
 static void usb_dsbr100_video_device_release(struct video_device *videodev)
 {
 	struct dsbr100_device *radio = videodev_to_radio(videodev);
@@ -602,7 +500,7 @@ static void usb_dsbr100_video_device_release(struct video_device *videodev)
 	kfree(radio);
 }
 
-/* File system interface */
+
 static const struct v4l2_file_operations usb_dsbr100_fops = {
 	.owner		= THIS_MODULE,
 	.ioctl		= video_ioctl2,
@@ -623,7 +521,7 @@ static const struct v4l2_ioctl_ops usb_dsbr100_ioctl_ops = {
 	.vidioc_s_input     = vidioc_s_input,
 };
 
-/* check if the device is present and register with v4l and usb if it is */
+
 static int usb_dsbr100_probe(struct usb_interface *intf,
 				const struct usb_device_id *id)
 {

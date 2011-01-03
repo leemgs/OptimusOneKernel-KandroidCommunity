@@ -1,45 +1,25 @@
-/* GemTek radio card driver for Linux (C) 1998 Jonas Munsin <jmunsin@iki.fi>
- *
- * GemTek hasn't released any specs on the card, so the protocol had to
- * be reverse engineered with dosemu.
- *
- * Besides the protocol changes, this is mostly a copy of:
- *
- *    RadioTrack II driver for Linux radio support (C) 1998 Ben Pfaff
- *
- *    Based on RadioTrack I/RadioReveal (C) 1997 M. Kirkwood
- *    Converted to new API by Alan Cox <alan@lxorguk.ukuu.org.uk>
- *    Various bugfixes and enhancements by Russell Kroll <rkroll@exploits.org>
- *
- * TODO: Allow for more than one of these foolish entities :-)
- *
- * Converted to V4L2 API by Mauro Carvalho Chehab <mchehab@infradead.org>
- */
 
-#include <linux/module.h>	/* Modules 			*/
-#include <linux/init.h>		/* Initdata			*/
-#include <linux/ioport.h>	/* request_region		*/
-#include <linux/delay.h>	/* udelay			*/
-#include <linux/videodev2.h>	/* kernel radio structs		*/
-#include <linux/version.h>	/* for KERNEL_VERSION MACRO	*/
+
+#include <linux/module.h>	
+#include <linux/init.h>		
+#include <linux/ioport.h>	
+#include <linux/delay.h>	
+#include <linux/videodev2.h>	
+#include <linux/version.h>	
 #include <linux/mutex.h>
-#include <linux/io.h>		/* outb, outb_p			*/
+#include <linux/io.h>		
 #include <media/v4l2-ioctl.h>
 #include <media/v4l2-device.h>
 
 #define RADIO_VERSION KERNEL_VERSION(0, 0, 3)
 
-/*
- * Module info.
- */
 
-MODULE_AUTHOR("Jonas Munsin, Pekka Seppänen <pexu@kapsi.fi>");
+
+MODULE_AUTHOR("Jonas Munsin, Pekka Seppï¿½nen <pexu@kapsi.fi>");
 MODULE_DESCRIPTION("A driver for the GemTek Radio card.");
 MODULE_LICENSE("GPL");
 
-/*
- * Module params.
- */
+
 
 #ifndef CONFIG_RADIO_GEMTEK_PORT
 #define CONFIG_RADIO_GEMTEK_PORT -1
@@ -82,32 +62,27 @@ MODULE_PARM_DESC(initmute, "Mute card when module is loaded.");
 
 module_param(radio_nr, int, 0444);
 
-/*
- * Functions for controlling the card.
- */
+
 #define GEMTEK_LOWFREQ	(87*16000)
 #define GEMTEK_HIGHFREQ	(108*16000)
 
-/*
- * Frequency calculation constants.  Intermediate frequency 10.52 MHz (nominal
- * value 10.7 MHz), reference divisor 6.39 kHz (nominal 6.25 kHz).
- */
+
 #define FSCALE		8
 #define IF_OFFSET	((unsigned int)(10.52 * 16000 * (1<<FSCALE)))
 #define REF_FREQ	((unsigned int)(6.39 * 16 * (1<<FSCALE)))
 
-#define GEMTEK_CK		0x01	/* Clock signal			*/
-#define GEMTEK_DA		0x02	/* Serial data			*/
-#define GEMTEK_CE		0x04	/* Chip enable			*/
-#define GEMTEK_NS		0x08	/* No signal			*/
-#define GEMTEK_MT		0x10	/* Line mute			*/
-#define GEMTEK_STDF_3_125_KHZ	0x01	/* Standard frequency 3.125 kHz	*/
-#define GEMTEK_PLL_OFF		0x07	/* PLL off			*/
+#define GEMTEK_CK		0x01	
+#define GEMTEK_DA		0x02	
+#define GEMTEK_CE		0x04	
+#define GEMTEK_NS		0x08	
+#define GEMTEK_MT		0x10	
+#define GEMTEK_STDF_3_125_KHZ	0x01	
+#define GEMTEK_PLL_OFF		0x07	
 
-#define BU2614_BUS_SIZE	32	/* BU2614 / BU2614FS bus size		*/
+#define BU2614_BUS_SIZE	32	
 
-#define SHORT_DELAY 5		/* usec */
-#define LONG_DELAY 75		/* usec */
+#define SHORT_DELAY 5		
+#define LONG_DELAY 75		
 
 struct gemtek {
 	struct v4l2_device v4l2_dev;
@@ -122,16 +97,16 @@ struct gemtek {
 
 static struct gemtek gemtek_card;
 
-#define BU2614_FREQ_BITS 	16 /* D0..D15, Frequency data		*/
-#define BU2614_PORT_BITS	3 /* P0..P2, Output port control data	*/
-#define BU2614_VOID_BITS	4 /* unused 				*/
-#define BU2614_FMES_BITS	1 /* CT, Frequency measurement beginning data */
-#define BU2614_STDF_BITS	3 /* R0..R2, Standard frequency data	*/
-#define BU2614_SWIN_BITS	1 /* S, Switch between FMIN / AMIN	*/
-#define BU2614_SWAL_BITS        1 /* PS, Swallow counter division (AMIN only)*/
-#define BU2614_VOID2_BITS	1 /* unused				*/
-#define BU2614_FMUN_BITS	1 /* GT, Frequency measurement time & unlock */
-#define BU2614_TEST_BITS	1 /* TS, Test data is input		*/
+#define BU2614_FREQ_BITS 	16 
+#define BU2614_PORT_BITS	3 
+#define BU2614_VOID_BITS	4 
+#define BU2614_FMES_BITS	1 
+#define BU2614_STDF_BITS	3 
+#define BU2614_SWIN_BITS	1 
+#define BU2614_SWAL_BITS        1 
+#define BU2614_VOID2_BITS	1 
+#define BU2614_FMUN_BITS	1 
+#define BU2614_TEST_BITS	1 
 
 #define BU2614_FREQ_SHIFT 	0
 #define BU2614_PORT_SHIFT	(BU2614_FREQ_BITS + BU2614_FREQ_SHIFT)
@@ -157,15 +132,11 @@ static struct gemtek gemtek_card;
 #define BU2614_FMUN_MASK	MKMASK(FMUN)
 #define BU2614_TEST_MASK	MKMASK(TEST)
 
-/*
- * Set data which will be sent to BU2614FS.
- */
+
 #define gemtek_bu2614_set(dev, field, data) ((dev)->bu2614data = \
 	((dev)->bu2614data & ~field##_MASK) | ((data) << field##_SHIFT))
 
-/*
- * Transmit settings to BU2614FS over GemTek IC.
- */
+
 static void gemtek_bu2614_transmit(struct gemtek *gt)
 {
 	int i, bit, q, mute;
@@ -195,17 +166,13 @@ static void gemtek_bu2614_transmit(struct gemtek *gt)
 	mutex_unlock(&gt->lock);
 }
 
-/*
- * Calculate divisor from FM-frequency for BU2614FS (3.125 KHz STDF expected).
- */
+
 static unsigned long gemtek_convfreq(unsigned long freq)
 {
 	return ((freq<<FSCALE) + IF_OFFSET + REF_FREQ/2) / REF_FREQ;
 }
 
-/*
- * Set FM-frequency.
- */
+
 static void gemtek_setfreq(struct gemtek *gt, unsigned long freq)
 {
 	if (keepmuted && hardmute && gt->muted)
@@ -218,9 +185,9 @@ static void gemtek_setfreq(struct gemtek *gt, unsigned long freq)
 
 	gemtek_bu2614_set(gt, BU2614_PORT, 0);
 	gemtek_bu2614_set(gt, BU2614_FMES, 0);
-	gemtek_bu2614_set(gt, BU2614_SWIN, 0);	/* FM-mode	*/
+	gemtek_bu2614_set(gt, BU2614_SWIN, 0);	
 	gemtek_bu2614_set(gt, BU2614_SWAL, 0);
-	gemtek_bu2614_set(gt, BU2614_FMUN, 1);	/* GT bit set	*/
+	gemtek_bu2614_set(gt, BU2614_FMUN, 1);	
 	gemtek_bu2614_set(gt, BU2614_TEST, 0);
 
 	gemtek_bu2614_set(gt, BU2614_STDF, GEMTEK_STDF_3_125_KHZ);
@@ -229,9 +196,7 @@ static void gemtek_setfreq(struct gemtek *gt, unsigned long freq)
 	gemtek_bu2614_transmit(gt);
 }
 
-/*
- * Set mute flag.
- */
+
 static void gemtek_mute(struct gemtek *gt)
 {
 	int i;
@@ -239,12 +204,12 @@ static void gemtek_mute(struct gemtek *gt)
 	gt->muted = 1;
 
 	if (hardmute) {
-		/* Turn off PLL, disable data output */
+		
 		gemtek_bu2614_set(gt, BU2614_PORT, 0);
-		gemtek_bu2614_set(gt, BU2614_FMES, 0);	/* CT bit off	*/
-		gemtek_bu2614_set(gt, BU2614_SWIN, 0);	/* FM-mode	*/
+		gemtek_bu2614_set(gt, BU2614_FMES, 0);	
+		gemtek_bu2614_set(gt, BU2614_SWIN, 0);	
 		gemtek_bu2614_set(gt, BU2614_SWAL, 0);
-		gemtek_bu2614_set(gt, BU2614_FMUN, 0);	/* GT bit off	*/
+		gemtek_bu2614_set(gt, BU2614_FMUN, 0);	
 		gemtek_bu2614_set(gt, BU2614_TEST, 0);
 		gemtek_bu2614_set(gt, BU2614_STDF, GEMTEK_PLL_OFF);
 		gemtek_bu2614_set(gt, BU2614_FREQ, 0);
@@ -254,25 +219,23 @@ static void gemtek_mute(struct gemtek *gt)
 
 	mutex_lock(&gt->lock);
 
-	/* Read bus contents (CE, CK and DA). */
+	
 	i = inb_p(gt->io);
-	/* Write it back with mute flag set. */
+	
 	outb_p((i >> 5) | GEMTEK_MT, gt->io);
 	udelay(SHORT_DELAY);
 
 	mutex_unlock(&gt->lock);
 }
 
-/*
- * Unset mute flag.
- */
+
 static void gemtek_unmute(struct gemtek *gt)
 {
 	int i;
 
 	gt->muted = 0;
 	if (hardmute) {
-		/* Turn PLL back on. */
+		
 		gemtek_setfreq(gt, gt->lastfreq);
 		return;
 	}
@@ -285,9 +248,7 @@ static void gemtek_unmute(struct gemtek *gt)
 	mutex_unlock(&gt->lock);
 }
 
-/*
- * Get signal strength (= stereo status).
- */
+
 static inline int gemtek_getsigstr(struct gemtek *gt)
 {
 	int sig;
@@ -298,9 +259,7 @@ static inline int gemtek_getsigstr(struct gemtek *gt)
 	return sig;
 }
 
-/*
- * Check if requested card acts like GemTek Radio card.
- */
+
 static int gemtek_verify(struct gemtek *gt, int port)
 {
 	int i, q;
@@ -310,9 +269,8 @@ static int gemtek_verify(struct gemtek *gt, int port)
 
 	mutex_lock(&gt->lock);
 
-	q = inb_p(port);	/* Read bus contents before probing. */
-	/* Try to turn on CE, CK and DA respectively and check if card responds
-	   properly. */
+	q = inb_p(port);	
+	
 	for (i = 0; i < 3; ++i) {
 		outb_p(1 << i, port);
 		udelay(SHORT_DELAY);
@@ -322,7 +280,7 @@ static int gemtek_verify(struct gemtek *gt, int port)
 			return 0;
 		}
 	}
-	outb_p(q >> 5, port);	/* Write bus contents back. */
+	outb_p(q >> 5, port);	
 	udelay(SHORT_DELAY);
 
 	mutex_unlock(&gt->lock);
@@ -331,9 +289,7 @@ static int gemtek_verify(struct gemtek *gt, int port)
 	return 1;
 }
 
-/*
- * Automatic probing for card.
- */
+
 static int gemtek_probe(struct gemtek *gt)
 {
 	struct v4l2_device *v4l2_dev = &gt->v4l2_dev;
@@ -372,9 +328,7 @@ static int gemtek_probe(struct gemtek *gt)
 	return -1;
 }
 
-/*
- * Video 4 Linux stuff.
- */
+
 
 static const struct v4l2_file_operations gemtek_fops = {
 	.owner		= THIS_MODULE,
@@ -522,9 +476,7 @@ static const struct v4l2_ioctl_ops gemtek_ioctl_ops = {
 	.vidioc_s_ctrl		= vidioc_s_ctrl
 };
 
-/*
- * Initialization / cleanup related stuff.
- */
+
 
 static int __init gemtek_init(void)
 {
@@ -583,7 +535,7 @@ static int __init gemtek_init(void)
 		return -EBUSY;
 	}
 
-	/* Set defaults */
+	
 	gt->lastfreq = GEMTEK_LOWFREQ;
 	gt->bu2614data = 0;
 
@@ -593,16 +545,14 @@ static int __init gemtek_init(void)
 	return 0;
 }
 
-/*
- * Module cleanup
- */
+
 static void __exit gemtek_exit(void)
 {
 	struct gemtek *gt = &gemtek_card;
 	struct v4l2_device *v4l2_dev = &gt->v4l2_dev;
 
 	if (shutdown) {
-		hardmute = 1;	/* Turn off PLL */
+		hardmute = 1;	
 		gemtek_mute(gt);
 	} else {
 		v4l2_info(v4l2_dev, "Module unloaded but card not muted!\n");

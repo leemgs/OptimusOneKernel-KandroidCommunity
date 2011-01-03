@@ -1,25 +1,4 @@
-/*
- * drivers/media/radio/radio-si4713.c
- *
- * Platform Driver for Silicon Labs Si4713 FM Radio Transmitter:
- *
- * Copyright (c) 2008 Instituto Nokia de Tecnologia - INdT
- * Contact: Eduardo Valentin <eduardo.valentin@nokia.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -32,8 +11,8 @@
 #include <media/v4l2-ioctl.h>
 #include <media/radio-si4713.h>
 
-/* module parameters */
-static int radio_nr = -1;	/* radio device minor (-1 ==> auto assign) */
+
+static int radio_nr = -1;	
 module_param(radio_nr, int, 0);
 MODULE_PARM_DESC(radio_nr,
 		 "Minor number for radio device (-1 ==> auto assign)");
@@ -43,22 +22,22 @@ MODULE_AUTHOR("Eduardo Valentin <eduardo.valentin@nokia.com>");
 MODULE_DESCRIPTION("Platform driver for Si4713 FM Radio Transmitter");
 MODULE_VERSION("0.0.1");
 
-/* Driver state struct */
+
 struct radio_si4713_device {
 	struct v4l2_device		v4l2_dev;
 	struct video_device		*radio_dev;
 };
 
-/* radio_si4713_fops - file operations interface */
+
 static const struct v4l2_file_operations radio_si4713_fops = {
 	.owner		= THIS_MODULE,
 	.ioctl		= video_ioctl2,
 };
 
-/* Video4Linux Interface */
+
 static int radio_si4713_fill_audout(struct v4l2_audioout *vao)
 {
-	/* TODO: check presence of audio output */
+	
 	strlcpy(vao->name, "FM Modulator Audio Out", 32);
 
 	return 0;
@@ -86,7 +65,7 @@ static int radio_si4713_s_audout(struct file *file, void *priv,
 	return vao->index ? -EINVAL : 0;
 }
 
-/* radio_si4713_querycap - query device capabilities */
+
 static int radio_si4713_querycap(struct file *file, void *priv,
 					struct v4l2_capability *capability)
 {
@@ -102,18 +81,18 @@ static int radio_si4713_querycap(struct file *file, void *priv,
 	return 0;
 }
 
-/* radio_si4713_queryctrl - enumerate control items */
+
 static int radio_si4713_queryctrl(struct file *file, void *priv,
 						struct v4l2_queryctrl *qc)
 {
-	/* Must be sorted from low to high control ID! */
+	
 	static const u32 user_ctrls[] = {
 		V4L2_CID_USER_CLASS,
 		V4L2_CID_AUDIO_MUTE,
 		0
 	};
 
-	/* Must be sorted from low to high control ID! */
+	
 	static const u32 fmtx_ctrls[] = {
 		V4L2_CID_FM_TX_CLASS,
 		V4L2_CID_RDS_TX_DEVIATION,
@@ -157,10 +136,7 @@ static int radio_si4713_queryctrl(struct file *file, void *priv,
 						queryctrl, qc);
 }
 
-/*
- * v4l2 ioctl call backs.
- * we are just a wrapper for v4l2_sub_devs.
- */
+
 static inline struct v4l2_device *get_v4l2_dev(struct file *file)
 {
 	return &((struct radio_si4713_device *)video_drvdata(file))->v4l2_dev;
@@ -245,7 +221,7 @@ static struct v4l2_ioctl_ops radio_si4713_ioctl_ops = {
 	.vidioc_default		= radio_si4713_default,
 };
 
-/* radio_si4713_vdev_template - video device interface */
+
 static struct video_device radio_si4713_vdev_template = {
 	.fops			= &radio_si4713_fops,
 	.name			= "radio-si4713",
@@ -253,8 +229,8 @@ static struct video_device radio_si4713_vdev_template = {
 	.ioctl_ops		= &radio_si4713_ioctl_ops,
 };
 
-/* Platform driver interface */
-/* radio_si4713_pdriver_probe - probe for the device */
+
+
 static int radio_si4713_pdriver_probe(struct platform_device *pdev)
 {
 	struct radio_si4713_platform_data *pdata = pdev->dev.platform_data;
@@ -327,7 +303,7 @@ exit:
 	return rval;
 }
 
-/* radio_si4713_pdriver_remove - remove the device */
+
 static int __exit radio_si4713_pdriver_remove(struct platform_device *pdev)
 {
 	struct v4l2_device *v4l2_dev = platform_get_drvdata(pdev);
@@ -350,7 +326,7 @@ static struct platform_driver radio_si4713_pdriver = {
 	.remove         = __exit_p(radio_si4713_pdriver_remove),
 };
 
-/* Module Interface */
+
 static int __init radio_si4713_module_init(void)
 {
 	return platform_driver_register(&radio_si4713_pdriver);
