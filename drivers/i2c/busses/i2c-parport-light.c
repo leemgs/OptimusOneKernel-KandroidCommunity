@@ -1,28 +1,4 @@
-/* ------------------------------------------------------------------------ *
- * i2c-parport-light.c I2C bus over parallel port                           *
- * ------------------------------------------------------------------------ *
-   Copyright (C) 2003-2007 Jean Delvare <khali@linux-fr.org>
-   
-   Based on older i2c-velleman.c driver
-   Copyright (C) 1995-2000 Simon G. Vogl
-   With some changes from:
-   Frodo Looijaard <frodol@dds.nl>
-   Kyösti Mälkki <kmalkki@cc.hut.fi>
-   
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- * ------------------------------------------------------------------------ */
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -43,7 +19,7 @@ static u16 base;
 module_param(base, ushort, 0);
 MODULE_PARM_DESC(base, "Base I/O address");
 
-/* ----- Low-level parallel port access ----------------------------------- */
+
 
 static inline void port_write(unsigned char p, unsigned char d)
 {
@@ -55,13 +31,13 @@ static inline unsigned char port_read(unsigned char p)
 	return inb(base+p);
 }
 
-/* ----- Unified line operation functions --------------------------------- */
+
 
 static inline void line_set(int state, const struct lineop *op)
 {
 	u8 oldval = port_read(op->port);
 
-	/* Touch only the bit(s) needed */
+	
 	if ((op->inverted && !state) || (!op->inverted && state))
 		port_write(op->port, oldval | op->val);
 	else
@@ -76,7 +52,7 @@ static inline int line_get(const struct lineop *op)
 	    || (!op->inverted && (oldval & op->val) == op->val));
 }
 
-/* ----- I2C algorithm call-back functions and structures ----------------- */
+
 
 static void parport_setscl(void *data, int state)
 {
@@ -98,9 +74,7 @@ static int parport_getsda(void *data)
 	return line_get(&adapter_parm[type].getsda);
 }
 
-/* Encapsulate the functions above in the correct structure
-   Note that getscl will be set to NULL by the attaching code for adapters
-   that cannot read SCL back */
+
 static struct i2c_algo_bit_data parport_algo_data = {
 	.setsda		= parport_setsda,
 	.setscl		= parport_setscl,
@@ -110,7 +84,7 @@ static struct i2c_algo_bit_data parport_algo_data = {
 	.timeout	= HZ,
 }; 
 
-/* ----- Driver registration ---------------------------------------------- */
+
 
 static struct i2c_adapter parport_adapter = {
 	.owner		= THIS_MODULE,
@@ -123,10 +97,10 @@ static int __devinit i2c_parport_probe(struct platform_device *pdev)
 {
 	int err;
 
-	/* Reset hardware to a sane state (SCL and SDA high) */
+	
 	parport_setsda(NULL, 1);
 	parport_setscl(NULL, 1);
-	/* Other init if needed (power on...) */
+	
 	if (adapter_parm[type].init.val)
 		line_set(1, &adapter_parm[type].init);
 
@@ -141,7 +115,7 @@ static int __devexit i2c_parport_remove(struct platform_device *pdev)
 {
 	i2c_del_adapter(&parport_adapter);
 
-	/* Un-init if needed (power off...) */
+	
 	if (adapter_parm[type].init.val)
 		line_set(0, &adapter_parm[type].init);
 
@@ -208,7 +182,7 @@ static int __init i2c_parport_init(void)
         if (!adapter_parm[type].getscl.val)
 		parport_algo_data.getscl = NULL;
 
-	/* Sets global pdev as a side effect */
+	
 	err = i2c_parport_device_add(base);
 	if (err)
 		goto exit_release;

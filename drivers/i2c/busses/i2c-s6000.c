@@ -1,27 +1,4 @@
-/*
- * drivers/i2c/busses/i2c-s6000.c
- *
- * Description: Driver for S6000 Family I2C Interface
- * Copyright (c) 2008 emlix GmbH
- * Author:	Oskar Schirmer <os@emlix.com>
- *
- * Partially based on i2c-bfin-twi.c driver by <sonic.zhang@analog.com>
- * Copyright (c) 2005-2007 Analog Devices, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA
- */
+
 
 #include <linux/clk.h>
 #include <linux/err.h>
@@ -45,16 +22,16 @@
 #define POLL_TIMEOUT	(2 * HZ)
 
 struct s6i2c_if {
-	u8 __iomem		*reg; /* memory mapped registers */
+	u8 __iomem		*reg; 
 	int			irq;
 	spinlock_t		lock;
-	struct i2c_msg		*msgs; /* messages currently handled */
-	int			msgs_num; /* nb of msgs to do */
-	int			msgs_push; /* nb of msgs read/written */
-	int			msgs_done; /* nb of msgs finally handled */
-	unsigned		push; /* nb of bytes read/written in msg */
-	unsigned		done; /* nb of bytes finally handled */
-	int			timeout_count; /* timeout retries left */
+	struct i2c_msg		*msgs; 
+	int			msgs_num; 
+	int			msgs_push; 
+	int			msgs_done; 
+	unsigned		push; 
+	unsigned		done; 
+	int			timeout_count; 
 	struct timer_list	timeout_timer;
 	struct i2c_adapter	adap;
 	struct completion	complete;

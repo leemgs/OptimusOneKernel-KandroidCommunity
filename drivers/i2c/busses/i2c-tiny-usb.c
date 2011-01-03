@@ -1,27 +1,17 @@
-/*
- * driver for the i2c-tiny-usb adapter - 1.0
- * http://www.harbaum.org/till/i2c_tiny_usb
- *
- * Copyright (C) 2006-2007 Till Harbaum (Till@Harbaum.org)
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation, version 2.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/errno.h>
 #include <linux/module.h>
 #include <linux/types.h>
 
-/* include interfaces to usb layer */
+
 #include <linux/usb.h>
 
-/* include interface to i2c layer */
+
 #include <linux/i2c.h>
 
-/* commands via USB, must match command ids in the firmware */
+
 #define CMD_ECHO		0
 #define CMD_GET_FUNC		1
 #define CMD_SET_DELAY		2
@@ -31,7 +21,7 @@
 #define CMD_I2C_IO_BEGIN	(1<<0)
 #define CMD_I2C_IO_END		(1<<1)
 
-/* i2c bit delay, default is 10us -> 100kHz */
+
 static unsigned short delay = 10;
 module_param(delay, ushort, 0);
 MODULE_PARM_DESC(delay, "bit delay in microseconds, "
@@ -43,7 +33,7 @@ static int usb_read(struct i2c_adapter *adapter, int cmd,
 static int usb_write(struct i2c_adapter *adapter, int cmd,
 		     int value, int index, void *data, int len);
 
-/* ----- begin of i2c layer ---------------------------------------------- */
+
 
 #define STATUS_IDLE		0
 #define STATUS_ADDRESS_ACK	1
@@ -73,9 +63,9 @@ static int usb_xfer(struct i2c_adapter *adapter, struct i2c_msg *msgs, int num)
 			i, pmsg->flags & I2C_M_RD ? "read" : "write",
 			pmsg->flags, pmsg->len, pmsg->addr);
 
-		/* and directly send the message */
+		
 		if (pmsg->flags & I2C_M_RD) {
-			/* read data */
+			
 			if (usb_read(adapter, cmd,
 				     pmsg->flags, pmsg->addr,
 				     pmsg->buf, pmsg->len) != pmsg->len) {
@@ -84,7 +74,7 @@ static int usb_xfer(struct i2c_adapter *adapter, struct i2c_msg *msgs, int num)
 				return -EREMOTEIO;
 			}
 		} else {
-			/* write data */
+			
 			if (usb_write(adapter, cmd,
 				      pmsg->flags, pmsg->addr,
 				      pmsg->buf, pmsg->len) != pmsg->len) {
@@ -94,7 +84,7 @@ static int usb_xfer(struct i2c_adapter *adapter, struct i2c_msg *msgs, int num)
 			}
 		}
 
-		/* read status */
+		
 		if (usb_read(adapter, CMD_GET_STATUS, 0, 0, &status, 1) != 1) {
 			dev_err(&adapter->dev, "failure reading status\n");
 			return -EREMOTEIO;
@@ -112,7 +102,7 @@ static u32 usb_func(struct i2c_adapter *adapter)
 {
 	__le32 func;
 
-	/* get functionality from adapter */
+	
 	if (usb_read(adapter, CMD_GET_FUNC, 0, 0, &func, sizeof(func)) !=
 	    sizeof(func)) {
 		dev_err(&adapter->dev, "failure reading functionality\n");
@@ -122,34 +112,30 @@ static u32 usb_func(struct i2c_adapter *adapter)
 	return le32_to_cpu(func);
 }
 
-/* This is the actual algorithm we define */
+
 static const struct i2c_algorithm usb_algorithm = {
 	.master_xfer	= usb_xfer,
 	.functionality	= usb_func,
 };
 
-/* ----- end of i2c layer ------------------------------------------------ */
 
-/* ----- begin of usb layer ---------------------------------------------- */
 
-/*
- * Initially the usb i2c interface uses a vid/pid pair donated by
- * Future Technology Devices International Ltd., later a pair was
- * bought from EZPrototypes
- */
+
+
+
 static struct usb_device_id i2c_tiny_usb_table [] = {
-	{ USB_DEVICE(0x0403, 0xc631) },   /* FTDI */
-	{ USB_DEVICE(0x1c40, 0x0534) },   /* EZPrototypes */
-	{ }                               /* Terminating entry */
+	{ USB_DEVICE(0x0403, 0xc631) },   
+	{ USB_DEVICE(0x1c40, 0x0534) },   
+	{ }                               
 };
 
 MODULE_DEVICE_TABLE(usb, i2c_tiny_usb_table);
 
-/* Structure to hold all of our device specific stuff */
+
 struct i2c_tiny_usb {
-	struct usb_device *usb_dev; /* the usb device for this device */
-	struct usb_interface *interface; /* the interface for this device */
-	struct i2c_adapter adapter; /* i2c related things */
+	struct usb_device *usb_dev; 
+	struct usb_interface *interface; 
+	struct i2c_adapter adapter; 
 };
 
 static int usb_read(struct i2c_adapter *adapter, int cmd,
@@ -157,7 +143,7 @@ static int usb_read(struct i2c_adapter *adapter, int cmd,
 {
 	struct i2c_tiny_usb *dev = (struct i2c_tiny_usb *)adapter->algo_data;
 
-	/* do control transfer */
+	
 	return usb_control_msg(dev->usb_dev, usb_rcvctrlpipe(dev->usb_dev, 0),
 			       cmd, USB_TYPE_VENDOR | USB_RECIP_INTERFACE |
 			       USB_DIR_IN, value, index, data, len, 2000);
@@ -168,7 +154,7 @@ static int usb_write(struct i2c_adapter *adapter, int cmd,
 {
 	struct i2c_tiny_usb *dev = (struct i2c_tiny_usb *)adapter->algo_data;
 
-	/* do control transfer */
+	
 	return usb_control_msg(dev->usb_dev, usb_sndctrlpipe(dev->usb_dev, 0),
 			       cmd, USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
 			       value, index, data, len, 2000);
@@ -189,7 +175,7 @@ static int i2c_tiny_usb_probe(struct usb_interface *interface,
 
 	dev_dbg(&interface->dev, "probing usb device\n");
 
-	/* allocate memory for our device state and initialize it */
+	
 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
 	if (dev == NULL) {
 		dev_err(&interface->dev, "Out of memory\n");
@@ -199,7 +185,7 @@ static int i2c_tiny_usb_probe(struct usb_interface *interface,
 	dev->usb_dev = usb_get_dev(interface_to_usbdev(interface));
 	dev->interface = interface;
 
-	/* save our data pointer in this interface device */
+	
 	usb_set_intfdata(interface, dev);
 
 	version = le16_to_cpu(dev->usb_dev->descriptor.bcdDevice);
@@ -208,7 +194,7 @@ static int i2c_tiny_usb_probe(struct usb_interface *interface,
 		 version >> 8, version & 0xff,
 		 dev->usb_dev->bus->busnum, dev->usb_dev->devnum);
 
-	/* setup i2c adapter description */
+	
 	dev->adapter.owner = THIS_MODULE;
 	dev->adapter.class = I2C_CLASS_HWMON;
 	dev->adapter.algo = &usb_algorithm;
@@ -226,10 +212,10 @@ static int i2c_tiny_usb_probe(struct usb_interface *interface,
 
 	dev->adapter.dev.parent = &dev->interface->dev;
 
-	/* and finally attach to i2c layer */
+	
 	i2c_add_adapter(&dev->adapter);
 
-	/* inform user about successful attachment to i2c layer */
+	
 	dev_info(&dev->adapter.dev, "connected i2c-tiny-usb device\n");
 
 	return 0;
@@ -261,20 +247,20 @@ static struct usb_driver i2c_tiny_usb_driver = {
 
 static int __init usb_i2c_tiny_usb_init(void)
 {
-	/* register this driver with the USB subsystem */
+	
 	return usb_register(&i2c_tiny_usb_driver);
 }
 
 static void __exit usb_i2c_tiny_usb_exit(void)
 {
-	/* deregister this driver with the USB subsystem */
+	
 	usb_deregister(&i2c_tiny_usb_driver);
 }
 
 module_init(usb_i2c_tiny_usb_init);
 module_exit(usb_i2c_tiny_usb_exit);
 
-/* ----- end of usb layer ------------------------------------------------ */
+
 
 MODULE_AUTHOR("Till Harbaum <Till@Harbaum.org>");
 MODULE_DESCRIPTION("i2c-tiny-usb driver v1.0");

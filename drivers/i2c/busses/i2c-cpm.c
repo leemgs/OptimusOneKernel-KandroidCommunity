@@ -1,33 +1,4 @@
-/*
- * Freescale CPM1/CPM2 I2C interface.
- * Copyright (c) 1999 Dan Malek (dmalek@jlc.net).
- *
- * moved into proper i2c interface;
- * Brad Parker (brad@heeltoe.com)
- *
- * Parts from dbox2_i2c.c (cvs.tuxbox.org)
- * (C) 2000-2001 Felix Domke (tmbinc@gmx.net), Gillem (htoa@gmx.net)
- *
- * (C) 2007 Montavista Software, Inc.
- * Vitaly Bordug <vitb@kernel.crashing.org>
- *
- * Converted to of_platform_device. Renamed to i2c-cpm.c.
- * (C) 2007,2008 Jochen Friedrich <jochen@scram.de>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -46,38 +17,38 @@
 #include <sysdev/fsl_soc.h>
 #include <asm/cpm.h>
 
-/* Try to define this if you have an older CPU (earlier than rev D4) */
-/* However, better use a GPIO based bitbang driver in this case :/   */
+
+
 #undef	I2C_CHIP_ERRATA
 
 #define CPM_MAX_READ    513
 #define CPM_MAXBD       4
 
-#define I2C_EB			(0x10) /* Big endian mode */
-#define I2C_EB_CPM2		(0x30) /* Big endian mode, memory snoop */
+#define I2C_EB			(0x10) 
+#define I2C_EB_CPM2		(0x30) 
 
 #define DPRAM_BASE		((u8 __iomem __force *)cpm_muram_addr(0))
 
-/* I2C parameter RAM. */
+
 struct i2c_ram {
-	ushort  rbase;		/* Rx Buffer descriptor base address */
-	ushort  tbase;		/* Tx Buffer descriptor base address */
-	u_char  rfcr;		/* Rx function code */
-	u_char  tfcr;		/* Tx function code */
-	ushort  mrblr;		/* Max receive buffer length */
-	uint    rstate;		/* Internal */
-	uint    rdp;		/* Internal */
-	ushort  rbptr;		/* Rx Buffer descriptor pointer */
-	ushort  rbc;		/* Internal */
-	uint    rxtmp;		/* Internal */
-	uint    tstate;		/* Internal */
-	uint    tdp;		/* Internal */
-	ushort  tbptr;		/* Tx Buffer descriptor pointer */
-	ushort  tbc;		/* Internal */
-	uint    txtmp;		/* Internal */
-	char    res1[4];	/* Reserved */
-	ushort  rpbase;		/* Relocation pointer */
-	char    res2[2];	/* Reserved */
+	ushort  rbase;		
+	ushort  tbase;		
+	u_char  rfcr;		
+	u_char  tfcr;		
+	ushort  mrblr;		
+	uint    rstate;		
+	uint    rdp;		
+	ushort  rbptr;		
+	ushort  rbc;		
+	uint    rxtmp;		
+	uint    tstate;		
+	uint    tdp;		
+	ushort  tbptr;		
+	ushort  tbc;		
+	uint    txtmp;		
+	char    res1[4];	
+	ushort  rpbase;		
+	char    res2[2];	
 };
 
 #define I2COM_START	0x80
@@ -88,7 +59,7 @@ struct i2c_ram {
 #define I2CER_RXB	0x01
 #define I2MOD_EN	0x01
 
-/* I2C Registers */
+
 struct i2c_reg {
 	u8	i2mod;
 	u8	res1[3];
@@ -108,7 +79,7 @@ struct cpm_i2c {
 	struct of_device *ofdev;
 	struct i2c_adapter adap;
 	uint dp_addr;
-	int version; /* CPM1=1, CPM2=2 */
+	int version; 
 	int irq;
 	int cp_command;
 	int freq;
@@ -134,7 +105,7 @@ static irqreturn_t cpm_i2c_interrupt(int irq, void *dev_id)
 	cpm = i2c_get_adapdata(dev_id);
 	i2c_reg = cpm->i2c_reg;
 
-	/* Clear interrupt. */
+	
 	i = in_8(&i2c_reg->i2cer);
 	out_8(&i2c_reg->i2cer, i);
 
@@ -149,7 +120,7 @@ static void cpm_reset_i2c_params(struct cpm_i2c *cpm)
 {
 	struct i2c_ram __iomem *i2c_ram = cpm->i2c_ram;
 
-	/* Set up the I2C parameters in the parameter ram. */
+	
 	out_be16(&i2c_ram->tbase, (u8 __iomem *)cpm->tbase - DPRAM_BASE);
 	out_be16(&i2c_ram->rbase, (u8 __iomem *)cpm->rbase - DPRAM_BASE);
 
@@ -184,7 +155,7 @@ static void cpm_i2c_force_close(struct i2c_adapter *adap)
 
 	cpm_command(cpm->cp_command, CPM_CR_CLOSE_RX_BD);
 
-	out_8(&i2c_reg->i2cmr, 0x00);	/* Disable all interrupts */
+	out_8(&i2c_reg->i2cmr, 0x00);	
 	out_8(&i2c_reg->i2cer, 0xff);
 }
 
@@ -208,10 +179,10 @@ static void cpm_i2c_parse_message(struct i2c_adapter *adap,
 	tb = cpm->txbuf[tx];
 	rb = cpm->rxbuf[rx];
 
-	/* Align read buffer */
+	
 	rb = (u_char *) (((ulong) rb + 1) & ~1);
 
-	tb[0] = addr;		/* Device address byte w/rw flag */
+	tb[0] = addr;		
 
 	out_be16(&tbdf->cbd_datlen, pmsg->len + 1);
 	out_be16(&tbdf->cbd_sc, 0);
@@ -223,11 +194,7 @@ static void cpm_i2c_parse_message(struct i2c_adapter *adap,
 		setbits16(&tbdf->cbd_sc, BD_SC_LAST | BD_SC_WRAP);
 
 	if (pmsg->flags & I2C_M_RD) {
-		/*
-		 * To read, we need an empty buffer of the proper length.
-		 * All that is used is the first byte for address, the remainder
-		 * is just used for timing (and doesn't really have to exist).
-		 */
+		
 
 		dev_dbg(&adap->dev, "cpm_i2c_read(abyte=0x%x)\n", addr);
 
@@ -264,7 +231,7 @@ static int cpm_i2c_check_message(struct i2c_adapter *adap,
 	tb = cpm->txbuf[tx];
 	rb = cpm->rxbuf[rx];
 
-	/* Align read buffer */
+	
 	rb = (u_char *) (((uint) rb + 1) & ~1);
 
 	eieio();
@@ -321,14 +288,14 @@ static int cpm_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
 	if (num > CPM_MAXBD)
 		return -EINVAL;
 
-	/* Check if we have any oversized READ requests */
+	
 	for (i = 0; i < num; i++) {
 		pmsg = &msgs[i];
 		if (pmsg->len >= CPM_MAX_READ)
 			return -EINVAL;
 	}
 
-	/* Reset to use first buffer */
+	
 	out_be16(&i2c_ram->rbptr, in_be16(&i2c_ram->rbase));
 	out_be16(&i2c_ram->tbptr, in_be16(&i2c_ram->tbase));
 
@@ -347,20 +314,20 @@ static int cpm_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
 			rptr++;
 		tptr++;
 	}
-	/* Start transfer now */
-	/* Enable RX/TX/Error interupts */
+	
+	
 	out_8(&i2c_reg->i2cmr, I2CER_TXE | I2CER_TXB | I2CER_RXB);
-	out_8(&i2c_reg->i2cer, 0xff);	/* Clear interrupt status */
-	/* Chip bug, set enable here */
-	setbits8(&i2c_reg->i2mod, I2MOD_EN);	/* Enable */
-	/* Begin transmission */
+	out_8(&i2c_reg->i2cer, 0xff);	
+	
+	setbits8(&i2c_reg->i2mod, I2MOD_EN);	
+	
 	setbits8(&i2c_reg->i2com, I2COM_START);
 
 	tptr = 0;
 	rptr = 0;
 
 	while (tptr < num) {
-		/* Check for outstanding messages */
+		
 		dev_dbg(&adap->dev, "test ready.\n");
 		pmsg = &msgs[tptr];
 		if (pmsg->flags & I2C_M_RD)
@@ -388,10 +355,7 @@ static int cpm_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
 		}
 	}
 #ifdef I2C_CHIP_ERRATA
-	/*
-	 * Chip errata, clear enable. This is not needed on rev D4 CPUs.
-	 * Disabling I2C too early may cause too short stop condition
-	 */
+	
 	udelay(4);
 	clrbits8(&i2c_reg->i2mod, I2MOD_EN);
 #endif
@@ -400,9 +364,7 @@ static int cpm_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
 out_err:
 	cpm_i2c_force_close(adap);
 #ifdef I2C_CHIP_ERRATA
-	/*
-	 * Chip errata, clear enable. This is not needed on rev D4 CPUs.
-	 */
+	
 	clrbits8(&i2c_reg->i2mod, I2MOD_EN);
 #endif
 	return ret;
@@ -413,7 +375,7 @@ static u32 cpm_i2c_func(struct i2c_adapter *adap)
 	return I2C_FUNC_I2C | (I2C_FUNC_SMBUS_EMUL & ~I2C_FUNC_SMBUS_QUICK);
 }
 
-/* -----exported algorithm data: -------------------------------------	*/
+
 
 static const struct i2c_algorithm cpm_i2c_algo = {
 	.master_xfer = cpm_i2c_xfer,
@@ -444,13 +406,13 @@ static int __devinit cpm_i2c_setup(struct cpm_i2c *cpm)
 	if (cpm->irq == NO_IRQ)
 		return -EINVAL;
 
-	/* Install interrupt handler. */
+	
 	ret = request_irq(cpm->irq, cpm_i2c_interrupt, 0, "cpm_i2c",
 			  &cpm->adap);
 	if (ret)
 		return ret;
 
-	/* I2C parameter RAM */
+	
 	i2c_base = of_iomap(ofdev->node, 1);
 	if (i2c_base == NULL) {
 		ret = -EINVAL;
@@ -459,14 +421,11 @@ static int __devinit cpm_i2c_setup(struct cpm_i2c *cpm)
 
 	if (of_device_is_compatible(ofdev->node, "fsl,cpm1-i2c")) {
 
-		/* Check for and use a microcode relocation patch. */
+		
 		cpm->i2c_ram = i2c_base;
 		cpm->i2c_addr = in_be16(&cpm->i2c_ram->rpbase);
 
-		/*
-		 * Maybe should use cpm_muram_alloc instead of hardcoding
-		 * this in micropatch.c
-		 */
+		
 		if (cpm->i2c_addr) {
 			cpm->i2c_ram = cpm_muram_addr(cpm->i2c_addr);
 			iounmap(i2c_base);
@@ -488,7 +447,7 @@ static int __devinit cpm_i2c_setup(struct cpm_i2c *cpm)
 		goto out_irq;
 	}
 
-	/* I2C control/status registers */
+	
 	cpm->i2c_reg = of_iomap(ofdev->node, 0);
 	if (cpm->i2c_reg == NULL) {
 		ret = -EINVAL;
@@ -510,12 +469,9 @@ static int __devinit cpm_i2c_setup(struct cpm_i2c *cpm)
 	if (data && len == 4)
 		cpm->freq = *data;
 	else
-		cpm->freq = 60000; /* use 60kHz i2c clock by default */
+		cpm->freq = 60000; 
 
-	/*
-	 * Allocate space for CPM_MAXBD transmit and receive buffer
-	 * descriptors in the DP ram.
-	 */
+	
 	cpm->dp_addr = cpm_muram_alloc(sizeof(cbd_t) * 2 * CPM_MAXBD, 8);
 	if (!cpm->dp_addr) {
 		ret = -ENOMEM;
@@ -525,7 +481,7 @@ static int __devinit cpm_i2c_setup(struct cpm_i2c *cpm)
 	cpm->tbase = cpm_muram_addr(cpm->dp_addr);
 	cpm->rbase = cpm_muram_addr(cpm->dp_addr + sizeof(cbd_t) * CPM_MAXBD);
 
-	/* Allocate TX and RX buffers */
+	
 
 	tbdf = cpm->tbase;
 	rbdf = cpm->rbase;
@@ -548,7 +504,7 @@ static int __devinit cpm_i2c_setup(struct cpm_i2c *cpm)
 		out_be32(&tbdf[i].cbd_bufaddr, cpm->txdma[i]);
 	}
 
-	/* Initialize Tx/Rx parameters. */
+	
 
 	cpm_reset_i2c_params(cpm);
 
@@ -560,23 +516,17 @@ static int __devinit cpm_i2c_setup(struct cpm_i2c *cpm)
 
 	cpm_command(cpm->cp_command, CPM_CR_INIT_TRX);
 
-	/*
-	 * Select an invalid address. Just make sure we don't use loopback mode
-	 */
+	
 	out_8(&cpm->i2c_reg->i2add, 0x7f << 1);
 
-	/*
-	 * PDIV is set to 00 in i2mod, so brgclk/32 is used as input to the
-	 * i2c baud rate generator. This is divided by 2 x (DIV + 3) to get
-	 * the actual i2c bus frequency.
-	 */
+	
 	brg = get_brgfreq() / (32 * 2 * cpm->freq) - 3;
 	out_8(&cpm->i2c_reg->i2brg, brg);
 
 	out_8(&cpm->i2c_reg->i2mod, 0x00);
-	out_8(&cpm->i2c_reg->i2com, I2COM_MASTER);	/* Master mode */
+	out_8(&cpm->i2c_reg->i2com, I2COM_MASTER);	
 
-	/* Disable interrupts. */
+	
 	out_8(&cpm->i2c_reg->i2cmr, 0);
 	out_8(&cpm->i2c_reg->i2cer, 0xff);
 
@@ -608,16 +558,16 @@ static void cpm_i2c_shutdown(struct cpm_i2c *cpm)
 {
 	int i;
 
-	/* Shut down I2C. */
+	
 	clrbits8(&cpm->i2c_reg->i2mod, I2MOD_EN);
 
-	/* Disable interrupts */
+	
 	out_8(&cpm->i2c_reg->i2cmr, 0);
 	out_8(&cpm->i2c_reg->i2cer, 0xff);
 
 	free_irq(cpm->irq, &cpm->adap);
 
-	/* Free all memory */
+	
 	for (i = 0; i < CPM_MAXBD; i++) {
 		dma_free_coherent(&cpm->ofdev->dev, CPM_MAX_READ + 1,
 			cpm->rxbuf[i], cpm->rxdma[i]);
@@ -659,7 +609,7 @@ static int __devinit cpm_i2c_probe(struct of_device *ofdev,
 		goto out_free;
 	}
 
-	/* register new adapter to i2c module... */
+	
 
 	data = of_get_property(ofdev->node, "linux,i2c-index", &len);
 	if (data && len == 4) {
@@ -676,9 +626,7 @@ static int __devinit cpm_i2c_probe(struct of_device *ofdev,
 	dev_dbg(&ofdev->dev, "hw routines for %s registered.\n",
 		cpm->adap.name);
 
-	/*
-	 * register OF I2C devices
-	 */
+	
 	of_register_i2c_devices(&cpm->adap, ofdev->node);
 
 	return 0;

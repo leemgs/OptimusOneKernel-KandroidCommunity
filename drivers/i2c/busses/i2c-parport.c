@@ -1,28 +1,4 @@
-/* ------------------------------------------------------------------------ *
- * i2c-parport.c I2C bus over parallel port                                 *
- * ------------------------------------------------------------------------ *
-   Copyright (C) 2003-2007 Jean Delvare <khali@linux-fr.org>
-   
-   Based on older i2c-philips-par.c driver
-   Copyright (C) 1995-2000 Simon G. Vogl
-   With some changes from:
-   Frodo Looijaard <frodol@dds.nl>
-   Kyösti Mälkki <kmalkki@cc.hut.fi>
-   
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- * ------------------------------------------------------------------------ */
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -32,7 +8,7 @@
 #include <linux/i2c-algo-bit.h>
 #include "i2c-parport.h"
 
-/* ----- Device list ------------------------------------------------------ */
+
 
 struct i2c_par {
 	struct pardevice *pdev;
@@ -43,7 +19,7 @@ struct i2c_par {
 
 static struct i2c_par *adapter_list;
 
-/* ----- Low-level parallel port access ----------------------------------- */
+
 
 static void port_write_data(struct parport *p, unsigned char d)
 {
@@ -82,14 +58,14 @@ static unsigned char (*port_read[])(struct parport *) = {
 	port_read_control,
 };
 
-/* ----- Unified line operation functions --------------------------------- */
+
 
 static inline void line_set(struct parport *data, int state,
 	const struct lineop *op)
 {
 	u8 oldval = port_read[op->port](data);
 
-	/* Touch only the bit(s) needed */
+	
 	if ((op->inverted && !state) || (!op->inverted && state))
 		port_write[op->port](data, oldval | op->val);
 	else
@@ -105,7 +81,7 @@ static inline int line_get(struct parport *data,
 	    || (!op->inverted && (oldval & op->val) == op->val));
 }
 
-/* ----- I2C algorithm call-back functions and structures ----------------- */
+
 
 static void parport_setscl(void *data, int state)
 {
@@ -127,21 +103,17 @@ static int parport_getsda(void *data)
 	return line_get((struct parport *) data, &adapter_parm[type].getsda);
 }
 
-/* Encapsulate the functions above in the correct structure.
-   Note that this is only a template, from which the real structures are
-   copied. The attaching code will set getscl to NULL for adapters that
-   cannot read SCL back, and will also make the data field point to
-   the parallel port structure. */
+
 static struct i2c_algo_bit_data parport_algo_data = {
 	.setsda		= parport_setsda,
 	.setscl		= parport_setscl,
 	.getsda		= parport_getsda,
 	.getscl		= parport_getscl,
-	.udelay		= 10, /* ~50 kbps */
+	.udelay		= 10, 
 	.timeout	= HZ,
 }; 
 
-/* ----- I2c and parallel port call-back functions and structures --------- */
+
 
 static void i2c_parport_attach (struct parport *port)
 {
@@ -161,16 +133,16 @@ static void i2c_parport_attach (struct parport *port)
 		goto ERROR0;
 	}
 
-	/* Fill the rest of the structure */
+	
 	adapter->adapter.owner = THIS_MODULE;
 	adapter->adapter.class = I2C_CLASS_HWMON;
 	strlcpy(adapter->adapter.name, "Parallel port adapter",
 		sizeof(adapter->adapter.name));
 	adapter->algo_data = parport_algo_data;
-	/* Slow down if we can't sense SCL */
+	
 	if (!adapter_parm[type].getscl.val) {
 		adapter->algo_data.getscl = NULL;
-		adapter->algo_data.udelay = 50; /* ~10 kbps */
+		adapter->algo_data.udelay = 50; 
 	}
 	adapter->algo_data.data = port;
 	adapter->adapter.algo_data = &adapter->algo_data;
@@ -181,10 +153,10 @@ static void i2c_parport_attach (struct parport *port)
 		goto ERROR1;
 	}
 
-	/* Reset hardware to a sane state (SCL and SDA high) */
+	
 	parport_setsda(port, 1);
 	parport_setscl(port, 1);
-	/* Other init if needed (power on...) */
+	
 	if (adapter_parm[type].init.val)
 		line_set(port, 1, &adapter_parm[type].init);
 
@@ -193,7 +165,7 @@ static void i2c_parport_attach (struct parport *port)
 		goto ERROR1;
 	}
 
-	/* Add the new adapter to the list */
+	
 	adapter->next = adapter_list;
 	adapter_list = adapter;
         return;
@@ -209,13 +181,13 @@ static void i2c_parport_detach (struct parport *port)
 {
 	struct i2c_par *adapter, *prev;
 
-	/* Walk the list */
+	
 	for (prev = NULL, adapter = adapter_list; adapter;
 	     prev = adapter, adapter = adapter->next) {
 		if (adapter->pdev->port == port) {
 			i2c_del_adapter(&adapter->adapter);
 
-			/* Un-init if needed (power off...) */
+			
 			if (adapter_parm[type].init.val)
 				line_set(port, 0, &adapter_parm[type].init);
 				
@@ -237,7 +209,7 @@ static struct parport_driver i2c_parport_driver = {
 	.detach	= i2c_parport_detach,
 };
 
-/* ----- Module loading, unloading and information ------------------------ */
+
 
 static int __init i2c_parport_init(void)
 {

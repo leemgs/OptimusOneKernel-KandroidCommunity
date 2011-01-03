@@ -1,30 +1,4 @@
-/*
- * Synopsys Designware I2C adapter driver (master only).
- *
- * Based on the TI DAVINCI I2C adapter driver.
- *
- * Copyright (C) 2006 Texas Instruments.
- * Copyright (C) 2007 MontaVista Software Inc.
- * Copyright (C) 2009 Provigent Ltd.
- *
- * ----------------------------------------------------------------------------
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- * ----------------------------------------------------------------------------
- *
- */
+
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/delay.h>
@@ -37,9 +11,7 @@
 #include <linux/platform_device.h>
 #include <linux/io.h>
 
-/*
- * Registers offset
- */
+
 #define DW_IC_CON		0x0
 #define DW_IC_TAR		0x4
 #define DW_IC_DATA_CMD		0x10
@@ -72,21 +44,14 @@
 
 #define DW_IC_ERR_TX_ABRT	0x1
 
-/*
- * status codes
- */
+
 #define STATUS_IDLE			0x0
 #define STATUS_WRITE_IN_PROGRESS	0x1
 #define STATUS_READ_IN_PROGRESS		0x2
 
-#define TIMEOUT			20 /* ms */
+#define TIMEOUT			20 
 
-/*
- * hardware abort codes from the DW_IC_TX_ABRT_SOURCE register
- *
- * only expected abort codes are listed here
- * refer to the datasheet for the full list
- */
+
 #define ABRT_7B_ADDR_NOACK	0
 #define ABRT_10ADDR1_NOACK	1
 #define ABRT_10ADDR2_NOACK	2
@@ -124,33 +89,7 @@ static char *abort_sources[] = {
 		"lost arbitration",
 };
 
-/**
- * struct dw_i2c_dev - private i2c-designware data
- * @dev: driver model device node
- * @base: IO registers pointer
- * @cmd_complete: tx completion indicator
- * @pump_msg: continue in progress transfers
- * @lock: protect this struct and IO registers
- * @clk: input reference clock
- * @cmd_err: run time hadware error code
- * @msgs: points to an array of messages currently being transfered
- * @msgs_num: the number of elements in msgs
- * @msg_write_idx: the element index of the current tx message in the msgs
- *	array
- * @tx_buf_len: the length of the current tx buffer
- * @tx_buf: the current tx buffer
- * @msg_read_idx: the element index of the current rx message in the msgs
- *	array
- * @rx_buf_len: the length of the current rx buffer
- * @rx_buf: the current rx buffer
- * @msg_err: error status of the current transfer
- * @status: i2c master status, one of STATUS_*
- * @abort_source: copy of the TX_ABRT_SOURCE register
- * @irq: interrupt number for the i2c master
- * @adapter: i2c subsystem adapter node
- * @tx_fifo_depth: depth of the hardware tx fifo
- * @rx_fifo_depth: depth of the hardware rx fifo
- */
+
 struct dw_i2c_dev {
 	struct device		*dev;
 	void __iomem		*base;
@@ -176,41 +115,32 @@ struct dw_i2c_dev {
 	unsigned int		rx_fifo_depth;
 };
 
-/**
- * i2c_dw_init() - initialize the designware i2c master hardware
- * @dev: device private data
- *
- * This functions configures and enables the I2C master.
- * This function is called during I2C init function, and in case of timeout at
- * run time.
- */
+
 static void i2c_dw_init(struct dw_i2c_dev *dev)
 {
 	u32 input_clock_khz = clk_get_rate(dev->clk) / 1000;
 	u16 ic_con;
 
-	/* Disable the adapter */
+	
 	writeb(0, dev->base + DW_IC_ENABLE);
 
-	/* set standard and fast speed deviders for high/low periods */
-	writew((input_clock_khz * 40 / 10000)+1, /* std speed high, 4us */
+	
+	writew((input_clock_khz * 40 / 10000)+1, 
 			dev->base + DW_IC_SS_SCL_HCNT);
-	writew((input_clock_khz * 47 / 10000)+1, /* std speed low, 4.7us */
+	writew((input_clock_khz * 47 / 10000)+1, 
 			dev->base + DW_IC_SS_SCL_LCNT);
-	writew((input_clock_khz *  6 / 10000)+1, /* fast speed high, 0.6us */
+	writew((input_clock_khz *  6 / 10000)+1, 
 			dev->base + DW_IC_FS_SCL_HCNT);
-	writew((input_clock_khz * 13 / 10000)+1, /* fast speed low, 1.3us */
+	writew((input_clock_khz * 13 / 10000)+1, 
 			dev->base + DW_IC_FS_SCL_LCNT);
 
-	/* configure the i2c master */
+	
 	ic_con = DW_IC_CON_MASTER | DW_IC_CON_SLAVE_DISABLE |
 		DW_IC_CON_RESTART_EN | DW_IC_CON_SPEED_FAST;
 	writew(ic_con, dev->base + DW_IC_CON);
 }
 
-/*
- * Waiting for bus not busy
- */
+
 static int i2c_dw_wait_bus_not_busy(struct dw_i2c_dev *dev)
 {
 	int timeout = TIMEOUT;
@@ -227,12 +157,7 @@ static int i2c_dw_wait_bus_not_busy(struct dw_i2c_dev *dev)
 	return 0;
 }
 
-/*
- * Initiate low level master read/write transaction.
- * This function is called from i2c_dw_xfer when starting a transfer.
- * This function is also called from dw_i2c_pump_msg to continue a transfer
- * that is longer than the size of the TX FIFO.
- */
+
 static void
 i2c_dw_xfer_msg(struct i2c_adapter *adap)
 {
@@ -246,13 +171,13 @@ i2c_dw_xfer_msg(struct i2c_adapter *adap)
 	u16 buf_len = dev->tx_buf_len;
 
 	if (!(dev->status & STATUS_WRITE_IN_PROGRESS)) {
-		/* Disable the adapter */
+		
 		writeb(0, dev->base + DW_IC_ENABLE);
 
-		/* set the slave (target) address */
+		
 		writew(msgs[dev->msg_write_idx].addr, dev->base + DW_IC_TAR);
 
-		/* if the slave address is ten bit address, enable 10BITADDR */
+		
 		ic_con = readw(dev->base + DW_IC_CON);
 		if (msgs[dev->msg_write_idx].flags & I2C_M_TEN)
 			ic_con |= DW_IC_CON_10BITADDR_MASTER;
@@ -260,15 +185,12 @@ i2c_dw_xfer_msg(struct i2c_adapter *adap)
 			ic_con &= ~DW_IC_CON_10BITADDR_MASTER;
 		writew(ic_con, dev->base + DW_IC_CON);
 
-		/* Enable the adapter */
+		
 		writeb(1, dev->base + DW_IC_ENABLE);
 	}
 
 	for (; dev->msg_write_idx < num; dev->msg_write_idx++) {
-		/* if target address has changed, we need to
-		 * reprogram the target address in the i2c
-		 * adapter when we are done with this transfer
-		 */
+		
 		if (msgs[dev->msg_write_idx].addr != addr)
 			return;
 
@@ -280,7 +202,7 @@ i2c_dw_xfer_msg(struct i2c_adapter *adap)
 		}
 
 		if (!(dev->status & STATUS_WRITE_IN_PROGRESS)) {
-			/* new i2c_msg */
+			
 			dev->tx_buf = msgs[dev->msg_write_idx].buf;
 			buf_len = msgs[dev->msg_write_idx].len;
 		}
@@ -297,7 +219,7 @@ i2c_dw_xfer_msg(struct i2c_adapter *adap)
 	}
 
 	intr_mask = DW_IC_INTR_STOP_DET | DW_IC_INTR_TX_ABRT;
-	if (buf_len > 0) { /* more bytes to be written */
+	if (buf_len > 0) { 
 		intr_mask |= DW_IC_INTR_TX_EMPTY;
 		dev->status |= STATUS_WRITE_IN_PROGRESS;
 	} else
@@ -323,7 +245,7 @@ i2c_dw_read(struct i2c_adapter *adap)
 		if (!(msgs[dev->msg_read_idx].flags & I2C_M_RD))
 			continue;
 
-		/* different i2c client, reprogram the i2c adapter */
+		
 		if (msgs[dev->msg_read_idx].addr != addr)
 			return;
 
@@ -348,9 +270,7 @@ i2c_dw_read(struct i2c_adapter *adap)
 	}
 }
 
-/*
- * Prepare controller for a transaction and call i2c_dw_xfer_msg
- */
+
 static int
 i2c_dw_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
 {
@@ -374,10 +294,10 @@ i2c_dw_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
 	if (ret < 0)
 		goto done;
 
-	/* start the transfers */
+	
 	i2c_dw_xfer_msg(adap);
 
-	/* wait for tx to complete */
+	
 	ret = wait_for_completion_interruptible_timeout(&dev->cmd_complete, HZ);
 	if (ret == 0) {
 		dev_err(dev->dev, "controller timed out\n");
@@ -392,9 +312,9 @@ i2c_dw_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
 		goto done;
 	}
 
-	/* no error */
+	
 	if (likely(!dev->cmd_err)) {
-		/* read rx fifo, and disable the adapter */
+		
 		do {
 			i2c_dw_read(adap);
 		} while (dev->status & STATUS_READ_IN_PROGRESS);
@@ -403,7 +323,7 @@ i2c_dw_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
 		goto done;
 	}
 
-	/* We have an error */
+	
 	if (dev->cmd_err == DW_IC_ERR_TX_ABRT) {
 		unsigned long abort_source = dev->abort_source;
 		int i;
@@ -439,10 +359,7 @@ static void dw_i2c_pump_msg(unsigned long data)
 	writew(intr_mask, dev->base + DW_IC_INTR_MASK);
 }
 
-/*
- * Interrupt service routine. This gets called whenever an I2C interrupt
- * occurs.
- */
+
 static irqreturn_t i2c_dw_isr(int this_irq, void *dev_id)
 {
 	struct dw_i2c_dev *dev = dev_id;
@@ -457,8 +374,8 @@ static irqreturn_t i2c_dw_isr(int this_irq, void *dev_id)
 	} else if (stat & DW_IC_INTR_TX_EMPTY)
 		tasklet_schedule(&dev->pump_msg);
 
-	readb(dev->base + DW_IC_CLR_INTR);	/* clear interrupts */
-	writew(0, dev->base + DW_IC_INTR_MASK);	/* disable interrupts */
+	readb(dev->base + DW_IC_CLR_INTR);	
+	writew(0, dev->base + DW_IC_INTR_MASK);	
 	if (stat & (DW_IC_INTR_TX_ABRT | DW_IC_INTR_STOP_DET))
 		complete(&dev->cmd_complete);
 
@@ -477,7 +394,7 @@ static int __devinit dw_i2c_probe(struct platform_device *pdev)
 	struct resource *mem, *irq, *ioarea;
 	int r;
 
-	/* NOTE: driver uses the static register mapping */
+	
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	if (!mem) {
 		dev_err(&pdev->dev, "no mem resource?\n");
@@ -531,7 +448,7 @@ static int __devinit dw_i2c_probe(struct platform_device *pdev)
 	}
 	i2c_dw_init(dev);
 
-	writew(0, dev->base + DW_IC_INTR_MASK); /* disable IRQ */
+	writew(0, dev->base + DW_IC_INTR_MASK); 
 	r = request_irq(dev->irq, i2c_dw_isr, 0, pdev->name, dev);
 	if (r) {
 		dev_err(&pdev->dev, "failure requesting irq %i\n", dev->irq);
@@ -596,7 +513,7 @@ static int __devexit dw_i2c_remove(struct platform_device *pdev)
 	return 0;
 }
 
-/* work with hotplug and coldplug */
+
 MODULE_ALIAS("platform:i2c_designware");
 
 static struct platform_driver dw_i2c_driver = {

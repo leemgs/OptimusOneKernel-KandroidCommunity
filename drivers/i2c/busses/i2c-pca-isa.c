@@ -1,22 +1,4 @@
-/*
- *  i2c-pca-isa.c driver for PCA9564 on ISA boards
- *    Copyright (C) 2004 Arcom Control Systems
- *    Copyright (C) 2008 Pengutronix
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/ioport.h>
@@ -40,8 +22,7 @@
 static unsigned long base;
 static int irq = -1;
 
-/* Data sheet recommends 59kHz for 100kHz operation due to variation
- * in the actual clock rate */
+
 static int clock  = 59000;
 
 static struct i2c_adapter pca_isa_ops;
@@ -79,7 +60,7 @@ static int pca_isa_waitforcompletion(void *pd)
 				pca_isa_readbyte(pd, I2C_PCA_CON)
 				& I2C_PCA_CON_SI, pca_isa_ops.timeout);
 	} else {
-		/* Do polling */
+		
 		timeout = jiffies + pca_isa_ops.timeout;
 		while (((pca_isa_readbyte(pd, I2C_PCA_CON)
 				& I2C_PCA_CON_SI) == 0)
@@ -91,7 +72,7 @@ static int pca_isa_waitforcompletion(void *pd)
 
 static void pca_isa_resetchip(void *pd)
 {
-	/* apparently only an external reset will do it. not a lot can be done */
+	
 	printk(KERN_WARNING DRIVER ": Haven't figured out how to do a reset yet\n");
 }
 
@@ -101,7 +82,7 @@ static irqreturn_t pca_handler(int this_irq, void *dev_id) {
 }
 
 static struct i2c_algo_pca_data pca_isa_data = {
-	/* .data intentionally left NULL, not needed with ISA */
+	
 	.write_byte		= pca_isa_writebyte,
 	.read_byte		= pca_isa_readbyte,
 	.wait_for_completion	= pca_isa_waitforcompletion,

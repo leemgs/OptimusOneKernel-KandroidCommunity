@@ -1,22 +1,4 @@
-/*
- * Copyright (C) 2004 Steven J. Hill
- * Copyright (C) 2001,2002,2003 Broadcom Corporation
- * Copyright (C) 1995-2000 Simon G. Vogl
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -28,12 +10,12 @@
 
 
 struct i2c_algo_sibyte_data {
-	void *data;		/* private data */
-	int   bus;		/* which bus */
-	void *reg_base;		/* CSR base */
+	void *data;		
+	int   bus;		
+	void *reg_base;		
 };
 
-/* ----- global defines ----------------------------------------------- */
+
 #define SMB_CSR(a,r) ((long)(a->reg_base + r))
 
 
@@ -94,7 +76,7 @@ static int smbus_xfer(struct i2c_adapter *i2c_adap, u16 addr,
 		}
 		break;
 	default:
-		return -1;      /* XXXKW better error code? */
+		return -1;      
 	}
 
 	while (csr_in32(SMB_CSR(adap, R_SMB_STATUS)) & M_SMB_BUSY)
@@ -102,9 +84,9 @@ static int smbus_xfer(struct i2c_adapter *i2c_adap, u16 addr,
 
 	error = csr_in32(SMB_CSR(adap, R_SMB_STATUS));
 	if (error & M_SMB_ERROR) {
-		/* Clear error bit by writing a 1 */
+		
 		csr_out32(M_SMB_ERROR, SMB_CSR(adap, R_SMB_STATUS));
-		return -1;      /* XXXKW better error code? */
+		return -1;      
 	}
 
 	if (data_bytes == 1)
@@ -122,24 +104,22 @@ static u32 bit_func(struct i2c_adapter *adap)
 }
 
 
-/* -----exported algorithm data: -------------------------------------	*/
+
 
 static const struct i2c_algorithm i2c_sibyte_algo = {
 	.smbus_xfer	= smbus_xfer,
 	.functionality	= bit_func,
 };
 
-/*
- * registering functions to load algorithms at runtime
- */
+
 static int __init i2c_sibyte_add_bus(struct i2c_adapter *i2c_adap, int speed)
 {
 	struct i2c_algo_sibyte_data *adap = i2c_adap->algo_data;
 
-	/* Register new adapter to i2c module... */
+	
 	i2c_adap->algo = &i2c_sibyte_algo;
 
-	/* Set the requested frequency. */
+	
 	csr_out32(speed, SMB_CSR(adap,R_SMB_FREQ));
 	csr_out32(0, SMB_CSR(adap,R_SMB_CONTROL));
 

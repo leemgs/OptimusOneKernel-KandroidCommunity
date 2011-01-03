@@ -1,29 +1,6 @@
-/*
-    Copyright (c) 1998, 1999  Frodo Looijaard <frodol@dds.nl>,
-    Philip Edelbrock <phil@netroedge.com>,
-    Ralph Metzler <rjkm@thp.uni-koeln.de>, and
-    Mark D. Studebaker <mdsxyz123@yahoo.com>
-    
-    Based on code written by Ralph Metzler <rjkm@thp.uni-koeln.de> and
-    Simon Vogl
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/
-
-/* This interfaces to the I2C bus of the Voodoo3 to gain access to
-    the BT869 and possibly other I2C devices. */
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -33,11 +10,11 @@
 #include <linux/i2c-algo-bit.h>
 #include <asm/io.h>
 
-/* the only registers we use */
+
 #define REG		0x78
 #define REG2 		0x70
 
-/* bit locations in the register */
+
 #define DDC_ENAB	0x00040000
 #define DDC_SCL_OUT	0x00080000
 #define DDC_SDA_OUT	0x00100000
@@ -49,19 +26,18 @@
 #define I2C_SCL_IN	0x04000000
 #define I2C_SDA_IN	0x08000000
 
-/* initialization states */
+
 #define INIT2		0x2
 #define INIT3		0x4
 
-/* delays */
+
 #define CYCLE_DELAY	10
 #define TIMEOUT		(HZ / 2)
 
 
 static void __iomem *ioaddr;
 
-/* The voo GPIO registers don't have individual masks for each bit
-   so we always have to read before writing. */
+
 
 static void bit_vooi2c_setscl(void *data, int val)
 {
@@ -72,7 +48,7 @@ static void bit_vooi2c_setscl(void *data, int val)
 	else
 		r &= ~I2C_SCL_OUT;
 	writel(r, ioaddr + REG);
-	readl(ioaddr + REG);	/* flush posted write */
+	readl(ioaddr + REG);	
 }
 
 static void bit_vooi2c_setsda(void *data, int val)
@@ -84,12 +60,10 @@ static void bit_vooi2c_setsda(void *data, int val)
 	else
 		r &= ~I2C_SDA_OUT;
 	writel(r, ioaddr + REG);
-	readl(ioaddr + REG);	/* flush posted write */
+	readl(ioaddr + REG);	
 }
 
-/* The GPIO pins are open drain, so the pins always remain outputs.
-   We rely on the i2c-algo-bit routines to set the pins high before
-   reading the input from other chips. */
+
 
 static int bit_vooi2c_getscl(void *data)
 {
@@ -110,7 +84,7 @@ static void bit_vooddc_setscl(void *data, int val)
 	else
 		r &= ~DDC_SCL_OUT;
 	writel(r, ioaddr + REG);
-	readl(ioaddr + REG);	/* flush posted write */
+	readl(ioaddr + REG);	
 }
 
 static void bit_vooddc_setsda(void *data, int val)
@@ -122,7 +96,7 @@ static void bit_vooddc_setsda(void *data, int val)
 	else
 		r &= ~DDC_SDA_OUT;
 	writel(r, ioaddr + REG);
-	readl(ioaddr + REG);	/* flush posted write */
+	readl(ioaddr + REG);	
 }
 
 static int bit_vooddc_getscl(void *data)
@@ -139,7 +113,7 @@ static int config_v3(struct pci_dev *dev)
 {
 	unsigned long cadr;
 
-	/* map Voodoo3 memory */
+	
 	cadr = dev->resource[0].start;
 	cadr &= PCI_BASE_ADDRESS_MEM_MASK;
 	ioaddr = ioremap_nocache(cadr, 0x1000);
@@ -199,7 +173,7 @@ static int __devinit voodoo3_probe(struct pci_dev *dev, const struct pci_device_
 	if (retval)
 		return retval;
 
-	/* set up the sysfs linkage to our parent device */
+	
 	voodoo3_i2c_adapter.dev.parent = &dev->dev;
 	voodoo3_ddc_adapter.dev.parent = &dev->dev;
 

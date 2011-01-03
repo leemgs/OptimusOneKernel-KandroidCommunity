@@ -1,20 +1,4 @@
-/**
- *	i2c-ali1563.c - i2c driver for the ALi 1563 Southbridge
- *
- *	Copyright (C) 2004 Patrick Mochel
- *		      2005 Rudolf Marek <r.marek@assembler.cz>
- *
- *	The 1563 southbridge is deceptively similar to the 1533, with a
- *	few notable exceptions. One of those happens to be the fact they
- *	upgraded the i2c core to be 2.0 compliant, and happens to be almost
- *	identical to the i2c controller found in the Intel 801 south
- *	bridges.
- *
- *	This driver is based on a mix of the 15x3, 1535, and i801 drivers,
- *	with a little help from the ALi 1563 spec.
- *
- *	This file is released under the GPLv2
- */
+
 
 #include <linux/module.h>
 #include <linux/delay.h>
@@ -102,22 +86,22 @@ static int ali1563_transaction(struct i2c_adapter * a, int size)
 
 	if (!timeout) {
 		dev_err(&a->dev, "Timeout - Trying to KILL transaction!\n");
-		/* Issue 'kill' to host controller */
+		
 		outb_p(HST_CNTL2_KILL,SMB_HST_CNTL2);
 		data = inb_p(SMB_HST_STS);
 		status = -ETIMEDOUT;
  	}
 
-	/* device error - no response, ignore the autodetection case */
+	
 	if (data & HST_STS_DEVERR) {
 		if (size != HST_CNTL2_QUICK)
 			dev_err(&a->dev, "Device error!\n");
 		status = -ENXIO;
 	}
-	/* bus collision */
+	
 	if (data & HST_STS_BUSERR) {
 		dev_err(&a->dev, "Bus collision!\n");
-		/* Issue timeout, hoping it helps */
+		
 		outb_p(HST_CNTL1_TIMEOUT,SMB_HST_CNTL1);
 	}
 
@@ -150,10 +134,10 @@ static int ali1563_block_start(struct i2c_adapter * a)
 			return -EBUSY;
 	}
 
-	/* Clear byte-ready bit */
+	
 	outb_p(data | HST_STS_DONE, SMB_HST_STS);
 
-	/* Start transaction and wait for byte-ready bit to be set */
+	
 	outb_p(inb_p(SMB_HST_CNTL2) | HST_CNTL2_START, SMB_HST_CNTL2);
 
 	timeout = ALI1563_MAX_TIMEOUT;
@@ -190,7 +174,7 @@ static int ali1563_block(struct i2c_adapter * a, union i2c_smbus_data * data, u8
 	int i, len;
 	int error = 0;
 
-	/* Do we need this? */
+	
 	outb_p(HST_CNTL1_LAST,SMB_HST_CNTL1);
 
 	if (rw == I2C_SMBUS_WRITE) {
@@ -224,7 +208,7 @@ static int ali1563_block(struct i2c_adapter * a, union i2c_smbus_data * data, u8
 			data->block[i+1] = inb_p(SMB_BLK_DAT);
 		}
 	}
-	/* Do we need this? */
+	
 	outb_p(HST_CNTL1_LAST,SMB_HST_CNTL1);
 	return error;
 }
@@ -245,7 +229,7 @@ static s32 ali1563_access(struct i2c_adapter * a, u16 addr,
 		dev_warn(&a->dev,"SMBus not idle. HST_STS = %02x\n",reg);
 	outb_p(0xff,SMB_HST_STS);
 
-	/* Map the size to what the chip understands */
+	
 	switch (size) {
 	case I2C_SMBUS_QUICK:
 		size = HST_CNTL2_QUICK;
@@ -271,12 +255,12 @@ static s32 ali1563_access(struct i2c_adapter * a, u16 addr,
 	outb_p(((addr & 0x7f) << 1) | (rw & 0x01), SMB_HST_ADD);
 	outb_p((inb_p(SMB_HST_CNTL2) & ~HST_CNTL2_SIZEMASK) | (size << 3), SMB_HST_CNTL2);
 
-	/* Write the command register */
+	
 
 	switch(size) {
 	case HST_CNTL2_BYTE:
 		if (rw== I2C_SMBUS_WRITE)
-			/* Beware it uses DAT0 register and not CMD! */
+			
 			outb_p(cmd, SMB_HST_DAT0);
 		break;
 	case HST_CNTL2_BYTE_DATA:
@@ -304,7 +288,7 @@ static s32 ali1563_access(struct i2c_adapter * a, u16 addr,
 		goto Done;
 
 	switch (size) {
-	case HST_CNTL2_BYTE:	/* Result put in SMBHSTDAT0 */
+	case HST_CNTL2_BYTE:	
 		data->byte = inb_p(SMB_HST_DAT0);
 		break;
 	case HST_CNTL2_BYTE_DATA:
@@ -332,15 +316,14 @@ static int __devinit ali1563_setup(struct pci_dev * dev)
 
 	pci_read_config_word(dev,ALI1563_SMBBA,&ctrl);
 
-	/* SMB I/O Base in high 12 bits and must be aligned with the
-	 * size of the I/O space. */
+	
 	ali1563_smba = ctrl & ~(ALI1563_SMB_IOSIZE - 1);
 	if (!ali1563_smba) {
 		dev_warn(&dev->dev,"ali1563_smba Uninitialized\n");
 		goto Err;
 	}
 
-	/* Check if device is enabled */
+	
 	if (!(ctrl & ALI1563_SMB_HOSTEN)) {
 		dev_warn(&dev->dev, "Host Controller not enabled\n");
 		goto Err;

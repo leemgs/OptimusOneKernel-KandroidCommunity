@@ -1,38 +1,8 @@
-/*
-    Copyright (c) 1999-2002 Merlin Hughes <merlin@merlin.org>
 
-    Shamelessly ripped from i2c-piix4.c:
 
-    Copyright (c) 1998, 1999  Frodo Looijaard <frodol@dds.nl> and
-    Philip Edelbrock <phil@netroedge.com>
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/
-
-/*
-    2002-04-08: Added nForce support. (Csaba Halasz)
-    2002-10-03: Fixed nForce PnP I/O port. (Michael Steil)
-    2002-12-28: Rewritten into something that resembles a Linux driver (hch)
-    2003-11-29: Added back AMD8111 removed by the previous rewrite.
-                (Philip Pokorny)
-*/
-
-/*
-   Supports AMD756, AMD766, AMD768, AMD8111 and nVidia nForce
-   Note: we assume there can only be one device, with one SMBus interface.
-*/
 
 #include <linux/module.h>
 #include <linux/pci.h>
@@ -45,7 +15,7 @@
 #include <linux/acpi.h>
 #include <asm/io.h>
 
-/* AMD756 SMBus address offsets */
+
 #define SMB_ADDR_OFFSET		0xE0
 #define SMB_IOSIZE		16
 #define SMB_GLOBAL_STATUS	(0x0 + amd756_ioport)
@@ -59,22 +29,22 @@
 #define SMB_HAS_HOST_ADDRESS	(0xE + amd756_ioport)
 #define SMB_SNOOP_ADDRESS	(0xF + amd756_ioport)
 
-/* PCI Address Constants */
 
-/* address of I/O space */
-#define SMBBA		0x058		/* mh */
+
+
+#define SMBBA		0x058		
 #define SMBBANFORCE	0x014
 
-/* general configuration */
-#define SMBGCFG		0x041		/* mh */
 
-/* silicon revision code */
+#define SMBGCFG		0x041		
+
+
 #define SMBREV		0x008
 
-/* Other settings */
+
 #define MAX_TIMEOUT	500
 
-/* AMD756 constants */
+
 #define AMD756_QUICK		0x00
 #define AMD756_BYTE		0x01
 #define AMD756_BYTE_DATA	0x02
@@ -85,11 +55,7 @@
 static struct pci_driver amd756_driver;
 static unsigned short amd756_ioport;
 
-/* 
-  SMBUS event = I/O 28-29 bit 11
-     see E0 for the status bits and enabled in E2
-     
-*/
+
 #define GS_ABRT_STS	(1 << 0)
 #define GS_COL_STS	(1 << 1)
 #define GS_PRERR_STS	(1 << 2)
@@ -117,7 +83,7 @@ static int amd756_transaction(struct i2c_adapter *adap)
 		inw_p(SMB_GLOBAL_ENABLE), inw_p(SMB_HOST_ADDRESS),
 		inb_p(SMB_HOST_DATA));
 
-	/* Make sure the SMBus host is ready to start transmitting */
+	
 	if ((temp = inw_p(SMB_GLOBAL_STATUS)) & (GS_HST_STS | GS_SMB_STS)) {
 		dev_dbg(&adap->dev, "SMBus busy (%04x). Waiting...\n", temp);
 		do {
@@ -125,7 +91,7 @@ static int amd756_transaction(struct i2c_adapter *adap)
 			temp = inw_p(SMB_GLOBAL_STATUS);
 		} while ((temp & (GS_HST_STS | GS_SMB_STS)) &&
 		         (timeout++ < MAX_TIMEOUT));
-		/* If the SMBus is still busy, we give up */
+		
 		if (timeout > MAX_TIMEOUT) {
 			dev_dbg(&adap->dev, "Busy wait timeout (%04x)\n", temp);
 			goto abort;
@@ -133,16 +99,16 @@ static int amd756_transaction(struct i2c_adapter *adap)
 		timeout = 0;
 	}
 
-	/* start the transaction by setting the start bit */
+	
 	outw_p(inw(SMB_GLOBAL_ENABLE) | GE_HOST_STC, SMB_GLOBAL_ENABLE);
 
-	/* We will always wait for a fraction of a second! */
+	
 	do {
 		msleep(1);
 		temp = inw_p(SMB_GLOBAL_STATUS);
 	} while ((temp & GS_HST_STS) && (timeout++ < MAX_TIMEOUT));
 
-	/* If the SMBus is still busy, we give up */
+	
 	if (timeout > MAX_TIMEOUT) {
 		dev_dbg(&adap->dev, "Completion timeout!\n");
 		goto abort;
@@ -190,7 +156,7 @@ static int amd756_transaction(struct i2c_adapter *adap)
 	return -EIO;
 }
 
-/* Return negative errno on error. */
+
 static s32 amd756_access(struct i2c_adapter * adap, u16 addr,
 		  unsigned short flags, char read_write,
 		  u8 command, int size, union i2c_smbus_data * data)
@@ -224,7 +190,7 @@ static s32 amd756_access(struct i2c_adapter * adap, u16 addr,
 		       SMB_HOST_ADDRESS);
 		outb_p(command, SMB_HOST_COMMAND);
 		if (read_write == I2C_SMBUS_WRITE)
-			outw_p(data->word, SMB_HOST_DATA);	/* TODO: endian???? */
+			outw_p(data->word, SMB_HOST_DATA);	
 		size = AMD756_WORD_DATA;
 		break;
 	case I2C_SMBUS_BLOCK_DATA:
@@ -238,7 +204,7 @@ static s32 amd756_access(struct i2c_adapter * adap, u16 addr,
 			if (len > 32)
 				len = 32;
 			outw_p(len, SMB_HOST_DATA);
-			/* i = inw_p(SMBHSTCNT); Reset SMBBLKDAT */
+			
 			for (i = 1; i <= len; i++)
 				outb_p(data->block[i],
 				       SMB_HOST_BLOCK_DATA);
@@ -250,7 +216,7 @@ static s32 amd756_access(struct i2c_adapter * adap, u16 addr,
 		return -EOPNOTSUPP;
 	}
 
-	/* How about enabling interrupts... */
+	
 	outw_p(size & GE_CYC_TYPE_MASK, SMB_GLOBAL_ENABLE);
 
 	status = amd756_transaction(adap);
@@ -269,13 +235,13 @@ static s32 amd756_access(struct i2c_adapter * adap, u16 addr,
 		data->byte = inw_p(SMB_HOST_DATA);
 		break;
 	case AMD756_WORD_DATA:
-		data->word = inw_p(SMB_HOST_DATA);	/* TODO: endian???? */
+		data->word = inw_p(SMB_HOST_DATA);	
 		break;
 	case AMD756_BLOCK_DATA:
 		data->block[0] = inw_p(SMB_HOST_DATA) & 0x3f;
 		if(data->block[0] > 32)
 			data->block[0] = 32;
-		/* i = inw_p(SMBHSTCNT); Reset SMBBLKDAT */
+		
 		for (i = 1; i <= data->block[0]; i++)
 			data->block[i] = inb_p(SMB_HOST_BLOCK_DATA);
 		break;
@@ -343,7 +309,7 @@ static int __devinit amd756_probe(struct pci_dev *pdev,
 
 		pci_read_config_word(pdev, SMBBANFORCE, &amd756_ioport);
 		amd756_ioport &= 0xfffc;
-	} else { /* amd */
+	} else { 
 		if (PCI_FUNC(pdev->devfn) != 3)
 			return -ENODEV;
 
@@ -354,8 +320,8 @@ static int __devinit amd756_probe(struct pci_dev *pdev,
 			return -ENODEV;
 		}
 
-		/* Determine the address of the SMBus areas */
-		/* Technically it is a dword but... */
+		
+		
 		pci_read_config_word(pdev, SMBBA, &amd756_ioport);
 		amd756_ioport &= 0xff00;
 		amd756_ioport += SMB_ADDR_OFFSET;
@@ -376,7 +342,7 @@ static int __devinit amd756_probe(struct pci_dev *pdev,
 	dev_dbg(&pdev->dev, "SMBREV = 0x%X\n", temp);
 	dev_dbg(&pdev->dev, "AMD756_smba = 0x%X\n", amd756_ioport);
 
-	/* set up the sysfs linkage to our parent device */
+	
 	amd756_smbus.dev.parent = &pdev->dev;
 
 	snprintf(amd756_smbus.name, sizeof(amd756_smbus.name),

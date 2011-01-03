@@ -1,30 +1,6 @@
-/*
-    i2c-isch.c - Linux kernel driver for Intel SCH chipset SMBus
-    - Based on i2c-piix4.c
-    Copyright (c) 1998 - 2002 Frodo Looijaard <frodol@dds.nl> and
-    Philip Edelbrock <phil@netroedge.com>
-    - Intel SCH support
-    Copyright (c) 2007 - 2008 Jacob Jun Pan <jacob.jun.pan@intel.com>
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License version 2 as
-    published by the Free Software Foundation.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/
-
-/*
-   Supports:
-	Intel SCH chipsets (AF82US15W, AF82US15L, AF82UL11L)
-   Note: we assume there can only be one device, with one SMBus interface.
-*/
 
 #include <linux/module.h>
 #include <linux/pci.h>
@@ -37,25 +13,25 @@
 #include <linux/io.h>
 #include <linux/acpi.h>
 
-/* SCH SMBus address offsets */
+
 #define SMBHSTCNT	(0 + sch_smba)
 #define SMBHSTSTS	(1 + sch_smba)
-#define SMBHSTADD	(4 + sch_smba) /* TSA */
+#define SMBHSTADD	(4 + sch_smba) 
 #define SMBHSTCMD	(5 + sch_smba)
 #define SMBHSTDAT0	(6 + sch_smba)
 #define SMBHSTDAT1	(7 + sch_smba)
 #define SMBBLKDAT	(0x20 + sch_smba)
 
-/* count for request_region */
+
 #define SMBIOSIZE	64
 
-/* PCI Address Constants */
+
 #define SMBBA_SCH	0x40
 
-/* Other settings */
+
 #define MAX_TIMEOUT	500
 
-/* I2C constants */
+
 #define SCH_QUICK		0x00
 #define SCH_BYTE		0x01
 #define SCH_BYTE_DATA		0x02
@@ -66,11 +42,7 @@ static unsigned short sch_smba;
 static struct pci_driver sch_driver;
 static struct i2c_adapter sch_adapter;
 
-/*
- * Start the i2c transaction -- the i2c_access will prepare the transaction
- * and this function will execute it.
- * return 0 for success and others for failure.
- */
+
 static int sch_transaction(void)
 {
 	int temp;
@@ -82,10 +54,10 @@ static int sch_transaction(void)
 		inb(SMBHSTCMD), inb(SMBHSTADD), inb(SMBHSTDAT0),
 		inb(SMBHSTDAT1));
 
-	/* Make sure the SMBus host is ready to start transmitting */
+	
 	temp = inb(SMBHSTSTS) & 0x0f;
 	if (temp) {
-		/* Can not be busy since we checked it in sch_access */
+		
 		if (temp & 0x01) {
 			dev_dbg(&sch_adapter.dev, "Completion (%02x). "
 				"Clear...\n", temp);
@@ -103,7 +75,7 @@ static int sch_transaction(void)
 		}
 	}
 
-	/* start the transaction by setting bit 4 */
+	
 	outb(inb(SMBHSTCNT) | 0x10, SMBHSTCNT);
 
 	do {
@@ -111,7 +83,7 @@ static int sch_transaction(void)
 		temp = inb(SMBHSTSTS) & 0x0f;
 	} while ((temp & 0x08) && (timeout++ < MAX_TIMEOUT));
 
-	/* If the SMBus is still busy, we give up */
+	
 	if (timeout > MAX_TIMEOUT) {
 		dev_err(&sch_adapter.dev, "SMBus Timeout!\n");
 		result = -ETIMEDOUT;
@@ -120,7 +92,7 @@ static int sch_transaction(void)
 		result = -EIO;
 		dev_dbg(&sch_adapter.dev, "Bus collision! SMBus may be "
 			"locked until next hard reset. (sorry!)\n");
-		/* Clock stops and slave is stuck in mid-transmission */
+		
 	} else if (temp & 0x02) {
 		result = -EIO;
 		dev_err(&sch_adapter.dev, "Error: no response!\n");
@@ -129,7 +101,7 @@ static int sch_transaction(void)
 		outb(temp, SMBHSTSTS);
 		temp = inb(SMBHSTSTS) & 0x07;
 		if (temp & 0x06) {
-			/* Completion clear failed */
+			
 			dev_dbg(&sch_adapter.dev, "Failed reset at end of "
 				"transaction (%02x), Bus error!\n", temp);
 		}
@@ -144,20 +116,14 @@ static int sch_transaction(void)
 	return result;
 }
 
-/*
- * This is the main access entry for i2c-sch access
- * adap is i2c_adapter pointer, addr is the i2c device bus address, read_write
- * (0 for read and 1 for write), size is i2c transaction type and data is the
- * union of transaction for data to be transfered or data read from bus.
- * return 0 for success and others for failure.
- */
+
 static s32 sch_access(struct i2c_adapter *adap, u16 addr,
 		 unsigned short flags, char read_write,
 		 u8 command, int size, union i2c_smbus_data *data)
 {
 	int i, len, temp, rc;
 
-	/* Make sure the SMBus host is not busy */
+	
 	temp = inb(SMBHSTSTS) & 0x0f;
 	if (temp & 0x08) {
 		dev_dbg(&sch_adapter.dev, "SMBus busy (%02x)\n", temp);
@@ -213,7 +179,7 @@ static s32 sch_access(struct i2c_adapter *adap, u16 addr,
 	outb((inb(SMBHSTCNT) & 0xb0) | (size & 0x7), SMBHSTCNT);
 
 	rc = sch_transaction();
-	if (rc)	/* Error in transaction */
+	if (rc)	
 		return rc;
 
 	if ((read_write == I2C_SMBUS_WRITE) || (size == SCH_QUICK))
@@ -289,7 +255,7 @@ static int __devinit sch_probe(struct pci_dev *dev,
 	}
 	dev_dbg(&dev->dev, "SMBA = 0x%X\n", sch_smba);
 
-	/* set up the sysfs linkage to our parent device */
+	
 	sch_adapter.dev.parent = &dev->dev;
 
 	snprintf(sch_adapter.name, sizeof(sch_adapter.name),

@@ -1,13 +1,4 @@
-/*
- * drivers/i2c/busses/i2c-s6000.h
- *
- * This file is subject to the terms and conditions of the GNU General Public
- * License.  See the file "COPYING" in the main directory of this archive
- * for more details.
- *
- * Copyright (C) 2008 Emlix GmbH <info@emlix.com>
- * Author:	Oskar Schirmer <os@emlix.com>
- */
+
 
 #ifndef __DRIVERS_I2C_BUSSES_I2C_S6000_H
 #define __DRIVERS_I2C_BUSSES_I2C_S6000_H

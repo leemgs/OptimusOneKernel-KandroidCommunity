@@ -1,13 +1,4 @@
-/*
- *  i2c-versatile.c
- *
- *  Copyright (C) 2006 ARM Ltd.
- *  written by Russell King, Deep Blue Solutions Ltd.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/i2c.h>
@@ -103,11 +94,11 @@ static int i2c_versatile_probe(struct platform_device *dev)
 	i2c->algo.data = i2c;
 
 	if (dev->id >= 0) {
-		/* static bus numbering */
+		
 		i2c->adap.nr = dev->id;
 		ret = i2c_bit_add_numbered_bus(&i2c->adap);
 	} else
-		/* dynamic bus numbering */
+		
 		ret = i2c_bit_add_bus(&i2c->adap);
 	if (ret >= 0) {
 		platform_set_drvdata(dev, i2c);

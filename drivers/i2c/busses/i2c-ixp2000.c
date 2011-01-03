@@ -1,30 +1,4 @@
-/*
- * drivers/i2c/busses/i2c-ixp2000.c
- *
- * I2C adapter for IXP2000 systems using GPIOs for I2C bus
- *
- * Author: Deepak Saxena <dsaxena@plexity.net>
- * Based on IXDP2400 code by: Naeem M. Afzal <naeem.m.afzal@intel.com>
- * Made generic by: Jeff Daly <jeffrey.daly@intel.com>
- *
- * Copyright (c) 2003-2004 MontaVista Software Inc.
- *
- * This file is licensed under  the terms of the GNU General Public 
- * License version 2. This program is licensed "as is" without any 
- * warranty of any kind, whether express or implied.
- *
- * From Jeff Daly:
- *
- * I2C adapter driver for Intel IXDP2xxx platforms. This should work for any
- * IXP2000 platform if it uses the HW GPIO in the same manner.  Basically, 
- * SDA and SCL GPIOs have external pullups.  Setting the respective GPIO to 
- * an input will make the signal a '1' via the pullup.  Setting them to 
- * outputs will pull them down. 
- *
- * The GPIOs are open drain signals and are used as configuration strap inputs
- * during power-up so there's generally a buffer on the board that needs to be 
- * 'enabled' to drive the GPIOs.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -33,7 +7,7 @@
 #include <linux/i2c.h>
 #include <linux/i2c-algo-bit.h>
 
-#include <mach/hardware.h>	/* Pick up IXP2000-specific bits */
+#include <mach/hardware.h>	
 #include <mach/gpio.h>
 
 static inline int ixp2000_scl_pin(void *data)

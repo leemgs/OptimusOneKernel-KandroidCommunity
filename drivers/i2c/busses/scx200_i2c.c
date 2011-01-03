@@ -1,25 +1,4 @@
-/* linux/drivers/i2c/busses/scx200_i2c.c
 
-   Copyright (c) 2001,2002 Christer Weinigel <wingel@nano-system.com>
-
-   National Semiconductor SCx200 I2C bus on GPIO pins
-
-   Based on i2c-velleman.c Copyright (C) 1995-96, 2000 Simon G. Vogl
-
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
-   
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-   
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.		     
-*/
 
 #include <linux/module.h>
 #include <linux/errno.h>
@@ -65,10 +44,7 @@ static int scx200_i2c_getsda(void *data)
 	return scx200_gpio_get(sda);
 }
 
-/* ------------------------------------------------------------------------
- * Encapsulate the above functions in the correct operations structure.
- * This is only done when more than one hardware adapter is supported.
- */
+
 
 static struct i2c_algo_bit_data scx200_i2c_data = {
 	.setsda		= scx200_i2c_setsda,
@@ -102,7 +78,7 @@ static int scx200_i2c_init(void)
 		return -EINVAL;
 	}
 
-	/* Configure GPIOs as open collector outputs */
+	
 	scx200_gpio_configure(scl, ~2, 5);
 	scx200_gpio_configure(sda, ~2, 5);
 
@@ -123,9 +99,4 @@ static void scx200_i2c_cleanup(void)
 module_init(scx200_i2c_init);
 module_exit(scx200_i2c_cleanup);
 
-/*
-    Local variables:
-        compile-command: "make -k -C ../.. SUBDIRS=drivers/i2c modules"
-        c-basic-offset: 8
-    End:
-*/
+

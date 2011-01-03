@@ -1,33 +1,7 @@
-/* ------------------------------------------------------------------------- */
-/* i2c-iop3xx.c i2c driver algorithms for Intel XScale IOP3xx & IXP46x       */
-/* ------------------------------------------------------------------------- */
-/* Copyright (C) 2003 Peter Milne, D-TACQ Solutions Ltd
- *                    <Peter dot Milne at D hyphen TACQ dot com>
- *
- * With acknowledgements to i2c-algo-ibm_ocp.c by 
- * Ian DaSilva, MontaVista Software, Inc. idasilva@mvista.com
- *
- * And i2c-algo-pcf.c, which was created by Simon G. Vogl and Hans Berglund:
- *
- * Copyright (C) 1995-1997 Simon G. Vogl, 1998-2000 Hans Berglund
- *  
- * And which acknowledged Kyösti Mälkki <kmalkki@cc.hut.fi>,
- * Frodo Looijaard <frodol@dds.nl>, Martin Bailey<mbailey@littlefeet-inc.com>
- *
- * Major cleanup by Deepak Saxena <dsaxena@plexity.net>, 01/2005:
- *
- * - Use driver model to pass per-chip info instead of hardcoding and #ifdefs
- * - Use ioremap/__raw_readl/__raw_writel instead of direct dereference
- * - Make it work with IXP46x chips
- * - Cleanup function names, coding style, etc
- *
- * - writing to slave address causes latchup on iop331.
- *	fix: driver refuses to address self.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, version 2.
- */
+
+
+
+
 
 #include <linux/interrupt.h>
 #include <linux/kernel.h>
@@ -43,7 +17,7 @@
 
 #include "i2c-iop3xx.h"
 
-/* global unit counter */
+
 static int i2c_id;
 
 static inline unsigned char 
@@ -56,9 +30,7 @@ iic_cook_addr(struct i2c_msg *msg)
 	if (msg->flags & I2C_M_RD)
 		addr |= 1;
 
-	/*
-	 * Read or Write?
-	 */
+	
 	if (msg->flags & I2C_M_REV_DIR_ADDR)
 		addr ^= 1;
 
@@ -68,7 +40,7 @@ iic_cook_addr(struct i2c_msg *msg)
 static void 
 iop3xx_i2c_reset(struct i2c_algo_iop3xx_data *iop3xx_adap)
 {
-	/* Follows devman 9.3 */
+	
 	__raw_writel(IOP3XX_ICR_UNIT_RESET, iop3xx_adap->ioaddr + CR_OFFSET);
 	__raw_writel(IOP3XX_ISR_CLEARBITS, iop3xx_adap->ioaddr + SR_OFFSET);
 	__raw_writel(0, iop3xx_adap->ioaddr + CR_OFFSET);
@@ -79,10 +51,7 @@ iop3xx_i2c_enable(struct i2c_algo_iop3xx_data *iop3xx_adap)
 {
 	u32 cr = IOP3XX_ICR_GCD | IOP3XX_ICR_SCLEN | IOP3XX_ICR_UE;
 
-	/* 
-	 * Every time unit enable is asserted, GPOD needs to be cleared
-	 * on IOP3XX to avoid data corruption on the bus.
-	 */
+	
 #if defined(CONFIG_ARCH_IOP32X) || defined(CONFIG_ARCH_IOP33X)
 	if (iop3xx_adap->id == 0) {
 		gpio_line_set(IOP3XX_GPIO_LINE(7), GPIO_LOW);
@@ -92,7 +61,7 @@ iop3xx_i2c_enable(struct i2c_algo_iop3xx_data *iop3xx_adap)
 		gpio_line_set(IOP3XX_GPIO_LINE(4), GPIO_LOW);
 	}
 #endif
-	/* NB SR bits not same position as CR IE bits :-( */
+	
 	iop3xx_adap->SR_enabled = 
 		IOP3XX_ISR_ALD | IOP3XX_ISR_BERRD |
 		IOP3XX_ISR_RXFULL | IOP3XX_ISR_TXEMPTY;
@@ -114,10 +83,7 @@ iop3xx_i2c_transaction_cleanup(struct i2c_algo_iop3xx_data *iop3xx_adap)
 	__raw_writel(cr, iop3xx_adap->ioaddr + CR_OFFSET);
 }
 
-/* 
- * NB: the handler has to clear the source of the interrupt! 
- * Then it passes the SR flags of interest to BH via adap data
- */
+
 static irqreturn_t 
 iop3xx_i2c_irq_handler(int this_irq, void *dev_id) 
 {
@@ -132,7 +98,7 @@ iop3xx_i2c_irq_handler(int this_irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-/* check all error conditions, clear them , report most important */
+
 static int 
 iop3xx_i2c_error(u32 sr)
 {
@@ -161,12 +127,9 @@ iop3xx_i2c_get_srstat(struct i2c_algo_iop3xx_data *iop3xx_adap)
 	return sr;
 }
 
-/*
- * sleep until interrupted, then recover and analyse the SR
- * saved by handler
- */
+
 typedef int (* compare_func)(unsigned test, unsigned mask);
-/* returns 1 on correct comparison */
+
 
 static int 
 iop3xx_i2c_wait_event(struct i2c_algo_iop3xx_data *iop3xx_adap, 
@@ -198,9 +161,7 @@ iop3xx_i2c_wait_event(struct i2c_algo_iop3xx_data *iop3xx_adap,
 	return 0;
 }
 
-/*
- * Concrete compare_funcs 
- */
+
 static int 
 all_bits_clear(unsigned test, unsigned mask)
 {
@@ -246,9 +207,7 @@ iop3xx_i2c_send_target_addr(struct i2c_algo_iop3xx_data *iop3xx_adap,
 	int status;
 	int rc;
 
-	/* avoid writing to my slave address (hangs on 80331),
-	 * forbidden in Intel developer manual
-	 */
+	
 	if (msg->addr == MYSAR) {
 		return -EBUSY;
 	}
@@ -336,13 +295,7 @@ iop3xx_i2c_readbytes(struct i2c_adapter *i2c_adap, char *buf, int count)
 	return rc;
 }
 
-/*
- * Description:  This function implements combined transactions.  Combined
- * transactions consist of combinations of reading and writing blocks of data.
- * FROM THE SAME ADDRESS
- * Each transfer (i.e. a read or a write) is separated by a repeated start
- * condition.
- */
+
 static int 
 iop3xx_i2c_handle_msg(struct i2c_adapter *i2c_adap, struct i2c_msg* pmsg) 
 {
@@ -361,9 +314,7 @@ iop3xx_i2c_handle_msg(struct i2c_adapter *i2c_adap, struct i2c_msg* pmsg)
 	}
 }
 
-/*
- * master_xfer() - main read/write entry
- */
+
 static int 
 iop3xx_i2c_master_xfer(struct i2c_adapter *i2c_adap, struct i2c_msg *msgs, 
 				int num)
@@ -409,9 +360,7 @@ iop3xx_i2c_remove(struct platform_device *pdev)
 	struct resource *res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	unsigned long cr = __raw_readl(adapter_data->ioaddr + CR_OFFSET);
 
-	/*
-	 * Disable the actual HW unit
-	 */
+	
 	cr &= ~(IOP3XX_ICR_ALD_IE | IOP3XX_ICR_BERR_IE |
 		IOP3XX_ICR_RXFULL_IE | IOP3XX_ICR_TXEMPTY_IE);
 	__raw_writel(cr, adapter_data->ioaddr + CR_OFFSET);
@@ -457,7 +406,7 @@ iop3xx_i2c_probe(struct platform_device *pdev)
 		goto free_both;
 	}
 
-	/* set the adapter enumeration # */
+	
 	adapter_data->id = i2c_id++;
 
 	adapter_data->ioaddr = (u32)ioremap(res->start, IOP3XX_I2C_IO_SIZE);
@@ -485,9 +434,7 @@ iop3xx_i2c_probe(struct platform_device *pdev)
 	new_adapter->dev.parent = &pdev->dev;
 	new_adapter->nr = pdev->id;
 
-	/*
-	 * Default values...should these come in from board code?
-	 */
+	
 	new_adapter->timeout = HZ;
 	new_adapter->algo = &iop3xx_i2c_algo;
 

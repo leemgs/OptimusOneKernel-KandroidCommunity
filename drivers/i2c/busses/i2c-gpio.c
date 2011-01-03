@@ -1,12 +1,4 @@
-/*
- * Bitbanging I2C bus driver using the GPIO API
- *
- * Copyright (C) 2007 Atmel Corporation
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <linux/i2c.h>
 #include <linux/i2c-algo-bit.h>
 #include <linux/i2c-gpio.h>
@@ -16,7 +8,7 @@
 
 #include <asm/gpio.h>
 
-/* Toggle SDA by changing the direction of the pin */
+
 static void i2c_gpio_setsda_dir(void *data, int state)
 {
 	struct i2c_gpio_platform_data *pdata = data;
@@ -27,11 +19,7 @@ static void i2c_gpio_setsda_dir(void *data, int state)
 		gpio_direction_output(pdata->sda_pin, 0);
 }
 
-/*
- * Toggle SDA by changing the output value of the pin. This is only
- * valid for pins configured as open drain (i.e. setting the value
- * high effectively turns off the output driver.)
- */
+
 static void i2c_gpio_setsda_val(void *data, int state)
 {
 	struct i2c_gpio_platform_data *pdata = data;
@@ -39,7 +27,7 @@ static void i2c_gpio_setsda_val(void *data, int state)
 	gpio_set_value(pdata->sda_pin, state);
 }
 
-/* Toggle SCL by changing the direction of the pin. */
+
 static void i2c_gpio_setscl_dir(void *data, int state)
 {
 	struct i2c_gpio_platform_data *pdata = data;
@@ -50,12 +38,7 @@ static void i2c_gpio_setscl_dir(void *data, int state)
 		gpio_direction_output(pdata->scl_pin, 0);
 }
 
-/*
- * Toggle SCL by changing the output value of the pin. This is used
- * for pins that are configured as open drain and for output-only
- * pins. The latter case will break the i2c protocol, but it will
- * often work in practice.
- */
+
 static void i2c_gpio_setscl_val(void *data, int state)
 {
 	struct i2c_gpio_platform_data *pdata = data;
@@ -126,14 +109,14 @@ static int __devinit i2c_gpio_probe(struct platform_device *pdev)
 	if (pdata->udelay)
 		bit_data->udelay = pdata->udelay;
 	else if (pdata->scl_is_output_only)
-		bit_data->udelay = 50;			/* 10 kHz */
+		bit_data->udelay = 50;			
 	else
-		bit_data->udelay = 5;			/* 100 kHz */
+		bit_data->udelay = 5;			
 
 	if (pdata->timeout)
 		bit_data->timeout = pdata->timeout;
 	else
-		bit_data->timeout = HZ / 10;		/* 100 ms */
+		bit_data->timeout = HZ / 10;		
 
 	bit_data->data = pdata;
 
@@ -143,11 +126,7 @@ static int __devinit i2c_gpio_probe(struct platform_device *pdev)
 	adap->class = I2C_CLASS_HWMON | I2C_CLASS_SPD;
 	adap->dev.parent = &pdev->dev;
 
-	/*
-	 * If "dev->id" is negative we consider it as zero.
-	 * The reason to do so is to avoid sysfs names that only make
-	 * sense when there are multiple adapters.
-	 */
+	
 	adap->nr = (pdev->id != -1) ? pdev->id : 0;
 	ret = i2c_bit_add_numbered_bus(adap);
 	if (ret)

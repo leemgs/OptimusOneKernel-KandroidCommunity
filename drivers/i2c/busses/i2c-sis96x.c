@@ -1,33 +1,6 @@
-/*
-    Copyright (c) 2003 Mark M. Hoffman <mhoffman@lightlink.com>
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/
-
-/*
-    This module must be considered BETA unless and until
-    the chipset manufacturer releases a datasheet.
-    The register definitions are based on the SiS630.
-
-    This module relies on quirk_sis_96x_smbus (drivers/pci/quirks.c)
-    for just about every machine for which users have reported.
-    If this module isn't detecting your 96x south bridge, have a 
-    look there.
-
-    We assume there can only be one SiS96x with one SMBus interface.
-*/
 
 #include <linux/module.h>
 #include <linux/pci.h>
@@ -40,10 +13,10 @@
 #include <linux/acpi.h>
 #include <asm/io.h>
 
-/* base address register in PCI config space */
+
 #define SIS96x_BAR 0x04
 
-/* SiS96x SMBus registers */
+
 #define SMB_STS      0x00
 #define SMB_EN       0x01
 #define SMB_CNT      0x02
@@ -58,13 +31,13 @@
 #define SMB_DB1      0x12
 #define SMB_SAA      0x13
 
-/* register count for request_region */
+
 #define SMB_IOSIZE 0x20
 
-/* Other settings */
+
 #define MAX_TIMEOUT 500
 
-/* SiS96x SMBus constants */
+
 #define SIS96x_QUICK      0x00
 #define SIS96x_BYTE       0x01
 #define SIS96x_BYTE_DATA  0x02
@@ -86,9 +59,7 @@ static inline void sis96x_write(u8 reg, u8 data)
 	outb(data, sis96x_smbus_base + reg) ;
 }
 
-/* Execute a SMBus transaction.
-   int size is from SIS96x_QUICK to SIS96x_BLOCK_DATA
- */
+
 static int sis96x_transaction(int size)
 {
 	int temp;
@@ -97,16 +68,16 @@ static int sis96x_transaction(int size)
 
 	dev_dbg(&sis96x_adapter.dev, "SMBus transaction %d\n", size);
 
-	/* Make sure the SMBus host is ready to start transmitting */
+	
 	if (((temp = sis96x_read(SMB_CNT)) & 0x03) != 0x00) {
 
 		dev_dbg(&sis96x_adapter.dev, "SMBus busy (0x%02x). "
 			"Resetting...\n", temp);
 
-		/* kill the transaction */
+		
 		sis96x_write(SMB_HOST_CNT, 0x20);
 
-		/* check it again */
+		
 		if (((temp = sis96x_read(SMB_CNT)) & 0x03) != 0x00) {
 			dev_dbg(&sis96x_adapter.dev, "Failed (0x%02x)\n", temp);
 			return -EBUSY;
@@ -115,41 +86,41 @@ static int sis96x_transaction(int size)
 		}
 	}
 
-	/* Turn off timeout interrupts, set fast host clock */
+	
 	sis96x_write(SMB_CNT, 0x20);
 
-	/* clear all (sticky) status flags */
+	
 	temp = sis96x_read(SMB_STS);
 	sis96x_write(SMB_STS, temp & 0x1e);
 
-	/* start the transaction by setting bit 4 and size bits */
+	
 	sis96x_write(SMB_HOST_CNT, 0x10 | (size & 0x07));
 
-	/* We will always wait for a fraction of a second! */
+	
 	do {
 		msleep(1);
 		temp = sis96x_read(SMB_STS);
 	} while (!(temp & 0x0e) && (timeout++ < MAX_TIMEOUT));
 
-	/* If the SMBus is still busy, we give up */
+	
 	if (timeout > MAX_TIMEOUT) {
 		dev_dbg(&sis96x_adapter.dev, "SMBus Timeout! (0x%02x)\n", temp);
 		result = -ETIMEDOUT;
 	}
 
-	/* device error - probably missing ACK */
+	
 	if (temp & 0x02) {
 		dev_dbg(&sis96x_adapter.dev, "Failed bus transaction!\n");
 		result = -ENXIO;
 	}
 
-	/* bus collision */
+	
 	if (temp & 0x04) {
 		dev_dbg(&sis96x_adapter.dev, "Bus collision!\n");
 		result = -EIO;
 	}
 
-	/* Finish up by resetting the bus */
+	
 	sis96x_write(SMB_STS, temp);
 	if ((temp = sis96x_read(SMB_STS))) {
 		dev_dbg(&sis96x_adapter.dev, "Failed reset at "
@@ -159,7 +130,7 @@ static int sis96x_transaction(int size)
 	return result;
 }
 
-/* Return negative errno on error. */
+
 static s32 sis96x_access(struct i2c_adapter * adap, u16 addr,
 			 unsigned short flags, char read_write,
 			 u8 command, int size, union i2c_smbus_data * data)
@@ -282,7 +253,7 @@ static int __devinit sis96x_probe(struct pci_dev *dev,
 	if (retval)
 		return -ENODEV;
 
-	/* Everything is happy, let's grab the memory and set things up. */
+	
 	if (!request_region(sis96x_smbus_base, SMB_IOSIZE,
 			    sis96x_driver.name)) {
 		dev_err(&dev->dev, "SMBus registers 0x%04x-0x%04x "
@@ -293,7 +264,7 @@ static int __devinit sis96x_probe(struct pci_dev *dev,
 		return -EINVAL;
 	}
 
-	/* set up the sysfs linkage to our parent device */
+	
 	sis96x_adapter.dev.parent = &dev->dev;
 
 	snprintf(sis96x_adapter.name, sizeof(sis96x_adapter.name),
@@ -338,7 +309,7 @@ MODULE_AUTHOR("Mark M. Hoffman <mhoffman@lightlink.com>");
 MODULE_DESCRIPTION("SiS96x SMBus driver");
 MODULE_LICENSE("GPL");
 
-/* Register initialization functions using helper macros */
+
 module_init(i2c_sis96x_init);
 module_exit(i2c_sis96x_exit);
 

@@ -1,35 +1,6 @@
-/*
- * Dallas Semiconductor DS1682 Elapsed Time Recorder device driver
- *
- * Written by: Grant Likely <grant.likely@secretlab.ca>
- *
- * Copyright (C) 2007 Secret Lab Technologies Ltd.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
 
-/*
- * The DS1682 elapsed timer recorder is a simple device that implements
- * one elapsed time counter, one event counter, an alarm signal and 10
- * bytes of general purpose EEPROM.
- *
- * This driver provides access to the DS1682 counters and user data via
- * the sysfs.  The following attributes are added to the device node:
- *     elapsed_time (u32): Total elapsed event time in ms resolution
- *     alarm_time (u32): When elapsed time exceeds the value in alarm_time,
- *                       then the alarm pin is asserted.
- *     event_count (u16): number of times the event pin has gone low.
- *     eeprom (u8[10]): general purpose EEPROM
- *
- * Counter registers and user data are both read/write unless the device
- * has been write protected.  This driver does not support turning off write
- * protection.  Once write protection is turned on, it is impossible to
- * turn it off again, so I have left the feature out of this driver to avoid
- * accidental enabling, but it is trivial to add write protect support.
- *
- */
+
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -41,7 +12,7 @@
 #include <linux/ctype.h>
 #include <linux/hwmon-sysfs.h>
 
-/* Device registers */
+
 #define DS1682_REG_CONFIG		0x00
 #define DS1682_REG_ALARM		0x01
 #define DS1682_REG_ELAPSED		0x05
@@ -53,9 +24,7 @@
 
 #define DS1682_EEPROM_SIZE		10
 
-/*
- * Generic counter attributes
- */
+
 static ssize_t ds1682_show(struct device *dev, struct device_attribute *attr,
 			   char *buf)
 {
@@ -66,19 +35,18 @@ static ssize_t ds1682_show(struct device *dev, struct device_attribute *attr,
 
 	dev_dbg(dev, "ds1682_show() called on %s\n", attr->attr.name);
 
-	/* Read the register */
+	
 	rc = i2c_smbus_read_i2c_block_data(client, sattr->index, sattr->nr,
 					   (u8 *) & val);
 	if (rc < 0)
 		return -EIO;
 
-	/* Special case: the 32 bit regs are time values with 1/4s
-	 * resolution, scale them up to milliseconds */
+	
 	if (sattr->nr == 4)
 		return sprintf(buf, "%llu\n",
 			((unsigned long long)le32_to_cpu(val)) * 250);
 
-	/* Format the output string and return # of bytes */
+	
 	return sprintf(buf, "%li\n", (long)le32_to_cpu(val));
 }
 
@@ -94,19 +62,18 @@ static ssize_t ds1682_store(struct device *dev, struct device_attribute *attr,
 
 	dev_dbg(dev, "ds1682_store() called on %s\n", attr->attr.name);
 
-	/* Decode input */
+	
 	val = simple_strtoull(buf, &endp, 0);
 	if (buf == endp) {
 		dev_dbg(dev, "input string not a number\n");
 		return -EINVAL;
 	}
 
-	/* Special case: the 32 bit regs are time values with 1/4s
-	 * resolution, scale input down to quarter-seconds */
+	
 	if (sattr->nr == 4)
 		do_div(val, 250);
 
-	/* write out the value */
+	
 	val_le = cpu_to_le32(val);
 	rc = i2c_smbus_write_i2c_block_data(client, sattr->index, sattr->nr,
 					    (u8 *) & val_le);
@@ -119,9 +86,7 @@ static ssize_t ds1682_store(struct device *dev, struct device_attribute *attr,
 	return count;
 }
 
-/*
- * Simple register attributes
- */
+
 static SENSOR_DEVICE_ATTR_2(elapsed_time, S_IRUGO | S_IWUSR, ds1682_show,
 			    ds1682_store, 4, DS1682_REG_ELAPSED);
 static SENSOR_DEVICE_ATTR_2(alarm_time, S_IRUGO | S_IWUSR, ds1682_show,
@@ -138,9 +103,7 @@ static const struct attribute_group ds1682_group = {
 	},
 };
 
-/*
- * User data attribute
- */
+
 static ssize_t ds1682_eeprom_read(struct kobject *kobj, struct bin_attribute *attr,
 				  char *buf, loff_t off, size_t count)
 {
@@ -178,7 +141,7 @@ static ssize_t ds1682_eeprom_write(struct kobject *kobj, struct bin_attribute *a
 	if (off + count > DS1682_EEPROM_SIZE)
 		count = DS1682_EEPROM_SIZE - off;
 
-	/* Write out to the device */
+	
 	if (i2c_smbus_write_i2c_block_data(client, DS1682_REG_EEPROM + off,
 					   count, buf) < 0)
 		return -EIO;
@@ -196,9 +159,7 @@ static struct bin_attribute ds1682_eeprom_attr = {
 	.write = ds1682_eeprom_write,
 };
 
-/*
- * Called when a ds1682 device is matched with this driver
- */
+
 static int ds1682_probe(struct i2c_client *client,
 			const struct i2c_device_id *id)
 {

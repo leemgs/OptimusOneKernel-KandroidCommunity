@@ -1,35 +1,6 @@
-/*
- * i2c-nforce2-s4985.c - i2c-nforce2 extras for the Tyan S4985 motherboard
- *
- * Copyright (C) 2008 Jean Delvare <khali@linux-fr.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
 
-/*
- * We select the channels by sending commands to the Philips
- * PCA9556 chip at I2C address 0x18. The main adapter is used for
- * the non-multiplexed part of the bus, and 4 virtual adapters
- * are defined for the multiplexed addresses: 0x50-0x53 (memory
- * module EEPROM) located on channels 1-4. We define one virtual
- * adapter per CPU, which corresponds to one multiplexed channel:
- *   CPU0: virtual adapter 1, channel 1
- *   CPU1: virtual adapter 2, channel 2
- *   CPU2: virtual adapter 3, channel 3
- *   CPU3: virtual adapter 4, channel 4
- */
+
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -43,7 +14,7 @@ extern struct i2c_adapter *nforce2_smbus;
 static struct i2c_adapter *s4985_adapter;
 static struct i2c_algorithm *s4985_algo;
 
-/* Wrapper access functions for multiplexed SMBus */
+
 static DEFINE_MUTEX(nforce2_lock);
 
 static s32 nforce2_access_virt0(struct i2c_adapter *adap, u16 addr,
@@ -53,7 +24,7 @@ static s32 nforce2_access_virt0(struct i2c_adapter *adap, u16 addr,
 {
 	int error;
 
-	/* We exclude the multiplexed addresses */
+	
 	if ((addr & 0xfc) == 0x50 || (addr & 0xfc) == 0x30
 	 || addr == 0x18)
 		return -ENXIO;
@@ -66,10 +37,7 @@ static s32 nforce2_access_virt0(struct i2c_adapter *adap, u16 addr,
 	return error;
 }
 
-/* We remember the last used channels combination so as to only switch
-   channels when it is really needed. This greatly reduces the SMBus
-   overhead, but also assumes that nobody will be writing to the PCA9556
-   in our back. */
+
 static u8 last_channels;
 
 static inline s32 nforce2_access_channel(struct i2c_adapter *adap, u16 addr,
@@ -80,7 +48,7 @@ static inline s32 nforce2_access_channel(struct i2c_adapter *adap, u16 addr,
 {
 	int error;
 
-	/* We exclude the non-multiplexed addresses */
+	
 	if ((addr & 0xfc) != 0x50 && (addr & 0xfc) != 0x30)
 		return -ENXIO;
 
@@ -110,7 +78,7 @@ static s32 nforce2_access_virt1(struct i2c_adapter *adap, u16 addr,
 				u8 command, int size,
 				union i2c_smbus_data *data)
 {
-	/* CPU0: channel 1 enabled */
+	
 	return nforce2_access_channel(adap, addr, flags, read_write, command,
 				      size, data, 0x02);
 }
@@ -120,7 +88,7 @@ static s32 nforce2_access_virt2(struct i2c_adapter *adap, u16 addr,
 				u8 command, int size,
 				union i2c_smbus_data *data)
 {
-	/* CPU1: channel 2 enabled */
+	
 	return nforce2_access_channel(adap, addr, flags, read_write, command,
 				      size, data, 0x04);
 }
@@ -130,7 +98,7 @@ static s32 nforce2_access_virt3(struct i2c_adapter *adap, u16 addr,
 				u8 command, int size,
 				union i2c_smbus_data *data)
 {
-	/* CPU2: channel 3 enabled */
+	
 	return nforce2_access_channel(adap, addr, flags, read_write, command,
 				      size, data, 0x08);
 }
@@ -140,7 +108,7 @@ static s32 nforce2_access_virt4(struct i2c_adapter *adap, u16 addr,
 				u8 command, int size,
 				union i2c_smbus_data *data)
 {
-	/* CPU3: channel 4 enabled */
+	
 	return nforce2_access_channel(adap, addr, flags, read_write, command,
 				      size, data, 0x10);
 }
@@ -153,8 +121,8 @@ static int __init nforce2_s4985_init(void)
 	if (!nforce2_smbus)
 		return -ENODEV;
 
-	/* Configure the PCA9556 multiplexer */
-	ioconfig.byte = 0x00; /* All I/O to output mode */
+	
+	ioconfig.byte = 0x00; 
 	error = i2c_smbus_xfer(nforce2_smbus, 0x18, 0, I2C_SMBUS_WRITE, 0x03,
 			       I2C_SMBUS_BYTE_DATA, &ioconfig);
 	if (error) {
@@ -163,7 +131,7 @@ static int __init nforce2_s4985_init(void)
 		goto ERROR0;
 	}
 
-	/* Unregister physical bus */
+	
 	error = i2c_del_adapter(nforce2_smbus);
 	if (error) {
 		dev_err(&nforce2_smbus->dev, "Physical bus removal failed\n");
@@ -171,7 +139,7 @@ static int __init nforce2_s4985_init(void)
 	}
 
 	printk(KERN_INFO "Enabling SMBus multiplexing for Tyan S4985\n");
-	/* Define the 5 virtual adapters and algorithms structures */
+	
 	s4985_adapter = kzalloc(5 * sizeof(struct i2c_adapter), GFP_KERNEL);
 	if (!s4985_adapter) {
 		error = -ENOMEM;
@@ -183,7 +151,7 @@ static int __init nforce2_s4985_init(void)
 		goto ERROR2;
 	}
 
-	/* Fill in the new structures */
+	
 	s4985_algo[0] = *(nforce2_smbus->algo);
 	s4985_algo[0].smbus_xfer = nforce2_access_virt0;
 	s4985_adapter[0] = *nforce2_smbus;
@@ -202,7 +170,7 @@ static int __init nforce2_s4985_init(void)
 	s4985_algo[3].smbus_xfer = nforce2_access_virt3;
 	s4985_algo[4].smbus_xfer = nforce2_access_virt4;
 
-	/* Register virtual adapters */
+	
 	for (i = 0; i < 5; i++) {
 		error = i2c_add_adapter(s4985_adapter + i);
 		if (error) {
@@ -224,7 +192,7 @@ ERROR2:
 	kfree(s4985_adapter);
 	s4985_adapter = NULL;
 ERROR1:
-	/* Restore physical bus */
+	
 	i2c_add_adapter(nforce2_smbus);
 ERROR0:
 	return error;
@@ -243,7 +211,7 @@ static void __exit nforce2_s4985_exit(void)
 	kfree(s4985_algo);
 	s4985_algo = NULL;
 
-	/* Restore physical bus */
+	
 	if (i2c_add_adapter(nforce2_smbus))
 		printk(KERN_ERR "i2c-nforce2-s4985: "
 		       "Physical bus restoration failed\n");

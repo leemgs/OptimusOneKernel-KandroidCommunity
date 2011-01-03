@@ -1,22 +1,4 @@
-/*
- * Copyright (C) 2005 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * Simtec Generic I2C Controller
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -42,7 +24,7 @@ struct simtec_i2c_data {
 #define STATE_SDA	(1<<0)
 #define STATE_SCL	(1<<1)
 
-/* i2c bit-bus functions */
+
 
 static void simtec_i2c_setsda(void *pw, int state)
 {
@@ -68,7 +50,7 @@ static int simtec_i2c_getscl(void *pw)
 	return readb(pd->reg) & STATE_SCL ? 1 : 0;
 }
 
-/* device registration */
+
 
 static int simtec_i2c_probe(struct platform_device *dev)
 {
@@ -108,7 +90,7 @@ static int simtec_i2c_probe(struct platform_device *dev)
 		goto err_res;
 	}
 
-	/* setup the private data */
+	
 
 	pd->adap.owner = THIS_MODULE;
 	pd->adap.algo_data = &pd->bit;
@@ -157,9 +139,9 @@ static int simtec_i2c_remove(struct platform_device *dev)
 }
 
 
-/* device driver */
 
-/* work with hotplug and coldplug */
+
+
 MODULE_ALIAS("platform:simtec-i2c");
 
 static struct platform_driver simtec_i2c_driver = {

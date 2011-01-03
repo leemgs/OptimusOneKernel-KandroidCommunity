@@ -1,23 +1,4 @@
-/*
-    i2c-stub.c - I2C/SMBus chip emulator
 
-    Copyright (c) 2004 Mark M. Hoffman <mhoffman@lightlink.com>
-    Copyright (C) 2007 Jean Delvare <khali@linux-fr.org>
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/
 
 #define DEBUG 1
 
@@ -37,13 +18,12 @@ MODULE_PARM_DESC(chip_addr,
 
 struct stub_chip {
 	u8 pointer;
-	u16 words[256];		/* Byte operations use the LSB as per SMBus
-				   specification */
+	u16 words[256];		
 };
 
 static struct stub_chip *stub_chips;
 
-/* Return negative errno on error. */
+
 static s32 stub_xfer(struct i2c_adapter * adap, u16 addr, unsigned short flags,
 	char read_write, u8 command, int size, union i2c_smbus_data * data)
 {
@@ -51,7 +31,7 @@ static s32 stub_xfer(struct i2c_adapter * adap, u16 addr, unsigned short flags,
 	int i;
 	struct stub_chip *chip = NULL;
 
-	/* Search for the right chip */
+	
 	for (i = 0; i < MAX_CHIPS && chip_addr[i]; i++) {
 		if (addr == chip_addr[i]) {
 			chip = stub_chips + i;
@@ -122,7 +102,7 @@ static s32 stub_xfer(struct i2c_adapter * adap, u16 addr, unsigned short flags,
 		dev_dbg(&adap->dev, "Unsupported I2C/SMBus command\n");
 		ret = -EOPNOTSUPP;
 		break;
-	} /* switch (size) */
+	} 
 
 	return ret;
 }
@@ -165,7 +145,7 @@ static int __init i2c_stub_init(void)
 		       chip_addr[i]);
 	}
 
-	/* Allocate memory for all chips at once */
+	
 	stub_chips = kzalloc(i * sizeof(struct stub_chip), GFP_KERNEL);
 	if (!stub_chips) {
 		printk(KERN_ERR "i2c-stub: Out of memory\n");
