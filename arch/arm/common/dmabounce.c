@@ -1,26 +1,4 @@
-/*
- *  arch/arm/common/dmabounce.c
- *
- *  Special dma_{map/unmap/dma_sync}_* routines for systems that have
- *  limited DMA windows. These functions utilize bounce buffers to
- *  copy data to/from buffers located outside the DMA region. This
- *  only works for systems in which DMA memory is at the bottom of
- *  RAM, the remainder of memory is at the top and the DMA memory
- *  can be marked as ZONE_DMA. Anything beyond that such as discontiguous
- *  DMA windows will require custom implementations that reserve memory
- *  areas at early bootup.
- *
- *  Original version by Brad Parker (brad@heeltoe.com)
- *  Re-written by Christopher Hoover <ch@murgatroid.com>
- *  Made generic by Deepak Saxena <dsaxena@plexity.net>
- *
- *  Copyright (C) 2002 Hewlett Packard Company.
- *  Copyright (C) 2004 MontaVista Software, Inc.
- *
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License
- *  version 2 as published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -42,17 +20,17 @@
 #define DO_STATS(X) do { } while (0)
 #endif
 
-/* ************************************************** */
+
 
 struct safe_buffer {
 	struct list_head node;
 
-	/* original request */
+	
 	void		*ptr;
 	size_t		size;
 	int		direction;
 
-	/* safe buffer info */
+	
 	struct dmabounce_pool *pool;
 	void		*safe;
 	dma_addr_t	safe_dma_addr;
@@ -100,7 +78,7 @@ static DEVICE_ATTR(dmabounce_stats, 0400, dmabounce_show, NULL);
 #endif
 
 
-/* allocate a 'safe' buffer and keep track of it */
+
 static inline struct safe_buffer *
 alloc_safe_buffer(struct dmabounce_device_info *device_info, void *ptr,
 		  size_t size, enum dma_data_direction dir)
@@ -161,7 +139,7 @@ alloc_safe_buffer(struct dmabounce_device_info *device_info, void *ptr,
 	return buf;
 }
 
-/* determine if a buffer is from our "safe" pool */
+
 static inline struct safe_buffer *
 find_safe_buffer(struct dmabounce_device_info *device_info, dma_addr_t safe_dma_addr)
 {
@@ -202,7 +180,7 @@ free_safe_buffer(struct dmabounce_device_info *device_info, struct safe_buffer *
 	kfree(buf);
 }
 
-/* ************************************************** */
+
 
 static struct safe_buffer *find_safe_buffer_dev(struct device *dev,
 		dma_addr_t dma_addr, const char *where)
@@ -242,9 +220,7 @@ static inline dma_addr_t map_single(struct device *dev, void *ptr, size_t size,
 			return ~0;
 		}
 
-		/*
-		 * Figure out if we need to bounce from the DMA mask.
-		 */
+		
 		needs_bounce = (dma_addr | (dma_addr + size - 1)) & ~mask;
 	}
 
@@ -273,10 +249,7 @@ static inline dma_addr_t map_single(struct device *dev, void *ptr, size_t size,
 
 		dma_addr = buf->safe_dma_addr;
 	} else {
-		/*
-		 * We don't need to sync the DMA buffer since
-		 * it was allocated via the coherent allocators.
-		 */
+		
 		dma_cache_maint(ptr, size, dir);
 	}
 
@@ -307,14 +280,7 @@ static inline void unmap_single(struct device *dev, dma_addr_t dma_addr,
 				__func__, buf->safe, ptr, size);
 			memcpy(ptr, buf->safe, size);
 
-			/*
-			 * DMA buffers must have the same cache properties
-			 * as if they were really used for DMA - which means
-			 * data must be written back to RAM.  Note that
-			 * we don't use dmac_flush_range() here for the
-			 * bidirectional case because we know the cache
-			 * lines will be coherent with the data written.
-			 */
+			
 			dmac_clean_range(ptr, ptr + size);
 			outer_clean_range(__pa(ptr), __pa(ptr) + size);
 		}
@@ -322,14 +288,9 @@ static inline void unmap_single(struct device *dev, dma_addr_t dma_addr,
 	}
 }
 
-/* ************************************************** */
 
-/*
- * see if a buffer address is in an 'unsafe' range.  if it is
- * allocate a 'safe' buffer and copy the unsafe buffer into it.
- * substitute the safe buffer for the unsafe one.
- * (basically move the buffer from an unsafe area to a safe one)
- */
+
+
 dma_addr_t dma_map_single(struct device *dev, void *ptr, size_t size,
 		enum dma_data_direction dir)
 {
@@ -360,12 +321,7 @@ dma_addr_t dma_map_page(struct device *dev, struct page *page,
 }
 EXPORT_SYMBOL(dma_map_page);
 
-/*
- * see if a mapped address was really a "safe" buffer and if so, copy
- * the data from the safe buffer back to the unsafe buffer and free up
- * the safe buffer.  (basically return things back to the way they
- * should be)
- */
+
 
 void dma_unmap_single(struct device *dev, dma_addr_t dma_addr, size_t size,
 		enum dma_data_direction dir)
@@ -441,8 +397,8 @@ static int dmabounce_init_pool(struct dmabounce_pool *pool, struct device *dev,
 	pool->size = size;
 	DO_STATS(pool->allocs = 0);
 	pool->pool = dma_pool_create(name, dev, size,
-				     0 /* byte alignment */,
-				     0 /* no page-crossing issues */);
+				     0 ,
+				     0 );
 
 	return pool->pool ? 0 : -ENOMEM;
 }
