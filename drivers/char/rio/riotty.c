@@ -1,34 +1,4 @@
-/*
-** -----------------------------------------------------------------------------
-**
-**  Perle Specialix driver for Linux
-**  Ported from existing RIO Driver for SCO sources.
- *
- *  (C) 1990 - 2000 Specialix International Ltd., Byfleet, Surrey, UK.
- *
- *      This program is free software; you can redistribute it and/or modify
- *      it under the terms of the GNU General Public License as published by
- *      the Free Software Foundation; either version 2 of the License, or
- *      (at your option) any later version.
- *
- *      This program is distributed in the hope that it will be useful,
- *      but WITHOUT ANY WARRANTY; without even the implied warranty of
- *      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *      GNU General Public License for more details.
- *
- *      You should have received a copy of the GNU General Public License
- *      along with this program; if not, write to the Free Software
- *      Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-**
-**	Module		: riotty.c
-**	SID		: 1.3
-**	Last Modified	: 11/6/98 10:33:47
-**	Retrieved	: 11/6/98 10:33:50
-**
-**  ident @(#)riotty.c	1.3
-**
-** -----------------------------------------------------------------------------
-*/
+
 
 #define __EXPLICIT_DEF_H__
 
@@ -80,7 +50,7 @@
 
 static void RIOClearUp(struct Port *PortP);
 
-/* Below belongs in func.h */
+
 int RIOShortCommand(struct rio_info *p, struct Port *PortP, int command, int len, int arg);
 
 
@@ -91,15 +61,13 @@ int riotopen(struct tty_struct *tty, struct file *filp)
 {
 	unsigned int SysPort;
 	int repeat_this = 250;
-	struct Port *PortP;	/* pointer to the port structure */
+	struct Port *PortP;	
 	unsigned long flags;
 	int retval = 0;
 
 	func_enter();
 
-	/* Make sure driver_data is NULL in case the rio isn't booted jet. Else gs_close
-	   is going to oops.
-	 */
+	
 	tty->driver_data = NULL;
 
 	SysPort = rio_minor(tty);
@@ -112,28 +80,18 @@ int riotopen(struct tty_struct *tty, struct file *filp)
 
 	rio_dprintk(RIO_DEBUG_TTY, "port open SysPort %d (mapped:%d)\n", SysPort, p->RIOPortp[SysPort]->Mapped);
 
-	/*
-	 ** Validate that we have received a legitimate request.
-	 ** Currently, just check that we are opening a port on
-	 ** a host card that actually exists, and that the port
-	 ** has been mapped onto a host.
-	 */
-	if (SysPort >= RIO_PORTS) {	/* out of range ? */
+	
+	if (SysPort >= RIO_PORTS) {	
 		rio_dprintk(RIO_DEBUG_TTY, "Illegal port number %d\n", SysPort);
 		func_exit();
 		return -ENXIO;
 	}
 
-	/*
-	 ** Grab pointer to the port stucture
-	 */
-	PortP = p->RIOPortp[SysPort];	/* Get control struc */
+	
+	PortP = p->RIOPortp[SysPort];	
 	rio_dprintk(RIO_DEBUG_TTY, "PortP: %p\n", PortP);
-	if (!PortP->Mapped) {	/* we aren't mapped yet! */
-		/*
-		 ** The system doesn't know which RTA this port
-		 ** corresponds to.
-		 */
+	if (!PortP->Mapped) {	
+		
 		rio_dprintk(RIO_DEBUG_TTY, "port not mapped into system\n");
 		func_exit();
 		return -ENXIO;
@@ -151,25 +109,15 @@ int riotopen(struct tty_struct *tty, struct file *filp)
 		PortP->gs.port.count--;
 		return -ENXIO;
 	}
-	/*
-	 ** If the host hasn't been booted yet, then
-	 ** fail
-	 */
+	
 	if ((PortP->HostP->Flags & RUN_STATE) != RC_RUNNING) {
 		rio_dprintk(RIO_DEBUG_TTY, "Host not running\n");
 		func_exit();
 		return -ENXIO;
 	}
 
-	/*
-	 ** If the RTA has not booted yet and the user has choosen to block
-	 ** until the RTA is present then we must spin here waiting for
-	 ** the RTA to boot.
-	 */
-	/* I find the above code a bit hairy. I find the below code
-	   easier to read and shorter. Now, if it works too that would
-	   be great... -- REW 
-	 */
+	
+	
 	rio_dprintk(RIO_DEBUG_TTY, "Checking if RTA has booted... \n");
 	while (!(PortP->HostP->Mapping[PortP->RupNum].Flags & RTA_BOOTED)) {
 		if (!PortP->WaitUntilBooted) {
@@ -178,10 +126,7 @@ int riotopen(struct tty_struct *tty, struct file *filp)
 			return -ENXIO;
 		}
 
-		/* Under Linux you'd normally use a wait instead of this
-		   busy-waiting. I'll stick with the old implementation for
-		   now. --REW
-		 */
+		
 		if (RIODelay(PortP, HUNDRED_MS) == RIO_FAIL) {
 			rio_dprintk(RIO_DEBUG_TTY, "RTA_wait_for_boot: EINTR in delay \n");
 			func_exit();
@@ -199,11 +144,7 @@ int riotopen(struct tty_struct *tty, struct file *filp)
 		goto bombout;
 	}
 
-	/*
-	 ** If the port is in the final throws of being closed,
-	 ** we should wait here (politely), waiting
-	 ** for it to finish, so that it doesn't close us!
-	 */
+	
 	while ((PortP->State & RIO_CLOSING) && !p->RIOHalted) {
 		rio_dprintk(RIO_DEBUG_TTY, "Waiting for RIO_CLOSING to go away\n");
 		if (repeat_this-- <= 0) {
@@ -233,40 +174,30 @@ int riotopen(struct tty_struct *tty, struct file *filp)
 		goto bombout;
 	}
 
-/*
-** 15.10.1998 ARG - ESIL 0761 part fix
-** RIO has it's own CTSFLOW and RTSFLOW flags in 'Config' in the port structure,
-** we need to make sure that the flags are clear when the port is opened.
-*/
-	/* Uh? Suppose I turn these on and then another process opens
-	   the port again? The flags get cleared! Not good. -- REW */
+
+	
 	if (!(PortP->State & (RIO_LOPEN | RIO_MOPEN))) {
 		PortP->Config &= ~(RIO_CTSFLOW | RIO_RTSFLOW);
 	}
 
-	if (!(PortP->firstOpen)) {	/* First time ? */
+	if (!(PortP->firstOpen)) {	
 		rio_dprintk(RIO_DEBUG_TTY, "First open for this port\n");
 
 
 		PortP->firstOpen++;
-		PortP->CookMode = 0;	/* XXX RIOCookMode(tp); */
+		PortP->CookMode = 0;	
 		PortP->InUse = NOT_INUSE;
 
-		/* Tentative fix for bug PR27. Didn't work. */
-		/* PortP->gs.xmit_cnt = 0; */
+		
+		
 
 		rio_spin_unlock_irqrestore(&PortP->portSem, flags);
 
-		/* Someone explain to me why this delay/config is
-		   here. If I read the docs correctly the "open"
-		   command piggybacks the parameters immediately.
-		   -- REW */
-		RIOParam(PortP, RIOC_OPEN, 1, OK_TO_SLEEP); /* Open the port */
+		
+		RIOParam(PortP, RIOC_OPEN, 1, OK_TO_SLEEP); 
 		rio_spin_lock_irqsave(&PortP->portSem, flags);
 
-		/*
-		 ** wait for the port to be not closed.
-		 */
+		
 		while (!(PortP->PortState & PORT_ISOPEN) && !p->RIOHalted) {
 			rio_dprintk(RIO_DEBUG_TTY, "Waiting for PORT_ISOPEN-currently %x\n", PortP->PortState);
 			rio_spin_unlock_irqrestore(&PortP->portSem, flags);
@@ -282,51 +213,33 @@ int riotopen(struct tty_struct *tty, struct file *filp)
 		if (p->RIOHalted) {
 			retval = -EIO;
 		      bombout:
-			/*                    RIOClearUp( PortP ); */
+			
 			rio_spin_unlock_irqrestore(&PortP->portSem, flags);
 			return retval;
 		}
 		rio_dprintk(RIO_DEBUG_TTY, "PORT_ISOPEN found\n");
 	}
 	rio_dprintk(RIO_DEBUG_TTY, "Modem - test for carrier\n");
-	/*
-	 ** ACTION
-	 ** insert test for carrier here. -- ???
-	 ** I already see that test here. What's the deal? -- REW
-	 */
+	
 	if ((PortP->gs.port.tty->termios->c_cflag & CLOCAL) ||
 			(PortP->ModemState & RIOC_MSVR1_CD)) {
 		rio_dprintk(RIO_DEBUG_TTY, "open(%d) Modem carr on\n", SysPort);
-		/*
-		   tp->tm.c_state |= CARR_ON;
-		   wakeup((caddr_t) &tp->tm.c_canq);
-		 */
+		
 		PortP->State |= RIO_CARR_ON;
 		wake_up_interruptible(&PortP->gs.port.open_wait);
-	} else {	/* no carrier - wait for DCD */
-			/*
-		   while (!(PortP->gs.port.tty->termios->c_state & CARR_ON) &&
-		   !(filp->f_flags & O_NONBLOCK) && !p->RIOHalted )
-		 */
+	} else {	
+			
 		while (!(PortP->State & RIO_CARR_ON) && !(filp->f_flags & O_NONBLOCK) && !p->RIOHalted) {
 				rio_dprintk(RIO_DEBUG_TTY, "open(%d) sleeping for carr on\n", SysPort);
-			/*
-			   PortP->gs.port.tty->termios->c_state |= WOPEN;
-			 */
+			
 			PortP->State |= RIO_WOPEN;
 			rio_spin_unlock_irqrestore(&PortP->portSem, flags);
 			if (RIODelay(PortP, HUNDRED_MS) == RIO_FAIL) {
 				rio_spin_lock_irqsave(&PortP->portSem, flags);
-				/*
-				 ** ACTION: verify that this is a good thing
-				 ** to do here. -- ???
-				 ** I think it's OK. -- REW
-				 */
+				
 				rio_dprintk(RIO_DEBUG_TTY, "open(%d) sleeping for carr broken by signal\n", SysPort);
 				RIOPreemptiveCmd(p, PortP, RIOC_FCLOSE);
-				/*
-				   tp->tm.c_state &= ~WOPEN;
-				 */
+				
 				PortP->State &= ~RIO_WOPEN;
 				rio_spin_unlock_irqrestore(&PortP->portSem, flags);
 				func_exit();
@@ -346,9 +259,7 @@ int riotopen(struct tty_struct *tty, struct file *filp)
 
 	rio_dprintk(RIO_DEBUG_TTY, "high level open done\n");
 
-	/*
-	 ** Count opens for port statistics reporting
-	 */
+	
 	if (PortP->statsGather)
 		PortP->opens++;
 
@@ -358,19 +269,13 @@ int riotopen(struct tty_struct *tty, struct file *filp)
 	return 0;
 }
 
-/*
-** RIOClose the port.
-** The operating system thinks that this is last close for the device.
-** As there are two interfaces to the port (Modem and tty), we need to
-** check that both are closed before we close the device.
-*/
+
 int riotclose(void *ptr)
 {
-	struct Port *PortP = ptr;	/* pointer to the port structure */
+	struct Port *PortP = ptr;	
 	int deleted = 0;
-	int try = -1;		/* Disable the timeouts by setting them to -1 */
-	int repeat_this = -1;	/* Congrats to those having 15 years of
-				   uptime! (You get to break the driver.) */
+	int try = -1;		
+	int repeat_this = -1;	
 	unsigned long end_time;
 	struct tty_struct *tty;
 	unsigned long flags;
@@ -378,9 +283,9 @@ int riotclose(void *ptr)
 
 	rio_dprintk(RIO_DEBUG_TTY, "port close SysPort %d\n", PortP->PortNum);
 
-	/* PortP = p->RIOPortp[SysPort]; */
+	
 	rio_dprintk(RIO_DEBUG_TTY, "Port is at address %p\n", PortP);
-	/* tp = PortP->TtyP; *//* Get tty */
+	
 	tty = PortP->gs.port.tty;
 	rio_dprintk(RIO_DEBUG_TTY, "TTY is at address %p\n", tty);
 
@@ -391,10 +296,7 @@ int riotclose(void *ptr)
 
 	rio_spin_lock_irqsave(&PortP->portSem, flags);
 
-	/*
-	 ** Setting this flag will make any process trying to open
-	 ** this port block until we are complete closing it.
-	 */
+	
 	PortP->State |= RIO_CLOSING;
 
 	if ((PortP->State & RIO_DELETED)) {
@@ -409,24 +311,13 @@ int riotclose(void *ptr)
 	}
 
 	rio_dprintk(RIO_DEBUG_TTY, "Clear bits\n");
-	/*
-	 ** clear the open bits for this device
-	 */
+	
 	PortP->State &= ~RIO_MOPEN;
 	PortP->State &= ~RIO_CARR_ON;
 	PortP->ModemState &= ~RIOC_MSVR1_CD;
-	/*
-	 ** If the device was open as both a Modem and a tty line
-	 ** then we need to wimp out here, as the port has not really
-	 ** been finally closed (gee, whizz!) The test here uses the
-	 ** bit for the OTHER mode of operation, to see if THAT is
-	 ** still active!
-	 */
+	
 	if ((PortP->State & (RIO_LOPEN | RIO_MOPEN))) {
-		/*
-		 ** The port is still open for the other task -
-		 ** return, pretending that we are still active.
-		 */
+		
 		rio_dprintk(RIO_DEBUG_TTY, "Channel %d still open !\n", PortP->PortNum);
 		PortP->State &= ~RIO_CLOSING;
 		if (PortP->firstOpen)
@@ -439,11 +330,7 @@ int riotclose(void *ptr)
 
 	PortP->State &= ~RIO_DYNOROD;
 
-	/*
-	 ** This is where we wait for the port
-	 ** to drain down before closing. Bye-bye....
-	 ** (We never meant to do this)
-	 */
+	
 	rio_dprintk(RIO_DEBUG_TTY, "Timeout 1 starts\n");
 
 	if (!deleted)
@@ -470,10 +357,7 @@ int riotclose(void *ptr)
 
 	PortP->InUse = 0;
 	if ((PortP->State & (RIO_LOPEN | RIO_MOPEN))) {
-		/*
-		 ** The port has been re-opened for the other task -
-		 ** return, pretending that we are still active.
-		 */
+		
 		rio_dprintk(RIO_DEBUG_TTY, "Channel %d re-open!\n", PortP->PortNum);
 		PortP->State &= ~RIO_CLOSING;
 		rio_spin_unlock_irqrestore(&PortP->portSem, flags);
@@ -487,7 +371,7 @@ int riotclose(void *ptr)
 		goto close_end;
 	}
 
-	/* Can't call RIOShortCommand with the port locked. */
+	
 	rio_spin_unlock_irqrestore(&PortP->portSem, flags);
 
 	if (RIOShortCommand(p, PortP, RIOC_CLOSE, 1, 0) == RIO_FAIL) {
@@ -520,26 +404,17 @@ int riotclose(void *ptr)
 	rio_spin_lock_irqsave(&PortP->portSem, flags);
 	rio_dprintk(RIO_DEBUG_TTY, "Close: try was %d on completion\n", try);
 
-	/* RIOPreemptiveCmd(p, PortP, RIOC_FCLOSE); */
+	
 
-/*
-** 15.10.1998 ARG - ESIL 0761 part fix
-** RIO has it's own CTSFLOW and RTSFLOW flags in 'Config' in the port structure,** we need to make sure that the flags are clear when the port is opened.
-*/
+
 	PortP->Config &= ~(RIO_CTSFLOW | RIO_RTSFLOW);
 
-	/*
-	 ** Count opens for port statistics reporting
-	 */
+	
 	if (PortP->statsGather)
 		PortP->closes++;
 
 close_end:
-	/* XXX: Why would a "DELETED" flag be reset here? I'd have
-	   thought that a "deleted" flag means that the port was
-	   permanently gone, but here we can make it reappear by it
-	   being in close during the "deletion".
-	 */
+	
 	PortP->State &= ~(RIO_CLOSING | RIO_DELETED);
 	if (PortP->firstOpen)
 		PortP->firstOpen--;
@@ -553,7 +428,7 @@ close_end:
 static void RIOClearUp(struct Port *PortP)
 {
 	rio_dprintk(RIO_DEBUG_TTY, "RIOHalted set\n");
-	PortP->Config = 0;	/* Direct semaphore */
+	PortP->Config = 0;	
 	PortP->PortState = 0;
 	PortP->firstOpen = 0;
 	PortP->FlushCmdBodge = 0;
@@ -566,19 +441,11 @@ static void RIOClearUp(struct Port *PortP)
 	PortP->TxBufferOut = 0;
 }
 
-/*
-** Put a command onto a port.
-** The PortPointer, command, length and arg are passed.
-** The len is the length *inclusive* of the command byte,
-** and so for a command that takes no data, len==1.
-** The arg is a single byte, and is only used if len==2.
-** Other values of len aren't allowed, and will cause
-** a panic.
-*/
+
 int RIOShortCommand(struct rio_info *p, struct Port *PortP, int command, int len, int arg)
 {
 	struct PKT __iomem *PacketP;
-	int retries = 20;	/* at 10 per second -> 2 seconds */
+	int retries = 20;	
 	unsigned long flags;
 
 	rio_dprintk(RIO_DEBUG_TTY, "entering shortcommand.\n");
@@ -589,10 +456,7 @@ int RIOShortCommand(struct rio_info *p, struct Port *PortP, int command, int len
 	}
 	rio_spin_lock_irqsave(&PortP->portSem, flags);
 
-	/*
-	 ** If the port is in use for pre-emptive command, then wait for it to
-	 ** be free again.
-	 */
+	
 	while ((PortP->InUse != NOT_INUSE) && !p->RIOHalted) {
 		rio_dprintk(RIO_DEBUG_TTY, "Waiting for not in use (%d)\n", retries);
 		rio_spin_unlock_irqrestore(&PortP->portSem, flags);
@@ -628,23 +492,17 @@ int RIOShortCommand(struct rio_info *p, struct Port *PortP, int command, int len
 		return RIO_FAIL;
 	}
 
-	/*
-	 ** set the command byte and the argument byte
-	 */
+	
 	writeb(command, &PacketP->data[0]);
 
 	if (len == 2)
 		writeb(arg, &PacketP->data[1]);
 
-	/*
-	 ** set the length of the packet and set the command bit.
-	 */
+	
 	writeb(PKT_CMD_BIT | len, &PacketP->len);
 
 	add_transmit(PortP);
-	/*
-	 ** Count characters transmitted for port statistics reporting
-	 */
+	
 	if (PortP->statsGather)
 		PortP->txchars += len;
 

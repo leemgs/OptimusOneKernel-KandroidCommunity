@@ -1,31 +1,5 @@
 
-/* rio_linux.c -- Linux driver for the Specialix RIO series cards. 
- *
- *
- *   (C) 1999 R.E.Wolff@BitWizard.nl
- *
- * Specialix pays for the development and support of this driver.
- * Please DO contact support@specialix.co.uk if you require
- * support. But please read the documentation (rio.txt) first.
- *
- *
- *
- *      This program is free software; you can redistribute it and/or
- *      modify it under the terms of the GNU General Public License as
- *      published by the Free Software Foundation; either version 2 of
- *      the License, or (at your option) any later version.
- *
- *      This program is distributed in the hope that it will be
- *      useful, but WITHOUT ANY WARRANTY; without even the implied
- *      warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *      PURPOSE.  See the GNU General Public License for more details.
- *
- *      You should have received a copy of the GNU General Public
- *      License along with this program; if not, write to the Free
- *      Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139,
- *      USA.
- *
- * */
+
 
 #include <linux/module.h>
 #include <linux/kdev_t.h>
@@ -83,15 +57,10 @@
 
 #include "rio_linux.h"
 
-/* I don't think that this driver can handle more than 512 ports on
-one machine.  Specialix specifies max 4 boards in one machine. I don't
-know why. If you want to try anyway you'll have to increase the number
-of boards in rio.h.  You'll have to allocate more majors if you need
-more than 512 ports.... */
+
 
 #ifndef RIO_NORMAL_MAJOR0
-/* This allows overriding on the compiler commandline, or in a "major.h" 
-   include or something like that */
+
 #define RIO_NORMAL_MAJOR0  154
 #define RIO_NORMAL_MAJOR1  156
 #endif
@@ -105,70 +74,64 @@ more than 512 ports.... */
 #endif
 
 
-/* Configurable options: 
-   (Don't be too sure that it'll work if you toggle them) */
 
-/* Am I paranoid or not ? ;-) */
+
+
 #undef RIO_PARANOIA_CHECK
 
 
-/* 20 -> 2000 per second. The card should rate-limit interrupts at 1000
-   Hz, but it is user configurable. I don't recommend going above 1000
-   Hz. The interrupt ratelimit might trigger if the interrupt is
-   shared with a very active other device. 
-   undef this if you want to disable the check....
-*/
+
 #define IRQ_RATE_LIMIT 200
 
 
-/* These constants are derived from SCO Source */
+
 static struct Conf
  RIOConf = {
-	/* locator */ "RIO Config here",
-					/* startuptime */ HZ * 2,
-					/* how long to wait for card to run */
-				/* slowcook */ 0,
-				/* TRUE -> always use line disc. */
-				/* intrpolltime */ 1,
-				/* The frequency of OUR polls */
-				/* breakinterval */ 25,
-				/* x10 mS XXX: units seem to be 1ms not 10! -- REW */
-				/* timer */ 10,
-				/* mS */
-	/* RtaLoadBase */ 0x7000,
-	/* HostLoadBase */ 0x7C00,
-				/* XpHz */ 5,
-				/* number of Xprint hits per second */
-				/* XpCps */ 120,
-				/* Xprint characters per second */
-				/* XpOn */ "\033d#",
-				/* start Xprint for a wyse 60 */
-				/* XpOff */ "\024",
-				/* end Xprint for a wyse 60 */
-				/* MaxXpCps */ 2000,
-				/* highest Xprint speed */
-				/* MinXpCps */ 10,
-				/* slowest Xprint speed */
-				/* SpinCmds */ 1,
-				/* non-zero for mega fast boots */
-					/* First Addr */ 0x0A0000,
-					/* First address to look at */
-					/* Last Addr */ 0xFF0000,
-					/* Last address looked at */
-				/* BufferSize */ 1024,
-				/* Bytes per port of buffering */
-				/* LowWater */ 256,
-				/* how much data left before wakeup */
-				/* LineLength */ 80,
-				/* how wide is the console? */
-				/* CmdTimeout */ HZ,
-				/* how long a close command may take */
+	 "RIO Config here",
+					 HZ * 2,
+					
+				 0,
+				
+				 1,
+				
+				 25,
+				
+				 10,
+				
+	 0x7000,
+	 0x7C00,
+				 5,
+				
+				 120,
+				
+				 "\033d#",
+				
+				 "\024",
+				
+				 2000,
+				
+				 10,
+				
+				 1,
+				
+					 0x0A0000,
+					
+					 0xFF0000,
+					
+				 1024,
+				
+				 256,
+				
+				 80,
+				
+				 HZ,
+				
 };
 
 
 
 
-/* Function prototypes */
+
 
 static void rio_disable_tx_interrupts(void *ptr);
 static void rio_enable_tx_interrupts(void *ptr);
@@ -187,30 +150,23 @@ static void my_hd(void *addr, int len);
 
 static struct tty_driver *rio_driver, *rio_driver2;
 
-/* The name "p" is a bit non-descript. But that's what the rio-lynxos
-sources use all over the place. */
+
 struct rio_info *p;
 
 int rio_debug;
 
 
-/* You can have the driver poll your card. 
-    - Set rio_poll to 1 to poll every timer tick (10ms on Intel). 
-      This is used when the card cannot use an interrupt for some reason.
-*/
+
 static int rio_poll = 1;
 
 
-/* These are the only open spaces in my computer. Yours may have more
-   or less.... */
+
 static int rio_probe_addrs[] = { 0xc0000, 0xd0000, 0xe0000 };
 
 #define NR_RIO_ADDRS ARRAY_SIZE(rio_probe_addrs)
 
 
-/* Set the mask to all-ones. This alas, only supports 32 interrupts. 
-   Some architectures may need more. -- Changed to LONG to
-   support up to 64 bits on 64bit architectures. -- REW 20/06/99 */
+
 static long rio_irqmask = -1;
 
 MODULE_AUTHOR("Rogier Wolff <R.E.Wolff@bitwizard.nl>, Patrick van de Lageweg <patrick@bitwizard.nl>");
@@ -233,10 +189,7 @@ static struct real_driver rio_real_driver = {
 	NULL
 };
 
-/* 
- *  Firmware loader driver specific routines
- *
- */
+
 
 static const struct file_operations rio_fw_fops = {
 	.owner = THIS_MODULE,
@@ -253,7 +206,7 @@ static struct miscdevice rio_fw_device = {
 
 #ifdef RIO_PARANOIA_CHECK
 
-/* This doesn't work. Who's paranoid around here? Not me! */
+
 
 static inline int rio_paranoia_check(struct rio_port const *port, char *name, const char *routine)
 {
@@ -296,11 +249,11 @@ static void my_hd(void *ad, int len)
 	}
 }
 #else
-#define my_hd(ad,len) do{/* nothing*/ } while (0)
+#define my_hd(ad,len) do{ } while (0)
 #endif
 
 
-/* Delay a number of jiffies, allowing a signal to interrupt */
+
 int RIODelay(struct Port *PortP, int njiffies)
 {
 	func_enter();
@@ -316,7 +269,7 @@ int RIODelay(struct Port *PortP, int njiffies)
 }
 
 
-/* Delay a number of jiffies, disallowing a signal to interrupt */
+
 int RIODelay_ni(struct Port *PortP, int njiffies)
 {
 	func_enter();
@@ -363,29 +316,14 @@ static irqreturn_t rio_interrupt(int irq, void *ptr)
 	struct Host *HostP;
 	func_enter();
 
-	HostP = ptr;			/* &p->RIOHosts[(long)ptr]; */
+	HostP = ptr;			
 	rio_dprintk(RIO_DEBUG_IFLOW, "rio: enter rio_interrupt (%d/%d)\n", irq, HostP->Ivec);
 
-	/* AAargh! The order in which to do these things is essential and
-	   not trivial.
-
-	   - hardware twiddling goes before "recursive". Otherwise when we
-	   poll the card, and a recursive interrupt happens, we won't
-	   ack the card, so it might keep on interrupting us. (especially
-	   level sensitive interrupt systems like PCI).
-
-	   - Rate limit goes before hardware twiddling. Otherwise we won't
-	   catch a card that has gone bonkers.
-
-	   - The "initialized" test goes after the hardware twiddling. Otherwise
-	   the card will stick us in the interrupt routine again.
-
-	   - The initialized test goes before recursive.
-	 */
+	
 
 	rio_dprintk(RIO_DEBUG_IFLOW, "rio: We've have noticed the interrupt\n");
 	if (HostP->Ivec == irq) {
-		/* Tell the card we've noticed the interrupt. */
+		
 		rio_reset_interrupt(HostP);
 	}
 
@@ -419,19 +357,15 @@ static void rio_pollfunc(unsigned long data)
 }
 
 
-/* ********************************************************************** *
- *                Here are the routines that actually                     *
- *              interface with the generic_serial driver                  *
- * ********************************************************************** */
 
-/* Ehhm. I don't know how to fiddle with interrupts on the Specialix 
-   cards. ....   Hmm. Ok I figured it out. You don't.  -- REW */
+
+
 
 static void rio_disable_tx_interrupts(void *ptr)
 {
 	func_enter();
 
-	/*  port->gs.port.flags &= ~GS_TX_INTEN; */
+	
 
 	func_exit();
 }
@@ -440,21 +374,15 @@ static void rio_disable_tx_interrupts(void *ptr)
 static void rio_enable_tx_interrupts(void *ptr)
 {
 	struct Port *PortP = ptr;
-	/* int hn; */
+	
 
 	func_enter();
 
-	/* hn = PortP->HostP - p->RIOHosts;
-
-	   rio_dprintk (RIO_DEBUG_TTY, "Pushing host %d\n", hn);
-	   rio_interrupt (-1,(void *) hn, NULL); */
+	
 
 	RIOTxEnable((char *) PortP);
 
-	/*
-	 * In general we cannot count on "tx empty" interrupts, although
-	 * the interrupt routine seems to be able to tell the difference.
-	 */
+	
 	PortP->gs.port.flags &= ~GS_TX_INTEN;
 
 	func_exit();
@@ -469,13 +397,13 @@ static void rio_disable_rx_interrupts(void *ptr)
 
 static void rio_enable_rx_interrupts(void *ptr)
 {
-	/*  struct rio_port *port = ptr; */
+	
 	func_enter();
 	func_exit();
 }
 
 
-/* Jeez. Isn't this simple?  */
+
 static int rio_carrier_raised(struct tty_port *port)
 {
 	struct Port *PortP = container_of(port, struct Port, gs.port);
@@ -491,8 +419,7 @@ static int rio_carrier_raised(struct tty_port *port)
 }
 
 
-/* Jeez. Isn't this simple? Actually, we can sync with the actual port
-   by just pushing stuff into the queue going to the port... */
+
 static int rio_chars_in_buffer(void *ptr)
 {
 	func_enter();
@@ -502,7 +429,7 @@ static int rio_chars_in_buffer(void *ptr)
 }
 
 
-/* Nothing special here... */
+
 static void rio_shutdown_port(void *ptr)
 {
 	struct Port *PortP;
@@ -515,13 +442,7 @@ static void rio_shutdown_port(void *ptr)
 }
 
 
-/* I haven't the foggiest why the decrement use count has to happen
-   here. The whole linux serial drivers stuff needs to be redesigned.
-   My guess is that this is a hack to minimize the impact of a bug
-   elsewhere. Thinking about it some more. (try it sometime) Try
-   running minicom on a serial port that is driven by a modularized
-   driver. Have the modem hangup. Then remove the driver module. Then
-   exit minicom.  I expect an "oops".  -- REW */
+
 static void rio_hungup(void *ptr)
 {
 	struct Port *PortP;
@@ -535,10 +456,7 @@ static void rio_hungup(void *ptr)
 }
 
 
-/* The standard serial_close would become shorter if you'd wrap it like
-   this. 
-   rs_close (...){save_flags;cli;real_close();dec_use_count;restore_flags;}
- */
+
 static void rio_close(void *ptr)
 {
 	struct Port *PortP;
@@ -565,7 +483,7 @@ static long rio_fw_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	int rc = 0;
 	func_enter();
 
-	/* The "dev" argument isn't used. */
+	
 	lock_kernel();
 	rc = riocontrol(p, 0, cmd, arg, capable(CAP_SYS_ADMIN));
 	unlock_kernel();
@@ -641,30 +559,14 @@ static int rio_ioctl(struct tty_struct *tty, struct file *filp, unsigned int cmd
 }
 
 
-/* The throttle/unthrottle scheme for the Specialix card is different
- * from other drivers and deserves some explanation. 
- * The Specialix hardware takes care of XON/XOFF
- * and CTS/RTS flow control itself.  This means that all we have to
- * do when signalled by the upper tty layer to throttle/unthrottle is
- * to make a note of it here.  When we come to read characters from the
- * rx buffers on the card (rio_receive_chars()) we look to see if the
- * upper layer can accept more (as noted here in rio_rx_throt[]). 
- * If it can't we simply don't remove chars from the cards buffer. 
- * When the tty layer can accept chars, we again note that here and when
- * rio_receive_chars() is called it will remove them from the cards buffer.
- * The card will notice that a ports buffer has drained below some low
- * water mark and will unflow control the line itself, using whatever
- * flow control scheme is in use for that port. -- Simon Allen
- */
+
 
 static void rio_throttle(struct tty_struct *tty)
 {
 	struct Port *port = (struct Port *) tty->driver_data;
 
 	func_enter();
-	/* If the port is using any type of input flow
-	 * control then throttle the port.
-	 */
+	
 
 	if ((tty->termios->c_cflag & CRTSCTS) || (I_IXOFF(tty))) {
 		port->State |= RIO_THROTTLE_RX;
@@ -679,10 +581,7 @@ static void rio_unthrottle(struct tty_struct *tty)
 	struct Port *port = (struct Port *) tty->driver_data;
 
 	func_enter();
-	/* Always unthrottle even if flow control is not enabled on
-	 * this port in case we disabled flow control while the port
-	 * was throttled
-	 */
+	
 
 	port->State &= ~RIO_THROTTLE_RX;
 
@@ -694,9 +593,7 @@ static void rio_unthrottle(struct tty_struct *tty)
 
 
 
-/* ********************************************************************** *
- *                    Here are the initialization routines.               *
- * ********************************************************************** */
+
 
 
 static struct vpd_prom *get_VPD_PROM(struct Host *hp)
@@ -711,10 +608,9 @@ static struct vpd_prom *get_VPD_PROM(struct Host *hp)
 	p = (char *) &vpdp;
 	for (i = 0; i < sizeof(struct vpd_prom); i++)
 		*p++ = readb(hp->Caddr + RIO_VPD_ROM + i * 2);
-	/* read_rio_byte (hp, RIO_VPD_ROM + i*2); */
+	
 
-	/* Terminate the identifier string.
-	 *** requires one extra byte in struct vpd_prom *** */
+	
 	*p++ = 0;
 
 	if (rio_debug & RIO_DEBUG_PROBE)
@@ -807,11 +703,8 @@ static int rio_init_datastructures(void)
 	struct Port *port;
 	func_enter();
 
-	/* Many drivers statically allocate the maximum number of ports
-	   There is no reason not to allocate them dynamically. Is there? -- REW */
-	/* However, the RIO driver allows users to configure their first
-	   RTA as the ports numbered 504-511. We therefore need to allocate
-	   the whole range. :-(   -- REW */
+	
+	
 
 #define RI_SZ   sizeof(struct rio_info)
 #define HOST_SZ sizeof(struct Host)
@@ -845,7 +738,7 @@ static int rio_init_datastructures(void)
 		spin_lock_init(&port->portSem);
 	}
 #else
-	/* We could postpone initializing them to when they are configured. */
+	
 #endif
 
 
@@ -860,9 +753,7 @@ static int rio_init_datastructures(void)
 
       free6:for (i--; i >= 0; i--)
 		kfree(p->RIOPortp[i]);
-/*free5:
- free4:
- free3:*/ kfree(p->RIOPortp);
+ kfree(p->RIOPortp);
       free2:kfree(p->RIOHosts);
       free1:
 	rio_dprintk(RIO_DEBUG_INIT, "Not enough memory! %p %p %p\n", p, p->RIOHosts, p->RIOPortp);
@@ -883,24 +774,11 @@ static void __exit rio_release_drivers(void)
 
 
 #ifdef CONFIG_PCI
- /* This was written for SX, but applies to RIO too...
-    (including bugs....)
+ 
 
-    There is another bit besides Bit 17. Turning that bit off
-    (on boards shipped with the fix in the eeprom) results in a 
-    hang on the next access to the card. 
-  */
+ 
 
- /******************************************************** 
- * Setting bit 17 in the CNTRL register of the PLX 9050  * 
- * chip forces a retry on writes while a read is pending.*
- * This is to prevent the card locking up on Intel Xeon  *
- * multiprocessor systems with the NX chipset.    -- NV  *
- ********************************************************/
 
-/* Newer cards are produced with this bit set from the configuration
-   EEprom.  As the bit is read/write for the CPU, we can fix it here,
-   if we detect that it isn't set correctly. -- REW */
 
 static void fix_rio_pci(struct pci_dev *pdev)
 {
@@ -956,20 +834,15 @@ static int __init rio_init(void)
 		return retval;
 	}
 #ifdef CONFIG_PCI
-	/* First look for the JET devices: */
+	
 	while ((pdev = pci_get_device(PCI_VENDOR_ID_SPECIALIX, PCI_DEVICE_ID_SPECIALIX_SX_XIO_IO8, pdev))) {
 		u32 tint;
 
 		if (pci_enable_device(pdev))
 			continue;
 
-		/* Specialix has a whole bunch of cards with
-		   0x2000 as the device ID. They say its because
-		   the standard requires it. Stupid standard. */
-		/* It seems that reading a word doesn't work reliably on 2.0.
-		   Also, reading a non-aligned dword doesn't work. So we read the
-		   whole dword at 0x2c and extract the word at 0x2e (SUBSYSTEM_ID)
-		   ourselves */
+		
+		
 		pci_read_config_dword(pdev, 0x2c, &tint);
 		tshort = (tint >> 16) & 0xffff;
 		rio_dprintk(RIO_DEBUG_PROBE, "Got a specialix card: %x.\n", tint);
@@ -1016,16 +889,11 @@ static int __init rio_init(void)
 		}
 	}
 
-	/* Then look for the older PCI card.... : */
+	
 
-	/* These older PCI cards have problems (only byte-mode access is
-	   supported), which makes them a bit awkward to support.
-	   They also have problems sharing interrupts. Be careful.
-	   (The driver now refuses to share interrupts for these
-	   cards. This should be sufficient).
-	 */
+	
 
-	/* Then look for the older RIO/PCI devices: */
+	
 	while ((pdev = pci_get_device(PCI_VENDOR_ID_SPECIALIX, PCI_DEVICE_ID_SPECIALIX_RIO, pdev))) {
 		if (pci_enable_device(pdev))
 			continue;
@@ -1036,7 +904,7 @@ static int __init rio_init(void)
 		hp->Ivec = pdev->irq;
 		if (((1 << hp->Ivec) & rio_irqmask) == 0)
 			hp->Ivec = 0;
-		hp->Ivec |= 0x8000;	/* Mark as non-sharable */
+		hp->Ivec |= 0x8000;	
 		hp->Caddr = ioremap(p->RIOHosts[p->RIONumHosts].PaddrP, RIO_WINDOW_LEN);
 		hp->CardP = (struct DpRam __iomem *) hp->Caddr;
 		hp->Type = RIO_PCI;
@@ -1071,22 +939,18 @@ static int __init rio_init(void)
 		printk(KERN_ERR "Found an older RIO PCI card, but the driver is not " "compiled to support it.\n");
 #endif
 	}
-#endif				/* PCI */
+#endif				
 
-	/* Now probe for ISA cards... */
+	
 	for (i = 0; i < NR_RIO_ADDRS; i++) {
 		hp = &p->RIOHosts[p->RIONumHosts];
 		hp->PaddrP = rio_probe_addrs[i];
-		/* There was something about the IRQs of these cards. 'Forget what.--REW */
+		
 		hp->Ivec = 0;
 		hp->Caddr = ioremap(p->RIOHosts[p->RIONumHosts].PaddrP, RIO_WINDOW_LEN);
 		hp->CardP = (struct DpRam __iomem *) hp->Caddr;
 		hp->Type = RIO_AT;
-		hp->Copy = rio_copy_to_card;	/* AT card PCI???? - PVDL
-                                         * -- YES! this is now a normal copy. Only the
-					 * old PCI card uses the special PCI copy.
-					 * Moreover, the ISA card will work with the
-					 * special PCI copy anyway. -- REW */
+		hp->Copy = rio_copy_to_card;	
 		hp->Mode = 0;
 		spin_lock_init(&hp->HostLock);
 
@@ -1094,9 +958,9 @@ static int __init rio_init(void)
 		rio_dprintk(RIO_DEBUG_PROBE, "Got VPD ROM\n");
 		okboard = 0;
 		if ((strncmp(vpdp->identifier, RIO_ISA_IDENT, 16) == 0) || (strncmp(vpdp->identifier, RIO_ISA2_IDENT, 16) == 0) || (strncmp(vpdp->identifier, RIO_ISA3_IDENT, 16) == 0)) {
-			/* Board is present... */
+			
 			if (RIOBoardTest(hp->PaddrP, hp->Caddr, RIO_AT, 0) == 0) {
-				/* ... and feeling fine!!!! */
+				
 				rio_dprintk(RIO_DEBUG_PROBE, "Hmm Tested ok, uniqid = %x.\n", p->RIOHosts[p->RIONumHosts].UniqueNum);
 				if (RIOAssignAT(p, hp->PaddrP, hp->Caddr, 0)) {
 					rio_dprintk(RIO_DEBUG_PROBE, "Hmm Tested ok, host%d uniqid = %x.\n", p->RIONumHosts, p->RIOHosts[p->RIONumHosts - 1].UniqueNum);
@@ -1137,8 +1001,7 @@ static int __init rio_init(void)
 			rio_dprintk(RIO_DEBUG_INIT, "New Mode: %x\n", hp->Mode);
 			rio_start_card_running(hp);
 		}
-		/* Init the timer "always" to make sure that it can safely be
-		   deleted when we unload... */
+		
 
 		setup_timer(&hp->timer, rio_pollfunc, i);
 		if (!hp->Ivec) {
@@ -1151,7 +1014,7 @@ static int __init rio_init(void)
 		rio_dprintk(RIO_DEBUG_INIT, "rio: total of %d boards detected.\n", found);
 		rio_init_drivers();
 	} else {
-		/* deregister the misc device we created earlier */
+		
 		misc_deregister(&rio_fw_device);
 	}
 
@@ -1173,7 +1036,7 @@ static void __exit rio_exit(void)
 			free_irq(hp->Ivec, hp);
 			rio_dprintk(RIO_DEBUG_INIT, "freed irq %d.\n", hp->Ivec);
 		}
-		/* It is safe/allowed to del_timer a non-active timer */
+		
 		del_timer_sync(&hp->timer);
 		if (hp->Caddr)
 			iounmap(hp->Caddr);
@@ -1190,7 +1053,7 @@ static void __exit rio_exit(void)
 
 	rio_release_drivers();
 
-	/* Release dynamically allocated memory */
+	
 	kfree(p->RIOPortp);
 	kfree(p->RIOHosts);
 	kfree(p);

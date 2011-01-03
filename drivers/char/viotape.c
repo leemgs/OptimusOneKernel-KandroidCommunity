@@ -1,36 +1,4 @@
-/* -*- linux-c -*-
- *  drivers/char/viotape.c
- *
- *  iSeries Virtual Tape
- *
- *  Authors: Dave Boutcher <boutcher@us.ibm.com>
- *           Ryan Arnold <ryanarn@us.ibm.com>
- *           Colin Devilbiss <devilbis@us.ibm.com>
- *           Stephen Rothwell
- *
- * (C) Copyright 2000-2004 IBM Corporation
- *
- * This program is free software;  you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) anyu later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- *
- * This routine provides access to tape drives owned and managed by an OS/400
- * partition running on the same box as this Linux partition.
- *
- * All tape operations are performed by sending messages back and forth to
- * the OS/400 partition.  The format of the messages is defined in
- * iseries/vio.h
- */
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/errno.h>
@@ -65,11 +33,7 @@
 
 static int viotape_numdev;
 
-/*
- * The minor number follows the conventions of the SCSI tape drives.  The
- * rewind and mode are encoded in the minor #.  We use this struct to break
- * them out
- */
+
 struct viot_devinfo_struct {
 	int devno;
 	int mode;
@@ -173,16 +137,16 @@ static const struct vio_error_entry viotape_err_table[] = {
 	{ 0, 0, NULL },
 };
 
-/* Maximum number of tapes we support */
+
 #define VIOTAPE_MAX_TAPE	HVMAXARCHITECTEDVIRTUALTAPES
 #define MAX_PARTITIONS		4
 
-/* defines for current tape state */
+
 #define VIOT_IDLE		0
 #define VIOT_READING		1
 #define VIOT_WRITING		2
 
-/* Our info on the tapes */
+
 static struct {
 	const char *rsrcname;
 	const char *type;
@@ -195,22 +159,16 @@ static struct class *tape_class;
 
 static struct device *tape_device[VIOTAPE_MAX_TAPE];
 
-/*
- * maintain the current state of each tape (and partition)
- * so that we know when to write EOF marks.
- */
+
 static struct {
 	unsigned char	cur_part;
 	unsigned char	part_stat_rwi[MAX_PARTITIONS];
 } state[VIOTAPE_MAX_TAPE];
 
-/* We single-thread */
+
 static struct semaphore reqSem;
 
-/*
- * When we send a request, we use this struct to get the response back
- * from the interrupt handler
- */
+
 struct op_struct {
 	void			*buffer;
 	dma_addr_t		dmaaddr;
@@ -225,10 +183,10 @@ struct op_struct {
 static spinlock_t	op_struct_list_lock;
 static struct op_struct	*op_struct_list;
 
-/* forward declaration to resolve interdependence */
+
 static int chg_state(int index, unsigned char new_state, struct file *file);
 
-/* procfs support */
+
 static int proc_viotape_show(struct seq_file *m, void *v)
 {
 	int i;
@@ -257,16 +215,16 @@ static const struct file_operations proc_viotape_operations = {
 	.release	= single_release,
 };
 
-/* Decode the device minor number into its parts */
+
 void get_dev_info(struct inode *ino, struct viot_devinfo_struct *devi)
 {
 	devi->devno = iminor(ino) & 0x1F;
 	devi->mode = (iminor(ino) & 0x60) >> 5;
-	/* if bit is set in the minor, do _not_ rewind automatically */
+	
 	devi->rewind = (iminor(ino) & 0x80) == 0;
 }
 
-/* This is called only from the exit and init paths, so no need for locking */
+
 static void clear_op_struct_pool(void)
 {
 	while (op_struct_list) {
@@ -276,7 +234,7 @@ static void clear_op_struct_pool(void)
 	}
 }
 
-/* Likewise, this is only called from the init path */
+
 static int add_op_structs(int structs)
 {
 	int i;
@@ -294,7 +252,7 @@ static int add_op_structs(int structs)
 	return 0;
 }
 
-/* Allocate an op structure from our pool */
+
 static struct op_struct *get_op_struct(void)
 {
 	struct op_struct *retval;
@@ -313,7 +271,7 @@ static struct op_struct *get_op_struct(void)
 	return retval;
 }
 
-/* Return an op structure to our pool */
+
 static void free_op_struct(struct op_struct *op_struct)
 {
 	unsigned long flags;
@@ -324,7 +282,7 @@ static void free_op_struct(struct op_struct *op_struct)
 	spin_unlock_irqrestore(&op_struct_list_lock, flags);
 }
 
-/* Map our tape return codes to errno values */
+
 int tape_rc_to_errno(int tape_rc, char *operation, int tapeno)
 {
 	const struct vio_error_entry *err;
@@ -339,7 +297,7 @@ int tape_rc_to_errno(int tape_rc, char *operation, int tapeno)
 	return -err->errno;
 }
 
-/* Write */
+
 static ssize_t viotap_write(struct file *file, const char *buf,
 		size_t count, loff_t * ppos)
 {
@@ -355,12 +313,7 @@ static ssize_t viotap_write(struct file *file, const char *buf,
 
 	get_dev_info(file->f_path.dentry->d_inode, &devi);
 
-	/*
-	 * We need to make sure we can send a request.  We use
-	 * a semaphore to keep track of # requests in use.  If
-	 * we are non-blocking, make sure we don't block on the
-	 * semaphore
-	 */
+	
 	if (noblock) {
 		if (down_trylock(&reqSem)) {
 			ret = -EWOULDBLOCK;
@@ -369,7 +322,7 @@ static ssize_t viotap_write(struct file *file, const char *buf,
 	} else
 		down(&reqSem);
 
-	/* Allocate a DMA buffer */
+	
 	op->dev = tape_device[devi.devno];
 	op->buffer = dma_alloc_coherent(op->dev, count, &op->dmaaddr,
 			GFP_ATOMIC);
@@ -382,7 +335,7 @@ static ssize_t viotap_write(struct file *file, const char *buf,
 		goto up_sem;
 	}
 
-	/* Copy the data into the buffer */
+	
 	if (copy_from_user(op->buffer, buf, count)) {
 		printk(VIOTAPE_KERN_WARN "tape: error on copy from user\n");
 		ret = -EFAULT;
@@ -429,7 +382,7 @@ free_op:
 	return ret;
 }
 
-/* read */
+
 static ssize_t viotap_read(struct file *file, char *buf, size_t count,
 		loff_t *ptr)
 {
@@ -445,12 +398,7 @@ static ssize_t viotap_read(struct file *file, char *buf, size_t count,
 
 	get_dev_info(file->f_path.dentry->d_inode, &devi);
 
-	/*
-	 * We need to make sure we can send a request.  We use
-	 * a semaphore to keep track of # requests in use.  If
-	 * we are non-blocking, make sure we don't block on the
-	 * semaphore
-	 */
+	
 	if (noblock) {
 		if (down_trylock(&reqSem)) {
 			ret = -EWOULDBLOCK;
@@ -461,7 +409,7 @@ static ssize_t viotap_read(struct file *file, char *buf, size_t count,
 
 	chg_state(devi.devno, VIOT_READING, file);
 
-	/* Allocate a DMA buffer */
+	
 	op->dev = tape_device[devi.devno];
 	op->buffer = dma_alloc_coherent(op->dev, count, &op->dmaaddr,
 			GFP_ATOMIC);
@@ -509,7 +457,7 @@ free_op:
 	return ret;
 }
 
-/* ioctl */
+
 static int viotap_ioctl(struct inode *inode, struct file *file,
 		unsigned int cmd, unsigned long arg)
 {
@@ -532,10 +480,7 @@ static int viotap_ioctl(struct inode *inode, struct file *file,
 	switch (cmd) {
 	case MTIOCTOP:
 		ret = -EFAULT;
-		/*
-		 * inode is null if and only if we (the kernel)
-		 * made the request
-		 */
+		
 		if (inode == NULL)
 			memcpy(&mtc, (void *) arg, sizeof(struct mtop));
 		else if (copy_from_user((char *)&mtc, (char *)arg,
@@ -598,10 +543,7 @@ static int viotap_ioctl(struct inode *inode, struct file *file,
 			goto free_op;
 		}
 
-		/*
-		 * if we moved the head, we are no longer
-		 * reading or writing
-		 */
+		
 		switch (mtc.mt_op) {
 		case MTFSF:
 		case MTBSF:
@@ -653,7 +595,7 @@ static int viotap_ioctl(struct inode *inode, struct file *file,
 		}
 		wait_for_completion(&op->com);
 
-		/* Operation is complete - grab the error code */
+		
 		ret = tape_rc_to_errno(op->rc, "get status", devi.devno);
 		free_op_struct(op);
 		up(&reqSem);
@@ -702,7 +644,7 @@ static int viotap_open(struct inode *inode, struct file *file)
 	lock_kernel();
 	get_dev_info(file->f_path.dentry->d_inode, &devi);
 
-	/* Note: We currently only support one mode! */
+	
 	if ((devi.devno >= viotape_numdev) || (devi.mode)) {
 		ret = -ENODEV;
 		goto free_op;
@@ -805,7 +747,7 @@ const struct file_operations viotap_fops = {
 	.release =		viotap_release,
 };
 
-/* Handle interrupt events for tape */
+
 static void vioHandleTapeEvent(struct HvLpEvent *event)
 {
 	int tapeminor;
@@ -813,9 +755,9 @@ static void vioHandleTapeEvent(struct HvLpEvent *event)
 	struct viotapelpevent *tevent = (struct viotapelpevent *)event;
 
 	if (event == NULL) {
-		/* Notification that a partition went away! */
+		
 		if (!viopath_isactive(viopath_hostLp)) {
-			/* TODO! Clean up */
+			
 		}
 		return;
 	}
@@ -906,10 +848,7 @@ static int viotape_remove(struct vio_dev *vdev)
 	return 0;
 }
 
-/**
- * viotape_device_table: Used by vio.c to match devices that we
- * support.
- */
+
 static struct vio_device_id viotape_device_table[] __devinitdata = {
 	{ "byte", "IBM,iSeries-viotape" },
 	{ "", "" }
@@ -999,18 +938,18 @@ clear_op:
 	return ret;
 }
 
-/* Give a new state to the tape object */
+
 static int chg_state(int index, unsigned char new_state, struct file *file)
 {
 	unsigned char *cur_state =
 	    &state[index].part_stat_rwi[state[index].cur_part];
 	int rc = 0;
 
-	/* if the same state, don't bother */
+	
 	if (*cur_state == new_state)
 		return 0;
 
-	/* write an EOF if changing from writing to some other state */
+	
 	if (*cur_state == VIOT_WRITING) {
 		struct mtop write_eof = { MTWEOF, 1 };
 
@@ -1021,7 +960,7 @@ static int chg_state(int index, unsigned char new_state, struct file *file)
 	return rc;
 }
 
-/* Cleanup */
+
 static void __exit viotap_exit(void)
 {
 	remove_proc_entry("iSeries/viotape", NULL);

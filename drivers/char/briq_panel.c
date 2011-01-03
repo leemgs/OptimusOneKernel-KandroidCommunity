@@ -1,8 +1,4 @@
-/*
- * Drivers for the Total Impact PPC based computer "BRIQ"
- * by Dr. Karsten Jeppesen
- *
- */
+
 
 #include <linux/module.h>
 
@@ -41,12 +37,12 @@ static void update_vfd(void)
 {
 	int	i;
 
-	/* cursor home */
+	
 	outb(0x02, BRIQ_PANEL_VFD_IOPORT);
 	for (i=0; i<20; i++)
 		outb(vfd[i], BRIQ_PANEL_VFD_IOPORT + 1);
 
-	/* cursor to next line */
+	
 	outb(0xc0, BRIQ_PANEL_VFD_IOPORT);
 	for (i=20; i<40; i++)
 		outb(vfd[i], BRIQ_PANEL_VFD_IOPORT + 1);
@@ -69,7 +65,7 @@ static void set_led(char state)
 static int briq_panel_open(struct inode *ino, struct file *filep)
 {
 	lock_kernel();
-	/* enforce single access, vfd_is_open is protected by BKL */
+	
 	if (vfd_is_open) {
 		unlock_kernel();
 		return -EBUSY;
@@ -101,7 +97,7 @@ static ssize_t briq_panel_read(struct file *file, char __user *buf, size_t count
 
 	c = (inb(BRIQ_PANEL_LED_IOPORT) & 0x000c) | (ledpb & 0x0003);
 	set_led(' ');
-	/* upper button released */
+	
 	if ((!(ledpb & 0x0004)) && (c & 0x0004)) {
 		cp = ' ';
 		ledpb = c;
@@ -109,7 +105,7 @@ static ssize_t briq_panel_read(struct file *file, char __user *buf, size_t count
 			return -EFAULT;
 		return 1;
 	}
-	/* lower button released */
+	
 	else if ((!(ledpb & 0x0008)) && (c & 0x0008)) {
 		cp = '\r';
 		ledpb = c;
@@ -154,7 +150,7 @@ static ssize_t briq_panel_write(struct file *file, const char __user *buf, size_
 		} else if (c == 27) {
 			esc = 1;
 		} else if (c == 12) {
-			/* do a form feed */
+			
 			for (i=0; i<40; i++)
 				vfd[i] = ' ';
 			vfd_cursor = 0;
@@ -168,7 +164,7 @@ static ssize_t briq_panel_write(struct file *file, const char __user *buf, size_
 			if (vfd_cursor > 59)
 				scroll_vfd();
 		} else {
-			/* just a character */
+			
 			if (vfd_cursor > 39)
 				scroll_vfd();
 			vfd[vfd_cursor++] = c;
@@ -227,10 +223,10 @@ static int __init briq_panel_init(void)
 		return -EBUSY;
 	}
 
-	outb(0x38, BRIQ_PANEL_VFD_IOPORT);	/* Function set */
-	outb(0x01, BRIQ_PANEL_VFD_IOPORT);	/* Clear display */
-	outb(0x0c, BRIQ_PANEL_VFD_IOPORT);	/* Display on */
-	outb(0x06, BRIQ_PANEL_VFD_IOPORT);	/* Entry normal */
+	outb(0x38, BRIQ_PANEL_VFD_IOPORT);	
+	outb(0x01, BRIQ_PANEL_VFD_IOPORT);	
+	outb(0x0c, BRIQ_PANEL_VFD_IOPORT);	
+	outb(0x06, BRIQ_PANEL_VFD_IOPORT);	
 	for (i=0; i<40; i++)
 		vfd[i]=' ';
 #ifndef MODULE
@@ -245,7 +241,7 @@ static int __init briq_panel_init(void)
 	vfd[8] = '.';
 	vfd[9] = '.';
 	vfd[10] = '.';
-#endif /* !MODULE */
+#endif 
 
 	update_vfd();
 

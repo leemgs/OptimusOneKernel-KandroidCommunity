@@ -1,44 +1,4 @@
-/*
- *  esp.c - driver for Hayes ESP serial cards
- *
- *  --- Notices from serial.c, upon which this driver is based ---
- *
- *  Copyright (C) 1991, 1992  Linus Torvalds
- *
- *  Extensively rewritten by Theodore Ts'o, 8/16/92 -- 9/14/92.  Now
- *  much more extensible to support other serial cards based on the
- *  16450/16550A UART's.  Added support for the AST FourPort and the
- *  Accent Async board.
- *
- *  set_serial_info fixed to set the flags, custom divisor, and uart
- * 	type fields.  Fix suggested by Michael K. Johnson 12/12/92.
- *
- *  11/95: TIOCMIWAIT, TIOCGICOUNT by Angelo Haritsis <ah@doc.ic.ac.uk>
- *
- *  03/96: Modularised by Angelo Haritsis <ah@doc.ic.ac.uk>
- *
- *  rs_set_termios fixed to look also for changes of the input
- *      flags INPCK, BRKINT, PARMRK, IGNPAR and IGNBRK.
- *                                            Bernd Anhäupl 05/17/96.
- *
- * --- End of notices from serial.c ---
- *
- * Support for the ESP serial card by Andrew J. Robinson
- *     <arobinso@nyx.net> (Card detection routine taken from a patch
- *     by Dennis J. Boylan).  Patches to allow use with 2.1.x contributed
- *     by Chris Faylor.
- *
- * Most recent changes: (Andrew J. Robinson)
- *   Support for PIO mode.  This allows the driver to work properly with
- *     multiport cards.
- *
- * Arnaldo Carvalho de Melo <acme@conectiva.com.br> -
- * several cleanups, use module_init/module_exit, etc
- *
- * This module exports the following rs232 io functions:
- *
- *	int espserial_init(void);
- */
+
 
 #include <linux/module.h>
 #include <linux/errno.h>
@@ -69,14 +29,14 @@
 
 #include <linux/hayesesp.h>
 
-#define NR_PORTS 64	/* maximum number of ports */
-#define NR_PRIMARY 8	/* maximum number of primary ports */
-#define REGION_SIZE 8   /* size of io region to request */
+#define NR_PORTS 64	
+#define NR_PRIMARY 8	
+#define REGION_SIZE 8   
 
-/* The following variables can be set by giving module options */
-static int irq[NR_PRIMARY];	/* IRQ for each base port */
-static unsigned int divisor[NR_PRIMARY]; /* custom divisor for each port */
-static unsigned int dma = ESP_DMA_CHANNEL; /* DMA channel */
+
+static int irq[NR_PRIMARY];	
+static unsigned int divisor[NR_PRIMARY]; 
+static unsigned int dma = ESP_DMA_CHANNEL; 
 static unsigned int rx_trigger = ESP_RX_TRIGGER;
 static unsigned int tx_trigger = ESP_TX_TRIGGER;
 static unsigned int flow_off = ESP_FLOW_OFF;
@@ -96,7 +56,7 @@ module_param(flow_on, uint, 0);
 module_param(rx_timeout, uint, 0);
 module_param(pio_threshold, uint, 0);
 
-/* END */
+
 
 static char *dma_buffer;
 static int dma_bytes;
@@ -111,13 +71,7 @@ static char serial_version[] __initdata = "2.2";
 
 static struct tty_driver *esp_driver;
 
-/*
- * Serial driver configuration section.  Here are the various options:
- *
- * SERIAL_PARANOIA_CHECK
- * 		Check the magic number for the esp_structure where
- * 		ever possible.
- */
+
 
 #undef SERIAL_PARANOIA_CHECK
 #define SERIAL_DO_RESTART
@@ -140,13 +94,10 @@ static struct esp_struct *ports;
 static void change_speed(struct esp_struct *info);
 static void rs_wait_until_sent(struct tty_struct *, int);
 
-/*
- * The ESP card has a clock rate of 14.7456 MHz (that is, 2**ESPC_SCALE
- * times the normal 1.8432 Mhz clock of most serial boards).
- */
+
 #define BASE_BAUD ((1843200 / 16) * (1 << ESPC_SCALE))
 
-/* Standard COM flags (except for COM4, because of the 8514 problem) */
+
 #define STD_COM_FLAGS (ASYNC_BOOT_AUTOCONF | ASYNC_SKIP_TEST)
 
 static inline int serial_paranoia_check(struct esp_struct *info,
@@ -181,14 +132,7 @@ static inline void serial_out(struct esp_struct *info, int offset,
 	outb(value, info->io_port+offset);
 }
 
-/*
- * ------------------------------------------------------------
- * rs_stop() and rs_start()
- *
- * This routines are called before setting or resetting tty->stopped.
- * They enable or disable transmitter interrupts, as necessary.
- * ------------------------------------------------------------
- */
+
 static void rs_stop(struct tty_struct *tty)
 {
 	struct esp_struct *info = tty->driver_data;
@@ -223,26 +167,7 @@ static void rs_start(struct tty_struct *tty)
 	spin_unlock_irqrestore(&info->lock, flags);
 }
 
-/*
- * ----------------------------------------------------------------------
- *
- * Here starts the interrupt handling routines.  All of the following
- * subroutines are declared as inline and are folded into
- * rs_interrupt().  They were separated out for readability's sake.
- *
- * Note: rs_interrupt() is a "fast" interrupt, which means that it
- * runs with interrupts turned off.  People who may want to modify
- * rs_interrupt() should try to keep the interrupt handler as fast as
- * possible.  After you are done making modifications, it is not a bad
- * idea to do:
- *
- * gcc -S -DKERNEL -Wall -Wstrict-prototypes -O6 -fomit-frame-pointer serial.c
- *
- * and look at the resulting assemble code in serial.s.
- *
- * 				- Ted Ts'o (tytso@mit.edu), 7-Mar-93
- * -----------------------------------------------------------------------
- */
+
 
 static DEFINE_SPINLOCK(pio_lock);
 
@@ -307,7 +232,7 @@ static inline void receive_chars_pio(struct esp_struct *info, int num_bytes)
 			(serial_in(info, UART_ESI_RWS) >> 3) & status_mask;
 	}
 
-	/* make sure everything is still ok since interrupts were enabled */
+	
 	tty = info->port.tty;
 
 	if (!tty) {
@@ -389,7 +314,7 @@ static inline void receive_chars_dma_done(struct esp_struct *info,
 
 		status &= (0x1c & info->read_status_mask);
 
-		/* Is the status significant or do we throw the last byte ? */
+		
 		if (!(status & info->ignore_status_mask)) {
 			int statflag = 0;
 
@@ -419,7 +344,7 @@ static inline void receive_chars_dma_done(struct esp_struct *info,
 		dma_bytes = 0;
 }
 
-/* Caller must hold info->lock */
+
 
 static inline void transmit_chars_pio(struct esp_struct *info,
 					int space_avail)
@@ -488,7 +413,7 @@ static inline void transmit_chars_pio(struct esp_struct *info,
 	release_pio_buffer(pio_buf);
 }
 
-/* Caller must hold info->lock */
+
 static inline void transmit_chars_dma(struct esp_struct *info, int num_bytes)
 {
 	dma_bytes = num_bytes;
@@ -563,7 +488,7 @@ static void check_modem_status(struct esp_struct *info)
 	status = serial_in(info, UART_ESI_STAT2);
 
 	if (status & UART_MSR_ANY_DELTA) {
-		/* update input line counters */
+		
 		if (status & UART_MSR_TERI)
 			info->icount.rng++;
 		if (status & UART_MSR_DDSR)
@@ -591,9 +516,7 @@ static void check_modem_status(struct esp_struct *info)
 	}
 }
 
-/*
- * This is the serial driver's interrupt routine
- */
+
 static irqreturn_t rs_interrupt_single(int irq, void *dev_id)
 {
 	struct esp_struct *info;
@@ -614,7 +537,7 @@ static irqreturn_t rs_interrupt_single(int irq, void *dev_id)
 		return IRQ_NONE;
 	}
 
-	if (scratch & 0x04) { /* error */
+	if (scratch & 0x04) { 
 		serial_out(info, UART_ESI_CMD1, ESI_GET_ERR_STAT);
 		err_status = serial_in(info, UART_ESI_STAT1);
 		serial_in(info, UART_ESI_STAT2);
@@ -622,15 +545,15 @@ static irqreturn_t rs_interrupt_single(int irq, void *dev_id)
 		if (err_status & 0x01)
 			info->stat_flags |= ESP_STAT_RX_TIMEOUT;
 
-		if (err_status & 0x20) /* UART status */
+		if (err_status & 0x20) 
 			check_modem_status(info);
 
-		if (err_status & 0x80) /* Start break */
+		if (err_status & 0x80) 
 			wake_up_interruptible(&info->break_wait);
 	}
 
-	if ((scratch & 0x88) || /* DMA completed or timed out */
-	    (err_status & 0x1c) /* receive error */) {
+	if ((scratch & 0x88) || 
+	    (err_status & 0x1c) ) {
 		if (info->stat_flags & ESP_STAT_DMA_RX)
 			receive_chars_dma_done(info, err_status);
 		else if (info->stat_flags & ESP_STAT_DMA_TX)
@@ -696,26 +619,13 @@ static irqreturn_t rs_interrupt_single(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-/*
- * -------------------------------------------------------------------
- * Here ends the serial interrupt routines.
- * -------------------------------------------------------------------
- */
 
-/*
- * ---------------------------------------------------------------
- * Low level utility subroutines for the serial driver:  routines to
- * figure out the appropriate timeout for an interrupt chain, routines
- * to initialize and startup a serial port, and routines to shutdown a
- * serial port.  Useful stuff like that.
- *
- * Caller should hold lock
- * ---------------------------------------------------------------
- */
+
+
 
 static void esp_basic_init(struct esp_struct *info)
 {
-	/* put ESPC in enhanced mode */
+	
 	serial_out(info, UART_ESI_CMD1, ESI_SET_MODE);
 
 	if (info->stat_flags & ESP_STAT_NEVER_DMA)
@@ -723,11 +633,11 @@ static void esp_basic_init(struct esp_struct *info)
 	else
 		serial_out(info, UART_ESI_CMD2, 0x31);
 
-	/* disable interrupts for now */
+	
 	serial_out(info, UART_ESI_CMD1, ESI_SET_SRV_MASK);
 	serial_out(info, UART_ESI_CMD2, 0x00);
 
-	/* set interrupt and DMA channel */
+	
 	serial_out(info, UART_ESI_CMD1, ESI_SET_IRQ);
 
 	if (info->stat_flags & ESP_STAT_NEVER_DMA)
@@ -737,14 +647,14 @@ static void esp_basic_init(struct esp_struct *info)
 
 	serial_out(info, UART_ESI_CMD1, ESI_SET_ENH_IRQ);
 
-	if (info->line % 8)	/* secondary port */
-		serial_out(info, UART_ESI_CMD2, 0x0d);	/* shared */
+	if (info->line % 8)	
+		serial_out(info, UART_ESI_CMD2, 0x0d);	
 	else if (info->irq == 9)
 		serial_out(info, UART_ESI_CMD2, 0x02);
 	else
 		serial_out(info, UART_ESI_CMD2, info->irq);
 
-	/* set error status mask (check this) */
+	
 	serial_out(info, UART_ESI_CMD1, ESI_SET_ERR_MASK);
 
 	if (info->stat_flags & ESP_STAT_NEVER_DMA)
@@ -754,22 +664,22 @@ static void esp_basic_init(struct esp_struct *info)
 
 	serial_out(info, UART_ESI_CMD2, 0x00);
 
-	/* set DMA timeout */
+	
 	serial_out(info, UART_ESI_CMD1, ESI_SET_DMA_TMOUT);
 	serial_out(info, UART_ESI_CMD2, 0xff);
 
-	/* set FIFO trigger levels */
+	
 	serial_out(info, UART_ESI_CMD1, ESI_SET_TRIGGER);
 	serial_out(info, UART_ESI_CMD2, info->config.rx_trigger >> 8);
 	serial_out(info, UART_ESI_CMD2, info->config.rx_trigger);
 	serial_out(info, UART_ESI_CMD2, info->config.tx_trigger >> 8);
 	serial_out(info, UART_ESI_CMD2, info->config.tx_trigger);
 
-	/* Set clock scaling and wait states */
+	
 	serial_out(info, UART_ESI_CMD1, ESI_SET_PRESCALAR);
 	serial_out(info, UART_ESI_CMD2, 0x04 | ESPC_SCALE);
 
-	/* set reinterrupt pacing */
+	
 	serial_out(info, UART_ESI_CMD1, ESI_SET_REINTR);
 	serial_out(info, UART_ESI_CMD2, 0xff);
 }
@@ -797,8 +707,8 @@ static int startup(struct esp_struct *info)
 						info->line, info->irq);
 #endif
 
-	/* Flush the RX buffer.  Using the ESI flush command may cause */
-	/* wild interrupts, so read all the data instead. */
+	
+	
 
 	serial_out(info, UART_ESI_CMD1, ESI_NO_COMMAND);
 	serial_out(info, UART_ESI_CMD1, ESI_GET_RX_AVAIL);
@@ -813,11 +723,11 @@ static int startup(struct esp_struct *info)
 	if (num_chars)
 		serial_in(info, UART_ESI_RX);
 
-	/* set receive character timeout */
+	
 	serial_out(info, UART_ESI_CMD1, ESI_SET_RX_TIMEOUT);
 	serial_out(info, UART_ESI_CMD2, info->config.rx_timeout);
 
-	/* clear all flags except the "never DMA" flag */
+	
 	info->stat_flags &= ESP_STAT_NEVER_DMA;
 
 	if (info->stat_flags & ESP_STAT_NEVER_DMA)
@@ -825,9 +735,7 @@ static int startup(struct esp_struct *info)
 
 	spin_unlock_irqrestore(&info->lock, flags);
 
-	/*
-	 * Allocate the IRQ
-	 */
+	
 
 	retval = request_irq(info->irq, rs_interrupt_single, IRQF_SHARED,
 			     "esp serial", info);
@@ -846,7 +754,7 @@ static int startup(struct esp_struct *info)
 		dma_buffer = (char *)__get_dma_pages(
 			GFP_KERNEL, get_order(DMA_BUFFER_SZ));
 
-		/* use PIO mode if DMA buf/chan cannot be allocated */
+		
 		if (!dma_buffer)
 			info->stat_flags |= ESP_STAT_USE_PIO;
 		else if (request_dma(dma, "esp serial")) {
@@ -865,10 +773,8 @@ static int startup(struct esp_struct *info)
 	serial_out(info, UART_ESI_CMD2, UART_MCR);
 	serial_out(info, UART_ESI_CMD2, info->MCR);
 
-	/*
-	 * Finally, enable interrupts
-	 */
-	/* info->IER = UART_IER_MSI | UART_IER_RLSI | UART_IER_RDI; */
+	
+	
 	info->IER = UART_IER_RLSI | UART_IER_RDI | UART_IER_DMA_TMOUT |
 			UART_IER_DMA_TC;
 	serial_out(info, UART_ESI_CMD1, ESI_SET_SRV_MASK);
@@ -879,9 +785,7 @@ static int startup(struct esp_struct *info)
 	info->xmit_cnt = info->xmit_head = info->xmit_tail = 0;
 	spin_unlock_irqrestore(&info->lock, flags);
 
-	/*
-	 * Set up the tty->alt_speed kludge
-	 */
+	
 	if (info->port.tty) {
 		if ((info->port.flags & ASYNC_SPD_MASK) == ASYNC_SPD_HI)
 			info->port.tty->alt_speed = 57600;
@@ -893,9 +797,7 @@ static int startup(struct esp_struct *info)
 			info->port.tty->alt_speed = 460800;
 	}
 
-	/*
-	 * set the speed of the serial port
-	 */
+	
 	change_speed(info);
 	info->port.flags |= ASYNC_INITIALIZED;
 	return 0;
@@ -906,10 +808,7 @@ out_unlocked:
 	return retval;
 }
 
-/*
- * This routine will shutdown a serial port; interrupts are disabled, and
- * DTR is dropped if the hangup on close termio flag is on.
- */
+
 static void shutdown(struct esp_struct *info)
 {
 	unsigned long	flags, f;
@@ -923,15 +822,12 @@ static void shutdown(struct esp_struct *info)
 #endif
 
 	spin_lock_irqsave(&info->lock, flags);
-	/*
-	 * clear delta_msr_wait queue to avoid mem leaks: we may free the irq
-	 * here so the queue might never be waken up
-	 */
+	
 	wake_up_interruptible(&info->port.delta_msr_wait);
 	wake_up_interruptible(&info->break_wait);
 
-	/* stop a DMA transfer on the port being closed */
-	/* DMA lock is higher priority always */
+	
+	
 	if (info->stat_flags & (ESP_STAT_DMA_RX | ESP_STAT_DMA_TX)) {
 		f = claim_dma_lock();
 		disable_dma(dma);
@@ -941,9 +837,7 @@ static void shutdown(struct esp_struct *info)
 		dma_bytes = 0;
 	}
 
-	/*
-	 * Free the IRQ
-	 */
+	
 	free_irq(info->irq, info);
 
 	if (dma_buffer) {
@@ -989,10 +883,7 @@ static void shutdown(struct esp_struct *info)
 	spin_unlock_irqrestore(&info->lock, flags);
 }
 
-/*
- * This routine is called to set the UART divisor registers to match
- * the specified baud rate for a serial port.
- */
+
 static void change_speed(struct esp_struct *info)
 {
 	unsigned short port;
@@ -1007,7 +898,7 @@ static void change_speed(struct esp_struct *info)
 	cflag = info->port.tty->termios->c_cflag;
 	port = info->io_port;
 
-	/* byte size and parity */
+	
 	switch (cflag & CSIZE) {
 	case CS5: cval = 0x00; bits = 7; break;
 	case CS6: cval = 0x01; bits = 8; break;
@@ -1034,27 +925,27 @@ static void change_speed(struct esp_struct *info)
 		((info->port.flags & ASYNC_SPD_MASK) == ASYNC_SPD_CUST))
 		quot = info->custom_divisor;
 	else {
-		if (baud == 134) /* Special case since 134 is really 134.5 */
+		if (baud == 134) 
 			quot = (2*BASE_BAUD / 269);
 		else if (baud)
 			quot = BASE_BAUD / baud;
 	}
-	/* If the quotient is ever zero, default to 9600 bps */
+	
 	if (!quot)
 		quot = BASE_BAUD / 9600;
 
 	if (baud) {
-		/* Actual rate */
+		
 		baud = BASE_BAUD/quot;
 		tty_encode_baud_rate(info->port.tty, baud, baud);
 	}
 	info->timeout = ((1024 * HZ * bits * quot) / BASE_BAUD) + (HZ / 50);
 
-	/* CTS flow control flag and modem status interrupts */
-	/* info->IER &= ~UART_IER_MSI; */
+	
+	
 	if (cflag & CRTSCTS) {
 		info->port.flags |= ASYNC_CTS_FLOW;
-		/* info->IER |= UART_IER_MSI; */
+		
 		flow1 = 0x04;
 		flow2 = 0x10;
 	} else
@@ -1064,9 +955,7 @@ static void change_speed(struct esp_struct *info)
 	else
 		info->port.flags |= ASYNC_CHECK_CD;
 
-	/*
-	 * Set up parity check flag
-	 */
+	
 	info->read_status_mask = UART_LSR_OE | UART_LSR_THRE | UART_LSR_DR;
 	if (I_INPCK(info->port.tty))
 		info->read_status_mask |= UART_LSR_FE | UART_LSR_PE;
@@ -1075,7 +964,7 @@ static void change_speed(struct esp_struct *info)
 
 	info->ignore_status_mask = 0;
 #if 0
-	/* This should be safe, but for some broken bits of hardware... */
+	
 	if (I_IGNPAR(info->port.tty)) {
 		info->ignore_status_mask |= UART_LSR_PE | UART_LSR_FE;
 		info->read_status_mask |= UART_LSR_PE | UART_LSR_FE;
@@ -1084,10 +973,7 @@ static void change_speed(struct esp_struct *info)
 	if (I_IGNBRK(info->port.tty)) {
 		info->ignore_status_mask |= UART_LSR_BI;
 		info->read_status_mask |= UART_LSR_BI;
-		/*
-		 * If we're ignore parity and break indicators, ignore
-		 * overruns too.  (For real raw support).
-		 */
+		
 		if (I_IGNPAR(info->port.tty)) {
 			info->ignore_status_mask |= UART_LSR_OE | \
 				UART_LSR_PE | UART_LSR_FE;
@@ -1100,22 +986,22 @@ static void change_speed(struct esp_struct *info)
 		flow1 |= 0x81;
 
 	spin_lock_irqsave(&info->lock, flags);
-	/* set baud */
+	
 	serial_out(info, UART_ESI_CMD1, ESI_SET_BAUD);
 	serial_out(info, UART_ESI_CMD2, quot >> 8);
 	serial_out(info, UART_ESI_CMD2, quot & 0xff);
 
-	/* set data bits, parity, etc. */
+	
 	serial_out(info, UART_ESI_CMD1, ESI_WRITE_UART);
 	serial_out(info, UART_ESI_CMD2, UART_LCR);
 	serial_out(info, UART_ESI_CMD2, cval);
 
-	/* Enable flow control */
+	
 	serial_out(info, UART_ESI_CMD1, ESI_SET_FLOW_CNTL);
 	serial_out(info, UART_ESI_CMD2, flow1);
 	serial_out(info, UART_ESI_CMD2, flow2);
 
-	/* set flow control characters (XON/XOFF only) */
+	
 	if (I_IXOFF(info->port.tty)) {
 		serial_out(info, UART_ESI_CMD1, ESI_SET_FLOW_CHARS);
 		serial_out(info, UART_ESI_CMD2, START_CHAR(info->port.tty));
@@ -1139,7 +1025,7 @@ static void change_speed(struct esp_struct *info)
 		}
 	}
 
-	/* Set high/low water */
+	
 	serial_out(info, UART_ESI_CMD1, ESI_SET_FLOW_LVL);
 	serial_out(info, UART_ESI_CMD2, info->config.flow_off >> 8);
 	serial_out(info, UART_ESI_CMD2, info->config.flow_off);
@@ -1208,8 +1094,8 @@ static int rs_write(struct tty_struct *tty,
 		return 0;
 
 	while (1) {
-		/* Thanks to R. Wolff for suggesting how to do this with */
-		/* interrupts enabled */
+		
+		
 
 		c = count;
 		t = ESP_XMIT_SIZE - info->xmit_cnt - 1;
@@ -1286,14 +1172,7 @@ static void rs_flush_buffer(struct tty_struct *tty)
 	tty_wakeup(tty);
 }
 
-/*
- * ------------------------------------------------------------
- * rs_throttle()
- *
- * This routine is called by the upper-layer tty layer to signal that
- * incoming characters should be throttled.
- * ------------------------------------------------------------
- */
+
 static void rs_throttle(struct tty_struct *tty)
 {
 	struct esp_struct *info = tty->driver_data;
@@ -1340,11 +1219,7 @@ static void rs_unthrottle(struct tty_struct *tty)
 	spin_unlock_irqrestore(&info->lock, flags);
 }
 
-/*
- * ------------------------------------------------------------
- * rs_ioctl() and friends
- * ------------------------------------------------------------
- */
+
 
 static int get_serial_info(struct esp_struct *info,
 			   struct serial_struct __user *retinfo)
@@ -1451,10 +1326,7 @@ static int set_serial_info(struct esp_struct *info,
 			}
 		}
 
-		/*
-		 * OK, past this point, all the error checking has been done.
-		 * At this point, we start making changes.....
-		 */
+		
 
 		info->port.flags = ((info->port.flags & ~ASYNC_FLAGS) |
 			       (new_serial.flags & ASYNC_FLAGS));
@@ -1463,10 +1335,7 @@ static int set_serial_info(struct esp_struct *info,
 		info->closing_wait = new_serial.closing_wait * HZ/100;
 
 		if (change_irq) {
-			/*
-			 * We need to shutdown the serial port at the old
-			 * port/irq combination.
-			 */
+			
 			shutdown(info);
 
 			current_async = ports;
@@ -1516,8 +1385,8 @@ static int set_esp_config(struct esp_struct *info,
 	struct esp_struct *current_async;
 	unsigned long flags;
 
-	/* Perhaps a non-sysadmin user should be able to do some of these */
-	/* operations.  I haven't decided yet. */
+	
+	
 
 	if (!capable(CAP_SYS_ADMIN))
 		return -EPERM;
@@ -1548,8 +1417,8 @@ static int set_esp_config(struct esp_struct *info,
 
 	if (change_dma) {
 		if (new_config.dma_channel) {
-			/* PIO mode to DMA mode transition OR */
-			/* change current DMA channel */
+			
+			
 			current_async = ports;
 
 			while (current_async) {
@@ -1566,7 +1435,7 @@ static int set_esp_config(struct esp_struct *info,
 			dma = new_config.dma_channel;
 			info->stat_flags &= ~ESP_STAT_NEVER_DMA;
 
-			/* all ports must use the same DMA channel */
+			
 
 			spin_lock_irqsave(&info->lock, flags);
 			current_async = ports;
@@ -1577,7 +1446,7 @@ static int set_esp_config(struct esp_struct *info,
 			}
 			spin_unlock_irqrestore(&info->lock, flags);
 		} else {
-			/* DMA mode to PIO mode only */
+			
 			if (info->port.count > 1)
 				return -EBUSY;
 
@@ -1640,16 +1509,7 @@ static int set_esp_config(struct esp_struct *info,
 	return retval;
 }
 
-/*
- * get_lsr_info - get line status register info
- *
- * Purpose: Let user call ioctl() to get info when the UART physically
- * 	    is emptied.  On bus types like RS485, the transmitter must
- * 	    release the bus after transmitting. This must be done when
- * 	    the transmit shift register is empty, not be done when the
- * 	    transmit holding register is empty.  This functionality
- * 	    allows an RS485 driver to be written in user space.
- */
+
 static int get_lsr_info(struct esp_struct *info, unsigned int __user *value)
 {
 	unsigned char status;
@@ -1722,9 +1582,7 @@ static int esp_tiocmset(struct tty_struct *tty, struct file *file,
 	return 0;
 }
 
-/*
- * rs_break() --- routine which turns the break handling on or off
- */
+
 static int esp_break(struct tty_struct *tty, int break_state)
 {
 	struct esp_struct *info = tty->driver_data;
@@ -1739,7 +1597,7 @@ static int esp_break(struct tty_struct *tty, int break_state)
 		serial_out(info, UART_ESI_CMD2, 0x01);
 		spin_unlock_irqrestore(&info->lock, flags);
 
-		/* FIXME - new style wait needed here */
+		
 		interruptible_sleep_on(&info->break_wait);
 	} else {
 		spin_lock_irqsave(&info->lock, flags);
@@ -1754,8 +1612,8 @@ static int rs_ioctl(struct tty_struct *tty, struct file *file,
 		    unsigned int cmd, unsigned long arg)
 {
 	struct esp_struct *info = tty->driver_data;
-	struct async_icount cprev, cnow;	/* kernel counter temps */
-	struct serial_icounter_struct __user *p_cuser;	/* user space */
+	struct async_icount cprev, cnow;	
+	struct serial_icounter_struct __user *p_cuser;	
 	void __user *argp = (void __user *)arg;
 	unsigned long flags;
 	int ret;
@@ -1782,36 +1640,31 @@ static int rs_ioctl(struct tty_struct *tty, struct file *file,
 		return ret;
 	case TIOCSERGWILD:
 		return put_user(0L, (unsigned long __user *)argp);
-	case TIOCSERGETLSR: /* Get line status register */
+	case TIOCSERGETLSR: 
 		return get_lsr_info(info, argp);
 	case TIOCSERSWILD:
 		if (!capable(CAP_SYS_ADMIN))
 			return -EPERM;
 		return 0;
-	/*
-	 * Wait for any of the 4 modem inputs (DCD,RI,DSR,CTS) to change
-	 * - mask passed in arg for lines of interest
-	 *   (use |'ed TIOCM_RNG/DSR/CD/CTS for masking)
-	 * Caller should use TIOCGICOUNT to see which one it was
-	 */
+	
 	case TIOCMIWAIT:
 		spin_lock_irqsave(&info->lock, flags);
-		cprev = info->icount;	/* note the counters on entry */
+		cprev = info->icount;	
 		spin_unlock_irqrestore(&info->lock, flags);
 		while (1) {
-			/* FIXME: convert to new style wakeup */
+			
 			interruptible_sleep_on(&info->port.delta_msr_wait);
-			/* see if a signal did it */
+			
 			if (signal_pending(current))
 				return -ERESTARTSYS;
 			spin_lock_irqsave(&info->lock, flags);
-			cnow = info->icount;	/* atomic copy */
+			cnow = info->icount;	
 			spin_unlock_irqrestore(&info->lock, flags);
 			if (cnow.rng == cprev.rng &&
 			    cnow.dsr == cprev.dsr &&
 			    cnow.dcd == cprev.dcd &&
 			    cnow.cts == cprev.cts)
-				return -EIO; /* no change => error */
+				return -EIO; 
 			if (((arg & TIOCM_RNG) &&
 			     (cnow.rng != cprev.rng)) ||
 			     ((arg & TIOCM_DSR) &&
@@ -1824,13 +1677,8 @@ static int rs_ioctl(struct tty_struct *tty, struct file *file,
 			}
 			cprev = cnow;
 		}
-		/* NOTREACHED */
-	/*
-	 * Get counter of input serial line interrupts (DCD,RI,DSR,CTS)
-	 * Return: write counters to the user passed counter struct
-	 * NB: both 1->0 and 0->1 transitions are counted except for
-	 *     RI where only 0->1 is counted.
-	 */
+		
+	
 	case TIOCGICOUNT:
 		spin_lock_irqsave(&info->lock, flags);
 		cnow = info->icount;
@@ -1864,7 +1712,7 @@ static void rs_set_termios(struct tty_struct *tty, struct ktermios *old_termios)
 
 	spin_lock_irqsave(&info->lock, flags);
 
-	/* Handle transition to B0 status */
+	
 	if ((old_termios->c_cflag & CBAUD) &&
 		!(tty->termios->c_cflag & CBAUD)) {
 		info->MCR &= ~(UART_MCR_DTR|UART_MCR_RTS);
@@ -1873,7 +1721,7 @@ static void rs_set_termios(struct tty_struct *tty, struct ktermios *old_termios)
 		serial_out(info, UART_ESI_CMD2, info->MCR);
 	}
 
-	/* Handle transition away from B0 status */
+	
 	if (!(old_termios->c_cflag & CBAUD) &&
 		(tty->termios->c_cflag & CBAUD)) {
 		info->MCR |= (UART_MCR_DTR | UART_MCR_RTS);
@@ -1884,23 +1732,14 @@ static void rs_set_termios(struct tty_struct *tty, struct ktermios *old_termios)
 
 	spin_unlock_irqrestore(&info->lock, flags);
 
-	/* Handle turning of CRTSCTS */
+	
 	if ((old_termios->c_cflag & CRTSCTS) &&
 	    !(tty->termios->c_cflag & CRTSCTS)) {
 		rs_start(tty);
 	}
 }
 
-/*
- * ------------------------------------------------------------
- * rs_close()
- *
- * This routine is called when the serial port gets closed.  First, we
- * wait for the last remaining data to be sent.  Then, we unlink its
- * async structure from the interrupt chain if necessary, and we free
- * that IRQ if nothing is left in the chain.
- * ------------------------------------------------------------
- */
+
 static void rs_close(struct tty_struct *tty, struct file *filp)
 {
 	struct esp_struct *info = tty->driver_data;
@@ -1921,13 +1760,7 @@ static void rs_close(struct tty_struct *tty, struct file *filp)
 						info->line, info->port.count);
 #endif
 	if (tty->count == 1 && info->port.count != 1) {
-		/*
-		 * Uh, oh.  tty->count is 1, which means that the tty
-		 * structure will be freed.  Info->count should always
-		 * be one in these conditions.  If it's greater than
-		 * one, we've got real problems, since it means the
-		 * serial port won't be shutdown.
-		 */
+		
 		printk(KERN_DEBUG "rs_close: bad serial port count; tty->count is 1, info->port.count is %d\n", info->port.count);
 		info->port.count = 1;
 	}
@@ -1943,20 +1776,12 @@ static void rs_close(struct tty_struct *tty, struct file *filp)
 	info->port.flags |= ASYNC_CLOSING;
 
 	spin_unlock_irqrestore(&info->lock, flags);
-	/*
-	 * Now we wait for the transmit buffer to clear; and we notify
-	 * the line discipline to only process XON/XOFF characters.
-	 */
+	
 	tty->closing = 1;
 	if (info->closing_wait != ASYNC_CLOSING_WAIT_NONE)
 		tty_wait_until_sent(tty, info->closing_wait);
-	/*
-	 * At this point we stop accepting input.  To do this, we
-	 * disable the receive line status interrupts, and tell the
-	 * interrupt driver to stop checking the data ready bit in the
-	 * line status register.
-	 */
-	/* info->IER &= ~UART_IER_RLSI; */
+	
+	
 	info->IER &= ~UART_IER_RDI;
 	info->read_status_mask &= ~UART_LSR_DR;
 	if (info->port.flags & ASYNC_INITIALIZED) {
@@ -1965,17 +1790,13 @@ static void rs_close(struct tty_struct *tty, struct file *filp)
 		serial_out(info, UART_ESI_CMD1, ESI_SET_SRV_MASK);
 		serial_out(info, UART_ESI_CMD2, info->IER);
 
-		/* disable receive timeout */
+		
 		serial_out(info, UART_ESI_CMD1, ESI_SET_RX_TIMEOUT);
 		serial_out(info, UART_ESI_CMD2, 0x00);
 
 		spin_unlock_irqrestore(&info->lock, flags);
 
-		/*
-		 * Before we drop DTR, make sure the UART transmitter
-		 * has completely drained; this is especially
-		 * important if there is a transmit FIFO!
-		 */
+		
 		rs_wait_until_sent(tty, info->timeout);
 	}
 	shutdown(info);
@@ -2036,9 +1857,7 @@ static void rs_wait_until_sent(struct tty_struct *tty, int timeout)
 	set_current_state(TASK_RUNNING);
 }
 
-/*
- * esp_hangup() --- called by tty_hangup() when a hangup is signaled.
- */
+
 static void esp_hangup(struct tty_struct *tty)
 {
 	struct esp_struct *info = tty->driver_data;
@@ -2063,11 +1882,7 @@ static int esp_carrier_raised(struct tty_port *port)
 	return 0;
 }
 
-/*
- * ------------------------------------------------------------
- * esp_open() and friends
- * ------------------------------------------------------------
- */
+
 static int block_til_ready(struct tty_struct *tty, struct file *filp,
 			   struct esp_struct *info)
 {
@@ -2078,10 +1893,7 @@ static int block_til_ready(struct tty_struct *tty, struct file *filp,
 	int		cd;
 	struct tty_port *port = &info->port;
 
-	/*
-	 * If the device is in the middle of being closed, then block
-	 * until it's done, and then try again.
-	 */
+	
 	if (tty_hung_up_p(filp) ||
 	    (port->flags & ASYNC_CLOSING)) {
 		if (port->flags & ASYNC_CLOSING)
@@ -2096,10 +1908,7 @@ static int block_til_ready(struct tty_struct *tty, struct file *filp,
 #endif
 	}
 
-	/*
-	 * If non-blocking mode is set, or the port is not enabled,
-	 * then make the check up front and then exit.
-	 */
+	
 	if ((filp->f_flags & O_NONBLOCK) ||
 	    (tty->flags & (1 << TTY_IO_ERROR))) {
 		port->flags |= ASYNC_NORMAL_ACTIVE;
@@ -2109,13 +1918,7 @@ static int block_til_ready(struct tty_struct *tty, struct file *filp,
 	if (tty->termios->c_cflag & CLOCAL)
 		do_clocal = 1;
 
-	/*
-	 * Block waiting for the carrier detect and the line to become
-	 * free (i.e., not in use by the callout).  While we are in
-	 * this loop, port->count is dropped by one, so that
-	 * rs_close() knows when to free things.  We restore it upon
-	 * exit, either normal or abnormal.
-	 */
+	
 	retval = 0;
 	add_wait_queue(&port->open_wait, &wait);
 #ifdef SERIAL_DEBUG_OPEN
@@ -2185,12 +1988,7 @@ static int block_til_ready(struct tty_struct *tty, struct file *filp,
 	return 0;
 }
 
-/*
- * This routine is called whenever a serial port is opened.  It
- * enables interrupts for a serial port, linking in its async structure into
- * the IRQ chain.   It also performs the serial-specific
- * initialization for the tty structure.
- */
+
 static int esp_open(struct tty_struct *tty, struct file *filp)
 {
 	struct esp_struct	*info;
@@ -2201,7 +1999,7 @@ static int esp_open(struct tty_struct *tty, struct file *filp)
 	if ((line < 0) || (line >= NR_PORTS))
 		return -ENODEV;
 
-	/* find the port in the chain */
+	
 
 	info = ports;
 
@@ -2223,9 +2021,7 @@ static int esp_open(struct tty_struct *tty, struct file *filp)
 
 	spin_unlock_irqrestore(&info->lock, flags);
 
-	/*
-	 * Start up serial port
-	 */
+	
 	retval = startup(info);
 	if (retval)
 		return retval;
@@ -2244,19 +2040,9 @@ static int esp_open(struct tty_struct *tty, struct file *filp)
 	return 0;
 }
 
-/*
- * ---------------------------------------------------------------------
- * espserial_init() and friends
- *
- * espserial_init() is called at boot-time to initialize the serial driver.
- * ---------------------------------------------------------------------
- */
 
-/*
- * This routine prints out the appropriate serial driver version
- * number, and identifies which options were configured into this
- * driver.
- */
+
+
 
 static void __init show_serial_version(void)
 {
@@ -2264,10 +2050,7 @@ static void __init show_serial_version(void)
 		serial_name, serial_version, dma);
 }
 
-/*
- * This routine is called by espserial_init() to initialize a specific serial
- * port.
- */
+
 static int autoconfig(struct esp_struct *info)
 {
 	int port_detected = 0;
@@ -2277,9 +2060,7 @@ static int autoconfig(struct esp_struct *info)
 		return -EIO;
 
 	spin_lock_irqsave(&info->lock, flags);
-	/*
-	 * Check for ESP card
-	 */
+	
 
 	if (serial_in(info, UART_ESI_BASE) == 0xf3) {
 		serial_out(info, UART_ESI_CMD1, 0x00);
@@ -2298,12 +2079,12 @@ static int autoconfig(struct esp_struct *info)
 			}
 
 
-			/* put card in enhanced mode */
-			/* this prevents access through */
-			/* the "old" IO ports */
+			
+			
+			
 			esp_basic_init(info);
 
-			/* clear out MCR */
+			
 			serial_out(info, UART_ESI_CMD1, ESI_WRITE_UART);
 			serial_out(info, UART_ESI_CMD2, UART_MCR);
 			serial_out(info, UART_ESI_CMD2, 0x00);
@@ -2342,9 +2123,7 @@ static const struct tty_port_operations esp_port_ops = {
 	.esp_carrier_raised,
 };
 
-/*
- * The serial driver boot-time initialization code!
- */
+
 static int __init espserial_init(void)
 {
 	int i, offset;
@@ -2389,7 +2168,7 @@ static int __init espserial_init(void)
 
 	show_serial_version();
 
-	/* Initialize the tty_driver structure */
+	
 
 	esp_driver->owner = THIS_MODULE;
 	esp_driver->name = "ttyP";
@@ -2420,7 +2199,7 @@ static int __init espserial_init(void)
 	}
 
 	spin_lock_init(&info->lock);
-	/* rx_trigger, tx_trigger are needed by autoconfig */
+	
 	info->config.rx_trigger = rx_trigger;
 	info->config.tx_trigger = tx_trigger;
 
@@ -2459,7 +2238,7 @@ static int __init espserial_init(void)
 
 		if (info->line % 8) {
 			printk("secondary port\n");
-			/* 8 port cards can't do DMA */
+			
 			info->stat_flags |= ESP_STAT_NEVER_DMA;
 
 			if (last_primary)
@@ -2476,12 +2255,12 @@ static int __init espserial_init(void)
 		info = kzalloc(sizeof(struct esp_struct), GFP_KERNEL);
 		if (!info) {
 			printk(KERN_ERR "Couldn't allocate memory for esp serial device information\n");
-			/* allow use of the already detected ports */
+			
 			return 0;
 		}
 
 		spin_lock_init(&info->lock);
-		/* rx_trigger, tx_trigger are needed by autoconfig */
+		
 		info->config.rx_trigger = rx_trigger;
 		info->config.tx_trigger = tx_trigger;
 
@@ -2493,7 +2272,7 @@ static int __init espserial_init(void)
 		}
 	} while (i < NR_PRIMARY);
 
-	/* free the last port memory allocation */
+	
 	kfree(info);
 
 	return 0;

@@ -1,28 +1,4 @@
-/*
- * RNG driver for AMD RNGs
- *
- * Copyright 2005 (c) MontaVista Software, Inc.
- *
- * with the majority of the code coming from:
- *
- * Hardware driver for the Intel/AMD/VIA Random Number Generators (RNG)
- * (c) Copyright 2003 Red Hat Inc <jgarzik@redhat.com>
- *
- * derived from
- *
- * Hardware driver for the AMD 768 Random Number Generator (RNG)
- * (c) Copyright 2001 Red Hat Inc
- *
- * derived from
- *
- * Hardware driver for Intel i810 Random Number Generator (RNG)
- * Copyright 2000,2001 Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2000,2001 Philipp Rumpf <prumpf@mandrakesoft.com>
- *
- * This file is licensed under  the terms of the GNU General Public
- * License version 2. This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -35,18 +11,11 @@
 #define PFX	KBUILD_MODNAME ": "
 
 
-/*
- * Data for PCI driver interface
- *
- * This data only exists for exporting the supported
- * PCI ids via MODULE_DEVICE_TABLE.  We do not actually
- * register a pci_driver, because someone else might one day
- * want to register another driver on the same PCI id.
- */
+
 static const struct pci_device_id pci_tbl[] = {
 	{ PCI_VDEVICE(AMD, 0x7443), 0, },
 	{ PCI_VDEVICE(AMD, 0x746b), 0, },
-	{ 0, },	/* terminate list */
+	{ 0, },	
 };
 MODULE_DEVICE_TABLE(pci, pci_tbl);
 
@@ -81,11 +50,11 @@ static int amd_rng_init(struct hwrng *rng)
 	u8 rnen;
 
 	pci_read_config_byte(amd_pdev, 0x40, &rnen);
-	rnen |= (1 << 7);	/* RNG on */
+	rnen |= (1 << 7);	
 	pci_write_config_byte(amd_pdev, 0x40, rnen);
 
 	pci_read_config_byte(amd_pdev, 0x41, &rnen);
-	rnen |= (1 << 7);	/* PMIO enable */
+	rnen |= (1 << 7);	
 	pci_write_config_byte(amd_pdev, 0x41, rnen);
 
 	return 0;
@@ -96,7 +65,7 @@ static void amd_rng_cleanup(struct hwrng *rng)
 	u8 rnen;
 
 	pci_read_config_byte(amd_pdev, 0x40, &rnen);
-	rnen &= ~(1 << 7);	/* RNG off */
+	rnen &= ~(1 << 7);	
 	pci_write_config_byte(amd_pdev, 0x40, rnen);
 }
 
@@ -122,7 +91,7 @@ static int __init mod_init(void)
 		if (ent)
 			goto found;
 	}
-	/* Device not found. */
+	
 	goto out;
 
 found:

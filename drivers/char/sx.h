@@ -1,16 +1,5 @@
 
-/*
- *  sx.h
- *
- *  Copyright (C) 1998/1999 R.E.Wolff@BitWizard.nl
- *
- *  SX serial driver.
- *  -- Supports SI, XIO and SX host cards. 
- *  -- Supports TAs, MTAs and SXDCs.
- *
- *  Version 1.3 -- March, 1999. 
- * 
- */
+
 
 #define SX_NBOARDS        4
 #define SX_PORTSPERBOARD 32
@@ -37,7 +26,7 @@ struct sx_board {
   unsigned long hw_base;
   resource_size_t hw_len;
   int eisa_base;
-  int port_base; /* Number of the first port */
+  int port_base; 
   struct sx_port *ports;
   int nports;
   int flags;
@@ -88,13 +77,12 @@ struct vpd_prom {
 
 #define IS_CF_BOARD(board) (board->flags & (SX_CFISA_BOARD | SX_CFPCI_BOARD))
 
-/* The SI processor clock is required to calculate the cc_int_count register
-   value for the SI cards. */
+
 #define SI_PROCESSOR_CLOCK 25000000
 
 
-/* port flags */
-/* Make sure these don't clash with gs flags or async flags */
+
+
 #define SX_RX_THROTTLE        0x0000001
 
 
@@ -104,7 +92,7 @@ struct vpd_prom {
 
 
 
-/* Debug flags. Add these together to get more debug info. */
+
 
 #define SX_DEBUG_OPEN          0x00000001
 #define SX_DEBUG_SETTING       0x00000002
@@ -139,7 +127,7 @@ struct vpd_prom {
       (O_VTDLY(tty))   ||\
       (O_FFDLY(tty)))
 
-/* Same for input. */
+
 #define I_OTHER(tty)    \
       ((I_INLCR(tty))  ||\
       (I_IGNCR(tty))   ||\
@@ -152,17 +140,17 @@ struct vpd_prom {
 #define MOD_SXDC (      SXDC>>4)
 
 
-/* We copy the download code over to the card in chunks of ... bytes */
+
 #define SX_CHUNK_SIZE 128
 
-#endif /* __KERNEL__ */
+#endif 
 
 
 
-/* Specialix document 6210046-11 page 3 */
+
 #define SPX(X) (('S'<<24) | ('P' << 16) | (X))
 
-/* Specialix-Linux specific IOCTLS. */
+
 #define SPXL(X) (SPX(('L' << 8) | (X)))
 
 
@@ -179,13 +167,12 @@ struct vpd_prom {
 
 
 #ifndef SXCTL_MISC_MINOR 
-/* Allow others to gather this into "major.h" or something like that */
+
 #define SXCTL_MISC_MINOR    167
 #endif
 
 #ifndef SX_NORMAL_MAJOR
-/* This allows overriding on the compiler commandline, or in a "major.h" 
-   include or something like that */
+
 #define SX_NORMAL_MAJOR  32
 #define SX_CALLOUT_MAJOR 33
 #endif
@@ -197,5 +184,5 @@ struct vpd_prom {
 
 
 #define WINDOW_LEN(board) (IS_CF_BOARD(board)?0x20000:SX_WINDOW_LEN)
-/*                         Need a #define for ^^^^^^^ !!! */
+
 

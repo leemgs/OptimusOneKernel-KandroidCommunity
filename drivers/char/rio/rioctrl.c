@@ -1,34 +1,4 @@
-/*
-** -----------------------------------------------------------------------------
-**
-**  Perle Specialix driver for Linux
-**  Ported from existing RIO Driver for SCO sources.
- *
- *  (C) 1990 - 2000 Specialix International Ltd., Byfleet, Surrey, UK.
- *
- *      This program is free software; you can redistribute it and/or modify
- *      it under the terms of the GNU General Public License as published by
- *      the Free Software Foundation; either version 2 of the License, or
- *      (at your option) any later version.
- *
- *      This program is distributed in the hope that it will be useful,
- *      but WITHOUT ANY WARRANTY; without even the implied warranty of
- *      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *      GNU General Public License for more details.
- *
- *      You should have received a copy of the GNU General Public License
- *      along with this program; if not, write to the Free Software
- *      Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-**
-**	Module		: rioctrl.c
-**	SID		: 1.3
-**	Last Modified	: 11/6/98 10:33:42
-**	Retrieved	: 11/6/98 10:33:49
-**
-**  ident @(#)rioctrl.c	1.3
-**
-** -----------------------------------------------------------------------------
-*/
+
 
 #include <linux/module.h>
 #include <linux/sched.h>
@@ -76,15 +46,15 @@
 static struct LpbReq LpbReq;
 static struct RupReq RupReq;
 static struct PortReq PortReq;
-static struct HostReq HostReq;	/* oh really?  global?  and no locking? */
+static struct HostReq HostReq;	
 static struct HostDpRam HostDpRam;
 static struct DebugCtrl DebugCtrl;
 static struct Map MapEnt;
 static struct PortSetup PortSetup;
 static struct DownLoad DownLoad;
 static struct SendPack SendPack;
-/* static struct StreamInfo	StreamInfo; */
-/* static char modemtable[RIO_PORTS]; */
+
+
 static struct SpecialRupCmd SpecialRupCmd;
 static struct PortParams PortParams;
 static struct portStats portStats;
@@ -104,20 +74,13 @@ struct PortTty {
 static struct PortTty PortTty;
 typedef struct ttystatics TERMIO;
 
-/*
-** This table is used when the config.rio downloads bin code to the
-** driver. We index the table using the product code, 0-F, and call
-** the function pointed to by the entry, passing the information
-** about the boot.
-** The RIOBootCodeUNKNOWN entry is there to politely tell the calling
-** process to bog off.
-*/
+
 static int
  (*RIOBootTable[MAX_PRODUCT]) (struct rio_info *, struct DownLoad *) = {
-					/* 0 */ RIOBootCodeHOST,
-					/* Host Card */
-					/* 1 */ RIOBootCodeRTA,
-					/* RTA */
+					 RIOBootCodeHOST,
+					
+					 RIOBootCodeRTA,
+					
 };
 
 #define drv_makedev(maj, min) ((((uint) maj & 0xff) << 8) | ((uint) min & 0xff))
@@ -136,8 +99,8 @@ static int copy_from_io(void __user *to, void __iomem *from, size_t size)
 
 int riocontrol(struct rio_info *p, dev_t dev, int cmd, unsigned long arg, int su)
 {
-	uint Host;		/* leave me unsigned! */
-	uint port;		/* and me! */
+	uint Host;		
+	uint port;		
 	struct Host *HostP;
 	ushort loop;
 	int Entry;
@@ -149,20 +112,14 @@ int riocontrol(struct rio_info *p, dev_t dev, int cmd, unsigned long arg, int su
 
 	func_enter();
 
-	/* Confuse the compiler to think that we've initialized these */
+	
 	Host = 0;
 	PortP = NULL;
 
 	rio_dprintk(RIO_DEBUG_CTRL, "control ioctl cmd: 0x%x arg: %p\n", cmd, argp);
 
 	switch (cmd) {
-		/*
-		 ** RIO_SET_TIMER
-		 **
-		 ** Change the value of the host card interrupt timer.
-		 ** If the host card number is -1 then all host cards are changed
-		 ** otherwise just the specified host card will be changed.
-		 */
+		
 	case RIO_SET_TIMER:
 		rio_dprintk(RIO_DEBUG_CTRL, "RIO_SET_TIMER to %ldms\n", arg);
 		{
@@ -235,9 +192,7 @@ int riocontrol(struct rio_info *p, dev_t dev, int cmd, unsigned long arg, int su
 		return -EINVAL;
 
 	case RIO_GET_TABLE:
-		/*
-		 ** Read the routing table from the device driver to user space
-		 */
+		
 		rio_dprintk(RIO_DEBUG_CTRL, "RIO_GET_TABLE\n");
 
 		if ((retval = RIOApel(p)) != 0)
@@ -274,13 +229,11 @@ int riocontrol(struct rio_info *p, dev_t dev, int cmd, unsigned long arg, int su
 			}
 			rio_dprintk(RIO_DEBUG_CTRL, "*****\nEND MAP ENTRIES\n");
 		}
-		p->RIOQuickCheck = NOT_CHANGED;	/* a table has been gotten */
+		p->RIOQuickCheck = NOT_CHANGED;	
 		return 0;
 
 	case RIO_PUT_TABLE:
-		/*
-		 ** Write the routing table to the device driver from user space
-		 */
+		
 		rio_dprintk(RIO_DEBUG_CTRL, "RIO_PUT_TABLE\n");
 
 		if (!su) {
@@ -293,40 +246,11 @@ int riocontrol(struct rio_info *p, dev_t dev, int cmd, unsigned long arg, int su
 			p->RIOError.Error = COPYIN_FAILED;
 			return -EFAULT;
 		}
-/*
-***********************************
-				{
-					int entry;
-					rio_dprint(RIO_DEBUG_CTRL,  ("*****\nMAP ENTRIES\n") );
-					for ( entry=0; entry<TOTAL_MAP_ENTRIES; entry++ )
-					{
-						rio_dprint(RIO_DEBUG_CTRL,  ("Map entry %d.HostUniqueNum = 0x%x\n", entry, p->RIOConnectTable[entry].HostUniqueNum ) );
-						rio_dprint(RIO_DEBUG_CTRL,  ("Map entry %d.RtaUniqueNum = 0x%x\n", entry, p->RIOConnectTable[entry].RtaUniqueNum ) );
-						rio_dprint(RIO_DEBUG_CTRL,  ("Map entry %d.ID = 0x%x\n", entry, p->RIOConnectTable[entry].ID ) );
-						rio_dprint(RIO_DEBUG_CTRL,  ("Map entry %d.ID2 = 0x%x\n", entry, p->RIOConnectTable[entry].ID2 ) );
-						rio_dprint(RIO_DEBUG_CTRL,  ("Map entry %d.Flags = 0x%x\n", entry, p->RIOConnectTable[entry].Flags ) );
-						rio_dprint(RIO_DEBUG_CTRL,  ("Map entry %d.SysPort = 0x%x\n", entry, p->RIOConnectTable[entry].SysPort ) );
-						rio_dprint(RIO_DEBUG_CTRL,  ("Map entry %d.Top[0].Unit = %b\n", entry, p->RIOConnectTable[entry].Topology[0].Unit ) );
-						rio_dprint(RIO_DEBUG_CTRL,  ("Map entry %d.Top[0].Link = %b\n", entry, p->RIOConnectTable[entry].Topology[0].Link ) );
-						rio_dprint(RIO_DEBUG_CTRL,  ("Map entry %d.Top[1].Unit = %b\n", entry, p->RIOConnectTable[entry].Topology[1].Unit ) );
-						rio_dprint(RIO_DEBUG_CTRL,  ("Map entry %d.Top[1].Link = %b\n", entry, p->RIOConnectTable[entry].Topology[1].Link ) );
-						rio_dprint(RIO_DEBUG_CTRL,  ("Map entry %d.Top[2].Unit = %b\n", entry, p->RIOConnectTable[entry].Topology[2].Unit ) );
-						rio_dprint(RIO_DEBUG_CTRL,  ("Map entry %d.Top[2].Link = %b\n", entry, p->RIOConnectTable[entry].Topology[2].Link ) );
-						rio_dprint(RIO_DEBUG_CTRL,  ("Map entry %d.Top[3].Unit = %b\n", entry, p->RIOConnectTable[entry].Topology[3].Unit ) );
-						rio_dprint(RIO_DEBUG_CTRL,  ("Map entry %d.Top[4].Link = %b\n", entry, p->RIOConnectTable[entry].Topology[3].Link ) );
-						rio_dprint(RIO_DEBUG_CTRL,  ("Map entry %d.Name = %s\n", entry, p->RIOConnectTable[entry].Name ) );
-					}
-					rio_dprint(RIO_DEBUG_CTRL,  ("*****\nEND MAP ENTRIES\n") );
-				}
-***********************************
-*/
+
 		return RIONewTable(p);
 
 	case RIO_GET_BINDINGS:
-		/*
-		 ** Send bindings table, containing unique numbers of RTAs owned
-		 ** by this system to user space
-		 */
+		
 		rio_dprintk(RIO_DEBUG_CTRL, "RIO_GET_BINDINGS\n");
 
 		if (!su) {
@@ -342,10 +266,7 @@ int riocontrol(struct rio_info *p, dev_t dev, int cmd, unsigned long arg, int su
 		return 0;
 
 	case RIO_PUT_BINDINGS:
-		/*
-		 ** Receive a bindings table, containing unique numbers of RTAs owned
-		 ** by this system
-		 */
+		
 		rio_dprintk(RIO_DEBUG_CTRL, "RIO_PUT_BINDINGS\n");
 
 		if (!su) {
@@ -363,10 +284,7 @@ int riocontrol(struct rio_info *p, dev_t dev, int cmd, unsigned long arg, int su
 	case RIO_BIND_RTA:
 		{
 			int EmptySlot = -1;
-			/*
-			 ** Bind this RTA to host, so that it will be booted by
-			 ** host in 'boot owned RTAs' mode.
-			 */
+			
 			rio_dprintk(RIO_DEBUG_CTRL, "RIO_BIND_RTA\n");
 
 			if (!su) {
@@ -378,17 +296,13 @@ int riocontrol(struct rio_info *p, dev_t dev, int cmd, unsigned long arg, int su
 				if ((EmptySlot == -1) && (p->RIOBindTab[Entry] == 0L))
 					EmptySlot = Entry;
 				else if (p->RIOBindTab[Entry] == arg) {
-					/*
-					 ** Already exists - delete
-					 */
+					
 					p->RIOBindTab[Entry] = 0L;
 					rio_dprintk(RIO_DEBUG_CTRL, "Removing Rta %ld from p->RIOBindTab\n", arg);
 					return 0;
 				}
 			}
-			/*
-			 ** Dosen't exist - add
-			 */
+			
 			if (EmptySlot != -1) {
 				p->RIOBindTab[EmptySlot] = arg;
 				rio_dprintk(RIO_DEBUG_CTRL, "Adding Rta %lx to p->RIOBindTab\n", arg);
@@ -506,9 +420,7 @@ int riocontrol(struct rio_info *p, dev_t dev, int cmd, unsigned long arg, int su
 			p->RIOError.Error = PORT_NOT_MAPPED_INTO_SYSTEM;
 			return -EINVAL;
 		}
-		/*
-		 ** Return module type of port
-		 */
+		
 		port = PortP->HostP->UnixRups[PortP->RupNum].ModTypes;
 		if (copy_to_user(argp, &port, sizeof(unsigned int))) {
 			p->RIOError.Error = COPYOUT_FAILED;
@@ -728,9 +640,7 @@ int riocontrol(struct rio_info *p, dev_t dev, int cmd, unsigned long arg, int su
 			p->RIOError.Error = COPYIN_FAILED;
 			return -EFAULT;
 		}
-		/*
-		 ** move a few value around
-		 */
+		
 		for (Host = 0; Host < p->RIONumHosts; Host++)
 			if ((p->RIOHosts[Host].Flags & RUN_STATE) == RC_RUNNING)
 				writew(p->RIOConf.Timer, &p->RIOHosts[Host].ParmMapP->timer);
@@ -800,11 +710,7 @@ int riocontrol(struct rio_info *p, dev_t dev, int cmd, unsigned long arg, int su
 		return retval;
 
 	case RIO_VERSID:
-		/*
-		 ** Enquire about the release and version.
-		 ** We return MAX_VERSION_LEN bytes, being a
-		 ** textual null terminated string.
-		 */
+		
 		rio_dprintk(RIO_DEBUG_CTRL, "RIO_VERSID\n");
 		if (copy_to_user(argp, RIOVersid(), sizeof(struct rioVersion))) {
 			rio_dprintk(RIO_DEBUG_CTRL, "RIO_VERSID: Bad copy to user space (host=%d)\n", Host);
@@ -814,10 +720,7 @@ int riocontrol(struct rio_info *p, dev_t dev, int cmd, unsigned long arg, int su
 		return retval;
 
 	case RIO_NUM_HOSTS:
-		/*
-		 ** Enquire as to the number of hosts located
-		 ** at init time.
-		 */
+		
 		rio_dprintk(RIO_DEBUG_CTRL, "RIO_NUM_HOSTS\n");
 		if (copy_to_user(argp, &p->RIONumHosts, sizeof(p->RIONumHosts))) {
 			rio_dprintk(RIO_DEBUG_CTRL, "RIO_NUM_HOSTS: Bad copy to user space\n");
@@ -827,9 +730,7 @@ int riocontrol(struct rio_info *p, dev_t dev, int cmd, unsigned long arg, int su
 		return retval;
 
 	case RIO_HOST_FOAD:
-		/*
-		 ** Kill host. This may not be in the final version...
-		 */
+		
 		rio_dprintk(RIO_DEBUG_CTRL, "RIO_HOST_FOAD %ld\n", arg);
 		if (!su) {
 			rio_dprintk(RIO_DEBUG_CTRL, "RIO_HOST_FOAD: Not super user\n");
@@ -871,23 +772,17 @@ int riocontrol(struct rio_info *p, dev_t dev, int cmd, unsigned long arg, int su
 		}
 		rio_dprintk(RIO_DEBUG_CTRL, "Copied in download code for product code 0x%x\n", DownLoad.ProductCode);
 
-		/*
-		 ** It is important that the product code is an unsigned object!
-		 */
+		
 		if (DownLoad.ProductCode >= MAX_PRODUCT) {
 			rio_dprintk(RIO_DEBUG_CTRL, "RIO_DOWNLOAD: Bad product code %d passed\n", DownLoad.ProductCode);
 			p->RIOError.Error = NO_SUCH_PRODUCT;
 			return -ENXIO;
 		}
-		/*
-		 ** do something!
-		 */
+		
 		retval = (*(RIOBootTable[DownLoad.ProductCode])) (p, &DownLoad);
-		/* <-- Panic */
+		
 		p->RIOHalted = 0;
-		/*
-		 ** and go back, content with a job well completed.
-		 */
+		
 		return retval;
 
 	case RIO_PARMS:
@@ -899,9 +794,7 @@ int riocontrol(struct rio_info *p, dev_t dev, int cmd, unsigned long arg, int su
 				p->RIOError.Error = COPYIN_FAILED;
 				return -EFAULT;
 			}
-			/*
-			 ** Fetch the parmmap
-			 */
+			
 			rio_dprintk(RIO_DEBUG_CTRL, "RIO_PARMS\n");
 			if (copy_from_io(argp, p->RIOHosts[host].ParmMapP, sizeof(PARM_MAP))) {
 				p->RIOError.Error = COPYOUT_FAILED;
@@ -948,7 +841,7 @@ int riocontrol(struct rio_info *p, dev_t dev, int cmd, unsigned long arg, int su
 
 		if (p->RIOHosts[HostDpRam.HostNum].Type == RIO_PCI) {
 			int off;
-			/* It's hardware like this that really gets on my tits. */
+			
 			static unsigned char copy[sizeof(struct DpRam)];
 			for (off = 0; off < sizeof(struct DpRam); off++)
 				copy[off] = readb(p->RIOHosts[HostDpRam.HostNum].Caddr + off);
@@ -977,10 +870,7 @@ int riocontrol(struct rio_info *p, dev_t dev, int cmd, unsigned long arg, int su
 		return retval;
 
 	case RIO_HOST_PORT:
-		/*
-		 ** The daemon want port information
-		 ** (probably for debug reasons)
-		 */
+		
 		rio_dprintk(RIO_DEBUG_CTRL, "RIO_HOST_PORT\n");
 		if (copy_from_user(&PortReq, argp, sizeof(PortReq))) {
 			rio_dprintk(RIO_DEBUG_CTRL, "RIO_HOST_PORT: Copy in from user space failed\n");
@@ -988,7 +878,7 @@ int riocontrol(struct rio_info *p, dev_t dev, int cmd, unsigned long arg, int su
 			return -EFAULT;
 		}
 
-		if (PortReq.SysPort >= RIO_PORTS) {	/* SysPort is unsigned */
+		if (PortReq.SysPort >= RIO_PORTS) {	
 			rio_dprintk(RIO_DEBUG_CTRL, "RIO_HOST_PORT: Illegal port number %d\n", PortReq.SysPort);
 			p->RIOError.Error = PORT_NUMBER_OUT_OF_RANGE;
 			return -ENXIO;
@@ -1002,22 +892,19 @@ int riocontrol(struct rio_info *p, dev_t dev, int cmd, unsigned long arg, int su
 		return retval;
 
 	case RIO_HOST_RUP:
-		/*
-		 ** The daemon want rup information
-		 ** (probably for debug reasons)
-		 */
+		
 		rio_dprintk(RIO_DEBUG_CTRL, "RIO_HOST_RUP\n");
 		if (copy_from_user(&RupReq, argp, sizeof(RupReq))) {
 			rio_dprintk(RIO_DEBUG_CTRL, "RIO_HOST_RUP: Copy in from user space failed\n");
 			p->RIOError.Error = COPYIN_FAILED;
 			return -EFAULT;
 		}
-		if (RupReq.HostNum >= p->RIONumHosts) {	/* host is unsigned */
+		if (RupReq.HostNum >= p->RIONumHosts) {	
 			rio_dprintk(RIO_DEBUG_CTRL, "RIO_HOST_RUP: Illegal host number %d\n", RupReq.HostNum);
 			p->RIOError.Error = HOST_NUMBER_OUT_OF_RANGE;
 			return -ENXIO;
 		}
-		if (RupReq.RupNum >= MAX_RUP + LINKS_PER_UNIT) {	/* eek! */
+		if (RupReq.RupNum >= MAX_RUP + LINKS_PER_UNIT) {	
 			rio_dprintk(RIO_DEBUG_CTRL, "RIO_HOST_RUP: Illegal rup number %d\n", RupReq.RupNum);
 			p->RIOError.Error = RUP_NUMBER_OUT_OF_RANGE;
 			return -EINVAL;
@@ -1039,22 +926,19 @@ int riocontrol(struct rio_info *p, dev_t dev, int cmd, unsigned long arg, int su
 		return retval;
 
 	case RIO_HOST_LPB:
-		/*
-		 ** The daemon want lpb information
-		 ** (probably for debug reasons)
-		 */
+		
 		rio_dprintk(RIO_DEBUG_CTRL, "RIO_HOST_LPB\n");
 		if (copy_from_user(&LpbReq, argp, sizeof(LpbReq))) {
 			rio_dprintk(RIO_DEBUG_CTRL, "RIO_HOST_LPB: Bad copy from user space\n");
 			p->RIOError.Error = COPYIN_FAILED;
 			return -EFAULT;
 		}
-		if (LpbReq.Host >= p->RIONumHosts) {	/* host is unsigned */
+		if (LpbReq.Host >= p->RIONumHosts) {	
 			rio_dprintk(RIO_DEBUG_CTRL, "RIO_HOST_LPB: Illegal host number %d\n", LpbReq.Host);
 			p->RIOError.Error = HOST_NUMBER_OUT_OF_RANGE;
 			return -ENXIO;
 		}
-		if (LpbReq.Link >= LINKS_PER_UNIT) {	/* eek! */
+		if (LpbReq.Link >= LINKS_PER_UNIT) {	
 			rio_dprintk(RIO_DEBUG_CTRL, "RIO_HOST_LPB: Illegal link number %d\n", LpbReq.Link);
 			p->RIOError.Error = LINK_NUMBER_OUT_OF_RANGE;
 			return -EINVAL;
@@ -1075,23 +959,17 @@ int riocontrol(struct rio_info *p, dev_t dev, int cmd, unsigned long arg, int su
 		}
 		return retval;
 
-		/*
-		 ** Here 3 IOCTL's that allow us to change the way in which
-		 ** rio logs errors. send them just to syslog or send them
-		 ** to both syslog and console or send them to just the console.
-		 **
-		 ** See RioStrBuf() in util.c for the other half.
-		 */
+		
 	case RIO_SYSLOG_ONLY:
-		p->RIOPrintLogState = PRINT_TO_LOG;	/* Just syslog */
+		p->RIOPrintLogState = PRINT_TO_LOG;	
 		return 0;
 
 	case RIO_SYSLOG_CONS:
-		p->RIOPrintLogState = PRINT_TO_LOG_CONS;	/* syslog and console */
+		p->RIOPrintLogState = PRINT_TO_LOG_CONS;	
 		return 0;
 
 	case RIO_CONS_ONLY:
-		p->RIOPrintLogState = PRINT_TO_CONS;	/* Just console */
+		p->RIOPrintLogState = PRINT_TO_CONS;	
 		return 0;
 
 	case RIO_SIGNALS_ON:
@@ -1099,7 +977,7 @@ int riocontrol(struct rio_info *p, dev_t dev, int cmd, unsigned long arg, int su
 			p->RIOError.Error = SIGNALS_ALREADY_SET;
 			return -EBUSY;
 		}
-		/* FIXME: PID tracking */
+		
 		p->RIOSignalProcess = current->pid;
 		p->RIOPrintDisabled = DONT_PRINT;
 		return retval;
@@ -1197,9 +1075,7 @@ int riocontrol(struct rio_info *p, dev_t dev, int cmd, unsigned long arg, int su
 		writeb(SendPack.Len, &PacketP->len);
 
 		add_transmit(PortP);
-		/*
-		 ** Count characters transmitted for port statistics reporting
-		 */
+		
 		if (PortP->statsGather)
 			PortP->txchars += (SendPack.Len & 127);
 		rio_spin_unlock_irqrestore(&PortP->portSem, flags);
@@ -1276,7 +1152,7 @@ int riocontrol(struct rio_info *p, dev_t dev, int cmd, unsigned long arg, int su
 		return 0;
 
 	case RIO_READ_CHECK:
-		/* Check reads for pkts with data[0] the same */
+		
 		p->RIOReadCheck = !p->RIOReadCheck;
 		if (copy_to_user(argp, &p->RIOReadCheck, sizeof(unsigned int))) {
 			p->RIOError.Error = COPYOUT_FAILED;
@@ -1327,11 +1203,7 @@ int riocontrol(struct rio_info *p, dev_t dev, int cmd, unsigned long arg, int su
 			return -EFAULT;
 		}
 		return 0;
-		/*
-		 ** rio_make_dev: given port number (0-511) ORed with port type
-		 ** (RIO_DEV_DIRECT, RIO_DEV_MODEM, RIO_DEV_XPRINT) return dev_t
-		 ** value to pass to mknod to create the correct device node.
-		 */
+		
 	case RIO_MAKE_DEV:
 		{
 			unsigned int port = arg & RIO_MODEM_MASK;
@@ -1354,11 +1226,7 @@ int riocontrol(struct rio_info *p, dev_t dev, int cmd, unsigned long arg, int su
 			rio_dprintk(RIO_DEBUG_CTRL, "MAKE Device is called\n");
 			return -EINVAL;
 		}
-		/*
-		 ** rio_minor: given a dev_t from a stat() call, return
-		 ** the port number (0-511) ORed with the port type
-		 ** ( RIO_DEV_DIRECT, RIO_DEV_MODEM, RIO_DEV_XPRINT )
-		 */
+		
 	case RIO_MINOR:
 		{
 			dev_t dv;
@@ -1385,9 +1253,7 @@ int riocontrol(struct rio_info *p, dev_t dev, int cmd, unsigned long arg, int su
 	return -EINVAL;
 }
 
-/*
-** Pre-emptive commands go on RUPs and are only one byte long.
-*/
+
 int RIOPreemptiveCmd(struct rio_info *p, struct Port *PortP, u8 Cmd)
 {
 	struct CmdBlk *CmdBlkP;
@@ -1426,9 +1292,7 @@ int RIOPreemptiveCmd(struct rio_info *p, struct Port *PortP, u8 Cmd)
 	CmdBlkP->PostArg = (unsigned long) PortP;
 	PktCmdP->Command = Cmd;
 	port = PortP->HostPort % (ushort) PORTS_PER_RTA;
-	/*
-	 ** Index ports 8-15 for 2nd block of 16 port RTA.
-	 */
+	
 	if (PortP->SecondBlock)
 		port += (ushort) PORTS_PER_RTA;
 	PktCmdP->PhbNum = port;
@@ -1478,11 +1342,7 @@ int RIOPreemptiveCmd(struct rio_info *p, struct Port *PortP, u8 Cmd)
 		break;
 
 	case RIOC_WFLUSH:
-		/*
-		 ** If we have queued up the maximum number of Write flushes
-		 ** allowed then we should not bother sending any more to the
-		 ** RTA.
-		 */
+		
 		if (PortP->WflushFlag == (typeof(PortP->WflushFlag))-1) {
 			rio_dprintk(RIO_DEBUG_CTRL, "Trashed WFLUSH, "
 					"WflushFlag about to wrap!");

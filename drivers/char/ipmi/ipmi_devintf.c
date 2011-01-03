@@ -1,35 +1,4 @@
-/*
- * ipmi_devintf.c
- *
- * Linux device interface for the IPMI message handler.
- *
- * Author: MontaVista Software, Inc.
- *         Corey Minyard <minyard@mvista.com>
- *         source@mvista.com
- *
- * Copyright 2002 MontaVista Software Inc.
- *
- *  This program is free software; you can redistribute it and/or modify it
- *  under the terms of the GNU General Public License as published by the
- *  Free Software Foundation; either version 2 of the License, or (at your
- *  option) any later version.
- *
- *
- *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
- *  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- *  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- *  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
- *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- *  OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- *  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
- *  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
- *  USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -102,7 +71,7 @@ static int ipmi_fasync(int fd, struct file *file, int on)
 	struct ipmi_file_private *priv = file->private_data;
 	int                      result;
 
-	lock_kernel(); /* could race against open() otherwise */
+	lock_kernel(); 
 	result = fasync_helper(fd, file, on, &priv->fasync_queue);
 	unlock_kernel();
 
@@ -145,7 +114,7 @@ static int ipmi_open(struct inode *inode, struct file *file)
 	priv->fasync_queue = NULL;
 	mutex_init(&priv->recv_mutex);
 
-	/* Use the low-level defaults. */
+	
 	priv->default_retries = -1;
 	priv->default_retry_time_ms = 0;
 
@@ -163,7 +132,7 @@ static int ipmi_release(struct inode *inode, struct file *file)
 	if (rv)
 		return rv;
 
-	/* FIXME - free the messages in the list. */
+	
 	kfree(priv);
 
 	return 0;
@@ -191,8 +160,7 @@ static int handle_send_req(ipmi_user_t     user,
 	if (!msg.data)
 		return -ENOMEM;
 
-	/* From here out we cannot return, we must jump to "out" for
-	   error exits to free msgdata. */
+	
 
 	rv = ipmi_validate_addr(&addr, req->addr_len);
 	if (rv)
@@ -287,17 +255,10 @@ static int ipmi_ioctl(struct inode  *inode,
 			break;
 		}
 
-		/* We claim a mutex because we don't want two
-                   users getting something from the queue at a time.
-                   Since we have to release the spinlock before we can
-                   copy the data to the user, it's possible another
-                   user will grab something from the queue, too.  Then
-                   the messages might get out of order if something
-                   fails and the message gets put back onto the
-                   queue.  This mutex prevents that problem. */
+		
 		mutex_lock(&priv->recv_mutex);
 
-		/* Grab the message off the list. */
+		
 		spin_lock_irqsave(&(priv->recv_msg_lock), flags);
 		if (list_empty(&(priv->recv_msgs))) {
 			spin_unlock_irqrestore(&(priv->recv_msg_lock), flags);
@@ -359,8 +320,7 @@ static int ipmi_ioctl(struct inode  *inode,
 		break;
 
 	recv_putback_on_err:
-		/* If we got an error, put the message back onto
-		   the head of the queue. */
+		
 		spin_lock_irqsave(&(priv->recv_msg_lock), flags);
 		list_add(entry, &(priv->recv_msgs));
 		spin_unlock_irqrestore(&(priv->recv_msg_lock), flags);
@@ -441,7 +401,7 @@ static int ipmi_ioctl(struct inode  *inode,
 		break;
 	}
 
-	/* The next four are legacy, not per-channel. */
+	
 	case IPMICTL_SET_MY_ADDRESS_CMD:
 	{
 		unsigned int val;
@@ -632,11 +592,7 @@ static int ipmi_ioctl(struct inode  *inode,
 
 #ifdef CONFIG_COMPAT
 
-/*
- * The following code contains code for supporting 32-bit compatible
- * ioctls on 64-bit kernels.  This allows running 32-bit apps on the
- * 64-bit kernel
- */
+
 #define COMPAT_IPMICTL_SEND_COMMAND	\
 	_IOR(IPMI_IOC_MAGIC, 13, struct compat_ipmi_req)
 #define COMPAT_IPMICTL_SEND_COMMAND_SETTIME	\
@@ -674,9 +630,7 @@ struct compat_ipmi_req_settime {
 	compat_uint_t		retry_time_ms;
 };
 
-/*
- * Define some helper functions for copying IPMI data
- */
+
 static long get_compat_ipmi_msg(struct ipmi_msg *p64,
 				struct compat_ipmi_msg __user *p32)
 {
@@ -758,9 +712,7 @@ static long put_compat_ipmi_recv(struct ipmi_recv *p64,
 	return 0;
 }
 
-/*
- * Handle compatibility ioctls
- */
+
 static long compat_ipmi_ioctl(struct file *filep, unsigned int cmd,
 			      unsigned long arg)
 {
@@ -846,7 +798,7 @@ MODULE_PARM_DESC(ipmi_major, "Sets the major number of the IPMI device.  By"
 		 " interface.  Other values will set the major device number"
 		 " to that value.");
 
-/* Keep track of the devices that are registered. */
+
 struct ipmi_reg_list {
 	dev_t            dev;
 	struct list_head link;

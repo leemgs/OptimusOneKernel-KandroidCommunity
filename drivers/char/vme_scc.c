@@ -1,17 +1,4 @@
-/*
- * drivers/char/vme_scc.c: MVME147, MVME162, BVME6000 SCC serial ports
- * implementation.
- * Copyright 1999 Richard Hirst <richard@sleepie.demon.co.uk>
- *
- * Based on atari_SCC.c which was
- *   Copyright 1994-95 Roman Hodek <Roman.Hodek@informatik.uni-erlangen.de>
- *   Partially based on PC-Linux serial.c by Linus Torvalds and Theodore Ts'o
- *
- * This file is subject to the terms and conditions of the GNU General Public
- * License.  See the file COPYING in the main directory of this archive
- * for more details.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/kdev_t.h>
@@ -53,18 +40,18 @@
 
 #define SCC_MINOR_BASE	64
 
-/* Shadows for all SCC write registers */
+
 static unsigned char scc_shadow[2][16];
 
-/* Location to access for SCC register access delay */
+
 static volatile unsigned char *scc_del = NULL;
 
-/* To keep track of STATUS_REG state for detection of Ext/Status int source */
+
 static unsigned char scc_last_status_reg[2];
 
-/***************************** Prototypes *****************************/
 
-/* Function prototypes */
+
+
 static void scc_disable_tx_interrupts(void * ptr);
 static void scc_enable_tx_interrupts(void * ptr);
 static void scc_disable_rx_interrupts(void * ptr);
@@ -91,9 +78,7 @@ static struct tty_driver *scc_driver;
 
 static struct scc_port scc_ports[2];
 
-/*---------------------------------------------------------------------------
- * Interface from generic_serial.c back here
- *--------------------------------------------------------------------------*/
+
 
 static struct real_driver scc_real_driver = {
         scc_disable_tx_interrupts,
@@ -132,9 +117,7 @@ static const struct tty_port_operations scc_port_ops = {
 	.carrier_raised = scc_carrier_raised,
 };
 
-/*----------------------------------------------------------------------------
- * vme_scc_init() and support functions
- *---------------------------------------------------------------------------*/
+
 
 static int scc_init_drivers(void)
 {
@@ -169,8 +152,7 @@ static int scc_init_drivers(void)
 }
 
 
-/* ports[] array is indexed by line no (i.e. [0] for ttyS0, [1] for ttyS1).
- */
+
 
 static void scc_init_portstructs(void)
 {
@@ -201,7 +183,7 @@ static int mvme147_scc_init(void)
 	int error;
 
 	printk(KERN_INFO "SCC: MVME147 Serial Driver\n");
-	/* Init channel A */
+	
 	port = &scc_ports[0];
 	port->channel = CHANNEL_A;
 	port->ctrlp = (volatile unsigned char *)M147_SCC_A_ADDR;
@@ -228,16 +210,16 @@ static int mvme147_scc_init(void)
 	{
 		SCC_ACCESS_INIT(port);
 
-		/* disable interrupts for this channel */
+		
 		SCCwrite(INT_AND_DMA_REG, 0);
-		/* Set the interrupt vector */
+		
 		SCCwrite(INT_VECTOR_REG, MVME147_IRQ_SCC_BASE);
-		/* Interrupt parameters: vector includes status, status low */
+		
 		SCCwrite(MASTER_INT_CTRL, MIC_VEC_INCL_STAT);
 		SCCmod(MASTER_INT_CTRL, 0xff, MIC_MASTER_INT_ENAB);
 	}
 
-	/* Init channel B */
+	
 	port = &scc_ports[1];
 	port->channel = CHANNEL_B;
 	port->ctrlp = (volatile unsigned char *)M147_SCC_B_ADDR;
@@ -264,14 +246,14 @@ static int mvme147_scc_init(void)
 	{
 		SCC_ACCESS_INIT(port);
 
-		/* disable interrupts for this channel */
+		
 		SCCwrite(INT_AND_DMA_REG, 0);
 	}
 
-        /* Ensure interrupts are enabled in the PCC chip */
+        
         m147_pcc->serial_cntrl=PCC_LEVEL_SERIAL|PCC_INT_ENAB;
 
-	/* Initialise the tty driver structures and register */
+	
 	scc_init_portstructs();
 	scc_init_drivers();
 
@@ -307,7 +289,7 @@ static int mvme162_scc_init(void)
 		return (-ENODEV);
 
 	printk(KERN_INFO "SCC: MVME162 Serial Driver\n");
-	/* Init channel A */
+	
 	port = &scc_ports[0];
 	port->channel = CHANNEL_A;
 	port->ctrlp = (volatile unsigned char *)MVME_SCC_A_ADDR;
@@ -334,16 +316,16 @@ static int mvme162_scc_init(void)
 	{
 		SCC_ACCESS_INIT(port);
 
-		/* disable interrupts for this channel */
+		
 		SCCwrite(INT_AND_DMA_REG, 0);
-		/* Set the interrupt vector */
+		
 		SCCwrite(INT_VECTOR_REG, MVME162_IRQ_SCC_BASE);
-		/* Interrupt parameters: vector includes status, status low */
+		
 		SCCwrite(MASTER_INT_CTRL, MIC_VEC_INCL_STAT);
 		SCCmod(MASTER_INT_CTRL, 0xff, MIC_MASTER_INT_ENAB);
 	}
 
-	/* Init channel B */
+	
 	port = &scc_ports[1];
 	port->channel = CHANNEL_B;
 	port->ctrlp = (volatile unsigned char *)MVME_SCC_B_ADDR;
@@ -368,16 +350,16 @@ static int mvme162_scc_init(void)
 		goto fail_free_b_rx;
 
 	{
-		SCC_ACCESS_INIT(port);	/* Either channel will do */
+		SCC_ACCESS_INIT(port);	
 
-		/* disable interrupts for this channel */
+		
 		SCCwrite(INT_AND_DMA_REG, 0);
 	}
 
-        /* Ensure interrupts are enabled in the MC2 chip */
+        
         *(volatile char *)0xfff4201d = 0x14;
 
-	/* Initialise the tty driver structures and register */
+	
 	scc_init_portstructs();
 	scc_init_drivers();
 
@@ -410,7 +392,7 @@ static int bvme6000_scc_init(void)
 	int error;
 
 	printk(KERN_INFO "SCC: BVME6000 Serial Driver\n");
-	/* Init channel A */
+	
 	port = &scc_ports[0];
 	port->channel = CHANNEL_A;
 	port->ctrlp = (volatile unsigned char *)BVME_SCC_A_ADDR;
@@ -437,16 +419,16 @@ static int bvme6000_scc_init(void)
 	{
 		SCC_ACCESS_INIT(port);
 
-		/* disable interrupts for this channel */
+		
 		SCCwrite(INT_AND_DMA_REG, 0);
-		/* Set the interrupt vector */
+		
 		SCCwrite(INT_VECTOR_REG, BVME_IRQ_SCC_BASE);
-		/* Interrupt parameters: vector includes status, status low */
+		
 		SCCwrite(MASTER_INT_CTRL, MIC_VEC_INCL_STAT);
 		SCCmod(MASTER_INT_CTRL, 0xff, MIC_MASTER_INT_ENAB);
 	}
 
-	/* Init channel B */
+	
 	port = &scc_ports[1];
 	port->channel = CHANNEL_B;
 	port->ctrlp = (volatile unsigned char *)BVME_SCC_B_ADDR;
@@ -471,13 +453,13 @@ static int bvme6000_scc_init(void)
 		goto fail_free_b_rx;
 
 	{
-		SCC_ACCESS_INIT(port);	/* Either channel will do */
+		SCC_ACCESS_INIT(port);	
 
-		/* disable interrupts for this channel */
+		
 		SCCwrite(INT_AND_DMA_REG, 0);
 	}
 
-	/* Initialise the tty driver structures and register */
+	
 	scc_init_portstructs();
 	scc_init_drivers();
 
@@ -525,9 +507,7 @@ static int vme_scc_init(void)
 module_init(vme_scc_init);
 
 
-/*---------------------------------------------------------------------------
- * Interrupt handlers
- *--------------------------------------------------------------------------*/
+
 
 static irqreturn_t scc_rx_int(int irq, void *data)
 {
@@ -544,10 +524,7 @@ static irqreturn_t scc_rx_int(int irq, void *data)
 	}
 	tty_insert_flip_char(tty, ch, 0);
 
-	/* Check if another character is already ready; in that case, the
-	 * spcond_int() function must be used, because this character may have an
-	 * error condition that isn't signalled by the interrupt vector used!
-	 */
+	
 	if (SCCread(INT_PENDING_REG) &
 	    (port->channel == CHANNEL_A ? IPR_A_RX : IPR_B_RX)) {
 		scc_spcond_int (irq, data);
@@ -591,9 +568,7 @@ static irqreturn_t scc_spcond_int(int irq, void *data)
 
 		tty_insert_flip_char(tty, ch, err);
 
-		/* ++TeSche: *All* errors have to be cleared manually,
-		 * else the condition persists for the next chars
-		 */
+		
 		if (err)
 		  SCCwrite(COMMAND_REG, CR_ERROR_RESET);
 
@@ -636,9 +611,9 @@ static irqreturn_t scc_tx_int(int irq, void *data)
 	}
 	if ((port->gs.xmit_cnt <= 0) || port->gs.port.tty->stopped ||
 	    port->gs.port.tty->hw_stopped) {
-		/* disable tx interrupts */
+		
 		SCCmod (INT_AND_DMA_REG, ~IDR_TX_INT_ENAB, 0);
-		SCCwrite(COMMAND_REG, CR_TX_PENDING_RESET);   /* disable tx_int on next tx underrun? */
+		SCCwrite(COMMAND_REG, CR_TX_PENDING_RESET);   
 		port->gs.port.flags &= ~GS_TX_INTEN;
 	}
 	if (port->gs.port.tty && port->gs.xmit_cnt <= port->gs.wakeup_chars)
@@ -663,7 +638,7 @@ static irqreturn_t scc_stat_int(int irq, void *data)
 	if (changed & SR_DCD) {
 		port->c_dcd = !!(sr & SR_DCD);
 		if (!(port->gs.port.flags & ASYNC_CHECK_CD))
-			;	/* Don't report DCD changes */
+			;	
 		else if (port->c_dcd) {
 			wake_up_interruptible(&port->gs.port.open_wait);
 		}
@@ -678,9 +653,7 @@ static irqreturn_t scc_stat_int(int irq, void *data)
 }
 
 
-/*---------------------------------------------------------------------------
- * generic_serial.c callback funtions
- *--------------------------------------------------------------------------*/
+
 
 static void scc_disable_tx_interrupts(void *ptr)
 {
@@ -703,7 +676,7 @@ static void scc_enable_tx_interrupts(void *ptr)
 
 	local_irq_save(flags);
 	SCCmod(INT_AND_DMA_REG, 0xff, IDR_TX_INT_ENAB);
-	/* restart the transmitter */
+	
 	scc_tx_int (0, port);
 	local_irq_restore(flags);
 }
@@ -757,7 +730,7 @@ static void scc_shutdown_port(void *ptr)
 
 static int scc_set_real_termios (void *ptr)
 {
-	/* the SCC has char sizes 5,7,6,8 in that order! */
+	
 	static int chsize_map[4] = { 0, 2, 1, 3 };
 	unsigned cflag, baud, chsize, channel, brgval = 0;
 	unsigned long flags;
@@ -769,14 +742,14 @@ static int scc_set_real_termios (void *ptr)
 	channel = port->channel;
 
 	if (channel == CHANNEL_A)
-		return 0;		/* Settings controlled by boot PROM */
+		return 0;		
 
 	cflag  = port->gs.port.tty->termios->c_cflag;
 	baud = port->gs.baud;
 	chsize = (cflag & CSIZE) >> 4;
 
 	if (baud == 0) {
-		/* speed == 0 -> drop DTR */
+		
 		local_irq_save(flags);
 		SCCmod(TX_CTRL_REG, ~TCR_DTR, 0);
 		local_irq_restore(flags);
@@ -806,29 +779,29 @@ static int scc_set_real_termios (void *ptr)
 	if (MACH_IS_BVME6000)
 		brgval = (BVME_SCC_RTxC + baud/2) / (16 * 2 * baud) - 2;
 #endif
-	/* Now we have all parameters and can go to set them: */
+	
 	local_irq_save(flags);
 
-	/* receiver's character size and auto-enables */
+	
 	SCCmod(RX_CTRL_REG, ~(RCR_CHSIZE_MASK|RCR_AUTO_ENAB_MODE),
 			(chsize_map[chsize] << 6) |
 			((cflag & CRTSCTS) ? RCR_AUTO_ENAB_MODE : 0));
-	/* parity and stop bits (both, Tx and Rx), clock mode never changes */
+	
 	SCCmod (AUX1_CTRL_REG,
 		~(A1CR_PARITY_MASK | A1CR_MODE_MASK),
 		((cflag & PARENB
 		  ? (cflag & PARODD ? A1CR_PARITY_ODD : A1CR_PARITY_EVEN)
 		  : A1CR_PARITY_NONE)
 		 | (cflag & CSTOPB ? A1CR_MODE_ASYNC_2 : A1CR_MODE_ASYNC_1)));
-	/* sender's character size, set DTR for valid baud rate */
+	
 	SCCmod(TX_CTRL_REG, ~TCR_CHSIZE_MASK, chsize_map[chsize] << 5 | TCR_DTR);
-	/* clock sources never change */
-	/* disable BRG before changing the value */
+	
+	
 	SCCmod(DPLL_CTRL_REG, ~DCR_BRG_ENAB, 0);
-	/* BRG value */
+	
 	SCCwrite(TIMER_LOW_REG, brgval & 0xff);
 	SCCwrite(TIMER_HIGH_REG, (brgval >> 8) & 0xff);
-	/* BRG enable, and clock source never changes */
+	
 	SCCmod(DPLL_CTRL_REG, 0xff, DCR_BRG_ENAB);
 
 	local_irq_restore(flags);
@@ -846,14 +819,7 @@ static int scc_chars_in_buffer (void *ptr)
 }
 
 
-/* Comment taken from sx.c (2.4.0):
-   I haven't the foggiest why the decrement use count has to happen
-   here. The whole linux serial drivers stuff needs to be redesigned.
-   My guess is that this is a hack to minimize the impact of a bug
-   elsewhere. Thinking about it some more. (try it sometime) Try
-   running minicom on a serial port that is driven by a modularized
-   driver. Have the modem hangup. Then remove the driver module. Then
-   exit minicom.  I expect an "oops".  -- REW */
+
 
 static void scc_hungup(void *ptr)
 {
@@ -869,9 +835,7 @@ static void scc_close(void *ptr)
 }
 
 
-/*---------------------------------------------------------------------------
- * Internal support functions
- *--------------------------------------------------------------------------*/
+
 
 static void scc_setsignals(struct scc_port *port, int dtr, int rts)
 {
@@ -898,9 +862,7 @@ static void scc_send_xchar(struct tty_struct *tty, char ch)
 }
 
 
-/*---------------------------------------------------------------------------
- * Driver entrypoints referenced from above
- *--------------------------------------------------------------------------*/
+
 
 static int scc_open (struct tty_struct * tty, struct file * filp)
 {
@@ -914,28 +876,28 @@ static int scc_open (struct tty_struct * tty, struct file * filp)
 	static const struct {
 		unsigned reg, val;
 	} mvme_init_tab[] = {
-		/* Values for MVME162 and MVME147 */
-		/* no parity, 1 stop bit, async, 1:16 */
+		
+		
 		{ AUX1_CTRL_REG, A1CR_PARITY_NONE|A1CR_MODE_ASYNC_1|A1CR_CLKMODE_x16 },
-		/* parity error is special cond, ints disabled, no DMA */
+		
 		{ INT_AND_DMA_REG, IDR_PARERR_AS_SPCOND | IDR_RX_INT_DISAB },
-		/* Rx 8 bits/char, no auto enable, Rx off */
+		
 		{ RX_CTRL_REG, RCR_CHSIZE_8 },
-		/* DTR off, Tx 8 bits/char, RTS off, Tx off */
+		
 		{ TX_CTRL_REG, TCR_CHSIZE_8 },
-		/* special features off */
+		
 		{ AUX2_CTRL_REG, 0 },
 		{ CLK_CTRL_REG, CCR_RXCLK_BRG | CCR_TXCLK_BRG },
 		{ DPLL_CTRL_REG, DCR_BRG_ENAB | DCR_BRG_USE_PCLK },
-		/* Start Rx */
+		
 		{ RX_CTRL_REG, RCR_RX_ENAB | RCR_CHSIZE_8 },
-		/* Start Tx */
+		
 		{ TX_CTRL_REG, TCR_TX_ENAB | TCR_RTS | TCR_DTR | TCR_CHSIZE_8 },
-		/* Ext/Stat ints: DCD only */
+		
 		{ INT_CTRL_REG, ICR_ENAB_DCD_INT },
-		/* Reset Ext/Stat ints */
+		
 		{ COMMAND_REG, CR_EXTSTAT_RESET },
-		/* ...again */
+		
 		{ COMMAND_REG, CR_EXTSTAT_RESET },
 	};
 #endif
@@ -943,28 +905,28 @@ static int scc_open (struct tty_struct * tty, struct file * filp)
 	static const struct {
 		unsigned reg, val;
 	} bvme_init_tab[] = {
-		/* Values for BVME6000 */
-		/* no parity, 1 stop bit, async, 1:16 */
+		
+		
 		{ AUX1_CTRL_REG, A1CR_PARITY_NONE|A1CR_MODE_ASYNC_1|A1CR_CLKMODE_x16 },
-		/* parity error is special cond, ints disabled, no DMA */
+		
 		{ INT_AND_DMA_REG, IDR_PARERR_AS_SPCOND | IDR_RX_INT_DISAB },
-		/* Rx 8 bits/char, no auto enable, Rx off */
+		
 		{ RX_CTRL_REG, RCR_CHSIZE_8 },
-		/* DTR off, Tx 8 bits/char, RTS off, Tx off */
+		
 		{ TX_CTRL_REG, TCR_CHSIZE_8 },
-		/* special features off */
+		
 		{ AUX2_CTRL_REG, 0 },
 		{ CLK_CTRL_REG, CCR_RTxC_XTAL | CCR_RXCLK_BRG | CCR_TXCLK_BRG },
 		{ DPLL_CTRL_REG, DCR_BRG_ENAB },
-		/* Start Rx */
+		
 		{ RX_CTRL_REG, RCR_RX_ENAB | RCR_CHSIZE_8 },
-		/* Start Tx */
+		
 		{ TX_CTRL_REG, TCR_TX_ENAB | TCR_RTS | TCR_DTR | TCR_CHSIZE_8 },
-		/* Ext/Stat ints: DCD only */
+		
 		{ INT_CTRL_REG, ICR_ENAB_DCD_INT },
-		/* Reset Ext/Stat ints */
+		
 		{ COMMAND_REG, CR_EXTSTAT_RESET },
-		/* ...again */
+		
 		{ COMMAND_REG, CR_EXTSTAT_RESET },
 	};
 #endif
@@ -983,10 +945,10 @@ static int scc_open (struct tty_struct * tty, struct file * filp)
 		}
 #endif
 
-		/* remember status register for detection of DCD and CTS changes */
+		
 		scc_last_status_reg[channel] = SCCread(STATUS_REG);
 
-		port->c_dcd = 0;	/* Prevent initial 1->0 interrupt */
+		port->c_dcd = 0;	
 		scc_setsignals (port, 1,1);
 		local_irq_restore(flags);
 	}
@@ -1068,9 +1030,7 @@ static int scc_break_ctl(struct tty_struct *tty, int break_state)
 }
 
 
-/*---------------------------------------------------------------------------
- * Serial console stuff...
- *--------------------------------------------------------------------------*/
+
 
 #define scc_delay() do { __asm__ __volatile__ (" nop; nop"); } while (0)
 
@@ -1101,7 +1061,7 @@ static void scc_ch_write (char ch)
 	*p = ch;
 }
 
-/* The console must be locked when we get here. */
+
 
 static void scc_console_write (struct console *co, const char *str, unsigned count)
 {

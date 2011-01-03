@@ -13,7 +13,7 @@
 #define MBOX        0x0C40L
 #define PORTBASE    0x0C90L
 
-/* Begin code defines used for epca_setup */
+
 
 #define INVALID_BOARD_TYPE   0x1
 #define INVALID_NUM_PORTS    0x2
@@ -22,7 +22,7 @@
 #define INVALID_BOARD_STATUS 0x10
 #define INVALID_ALTPIN       0x20
 
-/* End code defines used for epca_setup */
+
 
 
 #define FEPCLR      0x00
@@ -87,17 +87,17 @@ struct channel
 	struct tty_port port;
 	unsigned char boardnum;
 	unsigned char channelnum;
-	unsigned char omodem;         /* FEP output modem status     */
-	unsigned char imodem;         /* FEP input modem status      */
-	unsigned char modemfake;      /* Modem values to be forced   */
-	unsigned char modem;          /* Force values                */
+	unsigned char omodem;         
+	unsigned char imodem;         
+	unsigned char modemfake;      
+	unsigned char modem;          
 	unsigned char hflow;
 	unsigned char dsr;
 	unsigned char dcd;
-	unsigned char m_rts ; 		/* The bits used in whatever FEP */
-	unsigned char m_dcd ;		/* is indiginous to this board to */
-	unsigned char m_dsr ;		/* represent each of the physical */
-	unsigned char m_cts ;		/* handshake lines */
+	unsigned char m_rts ; 		
+	unsigned char m_dcd ;		
+	unsigned char m_dsr ;		
+	unsigned char m_cts ;		
 	unsigned char m_ri ;
 	unsigned char m_dtr ;
 	unsigned char stopc;

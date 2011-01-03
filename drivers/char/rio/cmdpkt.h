@@ -1,53 +1,12 @@
-/*
-** -----------------------------------------------------------------------------
-**
-**  Perle Specialix driver for Linux
-**  Ported from existing RIO Driver for SCO sources.
- *
- *  (C) 1990 - 2000 Specialix International Ltd., Byfleet, Surrey, UK.
- *
- *      This program is free software; you can redistribute it and/or modify
- *      it under the terms of the GNU General Public License as published by
- *      the Free Software Foundation; either version 2 of the License, or
- *      (at your option) any later version.
- *
- *      This program is distributed in the hope that it will be useful,
- *      but WITHOUT ANY WARRANTY; without even the implied warranty of
- *      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *      GNU General Public License for more details.
- *
- *      You should have received a copy of the GNU General Public License
- *      along with this program; if not, write to the Free Software
- *      Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-**
-**	Module		: cmdpkt.h
-**	SID		: 1.2
-**	Last Modified	: 11/6/98 11:34:09
-**	Retrieved	: 11/6/98 11:34:20
-**
-**  ident @(#)cmdpkt.h	1.2
-**
-** -----------------------------------------------------------------------------
-*/
+
 #ifndef __rio_cmdpkt_h__
 #define __rio_cmdpkt_h__
 
-/*
-** overlays for the data area of a packet. Used in both directions
-** (to build a packet to send, and to interpret a packet that arrives)
-** and is very inconvenient for MIPS, so they appear as two separate
-** structures - those used for modifying/reading packets on the card
-** and those for modifying/reading packets in real memory, which have an _M
-** suffix.
-*/
+
 
 #define	RTA_BOOT_DATA_SIZE (PKT_MAX_DATA_LEN-2)
 
-/*
-** The boot information packet looks like this:
-** This structure overlays a PktCmd->CmdData structure, and so starts
-** at Data[2] in the actual pkt!
-*/
+
 struct BootSequence {
 	u16 NumPackets;
 	u16 LoadBase;
@@ -83,23 +42,23 @@ struct PktCmd {
 		} S2;
 		struct {
 			u16 __crud__;
-			u8 PcUniqNum[4];	/* this is really a uint. */
-			u8 PcModuleTypes;	/* what modules are fitted */
+			u8 PcUniqNum[4];	
+			u8 PcModuleTypes;	
 		} S3;
 		struct {
 			struct CmdHdr CmdHdr;
 			u8 __undefined__;
 			u8 PcModemStatus;
 			u8 PcPortStatus;
-			u8 PcSubCommand;	/* commands like mem or register dump */
-			u16 PcSubAddr;	/* Address for command */
-			u8 PcSubData[64];	/* Date area for command */
+			u8 PcSubCommand;	
+			u16 PcSubAddr;	
+			u8 PcSubData[64];	
 		} S4;
 		struct {
 			struct CmdHdr CmdHdr;
 			u8 PcCommandText[1];
 			u8 __crud__[20];
-			u8 PcIDNum2;	/* It had to go somewhere! */
+			u8 PcIDNum2;	
 		} S5;
 		struct {
 			struct CmdHdr CmdHdr;
@@ -131,8 +90,8 @@ struct PktCmd_M {
 		} S2;
 		struct {
 			u16 __crud__;
-			u8 PcUniqNum[4];	/* this is really a uint. */
-			u8 PcModuleTypes;	/* what modules are fitted */
+			u8 PcUniqNum[4];	
+			u8 PcModuleTypes;	
 		} S3;
 		struct {
 			u16 __cmd_hdr__;
@@ -147,7 +106,7 @@ struct PktCmd_M {
 			u16 __cmd_hdr__;
 			u8 PcCommandText[1];
 			u8 __crud__[20];
-			u8 PcIDNum2;	/* Tacked on end */
+			u8 PcIDNum2;	
 		} S5;
 		struct {
 			u16 __cmd_hdr__;

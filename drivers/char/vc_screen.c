@@ -1,25 +1,4 @@
-/*
- * linux/drivers/char/vc_screen.c
- *
- * Provide access to virtual console memory.
- * /dev/vcs0: the screen as it is being viewed right now (possibly scrolled)
- * /dev/vcsN: the screen of /dev/ttyN (1 <= N <= 63)
- *            [minor: N]
- *
- * /dev/vcsaN: idem, but including attributes, and prefixed with
- *	the 4 bytes lines,columns,x,y (as screendump used to give).
- *	Attribute/character pair is in native endianity.
- *            [minor: N+128]
- *
- * This replaces screendump and part of selection, so that the system
- * administrator can control access using file system permissions.
- *
- * aeb@cwi.nl - efter Friedas begravelse - 950211
- *
- * machek@k332.feld.cvut.cz - modified not to send characters to wrong console
- *	 - fixed some fatal off-by-one bugs (0-- no longer == -1 -> looping and looping and looping...)
- *	 - making it shorter - scr_readw are macros which expand in PRETTY long code
- */
+
 
 #include <linux/kernel.h>
 #include <linux/major.h>
@@ -112,9 +91,7 @@ vcs_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
 
 	pos = *ppos;
 
-	/* Select the proper current console and verify
-	 * sanity of the situation under the console lock.
-	 */
+	
 	acquire_console_sem();
 
 	attr = (currcons & 128);
@@ -142,10 +119,7 @@ vcs_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
 		ssize_t orig_count;
 		long p = pos;
 
-		/* Check whether we are above size each round,
-		 * as copy_to_user at the end of this loop
-		 * could sleep.
-		 */
+		
 		size = vcs_size(inode);
 		if (pos >= size)
 			break;
@@ -156,10 +130,7 @@ vcs_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
 		if (this_round > CON_BUF_SIZE)
 			this_round = CON_BUF_SIZE;
 
-		/* Perform the whole read into the local con_buf.
-		 * Then we can drop the console spinlock and safely
-		 * attempt to move it to userspace.
-		 */
+		
 
 		con_buf_start = con_buf0 = con_buf;
 		orig_count = this_round;
@@ -195,16 +166,13 @@ vcs_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
 				if (tmp_count > this_round)
 					tmp_count = this_round;
 
-				/* Advance state pointers and move on. */
+				
 				this_round -= tmp_count;
 				p = HEADER_SIZE;
 				con_buf0 = con_buf + HEADER_SIZE;
-				/* If this_round >= 0, then p is even... */
+				
 			} else if (p & 1) {
-				/* Skip first byte for output if start address is odd
-				 * Update region sizes up/down depending on free
-				 * space in buffer.
-				 */
+				
 				con_buf_start++;
 				if (this_round < CON_BUF_SIZE)
 					this_round++;
@@ -221,10 +189,7 @@ vcs_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
 				org = screen_pos(vc, p, viewed);
 				p += maxcol - col;
 
-				/* Buffer has even length, so we can always copy
-				 * character + attribute. We do not copy last byte
-				 * to userspace if this_round is odd.
-				 */
+				
 				this_round = (this_round + 1) >> 1;
 
 				while (this_round) {
@@ -239,12 +204,7 @@ vcs_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
 			}
 		}
 
-		/* Finally, release the console semaphore while we push
-		 * all the data to userspace from our temporary buffer.
-		 *
-		 * AKPM: Even though it's a semaphore, we should drop it because
-		 * the pagefault handling code may want to call printk().
-		 */
+		
 
 		release_console_sem();
 		ret = copy_to_user(buf, con_buf_start, orig_count);
@@ -286,9 +246,7 @@ vcs_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
 
 	pos = *ppos;
 
-	/* Select the proper current console and verify
-	 * sanity of the situation under the console lock.
-	 */
+	
 	acquire_console_sem();
 
 	attr = (currcons & 128);
@@ -321,9 +279,7 @@ vcs_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
 		if (this_round > CON_BUF_SIZE)
 			this_round = CON_BUF_SIZE;
 
-		/* Temporarily drop the console lock so that we can read
-		 * in the write data from userspace safely.
-		 */
+		
 		release_console_sem();
 		ret = copy_from_user(con_buf, buf, this_round);
 		acquire_console_sem();
@@ -331,9 +287,7 @@ vcs_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
 		if (ret) {
 			this_round -= ret;
 			if (!this_round) {
-				/* Abort loop if no data were copied. Otherwise
-				 * fail with -EFAULT.
-				 */
+				
 				if (written)
 					break;
 				ret = -EFAULT;
@@ -341,19 +295,14 @@ vcs_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
 			}
 		}
 
-		/* The vcs_size might have changed while we slept to grab
-		 * the user buffer, so recheck.
-		 * Return data written up to now on failure.
-		 */
+		
 		size = vcs_size(inode);
 		if (pos >= size)
 			break;
 		if (this_round > size - pos)
 			this_round = size - pos;
 
-		/* OK, now actually push the write to the console
-		 * under the lock using the local kernel buffer.
-		 */
+		
 
 		con_buf0 = con_buf;
 		orig_count = this_round;

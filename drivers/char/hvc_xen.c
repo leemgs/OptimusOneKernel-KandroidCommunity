@@ -1,22 +1,4 @@
-/*
- * xen console driver interface to hvc_console.c
- *
- * (c) 2007 Gerd Hoffmann <kraxel@suse.de>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- */
+
 
 #include <linux/console.h>
 #include <linux/delay.h>
@@ -32,12 +14,12 @@
 
 #include "hvc_console.h"
 
-#define HVC_COOKIE   0x58656e /* "Xen" in hex */
+#define HVC_COOKIE   0x58656e 
 
 static struct hvc_struct *hvc;
 static int xencons_irq;
 
-/* ------------------------------------------------------------------ */
+
 
 static unsigned long console_pfn = ~0ul;
 
@@ -51,7 +33,7 @@ static inline struct xencons_interface *xencons_interface(void)
 
 static inline void notify_daemon(void)
 {
-	/* Use evtchn: this is called early, before irq is set up. */
+	
 	notify_remote_via_evtchn(xen_start_info->console.domU.evtchn);
 }
 
@@ -63,13 +45,13 @@ static int __write_console(const char *data, int len)
 
 	cons = intf->out_cons;
 	prod = intf->out_prod;
-	mb();			/* update queue values before going on */
+	mb();			
 	BUG_ON((prod - cons) > sizeof(intf->out));
 
 	while ((sent < len) && ((prod - cons) < sizeof(intf->out)))
 		intf->out[MASK_XENCONS_IDX(prod++, intf->out)] = data[sent++];
 
-	wmb();			/* write ring before updating pointer */
+	wmb();			
 	intf->out_prod = prod;
 
 	notify_daemon();
@@ -80,12 +62,7 @@ static int write_console(uint32_t vtermno, const char *data, int len)
 {
 	int ret = len;
 
-	/*
-	 * Make sure the whole buffer is emitted, polling if
-	 * necessary.  We don't ever want to rely on the hvc daemon
-	 * because the most interesting console output is when the
-	 * kernel is crippled.
-	 */
+	
 	while (len) {
 		int sent = __write_console(data, len);
 		
@@ -107,13 +84,13 @@ static int read_console(uint32_t vtermno, char *buf, int len)
 
 	cons = intf->in_cons;
 	prod = intf->in_prod;
-	mb();			/* get pointers before reading ring */
+	mb();			
 	BUG_ON((prod - cons) > sizeof(intf->in));
 
 	while (cons != prod && recv < len)
 		buf[recv++] = intf->in[MASK_XENCONS_IDX(cons++, intf->in)];
 
-	mb();			/* read ring before consuming */
+	mb();			
 	intf->in_cons = cons;
 
 	notify_daemon();
@@ -139,7 +116,7 @@ static int __init xen_init(void)
 
 	xencons_irq = bind_evtchn_to_irq(xen_start_info->console.domU.evtchn);
 	if (xencons_irq < 0)
-		xencons_irq = 0; /* NO_IRQ */
+		xencons_irq = 0; 
 
 	hp = hvc_alloc(HVC_COOKIE, xencons_irq, &hvc_ops, 256);
 	if (IS_ERR(hp))
@@ -216,7 +193,7 @@ struct console xenboot_console = {
 	.write		= xenboot_write_console,
 	.flags		= CON_PRINTBUFFER | CON_BOOT | CON_ANYTIME,
 };
-#endif	/* CONFIG_EARLY_PRINTK */
+#endif	
 
 void xen_raw_console_write(const char *str)
 {

@@ -1,22 +1,8 @@
-/*****************************************************************************/
 
-/*
- *	istallion.c  -- stallion intelligent multiport serial driver.
- *
- *	Copyright (C) 1996-1999  Stallion Technologies
- *	Copyright (C) 1994-1996  Greg Ungerer.
- *
- *	This code is loosely based on the Linux serial driver, written by
- *	Linus Torvalds, Theodore T'so and others.
- *
- *	This program is free software; you can redistribute it and/or modify
- *	it under the terms of the GNU General Public License as published by
- *	the Free Software Foundation; either version 2 of the License, or
- *	(at your option) any later version.
- *
- */
 
-/*****************************************************************************/
+
+
+
 
 #include <linux/module.h>
 #include <linux/sched.h>
@@ -43,15 +29,9 @@
 
 #include <linux/pci.h>
 
-/*****************************************************************************/
 
-/*
- *	Define different board types. Not all of the following board types
- *	are supported by this driver. But I will use the standard "assigned"
- *	board numbers. Currently supported boards are abbreviated as:
- *	ECP = EasyConnection 8/64, ONB = ONboard, BBY = Brumby and
- *	STAL = Stallion.
- */
+
+
 #define	BRD_UNKNOWN	0
 #define	BRD_STALLION	1
 #define	BRD_BRUMBY4	2
@@ -65,44 +45,7 @@
 
 #define	BRD_BRUMBY	BRD_BRUMBY4
 
-/*
- *	Define a configuration structure to hold the board configuration.
- *	Need to set this up in the code (for now) with the boards that are
- *	to be configured into the system. This is what needs to be modified
- *	when adding/removing/modifying boards. Each line entry in the
- *	stli_brdconf[] array is a board. Each line contains io/irq/memory
- *	ranges for that board (as well as what type of board it is).
- *	Some examples:
- *		{ BRD_ECP, 0x2a0, 0, 0xcc000, 0, 0 },
- *	This line will configure an EasyConnection 8/64 at io address 2a0,
- *	and shared memory address of cc000. Multiple EasyConnection 8/64
- *	boards can share the same shared memory address space. No interrupt
- *	is required for this board type.
- *	Another example:
- *		{ BRD_ECPE, 0x5000, 0, 0x80000000, 0, 0 },
- *	This line will configure an EasyConnection 8/64 EISA in slot 5 and
- *	shared memory address of 0x80000000 (2 GByte). Multiple
- *	EasyConnection 8/64 EISA boards can share the same shared memory
- *	address space. No interrupt is required for this board type.
- *	Another example:
- *		{ BRD_ONBOARD, 0x240, 0, 0xd0000, 0, 0 },
- *	This line will configure an ONboard (ISA type) at io address 240,
- *	and shared memory address of d0000. Multiple ONboards can share
- *	the same shared memory address space. No interrupt required.
- *	Another example:
- *		{ BRD_BRUMBY4, 0x360, 0, 0xc8000, 0, 0 },
- *	This line will configure a Brumby board (any number of ports!) at
- *	io address 360 and shared memory address of c8000. All Brumby boards
- *	configured into a system must have their own separate io and memory
- *	addresses. No interrupt is required.
- *	Another example:
- *		{ BRD_STALLION, 0x330, 0, 0xd0000, 0, 0 },
- *	This line will configure an original Stallion board at io address 330
- *	and shared memory address d0000 (this would only be valid for a "V4.0"
- *	or Rev.O Stallion board). All Stallion boards configured into the
- *	system must have their own separate io and memory addresses. No
- *	interrupt is required.
- */
+
 
 struct stlconf {
 	int		brdtype;
@@ -115,23 +58,16 @@ struct stlconf {
 
 static unsigned int stli_nrbrds;
 
-/* stli_lock must NOT be taken holding brd_lock */
-static spinlock_t stli_lock;	/* TTY logic lock */
-static spinlock_t brd_lock;	/* Board logic lock */
 
-/*
- *	There is some experimental EISA board detection code in this driver.
- *	By default it is disabled, but for those that want to try it out,
- *	then set the define below to be 1.
- */
+static spinlock_t stli_lock;	
+static spinlock_t brd_lock;	
+
+
 #define	STLI_EISAPROBE	0
 
-/*****************************************************************************/
 
-/*
- *	Define some important driver characteristics. Device major numbers
- *	allocated as per Linux Device Registry.
- */
+
+
 #ifndef	STL_SIOMEMMAJOR
 #define	STL_SIOMEMMAJOR		28
 #endif
@@ -142,12 +78,9 @@ static spinlock_t brd_lock;	/* Board logic lock */
 #define	STL_CALLOUTMAJOR	25
 #endif
 
-/*****************************************************************************/
 
-/*
- *	Define our local driver identity first. Set up stuff to deal with
- *	all the local structures required by a serial tty driver.
- */
+
+
 static char	*stli_drvtitle = "Stallion Intelligent Multiport Serial Driver";
 static char	*stli_drvname = "istallion";
 static char	*stli_drvversion = "5.6.0";
@@ -158,23 +91,13 @@ static const struct tty_port_operations stli_port_ops;
 
 #define	STLI_TXBUFSIZE		4096
 
-/*
- *	Use a fast local buffer for cooked characters. Typically a whole
- *	bunch of cooked characters come in for a port, 1 at a time. So we
- *	save those up into a local buffer, then write out the whole lot
- *	with a large memcpy. Just use 1 buffer for all ports, since its
- *	use it is only need for short periods of time by each port.
- */
+
 static char			*stli_txcookbuf;
 static int			stli_txcooksize;
 static int			stli_txcookrealsize;
 static struct tty_struct	*stli_txcooktty;
 
-/*
- *	Define a local default termios struct. All ports will be created
- *	with this termios initially. Basically all it defines is a raw port
- *	at 9600 baud, 8 data bits, no parity, 1 stop bit.
- */
+
 static struct ktermios		stli_deftermios = {
 	.c_cflag	= (B9600 | CS8 | CREAD | HUPCL | CLOCAL),
 	.c_cc		= INIT_C_CC,
@@ -182,37 +105,24 @@ static struct ktermios		stli_deftermios = {
 	.c_ospeed	= 9600,
 };
 
-/*
- *	Define global stats structures. Not used often, and can be
- *	re-used for each stats call.
- */
+
 static comstats_t	stli_comstats;
 static combrd_t		stli_brdstats;
 static struct asystats	stli_cdkstats;
 
-/*****************************************************************************/
+
 
 static DEFINE_MUTEX(stli_brdslock);
 static struct stlibrd	*stli_brds[STL_MAXBRDS];
 
 static int		stli_shared;
 
-/*
- *	Per board state flags. Used with the state field of the board struct.
- *	Not really much here... All we need to do is keep track of whether
- *	the board has been detected, and whether it is actually running a slave
- *	or not.
- */
+
 #define	BST_FOUND	0x1
 #define	BST_STARTED	0x2
 #define	BST_PROBED	0x4
 
-/*
- *	Define the set of port state flags. These are marked for internal
- *	state purposes only, usually to do with the state of communications
- *	with the slave. Most of them need to be updated atomically, so always
- *	use the bit setting operations (unless protected by cli/sti).
- */
+
 #define	ST_INITIALIZING	1
 #define	ST_OPENING	2
 #define	ST_CLOSING	3
@@ -225,10 +135,7 @@ static int		stli_shared;
 #define	ST_RXSTOP	10
 #define	ST_GETSIGS	11
 
-/*
- *	Define an array of board names as printable strings. Handy for
- *	referencing boards when printing trace and stuff.
- */
+
 static char	*stli_brdnames[] = {
 	"Unknown",
 	"Stallion",
@@ -262,13 +169,9 @@ static char	*stli_brdnames[] = {
 	"EC/RA-PCI",
 };
 
-/*****************************************************************************/
 
-/*
- *	Define some string labels for arguments passed from the module
- *	load line. These allow for easy board definitions, and easy
- *	modification of the io, memory and irq resoucres.
- */
+
+
 
 static char	*board0[8];
 static char	*board1[8];
@@ -282,10 +185,7 @@ static char	**stli_brdsp[] = {
 	(char **) &board3
 };
 
-/*
- *	Define a set of common board names, and types. This is used to
- *	parse any module arguments.
- */
+
 
 static struct stlibrdtype {
 	char	*name;
@@ -343,9 +243,7 @@ static struct stlibrdtype {
 	{ "29", BRD_ECPPCI },
 };
 
-/*
- *	Define the module agruments.
- */
+
 MODULE_AUTHOR("Greg Ungerer");
 MODULE_DESCRIPTION("Stallion Intelligent Multiport Serial Driver");
 MODULE_LICENSE("GPL");
@@ -361,14 +259,7 @@ module_param_array(board3, charp, NULL, 0);
 MODULE_PARM_DESC(board3, "Board 3 config -> name[,ioaddr[,memaddr]");
 
 #if STLI_EISAPROBE != 0
-/*
- *	Set up a default memory address table for EISA board probing.
- *	The default addresses are all bellow 1Mbyte, which has to be the
- *	case anyway. They should be safe, since we only read values from
- *	them, and interrupts are disabled while we do it. If the higher
- *	memory support is compiled in then we also try probing around
- *	the 1Gb, 2Gb and 3Gb areas as well...
- */
+
 static unsigned long	stli_eisamemprobeaddrs[] = {
 	0xc0000,    0xd0000,    0xe0000,    0xf0000,
 	0x80000000, 0x80010000, 0x80020000, 0x80030000,
@@ -380,9 +271,7 @@ static unsigned long	stli_eisamemprobeaddrs[] = {
 static int	stli_eisamempsize = ARRAY_SIZE(stli_eisamemprobeaddrs);
 #endif
 
-/*
- *	Define the Stallion PCI vendor and device IDs.
- */
+
 #ifndef PCI_DEVICE_ID_ECRA
 #define	PCI_DEVICE_ID_ECRA		0x0004
 #endif
@@ -395,13 +284,9 @@ MODULE_DEVICE_TABLE(pci, istallion_pci_tbl);
 
 static struct pci_driver stli_pcidriver;
 
-/*****************************************************************************/
 
-/*
- *	Hardware configuration info for ECP boards. These defines apply
- *	to the directly accessible io ports of the ECP. There is a set of
- *	defines for each ECP board type, ISA, EISA, MCA and PCI.
- */
+
+
 #define	ECP_IOSIZE	4
 
 #define	ECP_MEMSIZE	(128 * 1024)
@@ -414,9 +299,7 @@ static struct pci_driver stli_pcidriver;
 
 #define	STL_EISAID	0x8c4e
 
-/*
- *	Important defines for the ISA class of ECP board.
- */
+
 #define	ECP_ATIREG	0
 #define	ECP_ATCONFR	1
 #define	ECP_ATMEMAR	2
@@ -428,9 +311,7 @@ static struct pci_driver stli_pcidriver;
 #define	ECP_ATADDRMASK	0x3f000
 #define	ECP_ATADDRSHFT	12
 
-/*
- *	Important defines for the EISA class of ECP board.
- */
+
 #define	ECP_EIIREG	0
 #define	ECP_EIMEMARL	1
 #define	ECP_EICONFR	2
@@ -448,28 +329,19 @@ static struct pci_driver stli_pcidriver;
 
 #define	ECP_EISAID	0x4
 
-/*
- *	Important defines for the Micro-channel class of ECP board.
- *	(It has a lot in common with the ISA boards.)
- */
+
 #define	ECP_MCIREG	0
 #define	ECP_MCCONFR	1
 #define	ECP_MCSTOP	0x20
 #define	ECP_MCENABLE	0x80
 #define	ECP_MCDISABLE	0x00
 
-/*
- *	Important defines for the PCI class of ECP board.
- *	(It has a lot in common with the other ECP boards.)
- */
+
 #define	ECP_PCIIREG	0
 #define	ECP_PCICONFR	1
 #define	ECP_PCISTOP	0x01
 
-/*
- *	Hardware configuration info for ONboard and Brumby boards. These
- *	defines apply to the directly accessible io ports of these boards.
- */
+
 #define	ONB_IOSIZE	16
 #define	ONB_MEMSIZE	(64 * 1024)
 #define	ONB_ATPAGESIZE	(64 * 1024)
@@ -477,9 +349,7 @@ static struct pci_driver stli_pcidriver;
 #define	ONB_EIMEMSIZE	(128 * 1024)
 #define	ONB_EIPAGESIZE	(64 * 1024)
 
-/*
- *	Important defines for the ISA class of ONboard board.
- */
+
 #define	ONB_ATIREG	0
 #define	ONB_ATMEMAR	1
 #define	ONB_ATCONFR	2
@@ -492,9 +362,7 @@ static struct pci_driver stli_pcidriver;
 #define	ONB_MEMENABLO	0
 #define	ONB_MEMENABHI	0x02
 
-/*
- *	Important defines for the EISA class of ONboard board.
- */
+
 #define	ONB_EIIREG	0
 #define	ONB_EIMEMARL	1
 #define	ONB_EICONFR	2
@@ -512,10 +380,7 @@ static struct pci_driver stli_pcidriver;
 
 #define	ONB_EISAID	0x1
 
-/*
- *	Important defines for the Brumby boards. They are pretty simple,
- *	there is not much that is programmably configurable.
- */
+
 #define	BBY_IOSIZE	16
 #define	BBY_MEMSIZE	(64 * 1024)
 #define	BBY_PAGESIZE	(16 * 1024)
@@ -524,35 +389,19 @@ static struct pci_driver stli_pcidriver;
 #define	BBY_ATCONFR	1
 #define	BBY_ATSTOP	0x4
 
-/*
- *	Important defines for the Stallion boards. They are pretty simple,
- *	there is not much that is programmably configurable.
- */
+
 #define	STAL_IOSIZE	16
 #define	STAL_MEMSIZE	(64 * 1024)
 #define	STAL_PAGESIZE	(64 * 1024)
 
-/*
- *	Define the set of status register values for EasyConnection panels.
- *	The signature will return with the status value for each panel. From
- *	this we can determine what is attached to the board - before we have
- *	actually down loaded any code to it.
- */
+
 #define	ECH_PNLSTATUS	2
 #define	ECH_PNL16PORT	0x20
 #define	ECH_PNLIDMASK	0x07
 #define	ECH_PNLXPID	0x40
 #define	ECH_PNLINTRPEND	0x80
 
-/*
- *	Define some macros to do things to the board. Even those these boards
- *	are somewhat related there is often significantly different ways of
- *	doing some operation on it (like enable, paging, reset, etc). So each
- *	board class has a set of functions which do the commonly required
- *	operations. The macros below basically just call these functions,
- *	generally checking for a NULL function - which means that the board
- *	needs nothing done to it to achieve this operation!
- */
+
 #define	EBRDINIT(brdp)						\
 	if (brdp->init != NULL)					\
 		(* brdp->init)(brdp)
@@ -576,26 +425,20 @@ static struct pci_driver stli_pcidriver;
 #define	EBRDGETMEMPTR(brdp,offset)				\
 	(* brdp->getmemptr)(brdp, offset, __LINE__)
 
-/*
- *	Define the maximal baud rate, and the default baud base for ports.
- */
+
 #define	STL_MAXBAUD	460800
 #define	STL_BAUDBASE	115200
 #define	STL_CLOSEDELAY	(5 * HZ / 10)
 
-/*****************************************************************************/
 
-/*
- *	Define macros to extract a brd or port number from a minor number.
- */
+
+
 #define	MINOR2BRD(min)		(((min) & 0xc0) >> 6)
 #define	MINOR2PORT(min)		((min) & 0x3f)
 
-/*****************************************************************************/
 
-/*
- *	Prototype all functions in this driver!
- */
+
+
 
 static int	stli_parsebrd(struct stlconf *confp, char **argp);
 static int	stli_open(struct tty_struct *tty, struct file *filp);
@@ -692,14 +535,9 @@ static int	stli_eisamemprobe(struct stlibrd *brdp);
 #endif
 static int	stli_initports(struct stlibrd *brdp);
 
-/*****************************************************************************/
 
-/*
- *	Define the driver info for a user level shared memory device. This
- *	device will work sort of like the /dev/kmem device - except that it
- *	will give access to the shared memory on the Stallion intelligent
- *	board. This is also a very useful debugging tool.
- */
+
+
 static const struct file_operations	stli_fsiomem = {
 	.owner		= THIS_MODULE,
 	.read		= stli_memread,
@@ -707,24 +545,17 @@ static const struct file_operations	stli_fsiomem = {
 	.ioctl		= stli_memioctl,
 };
 
-/*****************************************************************************/
 
-/*
- *	Define a timer_list entry for our poll routine. The slave board
- *	is polled every so often to see if anything needs doing. This is
- *	much cheaper on host cpu than using interrupts. It turns out to
- *	not increase character latency by much either...
- */
+
+
 static DEFINE_TIMER(stli_timerlist, stli_poll, 0, 0);
 
 static int	stli_timeron;
 
-/*
- *	Define the calculation for the timeout routine.
- */
+
 #define	STLI_TIMEOUT	(jiffies + 1)
 
-/*****************************************************************************/
+
 
 static struct class *istallion_class;
 
@@ -747,11 +578,9 @@ static void stli_cleanup_ports(struct stlibrd *brdp)
 	}
 }
 
-/*****************************************************************************/
 
-/*
- *	Parse the supplied argument string, into the board conf struct.
- */
+
+
 
 static int stli_parsebrd(struct stlconf *confp, char **argp)
 {
@@ -781,7 +610,7 @@ static int stli_parsebrd(struct stlconf *confp, char **argp)
 	return(1);
 }
 
-/*****************************************************************************/
+
 
 static int stli_open(struct tty_struct *tty, struct file *filp)
 {
@@ -811,14 +640,7 @@ static int stli_open(struct tty_struct *tty, struct file *filp)
 		return -ENODEV;
 	port = &portp->port;
 
-/*
- *	On the first open of the device setup the port hardware, and
- *	initialize the per port data structure. Since initializing the port
- *	requires several commands to the board we will need to wait for any
- *	other open that is already initializing the port.
- *
- *	Review - locking
- */
+
 	tty_port_tty_set(port, tty);
 	tty->driver_data = portp;
 	port->count++;
@@ -831,7 +653,7 @@ static int stli_open(struct tty_struct *tty, struct file *filp)
 	if ((portp->port.flags & ASYNC_INITIALIZED) == 0) {
 		set_bit(ST_INITIALIZING, &portp->state);
 		if ((rc = stli_initopen(tty, brdp, portp)) >= 0) {
-			/* Locking */
+			
 			port->flags |= ASYNC_INITIALIZED;
 			clear_bit(TTY_IO_ERROR, &tty->flags);
 		}
@@ -843,7 +665,7 @@ static int stli_open(struct tty_struct *tty, struct file *filp)
 	return tty_port_block_til_ready(&portp->port, tty, filp);
 }
 
-/*****************************************************************************/
+
 
 static void stli_close(struct tty_struct *tty, struct file *filp)
 {
@@ -860,23 +682,17 @@ static void stli_close(struct tty_struct *tty, struct file *filp)
 	if (tty_port_close_start(port, tty, filp) == 0)
 		return;
 
-/*
- *	May want to wait for data to drain before closing. The BUSY flag
- *	keeps track of whether we are still transmitting or not. It is
- *	updated by messages from the slave - indicating when all chars
- *	really have drained.
- */
+
  	spin_lock_irqsave(&stli_lock, flags);
 	if (tty == stli_txcooktty)
 		stli_flushchars(tty);
 	spin_unlock_irqrestore(&stli_lock, flags);
 
-	/* We end up doing this twice for the moment. This needs looking at
-	   eventually. Note we still use portp->closing_wait as a result */
+	
 	if (portp->closing_wait != ASYNC_CLOSING_WAIT_NONE)
 		tty_wait_until_sent(tty, portp->closing_wait);
 
-	/* FIXME: port locking here needs attending to */
+	
 	port->flags &= ~ASYNC_INITIALIZED;
 
 	brdp = stli_brds[portp->brdnr];
@@ -900,15 +716,9 @@ static void stli_close(struct tty_struct *tty, struct file *filp)
 	tty_port_tty_set(port, NULL);
 }
 
-/*****************************************************************************/
 
-/*
- *	Carry out first open operations on a port. This involves a number of
- *	commands to be sent to the slave. We need to open the port, set the
- *	notification events, set the initial port settings, get and set the
- *	initial signal values. We sleep and wait in between each one. But
- *	this still all happens pretty quickly.
- */
+
+
 
 static int stli_initopen(struct tty_struct *tty,
 				struct stlibrd *brdp, struct stliport *portp)
@@ -946,14 +756,9 @@ static int stli_initopen(struct tty_struct *tty,
 	return 0;
 }
 
-/*****************************************************************************/
 
-/*
- *	Send an open message to the slave. This will sleep waiting for the
- *	acknowledgement, so must have user context. We need to co-ordinate
- *	with close events here, since we don't want open and close events
- *	to overlap.
- */
+
+
 
 static int stli_rawopen(struct stlibrd *brdp, struct stliport *portp, unsigned long arg, int wait)
 {
@@ -963,27 +768,16 @@ static int stli_rawopen(struct stlibrd *brdp, struct stliport *portp, unsigned l
 	unsigned long flags;
 	int rc;
 
-/*
- *	Send a message to the slave to open this port.
- */
 
-/*
- *	Slave is already closing this port. This can happen if a hangup
- *	occurs on this port. So we must wait until it is complete. The
- *	order of opens and closes may not be preserved across shared
- *	memory, so we must wait until it is complete.
- */
+
+
 	wait_event_interruptible(portp->raw_wait,
 			!test_bit(ST_CLOSING, &portp->state));
 	if (signal_pending(current)) {
 		return -ERESTARTSYS;
 	}
 
-/*
- *	Everything is ready now, so write the open message into shared
- *	memory. Once the message is in set the service bits to say that
- *	this port wants service.
- */
+
 	spin_lock_irqsave(&brd_lock, flags);
 	EBRDENABLE(brdp);
 	cp = &((cdkasy_t __iomem *) EBRDGETMEMPTR(brdp, portp->addr))->ctrl;
@@ -1000,10 +794,7 @@ static int stli_rawopen(struct stlibrd *brdp, struct stliport *portp, unsigned l
 		return 0;
 	}
 
-/*
- *	Slave is in action, so now we must wait for the open acknowledgment
- *	to come back.
- */
+
 	rc = 0;
 	set_bit(ST_OPENING, &portp->state);
 	spin_unlock_irqrestore(&brd_lock, flags);
@@ -1018,13 +809,9 @@ static int stli_rawopen(struct stlibrd *brdp, struct stliport *portp, unsigned l
 	return rc;
 }
 
-/*****************************************************************************/
 
-/*
- *	Send a close message to the slave. Normally this will sleep waiting
- *	for the acknowledgement, but if wait parameter is 0 it will not. If
- *	wait is true then must have user context (to sleep).
- */
+
+
 
 static int stli_rawclose(struct stlibrd *brdp, struct stliport *portp, unsigned long arg, int wait)
 {
@@ -1034,10 +821,7 @@ static int stli_rawclose(struct stlibrd *brdp, struct stliport *portp, unsigned 
 	unsigned long flags;
 	int rc;
 
-/*
- *	Slave is already closing this port. This can happen if a hangup
- *	occurs on this port.
- */
+
 	if (wait) {
 		wait_event_interruptible(portp->raw_wait,
 				!test_bit(ST_CLOSING, &portp->state));
@@ -1046,9 +830,7 @@ static int stli_rawclose(struct stlibrd *brdp, struct stliport *portp, unsigned 
 		}
 	}
 
-/*
- *	Write the close command into shared memory.
- */
+
 	spin_lock_irqsave(&brd_lock, flags);
 	EBRDENABLE(brdp);
 	cp = &((cdkasy_t __iomem *) EBRDGETMEMPTR(brdp, portp->addr))->ctrl;
@@ -1066,10 +848,7 @@ static int stli_rawclose(struct stlibrd *brdp, struct stliport *portp, unsigned 
 	if (wait == 0)
 		return 0;
 
-/*
- *	Slave is in action, so now we must wait for the open acknowledgment
- *	to come back.
- */
+
 	rc = 0;
 	wait_event_interruptible(portp->raw_wait,
 			!test_bit(ST_CLOSING, &portp->state));
@@ -1081,14 +860,9 @@ static int stli_rawclose(struct stlibrd *brdp, struct stliport *portp, unsigned 
 	return rc;
 }
 
-/*****************************************************************************/
 
-/*
- *	Send a command to the slave and wait for the response. This must
- *	have user context (it sleeps). This routine is generic in that it
- *	can send any type of command. Its purpose is to wait for that command
- *	to complete (as opposed to initiating the command then returning).
- */
+
+
 
 static int stli_cmdwait(struct stlibrd *brdp, struct stliport *portp, unsigned long cmd, void *arg, int size, int copyback)
 {
@@ -1109,12 +883,9 @@ static int stli_cmdwait(struct stlibrd *brdp, struct stliport *portp, unsigned l
 	return 0;
 }
 
-/*****************************************************************************/
 
-/*
- *	Send the termios settings for this port to the slave. This sleeps
- *	waiting for the command to complete - so must have user context.
- */
+
+
 
 static int stli_setport(struct tty_struct *tty)
 {
@@ -1134,7 +905,7 @@ static int stli_setport(struct tty_struct *tty)
 	return(stli_cmdwait(brdp, portp, A_SETPORT, &aport, sizeof(asyport_t), 0));
 }
 
-/*****************************************************************************/
+
 
 static int stli_carrier_raised(struct tty_port *port)
 {
@@ -1153,13 +924,9 @@ static void stli_dtr_rts(struct tty_port *port, int on)
 }
 
 
-/*****************************************************************************/
 
-/*
- *	Write routine. Take the data and put it in the shared memory ring
- *	queue. If port is not already sending chars then need to mark the
- *	service bits for this port.
- */
+
+
 
 static int stli_write(struct tty_struct *tty, const unsigned char *buf, int count)
 {
@@ -1185,9 +952,7 @@ static int stli_write(struct tty_struct *tty, const unsigned char *buf, int coun
 		return 0;
 	chbuf = (unsigned char *) buf;
 
-/*
- *	All data is now local, shove as much as possible into shared memory.
- */
+
 	spin_lock_irqsave(&brd_lock, flags);
 	EBRDENABLE(brdp);
 	ap = (cdkasy_t __iomem *) EBRDGETMEMPTR(brdp, portp->addr);
@@ -1238,15 +1003,9 @@ static int stli_write(struct tty_struct *tty, const unsigned char *buf, int coun
 	return(count);
 }
 
-/*****************************************************************************/
 
-/*
- *	Output a single character. We put it into a temporary local buffer
- *	(for speed) then write out that buffer when the flushchars routine
- *	is called. There is a safety catch here so that if some other port
- *	writes chars before the current buffer has been, then we write them
- *	first them do the new ports.
- */
+
+
 
 static int stli_putchar(struct tty_struct *tty, unsigned char ch)
 {
@@ -1260,15 +1019,9 @@ static int stli_putchar(struct tty_struct *tty, unsigned char ch)
 	return 0;
 }
 
-/*****************************************************************************/
 
-/*
- *	Transfer characters from the local TX cooking buffer to the board.
- *	We sort of ignore the tty that gets passed in here. We rely on the
- *	info stored with the TX cook buffer to tell us which port to flush
- *	the data on. In any case we clean out the TX cook buffer, for re-use
- *	by someone else.
- */
+
+
 
 static void stli_flushchars(struct tty_struct *tty)
 {
@@ -1357,7 +1110,7 @@ static void stli_flushchars(struct tty_struct *tty)
 	spin_unlock_irqrestore(&brd_lock, flags);
 }
 
-/*****************************************************************************/
+
 
 static int stli_writeroom(struct tty_struct *tty)
 {
@@ -1402,15 +1155,9 @@ static int stli_writeroom(struct tty_struct *tty)
 	return len;
 }
 
-/*****************************************************************************/
 
-/*
- *	Return the number of characters in the transmit buffer. Normally we
- *	will return the number of chars in the shared memory ring queue.
- *	We need to kludge around the case where the shared memory buffer is
- *	empty but not all characters have drained yet, for this case just
- *	return that there is 1 character in the buffer!
- */
+
+
 
 static int stli_charsinbuffer(struct tty_struct *tty)
 {
@@ -1447,11 +1194,9 @@ static int stli_charsinbuffer(struct tty_struct *tty)
 	return len;
 }
 
-/*****************************************************************************/
 
-/*
- *	Generate the serial struct info.
- */
+
+
 
 static int stli_getserial(struct stliport *portp, struct serial_struct __user *sp)
 {
@@ -1478,13 +1223,9 @@ static int stli_getserial(struct stliport *portp, struct serial_struct __user *s
 			-EFAULT : 0;
 }
 
-/*****************************************************************************/
 
-/*
- *	Set port according to the serial struct info.
- *	At this point we do not do any auto-configure stuff, so we will
- *	just quietly ignore any requests to change irq, etc.
- */
+
+
 
 static int stli_setserial(struct tty_struct *tty, struct serial_struct __user *sp)
 {
@@ -1514,7 +1255,7 @@ static int stli_setserial(struct tty_struct *tty, struct serial_struct __user *s
 	return 0;
 }
 
-/*****************************************************************************/
+
 
 static int stli_tiocmget(struct tty_struct *tty, struct file *file)
 {
@@ -1630,12 +1371,9 @@ static int stli_ioctl(struct tty_struct *tty, struct file *file, unsigned int cm
 	return rc;
 }
 
-/*****************************************************************************/
 
-/*
- *	This routine assumes that we have user context and can sleep.
- *	Looks like it is true for the current ttys implementation..!!
- */
+
+
 
 static void stli_settermios(struct tty_struct *tty, struct ktermios *old)
 {
@@ -1666,17 +1404,9 @@ static void stli_settermios(struct tty_struct *tty, struct ktermios *old)
 		wake_up_interruptible(&portp->port.open_wait);
 }
 
-/*****************************************************************************/
 
-/*
- *	Attempt to flow control who ever is sending us data. We won't really
- *	do any flow control action here. We can't directly, and even if we
- *	wanted to we would have to send a command to the slave. The slave
- *	knows how to flow control, and will do so when its buffers reach its
- *	internal high water marks. So what we will do is set a local state
- *	bit that will stop us sending any RX data up from the poll routine
- *	(which is the place where RX data from the slave is handled).
- */
+
+
 
 static void stli_throttle(struct tty_struct *tty)
 {
@@ -1686,13 +1416,9 @@ static void stli_throttle(struct tty_struct *tty)
 	set_bit(ST_RXSTOP, &portp->state);
 }
 
-/*****************************************************************************/
 
-/*
- *	Unflow control the device sending us data... That means that all
- *	we have to do is clear the RXSTOP state bit. The next poll call
- *	will then be able to pass the RX data back up.
- */
+
+
 
 static void stli_unthrottle(struct tty_struct *tty)
 {
@@ -1702,34 +1428,25 @@ static void stli_unthrottle(struct tty_struct *tty)
 	clear_bit(ST_RXSTOP, &portp->state);
 }
 
-/*****************************************************************************/
 
-/*
- *	Stop the transmitter.
- */
+
+
 
 static void stli_stop(struct tty_struct *tty)
 {
 }
 
-/*****************************************************************************/
 
-/*
- *	Start the transmitter again.
- */
+
+
 
 static void stli_start(struct tty_struct *tty)
 {
 }
 
-/*****************************************************************************/
 
-/*
- *	Hangup this port. This is pretty much like closing the port, only
- *	a little more brutal. No waiting for data to drain. Shutdown the
- *	port and maybe drop signals. This is rather tricky really. We want
- *	to close the port as well.
- */
+
+
 
 static void stli_hangup(struct tty_struct *tty)
 {
@@ -1776,14 +1493,9 @@ static void stli_hangup(struct tty_struct *tty)
 	tty_port_hangup(port);
 }
 
-/*****************************************************************************/
 
-/*
- *	Flush characters from the lower buffer. We may not have user context
- *	so we cannot sleep waiting for it to complete. Also we need to check
- *	if there is chars for this port in the TX cook buffer, and flush them
- *	as well.
- */
+
+
 
 static void stli_flushbuffer(struct tty_struct *tty)
 {
@@ -1820,7 +1532,7 @@ static void stli_flushbuffer(struct tty_struct *tty)
 	tty_wakeup(tty);
 }
 
-/*****************************************************************************/
+
 
 static int stli_breakctl(struct tty_struct *tty, int state)
 {
@@ -1842,7 +1554,7 @@ static int stli_breakctl(struct tty_struct *tty, int state)
 	return 0;
 }
 
-/*****************************************************************************/
+
 
 static void stli_waituntilsent(struct tty_struct *tty, int timeout)
 {
@@ -1866,7 +1578,7 @@ static void stli_waituntilsent(struct tty_struct *tty, int timeout)
 	}
 }
 
-/*****************************************************************************/
+
 
 static void stli_sendxchar(struct tty_struct *tty, char ch)
 {
@@ -1956,11 +1668,9 @@ static void stli_portinfo(struct seq_file *m, struct stlibrd *brdp, struct stlip
 	seq_putc(m, '\n');
 }
 
-/*****************************************************************************/
 
-/*
- *	Port info, read from the /proc file system.
- */
+
+
 
 static int stli_proc_show(struct seq_file *m, void *v)
 {
@@ -1972,10 +1682,7 @@ static int stli_proc_show(struct seq_file *m, void *v)
 
 	seq_printf(m, "%s: version %s\n", stli_drvtitle, stli_drvversion);
 
-/*
- *	We scan through for each board, panel and port. The offset is
- *	calculated on the fly, and irrelevant ports are skipped.
- */
+
 	for (brdnr = 0; (brdnr < stli_nrbrds); brdnr++) {
 		brdp = stli_brds[brdnr];
 		if (brdp == NULL)
@@ -2008,20 +1715,9 @@ static const struct file_operations stli_proc_fops = {
 	.release	= single_release,
 };
 
-/*****************************************************************************/
 
-/*
- *	Generic send command routine. This will send a message to the slave,
- *	of the specified type with the specified argument. Must be very
- *	careful of data that will be copied out from shared memory -
- *	containing command results. The command completion is all done from
- *	a poll routine that does not have user context. Therefore you cannot
- *	copy back directly into user space, or to the kernel stack of a
- *	process. This routine does not sleep, so can be called from anywhere.
- *
- *	The caller must hold the brd_lock (see also stli_sendcmd the usual
- *	entry point)
- */
+
+
 
 static void __stli_sendcmd(struct stlibrd *brdp, struct stliport *portp, unsigned long cmd, void *arg, int size, int copyback)
 {
@@ -2063,15 +1759,9 @@ static void stli_sendcmd(struct stlibrd *brdp, struct stliport *portp, unsigned 
 	spin_unlock_irqrestore(&brd_lock, flags);
 }
 
-/*****************************************************************************/
 
-/*
- *	Read data from shared memory. This assumes that the shared memory
- *	is enabled and that interrupts are off. Basically we just empty out
- *	the shared memory buffer into the tty buffer. Must be careful to
- *	handle the case where we fill up the tty buffer, but still have
- *	more chars to unload.
- */
+
+
 
 static void stli_read(struct stlibrd *brdp, struct stliport *portp)
 {
@@ -2128,13 +1818,9 @@ static void stli_read(struct stlibrd *brdp, struct stliport *portp)
 	tty_kref_put(tty);
 }
 
-/*****************************************************************************/
 
-/*
- *	Set up and carry out any delayed commands. There is only a small set
- *	of slave commands that can be done "off-level". So it is not too
- *	difficult to deal with them here.
- */
+
+
 
 static void stli_dodelaycmd(struct stliport *portp, cdkctrl_t __iomem *cp)
 {
@@ -2171,18 +1857,9 @@ static void stli_dodelaycmd(struct stliport *portp, cdkctrl_t __iomem *cp)
 	}
 }
 
-/*****************************************************************************/
 
-/*
- *	Host command service checking. This handles commands or messages
- *	coming from the slave to the host. Must have board shared memory
- *	enabled and interrupts off when called. Notice that by servicing the
- *	read data last we don't need to change the shared memory pointer
- *	during processing (which is a slow IO operation).
- *	Return value indicates if this port is still awaiting actions from
- *	the slave (like open, command, or even TX data being sent). If 0
- *	then port is still busy, otherwise no longer busy.
- */
+
+
 
 static int stli_hostcmd(struct stlibrd *brdp, struct stliport *portp)
 {
@@ -2196,9 +1873,7 @@ static int stli_hostcmd(struct stlibrd *brdp, struct stliport *portp)
 	ap = (cdkasy_t __iomem *) EBRDGETMEMPTR(brdp, portp->addr);
 	cp = &ap->ctrl;
 
-/*
- *	Check if we are waiting for an open completion message.
- */
+
 	if (test_bit(ST_OPENING, &portp->state)) {
 		rc = readl(&cp->openarg);
 		if (readb(&cp->open) == 0 && rc != 0) {
@@ -2211,9 +1886,7 @@ static int stli_hostcmd(struct stlibrd *brdp, struct stliport *portp)
 		}
 	}
 
-/*
- *	Check if we are waiting for a close completion message.
- */
+
 	if (test_bit(ST_CLOSING, &portp->state)) {
 		rc = (int) readl(&cp->closearg);
 		if (readb(&cp->close) == 0 && rc != 0) {
@@ -2226,10 +1899,7 @@ static int stli_hostcmd(struct stlibrd *brdp, struct stliport *portp)
 		}
 	}
 
-/*
- *	Check if we are waiting for a command completion message. We may
- *	need to copy out the command results associated with this command.
- */
+
 	if (test_bit(ST_CMDING, &portp->state)) {
 		rc = readl(&cp->status);
 		if (readl(&cp->cmd) == 0 && rc != 0) {
@@ -2248,11 +1918,7 @@ static int stli_hostcmd(struct stlibrd *brdp, struct stliport *portp)
 		}
 	}
 
-/*
- *	Check for any notification messages ready. This includes lots of
- *	different types of events - RX chars ready, RX break received,
- *	TX data low or empty in the slave, modem signals changed state.
- */
+
 	donerx = 0;
 
 	if (ap->notify) {
@@ -2303,14 +1969,7 @@ static int stli_hostcmd(struct stlibrd *brdp, struct stliport *portp)
 		}
 	}
 
-/*
- *	It might seem odd that we are checking for more RX chars here.
- *	But, we need to handle the case where the tty buffer was previously
- *	filled, but we had more characters to pass up. The slave will not
- *	send any more RX notify messages until the RX buffer has been emptied.
- *	But it will leave the service bits on (since the buffer is not empty).
- *	So from here we can try to process more RX chars.
- */
+
 	if ((!donerx) && test_bit(ST_RXING, &portp->state)) {
 		clear_bit(ST_RXING, &portp->state);
 		stli_read(brdp, portp);
@@ -2323,13 +1982,9 @@ static int stli_hostcmd(struct stlibrd *brdp, struct stliport *portp)
 		test_bit(ST_RXING, &portp->state)) ? 0 : 1);
 }
 
-/*****************************************************************************/
 
-/*
- *	Service all ports on a particular board. Assumes that the boards
- *	shared memory is enabled, and that the page pointer is pointed
- *	at the cdk header structure.
- */
+
+
 
 static void stli_brdpoll(struct stlibrd *brdp, cdkhdr_t __iomem *hdrp)
 {
@@ -2343,13 +1998,7 @@ static void stli_brdpoll(struct stlibrd *brdp, cdkhdr_t __iomem *hdrp)
 	bitsize = brdp->bitsize;
 	nrdevs = brdp->nrdevs;
 
-/*
- *	Check if slave wants any service. Basically we try to do as
- *	little work as possible here. There are 2 levels of service
- *	bits. So if there is nothing to do we bail early. We check
- *	8 service bits at a time in the inner loop, so we can bypass
- *	the lot if none of them want service.
- */
+
 	memcpy_fromio(&hostbits[0], (((unsigned char __iomem *) hdrp) + brdp->hostoffset),
 		bitsize);
 
@@ -2371,11 +2020,7 @@ static void stli_brdpoll(struct stlibrd *brdp, cdkhdr_t __iomem *hdrp)
 		}
 	}
 
-/*
- *	If any of the ports are no longer busy then update them in the
- *	slave request bits. We need to do this after, since a host port
- *	service may initiate more slave requests.
- */
+
 	if (slavebitchange) {
 		hdrp = (cdkhdr_t __iomem *) EBRDGETMEMPTR(brdp, CDK_CDKADDR);
 		slavep = ((unsigned char __iomem *) hdrp) + brdp->slaveoffset;
@@ -2386,16 +2031,9 @@ static void stli_brdpoll(struct stlibrd *brdp, cdkhdr_t __iomem *hdrp)
 	}
 }
 
-/*****************************************************************************/
 
-/*
- *	Driver poll routine. This routine polls the boards in use and passes
- *	messages back up to host when necessary. This is actually very
- *	CPU efficient, since we will always have the kernel poll clock, it
- *	adds only a few cycles when idle (since board service can be
- *	determined very easily), but when loaded generates no interrupts
- *	(with their expensive associated context change).
- */
+
+
 
 static void stli_poll(unsigned long arg)
 {
@@ -2405,9 +2043,7 @@ static void stli_poll(unsigned long arg)
 
 	mod_timer(&stli_timerlist, STLI_TIMEOUT);
 
-/*
- *	Check each board and do any servicing required.
- */
+
 	for (brdnr = 0; (brdnr < stli_nrbrds); brdnr++) {
 		brdp = stli_brds[brdnr];
 		if (brdp == NULL)
@@ -2425,21 +2061,16 @@ static void stli_poll(unsigned long arg)
 	}
 }
 
-/*****************************************************************************/
 
-/*
- *	Translate the termios settings into the port setting structure of
- *	the slave.
- */
+
+
 
 static void stli_mkasyport(struct tty_struct *tty, struct stliport *portp,
 				asyport_t *pp, struct ktermios *tiosp)
 {
 	memset(pp, 0, sizeof(asyport_t));
 
-/*
- *	Start of by setting the baud, char size, parity and stop bit info.
- */
+
 	pp->baudout = tty_get_baud_rate(tty);
 	if ((tiosp->c_cflag & CBAUD) == B38400) {
 		if ((portp->port.flags & ASYNC_SPD_MASK) == ASYNC_SPD_HI)
@@ -2486,9 +2117,7 @@ static void stli_mkasyport(struct tty_struct *tty, struct stliport *portp,
 		pp->parity = PT_NOPARITY;
 	}
 
-/*
- *	Set up any flow control options enabled.
- */
+
 	if (tiosp->c_iflag & IXON) {
 		pp->flow |= F_IXON;
 		if (tiosp->c_iflag & IXANY)
@@ -2502,12 +2131,7 @@ static void stli_mkasyport(struct tty_struct *tty, struct stliport *portp,
 	pp->startout = tiosp->c_cc[VSTART];
 	pp->stopout = tiosp->c_cc[VSTOP];
 
-/*
- *	Set up the RX char marking mask with those RX error types we must
- *	catch. We can get the slave to help us out a little here, it will
- *	ignore parity errors and breaks for us, and mark parity errors in
- *	the data stream.
- */
+
 	if (tiosp->c_iflag & IGNPAR)
 		pp->iflag |= FI_IGNRXERRS;
 	if (tiosp->c_iflag & IGNBRK)
@@ -2519,29 +2143,22 @@ static void stli_mkasyport(struct tty_struct *tty, struct stliport *portp,
 	if (tiosp->c_iflag & BRKINT)
 		portp->rxmarkmsk |= BRKINT;
 
-/*
- *	Set up clocal processing as required.
- */
+
 	if (tiosp->c_cflag & CLOCAL)
 		portp->port.flags &= ~ASYNC_CHECK_CD;
 	else
 		portp->port.flags |= ASYNC_CHECK_CD;
 
-/*
- *	Transfer any persistent flags into the asyport structure.
- */
+
 	pp->pflag = (portp->pflag & 0xffff);
 	pp->vmin = (portp->pflag & P_RXIMIN) ? 1 : 0;
 	pp->vtime = (portp->pflag & P_RXITIME) ? 1 : 0;
 	pp->cc[1] = (portp->pflag & P_RXTHOLD) ? 1 : 0;
 }
 
-/*****************************************************************************/
 
-/*
- *	Construct a slave signals structure for setting the DTR and RTS
- *	signals as specified.
- */
+
+
 
 static void stli_mkasysigs(asysigs_t *sp, int dtr, int rts)
 {
@@ -2556,12 +2173,9 @@ static void stli_mkasysigs(asysigs_t *sp, int dtr, int rts)
 	}
 }
 
-/*****************************************************************************/
 
-/*
- *	Convert the signals returned from the slave into a local TIOCM type
- *	signals value. We keep them locally in TIOCM format.
- */
+
+
 
 static long stli_mktiocm(unsigned long sigvalue)
 {
@@ -2575,12 +2189,9 @@ static long stli_mktiocm(unsigned long sigvalue)
 	return(tiocm);
 }
 
-/*****************************************************************************/
 
-/*
- *	All panels and ports actually attached have been worked out. All
- *	we need to do here is set up the appropriate per port data structures.
- */
+
+
 
 static int stli_initports(struct stlibrd *brdp)
 {
@@ -2616,11 +2227,9 @@ static int stli_initports(struct stlibrd *brdp)
 	return 0;
 }
 
-/*****************************************************************************/
 
-/*
- *	All the following routines are board specific hardware operations.
- */
+
+
 
 static void stli_ecpinit(struct stlibrd *brdp)
 {
@@ -2635,21 +2244,21 @@ static void stli_ecpinit(struct stlibrd *brdp)
 	outb(memconf, (brdp->iobase + ECP_ATMEMAR));
 }
 
-/*****************************************************************************/
+
 
 static void stli_ecpenable(struct stlibrd *brdp)
 {	
 	outb(ECP_ATENABLE, (brdp->iobase + ECP_ATCONFR));
 }
 
-/*****************************************************************************/
+
 
 static void stli_ecpdisable(struct stlibrd *brdp)
 {	
 	outb(ECP_ATDISABLE, (brdp->iobase + ECP_ATCONFR));
 }
 
-/*****************************************************************************/
+
 
 static void __iomem *stli_ecpgetmemptr(struct stlibrd *brdp, unsigned long offset, int line)
 {	
@@ -2670,7 +2279,7 @@ static void __iomem *stli_ecpgetmemptr(struct stlibrd *brdp, unsigned long offse
 	return(ptr);
 }
 
-/*****************************************************************************/
+
 
 static void stli_ecpreset(struct stlibrd *brdp)
 {	
@@ -2680,18 +2289,16 @@ static void stli_ecpreset(struct stlibrd *brdp)
 	udelay(500);
 }
 
-/*****************************************************************************/
+
 
 static void stli_ecpintr(struct stlibrd *brdp)
 {	
 	outb(0x1, brdp->iobase);
 }
 
-/*****************************************************************************/
 
-/*
- *	The following set of functions act on ECP EISA boards.
- */
+
+
 
 static void stli_ecpeiinit(struct stlibrd *brdp)
 {
@@ -2709,21 +2316,21 @@ static void stli_ecpeiinit(struct stlibrd *brdp)
 	outb(memconf, (brdp->iobase + ECP_EIMEMARH));
 }
 
-/*****************************************************************************/
+
 
 static void stli_ecpeienable(struct stlibrd *brdp)
 {	
 	outb(ECP_EIENABLE, (brdp->iobase + ECP_EICONFR));
 }
 
-/*****************************************************************************/
+
 
 static void stli_ecpeidisable(struct stlibrd *brdp)
 {	
 	outb(ECP_EIDISABLE, (brdp->iobase + ECP_EICONFR));
 }
 
-/*****************************************************************************/
+
 
 static void __iomem *stli_ecpeigetmemptr(struct stlibrd *brdp, unsigned long offset, int line)
 {	
@@ -2747,7 +2354,7 @@ static void __iomem *stli_ecpeigetmemptr(struct stlibrd *brdp, unsigned long off
 	return(ptr);
 }
 
-/*****************************************************************************/
+
 
 static void stli_ecpeireset(struct stlibrd *brdp)
 {	
@@ -2757,25 +2364,23 @@ static void stli_ecpeireset(struct stlibrd *brdp)
 	udelay(500);
 }
 
-/*****************************************************************************/
 
-/*
- *	The following set of functions act on ECP MCA boards.
- */
+
+
 
 static void stli_ecpmcenable(struct stlibrd *brdp)
 {	
 	outb(ECP_MCENABLE, (brdp->iobase + ECP_MCCONFR));
 }
 
-/*****************************************************************************/
+
 
 static void stli_ecpmcdisable(struct stlibrd *brdp)
 {	
 	outb(ECP_MCDISABLE, (brdp->iobase + ECP_MCCONFR));
 }
 
-/*****************************************************************************/
+
 
 static void __iomem *stli_ecpmcgetmemptr(struct stlibrd *brdp, unsigned long offset, int line)
 {	
@@ -2796,7 +2401,7 @@ static void __iomem *stli_ecpmcgetmemptr(struct stlibrd *brdp, unsigned long off
 	return(ptr);
 }
 
-/*****************************************************************************/
+
 
 static void stli_ecpmcreset(struct stlibrd *brdp)
 {	
@@ -2806,11 +2411,9 @@ static void stli_ecpmcreset(struct stlibrd *brdp)
 	udelay(500);
 }
 
-/*****************************************************************************/
 
-/*
- *	The following set of functions act on ECP PCI boards.
- */
+
+
 
 static void stli_ecppciinit(struct stlibrd *brdp)
 {
@@ -2820,7 +2423,7 @@ static void stli_ecppciinit(struct stlibrd *brdp)
 	udelay(500);
 }
 
-/*****************************************************************************/
+
 
 static void __iomem *stli_ecppcigetmemptr(struct stlibrd *brdp, unsigned long offset, int line)
 {	
@@ -2841,7 +2444,7 @@ static void __iomem *stli_ecppcigetmemptr(struct stlibrd *brdp, unsigned long of
 	return(ptr);
 }
 
-/*****************************************************************************/
+
 
 static void stli_ecppcireset(struct stlibrd *brdp)
 {	
@@ -2851,11 +2454,9 @@ static void stli_ecppcireset(struct stlibrd *brdp)
 	udelay(500);
 }
 
-/*****************************************************************************/
 
-/*
- *	The following routines act on ONboards.
- */
+
+
 
 static void stli_onbinit(struct stlibrd *brdp)
 {
@@ -2872,21 +2473,21 @@ static void stli_onbinit(struct stlibrd *brdp)
 	mdelay(1);
 }
 
-/*****************************************************************************/
+
 
 static void stli_onbenable(struct stlibrd *brdp)
 {	
 	outb((brdp->enabval | ONB_ATENABLE), (brdp->iobase + ONB_ATCONFR));
 }
 
-/*****************************************************************************/
+
 
 static void stli_onbdisable(struct stlibrd *brdp)
 {	
 	outb((brdp->enabval | ONB_ATDISABLE), (brdp->iobase + ONB_ATCONFR));
 }
 
-/*****************************************************************************/
+
 
 static void __iomem *stli_onbgetmemptr(struct stlibrd *brdp, unsigned long offset, int line)
 {	
@@ -2903,7 +2504,7 @@ static void __iomem *stli_onbgetmemptr(struct stlibrd *brdp, unsigned long offse
 	return(ptr);
 }
 
-/*****************************************************************************/
+
 
 static void stli_onbreset(struct stlibrd *brdp)
 {	
@@ -2913,11 +2514,9 @@ static void stli_onbreset(struct stlibrd *brdp)
 	mdelay(1000);
 }
 
-/*****************************************************************************/
 
-/*
- *	The following routines act on ONboard EISA.
- */
+
+
 
 static void stli_onbeinit(struct stlibrd *brdp)
 {
@@ -2937,21 +2536,21 @@ static void stli_onbeinit(struct stlibrd *brdp)
 	mdelay(1);
 }
 
-/*****************************************************************************/
+
 
 static void stli_onbeenable(struct stlibrd *brdp)
 {	
 	outb(ONB_EIENABLE, (brdp->iobase + ONB_EICONFR));
 }
 
-/*****************************************************************************/
+
 
 static void stli_onbedisable(struct stlibrd *brdp)
 {	
 	outb(ONB_EIDISABLE, (brdp->iobase + ONB_EICONFR));
 }
 
-/*****************************************************************************/
+
 
 static void __iomem *stli_onbegetmemptr(struct stlibrd *brdp, unsigned long offset, int line)
 {	
@@ -2975,7 +2574,7 @@ static void __iomem *stli_onbegetmemptr(struct stlibrd *brdp, unsigned long offs
 	return(ptr);
 }
 
-/*****************************************************************************/
+
 
 static void stli_onbereset(struct stlibrd *brdp)
 {	
@@ -2985,11 +2584,9 @@ static void stli_onbereset(struct stlibrd *brdp)
 	mdelay(1000);
 }
 
-/*****************************************************************************/
 
-/*
- *	The following routines act on Brumby boards.
- */
+
+
 
 static void stli_bbyinit(struct stlibrd *brdp)
 {
@@ -3001,7 +2598,7 @@ static void stli_bbyinit(struct stlibrd *brdp)
 	mdelay(1);
 }
 
-/*****************************************************************************/
+
 
 static void __iomem *stli_bbygetmemptr(struct stlibrd *brdp, unsigned long offset, int line)
 {	
@@ -3016,7 +2613,7 @@ static void __iomem *stli_bbygetmemptr(struct stlibrd *brdp, unsigned long offse
 	return(ptr);
 }
 
-/*****************************************************************************/
+
 
 static void stli_bbyreset(struct stlibrd *brdp)
 {	
@@ -3026,11 +2623,9 @@ static void stli_bbyreset(struct stlibrd *brdp)
 	mdelay(1000);
 }
 
-/*****************************************************************************/
 
-/*
- *	The following routines act on original old Stallion boards.
- */
+
+
 
 static void stli_stalinit(struct stlibrd *brdp)
 {
@@ -3038,7 +2633,7 @@ static void stli_stalinit(struct stlibrd *brdp)
 	mdelay(1000);
 }
 
-/*****************************************************************************/
+
 
 static void __iomem *stli_stalgetmemptr(struct stlibrd *brdp, unsigned long offset, int line)
 {	
@@ -3046,7 +2641,7 @@ static void __iomem *stli_stalgetmemptr(struct stlibrd *brdp, unsigned long offs
 	return brdp->membase + (offset % STAL_PAGESIZE);
 }
 
-/*****************************************************************************/
+
 
 static void stli_stalreset(struct stlibrd *brdp)
 {	
@@ -3058,12 +2653,9 @@ static void stli_stalreset(struct stlibrd *brdp)
 	mdelay(1000);
 }
 
-/*****************************************************************************/
 
-/*
- *	Try to find an ECP board and initialize it. This handles only ECP
- *	board types.
- */
+
+
 
 static int stli_initecp(struct stlibrd *brdp)
 {
@@ -3085,11 +2677,7 @@ static int stli_initecp(struct stlibrd *brdp)
 		goto err;
 	}
 
-/*
- *	Based on the specific board type setup the common vars to access
- *	and enable shared memory. Set all board specific information now
- *	as well.
- */
+
 	switch (brdp->brdtype) {
 	case BRD_ECP:
 		brdp->memsize = ECP_MEMSIZE;
@@ -3148,12 +2736,7 @@ static int stli_initecp(struct stlibrd *brdp)
 		goto err_reg;
 	}
 
-/*
- *	The per-board operations structure is all set up, so now let's go
- *	and get the board operational. Firstly initialize board configuration
- *	registers. Set the memory mapping info so we can get at the boards
- *	shared memory.
- */
+
 	EBRDINIT(brdp);
 
 	brdp->membase = ioremap_nocache(brdp->memaddr, brdp->memsize);
@@ -3162,11 +2745,7 @@ static int stli_initecp(struct stlibrd *brdp)
 		goto err_reg;
 	}
 
-/*
- *	Now that all specific code is set up, enable the shared memory and
- *	look for the a signature area that will tell us exactly what board
- *	this is, and what it is connected to it.
- */
+
 	EBRDENABLE(brdp);
 	sigsp = (cdkecpsig_t __iomem *) EBRDGETMEMPTR(brdp, CDK_SIGADDR);
 	memcpy_fromio(&sig, sigsp, sizeof(cdkecpsig_t));
@@ -3177,10 +2756,7 @@ static int stli_initecp(struct stlibrd *brdp)
 		goto err_unmap;
 	}
 
-/*
- *	Scan through the signature looking at the panels connected to the
- *	board. Calculate the total number of ports as we go.
- */
+
 	for (panelnr = 0, nxtid = 0; (panelnr < STL_MAXPANELS); panelnr++) {
 		status = sig.panelid[nxtid];
 		if ((status & ECH_PNLIDMASK) != nxtid)
@@ -3208,12 +2784,9 @@ err:
 	return retval;
 }
 
-/*****************************************************************************/
 
-/*
- *	Try to find an ONboard, Brumby or Stallion board and initialize it.
- *	This handles only these board types.
- */
+
+
 
 static int stli_initonb(struct stlibrd *brdp)
 {
@@ -3222,9 +2795,7 @@ static int stli_initonb(struct stlibrd *brdp)
 	char *name;
 	int i, retval;
 
-/*
- *	Do a basic sanity check on the IO and memory addresses.
- */
+
 	if (brdp->iobase == 0 || brdp->memaddr == 0) {
 		retval = -ENODEV;
 		goto err;
@@ -3237,11 +2808,7 @@ static int stli_initonb(struct stlibrd *brdp)
 		goto err;
 	}
 
-/*
- *	Based on the specific board type setup the common vars to access
- *	and enable shared memory. Set all board specific information now
- *	as well.
- */
+
 	switch (brdp->brdtype) {
 	case BRD_ONBOARD:
 	case BRD_ONBOARD2:
@@ -3305,12 +2872,7 @@ static int stli_initonb(struct stlibrd *brdp)
 		goto err_reg;
 	}
 
-/*
- *	The per-board operations structure is all set up, so now let's go
- *	and get the board operational. Firstly initialize board configuration
- *	registers. Set the memory mapping info so we can get at the boards
- *	shared memory.
- */
+
 	EBRDINIT(brdp);
 
 	brdp->membase = ioremap_nocache(brdp->memaddr, brdp->memsize);
@@ -3319,11 +2881,7 @@ static int stli_initonb(struct stlibrd *brdp)
 		goto err_reg;
 	}
 
-/*
- *	Now that all specific code is set up, enable the shared memory and
- *	look for the a signature area that will tell us exactly what board
- *	this is, and how many ports.
- */
+
 	EBRDENABLE(brdp);
 	sigsp = (cdkonbsig_t __iomem *) EBRDGETMEMPTR(brdp, CDK_SIGADDR);
 	memcpy_fromio(&sig, sigsp, sizeof(cdkonbsig_t));
@@ -3337,10 +2895,7 @@ static int stli_initonb(struct stlibrd *brdp)
 		goto err_unmap;
 	}
 
-/*
- *	Scan through the signature alive mask and calculate how many ports
- *	there are on this board.
- */
+
 	brdp->nrpanels = 1;
 	if (sig.amask1) {
 		brdp->nrports = 32;
@@ -3365,13 +2920,9 @@ err:
 	return retval;
 }
 
-/*****************************************************************************/
 
-/*
- *	Start up a running board. This routine is only called after the
- *	code has been down loaded to the board and is operational. It will
- *	read in the memory map, and get the show on the road...
- */
+
+
 
 static int stli_startbrd(struct stlibrd *brdp)
 {
@@ -3419,11 +2970,7 @@ static int stli_startbrd(struct stlibrd *brdp)
 	}
 	memp++;
 
-/*
- *	Cycle through memory allocation of each port. We are guaranteed to
- *	have all ports inside the first page of slave window, so no need to
- *	change pages while reading memory map.
- */
+
 	for (i = 1, portnr = 0; (i < nrdevs); i++, portnr++, memp++) {
 		if (readw(&memp->dtype) != TYP_ASYNC)
 			break;
@@ -3439,11 +2986,7 @@ static int stli_startbrd(struct stlibrd *brdp)
 
 	writeb(0xff, &hdrp->slavereq);
 
-/*
- *	For each port setup a local copy of the RX and TX buffer offsets
- *	and sizes. We do this separate from the above, because we need to
- *	move the shared memory page...
- */
+
 	for (i = 1, portnr = 0; (i < nrdevs); i++, portnr++) {
 		portp = brdp->ports[portnr];
 		if (portp == NULL)
@@ -3474,11 +3017,9 @@ stli_donestartup:
 	return rc;
 }
 
-/*****************************************************************************/
 
-/*
- *	Probe and initialize the specified board.
- */
+
+
 
 static int __devinit stli_brdinit(struct stlibrd *brdp)
 {
@@ -3516,12 +3057,9 @@ static int __devinit stli_brdinit(struct stlibrd *brdp)
 }
 
 #if STLI_EISAPROBE != 0
-/*****************************************************************************/
 
-/*
- *	Probe around trying to find where the EISA boards shared memory
- *	might be. This is a bit if hack, but it is the best we can do.
- */
+
+
 
 static int stli_eisamemprobe(struct stlibrd *brdp)
 {
@@ -3529,12 +3067,7 @@ static int stli_eisamemprobe(struct stlibrd *brdp)
 	cdkonbsig_t	onbsig, __iomem *onbsigp;
 	int		i, foundit;
 
-/*
- *	First up we reset the board, to get it into a known state. There
- *	is only 2 board types here we need to worry about. Don;t use the
- *	standard board init routine here, it programs up the shared
- *	memory address, and we don't know it yet...
- */
+
 	if (brdp->brdtype == BRD_ECPE) {
 		outb(0x1, (brdp->iobase + ECP_EIBRDENAB));
 		outb(ECP_EISTOP, (brdp->iobase + ECP_EICONFR));
@@ -3558,10 +3091,7 @@ static int stli_eisamemprobe(struct stlibrd *brdp)
 	foundit = 0;
 	brdp->memsize = ECP_MEMSIZE;
 
-/*
- *	Board shared memory is enabled, so now we have a poke around and
- *	see if we can find it.
- */
+
 	for (i = 0; (i < stli_eisamempsize); i++) {
 		brdp->memaddr = stli_eisamemprobeaddrs[i];
 		brdp->membase = ioremap_nocache(brdp->memaddr, brdp->memsize);
@@ -3590,10 +3120,7 @@ static int stli_eisamemprobe(struct stlibrd *brdp)
 			break;
 	}
 
-/*
- *	Regardless of whether we found the shared memory or not we must
- *	disable the region. After that return success or failure.
- */
+
 	if (brdp->brdtype == BRD_ECPE)
 		stli_ecpeidisable(brdp);
 	else
@@ -3626,17 +3153,9 @@ static int stli_getbrdnr(void)
 }
 
 #if STLI_EISAPROBE != 0
-/*****************************************************************************/
 
-/*
- *	Probe around and try to find any EISA boards in system. The biggest
- *	problem here is finding out what memory address is associated with
- *	an EISA board after it is found. The registers of the ECPE and
- *	ONboardE are not readable - so we can't read them from there. We
- *	don't have access to the EISA CMOS (or EISA BIOS) so we don't
- *	actually have any way to find out the real value. The best we can
- *	do is go probing around in the usual places hoping we can find it.
- */
+
+
 
 static int __init stli_findeisabrds(void)
 {
@@ -3644,16 +3163,11 @@ static int __init stli_findeisabrds(void)
 	unsigned int iobase, eid, i;
 	int brdnr, found = 0;
 
-/*
- *	Firstly check if this is an EISA system.  If this is not an EISA system then
- *	don't bother going any further!
- */
+
 	if (EISA_bus)
 		return 0;
 
-/*
- *	Looks like an EISA system, so go searching for EISA boards.
- */
+
 	for (iobase = 0x1000; (iobase <= 0xc000); iobase += 0x1000) {
 		outb(0xff, (iobase + 0xc80));
 		eid = inb(iobase + 0xc80);
@@ -3661,10 +3175,7 @@ static int __init stli_findeisabrds(void)
 		if (eid != STL_EISAID)
 			continue;
 
-/*
- *		We have found a board. Need to check if this board was
- *		statically configured already (just in case!).
- */
+
 		for (i = 0; (i < STL_MAXBRDS); i++) {
 			brdp = stli_brds[i];
 			if (brdp == NULL)
@@ -3675,10 +3186,7 @@ static int __init stli_findeisabrds(void)
 		if (i < STL_MAXBRDS)
 			continue;
 
-/*
- *		We have found a Stallion board and it is not configured already.
- *		Allocate a board structure and initialize it.
- */
+
 		if ((brdp = stli_allocbrd()) == NULL)
 			return found ? : -ENOMEM;
 		brdnr = stli_getbrdnr();
@@ -3715,19 +3223,13 @@ static int __init stli_findeisabrds(void)
 static inline int stli_findeisabrds(void) { return 0; }
 #endif
 
-/*****************************************************************************/
 
-/*
- *	Find the next available board number that is free.
- */
 
-/*****************************************************************************/
 
-/*
- *	We have a Stallion board. Allocate a board structure and
- *	initialize it. Read its IO and MEMORY resources from PCI
- *	configuration space.
- */
+
+
+
+
 
 static int __devinit stli_pciprobe(struct pci_dev *pdev,
 		const struct pci_device_id *ent)
@@ -3757,10 +3259,7 @@ static int __devinit stli_pciprobe(struct pci_dev *pdev,
 	stli_brds[brdp->brdnr] = brdp;
 	mutex_unlock(&stli_brdslock);
 	brdp->brdtype = BRD_ECPPCI;
-/*
- *	We have all resources from the board, so lets setup the actual
- *	board structure now.
- */
+
 	brdp->iobase = pci_resource_start(pdev, 3);
 	brdp->memaddr = pci_resource_start(pdev, 2);
 	retval = stli_brdinit(brdp);
@@ -3807,11 +3306,9 @@ static struct pci_driver stli_pcidriver = {
 	.probe = stli_pciprobe,
 	.remove = __devexit_p(stli_pciremove)
 };
-/*****************************************************************************/
 
-/*
- *	Allocate a new board structure. Fill out the basic info in it.
- */
+
+
 
 static struct stlibrd *stli_allocbrd(void)
 {
@@ -3827,12 +3324,9 @@ static struct stlibrd *stli_allocbrd(void)
 	return brdp;
 }
 
-/*****************************************************************************/
 
-/*
- *	Scan through all the boards in the configuration and see what we
- *	can find.
- */
+
+
 
 static int __init stli_initbrds(void)
 {
@@ -3868,11 +3362,7 @@ static int __init stli_initbrds(void)
 	if (retval > 0)
 		found += retval;
 
-/*
- *	All found boards are initialized. Now for a little optimization, if
- *	no boards are sharing the "shared memory" regions then we can just
- *	leave them all enabled. This is in fact the usual case.
- */
+
 	stli_shared = 0;
 	if (stli_nrbrds > 1) {
 		for (i = 0; (i < stli_nrbrds); i++) {
@@ -3918,13 +3408,9 @@ err:
 	return retval;
 }
 
-/*****************************************************************************/
 
-/*
- *	Code to handle an "staliomem" read operation. This device is the 
- *	contents of the board shared memory. It is used for down loading
- *	the slave image (and debugging :-)
- */
+
+
 
 static ssize_t stli_memread(struct file *fp, char __user *buf, size_t count, loff_t *offp)
 {
@@ -3949,9 +3435,7 @@ static ssize_t stli_memread(struct file *fp, char __user *buf, size_t count, lof
 
 	size = min(count, (size_t)(brdp->memsize - off));
 
-	/*
-	 *	Copy the data a page at a time
-	 */
+	
 
 	p = (void *)__get_free_page(GFP_KERNEL);
 	if(p == NULL)
@@ -3980,15 +3464,9 @@ out:
 	return count;
 }
 
-/*****************************************************************************/
 
-/*
- *	Code to handle an "staliomem" write operation. This device is the 
- *	contents of the board shared memory. It is used for down loading
- *	the slave image (and debugging :-)
- *
- *	FIXME: copy under lock
- */
+
+
 
 static ssize_t stli_memwrite(struct file *fp, const char __user *buf, size_t count, loff_t *offp)
 {
@@ -4016,9 +3494,7 @@ static ssize_t stli_memwrite(struct file *fp, const char __user *buf, size_t cou
 	chbuf = (char __user *) buf;
 	size = min(count, (size_t)(brdp->memsize - off));
 
-	/*
-	 *	Copy the data a page at a time
-	 */
+	
 
 	p = (void *)__get_free_page(GFP_KERNEL);
 	if(p == NULL)
@@ -4048,11 +3524,9 @@ out:
 	return count;
 }
 
-/*****************************************************************************/
 
-/*
- *	Return the board stats structure to user app.
- */
+
+
 
 static int stli_getbrdstats(combrd_t __user *bp)
 {
@@ -4087,11 +3561,9 @@ static int stli_getbrdstats(combrd_t __user *bp)
 	return 0;
 }
 
-/*****************************************************************************/
 
-/*
- *	Resolve the referenced port number into a port struct pointer.
- */
+
+
 
 static struct stliport *stli_getport(unsigned int brdnr, unsigned int panelnr,
 		unsigned int portnr)
@@ -4111,13 +3583,9 @@ static struct stliport *stli_getport(unsigned int brdnr, unsigned int panelnr,
 	return brdp->ports[portnr];
 }
 
-/*****************************************************************************/
 
-/*
- *	Return the port stats structure to user app. A NULL port struct
- *	pointer passed in means that we need to find out from the app
- *	what port to get stats for (used through board control device).
- */
+
+
 
 static int stli_portcmdstats(struct tty_struct *tty, struct stliport *portp)
 {
@@ -4185,13 +3653,9 @@ static int stli_portcmdstats(struct tty_struct *tty, struct stliport *portp)
 	return 0;
 }
 
-/*****************************************************************************/
 
-/*
- *	Return the port stats structure to user app. A NULL port struct
- *	pointer passed in means that we need to find out from the app
- *	what port to get stats for (used through board control device).
- */
+
+
 
 static int stli_getportstats(struct tty_struct *tty, struct stliport *portp,
 							comstats_t __user *cp)
@@ -4219,11 +3683,9 @@ static int stli_getportstats(struct tty_struct *tty, struct stliport *portp,
 			-EFAULT : 0;
 }
 
-/*****************************************************************************/
 
-/*
- *	Clear the port stats structure. We also return it zeroed out...
- */
+
+
 
 static int stli_clrportstats(struct stliport *portp, comstats_t __user *cp)
 {
@@ -4258,11 +3720,9 @@ static int stli_clrportstats(struct stliport *portp, comstats_t __user *cp)
 	return 0;
 }
 
-/*****************************************************************************/
 
-/*
- *	Return the entire driver ports structure to a user app.
- */
+
+
 
 static int stli_getportstruct(struct stliport __user *arg)
 {
@@ -4280,11 +3740,9 @@ static int stli_getportstruct(struct stliport __user *arg)
 	return 0;
 }
 
-/*****************************************************************************/
 
-/*
- *	Return the entire driver board structure to a user app.
- */
+
+
 
 static int stli_getbrdstruct(struct stlibrd __user *arg)
 {
@@ -4303,13 +3761,9 @@ static int stli_getbrdstruct(struct stlibrd __user *arg)
 	return 0;
 }
 
-/*****************************************************************************/
 
-/*
- *	The "staliomem" device is also required to do some special operations on
- *	the board. We need to be able to send an interrupt to the board,
- *	reset it, and start/stop it.
- */
+
+
 
 static int stli_memioctl(struct inode *ip, struct file *fp, unsigned int cmd, unsigned long arg)
 {
@@ -4317,9 +3771,7 @@ static int stli_memioctl(struct inode *ip, struct file *fp, unsigned int cmd, un
 	int brdnr, rc, done;
 	void __user *argp = (void __user *)arg;
 
-/*
- *	First up handle the board independent ioctls.
- */
+
 	done = 0;
 	rc = 0;
 
@@ -4352,10 +3804,7 @@ static int stli_memioctl(struct inode *ip, struct file *fp, unsigned int cmd, un
 	if (done)
 		return rc;
 
-/*
- *	Now handle the board specific ioctls. These all depend on the
- *	minor number of the device they were called from.
- */
+
 	brdnr = iminor(ip);
 	if (brdnr >= STL_MAXBRDS)
 		return -ENODEV;
@@ -4422,10 +3871,8 @@ static const struct tty_port_operations stli_port_ops = {
 	.dtr_rts = stli_dtr_rts,
 };
 
-/*****************************************************************************/
-/*
- *	Loadable module initialization stuff.
- */
+
+
 
 static void istallion_cleanup_isa(void)
 {
@@ -4491,10 +3938,7 @@ static int __init istallion_module_init(void)
 	if (retval)
 		goto err_ttyunr;
 
-/*
- *	Set up a character driver for the shared memory region. We need this
- *	to down load the slave code image. Also it is a useful debugging tool.
- */
+
 	retval = register_chrdev(STL_SIOMEMMAJOR, "staliomem", &stli_fsiomem);
 	if (retval) {
 		printk(KERN_ERR "istallion: failed to register serial memory "
@@ -4521,7 +3965,7 @@ err:
 	return retval;
 }
 
-/*****************************************************************************/
+
 
 static void __exit istallion_module_exit(void)
 {

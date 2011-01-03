@@ -1,24 +1,4 @@
-/*
- * drivers/char/hw_random/timeriomem-rng.c
- *
- * Copyright (C) 2009 Alexander Clouter <alex@digriz.org.uk>
- *
- * Derived from drivers/char/hw_random/omap-rng.c
- *   Copyright 2005 (c) MontaVista Software, Inc.
- *   Author: Deepak Saxena <dsaxena@plexity.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * Overview:
- *   This driver is useful for platforms that have an IO range that provides
- *   periodic random data from a single IO memory address.  All the platform
- *   has to do is provide the address and 'wait time' that new data becomes
- *   available.
- *
- * TODO: add support for reading sizes other than 32bits and masking
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -36,9 +16,7 @@ static struct timeriomem_rng_data *timeriomem_rng_data;
 static void timeriomem_rng_trigger(unsigned long);
 static DEFINE_TIMER(timeriomem_rng_timer, timeriomem_rng_trigger, 0, 0);
 
-/*
- * have data return 1, however return 0 if we have nothing
- */
+
 static int timeriomem_rng_data_present(struct hwrng *rng, int wait)
 {
 	if (rng->priv == 0)

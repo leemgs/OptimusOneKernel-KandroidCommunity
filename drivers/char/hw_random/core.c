@@ -1,34 +1,4 @@
-/*
-        Added support for the AMD Geode LX RNG
-	(c) Copyright 2004-2005 Advanced Micro Devices, Inc.
 
-	derived from
-
- 	Hardware driver for the Intel/AMD/VIA Random Number Generators (RNG)
-	(c) Copyright 2003 Red Hat Inc <jgarzik@redhat.com>
-
- 	derived from
-
-        Hardware driver for the AMD 768 Random Number Generator (RNG)
-        (c) Copyright 2001 Red Hat Inc <alan@redhat.com>
-
- 	derived from
-
-	Hardware driver for Intel i810 Random Number Generator (RNG)
-	Copyright 2000,2001 Jeff Garzik <jgarzik@pobox.com>
-	Copyright 2000,2001 Philipp Rumpf <prumpf@mandrakesoft.com>
-
-	Added generic RNG API
-	Copyright 2006 Michael Buesch <mbuesch@freenet.de>
-	Copyright 2005 (c) MontaVista Software, Inc.
-
-	Please read Documentation/hw_random.txt for details on use.
-
-	----------------------------------------------------------
-	This software may be used and distributed according to the terms
-        of the GNU General Public License, incorporated herein by reference.
-
- */
 
 
 #include <linux/device.h>
@@ -46,7 +16,7 @@
 
 #define RNG_MODULE_NAME		"hw_random"
 #define PFX			RNG_MODULE_NAME ": "
-#define RNG_MISCDEV_MINOR	183 /* official */
+#define RNG_MISCDEV_MINOR	183 
 
 
 static struct hwrng *current_rng;
@@ -82,7 +52,7 @@ static inline int hwrng_data_read(struct hwrng *rng, u32 *data)
 
 static int rng_dev_open(struct inode *inode, struct file *filp)
 {
-	/* enforce read-only access to this chrdev */
+	
 	if ((filp->f_mode & FMODE_READ) == 0)
 		return -EINVAL;
 	if (filp->f_mode & FMODE_WRITE)
@@ -285,7 +255,7 @@ int hwrng_register(struct hwrng *rng)
 
 	mutex_lock(&rng_mutex);
 
-	/* Must not register two RNGs with the same name. */
+	
 	err = -EEXIST;
 	list_for_each_entry(tmp, &rng_list, list) {
 		if (strcmp(tmp->name, rng->name) == 0)

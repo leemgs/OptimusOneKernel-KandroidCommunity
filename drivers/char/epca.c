@@ -1,30 +1,5 @@
-/*
-	Copyright (C) 1996  Digi International.
 
-	For technical support please email digiLinux@dgii.com or
-	call Digi tech support at (612) 912-3456
 
-	** This driver is no longer supported by Digi **
-
-	Much of this design and code came from epca.c which was
-	copyright (C) 1994, 1995 Troy De Jongh, and subsquently
-	modified by David Nugent, Christoph Lameter, Mike McLagan.
-
-	This program is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
-
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with this program; if not, write to the Free Software
-	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/
-/* See README.epca for change history --DAT*/
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -54,8 +29,8 @@
 
 #define VERSION            "1.3.0.1-LK2.6"
 
-/* This major needs to be submitted to Linux to join the majors list */
-#define DIGIINFOMAJOR       35  /* For Digi specific ioctl */
+
+#define DIGIINFOMAJOR       35  
 
 
 #define MAXCARDS 7
@@ -69,45 +44,26 @@ static int digi_poller_inhibited = 1 ;
 static int setup_error_code;
 static int invalid_lilo_config;
 
-/*
- * The ISA boards do window flipping into the same spaces so its only sane with
- * a single lock. It's still pretty efficient. This lock guards the hardware
- * and the tty_port lock guards the kernel side stuff like use counts. Take
- * this lock inside the port lock if you must take both.
- */
+
 static DEFINE_SPINLOCK(epca_lock);
 
-/* MAXBOARDS is typically 12, but ISA and EISA cards are restricted
-   to 7 below. */
+
 static struct board_info boards[MAXBOARDS];
 
 static struct tty_driver *pc_driver;
 static struct tty_driver *pc_info;
 
-/* ------------------ Begin Digi specific structures -------------------- */
 
-/*
- * digi_channels represents an array of structures that keep track of each
- * channel of the Digi product. Information such as transmit and receive
- * pointers, termio data, and signal definitions (DTR, CTS, etc ...) are stored
- * here. This structure is NOT used to overlay the cards physical channel
- * structure.
- */
+
+
 static struct channel digi_channels[MAX_ALLOC];
 
-/*
- * card_ptr is an array used to hold the address of the first channel structure
- * of each card. This array will hold the addresses of various channels located
- * in digi_channels.
- */
+
 static struct channel *card_ptr[MAXCARDS];
 
 static struct timer_list epca_timer;
 
-/*
- * Begin generic memory functions. These functions will be alias (point at)
- * more specific functions dependent on the board being configured.
- */
+
 static void memwinon(struct board_info *b, unsigned int win);
 static void memwinoff(struct board_info *b, unsigned int win);
 static void globalwinon(struct channel *ch);
@@ -117,7 +73,7 @@ static void memoff(struct channel *ch);
 static void assertgwinon(struct channel *ch);
 static void assertmemoff(struct channel *ch);
 
-/* ---- Begin more 'specific' memory functions for cx_like products --- */
+
 
 static void pcxem_memwinon(struct board_info *b, unsigned int win);
 static void pcxem_memwinoff(struct board_info *b, unsigned int win);
@@ -126,7 +82,7 @@ static void pcxem_rxwinon(struct channel *ch);
 static void pcxem_txwinon(struct channel *ch);
 static void pcxem_memoff(struct channel *ch);
 
-/* ------ Begin more 'specific' memory functions for the pcxe ------- */
+
 
 static void pcxe_memwinon(struct board_info *b, unsigned int win);
 static void pcxe_memwinoff(struct board_info *b, unsigned int win);
@@ -135,8 +91,8 @@ static void pcxe_rxwinon(struct channel *ch);
 static void pcxe_txwinon(struct channel *ch);
 static void pcxe_memoff(struct channel *ch);
 
-/* ---- Begin more 'specific' memory functions for the pc64xe and pcxi ---- */
-/* Note : pc64xe and pcxi share the same windowing routines */
+
+
 
 static void pcxi_memwinon(struct board_info *b, unsigned int win);
 static void pcxi_memwinoff(struct board_info *b, unsigned int win);
@@ -145,7 +101,7 @@ static void pcxi_rxwinon(struct channel *ch);
 static void pcxi_txwinon(struct channel *ch);
 static void pcxi_memoff(struct channel *ch);
 
-/* - Begin 'specific' do nothing memory functions needed for some cards - */
+
 
 static void dummy_memwinon(struct board_info *b, unsigned int win);
 static void dummy_memwinoff(struct board_info *b, unsigned int win);
@@ -193,15 +149,7 @@ static int pc_write(struct tty_struct *, const unsigned char *, int);
 static int pc_init(void);
 static int init_PCI(void);
 
-/*
- * Table of functions for each board to handle memory. Mantaining parallelism
- * is a *very* good idea here. The idea is for the runtime code to blindly call
- * these functions, not knowing/caring about the underlying hardware. This
- * stuff should contain no conditionals; if more functionality is needed a
- * different entry should be established. These calls are the interface calls
- * and are the only functions that should be accessed. Anyone caught making
- * direct calls deserves what they get.
- */
+
 static void memwinon(struct board_info *b, unsigned int win)
 {
 	b->memwinon(b, win);
@@ -241,7 +189,7 @@ static void assertmemoff(struct channel *ch)
 	ch->board->assertmemoff(ch);
 }
 
-/* PCXEM windowing is the same as that used in the PCXR and CX series cards. */
+
 static void pcxem_memwinon(struct board_info *b, unsigned int win)
 {
 	outb_p(FEPWIN | win, b->port + 1);
@@ -272,7 +220,7 @@ static void pcxem_memoff(struct channel *ch)
 	outb_p(0, (int)ch->board->port + 1);
 }
 
-/* ----------------- Begin pcxe memory window stuff ------------------ */
+
 static void pcxe_memwinon(struct board_info *b, unsigned int win)
 {
 	outb_p(FEPWIN | win, b->port + 1);
@@ -305,7 +253,7 @@ static void pcxe_memoff(struct channel *ch)
 	outb_p(0, (int)ch->board->port + 1);
 }
 
-/* ------------- Begin pc64xe and pcxi memory window stuff -------------- */
+
 static void pcxi_memwinon(struct board_info *b, unsigned int win)
 {
 	outb_p(inb(b->port) | FEPMEM, b->port);
@@ -346,13 +294,7 @@ static void pcxi_assertmemoff(struct channel *ch)
 	epcaassert(!(inb(ch->board->port) & FEPMEM), "Memory on");
 }
 
-/*
- * Not all of the cards need specific memory windowing routines. Some cards
- * (Such as PCI) needs no windowing routines at all. We provide these do
- * nothing routines so that the same code base can be used. The driver will
- * ALWAYS call a windowing routine if it thinks it needs to; regardless of the
- * card. However, dependent on the card the routine may or may not do anything.
- */
+
 static void dummy_memwinon(struct board_info *b, unsigned int win)
 {
 }
@@ -387,12 +329,7 @@ static void dummy_assertmemoff(struct channel *ch)
 
 static struct channel *verifyChannel(struct tty_struct *tty)
 {
-	/*
-	 * This routine basically provides a sanity check. It insures that the
-	 * channel returned is within the proper range of addresses as well as
-	 * properly initialized. If some bogus info gets passed in
-	 * through tty->driver_data this should catch it.
-	 */
+	
 	if (tty) {
 		struct channel *ch = tty->driver_data;
 		if (ch >= &digi_channels[0] && ch < &digi_channels[nbdevs]) {
@@ -405,10 +342,7 @@ static struct channel *verifyChannel(struct tty_struct *tty)
 
 static void pc_sched_event(struct channel *ch, int event)
 {
-	/*
-	 * We call this to schedule interrupt processing on some event. The
-	 * kernel sees our request and calls the related routine in OUR driver.
-	 */
+	
 	ch->event |= 1 << event;
 	schedule_work(&ch->tqueue);
 }
@@ -422,10 +356,7 @@ static void pc_close(struct tty_struct *tty, struct file *filp)
 {
 	struct channel *ch;
 	struct tty_port *port;
-	/*
-	 * verifyChannel returns the channel from the tty struct if it is
-	 * valid. This serves as a sanity check.
-	 */
+	
 	ch = verifyChannel(tty);
 	if (ch == NULL)
 		return;
@@ -438,7 +369,7 @@ static void pc_close(struct tty_struct *tty, struct file *filp)
 	shutdown(ch, tty);
 
 	tty_port_close_end(port, tty);
-	ch->event = 0;	/* FIXME: review ch->event locking */
+	ch->event = 0;	
 	tty_port_tty_set(port, NULL);
 }
 
@@ -456,26 +387,19 @@ static void shutdown(struct channel *ch, struct tty_struct *tty)
 	globalwinon(ch);
 	bc = ch->brdchan;
 
-	/*
-	 * In order for an event to be generated on the receipt of data the
-	 * idata flag must be set. Since we are shutting down, this is not
-	 * necessary clear this flag.
-	 */
+	
 	if (bc)
 		writeb(0, &bc->idata);
 
-	/* If we're a modem control device and HUPCL is on, drop RTS & DTR. */
+	
 	if (tty->termios->c_cflag & HUPCL)  {
 		ch->omodem &= ~(ch->m_rts | ch->m_dtr);
 		fepcmd(ch, SETMODEM, 0, ch->m_dtr | ch->m_rts, 10, 1);
 	}
 	memoff(ch);
 
-	/*
-	 * The channel has officialy been closed. The next time it is opened it
-	 * will have to reinitialized. Set a flag to indicate this.
-	 */
-	/* Prevent future Digi programmed interrupts from coming active */
+	
+	
 	port->flags &= ~ASYNC_INITIALIZED;
 	spin_unlock_irqrestore(&epca_lock, flags);
 }
@@ -484,17 +408,14 @@ static void pc_hangup(struct tty_struct *tty)
 {
 	struct channel *ch;
 
-	/*
-	 * verifyChannel returns the channel from the tty struct if it is
-	 * valid. This serves as a sanity check.
-	 */
+	
 	ch = verifyChannel(tty);
 	if (ch != NULL) {
 		pc_flush_buffer(tty);
 		tty_ldisc_flush(tty);
 		shutdown(ch, tty);
 
-		ch->event = 0;	/* FIXME: review locking of ch->event */
+		ch->event = 0;	
 		tty_port_hangup(&ch->port);
 	}
 }
@@ -511,24 +432,14 @@ static int pc_write(struct tty_struct *tty,
 	int remain;
 	struct board_chan __iomem *bc;
 
-	/*
-	 * pc_write is primarily called directly by the kernel routine
-	 * tty_write (Though it can also be called by put_char) found in
-	 * tty_io.c. pc_write is passed a line discipline buffer where the data
-	 * to be written out is stored. The line discipline implementation
-	 * itself is done at the kernel level and is not brought into the
-	 * driver.
-	 */
+	
 
-	/*
-	 * verifyChannel returns the channel from the tty struct if it is
-	 * valid. This serves as a sanity check.
-	 */
+	
 	ch = verifyChannel(tty);
 	if (ch == NULL)
 		return 0;
 
-	/* Make a pointer to the channel data structure found on the board. */
+	
 	bc   = ch->brdchan;
 	size = ch->txbufsize;
 	amountCopied = 0;
@@ -544,35 +455,22 @@ static int pc_write(struct tty_struct *tty,
 	tail &= (size - 1);
 
 	if (head >= tail) {
-		/* head has not wrapped */
-		/*
-		 * remain (much like dataLen above) represents the total amount
-		 * of space available on the card for data. Here dataLen
-		 * represents the space existing between the head pointer and
-		 * the end of buffer. This is important because a memcpy cannot
-		 * be told to automatically wrap around when it hits the buffer
-		 * end.
-		 */
+		
+		
 		dataLen = size - head;
 		remain = size - (head - tail) - 1;
 	} else {
-		/* head has wrapped around */
+		
 		remain = tail - head - 1;
 		dataLen = remain;
 	}
-	/*
-	 * Check the space on the card. If we have more data than space; reduce
-	 * the amount of data to fit the space.
-	 */
+	
 	bytesAvailable = min(remain, bytesAvailable);
 	txwinon(ch);
 	while (bytesAvailable > 0) {
-		/* there is data to copy onto card */
+		
 
-		/*
-		 * If head is not wrapped, the below will make sure the first
-		 * data copy fills to the end of card buffer.
-		 */
+		
 		dataLen = min(bytesAvailable, dataLen);
 		memcpy_toio(ch->txptr + head, buf, dataLen);
 		buf += dataLen;
@@ -605,10 +503,7 @@ static int pc_write_room(struct tty_struct *tty)
 	unsigned long flags;
 	unsigned int head, tail;
 	struct board_chan __iomem *bc;
-	/*
-	 * verifyChannel returns the channel from the tty struct if it is
-	 * valid. This serves as a sanity check.
-	 */
+	
 	ch = verifyChannel(tty);
 	if (ch != NULL) {
 		spin_lock_irqsave(&epca_lock, flags);
@@ -620,7 +515,7 @@ static int pc_write_room(struct tty_struct *tty)
 
 		if (tail != readw(&bc->tout))
 			tail = readw(&bc->tout);
-		/* Wrap tail if necessary */
+		
 		tail &= (ch->txbufsize - 1);
 		remain = tail - head - 1;
 		if (remain < 0)
@@ -633,7 +528,7 @@ static int pc_write_room(struct tty_struct *tty)
 		memoff(ch);
 		spin_unlock_irqrestore(&epca_lock, flags);
 	}
-	/* Return how much room is left on card */
+	
 	return remain;
 }
 
@@ -645,10 +540,7 @@ static int pc_chars_in_buffer(struct tty_struct *tty)
 	unsigned long flags;
 	struct channel *ch;
 	struct board_chan __iomem *bc;
-	/*
-	 * verifyChannel returns the channel from the tty struct if it is
-	 * valid. This serves as a sanity check.
-	 */
+	
 	ch = verifyChannel(tty);
 	if (ch == NULL)
 		return 0;
@@ -664,31 +556,21 @@ static int pc_chars_in_buffer(struct tty_struct *tty)
 	if (tail == head && readw(&ch->mailbox->cin) == ctail &&
 						readb(&bc->tbusy) == 0)
 		chars = 0;
-	else  { /* Begin if some space on the card has been used */
+	else  { 
 		head = readw(&bc->tin) & (ch->txbufsize - 1);
 		tail &= (ch->txbufsize - 1);
-		/*
-		 * The logic here is basically opposite of the above
-		 * pc_write_room here we are finding the amount of bytes in the
-		 * buffer filled. Not the amount of bytes empty.
-		 */
+		
 		remain = tail - head - 1;
 		if (remain < 0)
 			remain += ch->txbufsize;
 		chars = (int)(ch->txbufsize - remain);
-		/*
-		 * Make it possible to wakeup anything waiting for output in
-		 * tty_ioctl.c, etc.
-		 *
-		 * If not already set. Setup an event to indicate when the
-		 * transmit buffer empties.
-		 */
+		
 		if (!(ch->statusflags & EMPTYWAIT))
 			setup_empty_event(tty, ch);
-	} /* End if some space on the card has been used */
+	} 
 	memoff(ch);
 	spin_unlock_irqrestore(&epca_lock, flags);
-	/* Return number of characters residing on card. */
+	
 	return chars;
 }
 
@@ -698,10 +580,7 @@ static void pc_flush_buffer(struct tty_struct *tty)
 	unsigned long flags;
 	struct channel *ch;
 	struct board_chan __iomem *bc;
-	/*
-	 * verifyChannel returns the channel from the tty struct if it is
-	 * valid. This serves as a sanity check.
-	 */
+	
 	ch = verifyChannel(tty);
 	if (ch == NULL)
 		return;
@@ -710,7 +589,7 @@ static void pc_flush_buffer(struct tty_struct *tty)
 	globalwinon(ch);
 	bc   = ch->brdchan;
 	tail = readw(&bc->tout);
-	/* Have FEP move tout pointer; effectively flushing transmit buffer */
+	
 	fepcmd(ch, STOUT, (unsigned) tail, 0, 0, 0);
 	memoff(ch);
 	spin_unlock_irqrestore(&epca_lock, flags);
@@ -720,18 +599,12 @@ static void pc_flush_buffer(struct tty_struct *tty)
 static void pc_flush_chars(struct tty_struct *tty)
 {
 	struct channel *ch;
-	/*
-	 * verifyChannel returns the channel from the tty struct if it is
-	 * valid. This serves as a sanity check.
-	 */
+	
 	ch = verifyChannel(tty);
 	if (ch != NULL) {
 		unsigned long flags;
 		spin_lock_irqsave(&epca_lock, flags);
-		/*
-		 * If not already set and the transmitter is busy setup an
-		 * event to indicate when the transmit empties.
-		 */
+		
 		if ((ch->statusflags & TXBUSY) &&
 				!(ch->statusflags & EMPTYWAIT))
 			setup_empty_event(tty, ch);
@@ -768,13 +641,9 @@ static int pc_open(struct tty_struct *tty, struct file *filp)
 	port = &ch->port;
 	boardnum = ch->boardnum;
 
-	/* Check status of board configured in system.  */
+	
 
-	/*
-	 * I check to see if the epca_setup routine detected a user error. It
-	 * might be better to put this in pc_init, but for the moment it goes
-	 * here.
-	 */
+	
 	if (invalid_lilo_config) {
 		if (setup_error_code & INVALID_BOARD_TYPE)
 			printk(KERN_ERR "epca: pc_open: Invalid board type specified in kernel options.\n");
@@ -788,11 +657,11 @@ static int pc_open(struct tty_struct *tty, struct file *filp)
 			printk(KERN_ERR "epca: pc_open: Invalid board status specified in kernel options.\n");
 		if (setup_error_code & INVALID_ALTPIN)
 			printk(KERN_ERR "epca: pc_open: Invalid board altpin specified in kernel options;\n");
-		tty->driver_data = NULL;   /* Mark this device as 'down' */
+		tty->driver_data = NULL;   
 		return -ENODEV;
 	}
 	if (boardnum >= num_cards || boards[boardnum].status == DISABLED)  {
-		tty->driver_data = NULL;   /* Mark this device as 'down' */
+		tty->driver_data = NULL;   
 		return(-ENODEV);
 	}
 
@@ -803,42 +672,26 @@ static int pc_open(struct tty_struct *tty, struct file *filp)
 	}
 
 	spin_lock_irqsave(&port->lock, flags);
-	/*
-	 * Every time a channel is opened, increment a counter. This is
-	 * necessary because we do not wish to flush and shutdown the channel
-	 * until the last app holding the channel open, closes it.
-	 */
+	
 	port->count++;
-	/*
-	 * Set a kernel structures pointer to our local channel structure. This
-	 * way we can get to it when passed only a tty struct.
-	 */
+	
 	tty->driver_data = ch;
 	port->tty = tty;
-	/*
-	 * If this is the first time the channel has been opened, initialize
-	 * the tty->termios struct otherwise let pc_close handle it.
-	 */
+	
 	spin_lock(&epca_lock);
 	globalwinon(ch);
 	ch->statusflags = 0;
 
-	/* Save boards current modem status */
+	
 	ch->imodem = readb(&bc->mstat);
 
-	/*
-	 * Set receive head and tail ptrs to each other. This indicates no data
-	 * available to read.
-	 */
+	
 	head = readw(&bc->rin);
 	writew(head, &bc->rout);
 
-	/* Set the channels associated tty structure */
+	
 
-	/*
-	 * The below routine generally sets up parity, baud, flow control
-	 * issues, etc.... It effect both control flags and input flags.
-	 */
+	
 	epcaparam(tty, ch);
 	memoff(ch);
 	spin_unlock(&epca_lock);
@@ -848,15 +701,12 @@ static int pc_open(struct tty_struct *tty, struct file *filp)
 	retval = tty_port_block_til_ready(port, tty, filp);
 	if (retval)
 		return retval;
-	/*
-	 * Set this again in case a hangup set it to zero while this open() was
-	 * waiting for the line...
-	 */
+	
 	spin_lock_irqsave(&port->lock, flags);
 	port->tty = tty;
 	spin_lock(&epca_lock);
 	globalwinon(ch);
-	/* Enable Digi Data events */
+	
 	writeb(1, &bc->idata);
 	memoff(ch);
 	spin_unlock(&epca_lock);
@@ -890,7 +740,7 @@ static void __exit epca_module_exit(void)
 
 	for (crd = 0; crd < num_cards; crd++) {
 		bd = &boards[crd];
-		if (!bd) { /* sanity check */
+		if (!bd) { 
 			printk(KERN_ERR "<Error> - Digi : cleanup_module failed\n");
 			return;
 		}
@@ -959,49 +809,21 @@ static int __init pc_init(void)
 	if (!pc_info)
 		goto out2;
 
-	/*
-	 * If epca_setup has not been ran by LILO set num_cards to defaults;
-	 * copy board structure defined by digiConfig into drivers board
-	 * structure. Note : If LILO has ran epca_setup then epca_setup will
-	 * handle defining num_cards as well as copying the data into the board
-	 * structure.
-	 */
+	
 	if (!liloconfig) {
-		/* driver has been configured via. epcaconfig */
+		
 		nbdevs = NBDEVS;
 		num_cards = NUMCARDS;
 		memcpy(&boards, &static_boards,
 		       sizeof(struct board_info) * NUMCARDS);
 	}
 
-	/*
-	 * Note : If lilo was used to configure the driver and the ignore
-	 * epcaconfig option was choosen (digiepca=2) then nbdevs and num_cards
-	 * will equal 0 at this point. This is okay; PCI cards will still be
-	 * picked up if detected.
-	 */
+	
 
-	/*
-	 * Set up interrupt, we will worry about memory allocation in
-	 * post_fep_init.
-	 */
+	
 	printk(KERN_INFO "DIGI epca driver version %s loaded.\n", VERSION);
 
-	/*
-	 * NOTE : This code assumes that the number of ports found in the
-	 * boards array is correct. This could be wrong if the card in question
-	 * is PCI (And therefore has no ports entry in the boards structure.)
-	 * The rest of the information will be valid for PCI because the
-	 * beginning of pc_init scans for PCI and determines i/o and base
-	 * memory addresses. I am not sure if it is possible to read the number
-	 * of ports supported by the card prior to it being booted (Since that
-	 * is the state it is in when pc_init is run). Because it is not
-	 * possible to query the number of supported ports until after the card
-	 * has booted; we are required to calculate the card_ptrs as the card
-	 * is initialized (Inside post_fep_init). The negative thing about this
-	 * approach is that digiDload's call to GET_INFO will have a bad port
-	 * value. (Since this is called prior to post_fep_init.)
-	 */
+	
 	pci_boards_found = 0;
 	if (num_cards < MAXBOARDS)
 		pci_boards_found += init_PCI();
@@ -1041,13 +863,9 @@ static int __init pc_init(void)
 
 
 	for (crd = 0; crd < num_cards; crd++) {
-		/*
-		 * This is where the appropriate memory handlers for the
-		 * hardware is set. Everything at runtime blindly jumps through
-		 * these vectors.
-		 */
+		
 
-		/* defined in epcaconfig.h */
+		
 		bd = &boards[crd];
 
 		switch (bd->type) {
@@ -1104,13 +922,7 @@ static int __init pc_init(void)
 			break;
 		}
 
-		/*
-		 * Some cards need a memory segment to be defined for use in
-		 * transmit and receive windowing operations. These boards are
-		 * listed in the below switch. In the case of the XI the amount
-		 * of memory on the board is variable so the memory_seg is also
-		 * variable. This code determines what they segment should be.
-		 */
+		
 		switch (bd->type) {
 		case PCXE:
 		case PCXEVE:
@@ -1121,20 +933,20 @@ static int __init pc_init(void)
 		case PCXI:
 			board_id = inb((int)bd->port);
 			if ((board_id & 0x1) == 0x1) {
-				/* it's an XI card */
-				/* Is it a 64K board */
+				
+				
 				if ((board_id & 0x30) == 0)
 					bd->memory_seg = 0xf000;
 
-				/* Is it a 128K board */
+				
 				if ((board_id & 0x30) == 0x10)
 					bd->memory_seg = 0xe000;
 
-				/* Is is a 256K board */
+				
 				if ((board_id & 0x30) == 0x20)
 					bd->memory_seg = 0xc000;
 
-				/* Is it a 512K board */
+				
 				if ((board_id & 0x30) == 0x30)
 					bd->memory_seg = 0x8000;
 			} else
@@ -1155,7 +967,7 @@ static int __init pc_init(void)
 		goto out4;
 	}
 
-	/* Start up the poller to check for events on all enabled boards */
+	
 	init_timer(&epca_timer);
 	epca_timer.function = epcapoll;
 	mod_timer(&epca_timer, jiffies + HZ/25);
@@ -1181,73 +993,39 @@ static void post_fep_init(unsigned int crd)
 	struct channel *ch;
 	int shrinkmem = 0, lowwater;
 
-	/*
-	 * This call is made by the user via. the ioctl call DIGI_INIT. It is
-	 * responsible for setting up all the card specific stuff.
-	 */
+	
 	bd = &boards[crd];
 
-	/*
-	 * If this is a PCI board, get the port info. Remember PCI cards do not
-	 * have entries into the epcaconfig.h file, so we can't get the number
-	 * of ports from it. Unfortunetly, this means that anyone doing a
-	 * DIGI_GETINFO before the board has booted will get an invalid number
-	 * of ports returned (It should return 0). Calls to DIGI_GETINFO after
-	 * DIGI_INIT has been called will return the proper values.
-	 */
-	if (bd->type >= PCIXEM) { /* Begin get PCI number of ports */
-		/*
-		 * Below we use XEMPORTS as a memory offset regardless of which
-		 * PCI card it is. This is because all of the supported PCI
-		 * cards have the same memory offset for the channel data. This
-		 * will have to be changed if we ever develop a PCI/XE card.
-		 * NOTE : The FEP manual states that the port offset is 0xC22
-		 * as opposed to 0xC02. This is only true for PC/XE, and PC/XI
-		 * cards; not for the XEM, or CX series. On the PCI cards the
-		 * number of ports is determined by reading a ID PROM located
-		 * in the box attached to the card. The card can then determine
-		 * the index the id to determine the number of ports available.
-		 * (FYI - The id should be located at 0x1ac (And may use up to
-		 * 4 bytes if the box in question is a XEM or CX)).
-		 */
-		/* PCI cards are already remapped at this point ISA are not */
+	
+	if (bd->type >= PCIXEM) { 
+		
+		
 		bd->numports = readw(bd->re_map_membase + XEMPORTS);
 		epcaassert(bd->numports <= 64, "PCI returned a invalid number of ports");
 		nbdevs += (bd->numports);
 	} else {
-		/* Fix up the mappings for ISA/EISA etc */
-		/* FIXME: 64K - can we be smarter ? */
+		
+		
 		bd->re_map_membase = ioremap_nocache(bd->membase, 0x10000);
 	}
 
 	if (crd != 0)
 		card_ptr[crd] = card_ptr[crd-1] + boards[crd-1].numports;
 	else
-		card_ptr[crd] = &digi_channels[crd]; /* <- For card 0 only */
+		card_ptr[crd] = &digi_channels[crd]; 
 
 	ch = card_ptr[crd];
 	epcaassert(ch <= &digi_channels[nbdevs - 1], "ch out of range");
 
 	memaddr = bd->re_map_membase;
 
-	/*
-	 * The below assignment will set bc to point at the BEGINING of the
-	 * cards channel structures. For 1 card there will be between 8 and 64
-	 * of these structures.
-	 */
+	
 	bc = memaddr + CHANSTRUCT;
 
-	/*
-	 * The below assignment will set gd to point at the BEGINING of global
-	 * memory address 0xc00. The first data in that global memory actually
-	 * starts at address 0xc1a. The command in pointer begins at 0xd10.
-	 */
+	
 	gd = memaddr + GLOBAL;
 
-	/*
-	 * XEPORTS (address 0xc22) points at the number of channels the card
-	 * supports. (For 64XE, XI, XEM, and XR use 0xc02)
-	 */
+	
 	if ((bd->type == PCXEVE || bd->type == PCXE) &&
 					(readw(memaddr + XEPORTS) < 3))
 		shrinkmem = 1;
@@ -1256,10 +1034,7 @@ static void post_fep_init(unsigned int crd)
 			return;
 	memwinon(bd, 0);
 
-	/*
-	 * Remember ch is the main drivers channels structure, while bc is the
-	 * cards channel structure.
-	 */
+	
 	for (i = 0; i < bd->numports; i++, ch++, bc++) {
 		unsigned long flags;
 		u16 tseg, rseg;
@@ -1273,12 +1048,7 @@ static void post_fep_init(unsigned int crd)
 
 		spin_lock_irqsave(&epca_lock, flags);
 		switch (bd->type) {
-		/*
-		 * Since some of the boards use different bitmaps for
-		 * their control signals we cannot hard code these
-		 * values and retain portability. We virtualize this
-		 * data here.
-		 */
+		
 		case EISAXEM:
 		case PCXEM:
 		case PCIXEM:
@@ -1331,7 +1101,7 @@ static void post_fep_init(unsigned int crd)
 		case PCIXEM:
 		case PCIXRJ:
 		case PCIXR:
-			/* Cover all the 2MEG cards */
+			
 			ch->txptr = memaddr + ((tseg << 4) & 0x1fffff);
 			ch->rxptr = memaddr + ((rseg << 4) & 0x1fffff);
 			ch->txwin = FEPWIN | (tseg >> 11);
@@ -1340,8 +1110,8 @@ static void post_fep_init(unsigned int crd)
 
 		case PCXEM:
 		case EISAXEM:
-			/* Cover all the 32K windowed cards */
-			/* Mask equal to window size - 1 */
+			
+			
 			ch->txptr = memaddr + ((tseg << 4) & 0x7fff);
 			ch->rxptr = memaddr + ((rseg << 4) & 0x7fff);
 			ch->txwin = FEPWIN | (tseg >> 11);
@@ -1374,13 +1144,13 @@ static void post_fep_init(unsigned int crd)
 
 		lowwater = ch->txbufsize >= 2000 ? 1024 : (ch->txbufsize / 2);
 
-		/* Set transmitter low water mark */
+		
 		fepcmd(ch, STXLWATER, lowwater, 0, 10, 0);
 
-		/* Set receiver low water mark */
+		
 		fepcmd(ch, SRXLWATER, (ch->rxbufsize / 4), 0, 10, 0);
 
-		/* Set receiver high water mark */
+		
 		fepcmd(ch, SRXHWATER, (3 * ch->rxbufsize / 4), 0, 10, 0);
 
 		writew(100, &bc->edelay);
@@ -1419,13 +1189,7 @@ static void epcapoll(unsigned long ignored)
 	struct channel *ch;
 	struct board_info *bd;
 
-	/*
-	 * This routine is called upon every timer interrupt. Even though the
-	 * Digi series cards are capable of generating interrupts this method
-	 * of non-looping polling is more efficient. This routine checks for
-	 * card generated events (Such as receive data, are transmit buffer
-	 * empty) and acts on those events.
-	 */
+	
 	for (crd = 0; crd < num_cards; crd++) {
 		bd = &boards[crd];
 		ch = card_ptr[crd];
@@ -1433,31 +1197,24 @@ static void epcapoll(unsigned long ignored)
 		if ((bd->status == DISABLED) || digi_poller_inhibited)
 			continue;
 
-		/*
-		 * assertmemoff is not needed here; indeed it is an empty
-		 * subroutine. It is being kept because future boards may need
-		 * this as well as some legacy boards.
-		 */
+		
 		spin_lock_irqsave(&epca_lock, flags);
 
 		assertmemoff(ch);
 
 		globalwinon(ch);
 
-		/*
-		 * In this case head and tail actually refer to the event queue
-		 * not the transmit or receive queue.
-		 */
+		
 		head = readw(&ch->mailbox->ein);
 		tail = readw(&ch->mailbox->eout);
 
-		/* If head isn't equal to tail we have an event */
+		
 		if (head != tail)
 			doevent(crd);
 		memoff(ch);
 
 		spin_unlock_irqrestore(&epca_lock, flags);
-	} /* End for each card */
+	} 
 	mod_timer(&epca_timer, jiffies + (HZ / 25));
 }
 
@@ -1472,10 +1229,7 @@ static void doevent(int crd)
 	int event, channel;
 	int mstat, lstat;
 
-	/*
-	 * This subroutine is called by epcapoll when an event is detected
-	 * in the event queue. This routine responds to those events.
-	 */
+	
 	bd = &boards[crd];
 
 	chan0 = card_ptr[crd];
@@ -1483,19 +1237,14 @@ static void doevent(int crd)
 	assertgwinon(chan0);
 	while ((tail = readw(&chan0->mailbox->eout)) !=
 			(head = readw(&chan0->mailbox->ein))) {
-		/* Begin while something in event queue */
+		
 		assertgwinon(chan0);
 		eventbuf = bd->re_map_membase + tail + ISTART;
-		/* Get the channel the event occurred on */
+		
 		channel = readb(eventbuf);
-		/* Get the actual event code that occurred */
+		
 		event = readb(eventbuf + 1);
-		/*
-		 * The two assignments below get the current modem status
-		 * (mstat) and the previous modem status (lstat). These are
-		 * useful becuase an event could signal a change in modem
-		 * signals itself.
-		 */
+		
 		mstat = readb(eventbuf + 2);
 		lstat = readb(eventbuf + 3);
 
@@ -1512,25 +1261,25 @@ static void doevent(int crd)
 			goto next;
 
 		tty = tty_port_tty_get(&ch->port);
-		if (event & DATA_IND)  { /* Begin DATA_IND */
+		if (event & DATA_IND)  { 
 			receive_data(ch, tty);
 			assertgwinon(ch);
-		} /* End DATA_IND */
-		/* else *//* Fix for DCD transition missed bug */
+		} 
+		
 		if (event & MODEMCHG_IND) {
-			/* A modem signal change has been indicated */
+			
 			ch->imodem = mstat;
 			if (test_bit(ASYNCB_CHECK_CD, &ch->port.flags)) {
-				/* We are now receiving dcd */
+				
 				if (mstat & ch->dcd)
 					wake_up_interruptible(&ch->port.open_wait);
-				else	/* No dcd; hangup */
+				else	
 					pc_sched_event(ch, EPCA_EVENT_HANGUP);
 			}
 		}
 		if (tty) {
 			if (event & BREAK_IND) {
-				/* A break has been indicated */
+				
 				tty_insert_flip_char(tty, 0, TTY_BREAK);
 				tty_schedule_flip(tty);
 			} else if (event & LOWTX_IND)  {
@@ -1539,8 +1288,7 @@ static void doevent(int crd)
 					tty_wakeup(tty);
 				}
 			} else if (event & EMPTYTX_IND) {
-				/* This event is generated by
-				   setup_empty_event */
+				
 				ch->statusflags &= ~TXBUSY;
 				if (ch->statusflags & EMPTYWAIT) {
 					ch->statusflags &= ~EMPTYWAIT;
@@ -1555,7 +1303,7 @@ next:
 		writew(1, &bc->idata);
 		writew((tail + 4) & (IMAX - ISTART - 4), &chan0->mailbox->eout);
 		globalwinon(chan0);
-	} /* End while something in event queue */
+	} 
 }
 
 static void fepcmd(struct channel *ch, int cmd, int word_or_byte,
@@ -1566,20 +1314,16 @@ static void fepcmd(struct channel *ch, int cmd, int word_or_byte,
 	long count;
 	int n;
 
-	/* This is the routine in which commands may be passed to the card. */
+	
 
 	if (ch->board->status == DISABLED)
 		return;
 	assertgwinon(ch);
-	/* Remember head (As well as max) is just an offset not a base addr */
+	
 	head = readw(&ch->mailbox->cin);
-	/* cmdStart is a base address */
+	
 	cmdStart = readw(&ch->mailbox->cstart);
-	/*
-	 * We do the addition below because we do not want a max pointer
-	 * relative to cmdStart. We want a max pointer that points at the
-	 * physical end of the command queue.
-	 */
+	
 	cmdMax = (cmdStart + 4 + readw(&ch->mailbox->cmax));
 	memaddr = ch->board->re_map_membase;
 
@@ -1593,9 +1337,9 @@ static void fepcmd(struct channel *ch, int cmd, int word_or_byte,
 	if (bytecmd)  {
 		writeb(cmd, memaddr + head + cmdStart + 0);
 		writeb(ch->channelnum,  memaddr + head + cmdStart + 1);
-		/* Below word_or_byte is bits to set */
+		
 		writeb(word_or_byte,  memaddr + head + cmdStart + 2);
-		/* Below byte2 is bits to reset */
+		
 		writeb(byte2, memaddr + head + cmdStart + 3);
 	}  else {
 		writeb(cmd, memaddr + head + cmdStart + 0);
@@ -1615,21 +1359,13 @@ static void fepcmd(struct channel *ch, int cmd, int word_or_byte,
 		head = readw(&ch->mailbox->cin);
 		cmdTail = readw(&ch->mailbox->cout);
 		n = (head - cmdTail) & (cmdMax - cmdStart - 4);
-		/*
-		 * Basically this will break when the FEP acknowledges the
-		 * command by incrementing cmdTail (Making it equal to head).
-		 */
+		
 		if (n <= ncmds * (sizeof(short) * 4))
 			break;
 	}
 }
 
-/*
- * Digi products use fields in their channels structures that are very similar
- * to the c_cflag and c_iflag fields typically found in UNIX termios
- * structures. The below three routines allow mappings between these hardware
- * "flags" and their respective Linux flags.
- */
+
 static unsigned termios2digi_h(struct channel *ch, unsigned cflag)
 {
 	unsigned res = 0;
@@ -1677,47 +1413,15 @@ static unsigned termios2digi_c(struct channel *ch, unsigned cflag)
 	unsigned res = 0;
 	if (cflag & CBAUDEX) {
 		ch->digiext.digi_flags |= DIGI_FAST;
-		/*
-		 * HUPCL bit is used by FEP to indicate fast baud table is to
-		 * be used.
-		 */
+		
 		res |= FEP_HUPCL;
 	} else
 		ch->digiext.digi_flags &= ~DIGI_FAST;
-	/*
-	 * CBAUD has bit position 0x1000 set these days to indicate Linux
-	 * baud rate remap. Digi hardware can't handle the bit assignment.
-	 * (We use a different bit assignment for high speed.). Clear this
-	 * bit out.
-	 */
+	
 	res |= cflag & ((CBAUD ^ CBAUDEX) | PARODD | PARENB | CSTOPB | CSIZE);
-	/*
-	 * This gets a little confusing. The Digi cards have their own
-	 * representation of c_cflags controlling baud rate. For the most part
-	 * this is identical to the Linux implementation. However; Digi
-	 * supports one rate (76800) that Linux doesn't. This means that the
-	 * c_cflag entry that would normally mean 76800 for Digi actually means
-	 * 115200 under Linux. Without the below mapping, a stty 115200 would
-	 * only drive the board at 76800. Since the rate 230400 is also found
-	 * after 76800, the same problem afflicts us when we choose a rate of
-	 * 230400. Without the below modificiation stty 230400 would actually
-	 * give us 115200.
-	 *
-	 * There are two additional differences. The Linux value for CLOCAL
-	 * (0x800; 0004000) has no meaning to the Digi hardware. Also in later
-	 * releases of Linux; the CBAUD define has CBAUDEX (0x1000; 0010000)
-	 * ored into it (CBAUD = 0x100f as opposed to 0xf). CBAUDEX should be
-	 * checked for a screened out prior to termios2digi_c returning. Since
-	 * CLOCAL isn't used by the board this can be ignored as long as the
-	 * returned value is used only by Digi hardware.
-	 */
+	
 	if (cflag & CBAUDEX) {
-		/*
-		 * The below code is trying to guarantee that only baud rates
-		 * 115200 and 230400 are remapped. We use exclusive or because
-		 * the various baud rates share common bit positions and
-		 * therefore can't be tested for easily.
-		 */
+		
 		if ((!((cflag & 0x7) ^ (B115200 & ~CBAUDEX))) ||
 		    (!((cflag & 0x7) ^ (B230400 & ~CBAUDEX))))
 			res += 1;
@@ -1725,7 +1429,7 @@ static unsigned termios2digi_c(struct channel *ch, unsigned cflag)
 	return res;
 }
 
-/* Caller must hold the locks */
+
 static void epcaparam(struct tty_struct *tty, struct channel *ch)
 {
 	unsigned int cmdHead;
@@ -1738,59 +1442,37 @@ static void epcaparam(struct tty_struct *tty, struct channel *ch)
 
 	assertgwinon(ch);
 	ts = tty->termios;
-	if ((ts->c_cflag & CBAUD) == 0)  { /* Begin CBAUD detected */
+	if ((ts->c_cflag & CBAUD) == 0)  { 
 		cmdHead = readw(&bc->rin);
 		writew(cmdHead, &bc->rout);
 		cmdHead = readw(&bc->tin);
-		/* Changing baud in mid-stream transmission can be wonderful */
-		/*
-		 * Flush current transmit buffer by setting cmdTail pointer
-		 * (tout) to cmdHead pointer (tin). Hopefully the transmit
-		 * buffer is empty.
-		 */
+		
+		
 		fepcmd(ch, STOUT, (unsigned) cmdHead, 0, 0, 0);
 		mval = 0;
-	} else { /* Begin CBAUD not detected */
-		/*
-		 * c_cflags have changed but that change had nothing to do with
-		 * BAUD. Propagate the change to the card.
-		 */
+	} else { 
+		
 		cflag = termios2digi_c(ch, ts->c_cflag);
 		if (cflag != ch->fepcflag)  {
 			ch->fepcflag = cflag;
-			/* Set baud rate, char size, stop bits, parity */
+			
 			fepcmd(ch, SETCTRLFLAGS, (unsigned) cflag, 0, 0, 0);
 		}
-		/*
-		 * If the user has not forced CLOCAL and if the device is not a
-		 * CALLOUT device (Which is always CLOCAL) we set flags such
-		 * that the driver will wait on carrier detect.
-		 */
+		
 		if (ts->c_cflag & CLOCAL)
 			clear_bit(ASYNCB_CHECK_CD, &ch->port.flags);
 		else
 			set_bit(ASYNCB_CHECK_CD, &ch->port.flags);
 		mval = ch->m_dtr | ch->m_rts;
-	} /* End CBAUD not detected */
+	} 
 	iflag = termios2digi_i(ch, ts->c_iflag);
-	/* Check input mode flags */
+	
 	if (iflag != ch->fepiflag)  {
 		ch->fepiflag = iflag;
-		/*
-		 * Command sets channels iflag structure on the board. Such
-		 * things as input soft flow control, handling of parity
-		 * errors, and break handling are all set here.
-		 *
-		 * break handling, parity handling, input stripping,
-		 * flow control chars
-		 */
+		
 		fepcmd(ch, SETIFLAGS, (unsigned int) ch->fepiflag, 0, 0, 0);
 	}
-	/*
-	 * Set the board mint value for this channel. This will cause hardware
-	 * events to be generated each time the DCD signal (Described in mint)
-	 * changes.
-	 */
+	
 	writeb(ch->dcd, &bc->mint);
 	if ((ts->c_cflag & CLOCAL) || (ch->digiext.digi_flags & DIGI_FORCEDCD))
 		if (ch->digiext.digi_flags & DIGI_FORCEDCD)
@@ -1799,49 +1481,34 @@ static void epcaparam(struct tty_struct *tty, struct channel *ch)
 	hflow = termios2digi_h(ch, ts->c_cflag);
 	if (hflow != ch->hflow)  {
 		ch->hflow = hflow;
-		/*
-		 * Hard flow control has been selected but the board is not
-		 * using it. Activate hard flow control now.
-		 */
+		
 		fepcmd(ch, SETHFLOW, hflow, 0xff, 0, 1);
 	}
 	mval ^= ch->modemfake & (mval ^ ch->modem);
 
 	if (ch->omodem ^ mval)  {
 		ch->omodem = mval;
-		/*
-		 * The below command sets the DTR and RTS mstat structure. If
-		 * hard flow control is NOT active these changes will drive the
-		 * output of the actual DTR and RTS lines. If hard flow control
-		 * is active, the changes will be saved in the mstat structure
-		 * and only asserted when hard flow control is turned off.
-		 */
+		
 
-		/* First reset DTR & RTS; then set them */
+		
 		fepcmd(ch, SETMODEM, 0, ((ch->m_dtr)|(ch->m_rts)), 0, 1);
 		fepcmd(ch, SETMODEM, mval, 0, 0, 1);
 	}
 	if (ch->startc != ch->fepstartc || ch->stopc != ch->fepstopc)  {
 		ch->fepstartc = ch->startc;
 		ch->fepstopc = ch->stopc;
-		/*
-		 * The XON / XOFF characters have changed; propagate these
-		 * changes to the card.
-		 */
+		
 		fepcmd(ch, SONOFFC, ch->fepstartc, ch->fepstopc, 0, 1);
 	}
 	if (ch->startca != ch->fepstartca || ch->stopca != ch->fepstopca)  {
 		ch->fepstartca = ch->startca;
 		ch->fepstopca = ch->stopca;
-		/*
-		 * Similar to the above, this time the auxilarly XON / XOFF
-		 * characters have changed; propagate these changes to the card.
-		 */
+		
 		fepcmd(ch, SAUXONOFFC, ch->fepstartca, ch->fepstopca, 0, 1);
 	}
 }
 
-/* Caller holds lock */
+
 static void receive_data(struct channel *ch, struct tty_struct *tty)
 {
 	unchar *rptr;
@@ -1851,10 +1518,7 @@ static void receive_data(struct channel *ch, struct tty_struct *tty)
 	unsigned int tail, head;
 	unsigned int wrapmask;
 
-	/*
-	 * This routine is called by doint when a receive data event has taken
-	 * place.
-	 */
+	
 	globalwinon(ch);
 	if (ch->statusflags & RXSTOPPED)
 		return;
@@ -1864,10 +1528,7 @@ static void receive_data(struct channel *ch, struct tty_struct *tty)
 	BUG_ON(!bc);
 	wrapmask = ch->rxbufsize - 1;
 
-	/*
-	 * Get the head and tail pointers to the receiver queue. Wrap the head
-	 * pointer if it has reached the end of the buffer.
-	 */
+	
 	head = readw(&bc->rin);
 	head &= wrapmask;
 	tail = readw(&bc->rout) & wrapmask;
@@ -1876,7 +1537,7 @@ static void receive_data(struct channel *ch, struct tty_struct *tty)
 	if (bytesAvailable == 0)
 		return;
 
-	/* If CREAD bit is off or device not open, set TX tail to head */
+	
 	if (!tty || !ts || !(ts->c_cflag & CREAD)) {
 		writew(head, &bc->rout);
 		return;
@@ -1893,30 +1554,23 @@ static void receive_data(struct channel *ch, struct tty_struct *tty)
 	}
 	rxwinon(ch);
 	while (bytesAvailable > 0) {
-		/* Begin while there is data on the card */
+		
 		wrapgap = (head >= tail) ? head - tail : ch->rxbufsize - tail;
-		/*
-		 * Even if head has wrapped around only report the amount of
-		 * data to be equal to the size - tail. Remember memcpy can't
-		 * automaticly wrap around the receive buffer.
-		 */
+		
 		dataToRead = (wrapgap < bytesAvailable) ? wrapgap
 							: bytesAvailable;
-		/* Make sure we don't overflow the buffer */
+		
 		dataToRead = tty_prepare_flip_string(tty, &rptr, dataToRead);
 		if (dataToRead == 0)
 			break;
-		/*
-		 * Move data read from our card into the line disciplines
-		 * buffer for translation if necessary.
-		 */
+		
 		memcpy_fromio(rptr, ch->rxptr + tail, dataToRead);
 		tail = (tail + dataToRead) & wrapmask;
 		bytesAvailable -= dataToRead;
-	} /* End while there is data on the card */
+	} 
 	globalwinon(ch);
 	writew(tail, &bc->rout);
-	/* Must be called with global data */
+	
 	tty_schedule_flip(tty);
 }
 
@@ -1940,7 +1594,7 @@ static int info_ioctl(struct tty_struct *tty, struct file *file,
 			di.status = boards[brd].status;
 			di.type = boards[brd].type ;
 			di.numports = boards[brd].numports ;
-			/* Legacy fixups - just move along nothing to see */
+			
 			di.port = (unsigned char *)boards[brd].port ;
 			di.membase = (unsigned char *)boards[brd].membase ;
 
@@ -1965,13 +1619,7 @@ static int info_ioctl(struct tty_struct *tty, struct file *file,
 
 	case DIGI_INIT:
 		{
-			/*
-			 * This call is made by the apps to complete the
-			 * initialization of the board(s). This routine is
-			 * responsible for setting the card to its initial
-			 * state and setting the drivers control fields to the
-			 * sutianle settings for the card in question.
-			 */
+			
 			int crd;
 			for (crd = 0; crd < num_cards; crd++)
 				post_fep_init(crd);
@@ -2026,11 +1674,7 @@ static int pc_tiocmset(struct tty_struct *tty, struct file *file,
 		return -EINVAL;
 
 	spin_lock_irqsave(&epca_lock, flags);
-	/*
-	 * I think this modemfake stuff is broken. It doesn't correctly reflect
-	 * the behaviour desired by the TIOCM* ioctls. Therefore this is
-	 * probably broken.
-	 */
+	
 	if (set & TIOCM_RTS) {
 		ch->modemfake |= ch->m_rts;
 		ch->modem |= ch->m_rts;
@@ -2048,10 +1692,7 @@ static int pc_tiocmset(struct tty_struct *tty, struct file *file,
 		ch->modem &= ~ch->m_dtr;
 	}
 	globalwinon(ch);
-	/*
-	 * The below routine generally sets up parity, baud, flow control
-	 * issues, etc.... It effect both control flags and input flags.
-	 */
+	
 	epcaparam(tty, ch);
 	memoff(ch);
 	spin_unlock_irqrestore(&epca_lock, flags);
@@ -2108,19 +1749,18 @@ static int pc_ioctl(struct tty_struct *tty, struct file *file,
 	case DIGI_SETAF:
 		lock_kernel();
 		if (cmd == DIGI_SETAW) {
-			/* Setup an event to indicate when the transmit
-			   buffer empties */
+			
 			spin_lock_irqsave(&epca_lock, flags);
 			setup_empty_event(tty, ch);
 			spin_unlock_irqrestore(&epca_lock, flags);
 			tty_wait_until_sent(tty, 0);
 		} else {
-			/* ldisc lock already held in ioctl */
+			
 			if (tty->ldisc->ops->flush_buffer)
 				tty->ldisc->ops->flush_buffer(tty);
 		}
 		unlock_kernel();
-		/* Fall Thru */
+		
 	case DIGI_SETA:
 		if (copy_from_user(&ch->digiext, argp, sizeof(digi_t)))
 			return -EFAULT;
@@ -2136,11 +1776,7 @@ static int pc_ioctl(struct tty_struct *tty, struct file *file,
 		spin_lock_irqsave(&epca_lock, flags);
 		globalwinon(ch);
 
-		/*
-		 * The below routine generally sets up parity, baud, flow
-		 * control issues, etc.... It effect both control flags and
-		 * input flags.
-		 */
+		
 		epcaparam(tty, ch);
 		memoff(ch);
 		spin_unlock_irqrestore(&epca_lock, flags);
@@ -2178,7 +1814,7 @@ static int pc_ioctl(struct tty_struct *tty, struct file *file,
 			return -EFAULT;
 
 		if (dflow.startc != startc || dflow.stopc != stopc) {
-			/* Begin  if setflow toggled */
+			
 			spin_lock_irqsave(&epca_lock, flags);
 			globalwinon(ch);
 
@@ -2199,7 +1835,7 @@ static int pc_ioctl(struct tty_struct *tty, struct file *file,
 
 			memoff(ch);
 			spin_unlock_irqrestore(&epca_lock, flags);
-		} /* End if setflow toggled */
+		} 
 		break;
 	default:
 		return -ENOIOCTLCMD;
@@ -2211,13 +1847,10 @@ static void pc_set_termios(struct tty_struct *tty, struct ktermios *old_termios)
 {
 	struct channel *ch;
 	unsigned long flags;
-	/*
-	 * verifyChannel returns the channel from the tty struct if it is
-	 * valid. This serves as a sanity check.
-	 */
+	
 	ch = verifyChannel(tty);
 
-	if (ch != NULL)  { /* Begin if channel valid */
+	if (ch != NULL)  { 
 		spin_lock_irqsave(&epca_lock, flags);
 		globalwinon(ch);
 		epcaparam(tty, ch);
@@ -2232,13 +1865,13 @@ static void pc_set_termios(struct tty_struct *tty, struct ktermios *old_termios)
 			 (tty->termios->c_cflag & CLOCAL))
 			wake_up_interruptible(&ch->port.open_wait);
 
-	} /* End if channel valid */
+	} 
 }
 
 static void do_softint(struct work_struct *work)
 {
 	struct channel *ch = container_of(work, struct channel, tqueue);
-	/* Called in response to a modem change event */
+	
 	if (ch && ch->magic == EPCA_MAGIC) {
 		struct tty_struct *tty = tty_port_tty_get(&ch->port);
 
@@ -2254,29 +1887,23 @@ static void do_softint(struct work_struct *work)
 	}
 }
 
-/*
- * pc_stop and pc_start provide software flow control to the routine and the
- * pc_ioctl routine.
- */
+
 static void pc_stop(struct tty_struct *tty)
 {
 	struct channel *ch;
 	unsigned long flags;
-	/*
-	 * verifyChannel returns the channel from the tty struct if it is
-	 * valid. This serves as a sanity check.
-	 */
+	
 	ch = verifyChannel(tty);
 	if (ch != NULL) {
 		spin_lock_irqsave(&epca_lock, flags);
 		if ((ch->statusflags & TXSTOPPED) == 0) {
-			/* Begin if transmit stop requested */
+			
 			globalwinon(ch);
-			/* STOP transmitting now !! */
+			
 			fepcmd(ch, PAUSETX, 0, 0, 0, 0);
 			ch->statusflags |= TXSTOPPED;
 			memoff(ch);
-		} /* End if transmit stop requested */
+		} 
 		spin_unlock_irqrestore(&epca_lock, flags);
 	}
 }
@@ -2284,47 +1911,34 @@ static void pc_stop(struct tty_struct *tty)
 static void pc_start(struct tty_struct *tty)
 {
 	struct channel *ch;
-	/*
-	 * verifyChannel returns the channel from the tty struct if it is
-	 * valid. This serves as a sanity check.
-	 */
+	
 	ch = verifyChannel(tty);
 	if (ch != NULL) {
 		unsigned long flags;
 		spin_lock_irqsave(&epca_lock, flags);
-		/* Just in case output was resumed because of a change
-		   in Digi-flow */
+		
 		if (ch->statusflags & TXSTOPPED)  {
-			/* Begin transmit resume requested */
+			
 			struct board_chan __iomem *bc;
 			globalwinon(ch);
 			bc = ch->brdchan;
 			if (ch->statusflags & LOWWAIT)
 				writeb(1, &bc->ilow);
-			/* Okay, you can start transmitting again... */
+			
 			fepcmd(ch, RESUMETX, 0, 0, 0, 0);
 			ch->statusflags &= ~TXSTOPPED;
 			memoff(ch);
-		} /* End transmit resume requested */
+		} 
 		spin_unlock_irqrestore(&epca_lock, flags);
 	}
 }
 
-/*
- * The below routines pc_throttle and pc_unthrottle are used to slow (And
- * resume) the receipt of data into the kernels receive buffers. The exact
- * occurrence of this depends on the size of the kernels receive buffer and
- * what the 'watermarks' are set to for that buffer. See the n_ttys.c file for
- * more details.
- */
+
 static void pc_throttle(struct tty_struct *tty)
 {
 	struct channel *ch;
 	unsigned long flags;
-	/*
-	 * verifyChannel returns the channel from the tty struct if it is
-	 * valid. This serves as a sanity check.
-	 */
+	
 	ch = verifyChannel(tty);
 	if (ch != NULL) {
 		spin_lock_irqsave(&epca_lock, flags);
@@ -2342,14 +1956,10 @@ static void pc_unthrottle(struct tty_struct *tty)
 {
 	struct channel *ch;
 	unsigned long flags;
-	/*
-	 * verifyChannel returns the channel from the tty struct if it is
-	 * valid. This serves as a sanity check.
-	 */
+	
 	ch = verifyChannel(tty);
 	if (ch != NULL) {
-		/* Just in case output was resumed because of a change
-		   in Digi-flow */
+		
 		spin_lock_irqsave(&epca_lock, flags);
 		if (ch->statusflags & RXSTOPPED) {
 			globalwinon(ch);
@@ -2375,30 +1985,21 @@ static int pc_send_break(struct tty_struct *tty, int msec)
 
 	spin_lock_irqsave(&epca_lock, flags);
 	globalwinon(ch);
-	/*
-	 * Maybe I should send an infinite break here, schedule() for msec
-	 * amount of time, and then stop the break. This way, the user can't
-	 * screw up the FEP by causing digi_send_break() to be called (i.e. via
-	 * an ioctl()) more than once in msec amount of time.
-	 * Try this for now...
-	 */
+	
 	fepcmd(ch, SENDBREAK, msec, 0, 10, 0);
 	memoff(ch);
 	spin_unlock_irqrestore(&epca_lock, flags);
 	return 0;
 }
 
-/* Caller MUST hold the lock */
+
 static void setup_empty_event(struct tty_struct *tty, struct channel *ch)
 {
 	struct board_chan __iomem *bc = ch->brdchan;
 
 	globalwinon(ch);
 	ch->statusflags |= EMPTYWAIT;
-	/*
-	 * When set the iempty flag request a event to be generated when the
-	 * transmit buffer is empty (If there is no BREAK in progress).
-	 */
+	
 	writeb(1, &bc->iempty);
 	memoff(ch);
 }
@@ -2411,34 +2012,25 @@ static void __init epca_setup(char *str, int *ints)
 	char              *temp, *t2;
 	unsigned          len;
 
-	/*
-	 * If this routine looks a little strange it is because it is only
-	 * called if a LILO append command is given to boot the kernel with
-	 * parameters. In this way, we can provide the user a method of
-	 * changing his board configuration without rebuilding the kernel.
-	 */
+	
 	if (!liloconfig)
 		liloconfig = 1;
 
 	memset(&board, 0, sizeof(board));
 
-	/* Assume the data is int first, later we can change it */
-	/* I think that array position 0 of ints holds the number of args */
+	
+	
 	for (last = 0, index = 1; index <= ints[0]; index++)
-		switch (index) { /* Begin parse switch */
+		switch (index) { 
 		case 1:
 			board.status = ints[index];
-			/*
-			 * We check for 2 (As opposed to 1; because 2 is a flag
-			 * instructing the driver to ignore epcaconfig.) For
-			 * this reason we check for 2.
-			 */
+			
 			if (board.status == 2) {
-			/* Begin ignore epcaconfig as well as lilo cmd line */
+			
 				nbdevs = 0;
 				num_cards = 0;
 				return;
-			} /* End ignore epcaconfig as well as lilo cmd line */
+			} 
 
 			if (board.status > 2) {
 				printk(KERN_ERR "epca_setup: Invalid board status 0x%x\n",
@@ -2509,19 +2101,19 @@ static void __init epca_setup(char *str, int *ints)
 			printk(KERN_ERR "<Error> - epca_setup: Too many integer parms\n");
 			return;
 
-		} /* End parse switch */
+		} 
 
-	while (str && *str)  { /* Begin while there is a string arg */
-		/* find the next comma or terminator */
+	while (str && *str)  { 
+		
 		temp = str;
-		/* While string is not null, and a comma hasn't been found */
+		
 		while (*temp && (*temp != ','))
 			temp++;
 		if (!*temp)
 			temp = NULL;
 		else
 			*temp++ = 0;
-		/* Set index to the number of args + 1 */
+		
 		index = last + 1;
 
 		switch (index) {
@@ -2544,10 +2136,7 @@ static void __init epca_setup(char *str, int *ints)
 			for (loop = 0; loop < EPCA_NUM_TYPES; loop++)
 				if (strcmp(board_desc[loop], str) == 0)
 					break;
-			/*
-			 * If the index incremented above refers to a
-			 * legitamate board type set it here.
-			 */
+			
 			if (index < EPCA_NUM_TYPES)
 				board.type = loop;
 			else {
@@ -2586,21 +2175,7 @@ static void __init epca_setup(char *str, int *ints)
 				return;
 			}
 
-			/*
-			 * There is not a man page for simple_strtoul but the
-			 * code can be found in vsprintf.c. The first argument
-			 * is the string to translate (To an unsigned long
-			 * obviously), the second argument can be the address
-			 * of any character variable or a NULL. If a variable
-			 * is given, the end pointer of the string will be
-			 * stored in that variable; if a NULL is given the end
-			 * pointer will not be returned. The last argument is
-			 * the base to use. If a 0 is indicated, the routine
-			 * will attempt to determine the proper base by looking
-			 * at the values prefix (A '0' for octal, a 'x' for
-			 * hex, etc ... If a value is given it will use that
-			 * value as the base.
-			 */
+			
 			board.numports = simple_strtoul(str, NULL, 0);
 			nbdevs += board.numports;
 			last = index;
@@ -2641,17 +2216,17 @@ static void __init epca_setup(char *str, int *ints)
 			return;
 		}
 		str = temp;
-	} /* End while there is a string arg */
+	} 
 
 	if (last < 6) {
 		printk(KERN_ERR "epca: Insufficient parms specified\n");
 		return;
 	}
 
-	/* I should REALLY validate the stuff here */
-	/* Copies our local copy of board into boards */
+	
+	
 	memcpy((void *)&boards[num_cards], (void *)&board, sizeof(board));
-	/* Does this get called once per lilo arg are what ? */
+	
 	printk(KERN_INFO "PC/Xx: Added board %i, %s %i ports at 0x%4.4X base 0x%6.6X\n",
 		num_cards, board_desc[board.type],
 		board.numports, (int)board.port, (unsigned int) board.membase);
@@ -2676,10 +2251,10 @@ enum epic_board_types {
 	brd_xrj,
 };
 
-/* indexed directly by epic_board_types enum */
+
 static struct {
 	unsigned char board_type;
-	unsigned bar_idx;		/* PCI base address region */
+	unsigned bar_idx;		
 } epca_info_tbl[] = {
 	{ PCIXR, 0, },
 	{ PCIXEM, 0, },
@@ -2742,10 +2317,7 @@ static int __devinit epca_init_one(struct pci_dev *pdev,
 		goto err_out_free_memregion;
 	}
 
-	/*
-	 * I don't know what the below does, but the hardware guys say its
-	 * required on everything except PLX (In this case XRJ).
-	 */
+	
 	if (info_idx != brd_xrj) {
 		pci_write_config_byte(pdev, 0x40, 0);
 		pci_write_config_byte(pdev, 0x46, 0);

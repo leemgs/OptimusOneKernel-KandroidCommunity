@@ -1,21 +1,4 @@
-/*
- * Randomness driver for virtio
- *  Copyright (C) 2007, 2008 Rusty Russell IBM Corporation
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
- */
+
 #include <linux/err.h>
 #include <linux/hw_random.h>
 #include <linux/scatterlist.h>
@@ -23,9 +6,7 @@
 #include <linux/virtio.h>
 #include <linux/virtio_rng.h>
 
-/* The host will fill any buffer we give it with sweet, sweet randomness.  We
- * give it 64 bytes at a time, and the hwrng framework takes it 4 bytes at a
- * time. */
+
 #define RANDOM_DATA_SIZE 64
 
 static struct virtqueue *vq;
@@ -37,7 +18,7 @@ static void random_recv_done(struct virtqueue *vq)
 {
 	unsigned int len;
 
-	/* We can get spurious callbacks, e.g. shared IRQs + virtio_pci. */
+	
 	if (!vq->vq_ops->get_buf(vq, &len))
 		return;
 
@@ -50,13 +31,13 @@ static void register_buffer(void)
 	struct scatterlist sg;
 
 	sg_init_one(&sg, random_data+data_left, RANDOM_DATA_SIZE-data_left);
-	/* There should always be room for one buffer. */
+	
 	if (vq->vq_ops->add_buf(vq, &sg, 0, 1, random_data) < 0)
 		BUG();
 	vq->vq_ops->kick(vq);
 }
 
-/* At least we don't udelay() in a loop like some other drivers. */
+
 static int virtio_data_present(struct hwrng *rng, int wait)
 {
 	if (data_left >= sizeof(u32))
@@ -68,7 +49,7 @@ again:
 
 	wait_for_completion(&have_data);
 
-	/* Not enough?  Re-register. */
+	
 	if (unlikely(data_left < sizeof(u32))) {
 		register_buffer();
 		goto again;
@@ -77,7 +58,7 @@ again:
 	return 1;
 }
 
-/* virtio_data_present() must have succeeded before this is called. */
+
 static int virtio_data_read(struct hwrng *rng, u32 *data)
 {
 	BUG_ON(data_left < sizeof(u32));
@@ -101,7 +82,7 @@ static int virtrng_probe(struct virtio_device *vdev)
 {
 	int err;
 
-	/* We expect a single virtqueue. */
+	
 	vq = virtio_find_single_vq(vdev, random_recv_done, "input");
 	if (IS_ERR(vq))
 		return PTR_ERR(vq);

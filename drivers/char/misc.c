@@ -1,37 +1,4 @@
-/*
- * linux/drivers/char/misc.c
- *
- * Generic misc open routine by Johan Myreen
- *
- * Based on code from Linus
- *
- * Teemu Rantanen's Microsoft Busmouse support and Derrick Cole's
- *   changes incorporated into 0.97pl4
- *   by Peter Cervasio (pete%q106fm.uucp@wupost.wustl.edu) (08SEP92)
- *   See busmouse.c for particulars.
- *
- * Made things a lot mode modular - easy to compile in just one or two
- * of the misc drivers, as they are now completely independent. Linus.
- *
- * Support for loadable modules. 8-Sep-95 Philip Blundell <pjb27@cam.ac.uk>
- *
- * Fixed a failing symbol register to free the device registration
- *		Alan Cox <alan@lxorguk.ukuu.org.uk> 21-Jan-96
- *
- * Dynamic minors and /proc/mice by Alessandro Rubini. 26-Mar-96
- *
- * Renamed to misc and miscdevice to be more accurate. Alan Cox 26-Mar-96
- *
- * Handling of mouse minor numbers for kerneld:
- *  Idea by Jacques Gelinas <jack@solucorp.qc.ca>,
- *  adapted by Bjorn Ekwall <bj0rn@blox.se>
- *  corrected by Alan Cox <alan@lxorguk.ukuu.org.uk>
- *
- * Changes for kmod (from kerneld):
- *	Cyrus Durgin <cider@speakeasy.org>
- *
- * Added devfs support. Richard Gooch <rgooch@atnf.csiro.au>  10-Jan-1998
- */
+
 
 #include <linux/module.h>
 
@@ -51,16 +18,12 @@
 #include <linux/kmod.h>
 #include <linux/smp_lock.h>
 
-/*
- * Head entry for the doubly linked miscdevice list
- */
+
 static LIST_HEAD(misc_list);
 static DEFINE_MUTEX(misc_mtx);
 
-/*
- * Assigned numbers, used for dynamic minors
- */
-#define DYNAMIC_MINORS 64 /* like dynamic majors */
+
+#define DYNAMIC_MINORS 64 
 static unsigned char misc_minors[DYNAMIC_MINORS / 8];
 
 extern int pmu_device_init(void);
@@ -168,21 +131,7 @@ static const struct file_operations misc_fops = {
 	.open		= misc_open,
 };
 
-/**
- *	misc_register	-	register a miscellaneous device
- *	@misc: device structure
- *	
- *	Register a miscellaneous device with the kernel. If the minor
- *	number is set to %MISC_DYNAMIC_MINOR a minor number is assigned
- *	and placed in the minor field of the structure. For other cases
- *	the minor number requested is used.
- *
- *	The structure passed is linked into the kernel and may not be
- *	destroyed until it has been unregistered.
- *
- *	A zero is returned on success and a negative errno code for
- *	failure.
- */
+
  
 int misc_register(struct miscdevice * misc)
 {
@@ -223,25 +172,14 @@ int misc_register(struct miscdevice * misc)
 		goto out;
 	}
 
-	/*
-	 * Add it to the front, so that later devices can "override"
-	 * earlier defaults
-	 */
+	
 	list_add(&misc->list, &misc_list);
  out:
 	mutex_unlock(&misc_mtx);
 	return err;
 }
 
-/**
- *	misc_deregister - unregister a miscellaneous device
- *	@misc: device to unregister
- *
- *	Unregister a miscellaneous device that was previously
- *	successfully registered with misc_register(). Success
- *	is indicated by a zero return, a negative errno code
- *	indicates an error.
- */
+
 
 int misc_deregister(struct miscdevice *misc)
 {

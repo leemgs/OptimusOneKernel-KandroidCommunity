@@ -1,16 +1,4 @@
-/* -*- linux-c -*-
- *
- *	$Id: sysrq.c,v 1.15 1998/08/23 14:56:41 mj Exp $
- *
- *	Linux Magic System Request Key Hacks
- *
- *	(c) 1997 Martin Mares <mj@atrey.karlin.mff.cuni.cz>
- *	based on ideas by Pavel Machek <pavel@atrey.karlin.mff.cuni.cz>
- *
- *	(c) 2000 Crutcher Dunnavant <crutcher+kernel@datastacks.com>
- *	overhauled to use key registration
- *	based upon discusions in irc://irc.openprojects.net/#kernelnewbies
- */
+
 
 #include <linux/sched.h>
 #include <linux/interrupt.h>
@@ -31,7 +19,7 @@
 #include <linux/module.h>
 #include <linux/suspend.h>
 #include <linux/writeback.h>
-#include <linux/buffer_head.h>		/* for fsync_bdev() */
+#include <linux/buffer_head.h>		
 #include <linux/swap.h>
 #include <linux/spinlock.h>
 #include <linux/vt_kern.h>
@@ -42,7 +30,7 @@
 #include <asm/ptrace.h>
 #include <asm/irq_regs.h>
 
-/* Whether we react on sysrq keys or just ignore them */
+
 int __read_mostly __sysrq_enabled = 1;
 
 static int __read_mostly sysrq_always_enabled;
@@ -52,9 +40,7 @@ int sysrq_on(void)
 	return __sysrq_enabled || sysrq_always_enabled;
 }
 
-/*
- * A value of 1 means 'all', other nonzero values are an op mask:
- */
+
 static inline int sysrq_on_mask(int mask)
 {
 	return sysrq_always_enabled || __sysrq_enabled == 1 ||
@@ -119,13 +105,13 @@ static struct sysrq_key_op sysrq_unraw_op = {
 };
 #else
 #define sysrq_unraw_op (*(struct sysrq_key_op *)0)
-#endif /* CONFIG_VT */
+#endif 
 
 static void sysrq_handle_crash(int key, struct tty_struct *tty)
 {
 	char *killer = NULL;
 
-	panic_on_oops = 1;	/* force panic */
+	panic_on_oops = 1;	
 	wmb();
 	*killer = 1;
 }
@@ -204,7 +190,7 @@ static void showacpu(void *dummy)
 {
 	unsigned long flags;
 
-	/* Idle CPUs have no interesting backtrace. */
+	
 	if (idle_cpu(smp_processor_id()))
 		return;
 
@@ -223,11 +209,7 @@ static DECLARE_WORK(sysrq_showallcpus, sysrq_showregs_othercpus);
 
 static void sysrq_handle_showallcpus(int key, struct tty_struct *tty)
 {
-	/*
-	 * Fall back to the workqueue based printing if the
-	 * backtrace printing did not succeed or the
-	 * architecture has no support for it:
-	 */
+	
 	if (!trigger_all_cpu_backtrace()) {
 		struct pt_regs *regs = get_irq_regs();
 
@@ -311,16 +293,14 @@ static struct sysrq_key_op sysrq_showmem_op = {
 	.enable_mask	= SYSRQ_ENABLE_DUMP,
 };
 
-/*
- * Signal sysrq helper function.  Sends a signal to all user processes.
- */
+
 static void send_sig_all(int sig)
 {
 	struct task_struct *p;
 
 	for_each_process(p) {
 		if (p->mm && !is_global_init(p))
-			/* Not swapper, init nor kernel thread */
+			
 			force_sig(sig, p);
 	}
 }
@@ -391,67 +371,64 @@ static struct sysrq_key_op sysrq_unrt_op = {
 	.enable_mask	= SYSRQ_ENABLE_RTNICE,
 };
 
-/* Key Operations table and lock */
+
 static DEFINE_SPINLOCK(sysrq_key_table_lock);
 
 static struct sysrq_key_op *sysrq_key_table[36] = {
-	&sysrq_loglevel_op,		/* 0 */
-	&sysrq_loglevel_op,		/* 1 */
-	&sysrq_loglevel_op,		/* 2 */
-	&sysrq_loglevel_op,		/* 3 */
-	&sysrq_loglevel_op,		/* 4 */
-	&sysrq_loglevel_op,		/* 5 */
-	&sysrq_loglevel_op,		/* 6 */
-	&sysrq_loglevel_op,		/* 7 */
-	&sysrq_loglevel_op,		/* 8 */
-	&sysrq_loglevel_op,		/* 9 */
+	&sysrq_loglevel_op,		
+	&sysrq_loglevel_op,		
+	&sysrq_loglevel_op,		
+	&sysrq_loglevel_op,		
+	&sysrq_loglevel_op,		
+	&sysrq_loglevel_op,		
+	&sysrq_loglevel_op,		
+	&sysrq_loglevel_op,		
+	&sysrq_loglevel_op,		
+	&sysrq_loglevel_op,		
 
-	/*
-	 * a: Don't use for system provided sysrqs, it is handled specially on
-	 * sparc and will never arrive.
-	 */
-	NULL,				/* a */
-	&sysrq_reboot_op,		/* b */
-	&sysrq_crash_op,		/* c & ibm_emac driver debug */
-	&sysrq_showlocks_op,		/* d */
-	&sysrq_term_op,			/* e */
-	&sysrq_moom_op,			/* f */
-	/* g: May be registered for the kernel debugger */
-	NULL,				/* g */
-	NULL,				/* h - reserved for help */
-	&sysrq_kill_op,			/* i */
+	
+	NULL,				
+	&sysrq_reboot_op,		
+	&sysrq_crash_op,		
+	&sysrq_showlocks_op,		
+	&sysrq_term_op,			
+	&sysrq_moom_op,			
+	
+	NULL,				
+	NULL,				
+	&sysrq_kill_op,			
 #ifdef CONFIG_BLOCK
-	&sysrq_thaw_op,			/* j */
+	&sysrq_thaw_op,			
 #else
-	NULL,				/* j */
+	NULL,				
 #endif
-	&sysrq_SAK_op,			/* k */
+	&sysrq_SAK_op,			
 #ifdef CONFIG_SMP
-	&sysrq_showallcpus_op,		/* l */
+	&sysrq_showallcpus_op,		
 #else
-	NULL,				/* l */
+	NULL,				
 #endif
-	&sysrq_showmem_op,		/* m */
-	&sysrq_unrt_op,			/* n */
-	/* o: This will often be registered as 'Off' at init time */
-	NULL,				/* o */
-	&sysrq_showregs_op,		/* p */
-	&sysrq_show_timers_op,		/* q */
-	&sysrq_unraw_op,		/* r */
-	&sysrq_sync_op,			/* s */
-	&sysrq_showstate_op,		/* t */
-	&sysrq_mountro_op,		/* u */
-	/* v: May be registered for frame buffer console restore */
-	NULL,				/* v */
-	&sysrq_showstate_blocked_op,	/* w */
-	/* x: May be registered on ppc/powerpc for xmon */
-	NULL,				/* x */
-	/* y: May be registered on sparc64 for global register dump */
-	NULL,				/* y */
-	&sysrq_ftrace_dump_op,		/* z */
+	&sysrq_showmem_op,		
+	&sysrq_unrt_op,			
+	
+	NULL,				
+	&sysrq_showregs_op,		
+	&sysrq_show_timers_op,		
+	&sysrq_unraw_op,		
+	&sysrq_sync_op,			
+	&sysrq_showstate_op,		
+	&sysrq_mountro_op,		
+	
+	NULL,				
+	&sysrq_showstate_blocked_op,	
+	
+	NULL,				
+	
+	NULL,				
+	&sysrq_ftrace_dump_op,		
 };
 
-/* key2index calculation, -1 on invalid index */
+
 static int sysrq_key_table_key2index(int key)
 {
 	int retval;
@@ -465,9 +442,7 @@ static int sysrq_key_table_key2index(int key)
 	return retval;
 }
 
-/*
- * get and put functions for the table, exposed to modules.
- */
+
 struct sysrq_key_op *__sysrq_get_key_op(int key)
 {
         struct sysrq_key_op *op_p = NULL;
@@ -487,10 +462,7 @@ static void __sysrq_put_key_op(int key, struct sysrq_key_op *op_p)
                 sysrq_key_table[i] = op_p;
 }
 
-/*
- * This is the non-locking version of handle_sysrq.  It must/can only be called
- * by sysrq key handlers, as they are inside of the lock
- */
+
 void __handle_sysrq(int key, struct tty_struct *tty, int check_mask)
 {
 	struct sysrq_key_op *op_p;
@@ -499,22 +471,14 @@ void __handle_sysrq(int key, struct tty_struct *tty, int check_mask)
 	unsigned long flags;
 
 	spin_lock_irqsave(&sysrq_key_table_lock, flags);
-	/*
-	 * Raise the apparent loglevel to maximum so that the sysrq header
-	 * is shown to provide the user with positive feedback.  We do not
-	 * simply emit this at KERN_EMERG as that would change message
-	 * routing in the consumers of /proc/kmsg.
-	 */
+	
 	orig_log_level = console_loglevel;
 	console_loglevel = 7;
 	printk(KERN_INFO "SysRq : ");
 
         op_p = __sysrq_get_key_op(key);
         if (op_p) {
-		/*
-		 * Should we check for enabled operations (/proc/sysrq-trigger
-		 * should not) and is the invoked operation enabled?
-		 */
+		
 		if (!check_mask || sysrq_on_mask(op_p->enable_mask)) {
 			printk("%s\n", op_p->action_msg);
 			console_loglevel = orig_log_level;
@@ -524,7 +488,7 @@ void __handle_sysrq(int key, struct tty_struct *tty, int check_mask)
 		}
 	} else {
 		printk("HELP : ");
-		/* Only print the help msg once per handler */
+		
 		for (i = 0; i < ARRAY_SIZE(sysrq_key_table); i++) {
 			if (sysrq_key_table[i]) {
 				int j;
@@ -543,10 +507,7 @@ void __handle_sysrq(int key, struct tty_struct *tty, int check_mask)
 	spin_unlock_irqrestore(&sysrq_key_table_lock, flags);
 }
 
-/*
- * This function is called by the keyboard handler when SysRq is pressed
- * and any other keycode arrives.
- */
+
 void handle_sysrq(int key, struct tty_struct *tty)
 {
 	if (sysrq_on())
@@ -585,9 +546,7 @@ int unregister_sysrq_key(int key, struct sysrq_key_op *op_p)
 EXPORT_SYMBOL(unregister_sysrq_key);
 
 #ifdef CONFIG_PROC_FS
-/*
- * writing 'C' to /proc/sysrq-trigger is like sysrq-C
- */
+
 static ssize_t write_sysrq_trigger(struct file *file, const char __user *buf,
 				   size_t count, loff_t *ppos)
 {

@@ -1,23 +1,4 @@
-/*
- * Copyright (C) 2004 IBM Corporation
- *
- * Authors:
- * Leendert van Doorn <leendert@watson.ibm.com>
- * Dave Safford <safford@watson.ibm.com>
- * Reiner Sailer <sailer@watson.ibm.com>
- * Kylene Hall <kjhall@us.ibm.com>
- *
- * Maintained by: <tpmdd-devel@lists.sourceforge.net>
- *
- * Device driver for TCG/TCPA TPM (trusted platform module).
- * Specifications at www.trustedcomputinggroup.org	 
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation, version 2 of the
- * License.
- * 
- */
+
 #include <linux/module.h>
 #include <linux/delay.h>
 #include <linux/fs.h>
@@ -29,10 +10,10 @@
 #include <linux/tpm.h>
 
 enum tpm_timeout {
-	TPM_TIMEOUT = 5,	/* msecs */
+	TPM_TIMEOUT = 5,	
 };
 
-/* TPM addresses */
+
 enum tpm_addr {
 	TPM_SUPERIO_ADDR = 0x2E,
 	TPM_ADDR = 0x4E,
@@ -63,8 +44,8 @@ struct tpm_vendor_specific {
 	const u8 req_complete_mask;
 	const u8 req_complete_val;
 	const u8 req_canceled;
-	void __iomem *iobase;		/* ioremapped address */
-	unsigned long base;		/* TPM base address */
+	void __iomem *iobase;		
+	unsigned long base;		
 
 	int irq;
 
@@ -80,28 +61,28 @@ struct tpm_vendor_specific {
 	struct attribute_group *attr_group;
 	struct list_head list;
 	int locality;
-	unsigned long timeout_a, timeout_b, timeout_c, timeout_d; /* jiffies */
-	unsigned long duration[3]; /* jiffies */
+	unsigned long timeout_a, timeout_b, timeout_c, timeout_d; 
+	unsigned long duration[3]; 
 
 	wait_queue_head_t read_queue;
 	wait_queue_head_t int_queue;
 };
 
 struct tpm_chip {
-	struct device *dev;	/* Device stuff */
+	struct device *dev;	
 
-	int dev_num;		/* /dev/tpm# */
-	unsigned long is_open;	/* only one allowed */
+	int dev_num;		
+	unsigned long is_open;	
 	int time_expired;
 
-	/* Data passed to and from the tpm via the read/write calls */
+	
 	u8 *data_buffer;
 	atomic_t data_pending;
 	struct mutex buffer_mutex;
 
-	struct timer_list user_read_timer;	/* user needs to claim result */
+	struct timer_list user_read_timer;	
 	struct work_struct work;
-	struct mutex tpm_mutex;	/* tpm is processing */
+	struct mutex tpm_mutex;	
 
 	struct tpm_vendor_specific vendor;
 
@@ -224,7 +205,7 @@ struct	tpm_readpubek_params_out {
 	u8	algorithm[4];
 	u8	encscheme[2];
 	u8	sigscheme[2];
-	u8	parameters[12]; /*assuming RSA*/
+	u8	parameters[12]; 
 	__be32	keysize;
 	u8	modulus[256];
 	u8	checksum[20];

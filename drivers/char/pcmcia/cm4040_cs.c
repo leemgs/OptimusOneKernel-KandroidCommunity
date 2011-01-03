@@ -1,23 +1,6 @@
-/*
- * A driver for the Omnikey PCMCIA smartcard reader CardMan 4040
- *
- * (c) 2000-2004 Omnikey AG (http://www.omnikey.com/)
- *
- * (C) 2005-2006 Harald Welte <laforge@gnumonks.org>
- * 	- add support for poll()
- * 	- driver cleanup
- * 	- add waitqueues
- * 	- adhere to linux kernel coding style and policies
- * 	- support 2.6.13 "new style" pcmcia interface
- * 	- add class interface for udev device creation
- *
- * The device basically is a USB CCID compliant device that has been
- * attached to an I/O-Mapped FIFO.
- *
- * All rights reserved, Dual BSD/GPL Licensed.
- */
 
-/* #define PCMCIA_DEBUG 6 */
+
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -63,7 +46,7 @@ static char *version =
 #define READ_WRITE_BUFFER_SIZE 512
 #define POLL_LOOP_COUNT				1000
 
-/* how often to poll for fifo status change */
+
 #define POLL_PERIOD 				msecs_to_jiffies(10)
 
 static void reader_release(struct pcmcia_device *link);
@@ -112,8 +95,7 @@ static inline unsigned char xinb(unsigned short port)
 }
 #endif
 
-/* poll the device fifo status register.  not to be confused with
- * the poll syscall. */
+
 static void cm4040_do_poll(unsigned long dummy)
 {
 	struct reader_dev *dev = (struct reader_dev *) dummy;
@@ -175,7 +157,7 @@ static int wait_for_bulk_out_ready(struct reader_dev *dev)
 	return rc;
 }
 
-/* Write to Sync Control Register */
+
 static int write_sync_reg(unsigned char val, struct reader_dev *dev)
 {
 	int iobase = dev->p_dev->io.BasePort1;
@@ -536,7 +518,7 @@ static int cm4040_config_check(struct pcmcia_device *p_dev,
 	if (!cfg->io.nwin)
 		return -ENODEV;
 
-	/* Get the IOaddr */
+	
 	p_dev->io.BasePort1 = cfg->io.win[0].base;
 	p_dev->io.NumPorts1 = cfg->io.win[0].len;
 	p_dev->io.Attributes1 = IO_DATA_PATH_WIDTH_AUTO;
@@ -647,7 +629,7 @@ static void reader_detach(struct pcmcia_device *link)
 	struct reader_dev *dev = link->priv;
 	int devno;
 
-	/* find device */
+	
 	for (devno = 0; devno < CM_MAX_DEV; devno++) {
 		if (dev_table[devno] == link)
 			break;

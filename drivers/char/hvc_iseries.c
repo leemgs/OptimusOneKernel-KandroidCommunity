@@ -1,24 +1,4 @@
-/*
- * iSeries vio driver interface to hvc_console.c
- *
- * This code is based heavily on hvc_vio.c and viocons.c
- *
- * Copyright (C) 2006 Stephen Rothwell, IBM Corporation
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- */
+
 #include <stdarg.h>
 #include <linux/types.h>
 #include <linux/init.h>
@@ -46,13 +26,11 @@ static const char hvc_driver_name[] = "hvc_console";
 
 #define IN_BUF_SIZE	200
 
-/*
- * Our port information.
- */
+
 static struct port_info {
 	HvLpIndex lp;
-	u64 seq;	/* sequence number of last HV send */
-	u64 ack;	/* last ack from HV */
+	u64 seq;	
+	u64 ack;	
 	struct hvc_struct *hp;
 	int in_start;
 	int in_end;
@@ -87,9 +65,7 @@ static void hvlog(char *fmt, ...)
 	spin_unlock_irqrestore(&consoleloglock, flags);
 }
 
-/*
- * Initialize the common fields in a charLpEvent
- */
+
 static void init_data_event(struct viocharlpevent *viochar, HvLpIndex lp)
 {
 	struct HvLpEvent *hev = &viochar->event;
@@ -211,7 +187,7 @@ static int __devinit hvc_vio_probe(struct vio_dev *vdev,
 	struct hvc_struct *hp;
 	struct port_info *pi;
 
-	/* probed with invalid parameters. */
+	
 	if (!vdev || !id)
 		return -EPERM;
 
@@ -265,13 +241,7 @@ static void hvc_open_event(struct HvLpEvent *event)
 		pi = &port_info[port];
 		if (event->xRc == HvLpEvent_Rc_Good) {
 			pi->seq = pi->ack = 0;
-			/*
-			 * This line allows connections from the primary
-			 * partition but once one is connected from the
-			 * primary partition nothing short of a reboot
-			 * of linux will allow access from the hosting
-			 * partition again without a required iSeries fix.
-			 */
+			
 			pi->lp = event->xTargetLp;
 		}
 
@@ -290,7 +260,7 @@ static void hvc_open_event(struct HvLpEvent *event)
 		return;
 	}
 
-	/* This had better require an ack, otherwise complain */
+	
 	if (!hvlpevent_need_ack(event)) {
 		printk(KERN_WARNING "hvc: viocharopen without ack bit!\n");
 		return;
@@ -298,23 +268,17 @@ static void hvc_open_event(struct HvLpEvent *event)
 
 	spin_lock_irqsave(&consolelock, flags);
 
-	/* Make sure this is a good virtual tty */
+	
 	if (port >= VTTY_PORTS) {
 		event->xRc = HvLpEvent_Rc_SubtypeError;
 		cevent->subtype_result_code = viorc_openRejected;
-		/*
-		 * Flag state here since we can't printk while holding
-		 * the consolelock spinlock.
-		 */
+		
 		reject = 1;
 	} else {
 		pi = &port_info[port];
 		if ((pi->lp != HvLpIndexInvalid) &&
 				(pi->lp != event->xSourceLp)) {
-			/*
-			 * If this is tty is already connected to a different
-			 * partition, fail.
-			 */
+			
 			event->xRc = HvLpEvent_Rc_SubtypeError;
 			cevent->subtype_result_code = viorc_openRejected;
 			reject = 2;
@@ -334,17 +298,11 @@ static void hvc_open_event(struct HvLpEvent *event)
 		printk(KERN_WARNING "hvc: open rejected: console in exclusive "
 				"use by another partition.\n");
 
-	/* Return the acknowledgement */
+	
 	HvCallEvent_ackLpEvent(event);
 }
 
-/*
- * Handle a close charLpEvent.  This should ONLY be an Interrupt because the
- * virtual console should never actually issue a close event to the hypervisor
- * because the virtual console never goes away.  A close event coming from the
- * hypervisor simply means that there are no client consoles connected to the
- * virtual console.
- */
+
 static void hvc_close_event(struct HvLpEvent *event)
 {
 	unsigned long flags;
@@ -363,7 +321,7 @@ static void hvc_close_event(struct HvLpEvent *event)
 		return;
 	}
 
-	/* For closes, just mark the console partition invalid */
+	
 	spin_lock_irqsave(&consolelock, flags);
 
 	if (port_info[port].lp == event->xSourceLp)
@@ -388,15 +346,7 @@ static void hvc_data_event(struct HvLpEvent *event)
 	if (cevent->len == 0)
 		return;
 
-	/*
-	 * Change 05/01/2003 - Ryan Arnold: If a partition other than
-	 * the current exclusive partition tries to send us data
-	 * events then just drop them on the floor because we don't
-	 * want his stinking data.  He isn't authorized to receive
-	 * data because he wasn't the first one to get the console,
-	 * therefore he shouldn't be allowed to send data either.
-	 * This will work without an iSeries fix.
-	 */
+	
 	pi = &port_info[port];
 	if (pi->lp != event->xSourceLp)
 		return;
@@ -495,7 +445,7 @@ static int __init hvc_vio_init(void)
 	if (!firmware_has_feature(FW_FEATURE_ISERIES))
 		return -EIO;
 
-	/* +2 for fudge */
+	
 	rc = viopath_open(HvLpConfig_getPrimaryLpIndex(),
 			viomajorsubtype_chario, VIOCHAR_WINDOW + 2);
 	if (rc)
@@ -504,16 +454,13 @@ static int __init hvc_vio_init(void)
 	if (viopath_hostLp == HvLpIndexInvalid)
 		vio_set_hostlp();
 
-	/*
-	 * And if the primary is not the same as the hosting LP, open to the
-	 * hosting lp
-	 */
+	
 	if ((viopath_hostLp != HvLpIndexInvalid) &&
 	    (viopath_hostLp != HvLpConfig_getPrimaryLpIndex())) {
 		printk(KERN_INFO "hvc: open path to hosting (%d)\n",
 				viopath_hostLp);
 		rc = viopath_open(viopath_hostLp, viomajorsubtype_chario,
-				VIOCHAR_WINDOW + 2);	/* +2 for fudge */
+				VIOCHAR_WINDOW + 2);	
 		if (rc)
 			printk(KERN_WARNING
 				"error opening to partition %d: %d\n",
@@ -524,10 +471,7 @@ static int __init hvc_vio_init(void)
 		printk(KERN_WARNING
 			"hvc: error seting handler for console events!\n");
 
-	/*
-	 * First, try to open the console to the hosting lp.
-	 * Wait on a semaphore for the response.
-	 */
+	
 	atomic_set(&wait_flag, 0);
 	if ((viopath_isactive(viopath_hostLp)) &&
 	    (send_open(viopath_hostLp, &wait_flag) == 0)) {
@@ -537,9 +481,7 @@ static int __init hvc_vio_init(void)
 		atomic_set(&wait_flag, 0);
 	}
 
-	/*
-	 * If we don't have an active console, try the primary
-	 */
+	
 	if ((!viopath_isactive(port_info[0].lp)) &&
 	    (viopath_isactive(HvLpConfig_getPrimaryLpIndex())) &&
 	    (send_open(HvLpConfig_getPrimaryLpIndex(), &wait_flag) == 0)) {
@@ -548,12 +490,12 @@ static int __init hvc_vio_init(void)
 			mb();
 	}
 
-	/* Register as a vio device to receive callbacks */
+	
 	rc = vio_register_driver(&hvc_vio_driver);
 
 	return rc;
 }
-module_init(hvc_vio_init); /* after drivers/char/hvc_console.c */
+module_init(hvc_vio_init); 
 
 static void __exit hvc_vio_exit(void)
 {
@@ -561,7 +503,7 @@ static void __exit hvc_vio_exit(void)
 }
 module_exit(hvc_vio_exit);
 
-/* the device tree order defines our numbering */
+
 static int __init hvc_find_vtys(void)
 {
 	struct device_node *vty;
@@ -571,9 +513,7 @@ static int __init hvc_find_vtys(void)
 			vty = of_find_node_by_name(vty, "vty")) {
 		const uint32_t *vtermno;
 
-		/* We have statically defined space for only a certain number
-		 * of console adapters.
-		 */
+		
 		if ((num_found >= MAX_NR_HVC_CONSOLES) ||
 				(num_found >= VTTY_PORTS)) {
 			of_node_put(vty);

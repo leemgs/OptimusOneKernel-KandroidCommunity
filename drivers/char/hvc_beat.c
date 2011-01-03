@@ -1,26 +1,4 @@
-/*
- * Beat hypervisor console driver
- *
- * (C) Copyright 2006 TOSHIBA CORPORATION
- *
- * This code is based on drivers/char/hvc_rtas.c:
- * (C) Copyright IBM Corporation 2001-2005
- * (C) Copyright Red Hat, Inc. 2005
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -38,7 +16,7 @@ extern int64_t beat_put_term_char(uint64_t, uint64_t, uint64_t, uint64_t);
 
 struct hvc_struct *hvc_beat_dev = NULL;
 
-/* bug: only one queue is available regardless of vtermno */
+
 static int hvc_beat_get_chars(uint32_t vtermno, char *buf, int cnt)
 {
 	static unsigned char q[sizeof(unsigned long) * 2]
@@ -53,7 +31,7 @@ again:
 			qlen -= cnt;
 			memmove(q + cnt, q, qlen);
 			return cnt;
-		} else {	/* qlen <= cnt */
+		} else {	
 			int	r;
 
 			memcpy(buf, q, qlen);
@@ -105,7 +83,7 @@ static int __init hvc_beat_console_init(void)
 	return 0;
 }
 
-/* temp */
+
 static int __init hvc_beat_init(void)
 {
 	struct hvc_struct *hp;

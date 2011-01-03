@@ -1,20 +1,6 @@
-/*
- * RNG driver for Freescale RNGA
- *
- * Copyright 2008-2009 Freescale Semiconductor, Inc. All Rights Reserved.
- * Author: Alan Carvalho de Assis <acassis@gmail.com>
- */
 
-/*
- * The code contained herein is licensed under the GNU General Public
- * License. You may obtain a copy of the GNU General Public License
- * Version 2 or later at the following locations:
- *
- * http://www.opensource.org/licenses/gpl-license.html
- * http://www.gnu.org/copyleft/gpl.html
- *
- * This driver is based on other RNG drivers.
- */
+
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -26,7 +12,7 @@
 #include <linux/hw_random.h>
 #include <linux/io.h>
 
-/* RNGA Registers */
+
 #define RNGA_CONTROL			0x00
 #define RNGA_STATUS			0x04
 #define RNGA_ENTROPY			0x08
@@ -38,10 +24,10 @@
 #define RNGA_OSC2_COUNTER		0x20
 #define RNGA_OSC_COUNTER_STATUS		0x24
 
-/* RNGA Registers Range */
+
 #define RNG_ADDR_RANGE			0x28
 
-/* RNGA Control Register */
+
 #define RNGA_CONTROL_SLEEP		0x00000010
 #define RNGA_CONTROL_CLEAR_INT		0x00000008
 #define RNGA_CONTROL_MASK_INTS		0x00000004
@@ -50,7 +36,7 @@
 
 #define RNGA_STATUS_LEVEL_MASK		0x0000ff00
 
-/* RNGA Status Register */
+
 #define RNGA_STATUS_OSC_DEAD		0x80000000
 #define RNGA_STATUS_SLEEP		0x00000010
 #define RNGA_STATUS_ERROR_INT		0x00000008
@@ -65,7 +51,7 @@ static int mxc_rnga_data_present(struct hwrng *rng)
 	int level;
 	void __iomem *rng_base = (void __iomem *)rng->priv;
 
-	/* how many random numbers is in FIFO? [0-16] */
+	
 	level = ((__raw_readl(rng_base + RNGA_STATUS) &
 			RNGA_STATUS_LEVEL_MASK) >> 8);
 
@@ -78,13 +64,13 @@ static int mxc_rnga_data_read(struct hwrng *rng, u32 * data)
 	u32 ctrl;
 	void __iomem *rng_base = (void __iomem *)rng->priv;
 
-	/* retrieve a random number from FIFO */
+	
 	*data = __raw_readl(rng_base + RNGA_OUTPUT_FIFO);
 
-	/* some error while reading this random number? */
+	
 	err = __raw_readl(rng_base + RNGA_STATUS) & RNGA_STATUS_ERROR_INT;
 
-	/* if error: clear error interrupt, but doesn't return random number */
+	
 	if (err) {
 		dev_dbg(&rng_dev->dev, "Error while reading random number!\n");
 		ctrl = __raw_readl(rng_base + RNGA_CONTROL);
@@ -100,18 +86,18 @@ static int mxc_rnga_init(struct hwrng *rng)
 	u32 ctrl, osc;
 	void __iomem *rng_base = (void __iomem *)rng->priv;
 
-	/* wake up */
+	
 	ctrl = __raw_readl(rng_base + RNGA_CONTROL);
 	__raw_writel(ctrl & ~RNGA_CONTROL_SLEEP, rng_base + RNGA_CONTROL);
 
-	/* verify if oscillator is working */
+	
 	osc = __raw_readl(rng_base + RNGA_STATUS);
 	if (osc & RNGA_STATUS_OSC_DEAD) {
 		dev_err(&rng_dev->dev, "RNGA Oscillator is dead!\n");
 		return -ENODEV;
 	}
 
-	/* go running */
+	
 	ctrl = __raw_readl(rng_base + RNGA_CONTROL);
 	__raw_writel(ctrl | RNGA_CONTROL_GO, rng_base + RNGA_CONTROL);
 
@@ -125,7 +111,7 @@ static void mxc_rnga_cleanup(struct hwrng *rng)
 
 	ctrl = __raw_readl(rng_base + RNGA_CONTROL);
 
-	/* stop rnga */
+	
 	__raw_writel(ctrl & ~RNGA_CONTROL_GO, rng_base + RNGA_CONTROL);
 }
 

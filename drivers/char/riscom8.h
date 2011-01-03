@@ -1,29 +1,4 @@
-/*
- *      linux/drivers/char/riscom8.h  -- RISCom/8 multiport serial driver.
- *
- *      Copyright (C) 1994-1996  Dmitry Gorodchanin (pgmdsg@ibi.com)
- *
- *      This code is loosely based on the Linux serial driver, written by
- *      Linus Torvalds, Theodore T'so and others. The RISCom/8 card 
- *      programming info was obtained from various drivers for other OSes 
- *	(FreeBSD, ISC, etc), but no source code from those drivers were 
- *	directly included in this driver.
- *
- *
- *      This program is free software; you can redistribute it and/or modify
- *      it under the terms of the GNU General Public License as published by
- *      the Free Software Foundation; either version 2 of the License, or
- *      (at your option) any later version.
- *
- *      This program is distributed in the hope that it will be useful,
- *      but WITHOUT ANY WARRANTY; without even the implied warranty of
- *      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *      GNU General Public License for more details.
- *
- *      You should have received a copy of the GNU General Public License
- *      along with this program; if not, write to the Free Software
- *      Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #ifndef __LINUX_RISCOM8_H
 #define __LINUX_RISCOM8_H
@@ -33,18 +8,16 @@
 #ifdef __KERNEL__
 
 #define RC_NBOARD		4
-/* NOTE: RISCom decoder recognizes 16 addresses... */
+
 #define RC_NPORT        	8  
 #define RC_BOARD(line)		(((line) >> 3) & 0x07)
 #define RC_PORT(line)		((line) & (RC_NPORT - 1))
 
-/* Ticks per sec. Used for setting receiver timeout and break length */
+
 #define RISCOM_TPS		4000
 
-/* Yeah, after heavy testing I decided it must be 6.
- * Sure, You can change it if needed.
- */
-#define RISCOM_RXFIFO		6	/* Max. receiver FIFO size (1-8) */
+
+#define RISCOM_RXFIFO		6	
 
 #define RISCOM8_MAGIC		0x0907
 
@@ -87,5 +60,5 @@ struct riscom_port {
 #endif
 };
 
-#endif /* __KERNEL__ */
-#endif /* __LINUX_RISCOM8_H */
+#endif 
+#endif 

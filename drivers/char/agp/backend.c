@@ -1,32 +1,4 @@
-/*
- * AGPGART driver backend routines.
- * Copyright (C) 2004 Silicon Graphics, Inc.
- * Copyright (C) 2002-2003 Dave Jones.
- * Copyright (C) 1999 Jeff Hartmann.
- * Copyright (C) 1999 Precision Insight, Inc.
- * Copyright (C) 1999 Xi Graphics, Inc.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * JEFF HARTMANN, DAVE JONES, OR ANY OTHER CONTRIBUTORS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
- * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
- * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- * TODO:
- * - Allocate more than order 0 pages to avoid too much linear map splitting.
- */
+
 #include <linux/module.h>
 #include <linux/pci.h>
 #include <linux/init.h>
@@ -39,9 +11,7 @@
 #include <asm/io.h>
 #include "agp.h"
 
-/* Due to XFree86 brain-damage, we can't go to 1.0 until they
- * fix some real stupidity. It's only by chance we can bump
- * past 0.99 at all due to some boolean logic error. */
+
 #define AGPGART_VERSION_MAJOR 0
 #define AGPGART_VERSION_MINOR 103
 static const struct agp_version agp_current_version =
@@ -59,10 +29,7 @@ EXPORT_SYMBOL(agp_bridge);
 EXPORT_SYMBOL(agp_bridges);
 EXPORT_SYMBOL(agp_find_bridge);
 
-/**
- *	agp_backend_acquire  -  attempt to acquire an agp backend.
- *
- */
+
 struct agp_bridge_data *agp_backend_acquire(struct pci_dev *pdev)
 {
 	struct agp_bridge_data *bridge;
@@ -80,14 +47,7 @@ struct agp_bridge_data *agp_backend_acquire(struct pci_dev *pdev)
 EXPORT_SYMBOL(agp_backend_acquire);
 
 
-/**
- *	agp_backend_release  -  release the lock on the agp backend.
- *
- *	The caller must insure that the graphics aperture translation table
- *	is read for use by another entity.
- *
- *	(Ensure that all memory it bound is unbound.)
- */
+
 void agp_backend_release(struct agp_bridge_data *bridge)
 {
 
@@ -189,7 +149,7 @@ static int agp_backend_initialize(struct agp_bridge_data *bridge)
 	}
 	got_keylist = 1;
 
-	/* FIXME vmalloc'd memory not guaranteed contiguous */
+	
 	memset(bridge->key_list, 0, PAGE_SIZE * 4);
 
 	if (bridge->driver->configure()) {
@@ -224,7 +184,7 @@ err_out_nounmap:
 	return rc;
 }
 
-/* cannot be __exit b/c as it could be called from __init code */
+
 static void agp_backend_cleanup(struct agp_bridge_data *bridge)
 {
 	if (bridge->driver->cleanup)
@@ -248,9 +208,7 @@ static void agp_backend_cleanup(struct agp_bridge_data *bridge)
 	}
 }
 
-/* When we remove the global variable agp_bridge from all drivers
- * then agp_alloc_bridge and agp_generic_find_bridge need to be updated
- */
+
 
 struct agp_bridge_data *agp_alloc_bridge(void)
 {
@@ -293,7 +251,7 @@ int agp_add_bridge(struct agp_bridge_data *bridge)
 		return -EINVAL;
 	}
 
-	/* Grab reference on the chipset driver. */
+	
 	if (!try_module_get(bridge->driver->owner)) {
 		dev_info(&bridge->dev->dev, "can't lock chipset driver\n");
 		return -EINVAL;

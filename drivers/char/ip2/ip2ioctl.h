@@ -1,27 +1,13 @@
-/*******************************************************************************
-*
-*   (c) 1998 by Computone Corporation
-*
-********************************************************************************
-*
-*
-*   PACKAGE:     Linux tty Device Driver for IntelliPort II family of multiport
-*                serial I/O controllers.
-*
-*   DESCRIPTION: Driver constants for configuration and tuning
-*
-*   NOTES:
-*
-*******************************************************************************/
+
 
 #ifndef IP2IOCTL_H
 #define IP2IOCTL_H
 
-//*************
-//* Constants *
-//*************
 
-// High baud rates (if not defined elsewhere.
+
+
+
+
 #ifndef B153600   
 #	define B153600   0010005
 #endif

@@ -1,35 +1,4 @@
-/*
- *      linux/drivers/char/riscom.c  -- RISCom/8 multiport serial driver.
- *
- *      Copyright (C) 1994-1996  Dmitry Gorodchanin (pgmdsg@ibi.com)
- *
- *      This code is loosely based on the Linux serial driver, written by
- *      Linus Torvalds, Theodore T'so and others. The RISCom/8 card
- *      programming info was obtained from various drivers for other OSes
- *	(FreeBSD, ISC, etc), but no source code from those drivers were
- *	directly included in this driver.
- *
- *
- *      This program is free software; you can redistribute it and/or modify
- *      it under the terms of the GNU General Public License as published by
- *      the Free Software Foundation; either version 2 of the License, or
- *      (at your option) any later version.
- *
- *      This program is distributed in the hope that it will be useful,
- *      but WITHOUT ANY WARRANTY; without even the implied warranty of
- *      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *      GNU General Public License for more details.
- *
- *      You should have received a copy of the GNU General Public License
- *      along with this program; if not, write to the Free Software
- *      Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- *	Revision 1.1
- *
- *	ChangeLog:
- *	Arnaldo Carvalho de Melo <acme@conectiva.com.br> - 27-Jun-2001
- *	- get rid of check_region and several cleanups
- */
+
 
 #include <linux/module.h>
 
@@ -56,21 +25,14 @@
 #include "riscom8.h"
 #include "riscom8_reg.h"
 
-/* Am I paranoid or not ? ;-) */
+
 #define RISCOM_PARANOIA_CHECK
 
-/*
- * Crazy InteliCom/8 boards sometimes have swapped CTS & DSR signals.
- * You can slightly speed up things by #undefing the following option,
- * if you are REALLY sure that your board is correct one.
- */
+
 
 #define RISCOM_BRAIN_DAMAGED_CTS
 
-/*
- * The following defines are mostly for testing purposes. But if you need
- * some nice reporting in your syslog, you can define them also.
- */
+
 #undef RC_REPORT_FIFO
 #undef RC_REPORT_OVERRUN
 
@@ -101,7 +63,7 @@ static struct riscom_board rc_board[RC_NBOARD] =  {
 
 static struct riscom_port rc_port[RC_NBOARD * RC_NPORT];
 
-/* RISCom/8 I/O ports addresses (without address translation) */
+
 static unsigned short rc_ioport[] =  {
 #if 1
 	0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x09, 0x0a, 0x0b, 0x0c,
@@ -135,50 +97,46 @@ static int rc_paranoia_check(struct riscom_port const *port,
 	return 0;
 }
 
-/*
- *
- *  Service functions for RISCom/8 driver.
- *
- */
 
-/* Get board number from pointer */
+
+
 static inline int board_No(struct riscom_board const *bp)
 {
 	return bp - rc_board;
 }
 
-/* Get port number from pointer */
+
 static inline int port_No(struct riscom_port const *port)
 {
 	return RC_PORT(port - rc_port);
 }
 
-/* Get pointer to board from pointer to port */
+
 static inline struct riscom_board *port_Board(struct riscom_port const *port)
 {
 	return &rc_board[RC_BOARD(port - rc_port)];
 }
 
-/* Input Byte from CL CD180 register */
+
 static inline unsigned char rc_in(struct riscom_board const *bp,
 							unsigned short reg)
 {
 	return inb(bp->base + RC_TO_ISA(reg));
 }
 
-/* Output Byte to CL CD180 register */
+
 static inline void rc_out(struct riscom_board const *bp, unsigned short reg,
 			  unsigned char val)
 {
 	outb(val, bp->base + RC_TO_ISA(reg));
 }
 
-/* Wait for Channel Command Register ready */
+
 static void rc_wait_CCR(struct riscom_board const *bp)
 {
 	unsigned long delay;
 
-	/* FIXME: need something more descriptive then 100000 :) */
+	
 	for (delay = 100000; delay; delay--)
 		if (!rc_in(bp, CD180_CCR))
 			return;
@@ -186,9 +144,7 @@ static void rc_wait_CCR(struct riscom_board const *bp)
 	printk(KERN_INFO "rc%d: Timeout waiting for CCR.\n", board_No(bp));
 }
 
-/*
- *  RISCom/8 probe functions.
- */
+
 
 static int rc_request_io_range(struct riscom_board * const bp)
 {
@@ -216,33 +172,33 @@ static void rc_release_io_range(struct riscom_board * const bp)
 		release_region(RC_TO_ISA(rc_ioport[i]) + bp->base, 1);
 }
 
-/* Reset and setup CD180 chip */
+
 static void __init rc_init_CD180(struct riscom_board const *bp)
 {
 	unsigned long flags;
 
 	spin_lock_irqsave(&riscom_lock, flags);
 
-	rc_out(bp, RC_CTOUT, 0);     	           /* Clear timeout        */
-	rc_wait_CCR(bp);			   /* Wait for CCR ready   */
-	rc_out(bp, CD180_CCR, CCR_HARDRESET);      /* Reset CD180 chip     */
+	rc_out(bp, RC_CTOUT, 0);     	           
+	rc_wait_CCR(bp);			   
+	rc_out(bp, CD180_CCR, CCR_HARDRESET);      
 	spin_unlock_irqrestore(&riscom_lock, flags);
-	msleep(50);				   /* Delay 0.05 sec       */
+	msleep(50);				   
 	spin_lock_irqsave(&riscom_lock, flags);
-	rc_out(bp, CD180_GIVR, RC_ID);             /* Set ID for this chip */
-	rc_out(bp, CD180_GICR, 0);                 /* Clear all bits       */
-	rc_out(bp, CD180_PILR1, RC_ACK_MINT);      /* Prio for modem intr  */
-	rc_out(bp, CD180_PILR2, RC_ACK_TINT);      /* Prio for tx intr     */
-	rc_out(bp, CD180_PILR3, RC_ACK_RINT);      /* Prio for rx intr	   */
+	rc_out(bp, CD180_GIVR, RC_ID);             
+	rc_out(bp, CD180_GICR, 0);                 
+	rc_out(bp, CD180_PILR1, RC_ACK_MINT);      
+	rc_out(bp, CD180_PILR2, RC_ACK_TINT);      
+	rc_out(bp, CD180_PILR3, RC_ACK_RINT);      
 
-	/* Setting up prescaler. We need 4 ticks per 1 ms */
+	
 	rc_out(bp, CD180_PPRH, (RC_OSCFREQ/(1000000/RISCOM_TPS)) >> 8);
 	rc_out(bp, CD180_PPRL, (RC_OSCFREQ/(1000000/RISCOM_TPS)) & 0xff);
 
 	spin_unlock_irqrestore(&riscom_lock, flags);
 }
 
-/* Main probing routine, also sets irq. */
+
 static int __init rc_probe(struct riscom_board *bp)
 {
 	unsigned char val1, val2;
@@ -254,7 +210,7 @@ static int __init rc_probe(struct riscom_board *bp)
 	if (rc_request_io_range(bp))
 		return 1;
 
-	/* Are the I/O ports here ? */
+	
 	rc_out(bp, CD180_PPRL, 0x5a);
 	outb(0xff, 0x80);
 	val1 = rc_in(bp, CD180_PPRL);
@@ -268,19 +224,19 @@ static int __init rc_probe(struct riscom_board *bp)
 		goto out_release;
 	}
 
-	/* It's time to find IRQ for this board */
+	
 	for (retries = 0; retries < 5 && irqs <= 0; retries++) {
 		irqs = probe_irq_on();
-		rc_init_CD180(bp);		 /* Reset CD180 chip	     */
-		rc_out(bp, CD180_CAR, 2);	 /* Select port 2	     */
+		rc_init_CD180(bp);		 
+		rc_out(bp, CD180_CAR, 2);	 
 		rc_wait_CCR(bp);
-		rc_out(bp, CD180_CCR, CCR_TXEN); /* Enable transmitter	     */
-		rc_out(bp, CD180_IER, IER_TXRDY);/* Enable tx empty intr     */
+		rc_out(bp, CD180_CCR, CCR_TXEN); 
+		rc_out(bp, CD180_IER, IER_TXRDY);
 		msleep(50);
 		irqs = probe_irq_off(irqs);
-		val1 = rc_in(bp, RC_BSR);	/* Get Board Status reg	     */
-		val2 = rc_in(bp, RC_ACK_TINT);  /* ACK interrupt	     */
-		rc_init_CD180(bp);	       	/* Reset CD180 again	     */
+		val1 = rc_in(bp, RC_BSR);	
+		val2 = rc_in(bp, RC_ACK_TINT);  
+		rc_init_CD180(bp);	       	
 
 		if ((val1 & RC_BSR_TINT) || (val2 != (RC_ID | GIVR_IT_TX)))  {
 			printk(KERN_ERR "rc%d: RISCom/8 Board at 0x%03x not "
@@ -300,7 +256,7 @@ static int __init rc_probe(struct riscom_board *bp)
 	printk(KERN_INFO "rc%d: RISCom/8 Rev. %c board detected at "
 			 "0x%03x, IRQ %d.\n",
 	       board_No(bp),
-	       (rc_in(bp, CD180_GFRCR) & 0x0f) + 'A',   /* Board revision */
+	       (rc_in(bp, CD180_GFRCR) & 0x0f) + 'A',   
 	       bp->base, bp->irq);
 
 	return 0;
@@ -309,11 +265,7 @@ out_release:
 	return 1;
 }
 
-/*
- *
- *  Interrupt processing routines.
- *
- */
+
 
 static struct riscom_port *rc_get_port(struct riscom_board const *bp,
 					       unsigned char const *what)
@@ -430,7 +382,7 @@ static void rc_transmit(struct riscom_board const *bp)
 	tty = tty_port_tty_get(&port->port);
 
 	if (port->IER & IER_TXEMPTY) {
-		/* FIFO drained */
+		
 		rc_out(bp, CD180_CAR, port_No(port));
 		port->IER &= ~IER_TXEMPTY;
 		rc_out(bp, CD180_IER, port->IER);
@@ -540,14 +492,14 @@ static void rc_check_modem(struct riscom_board const *bp)
 		}
 		rc_out(bp, CD180_IER, port->IER);
 	}
-#endif /* RISCOM_BRAIN_DAMAGED_CTS */
+#endif 
 
-	/* Clear change bits */
+	
 	rc_out(bp, CD180_MCR, 0);
 	tty_kref_put(tty);
 }
 
-/* The main interrupt processing routine */
+
 static irqreturn_t rc_interrupt(int dummy, void *dev_id)
 {
 	unsigned char status;
@@ -584,7 +536,7 @@ static irqreturn_t rc_interrupt(int dummy, void *dev_id)
 				printk(KERN_WARNING "rc%d: Bad transmit ack "
 						    "0x%02x.\n",
 				       board_No(bp), ack);
-		} else /* if (status & RC_BSR_MINT) */ {
+		} else  {
 			ack = rc_in(bp, RC_ACK_MINT);
 			if (ack == (RC_ID | GIVR_IT_MODEM))
 				rc_check_modem(bp);
@@ -593,17 +545,15 @@ static irqreturn_t rc_interrupt(int dummy, void *dev_id)
 						    "0x%02x.\n",
 				       board_No(bp), ack);
 		}
-		rc_out(bp, CD180_EOIR, 0);   /* Mark end of interrupt */
-		rc_out(bp, RC_CTOUT, 0);     /* Clear timeout flag    */
+		rc_out(bp, CD180_EOIR, 0);   
+		rc_out(bp, RC_CTOUT, 0);     
 	}
 	return IRQ_RETVAL(handled);
 }
 
-/*
- *  Routines for open & close processing.
- */
 
-/* Called with disabled interrupts */
+
+
 static int rc_setup_board(struct riscom_board *bp)
 {
 	int error;
@@ -616,16 +566,16 @@ static int rc_setup_board(struct riscom_board *bp)
 	if (error)
 		return error;
 
-	rc_out(bp, RC_CTOUT, 0);       		/* Just in case         */
+	rc_out(bp, RC_CTOUT, 0);       		
 	bp->DTR = ~0;
-	rc_out(bp, RC_DTR, bp->DTR);	        /* Drop DTR on all ports */
+	rc_out(bp, RC_DTR, bp->DTR);	        
 
 	bp->flags |= RC_BOARD_ACTIVE;
 
 	return 0;
 }
 
-/* Called with disabled interrupts */
+
 static void rc_shutdown_board(struct riscom_board *bp)
 {
 	if (!(bp->flags & RC_BOARD_ACTIVE))
@@ -636,14 +586,11 @@ static void rc_shutdown_board(struct riscom_board *bp)
 	free_irq(bp->irq, NULL);
 
 	bp->DTR = ~0;
-	rc_out(bp, RC_DTR, bp->DTR);	       /* Drop DTR on all ports */
+	rc_out(bp, RC_DTR, bp->DTR);	       
 
 }
 
-/*
- * Setting up port characteristics.
- * Must be called with disabled interrupts
- */
+
 static void rc_change_speed(struct tty_struct *tty, struct riscom_board *bp,
 						struct riscom_port *port)
 {
@@ -658,25 +605,23 @@ static void rc_change_speed(struct tty_struct *tty, struct riscom_board *bp,
 
 	baud = tty_get_baud_rate(tty);
 
-	/* Select port on the board */
+	
 	rc_out(bp, CD180_CAR, port_No(port));
 
 	if (!baud)  {
-		/* Drop DTR & exit */
+		
 		bp->DTR |= (1u << port_No(port));
 		rc_out(bp, RC_DTR, bp->DTR);
 		return;
 	} else  {
-		/* Set DTR on */
+		
 		bp->DTR &= ~(1u << port_No(port));
 		rc_out(bp, RC_DTR, bp->DTR);
 	}
 
-	/*
-	 * Now we must calculate some speed depended things
-	 */
+	
 
-	/* Set baud rate for port */
+	
 	tmp = (((RC_OSCFREQ + baud/2) / baud +
 		CD180_TPC/2) / CD180_TPC);
 
@@ -685,14 +630,14 @@ static void rc_change_speed(struct tty_struct *tty, struct riscom_board *bp,
 	rc_out(bp, CD180_RBPRL, tmp & 0xff);
 	rc_out(bp, CD180_TBPRL, tmp & 0xff);
 
-	baud = (baud + 5) / 10;   /* Estimated CPS */
+	baud = (baud + 5) / 10;   
 
-	/* Two timer ticks seems enough to wakeup something like SLIP driver */
+	
 	tmp = ((baud + HZ/2) / HZ) * 2 - CD180_NFIFO;
 	port->wakeup_chars = (tmp < 0) ? 0 : ((tmp >= SERIAL_XMIT_SIZE) ?
 					      SERIAL_XMIT_SIZE - 1 : tmp);
 
-	/* Receiver timeout will be transmission time for 1.5 chars */
+	
 	tmp = (RISCOM_TPS + RISCOM_TPS/2 + baud/2) / baud;
 	tmp = (tmp > 0xff) ? 0xff : tmp;
 	rc_out(bp, CD180_RTPR, tmp);
@@ -722,7 +667,7 @@ static void rc_change_speed(struct tty_struct *tty, struct riscom_board *bp,
 		if (I_INPCK(tty))
 			cor1 &= ~COR1_IGNORE;
 	}
-	/* Set marking of some errors */
+	
 	port->mark_mask = RCSR_OE | RCSR_TOUT;
 	if (I_INPCK(tty))
 		port->mark_mask |= RCSR_FE | RCSR_PE;
@@ -733,10 +678,10 @@ static void rc_change_speed(struct tty_struct *tty, struct riscom_board *bp,
 	if (I_IGNBRK(tty)) {
 		port->mark_mask &= ~RCSR_BREAK;
 		if (I_IGNPAR(tty))
-			/* Real raw mode. Ignore all */
+			
 			port->mark_mask &= ~RCSR_OE;
 	}
-	/* Enable Hardware Flow Control */
+	
 	if (C_CRTSCTS(tty))  {
 #ifdef RISCOM_BRAIN_DAMAGED_CTS
 		port->IER |= IER_DSR | IER_CTS;
@@ -748,8 +693,8 @@ static void rc_change_speed(struct tty_struct *tty, struct riscom_board *bp,
 		port->COR2 |= COR2_CTSAE;
 #endif
 	}
-	/* Enable Software Flow Control. FIXME: I'm not sure about this */
-	/* Some people reported that it works, but I still doubt */
+	
+	
 	if (I_IXON(tty))  {
 		port->COR2 |= COR2_TXIBE;
 		cor3 |= (COR3_FCT | COR3_SCDE);
@@ -761,38 +706,38 @@ static void rc_change_speed(struct tty_struct *tty, struct riscom_board *bp,
 		rc_out(bp, CD180_SCHR4, STOP_CHAR(tty));
 	}
 	if (!C_CLOCAL(tty))  {
-		/* Enable CD check */
+		
 		port->IER |= IER_CD;
 		mcor1 |= MCOR1_CDZD;
 		mcor2 |= MCOR2_CDOD;
 	}
 
 	if (C_CREAD(tty))
-		/* Enable receiver */
+		
 		port->IER |= IER_RXD;
 
-	/* Set input FIFO size (1-8 bytes) */
+	
 	cor3 |= RISCOM_RXFIFO;
-	/* Setting up CD180 channel registers */
+	
 	rc_out(bp, CD180_COR1, cor1);
 	rc_out(bp, CD180_COR2, port->COR2);
 	rc_out(bp, CD180_COR3, cor3);
-	/* Make CD180 know about registers change */
+	
 	rc_wait_CCR(bp);
 	rc_out(bp, CD180_CCR, CCR_CORCHG1 | CCR_CORCHG2 | CCR_CORCHG3);
-	/* Setting up modem option registers */
+	
 	rc_out(bp, CD180_MCOR1, mcor1);
 	rc_out(bp, CD180_MCOR2, mcor2);
-	/* Enable CD180 transmitter & receiver */
+	
 	rc_wait_CCR(bp);
 	rc_out(bp, CD180_CCR, CCR_TXEN | CCR_RXEN);
-	/* Enable interrupts */
+	
 	rc_out(bp, CD180_IER, port->IER);
-	/* And finally set RTS on */
+	
 	rc_out(bp, CD180_MSVR, port->MSVR);
 }
 
-/* Must be called with interrupts enabled */
+
 static int rc_setup_port(struct tty_struct *tty, struct riscom_board *bp,
 						struct riscom_port *port)
 {
@@ -817,7 +762,7 @@ static int rc_setup_port(struct tty_struct *tty, struct riscom_board *bp,
 	return 0;
 }
 
-/* Must be called with interrupts disabled */
+
 static void rc_shutdown_port(struct tty_struct *tty,
 			struct riscom_board *bp, struct riscom_port *port)
 {
@@ -841,17 +786,17 @@ static void rc_shutdown_port(struct tty_struct *tty,
 #endif
 	tty_port_free_xmit_buf(&port->port);
 	if (C_HUPCL(tty)) {
-		/* Drop DTR */
+		
 		bp->DTR |= (1u << port_No(port));
 		rc_out(bp, RC_DTR, bp->DTR);
 	}
 
-	/* Select port */
+	
 	rc_out(bp, CD180_CAR, port_No(port));
-	/* Reset port */
+	
 	rc_wait_CCR(bp);
 	rc_out(bp, CD180_CCR, CCR_SOFTRESET);
-	/* Disable all interrupts from this port */
+	
 	port->IER = 0;
 	rc_out(bp, CD180_IER, port->IER);
 
@@ -864,10 +809,7 @@ static void rc_shutdown_port(struct tty_struct *tty,
 		       board_No(bp), bp->count);
 		bp->count = 0;
 	}
-	/*
-	 * If this is the last opened port on the board
-	 * shutdown whole board
-	 */
+	
 	if (!bp->count)
 		rc_shutdown_board(bp);
 }
@@ -941,12 +883,7 @@ static void rc_close_port(struct tty_port *port)
 	struct riscom_board *bp = port_Board(rp);
 	unsigned long timeout;
 	
-	/*
-	 * At this point we stop accepting input.  To do this, we
-	 * disable the receive line status interrupts, and tell the
-	 * interrupt driver to stop checking the data ready bit in the
-	 * line status register.
-	 */
+	
 
 	spin_lock_irqsave(&riscom_lock, flags);
 	rp->IER &= ~IER_RXD;
@@ -955,11 +892,7 @@ static void rc_close_port(struct tty_port *port)
 		rp->IER |= IER_TXEMPTY;
 		rc_out(bp, CD180_CAR, port_No(rp));
 		rc_out(bp, CD180_IER, rp->IER);
-		/*
-		 * Before we drop DTR, make sure the UART transmitter
-		 * has completely drained; this is especially
-		 * important if there is a transmit FIFO!
-		 */
+		
 		timeout = jiffies + HZ;
 		while (rp->IER & IER_TXEMPTY) {
 			spin_unlock_irqrestore(&riscom_lock, flags);
@@ -1001,7 +934,7 @@ static int rc_write(struct tty_struct *tty,
 		c = min_t(int, count, min(SERIAL_XMIT_SIZE - port->xmit_cnt - 1,
 					  SERIAL_XMIT_SIZE - port->xmit_head));
 		if (c <= 0)
-			break;	/* lock continues to be held */
+			break;	
 
 		memcpy(port->port.xmit_buf + port->xmit_head, buf, c);
 		port->xmit_head = (port->xmit_head + c) & (SERIAL_XMIT_SIZE-1);
@@ -1449,15 +1382,7 @@ static void rc_release_drivers(void)
 }
 
 #ifndef MODULE
-/*
- * Called at boot time.
- *
- * You can specify IO base for up to RC_NBOARD cards,
- * using line "riscom8=0xiobase1,0xiobase2,.." at LILO prompt.
- * Note that there will be no probing at default
- * addresses in this case.
- *
- */
+
 static int __init riscom8_setup(char *str)
 {
 	int ints[RC_NBOARD];
@@ -1483,9 +1408,7 @@ static char banner[] __initdata =
 static char no_boards_msg[] __initdata =
 	KERN_INFO "rc: No RISCom/8 boards detected.\n";
 
-/*
- * This routine must be called by kernel at boot time
- */
+
 static int __init riscom8_init(void)
 {
 	int i;
@@ -1519,13 +1442,9 @@ module_param(iobase3, int, 0);
 
 MODULE_LICENSE("GPL");
 MODULE_ALIAS_CHARDEV_MAJOR(RISCOM8_NORMAL_MAJOR);
-#endif /* MODULE */
+#endif 
 
-/*
- * You can setup up to 4 boards (current value of RC_NBOARD)
- * by specifying "iobase=0xXXX iobase1=0xXXX ..." as insmod parameter.
- *
- */
+
 static int __init riscom8_init_module(void)
 {
 #ifdef MODULE
@@ -1544,7 +1463,7 @@ static int __init riscom8_init_module(void)
 		rc_board[2].base = iobase2;
 	if (iobase3)
 		rc_board[3].base = iobase3;
-#endif /* MODULE */
+#endif 
 
 	return riscom8_init();
 }

@@ -1,20 +1,4 @@
-/*
- * i8k.c -- Linux driver for accessing the SMM BIOS on Dell laptops.
- *	    See http://www.debian.org/~dz/i8k/ for more information
- *	    and for latest version of this driver.
- *
- * Copyright (C) 2001  Massimo Dal Zotto <dz@debian.org>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2, or (at your option) any
- * later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -110,9 +94,7 @@ static inline const char *i8k_get_dmi_data(int field)
 	return dmi_data && *dmi_data ? dmi_data : "?";
 }
 
-/*
- * Call the System Management Mode BIOS. Code provided by Jonathan Buzzard.
- */
+
 static int i8k_smm(struct smm_regs *regs)
 {
 	int rc;
@@ -176,10 +158,7 @@ static int i8k_smm(struct smm_regs *regs)
 	return 0;
 }
 
-/*
- * Read the bios version. Return the version as an integer corresponding
- * to the ascii value, for example "A17" is returned as 0x00413137.
- */
+
 static int i8k_get_bios_version(void)
 {
 	struct smm_regs regs = { .eax = I8K_SMM_BIOS_VERSION, };
@@ -187,9 +166,7 @@ static int i8k_get_bios_version(void)
 	return i8k_smm(&regs) ? : regs.eax;
 }
 
-/*
- * Read the Fn key status.
- */
+
 static int i8k_get_fn_status(void)
 {
 	struct smm_regs regs = { .eax = I8K_SMM_FN_STATUS, };
@@ -210,9 +187,7 @@ static int i8k_get_fn_status(void)
 	}
 }
 
-/*
- * Read the power status.
- */
+
 static int i8k_get_power_status(void)
 {
 	struct smm_regs regs = { .eax = I8K_SMM_POWER_STATUS, };
@@ -224,9 +199,7 @@ static int i8k_get_power_status(void)
 	return (regs.eax & 0xff) == I8K_POWER_AC ? I8K_AC : I8K_BATTERY;
 }
 
-/*
- * Read the fan status.
- */
+
 static int i8k_get_fan_status(int fan)
 {
 	struct smm_regs regs = { .eax = I8K_SMM_GET_FAN, };
@@ -235,9 +208,7 @@ static int i8k_get_fan_status(int fan)
 	return i8k_smm(&regs) ? : regs.eax & 0xff;
 }
 
-/*
- * Read the fan speed in RPM.
- */
+
 static int i8k_get_fan_speed(int fan)
 {
 	struct smm_regs regs = { .eax = I8K_SMM_GET_SPEED, };
@@ -246,9 +217,7 @@ static int i8k_get_fan_speed(int fan)
 	return i8k_smm(&regs) ? : (regs.eax & 0xffff) * fan_mult;
 }
 
-/*
- * Set the fan speed (off, low, high). Returns the new fan status.
- */
+
 static int i8k_set_fan(int fan, int speed)
 {
 	struct smm_regs regs = { .eax = I8K_SMM_SET_FAN, };
@@ -259,9 +228,7 @@ static int i8k_set_fan(int fan, int speed)
 	return i8k_smm(&regs) ? : i8k_get_fan_status(fan);
 }
 
-/*
- * Read the cpu temperature.
- */
+
 static int i8k_get_temp(int sensor)
 {
 	struct smm_regs regs = { .eax = I8K_SMM_GET_TEMP, };
@@ -278,13 +245,7 @@ static int i8k_get_temp(int sensor)
 	temp = regs.eax & 0xff;
 
 #ifdef I8K_TEMPERATURE_BUG
-	/*
-	 * Sometimes the temperature sensor returns 0x99, which is out of range.
-	 * In this case we return (once) the previous cached value. For example:
-	 # 1003655137 00000058 00005a4b
-	 # 1003655138 00000099 00003a80 <--- 0x99 = 153 degrees
-	 # 1003655139 00000054 00005c52
-	 */
+	
 	if (temp > I8K_MAX_TEMP) {
 		temp = prev;
 		prev = I8K_MAX_TEMP;
@@ -395,39 +356,24 @@ static int i8k_ioctl(struct inode *ip, struct file *fp, unsigned int cmd,
 	return 0;
 }
 
-/*
- * Print the information for /proc/i8k.
- */
+
 static int i8k_proc_show(struct seq_file *seq, void *offset)
 {
 	int fn_key, cpu_temp, ac_power;
 	int left_fan, right_fan, left_speed, right_speed;
 
-	cpu_temp	= i8k_get_temp(0);			/* 11100 µs */
-	left_fan	= i8k_get_fan_status(I8K_FAN_LEFT);	/*   580 µs */
-	right_fan	= i8k_get_fan_status(I8K_FAN_RIGHT);	/*   580 µs */
-	left_speed	= i8k_get_fan_speed(I8K_FAN_LEFT);	/*   580 µs */
-	right_speed	= i8k_get_fan_speed(I8K_FAN_RIGHT);	/*   580 µs */
-	fn_key		= i8k_get_fn_status();			/*   750 µs */
+	cpu_temp	= i8k_get_temp(0);			
+	left_fan	= i8k_get_fan_status(I8K_FAN_LEFT);	
+	right_fan	= i8k_get_fan_status(I8K_FAN_RIGHT);	
+	left_speed	= i8k_get_fan_speed(I8K_FAN_LEFT);	
+	right_speed	= i8k_get_fan_speed(I8K_FAN_RIGHT);	
+	fn_key		= i8k_get_fn_status();			
 	if (power_status)
-		ac_power = i8k_get_power_status();		/* 14700 µs */
+		ac_power = i8k_get_power_status();		
 	else
 		ac_power = -1;
 
-	/*
-	 * Info:
-	 *
-	 * 1)  Format version (this will change if format changes)
-	 * 2)  BIOS version
-	 * 3)  BIOS machine ID
-	 * 4)  Cpu temperature
-	 * 5)  Left fan status
-	 * 6)  Right fan status
-	 * 7)  Left fan speed
-	 * 8)  Right fan speed
-	 * 9)  AC power
-	 * 10) Fn Key status
-	 */
+	
 	return seq_printf(seq, "%s %s %s %d %d %d %d %d %d %d\n",
 			  I8K_PROC_FMT,
 			  bios_version,
@@ -471,7 +417,7 @@ static struct dmi_system_id __initdata i8k_dmi_table[] = {
 			DMI_MATCH(DMI_PRODUCT_NAME, "Latitude"),
 		},
 	},
-	{	/* UK Inspiron 6400  */
+	{	
 		.ident = "Dell Inspiron 3",
 		.matches = {
 			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
@@ -502,17 +448,13 @@ static struct dmi_system_id __initdata i8k_dmi_table[] = {
         { }
 };
 
-/*
- * Probe for the presence of a supported laptop.
- */
+
 static int __init i8k_probe(void)
 {
 	char buff[4];
 	int version;
 
-	/*
-	 * Get DMI information
-	 */
+	
 	if (!dmi_check_system(i8k_dmi_table)) {
 		if (!ignore_dmi && !force)
 			return -ENODEV;
@@ -526,9 +468,7 @@ static int __init i8k_probe(void)
 
 	strlcpy(bios_version, i8k_get_dmi_data(DMI_BIOS_VERSION), sizeof(bios_version));
 
-	/*
-	 * Get SMM Dell signature
-	 */
+	
 	if (i8k_get_dell_signature(I8K_SMM_GET_DELL_SIG1) &&
 	    i8k_get_dell_signature(I8K_SMM_GET_DELL_SIG2)) {
 		printk(KERN_ERR "i8k: unable to get SMM Dell signature\n");
@@ -536,9 +476,7 @@ static int __init i8k_probe(void)
 			return -ENODEV;
 	}
 
-	/*
-	 * Get SMM BIOS version.
-	 */
+	
 	version = i8k_get_bios_version();
 	if (version <= 0) {
 		printk(KERN_WARNING "i8k: unable to get SMM BIOS version\n");
@@ -547,15 +485,11 @@ static int __init i8k_probe(void)
 		buff[1] = (version >> 8) & 0xff;
 		buff[2] = (version) & 0xff;
 		buff[3] = '\0';
-		/*
-		 * If DMI BIOS version is unknown use SMM BIOS version.
-		 */
+		
 		if (!dmi_get_system_info(DMI_BIOS_VERSION))
 			strlcpy(bios_version, buff, sizeof(bios_version));
 
-		/*
-		 * Check if the two versions match.
-		 */
+		
 		if (strncmp(buff, bios_version, sizeof(bios_version)) != 0)
 			printk(KERN_WARNING "i8k: BIOS version mismatch: %s != %s\n",
 				buff, bios_version);
@@ -568,11 +502,11 @@ static int __init i8k_init(void)
 {
 	struct proc_dir_entry *proc_i8k;
 
-	/* Are we running on an supported laptop? */
+	
 	if (i8k_probe())
 		return -ENODEV;
 
-	/* Register the proc entry */
+	
 	proc_i8k = proc_create("i8k", 0, NULL, &i8k_fops);
 	if (!proc_i8k)
 		return -ENOENT;

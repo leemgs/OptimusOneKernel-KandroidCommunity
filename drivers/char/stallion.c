@@ -1,30 +1,8 @@
-/*****************************************************************************/
 
-/*
- *	stallion.c  -- stallion multiport serial driver.
- *
- *	Copyright (C) 1996-1999  Stallion Technologies
- *	Copyright (C) 1994-1996  Greg Ungerer.
- *
- *	This code is loosely based on the Linux serial driver, written by
- *	Linus Torvalds, Theodore T'so and others.
- *
- *	This program is free software; you can redistribute it and/or modify
- *	it under the terms of the GNU General Public License as published by
- *	the Free Software Foundation; either version 2 of the License, or
- *	(at your option) any later version.
- *
- *	This program is distributed in the hope that it will be useful,
- *	but WITHOUT ANY WARRANTY; without even the implied warranty of
- *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *	GNU General Public License for more details.
- *
- *	You should have received a copy of the GNU General Public License
- *	along with this program; if not, write to the Free Software
- *	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
 
-/*****************************************************************************/
+
+
+
 
 #include <linux/module.h>
 #include <linux/sched.h>
@@ -50,13 +28,9 @@
 
 #include <linux/pci.h>
 
-/*****************************************************************************/
 
-/*
- *	Define different board types. Use the standard Stallion "assigned"
- *	board numbers. Boards supported in this driver are abbreviated as
- *	EIO = EasyIO and ECH = EasyConnection 8/32.
- */
+
+
 #define	BRD_EASYIO	20
 #define	BRD_ECH		21
 #define	BRD_ECHMC	22
@@ -75,12 +49,9 @@ struct stlconf {
 
 static unsigned int stl_nrbrds;
 
-/*****************************************************************************/
 
-/*
- *	Define some important driver characteristics. Device major numbers
- *	allocated as per Linux Device Registry.
- */
+
+
 #ifndef	STL_SIOMEMMAJOR
 #define	STL_SIOMEMMAJOR		28
 #endif
@@ -91,30 +62,20 @@ static unsigned int stl_nrbrds;
 #define	STL_CALLOUTMAJOR	25
 #endif
 
-/*
- *	Set the TX buffer size. Bigger is better, but we don't want
- *	to chew too much memory with buffers!
- */
+
 #define	STL_TXBUFLOW		512
 #define	STL_TXBUFSIZE		4096
 
-/*****************************************************************************/
 
-/*
- *	Define our local driver identity first. Set up stuff to deal with
- *	all the local structures required by a serial tty driver.
- */
+
+
 static char	*stl_drvtitle = "Stallion Multiport Serial Driver";
 static char	*stl_drvname = "stallion";
 static char	*stl_drvversion = "5.6.0";
 
 static struct tty_driver	*stl_serial;
 
-/*
- *	Define a local default termios struct. All ports will be created
- *	with this termios initially. Basically all it defines is a raw port
- *	at 9600, 8 data bits, 1 stop bit.
- */
+
 static struct ktermios		stl_deftermios = {
 	.c_cflag	= (B9600 | CS8 | CREAD | HUPCL | CLOCAL),
 	.c_cc		= INIT_C_CC,
@@ -122,39 +83,27 @@ static struct ktermios		stl_deftermios = {
 	.c_ospeed	= 9600,
 };
 
-/*
- *	Define global place to put buffer overflow characters.
- */
+
 static char		stl_unwanted[SC26198_RXFIFOSIZE];
 
-/*****************************************************************************/
+
 
 static DEFINE_MUTEX(stl_brdslock);
 static struct stlbrd		*stl_brds[STL_MAXBRDS];
 
 static const struct tty_port_operations stl_port_ops;
 
-/*
- *	Per board state flags. Used with the state field of the board struct.
- *	Not really much here!
- */
+
 #define	BRD_FOUND	0x1
 #define STL_PROBED	0x2
 
 
-/*
- *	Define the port structure istate flags. These set of flags are
- *	modified at interrupt time - so setting and reseting them needs
- *	to be atomic. Use the bit clear/setting routines for this.
- */
+
 #define	ASYI_TXBUSY	1
 #define	ASYI_TXLOW	2
 #define	ASYI_TXFLOWED	3
 
-/*
- *	Define an array of board names as printable strings. Handy for
- *	referencing boards when printing trace and stuff.
- */
+
 static char	*stl_brdnames[] = {
 	NULL,
 	NULL,
@@ -187,13 +136,9 @@ static char	*stl_brdnames[] = {
 	"EasyIO-PCI",
 };
 
-/*****************************************************************************/
 
-/*
- *	Define some string labels for arguments passed from the module
- *	load line. These allow for easy board definitions, and easy
- *	modification of the io, memory and irq resoucres.
- */
+
+
 static unsigned int stl_nargs;
 static char	*board0[4];
 static char	*board1[4];
@@ -207,10 +152,7 @@ static char	**stl_brdsp[] = {
 	(char **) &board3
 };
 
-/*
- *	Define a set of common board names, and types. This is used to
- *	parse any module arguments.
- */
+
 
 static struct {
 	char	*name;
@@ -246,9 +188,7 @@ static struct {
 	{ "28", BRD_EASYIOPCI },
 };
 
-/*
- *	Define the module agruments.
- */
+
 
 module_param_array(board0, charp, &stl_nargs, 0);
 MODULE_PARM_DESC(board0, "Board 0 config -> name[,ioaddr[,ioaddr2][,irq]]");
@@ -259,13 +199,9 @@ MODULE_PARM_DESC(board2, "Board 2 config -> name[,ioaddr[,ioaddr2][,irq]]");
 module_param_array(board3, charp, &stl_nargs, 0);
 MODULE_PARM_DESC(board3, "Board 3 config -> name[,ioaddr[,ioaddr2][,irq]]");
 
-/*****************************************************************************/
 
-/*
- *	Hardware ID bits for the EasyIO and ECH boards. These defines apply
- *	to the directly accessible io ports of these boards (not the uarts -
- *	they are in cd1400.h and sc26198.h).
- */
+
+
 #define	EIO_8PORTRS	0x04
 #define	EIO_4PORTRS	0x05
 #define	EIO_8PORTDI	0x00
@@ -305,31 +241,18 @@ MODULE_PARM_DESC(board3, "Board 3 config -> name[,ioaddr[,ioaddr2][,irq]]");
 
 #define	ECH_ADDR2MASK	0x1e0
 
-/*
- *	Define the vector mapping bits for the programmable interrupt board
- *	hardware. These bits encode the interrupt for the board to use - it
- *	is software selectable (except the EIO-8M).
- */
+
 static unsigned char	stl_vecmap[] = {
 	0xff, 0xff, 0xff, 0x04, 0x06, 0x05, 0xff, 0x07,
 	0xff, 0xff, 0x00, 0x02, 0x01, 0xff, 0xff, 0x03
 };
 
-/*
- *	Lock ordering is that you may not take stallion_lock holding
- *	brd_lock.
- */
 
-static spinlock_t brd_lock; 		/* Guard the board mapping */
-static spinlock_t stallion_lock;	/* Guard the tty driver */
 
-/*
- *	Set up enable and disable macros for the ECH boards. They require
- *	the secondary io address space to be activated and deactivated.
- *	This way all ECH boards can share their secondary io region.
- *	If this is an ECH-PCI board then also need to set the page pointer
- *	to point to the correct page.
- */
+static spinlock_t brd_lock; 		
+static spinlock_t stallion_lock;	
+
+
 #define	BRDENABLE(brdnr,pagenr)						\
 	if (stl_brds[(brdnr)]->brdtype == BRD_ECH)			\
 		outb((stl_brds[(brdnr)]->ioctrlval | ECH_BRDENABLE),	\
@@ -348,11 +271,9 @@ static spinlock_t stallion_lock;	/* Guard the tty driver */
 #define	STL_BAUDBASE		115200
 #define	STL_CLOSEDELAY		(5 * HZ / 10)
 
-/*****************************************************************************/
 
-/*
- *	Define the Stallion PCI vendor and device IDs.
- */
+
+
 #ifndef	PCI_VENDOR_ID_STALLION
 #define	PCI_VENDOR_ID_STALLION		0x124d
 #endif
@@ -366,9 +287,7 @@ static spinlock_t stallion_lock;	/* Guard the tty driver */
 #define	PCI_DEVICE_ID_EIOPCI		0x0003
 #endif
 
-/*
- *	Define structure to hold all Stallion PCI boards.
- */
+
 
 static struct pci_device_id stl_pcibrds[] = {
 	{ PCI_DEVICE(PCI_VENDOR_ID_STALLION, PCI_DEVICE_ID_ECHPCI864),
@@ -383,38 +302,28 @@ static struct pci_device_id stl_pcibrds[] = {
 };
 MODULE_DEVICE_TABLE(pci, stl_pcibrds);
 
-/*****************************************************************************/
 
-/*
- *	Define macros to extract a brd/port number from a minor number.
- */
+
+
 #define	MINOR2BRD(min)		(((min) & 0xc0) >> 6)
 #define	MINOR2PORT(min)		((min) & 0x3f)
 
-/*
- *	Define a baud rate table that converts termios baud rate selector
- *	into the actual baud rate value. All baud rate calculations are
- *	based on the actual baud rate required.
- */
+
 static unsigned int	stl_baudrates[] = {
 	0, 50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800,
 	9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600
 };
 
-/*****************************************************************************/
 
-/*
- *	Declare all those functions in this driver!
- */
+
+
 
 static int	stl_memioctl(struct inode *ip, struct file *fp, unsigned int cmd, unsigned long arg);
 static int	stl_brdinit(struct stlbrd *brdp);
 static int	stl_getportstats(struct tty_struct *tty, struct stlport *portp, comstats_t __user *cp);
 static int	stl_clrportstats(struct stlport *portp, comstats_t __user *cp);
 
-/*
- *	CD1400 uart specific handling functions.
- */
+
 static void	stl_cd1400setreg(struct stlport *portp, int regnr, int value);
 static int	stl_cd1400getreg(struct stlport *portp, int regnr);
 static int	stl_cd1400updatereg(struct stlport *portp, int regnr, int value);
@@ -440,9 +349,7 @@ static void	stl_cd1400mdmisr(struct stlpanel *panelp, int ioaddr);
 
 static inline int	stl_cd1400breakisr(struct stlport *portp, int ioaddr);
 
-/*
- *	SC26198 uart specific handling functions.
- */
+
 static void	stl_sc26198setreg(struct stlport *portp, int regnr, int value);
 static int	stl_sc26198getreg(struct stlport *portp, int regnr);
 static int	stl_sc26198updatereg(struct stlport *portp, int regnr, int value);
@@ -469,11 +376,9 @@ static void	stl_sc26198rxbadch(struct stlport *portp, unsigned char status, char
 static void	stl_sc26198rxbadchars(struct stlport *portp);
 static void	stl_sc26198otherisr(struct stlport *port, unsigned int iack);
 
-/*****************************************************************************/
 
-/*
- *	Generic UART support structure.
- */
+
+
 typedef struct uart {
 	int	(*panelinit)(struct stlbrd *brdp, struct stlpanel *panelp);
 	void	(*portinit)(struct stlbrd *brdp, struct stlpanel *panelp, struct stlport *portp);
@@ -491,9 +396,7 @@ typedef struct uart {
 	void	(*intr)(struct stlpanel *panelp, unsigned int iobase);
 } uart_t;
 
-/*
- *	Define some macros to make calling these functions nice and clean.
- */
+
 #define	stl_panelinit		(* ((uart_t *) panelp->uartp)->panelinit)
 #define	stl_portinit		(* ((uart_t *) portp->uartp)->portinit)
 #define	stl_setport		(* ((uart_t *) portp->uartp)->setport)
@@ -508,11 +411,9 @@ typedef struct uart {
 #define	stl_flush		(* ((uart_t *) portp->uartp)->flush)
 #define	stl_datastate		(* ((uart_t *) portp->uartp)->datastate)
 
-/*****************************************************************************/
 
-/*
- *	CD1400 UART specific data initialization.
- */
+
+
 static uart_t stl_cd1400uart = {
 	stl_cd1400panelinit,
 	stl_cd1400portinit,
@@ -530,10 +431,7 @@ static uart_t stl_cd1400uart = {
 	stl_cd1400eiointr
 };
 
-/*
- *	Define the offsets within the register bank of a cd1400 based panel.
- *	These io address offsets are common to the EasyIO board as well.
- */
+
 #define	EREG_ADDR	0
 #define	EREG_DATA	4
 #define	EREG_RXACK	5
@@ -545,20 +443,14 @@ static uart_t stl_cd1400uart = {
 #define	CD1400_CLK	25000000
 #define	CD1400_CLK8M	20000000
 
-/*
- *	Define the cd1400 baud rate clocks. These are used when calculating
- *	what clock and divisor to use for the required baud rate. Also
- *	define the maximum baud rate allowed, and the default base baud.
- */
+
 static int	stl_cd1400clkdivs[] = {
 	CD1400_CLK0, CD1400_CLK1, CD1400_CLK2, CD1400_CLK3, CD1400_CLK4
 };
 
-/*****************************************************************************/
 
-/*
- *	SC26198 UART specific data initization.
- */
+
+
 static uart_t stl_sc26198uart = {
 	stl_sc26198panelinit,
 	stl_sc26198portinit,
@@ -576,9 +468,7 @@ static uart_t stl_sc26198uart = {
 	stl_sc26198intr
 };
 
-/*
- *	Define the offsets within the register bank of a sc26198 based panel.
- */
+
 #define	XP_DATA		0
 #define	XP_ADDR		1
 #define	XP_MODID	2
@@ -587,10 +477,7 @@ static uart_t stl_sc26198uart = {
 
 #define	XP_BANKSIZE	4
 
-/*
- *	Define the sc26198 baud rate table. Offsets within the table
- *	represent the actual baud rate selector of sc26198 registers.
- */
+
 static unsigned int	sc26198_baudtable[] = {
 	50, 75, 150, 200, 300, 450, 600, 900, 1200, 1800, 2400, 3600,
 	4800, 7200, 9600, 14400, 19200, 28800, 38400, 57600, 115200,
@@ -599,12 +486,9 @@ static unsigned int	sc26198_baudtable[] = {
 
 #define	SC26198_NRBAUDS		ARRAY_SIZE(sc26198_baudtable)
 
-/*****************************************************************************/
 
-/*
- *	Define the driver info for a user level control device. Used mainly
- *	to get at port stats - only not using the port device itself.
- */
+
+
 static const struct file_operations	stl_fsiomem = {
 	.owner		= THIS_MODULE,
 	.ioctl		= stl_memioctl,
@@ -631,15 +515,11 @@ static void stl_cd_change(struct stlport *portp)
 	tty_kref_put(tty);
 }
 
-/*
- *	Check for any arguments passed in on the module load command line.
- */
 
-/*****************************************************************************/
 
-/*
- *	Parse the supplied argument string, into the board conf struct.
- */
+
+
+
 
 static int __init stl_parsebrd(struct stlconf *confp, char **argp)
 {
@@ -679,11 +559,9 @@ static int __init stl_parsebrd(struct stlconf *confp, char **argp)
 	return 1;
 }
 
-/*****************************************************************************/
 
-/*
- *	Allocate a new board structure. Fill out the basic info in it.
- */
+
+
 
 static struct stlbrd *stl_allocbrd(void)
 {
@@ -700,7 +578,7 @@ static struct stlbrd *stl_allocbrd(void)
 	return brdp;
 }
 
-/*****************************************************************************/
+
 
 static int stl_open(struct tty_struct *tty, struct file *filp)
 {
@@ -738,10 +616,7 @@ static int stl_open(struct tty_struct *tty, struct file *filp)
 		return -ENODEV;
 	port = &portp->port;
 
-/*
- *	On the first open of the device setup the port hardware, and
- *	initialize the per port data structure.
- */
+
 	tty_port_tty_set(port, tty);
 	tty->driver_data = portp;
 	port->count++;
@@ -765,7 +640,7 @@ static int stl_open(struct tty_struct *tty, struct file *filp)
 	return tty_port_block_til_ready(port, tty, filp);
 }
 
-/*****************************************************************************/
+
 
 static int stl_carrier_raised(struct tty_port *port)
 {
@@ -776,11 +651,11 @@ static int stl_carrier_raised(struct tty_port *port)
 static void stl_dtr_rts(struct tty_port *port, int on)
 {
 	struct stlport *portp = container_of(port, struct stlport, port);
-	/* Takes brd_lock internally */
+	
 	stl_setsignals(portp, on, on);
 }
 
-/*****************************************************************************/
+
 
 static void stl_flushbuffer(struct tty_struct *tty)
 {
@@ -796,7 +671,7 @@ static void stl_flushbuffer(struct tty_struct *tty)
 	tty_wakeup(tty);
 }
 
-/*****************************************************************************/
+
 
 static void stl_waituntilsent(struct tty_struct *tty, int timeout)
 {
@@ -824,7 +699,7 @@ static void stl_waituntilsent(struct tty_struct *tty, int timeout)
 	unlock_kernel();
 }
 
-/*****************************************************************************/
+
 
 static void stl_close(struct tty_struct *tty, struct file *filp)
 {
@@ -841,12 +716,7 @@ static void stl_close(struct tty_struct *tty, struct file *filp)
 
 	if (tty_port_close_start(port, tty, filp) == 0)
 		return;
-/*
- *	May want to wait for any data to drain before closing. The BUSY
- *	flag keeps track of whether we are still sending or not - it is
- *	very accurate for the cd1400, not quite so for the sc26198.
- *	(The sc26198 has no "end-of-data" interrupt only empty FIFO)
- */
+
 	stl_waituntilsent(tty, (HZ / 2));
 
 	spin_lock_irqsave(&port->lock, flags);
@@ -870,12 +740,9 @@ static void stl_close(struct tty_struct *tty, struct file *filp)
 	tty_port_tty_set(port, NULL);
 }
 
-/*****************************************************************************/
 
-/*
- *	Write routine. Take data and stuff it in to the TX ring queue.
- *	If transmit interrupts are not running then start them.
- */
+
+
 
 static int stl_write(struct tty_struct *tty, const unsigned char *buf, int count)
 {
@@ -892,12 +759,7 @@ static int stl_write(struct tty_struct *tty, const unsigned char *buf, int count
 	if (portp->tx.buf == NULL)
 		return 0;
 
-/*
- *	If copying direct from user space we must cater for page faults,
- *	causing us to "sleep" here for a while. To handle this copy in all
- *	the data we need now, into a local buffer. Then when we got it all
- *	copy it into the TX buffer.
- */
+
 	chbuf = (unsigned char *) buf;
 
 	head = portp->tx.head;
@@ -932,7 +794,7 @@ static int stl_write(struct tty_struct *tty, const unsigned char *buf, int count
 	return count;
 }
 
-/*****************************************************************************/
+
 
 static int stl_putchar(struct tty_struct *tty, unsigned char ch)
 {
@@ -963,13 +825,9 @@ static int stl_putchar(struct tty_struct *tty, unsigned char ch)
 	return 0;
 }
 
-/*****************************************************************************/
 
-/*
- *	If there are any characters in the buffer then make sure that TX
- *	interrupts are on and get'em out. Normally used after the putchar
- *	routine has been called.
- */
+
+
 
 static void stl_flushchars(struct tty_struct *tty)
 {
@@ -986,7 +844,7 @@ static void stl_flushchars(struct tty_struct *tty)
 	stl_startrxtx(portp, -1, 1);
 }
 
-/*****************************************************************************/
+
 
 static int stl_writeroom(struct tty_struct *tty)
 {
@@ -1006,16 +864,9 @@ static int stl_writeroom(struct tty_struct *tty)
 	return (head >= tail) ? (STL_TXBUFSIZE - (head - tail) - 1) : (tail - head - 1);
 }
 
-/*****************************************************************************/
 
-/*
- *	Return number of chars in the TX buffer. Normally we would just
- *	calculate the number of chars in the buffer and return that, but if
- *	the buffer is empty and TX interrupts are still on then we return
- *	that the buffer still has 1 char in it. This way whoever called us
- *	will not think that ALL chars have drained - since the UART still
- *	must have some chars in it (we are busy after all).
- */
+
+
 
 static int stl_charsinbuffer(struct tty_struct *tty)
 {
@@ -1039,11 +890,9 @@ static int stl_charsinbuffer(struct tty_struct *tty)
 	return size;
 }
 
-/*****************************************************************************/
 
-/*
- *	Generate the serial struct info.
- */
+
+
 
 static int stl_getserial(struct stlport *portp, struct serial_struct __user *sp)
 {
@@ -1076,13 +925,9 @@ static int stl_getserial(struct stlport *portp, struct serial_struct __user *sp)
 	return copy_to_user(sp, &sio, sizeof(struct serial_struct)) ? -EFAULT : 0;
 }
 
-/*****************************************************************************/
 
-/*
- *	Set port according to the serial struct info.
- *	At this point we do not do any auto-configure stuff, so we will
- *	just quietly ignore any requests to change irq, etc.
- */
+
+
 
 static int stl_setserial(struct tty_struct *tty, struct serial_struct __user *sp)
 {
@@ -1111,7 +956,7 @@ static int stl_setserial(struct tty_struct *tty, struct serial_struct __user *sp
 	return 0;
 }
 
-/*****************************************************************************/
+
 
 static int stl_tiocmget(struct tty_struct *tty, struct file *file)
 {
@@ -1201,11 +1046,9 @@ static int stl_ioctl(struct tty_struct *tty, struct file *file, unsigned int cmd
 	return rc;
 }
 
-/*****************************************************************************/
 
-/*
- *	Start the transmitter again. Just turn TX interrupts back on.
- */
+
+
 
 static void stl_start(struct tty_struct *tty)
 {
@@ -1219,7 +1062,7 @@ static void stl_start(struct tty_struct *tty)
 	stl_startrxtx(portp, -1, 1);
 }
 
-/*****************************************************************************/
+
 
 static void stl_settermios(struct tty_struct *tty, struct ktermios *old)
 {
@@ -1248,12 +1091,9 @@ static void stl_settermios(struct tty_struct *tty, struct ktermios *old)
 		wake_up_interruptible(&portp->port.open_wait);
 }
 
-/*****************************************************************************/
 
-/*
- *	Attempt to flow control who ever is sending us data. Based on termios
- *	settings use software or/and hardware flow control.
- */
+
+
 
 static void stl_throttle(struct tty_struct *tty)
 {
@@ -1267,11 +1107,9 @@ static void stl_throttle(struct tty_struct *tty)
 	stl_flowctrl(portp, 0);
 }
 
-/*****************************************************************************/
 
-/*
- *	Unflow control the device sending us data...
- */
+
+
 
 static void stl_unthrottle(struct tty_struct *tty)
 {
@@ -1285,12 +1123,9 @@ static void stl_unthrottle(struct tty_struct *tty)
 	stl_flowctrl(portp, 1);
 }
 
-/*****************************************************************************/
 
-/*
- *	Stop the transmitter. Basically to do this we will just turn TX
- *	interrupts off.
- */
+
+
 
 static void stl_stop(struct tty_struct *tty)
 {
@@ -1304,13 +1139,9 @@ static void stl_stop(struct tty_struct *tty)
 	stl_startrxtx(portp, -1, 0);
 }
 
-/*****************************************************************************/
 
-/*
- *	Hangup this port. This is pretty much like closing the port, only
- *	a little more brutal. No waiting for data to drain. Shutdown the
- *	port and maybe drop signals.
- */
+
+
 
 static void stl_hangup(struct tty_struct *tty)
 {
@@ -1345,7 +1176,7 @@ static void stl_hangup(struct tty_struct *tty)
 	tty_port_hangup(port);
 }
 
-/*****************************************************************************/
+
 
 static int stl_breakctl(struct tty_struct *tty, int state)
 {
@@ -1361,7 +1192,7 @@ static int stl_breakctl(struct tty_struct *tty, int state)
 	return 0;
 }
 
-/*****************************************************************************/
+
 
 static void stl_sendxchar(struct tty_struct *tty, char ch)
 {
@@ -1424,11 +1255,9 @@ static void stl_portinfo(struct seq_file *m, struct stlport *portp, int portnr)
 	seq_putc(m, '\n');
 }
 
-/*****************************************************************************/
 
-/*
- *	Port info, read from the /proc file system.
- */
+
+
 
 static int stl_proc_show(struct seq_file *m, void *v)
 {
@@ -1442,10 +1271,7 @@ static int stl_proc_show(struct seq_file *m, void *v)
 
 	seq_printf(m, "%s: version %s\n", stl_drvtitle, stl_drvversion);
 
-/*
- *	We scan through for each board, panel and port. The offset is
- *	calculated on the fly, and irrelevant ports are skipped.
- */
+
 	for (brdnr = 0; brdnr < stl_nrbrds; brdnr++) {
 		brdp = stl_brds[brdnr];
 		if (brdp == NULL)
@@ -1484,12 +1310,9 @@ static const struct file_operations stl_proc_fops = {
 	.release	= single_release,
 };
 
-/*****************************************************************************/
 
-/*
- *	All board interrupts are vectored through here first. This code then
- *	calls off to the approrpriate board interrupt handlers.
- */
+
+
 
 static irqreturn_t stl_intr(int irq, void *dev_id)
 {
@@ -1500,11 +1323,9 @@ static irqreturn_t stl_intr(int irq, void *dev_id)
 	return IRQ_RETVAL((* brdp->isr)(brdp));
 }
 
-/*****************************************************************************/
 
-/*
- *	Interrupt service routine for EasyIO board types.
- */
+
+
 
 static int stl_eiointr(struct stlbrd *brdp)
 {
@@ -1523,11 +1344,9 @@ static int stl_eiointr(struct stlbrd *brdp)
 	return handled;
 }
 
-/*****************************************************************************/
 
-/*
- *	Interrupt service routine for ECH-AT board types.
- */
+
+
 
 static int stl_echatintr(struct stlbrd *brdp)
 {
@@ -1553,11 +1372,9 @@ static int stl_echatintr(struct stlbrd *brdp)
 	return handled;
 }
 
-/*****************************************************************************/
 
-/*
- *	Interrupt service routine for ECH-MCA board types.
- */
+
+
 
 static int stl_echmcaintr(struct stlbrd *brdp)
 {
@@ -1578,11 +1395,9 @@ static int stl_echmcaintr(struct stlbrd *brdp)
 	return handled;
 }
 
-/*****************************************************************************/
 
-/*
- *	Interrupt service routine for ECH-PCI board types.
- */
+
+
 
 static int stl_echpciintr(struct stlbrd *brdp)
 {
@@ -1608,11 +1423,9 @@ static int stl_echpciintr(struct stlbrd *brdp)
 	return handled;
 }
 
-/*****************************************************************************/
 
-/*
- *	Interrupt service routine for ECH-8/64-PCI board types.
- */
+
+
 
 static int stl_echpci64intr(struct stlbrd *brdp)
 {
@@ -1634,11 +1447,9 @@ static int stl_echpci64intr(struct stlbrd *brdp)
 	return handled;
 }
 
-/*****************************************************************************/
 
-/*
- *	Initialize all the ports on a panel.
- */
+
+
 
 static int __devinit stl_initports(struct stlbrd *brdp, struct stlpanel *panelp)
 {
@@ -1650,10 +1461,7 @@ static int __devinit stl_initports(struct stlbrd *brdp, struct stlpanel *panelp)
 
 	chipmask = stl_panelinit(brdp, panelp);
 
-/*
- *	All UART's are initialized (if found!). Now go through and setup
- *	each ports data structures.
- */
+
 	for (i = 0; i < panelp->nrports; i++) {
 		portp = kzalloc(sizeof(struct stlport), GFP_KERNEL);
 		if (!portp) {
@@ -1711,11 +1519,9 @@ static void stl_cleanup_panels(struct stlbrd *brdp)
 	}
 }
 
-/*****************************************************************************/
 
-/*
- *	Try to find and initialize an EasyIO board.
- */
+
+
 
 static int __devinit stl_initeio(struct stlbrd *brdp)
 {
@@ -1733,10 +1539,7 @@ static int __devinit stl_initeio(struct stlbrd *brdp)
 	if ((status & EIO_IDBITMASK) == EIO_MK3)
 		brdp->ioctrl++;
 
-/*
- *	Handle board specific stuff now. The real difference is PCI
- *	or not PCI.
- */
+
 	if (brdp->brdtype == BRD_EASYIOPCI) {
 		brdp->iosize1 = 0x80;
 		brdp->iosize2 = 0x80;
@@ -1776,9 +1579,7 @@ static int __devinit stl_initeio(struct stlbrd *brdp)
 			goto err_rel1;
 		}
 
-/*
- *	Everything looks OK, so let's go ahead and probe for the hardware.
- */
+
 	brdp->clk = CD1400_CLK;
 	brdp->isr = stl_eiointr;
 
@@ -1786,7 +1587,7 @@ static int __devinit stl_initeio(struct stlbrd *brdp)
 	switch (status & EIO_IDBITMASK) {
 	case EIO_8PORTM:
 		brdp->clk = CD1400_CLK8M;
-		/* fall thru */
+		
 	case EIO_8PORTRS:
 	case EIO_8PORTDI:
 		brdp->nrports = 8;
@@ -1813,10 +1614,7 @@ static int __devinit stl_initeio(struct stlbrd *brdp)
 		goto err_rel2;
 	}
 
-/*
- *	We have verified that the board is actually present, so now we
- *	can complete the setup.
- */
+
 
 	panelp = kzalloc(sizeof(struct stlpanel), GFP_KERNEL);
 	if (!panelp) {
@@ -1863,12 +1661,9 @@ err:
 	return retval;
 }
 
-/*****************************************************************************/
 
-/*
- *	Try to find an ECH board and initialize it. This code is capable of
- *	dealing with all types of ECH board.
- */
+
+
 
 static int __devinit stl_initech(struct stlbrd *brdp)
 {
@@ -1882,11 +1677,7 @@ static int __devinit stl_initech(struct stlbrd *brdp)
 	status = 0;
 	conflict = 0;
 
-/*
- *	Set up the initial board register contents for boards. This varies a
- *	bit between the different board types. So we need to handle each
- *	separately. Also do a check that the supplied IRQ is good.
- */
+
 	switch (brdp->brdtype) {
 
 	case BRD_ECH:
@@ -1963,10 +1754,7 @@ static int __devinit stl_initech(struct stlbrd *brdp)
 		goto err;
 	}
 
-/*
- *	Check boards for possible IO address conflicts and return fail status 
- * 	if an IO conflict found.
- */
+
 	retval = -EBUSY;
 	if (!request_region(brdp->ioaddr1, brdp->iosize1, name)) {
 		printk(KERN_WARNING "STALLION: Warning, board %d I/O address "
@@ -1986,10 +1774,7 @@ static int __devinit stl_initech(struct stlbrd *brdp)
 			goto err_rel1;
 		}
 
-/*
- *	Scan through the secondary io address space looking for panels.
- *	As we find'em allocate and initialize panel structures for each.
- */
+
 	brdp->clk = CD1400_CLK;
 	brdp->hwid = status;
 
@@ -2087,14 +1872,9 @@ err:
 	return retval;
 }
 
-/*****************************************************************************/
 
-/*
- *	Initialize and configure the specified board.
- *	Scan through all the boards in the configuration and see what we
- *	can find. Handle EIO and the ECH boards a little differently here
- *	since the initial search and setup is very different.
- */
+
+
 
 static int __devinit stl_brdinit(struct stlbrd *brdp)
 {
@@ -2153,11 +1933,9 @@ err:
 	return retval;
 }
 
-/*****************************************************************************/
 
-/*
- *	Find the next available board number that is free.
- */
+
+
 
 static int __devinit stl_getbrdnr(void)
 {
@@ -2173,12 +1951,8 @@ static int __devinit stl_getbrdnr(void)
 	return -1;
 }
 
-/*****************************************************************************/
-/*
- *	We have a Stallion board. Allocate a board structure and
- *	initialize it. Read its IO and IRQ resources from PCI
- *	configuration space.
- */
+
+
 
 static int __devinit stl_pciprobe(struct pci_dev *pdev,
 		const struct pci_device_id *ent)
@@ -2214,10 +1988,7 @@ static int __devinit stl_pciprobe(struct pci_dev *pdev,
 	brdp->brdtype = brdtype;
 	brdp->state |= STL_PROBED;
 
-/*
- *	We have all resources from the board, so let's setup the actual
- *	board structure now.
- */
+
 	switch (brdtype) {
 	case BRD_ECHPCI:
 		brdp->ioaddr2 = pci_resource_start(pdev, 0);
@@ -2284,11 +2055,9 @@ static struct pci_driver stl_pcidriver = {
 	.remove = __devexit_p(stl_pciremove)
 };
 
-/*****************************************************************************/
 
-/*
- *	Return the board stats structure to user app.
- */
+
+
 
 static int stl_getbrdstats(combrd_t __user *bp)
 {
@@ -2325,11 +2094,9 @@ static int stl_getbrdstats(combrd_t __user *bp)
 	return copy_to_user(bp, &stl_brdstats, sizeof(combrd_t)) ? -EFAULT : 0;
 }
 
-/*****************************************************************************/
 
-/*
- *	Resolve the referenced port number into a port struct pointer.
- */
+
+
 
 static struct stlport *stl_getport(int brdnr, int panelnr, int portnr)
 {
@@ -2351,13 +2118,9 @@ static struct stlport *stl_getport(int brdnr, int panelnr, int portnr)
 	return panelp->ports[portnr];
 }
 
-/*****************************************************************************/
 
-/*
- *	Return the port stats structure to user app. A NULL port struct
- *	pointer passed in means that we need to find out from the app
- *	what port to get stats for (used through board control device).
- */
+
+
 
 static int stl_getportstats(struct tty_struct *tty, struct stlport *portp, comstats_t __user *cp)
 {
@@ -2388,8 +2151,8 @@ static int stl_getportstats(struct tty_struct *tty, struct stlport *portp, comst
 	spin_lock_irqsave(&stallion_lock, flags);
 	if (tty != NULL && portp->port.tty == tty) {
 		portp->stats.ttystate = tty->flags;
-		/* No longer available as a statistic */
-		portp->stats.rxbuffered = 1; /*tty->flip.count; */
+		
+		portp->stats.rxbuffered = 1; 
 		if (tty->termios != NULL) {
 			portp->stats.cflags = tty->termios->c_cflag;
 			portp->stats.iflags = tty->termios->c_iflag;
@@ -2410,11 +2173,9 @@ static int stl_getportstats(struct tty_struct *tty, struct stlport *portp, comst
 			    sizeof(comstats_t)) ? -EFAULT : 0;
 }
 
-/*****************************************************************************/
 
-/*
- *	Clear the port stats structure. We also return it zeroed out...
- */
+
+
 
 static int stl_clrportstats(struct stlport *portp, comstats_t __user *cp)
 {
@@ -2437,11 +2198,9 @@ static int stl_clrportstats(struct stlport *portp, comstats_t __user *cp)
 			    sizeof(comstats_t)) ? -EFAULT : 0;
 }
 
-/*****************************************************************************/
 
-/*
- *	Return the entire driver ports structure to a user app.
- */
+
+
 
 static int stl_getportstruct(struct stlport __user *arg)
 {
@@ -2457,11 +2216,9 @@ static int stl_getportstruct(struct stlport __user *arg)
 	return copy_to_user(arg, portp, sizeof(struct stlport)) ? -EFAULT : 0;
 }
 
-/*****************************************************************************/
 
-/*
- *	Return the entire driver board structure to a user app.
- */
+
+
 
 static int stl_getbrdstruct(struct stlbrd __user *arg)
 {
@@ -2478,13 +2235,9 @@ static int stl_getbrdstruct(struct stlbrd __user *arg)
 	return copy_to_user(arg, brdp, sizeof(struct stlbrd)) ? -EFAULT : 0;
 }
 
-/*****************************************************************************/
 
-/*
- *	The "staliomem" device is also required to do some special operations
- *	on the board and/or ports. In this driver it is mostly used for stats
- *	collection.
- */
+
+
 
 static int stl_memioctl(struct inode *ip, struct file *fp, unsigned int cmd, unsigned long arg)
 {
@@ -2551,15 +2304,11 @@ static const struct tty_port_operations stl_port_ops = {
 	.dtr_rts = stl_dtr_rts,
 };
 
-/*****************************************************************************/
-/*                       CD1400 HARDWARE FUNCTIONS                           */
-/*****************************************************************************/
 
-/*
- *	These functions get/set/update the registers of the cd1400 UARTs.
- *	Access to the cd1400 registers is via an address/data io port pair.
- *	(Maybe should make this inline...)
- */
+
+
+
+
 
 static int stl_cd1400getreg(struct stlport *portp, int regnr)
 {
@@ -2583,13 +2332,9 @@ static int stl_cd1400updatereg(struct stlport *portp, int regnr, int value)
 	return 0;
 }
 
-/*****************************************************************************/
 
-/*
- *	Inbitialize the UARTs in a panel. We don't care what sort of board
- *	these ports are on - since the port io registers are almost
- *	identical when dealing with ports.
- */
+
+
 
 static int stl_cd1400panelinit(struct stlbrd *brdp, struct stlpanel *panelp)
 {
@@ -2603,9 +2348,7 @@ static int stl_cd1400panelinit(struct stlbrd *brdp, struct stlpanel *panelp)
 	spin_lock_irqsave(&brd_lock, flags);
 	BRDENABLE(panelp->brdnr, panelp->pagenr);
 
-/*
- *	Check that each chip is present and started up OK.
- */
+
 	chipmask = 0;
 	nrchips = panelp->nrports / CD1400_PORTS;
 	for (i = 0; i < nrchips; i++) {
@@ -2641,11 +2384,9 @@ static int stl_cd1400panelinit(struct stlbrd *brdp, struct stlpanel *panelp)
 	return chipmask;
 }
 
-/*****************************************************************************/
 
-/*
- *	Initialize hardware specific port registers.
- */
+
+
 
 static void stl_cd1400portinit(struct stlbrd *brdp, struct stlpanel *panelp, struct stlport *portp)
 {
@@ -2671,12 +2412,9 @@ static void stl_cd1400portinit(struct stlbrd *brdp, struct stlpanel *panelp, str
 	spin_unlock_irqrestore(&brd_lock, flags);
 }
 
-/*****************************************************************************/
 
-/*
- *	Wait for the command register to be ready. We will poll this,
- *	since it won't usually take too long to be ready.
- */
+
+
 
 static void stl_cd1400ccrwait(struct stlport *portp)
 {
@@ -2690,12 +2428,9 @@ static void stl_cd1400ccrwait(struct stlport *portp)
 		portp->portnr, portp->panelnr, portp->brdnr);
 }
 
-/*****************************************************************************/
 
-/*
- *	Set up the cd1400 registers for a port based on the termios port
- *	settings.
- */
+
+
 
 static void stl_cd1400setport(struct stlport *portp, struct ktermios *tiosp)
 {
@@ -2726,11 +2461,7 @@ static void stl_cd1400setport(struct stlport *portp, struct ktermios *tiosp)
 	if (brdp == NULL)
 		return;
 
-/*
- *	Set up the RX char ignore mask with those RX error types we
- *	can ignore. We can get the cd1400 to help us out a little here,
- *	it will ignore parity errors and breaks for us.
- */
+
 	portp->rxignoremsk = 0;
 	if (tiosp->c_iflag & IGNPAR) {
 		portp->rxignoremsk |= (ST_PARITY | ST_FRAMING | ST_OVERRUN);
@@ -2747,10 +2478,7 @@ static void stl_cd1400setport(struct stlport *portp, struct ktermios *tiosp)
 	if (tiosp->c_iflag & BRKINT)
 		portp->rxmarkmsk |= ST_BREAK;
 
-/*
- *	Go through the char size, parity and stop bits and set all the
- *	option register appropriately.
- */
+
 	switch (tiosp->c_cflag & CSIZE) {
 	case CS5:
 		cor1 |= COR1_CHL5;
@@ -2780,21 +2508,11 @@ static void stl_cd1400setport(struct stlport *portp, struct ktermios *tiosp)
 		cor1 |= COR1_PARNONE;
 	}
 
-/*
- *	Set the RX FIFO threshold at 6 chars. This gives a bit of breathing
- *	space for hardware flow control and the like. This should be set to
- *	VMIN. Also here we will set the RX data timeout to 10ms - this should
- *	really be based on VTIME.
- */
+
 	cor3 |= FIFO_RXTHRESHOLD;
 	rtpr = 2;
 
-/*
- *	Calculate the baud rate timers. For now we will just assume that
- *	the input and output baud are the same. Could have used a baud
- *	table here, but this way we can generate virtually any baud rate
- *	we like!
- */
+
 	baudrate = tiosp->c_cflag & CBAUD;
 	if (baudrate & CBAUDEX) {
 		baudrate &= ~CBAUDEX;
@@ -2828,9 +2546,7 @@ static void stl_cd1400setport(struct stlport *portp, struct ktermios *tiosp)
 		div = (unsigned char) clkdiv;
 	}
 
-/*
- *	Check what form of modem signaling is required and set it up.
- */
+
 	if ((tiosp->c_cflag & CLOCAL) == 0) {
 		mcor1 |= MCOR1_DCD;
 		mcor2 |= MCOR2_DCD;
@@ -2839,12 +2555,7 @@ static void stl_cd1400setport(struct stlport *portp, struct ktermios *tiosp)
 	} else
 		portp->port.flags &= ~ASYNC_CHECK_CD;
 
-/*
- *	Setup cd1400 enhanced modes if we can. In particular we want to
- *	handle as much of the flow control as possible automatically. As
- *	well as saving a few CPU cycles it will also greatly improve flow
- *	control reliability.
- */
+
 	if (tiosp->c_iflag & IXON) {
 		cor2 |= COR2_TXIBE;
 		cor3 |= COR3_SCD12;
@@ -2857,10 +2568,7 @@ static void stl_cd1400setport(struct stlport *portp, struct ktermios *tiosp)
 		mcor1 |= FIFO_RTSTHRESHOLD;
 	}
 
-/*
- *	All cd1400 register values calculated so go through and set
- *	them all up.
- */
+
 
 	pr_debug("SETPORT: portnr=%d panelnr=%d brdnr=%d\n",
 		portp->portnr, portp->panelnr, portp->brdnr);
@@ -2913,11 +2621,9 @@ static void stl_cd1400setport(struct stlport *portp, struct ktermios *tiosp)
 	spin_unlock_irqrestore(&brd_lock, flags);
 }
 
-/*****************************************************************************/
 
-/*
- *	Set the state of the DTR and RTS signals.
- */
+
+
 
 static void stl_cd1400setsignals(struct stlport *portp, int dtr, int rts)
 {
@@ -2945,11 +2651,9 @@ static void stl_cd1400setsignals(struct stlport *portp, int dtr, int rts)
 	spin_unlock_irqrestore(&brd_lock, flags);
 }
 
-/*****************************************************************************/
 
-/*
- *	Return the state of the signals.
- */
+
+
 
 static int stl_cd1400getsignals(struct stlport *portp)
 {
@@ -2981,11 +2685,9 @@ static int stl_cd1400getsignals(struct stlport *portp)
 	return sigs;
 }
 
-/*****************************************************************************/
 
-/*
- *	Enable/Disable the Transmitter and/or Receiver.
- */
+
+
 
 static void stl_cd1400enablerxtx(struct stlport *portp, int rx, int tx)
 {
@@ -3015,11 +2717,9 @@ static void stl_cd1400enablerxtx(struct stlport *portp, int rx, int tx)
 	spin_unlock_irqrestore(&brd_lock, flags);
 }
 
-/*****************************************************************************/
 
-/*
- *	Start/stop the Transmitter and/or Receiver.
- */
+
+
 
 static void stl_cd1400startrxtx(struct stlport *portp, int rx, int tx)
 {
@@ -3052,11 +2752,9 @@ static void stl_cd1400startrxtx(struct stlport *portp, int rx, int tx)
 	spin_unlock_irqrestore(&brd_lock, flags);
 }
 
-/*****************************************************************************/
 
-/*
- *	Disable all interrupts from this port.
- */
+
+
 
 static void stl_cd1400disableintrs(struct stlport *portp)
 {
@@ -3072,7 +2770,7 @@ static void stl_cd1400disableintrs(struct stlport *portp)
 	spin_unlock_irqrestore(&brd_lock, flags);
 }
 
-/*****************************************************************************/
+
 
 static void stl_cd1400sendbreak(struct stlport *portp, int len)
 {
@@ -3093,11 +2791,9 @@ static void stl_cd1400sendbreak(struct stlport *portp, int len)
 	spin_unlock_irqrestore(&brd_lock, flags);
 }
 
-/*****************************************************************************/
 
-/*
- *	Take flow control actions...
- */
+
+
 
 static void stl_cd1400flowctrl(struct stlport *portp, int state)
 {
@@ -3123,12 +2819,7 @@ static void stl_cd1400flowctrl(struct stlport *portp, int state)
 			portp->stats.rxxon++;
 			stl_cd1400ccrwait(portp);
 		}
-/*
- *		Question: should we return RTS to what it was before? It may
- *		have been set by an ioctl... Suppose not, since if you have
- *		hardware flow control set then it is pretty silly to go and
- *		set the RTS line by hand.
- */
+
 		if (tty->termios->c_cflag & CRTSCTS) {
 			stl_cd1400setreg(portp, MCOR1,
 				(stl_cd1400getreg(portp, MCOR1) |
@@ -3156,11 +2847,9 @@ static void stl_cd1400flowctrl(struct stlport *portp, int state)
 	tty_kref_put(tty);
 }
 
-/*****************************************************************************/
 
-/*
- *	Send a flow control character...
- */
+
+
 
 static void stl_cd1400sendflow(struct stlport *portp, int state)
 {
@@ -3194,7 +2883,7 @@ static void stl_cd1400sendflow(struct stlport *portp, int state)
 	tty_kref_put(tty);
 }
 
-/*****************************************************************************/
+
 
 static void stl_cd1400flush(struct stlport *portp)
 {
@@ -3216,14 +2905,9 @@ static void stl_cd1400flush(struct stlport *portp)
 	spin_unlock_irqrestore(&brd_lock, flags);
 }
 
-/*****************************************************************************/
 
-/*
- *	Return the current state of data flow on this port. This is only
- *	really interresting when determining if data has fully completed
- *	transmission or not... This is easy for the cd1400, it accurately
- *	maintains the busy port flag.
- */
+
+
 
 static int stl_cd1400datastate(struct stlport *portp)
 {
@@ -3235,11 +2919,9 @@ static int stl_cd1400datastate(struct stlport *portp)
 	return test_bit(ASYI_TXBUSY, &portp->istate) ? 1 : 0;
 }
 
-/*****************************************************************************/
 
-/*
- *	Interrupt service routine for cd1400 EasyIO boards.
- */
+
+
 
 static void stl_cd1400eiointr(struct stlpanel *panelp, unsigned int iobase)
 {
@@ -3265,11 +2947,9 @@ static void stl_cd1400eiointr(struct stlpanel *panelp, unsigned int iobase)
 	spin_unlock(&brd_lock);
 }
 
-/*****************************************************************************/
 
-/*
- *	Interrupt service routine for cd1400 panels.
- */
+
+
 
 static void stl_cd1400echintr(struct stlpanel *panelp, unsigned int iobase)
 {
@@ -3290,12 +2970,9 @@ static void stl_cd1400echintr(struct stlpanel *panelp, unsigned int iobase)
 }
 
 
-/*****************************************************************************/
 
-/*
- *	Unfortunately we need to handle breaks in the TX data stream, since
- *	this is the only way to generate them on the cd1400.
- */
+
+
 
 static int stl_cd1400breakisr(struct stlport *portp, int ioaddr)
 {
@@ -3325,19 +3002,9 @@ static int stl_cd1400breakisr(struct stlport *portp, int ioaddr)
 	return 0;
 }
 
-/*****************************************************************************/
 
-/*
- *	Transmit interrupt handler. This has gotta be fast!  Handling TX
- *	chars is pretty simple, stuff as many as possible from the TX buffer
- *	into the cd1400 FIFO. Must also handle TX breaks here, since they
- *	are embedded as commands in the data stream. Oh no, had to use a goto!
- *	This could be optimized more, will do when I get time...
- *	In practice it is possible that interrupts are enabled but that the
- *	port has been hung up. Need to handle not having any TX buffer here,
- *	this is done by using the side effect that head and tail will also
- *	be NULL if the buffer has been freed.
- */
+
+
 
 static void stl_cd1400txisr(struct stlpanel *panelp, int ioaddr)
 {
@@ -3357,11 +3024,7 @@ static void stl_cd1400txisr(struct stlpanel *panelp, int ioaddr)
 	}
 	portp = panelp->ports[(ioack >> 3)];
 
-/*
- *	Unfortunately we need to handle breaks in the data stream, since
- *	this is the only way to generate them on the cd1400. Do it now if
- *	a break is to be sent.
- */
+
 	if (portp->brklen != 0)
 		if (stl_cd1400breakisr(portp, ioaddr))
 			goto stl_txalldone;
@@ -3412,17 +3075,9 @@ stl_txalldone:
 	outb(0, (ioaddr + EREG_DATA));
 }
 
-/*****************************************************************************/
 
-/*
- *	Receive character interrupt handler. Determine if we have good chars
- *	or bad chars and then process appropriately. Good chars are easy
- *	just shove the lot into the RX buffer and set all status byte to 0.
- *	If a bad RX char then process as required. This routine needs to be
- *	fast!  In practice it is possible that we get an interrupt on a port
- *	that is closed. This can happen on hangups - since they completely
- *	shutdown a port not in user context. Need to handle this case.
- */
+
+
 
 static void stl_cd1400rxisr(struct stlpanel *panelp, int ioaddr)
 {
@@ -3514,13 +3169,9 @@ stl_rxalldone:
 	outb(0, (ioaddr + EREG_DATA));
 }
 
-/*****************************************************************************/
 
-/*
- *	Modem interrupt handler. The is called when the modem signal line
- *	(DCD) has changed state. Leave most of the work to the off-level
- *	processing routine.
- */
+
+
 
 static void stl_cd1400mdmisr(struct stlpanel *panelp, int ioaddr)
 {
@@ -3549,15 +3200,11 @@ static void stl_cd1400mdmisr(struct stlpanel *panelp, int ioaddr)
 	outb(0, (ioaddr + EREG_DATA));
 }
 
-/*****************************************************************************/
-/*                      SC26198 HARDWARE FUNCTIONS                           */
-/*****************************************************************************/
 
-/*
- *	These functions get/set/update the registers of the sc26198 UARTs.
- *	Access to the sc26198 registers is via an address/data io port pair.
- *	(Maybe should make this inline...)
- */
+
+
+
+
 
 static int stl_sc26198getreg(struct stlport *portp, int regnr)
 {
@@ -3581,11 +3228,9 @@ static int stl_sc26198updatereg(struct stlport *portp, int regnr, int value)
 	return 0;
 }
 
-/*****************************************************************************/
 
-/*
- *	Functions to get and set the sc26198 global registers.
- */
+
+
 
 static int stl_sc26198getglobreg(struct stlport *portp, int regnr)
 {
@@ -3601,13 +3246,9 @@ static void stl_sc26198setglobreg(struct stlport *portp, int regnr, int value)
 }
 #endif
 
-/*****************************************************************************/
 
-/*
- *	Inbitialize the UARTs in a panel. We don't care what sort of board
- *	these ports are on - since the port io registers are almost
- *	identical when dealing with ports.
- */
+
+
 
 static int stl_sc26198panelinit(struct stlbrd *brdp, struct stlpanel *panelp)
 {
@@ -3618,9 +3259,7 @@ static int stl_sc26198panelinit(struct stlbrd *brdp, struct stlpanel *panelp)
 
 	BRDENABLE(panelp->brdnr, panelp->pagenr);
 
-/*
- *	Check that each chip is present and started up OK.
- */
+
 	chipmask = 0;
 	nrchips = (panelp->nrports + 4) / SC26198_PORTS;
 	if (brdp->brdtype == BRD_ECHPCI)
@@ -3648,11 +3287,9 @@ static int stl_sc26198panelinit(struct stlbrd *brdp, struct stlpanel *panelp)
 	return chipmask;
 }
 
-/*****************************************************************************/
 
-/*
- *	Initialize hardware specific port registers.
- */
+
+
 
 static void stl_sc26198portinit(struct stlbrd *brdp, struct stlpanel *panelp, struct stlport *portp)
 {
@@ -3673,12 +3310,9 @@ static void stl_sc26198portinit(struct stlbrd *brdp, struct stlpanel *panelp, st
 	BRDDISABLE(portp->brdnr);
 }
 
-/*****************************************************************************/
 
-/*
- *	Set up the sc26198 registers for a port based on the termios port
- *	settings.
- */
+
+
 
 static void stl_sc26198setport(struct stlport *portp, struct ktermios *tiosp)
 {
@@ -3700,10 +3334,7 @@ static void stl_sc26198setport(struct stlport *portp, struct ktermios *tiosp)
 	if (brdp == NULL)
 		return;
 
-/*
- *	Set up the RX char ignore mask with those RX error types we
- *	can ignore.
- */
+
 	portp->rxignoremsk = 0;
 	if (tiosp->c_iflag & IGNPAR)
 		portp->rxignoremsk |= (SR_RXPARITY | SR_RXFRAMING |
@@ -3717,10 +3348,7 @@ static void stl_sc26198setport(struct stlport *portp, struct ktermios *tiosp)
 	if (tiosp->c_iflag & BRKINT)
 		portp->rxmarkmsk |= SR_RXBREAK;
 
-/*
- *	Go through the char size, parity and stop bits and set all the
- *	option register appropriately.
- */
+
 	switch (tiosp->c_cflag & CSIZE) {
 	case CS5:
 		mr1 |= MR1_CS5;
@@ -3751,18 +3379,10 @@ static void stl_sc26198setport(struct stlport *portp, struct ktermios *tiosp)
 
 	mr1 |= MR1_ERRBLOCK;
 
-/*
- *	Set the RX FIFO threshold at 8 chars. This gives a bit of breathing
- *	space for hardware flow control and the like. This should be set to
- *	VMIN.
- */
+
 	mr2 |= MR2_RXFIFOHALF;
 
-/*
- *	Calculate the baud rate timers. For now we will just assume that
- *	the input and output baud are the same. The sc26198 has a fixed
- *	baud rate table, so only discrete baud rates possible.
- */
+
 	baudrate = tiosp->c_cflag & CBAUD;
 	if (baudrate & CBAUDEX) {
 		baudrate &= ~CBAUDEX;
@@ -3792,9 +3412,7 @@ static void stl_sc26198setport(struct stlport *portp, struct ktermios *tiosp)
 			if (baudrate <= sc26198_baudtable[clk])
 				break;
 
-/*
- *	Check what form of modem signaling is required and set it up.
- */
+
 	if (tiosp->c_cflag & CLOCAL) {
 		portp->port.flags &= ~ASYNC_CHECK_CD;
 	} else {
@@ -3803,12 +3421,7 @@ static void stl_sc26198setport(struct stlport *portp, struct ktermios *tiosp)
 		portp->port.flags |= ASYNC_CHECK_CD;
 	}
 
-/*
- *	Setup sc26198 enhanced modes if we can. In particular we want to
- *	handle as much of the flow control as possible automatically. As
- *	well as saving a few CPU cycles it will also greatly improve flow
- *	control reliability.
- */
+
 	if (tiosp->c_iflag & IXON) {
 		mr0 |= MR0_SWFTX | MR0_SWFT;
 		imron |= IR_XONXOFF;
@@ -3823,10 +3436,7 @@ static void stl_sc26198setport(struct stlport *portp, struct ktermios *tiosp)
 		mr1 |= MR1_AUTORTS;
 	}
 
-/*
- *	All sc26198 register values calculated so go through and set
- *	them all up.
- */
+
 
 	pr_debug("SETPORT: portnr=%d panelnr=%d brdnr=%d\n",
 		portp->portnr, portp->panelnr, portp->brdnr);
@@ -3866,11 +3476,9 @@ static void stl_sc26198setport(struct stlport *portp, struct ktermios *tiosp)
 	spin_unlock_irqrestore(&brd_lock, flags);
 }
 
-/*****************************************************************************/
 
-/*
- *	Set the state of the DTR and RTS signals.
- */
+
+
 
 static void stl_sc26198setsignals(struct stlport *portp, int dtr, int rts)
 {
@@ -3899,11 +3507,9 @@ static void stl_sc26198setsignals(struct stlport *portp, int dtr, int rts)
 	spin_unlock_irqrestore(&brd_lock, flags);
 }
 
-/*****************************************************************************/
 
-/*
- *	Return the state of the signals.
- */
+
+
 
 static int stl_sc26198getsignals(struct stlport *portp)
 {
@@ -3928,11 +3534,9 @@ static int stl_sc26198getsignals(struct stlport *portp)
 	return sigs;
 }
 
-/*****************************************************************************/
 
-/*
- *	Enable/Disable the Transmitter and/or Receiver.
- */
+
+
 
 static void stl_sc26198enablerxtx(struct stlport *portp, int rx, int tx)
 {
@@ -3959,11 +3563,9 @@ static void stl_sc26198enablerxtx(struct stlport *portp, int rx, int tx)
 	spin_unlock_irqrestore(&brd_lock, flags);
 }
 
-/*****************************************************************************/
 
-/*
- *	Start/stop the Transmitter and/or Receiver.
- */
+
+
 
 static void stl_sc26198startrxtx(struct stlport *portp, int rx, int tx)
 {
@@ -3992,11 +3594,9 @@ static void stl_sc26198startrxtx(struct stlport *portp, int rx, int tx)
 	spin_unlock_irqrestore(&brd_lock, flags);
 }
 
-/*****************************************************************************/
 
-/*
- *	Disable all interrupts from this port.
- */
+
+
 
 static void stl_sc26198disableintrs(struct stlport *portp)
 {
@@ -4012,7 +3612,7 @@ static void stl_sc26198disableintrs(struct stlport *portp)
 	spin_unlock_irqrestore(&brd_lock, flags);
 }
 
-/*****************************************************************************/
+
 
 static void stl_sc26198sendbreak(struct stlport *portp, int len)
 {
@@ -4032,11 +3632,9 @@ static void stl_sc26198sendbreak(struct stlport *portp, int len)
 	spin_unlock_irqrestore(&brd_lock, flags);
 }
 
-/*****************************************************************************/
 
-/*
- *	Take flow control actions...
- */
+
+
 
 static void stl_sc26198flowctrl(struct stlport *portp, int state)
 {
@@ -4065,12 +3663,7 @@ static void stl_sc26198flowctrl(struct stlport *portp, int state)
 			stl_sc26198wait(portp);
 			stl_sc26198setreg(portp, MR0, mr0);
 		}
-/*
- *		Question: should we return RTS to what it was before? It may
- *		have been set by an ioctl... Suppose not, since if you have
- *		hardware flow control set then it is pretty silly to go and
- *		set the RTS line by hand.
- */
+
 		if (tty->termios->c_cflag & CRTSCTS) {
 			stl_sc26198setreg(portp, MR1,
 				(stl_sc26198getreg(portp, MR1) | MR1_AUTORTS));
@@ -4102,11 +3695,9 @@ static void stl_sc26198flowctrl(struct stlport *portp, int state)
 	tty_kref_put(tty);
 }
 
-/*****************************************************************************/
 
-/*
- *	Send a flow control character.
- */
+
+
 
 static void stl_sc26198sendflow(struct stlport *portp, int state)
 {
@@ -4146,7 +3737,7 @@ static void stl_sc26198sendflow(struct stlport *portp, int state)
 	tty_kref_put(tty);
 }
 
-/*****************************************************************************/
+
 
 static void stl_sc26198flush(struct stlport *portp)
 {
@@ -4166,15 +3757,9 @@ static void stl_sc26198flush(struct stlport *portp)
 	spin_unlock_irqrestore(&brd_lock, flags);
 }
 
-/*****************************************************************************/
 
-/*
- *	Return the current state of data flow on this port. This is only
- *	really interresting when determining if data has fully completed
- *	transmission or not... The sc26198 interrupt scheme cannot
- *	determine when all data has actually drained, so we need to
- *	check the port statusy register to be sure.
- */
+
+
 
 static int stl_sc26198datastate(struct stlport *portp)
 {
@@ -4197,12 +3782,9 @@ static int stl_sc26198datastate(struct stlport *portp)
 	return (sr & SR_TXEMPTY) ? 0 : 1;
 }
 
-/*****************************************************************************/
 
-/*
- *	Delay for a small amount of time, to give the sc26198 a chance
- *	to process a command...
- */
+
+
 
 static void stl_sc26198wait(struct stlport *portp)
 {
@@ -4217,13 +3799,9 @@ static void stl_sc26198wait(struct stlport *portp)
 		stl_sc26198getglobreg(portp, TSTR);
 }
 
-/*****************************************************************************/
 
-/*
- *	If we are TX flow controlled and in IXANY mode then we may
- *	need to unflow control here. We gotta do this because of the
- *	automatic flow control modes of the sc26198.
- */
+
+
 
 static void stl_sc26198txunflow(struct stlport *portp, struct tty_struct *tty)
 {
@@ -4237,11 +3815,9 @@ static void stl_sc26198txunflow(struct stlport *portp, struct tty_struct *tty)
 	clear_bit(ASYI_TXFLOWED, &portp->istate);
 }
 
-/*****************************************************************************/
 
-/*
- *	Interrupt service routine for sc26198 panels.
- */
+
+
 
 static void stl_sc26198intr(struct stlpanel *panelp, unsigned int iobase)
 {
@@ -4250,10 +3826,7 @@ static void stl_sc26198intr(struct stlpanel *panelp, unsigned int iobase)
 
 	spin_lock(&brd_lock);
 
-/* 
- *	Work around bug in sc26198 chip... Cannot have A6 address
- *	line of UART high, else iack will be returned as 0.
- */
+
 	outb(0, (iobase + 1));
 
 	iack = inb(iobase + XP_IACK);
@@ -4269,17 +3842,9 @@ static void stl_sc26198intr(struct stlpanel *panelp, unsigned int iobase)
 	spin_unlock(&brd_lock);
 }
 
-/*****************************************************************************/
 
-/*
- *	Transmit interrupt handler. This has gotta be fast!  Handling TX
- *	chars is pretty simple, stuff as many as possible from the TX buffer
- *	into the sc26198 FIFO.
- *	In practice it is possible that interrupts are enabled but that the
- *	port has been hung up. Need to handle not having any TX buffer here,
- *	this is done by using the side effect that head and tail will also
- *	be NULL if the buffer has been freed.
- */
+
+
 
 static void stl_sc26198txisr(struct stlport *portp)
 {
@@ -4336,17 +3901,9 @@ static void stl_sc26198txisr(struct stlport *portp)
 	}
 }
 
-/*****************************************************************************/
 
-/*
- *	Receive character interrupt handler. Determine if we have good chars
- *	or bad chars and then process appropriately. Good chars are easy
- *	just shove the lot into the RX buffer and set all status byte to 0.
- *	If a bad RX char then process as required. This routine needs to be
- *	fast!  In practice it is possible that we get an interrupt on a port
- *	that is closed. This can happen on hangups - since they completely
- *	shutdown a port not in user context. Need to handle this case.
- */
+
+
 
 static void stl_sc26198rxisr(struct stlport *portp, unsigned int iack)
 {
@@ -4382,11 +3939,7 @@ static void stl_sc26198rxisr(struct stlport *portp, unsigned int iack)
 		stl_sc26198rxbadchars(portp);
 	}
 
-/*
- *	If we are TX flow controlled and in IXANY mode then we may need
- *	to unflow control here. We gotta do this because of the automatic
- *	flow control modes of the sc26198.
- */
+
 	if (test_bit(ASYI_TXFLOWED, &portp->istate)) {
 		if ((tty != NULL) &&
 		    (tty->termios != NULL) &&
@@ -4397,11 +3950,9 @@ static void stl_sc26198rxisr(struct stlport *portp, unsigned int iack)
 	tty_kref_put(tty);
 }
 
-/*****************************************************************************/
 
-/*
- *	Process an RX bad character.
- */
+
+
 
 static void stl_sc26198rxbadch(struct stlport *portp, unsigned char status, char ch)
 {
@@ -4449,26 +4000,16 @@ static void stl_sc26198rxbadch(struct stlport *portp, unsigned char status, char
 	tty_kref_put(tty);
 }
 
-/*****************************************************************************/
 
-/*
- *	Process all characters in the RX FIFO of the UART. Check all char
- *	status bytes as well, and process as required. We need to check
- *	all bytes in the FIFO, in case some more enter the FIFO while we
- *	are here. To get the exact character error type we need to switch
- *	into CHAR error mode (that is why we need to make sure we empty
- *	the FIFO).
- */
+
+
 
 static void stl_sc26198rxbadchars(struct stlport *portp)
 {
 	unsigned char	status, mr1;
 	char		ch;
 
-/*
- *	To get the precise error type for each character we must switch
- *	back into CHAR error mode.
- */
+
 	mr1 = stl_sc26198getreg(portp, MR1);
 	stl_sc26198setreg(portp, MR1, (mr1 & ~MR1_ERRBLOCK));
 
@@ -4478,20 +4019,13 @@ static void stl_sc26198rxbadchars(struct stlport *portp)
 		stl_sc26198rxbadch(portp, status, ch);
 	}
 
-/*
- *	To get correct interrupt class we must switch back into BLOCK
- *	error mode.
- */
+
 	stl_sc26198setreg(portp, MR1, mr1);
 }
 
-/*****************************************************************************/
 
-/*
- *	Other interrupt handler. This includes modem signals, flow
- *	control actions, etc. Most stuff is left to off-level interrupt
- *	processing time.
- */
+
+
 
 static void stl_sc26198otherisr(struct stlport *portp, unsigned int iack)
 {
@@ -4551,9 +4085,7 @@ static void stl_free_isabrds(void)
 	}
 }
 
-/*
- *	Loadable module initialization stuff.
- */
+
 static int __init stallion_module_init(void)
 {
 	struct stlbrd	*brdp;
@@ -4589,10 +4121,7 @@ static int __init stallion_module_init(void)
 		goto err_frtty;
 	}
 
-/*
- *	Find any dynamically supported boards. That is via module load
- *	line options.
- */
+
 	for (i = stl_nrbrds; i < stl_nargs; i++) {
 		memset(&conf, 0, sizeof(conf));
 		if (stl_parsebrd(&conf, stl_brdsp[i]) == 0)
@@ -4617,17 +4146,14 @@ static int __init stallion_module_init(void)
 		}
 	}
 
-	/* this has to be _after_ isa finding because of locking */
+	
 	retval = pci_register_driver(&stl_pcidriver);
 	if (retval && stl_nrbrds == 0) {
 		printk(KERN_ERR "STALLION: can't register pci driver\n");
 		goto err_unrtty;
 	}
 
-/*
- *	Set up a character driver for per board stuff. This is mainly used
- *	to do stats ioctls on the ports.
- */
+
 	if (register_chrdev(STL_SIOMEMMAJOR, "staliomem", &stl_fsiomem))
 		printk("STALLION: failed to register serial board device\n");
 
@@ -4657,12 +4183,7 @@ static void __exit stallion_module_exit(void)
 	printk(KERN_INFO "Unloading %s: version %s\n", stl_drvtitle,
 		stl_drvversion);
 
-/*
- *	Free up all allocated resources used by the ports. This includes
- *	memory and interrupts. As part of this process we will also do
- *	a hangup on every open port - to try to flush out any processes
- *	hanging onto ports.
- */
+
 	for (i = 0; i < stl_nrbrds; i++) {
 		if ((brdp = stl_brds[i]) == NULL || (brdp->state & STL_PROBED))
 			continue;

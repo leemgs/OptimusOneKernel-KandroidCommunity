@@ -1,15 +1,4 @@
-/*
- * Intel & MS High Precision Event Timer Implementation.
- *
- * Copyright (C) 2003 Intel Corporation
- *	Venki Pallipadi
- * (c) Copyright 2004 Hewlett-Packard Development Company, L.P.
- *	Bob Picco <robert.picco@hp.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/interrupt.h>
 #include <linux/module.h>
@@ -43,21 +32,14 @@
 #include <acpi/acpi_bus.h>
 #include <linux/hpet.h>
 
-/*
- * The High Precision Event Timer driver.
- * This driver is closely modelled after the rtc.c driver.
- * http://www.intel.com/hardwaredesign/hpetspec_1.pdf
- */
+
 #define	HPET_USER_FREQ	(64)
 #define	HPET_DRIFT	(500)
 
-#define HPET_RANGE_SIZE		1024	/* from HPET spec */
+#define HPET_RANGE_SIZE		1024	
 
 
-/* WARNING -- don't get confused.  These macros are never used
- * to write the (single) counter, and rarely to read it.
- * They're badly named; to fix, someday.
- */
+
 #if BITS_PER_LONG == 64
 #define	write_counter(V, MC)	writeq(V, MC)
 #define	read_counter(MC)	readq(MC)
@@ -68,7 +50,7 @@
 
 static u32 hpet_nhpet, hpet_max_freq = HPET_USER_FREQ;
 
-/* This clocksource driver currently only works on ia64 */
+
 #ifdef CONFIG_IA64
 static void __iomem *hpet_mctr;
 
@@ -82,14 +64,14 @@ static struct clocksource clocksource_hpet = {
         .rating         = 250,
         .read           = read_hpet,
         .mask           = CLOCKSOURCE_MASK(64),
-	.mult		= 0, /* to be calculated */
+	.mult		= 0, 
         .shift          = 10,
         .flags          = CLOCK_SOURCE_IS_CONTINUOUS,
 };
 static struct clocksource *hpet_clocksource;
 #endif
 
-/* A lock for concurrent access by app and isr hpet activity. */
+
 static DEFINE_SPINLOCK(hpet_lock);
 
 #define	HPET_DEV_NAME	(7)
@@ -123,7 +105,7 @@ struct hpets {
 static struct hpets *hpets;
 
 #define	HPET_OPEN		0x0001
-#define	HPET_IE			0x0002	/* interrupt enabled */
+#define	HPET_IE			0x0002	
 #define	HPET_PERIODIC		0x0004
 #define	HPET_SHARED_IRQ		0x0008
 
@@ -158,10 +140,7 @@ static irqreturn_t hpet_interrupt(int irq, void *data)
 	spin_lock(&hpet_lock);
 	devp->hd_irqdata++;
 
-	/*
-	 * For non-periodic timers, increment the accumulator.
-	 * This has the effect of treating non-periodic like periodic.
-	 */
+	
 	if ((devp->hd_flags & (HPET_IE | HPET_PERIODIC)) == HPET_IE) {
 		unsigned long m, t;
 
@@ -195,7 +174,7 @@ static void hpet_timer_set_irq(struct hpet_dev *devp)
 
 	timer = devp->hd_timer;
 
-	/* we prefer level triggered mode */
+	
 	v = readl(&timer->hpet_config);
 	if (!(v & Tn_INT_TYPE_CNF_MASK)) {
 		v |= Tn_INT_TYPE_CNF_MASK;
@@ -206,10 +185,7 @@ static void hpet_timer_set_irq(struct hpet_dev *devp)
 	v = (readq(&timer->hpet_config) & Tn_INT_ROUTE_CAP_MASK) >>
 				 Tn_INT_ROUTE_CAP_SHIFT;
 
-	/*
-	 * In PIC mode, skip IRQ0-4, IRQ6-9, IRQ12-15 which is always used by
-	 * legacy device. In IO APIC mode, we skip all the legacy IRQS.
-	 */
+	
 	if (acpi_irq_model == ACPI_IRQ_MODEL_PIC)
 		v &= ~0xf3df;
 	else
@@ -228,7 +204,7 @@ static void hpet_timer_set_irq(struct hpet_dev *devp)
 		if (gsi > 0)
 			break;
 
-		/* FIXME: Setup interrupt source table */
+		
 	}
 
 	if (irq < HPET_MAX_IRQ) {
@@ -497,9 +473,7 @@ static int hpet_ioctl_ieon(struct hpet_dev *devp)
 	t = devp->hd_ireqfreq;
 	v = readq(&timer->hpet_config);
 
-	/* 64-bit comparators are not yet supported through the ioctls,
-	 * so force this into 32-bit mode if it supports both modes
-	 */
+	
 	g = v | Tn_32MODE_CNF_MASK | Tn_INT_ENB_CNF_MASK;
 
 	if (devp->hd_flags & HPET_PERIODIC) {
@@ -508,19 +482,10 @@ static int hpet_ioctl_ieon(struct hpet_dev *devp)
 		writeq(v, &timer->hpet_config);
 		local_irq_save(flags);
 
-		/*
-		 * NOTE: First we modify the hidden accumulator
-		 * register supported by periodic-capable comparators.
-		 * We never want to modify the (single) counter; that
-		 * would affect all the comparators. The value written
-		 * is the counter value when the first interrupt is due.
-		 */
+		
 		m = read_counter(&hpet->hpet_mc);
 		write_counter(t + m + hpetp->hp_delta, &timer->hpet_compare);
-		/*
-		 * Then we modify the comparator, indicating the period
-		 * for subsequent interrupt.
-		 */
+		
 		write_counter(t, &timer->hpet_compare);
 	} else {
 		local_irq_save(flags);
@@ -538,7 +503,7 @@ static int hpet_ioctl_ieon(struct hpet_dev *devp)
 	return 0;
 }
 
-/* converts Hz to number of timer ticks */
+
 static inline unsigned long hpet_time_div(struct hpets *hpets,
 					  unsigned long dis)
 {
@@ -709,11 +674,7 @@ static ctl_table dev_root[] = {
 
 static struct ctl_table_header *sysctl_header;
 
-/*
- * Adjustment for when arming the timer with
- * initial conditions.  That is, main counter
- * ticks expired before interrupts are enabled.
- */
+
 #define	TICK_CALIBRATE	(1000UL)
 
 static unsigned long __hpet_calibrate(struct hpets *hpetp)
@@ -758,11 +719,7 @@ static unsigned long hpet_calibrate(struct hpets *hpetp)
 	unsigned long ret = -1;
 	unsigned long tmp;
 
-	/*
-	 * Try to calibrate until return value becomes stable small value.
-	 * If SMI interruption occurs in calibration loop, the return value
-	 * will be big. This avoids its impact.
-	 */
+	
 	for ( ; ; ) {
 		tmp = __hpet_calibrate(hpetp);
 		if (ret <= tmp)
@@ -786,11 +743,7 @@ int hpet_alloc(struct hpet_data *hdp)
 	unsigned long long temp;
 	u32 remainder;
 
-	/*
-	 * hpet_alloc can be called by platform dependent code.
-	 * If platform dependent code has allocated the hpet that
-	 * ACPI has also reported, then we catch it here.
-	 */
+	
 	if (hpet_is_known(hdp)) {
 		printk(KERN_DEBUG "%s: duplicate HPET ignored\n",
 			__func__);
@@ -835,11 +788,11 @@ int hpet_alloc(struct hpet_data *hdp)
 	last = hpetp;
 
 	period = (cap & HPET_COUNTER_CLK_PERIOD_MASK) >>
-		HPET_COUNTER_CLK_PERIOD_SHIFT; /* fs, 10^-15 */
-	temp = 1000000000000000uLL; /* 10^15 femtoseconds per second */
-	temp += period >> 1; /* round */
+		HPET_COUNTER_CLK_PERIOD_SHIFT; 
+	temp = 1000000000000000uLL; 
+	temp += period >> 1; 
 	do_div(temp, period);
-	hpetp->hp_tick_freq = temp; /* ticks per second */
+	hpetp->hp_tick_freq = temp; 
 
 	printk(KERN_INFO "hpet%d: at MMIO 0x%lx, IRQ%s",
 		hpetp->hp_which, hdp->hd_phys_address,
@@ -872,10 +825,7 @@ int hpet_alloc(struct hpet_data *hdp)
 		devp->hd_hpet = hpet;
 		devp->hd_timer = timer;
 
-		/*
-		 * If the timer was reserved by platform code,
-		 * then make timer unavailable for opens.
-		 */
+		
 		if (hdp->hd_state & (1 << i)) {
 			devp->hd_flags = HPET_OPEN;
 			continue;
@@ -886,7 +836,7 @@ int hpet_alloc(struct hpet_data *hdp)
 
 	hpetp->hp_delta = hpet_calibrate(hpetp);
 
-/* This clocksource driver currently only works on ia64 */
+
 #ifdef CONFIG_IA64
 	if (!hpet_clocksource) {
 		hpet_mctr = (void __iomem *)&hpetp->hp_hpet->hpet_mc;
@@ -979,7 +929,7 @@ static int hpet_acpi_add(struct acpi_device *device)
 
 static int hpet_acpi_remove(struct acpi_device *device, int type)
 {
-	/* XXX need to unregister clocksource, dealloc mem, etc */
+	
 	return -EINVAL;
 }
 

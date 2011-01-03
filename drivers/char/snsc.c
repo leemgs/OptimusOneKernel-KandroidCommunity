@@ -1,19 +1,6 @@
-/*
- * SN Platform system controller communication support
- *
- * This file is subject to the terms and conditions of the GNU General Public
- * License.  See the file "COPYING" in the main directory of this archive
- * for more details.
- *
- * Copyright (C) 2004, 2006 Silicon Graphics, Inc. All rights reserved.
- */
 
-/*
- * System controller communication driver
- *
- * This driver allows a user process to communicate with the system
- * controller (a.k.a. "IRouter") network in an SGI SN system.
- */
+
+
 
 #include <linux/interrupt.h>
 #include <linux/sched.h>
@@ -61,11 +48,7 @@ scdrv_interrupt(int irq, void *subch_data)
 	return IRQ_HANDLED;
 }
 
-/*
- * scdrv_open
- *
- * Reserve a subchannel for system controller communication.
- */
+
 
 static int
 scdrv_open(struct inode *inode, struct file *file)
@@ -74,10 +57,10 @@ scdrv_open(struct inode *inode, struct file *file)
 	struct subch_data_s *sd;
 	int rv;
 
-	/* look up device info for this device file */
+	
 	scd = container_of(inode->i_cdev, struct sysctl_data_s, scd_cdev);
 
-	/* allocate memory for subchannel data */
+	
 	sd = kzalloc(sizeof (struct subch_data_s), GFP_KERNEL);
 	if (sd == NULL) {
 		printk("%s: couldn't allocate subchannel data\n",
@@ -85,7 +68,7 @@ scdrv_open(struct inode *inode, struct file *file)
 		return -ENOMEM;
 	}
 
-	/* initialize subch_data_s fields */
+	
 	sd->sd_nasid = scd->scd_nasid;
 	sd->sd_subch = ia64_sn_irtr_open(scd->scd_nasid);
 
@@ -104,7 +87,7 @@ scdrv_open(struct inode *inode, struct file *file)
 
 	file->private_data = sd;
 
-	/* hook this subchannel up to the system controller interrupt */
+	
 	lock_kernel();
 	rv = request_irq(SGI_UART_VECTOR, scdrv_interrupt,
 			 IRQF_SHARED | IRQF_DISABLED,
@@ -120,11 +103,7 @@ scdrv_open(struct inode *inode, struct file *file)
 	return 0;
 }
 
-/*
- * scdrv_release
- *
- * Release a previously-reserved subchannel.
- */
+
 
 static int
 scdrv_release(struct inode *inode, struct file *file)
@@ -132,22 +111,17 @@ scdrv_release(struct inode *inode, struct file *file)
 	struct subch_data_s *sd = (struct subch_data_s *) file->private_data;
 	int rv;
 
-	/* free the interrupt */
+	
 	free_irq(SGI_UART_VECTOR, sd);
 
-	/* ask SAL to close the subchannel */
+	
 	rv = ia64_sn_irtr_close(sd->sd_nasid, sd->sd_subch);
 
 	kfree(sd);
 	return rv;
 }
 
-/*
- * scdrv_read
- *
- * Called to read bytes from the open IRouter pipe.
- *
- */
+
 
 static inline int
 read_status_check(struct subch_data_s *sd, int *len)
@@ -163,27 +137,25 @@ scdrv_read(struct file *file, char __user *buf, size_t count, loff_t *f_pos)
 	unsigned long flags;
 	struct subch_data_s *sd = (struct subch_data_s *) file->private_data;
 
-	/* try to get control of the read buffer */
+	
 	if (down_trylock(&sd->sd_rbs)) {
-		/* somebody else has it now;
-		 * if we're non-blocking, then exit...
-		 */
+		
 		if (file->f_flags & O_NONBLOCK) {
 			return -EAGAIN;
 		}
-		/* ...or if we want to block, then do so here */
+		
 		if (down_interruptible(&sd->sd_rbs)) {
-			/* something went wrong with wait */
+			
 			return -ERESTARTSYS;
 		}
 	}
 
-	/* anything to read? */
+	
 	len = CHUNKSIZE;
 	spin_lock_irqsave(&sd->sd_rlock, flags);
 	status = read_status_check(sd, &len);
 
-	/* if not, and we're blocking I/O, loop */
+	
 	while (status < 0) {
 		DECLARE_WAITQUEUE(wait, current);
 
@@ -202,7 +174,7 @@ scdrv_read(struct file *file, char __user *buf, size_t count, loff_t *f_pos)
 
 		remove_wait_queue(&sd->sd_rq, &wait);
 		if (signal_pending(current)) {
-			/* wait was interrupted */
+			
 			up(&sd->sd_rbs);
 			return -ERESTARTSYS;
 		}
@@ -213,9 +185,7 @@ scdrv_read(struct file *file, char __user *buf, size_t count, loff_t *f_pos)
 	spin_unlock_irqrestore(&sd->sd_rlock, flags);
 
 	if (len > 0) {
-		/* we read something in the last read_status_check(); copy
-		 * it out to user space
-		 */
+		
 		if (count < len) {
 			pr_debug("%s: only accepting %d of %d bytes\n",
 				 __func__, (int) count, len);
@@ -225,22 +195,14 @@ scdrv_read(struct file *file, char __user *buf, size_t count, loff_t *f_pos)
 			len = -EFAULT;
 	}
 
-	/* release the read buffer and wake anyone who might be
-	 * waiting for it
-	 */
+	
 	up(&sd->sd_rbs);
 
-	/* return the number of characters read in */
+	
 	return len;
 }
 
-/*
- * scdrv_write
- *
- * Writes a chunk of an IRouter packet (or other system controller data)
- * to the system controller.
- *
- */
+
 static inline int
 write_status_check(struct subch_data_s *sd, int count)
 {
@@ -255,17 +217,15 @@ scdrv_write(struct file *file, const char __user *buf,
 	int status;
 	struct subch_data_s *sd = (struct subch_data_s *) file->private_data;
 
-	/* try to get control of the write buffer */
+	
 	if (down_trylock(&sd->sd_wbs)) {
-		/* somebody else has it now;
-		 * if we're non-blocking, then exit...
-		 */
+		
 		if (file->f_flags & O_NONBLOCK) {
 			return -EAGAIN;
 		}
-		/* ...or if we want to block, then do so here */
+		
 		if (down_interruptible(&sd->sd_wbs)) {
-			/* something went wrong with wait */
+			
 			return -ERESTARTSYS;
 		}
 	}
@@ -276,11 +236,11 @@ scdrv_write(struct file *file, const char __user *buf,
 		return -EFAULT;
 	}
 
-	/* try to send the buffer */
+	
 	spin_lock_irqsave(&sd->sd_wlock, flags);
 	status = write_status_check(sd, count);
 
-	/* if we failed, and we want to block, then loop */
+	
 	while (status <= 0) {
 		DECLARE_WAITQUEUE(wait, current);
 
@@ -298,7 +258,7 @@ scdrv_write(struct file *file, const char __user *buf,
 
 		remove_wait_queue(&sd->sd_wq, &wait);
 		if (signal_pending(current)) {
-			/* wait was interrupted */
+			
 			up(&sd->sd_wbs);
 			return -ERESTARTSYS;
 		}
@@ -308,12 +268,10 @@ scdrv_write(struct file *file, const char __user *buf,
 	}
 	spin_unlock_irqrestore(&sd->sd_wlock, flags);
 
-	/* release the write buffer and wake anyone who's waiting for it */
+	
 	up(&sd->sd_wbs);
 
-	/* return the number of characters accepted (should be the complete
-	 * "chunk" as requested)
-	 */
+	
 	if ((status >= 0) && (status < count)) {
 		pr_debug("Didn't accept the full chunk; %d of %d\n",
 			 status, (int) count);
@@ -361,12 +319,7 @@ static const struct file_operations scdrv_fops = {
 
 static struct class *snsc_class;
 
-/*
- * scdrv_init
- *
- * Called at boot time to initialize the system controller communication
- * facility.
- */
+
 int __init
 scdrv_init(void)
 {
@@ -401,7 +354,7 @@ scdrv_init(void)
 			sprintf(devnamep, "^%d#%d", geo_slot(geoid),
 				geo_slab(geoid));
 
-			/* allocate sysctl device data */
+			
 			scd = kzalloc(sizeof (struct sysctl_data_s),
 				      GFP_KERNEL);
 			if (!scd) {
@@ -411,7 +364,7 @@ scdrv_init(void)
 				continue;
 			}
 
-			/* initialize sysctl device data fields */
+			
 			scd->scd_nasid = cnodeid_to_nasid(cnode);
 			if (!(salbuf = kmalloc(SCDRV_BUFSZ, GFP_KERNEL))) {
 				printk("%s: failed to allocate driver buffer"
@@ -448,12 +401,10 @@ scdrv_init(void)
 				      "%s", devname);
 
 			ia64_sn_irtr_intr_enable(scd->scd_nasid,
-						 0 /*ignored */ ,
+						 0  ,
 						 SAL_IROUTER_INTR_RECV);
 
-                        /* on the console nasid, prepare to receive
-                         * system controller environmental events
-                         */
+                        
                         if(scd->scd_nasid == event_nasid) {
                                 scdrv_event_init(scd);
                         }

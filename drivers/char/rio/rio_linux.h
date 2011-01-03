@@ -1,28 +1,5 @@
 
-/*
- *  rio_linux.h
- *
- *  Copyright (C) 1998,1999,2000 R.E.Wolff@BitWizard.nl
- *
- *      This program is free software; you can redistribute it and/or modify
- *      it under the terms of the GNU General Public License as published by
- *      the Free Software Foundation; either version 2 of the License, or
- *      (at your option) any later version.
- *
- *      This program is distributed in the hope that it will be useful,
- *      but WITHOUT ANY WARRANTY; without even the implied warranty of
- *      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *      GNU General Public License for more details.
- *
- *      You should have received a copy of the GNU General Public License
- *      along with this program; if not, write to the Free Software
- *      Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- *  RIO serial driver.
- *
- *  Version 1.0 -- July, 1999. 
- * 
- */
+
 
 #define RIO_NBOARDS        4
 #define RIO_PORTSPERBOARD 128
@@ -65,7 +42,7 @@ struct vpd_prom {
       (O_VTDLY(tty))   ||\
       (O_FFDLY(tty)))
 
-/* Same for input. */
+
 #define I_OTHER(tty)    \
       ((I_INLCR(tty))  ||\
       (I_IGNCR(tty))   ||\
@@ -74,20 +51,19 @@ struct vpd_prom {
       (L_ISIG(tty)))
 
 
-#endif				/* __KERNEL__ */
+#endif				
 
 
 #define RIO_BOARD_INTR_LOCK  1
 
 
 #ifndef RIOCTL_MISC_MINOR
-/* Allow others to gather this into "major.h" or something like that */
+
 #define RIOCTL_MISC_MINOR    169
 #endif
 
 
-/* Allow us to debug "in the field" without requiring clients to
-   recompile.... */
+
 #if 1
 #define rio_spin_lock_irqsave(sem, flags) do { \
 	rio_dprintk (RIO_DEBUG_SPINLOCK, "spinlockirqsave: %p %s:%d\n", \
@@ -175,14 +151,7 @@ static inline void *rio_memcpy_fromio(void *dest, void __iomem *source, int n)
 #define DEBUG 1
 
 
-/* 
-   This driver can spew a whole lot of debugging output at you. If you
-   need maximum performance, you should disable the DEBUG define. To
-   aid in debugging in the field, I'm leaving the compile-time debug
-   features enabled, and disable them "runtime". That allows me to
-   instruct people with problems to enable debugging without requiring
-   them to recompile... 
-*/
+
 
 #ifdef DEBUG
 #define rio_dprintk(f, str...) do { if (rio_debug & f) printk (str);} while (0)
@@ -190,7 +159,7 @@ static inline void *rio_memcpy_fromio(void *dest, void __iomem *source, int n)
 #define func_exit()  rio_dprintk (RIO_DEBUG_FLOW, "rio: exit  %s\n", __func__)
 #define func_enter2() rio_dprintk (RIO_DEBUG_FLOW, "rio: enter %s (port %d)\n",__func__, port->line)
 #else
-#define rio_dprintk(f, str...)	/* nothing */
+#define rio_dprintk(f, str...)	
 #define func_enter()
 #define func_exit()
 #define func_enter2()

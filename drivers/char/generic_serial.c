@@ -1,23 +1,4 @@
-/*
- *  generic_serial.c
- *
- *  Copyright (C) 1998/1999 R.E.Wolff@BitWizard.nl
- *
- *  written for the SX serial driver.
- *     Contains the code that should be shared over all the serial drivers.
- *
- *  Credit for the idea to do it this way might go to Alan Cox. 
- *
- *
- *  Version 0.1 -- December, 1998. Initial version.
- *  Version 0.2 -- March, 1999.    Some more routines. Bugfixes. Etc.
- *  Version 0.5 -- August, 1999.   Some more fixes. Reformat for Linus.
- *
- *  BitWizard is actively maintaining this file. We sometimes find
- *  that someone submitted changes to this file. We really appreciate
- *  your help, but please submit changes through us. We're doing our
- *  best to be responsive.  -- REW
- * */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -38,7 +19,7 @@ static int gs_debug;
 #ifdef DEBUG
 #define gs_dprintk(f, str...) if (gs_debug & f) printk (str)
 #else
-#define gs_dprintk(f, str...) /* nothing */
+#define gs_dprintk(f, str...) 
 #endif
 
 #define func_enter() gs_dprintk (GS_DEBUG_FLOW, "gs: enter %s\n", __func__)
@@ -61,18 +42,18 @@ int gs_put_char(struct tty_struct * tty, unsigned char ch)
 
 	if (! (port->port.flags & ASYNC_INITIALIZED)) return 0;
 
-	/* Take a lock on the serial tranmit buffer! */
+	
 	mutex_lock(& port->port_write_mutex);
 
 	if (port->xmit_cnt >= SERIAL_XMIT_SIZE - 1) {
-		/* Sorry, buffer is full, drop character. Update statistics???? -- REW */
+		
 		mutex_unlock(&port->port_write_mutex);
 		return 0;
 	}
 
 	port->xmit_buf[port->xmit_head++] = ch;
 	port->xmit_head &= SERIAL_XMIT_SIZE - 1;
-	port->xmit_cnt++;  /* Characters in buffer */
+	port->xmit_cnt++;  
 
 	mutex_unlock(&port->port_write_mutex);
 	func_exit ();
@@ -80,12 +61,7 @@ int gs_put_char(struct tty_struct * tty, unsigned char ch)
 }
 
 
-/*
-> Problems to take into account are:
->       -1- Interrupts that empty part of the buffer.
->       -2- page faults on the access to userspace. 
->       -3- Other processes that are also trying to do a "write". 
-*/
+
 
 int gs_write(struct tty_struct * tty, 
                     const unsigned char *buf, int count)
@@ -103,28 +79,25 @@ int gs_write(struct tty_struct * tty,
 	if (! (port->port.flags & ASYNC_INITIALIZED))
 		return 0;
 
-	/* get exclusive "write" access to this port (problem 3) */
-	/* This is not a spinlock because we can have a disk access (page 
-		 fault) in copy_from_user */
+	
+	
 	mutex_lock(& port->port_write_mutex);
 
 	while (1) {
 
 		c = count;
  
-		/* This is safe because we "OWN" the "head". Noone else can 
-		   change the "head": we own the port_write_mutex. */
-		/* Don't overrun the end of the buffer */
+		
+		
 		t = SERIAL_XMIT_SIZE - port->xmit_head;
 		if (t < c) c = t;
  
-		/* This is safe because the xmit_cnt can only decrease. This 
-		   would increase "t", so we might copy too little chars. */
-		/* Don't copy past the "head" of the buffer */
+		
+		
 		t = SERIAL_XMIT_SIZE - 1 - port->xmit_cnt;
 		if (t < c) c = t;
  
-		/* Can't copy more? break out! */
+		
 		if (c <= 0) break;
 
 		memcpy (port->xmit_buf + port->xmit_head, buf, c);
@@ -210,7 +183,7 @@ static int gs_wait_tx_flushed (void * ptr, unsigned long timeout)
 	if (!port || port->xmit_cnt < 0 || !port->xmit_buf) {
 		gs_dprintk (GS_DEBUG_FLUSH, "ERROR: !port, !port->xmit_buf or prot->xmit_cnt < 0.\n");
 		func_exit();
-		return -EINVAL;  /* This is an error which we don't know how to handle. */
+		return -EINVAL;  
 	}
 
 	rcib = gs_real_chars_in_buffer(port->port.tty);
@@ -220,7 +193,7 @@ static int gs_wait_tx_flushed (void * ptr, unsigned long timeout)
 		func_exit();
 		return rv;
 	}
-	/* stop trying: now + twice the time it would normally take +  seconds */
+	
 	if (timeout == 0) timeout = MAX_SCHEDULE_TIMEOUT;
 	end_jiffies  = jiffies; 
 	if (timeout !=  MAX_SCHEDULE_TIMEOUT)
@@ -230,17 +203,14 @@ static int gs_wait_tx_flushed (void * ptr, unsigned long timeout)
 	gs_dprintk (GS_DEBUG_FLUSH, "now=%lx, end=%lx (%ld).\n", 
 		    jiffies, end_jiffies, end_jiffies-jiffies); 
 
-	/* the expression is actually jiffies < end_jiffies, but that won't
-	   work around the wraparound. Tricky eh? */
+	
 	while ((charsleft = gs_real_chars_in_buffer (port->port.tty)) &&
 	        time_after (end_jiffies, jiffies)) {
-		/* Units check: 
-		   chars * (bits/char) * (jiffies /sec) / (bits/sec) = jiffies!
-		   check! */
+		
 
-		charsleft += 16; /* Allow 16 chars more to be transmitted ... */
+		charsleft += 16; 
 		jiffies_to_transmit = port->baud?(1 + charsleft * 10 * HZ / port->baud):0;
-		/*                                ^^^ Round up.... */
+		
 		if (jiffies_to_transmit <= 0) jiffies_to_transmit = 1;
 
 		gs_dprintk (GS_DEBUG_FLUSH, "Expect to finish in %d jiffies "
@@ -274,7 +244,7 @@ void gs_flush_buffer(struct tty_struct *tty)
 
 	if (!port) return;
 
-	/* XXX Would the write semaphore do? */
+	
 	spin_lock_irqsave (&port->driver_lock, flags);
 	port->xmit_cnt = port->xmit_head = port->xmit_tail = 0;
 	spin_unlock_irqrestore (&port->driver_lock, flags);
@@ -300,7 +270,7 @@ void gs_flush_chars(struct tty_struct * tty)
 		return;
 	}
 
-	/* Beats me -- REW */
+	
 	port->port.flags |= GS_TX_INTEN;
 	port->rd->enable_tx_interrupts (port);
 	func_exit ();
@@ -417,10 +387,7 @@ int gs_block_til_ready(void *port_, struct file * filp)
 	tty = port->tty;
 
 	gs_dprintk (GS_DEBUG_BTR, "Entering gs_block_till_ready.\n"); 
-	/*
-	 * If the device is in the middle of being closed, then block
-	 * until it's done, and then try again.
-	 */
+	
 	if (tty_hung_up_p(filp) || port->flags & ASYNC_CLOSING) {
 		interruptible_sleep_on(&port->close_wait);
 		if (port->flags & ASYNC_HUP_NOTIFY)
@@ -431,10 +398,7 @@ int gs_block_til_ready(void *port_, struct file * filp)
 
 	gs_dprintk (GS_DEBUG_BTR, "after hung up\n"); 
 
-	/*
-	 * If non-blocking mode is set, or the port is not enabled,
-	 * then make the check up front and then exit.
-	 */
+	
 	if ((filp->f_flags & O_NONBLOCK) ||
 	    (tty->flags & (1 << TTY_IO_ERROR))) {
 		port->flags |= ASYNC_NORMAL_ACTIVE;
@@ -446,13 +410,7 @@ int gs_block_til_ready(void *port_, struct file * filp)
 	if (C_CLOCAL(tty))
 		do_clocal = 1;
 
-	/*
-	 * Block waiting for the carrier detect and the line to become
-	 * free (i.e., not in use by the callout).  While we are in
-	 * this loop, port->count is dropped by one, so that
-	 * rs_close() knows when to free things.  We restore it upon
-	 * exit, either normal or abnormal.
-	 */
+	
 	retval = 0;
 
 	add_wait_queue(&port->open_wait, &wait);
@@ -517,7 +475,7 @@ void gs_close(struct tty_struct * tty, struct file * filp)
 	if (!port) return;
 
 	if (!port->port.tty) {
-		/* This seems to happen when this is called from vhangup. */
+		
 		gs_dprintk (GS_DEBUG_CLOSE, "gs: Odd: port->port.tty is NULL\n");
 		port->port.tty = tty;
 	}
@@ -550,27 +508,18 @@ void gs_close(struct tty_struct * tty, struct file * filp)
 	}
 	port->port.flags |= ASYNC_CLOSING;
 
-	/*
-	 * Now we wait for the transmit buffer to clear; and we notify 
-	 * the line discipline to only process XON/XOFF characters.
-	 */
+	
 	tty->closing = 1;
-	/* if (port->closing_wait != ASYNC_CLOSING_WAIT_NONE)
-	   tty_wait_until_sent(tty, port->closing_wait); */
+	
 
-	/*
-	 * At this point we stop accepting input.  To do this, we
-	 * disable the receive line status interrupts, and tell the
-	 * interrupt driver to stop checking the data ready bit in the
-	 * line status register.
-	 */
+	
 
 	spin_lock_irqsave(&port->driver_lock, flags);
 	port->rd->disable_rx_interrupts (port);
 	spin_unlock_irqrestore(&port->driver_lock, flags);
 	spin_unlock_irqrestore(&port->port.lock, flags);
 
-	/* close has no way of returning "EINTR", so discard return value */
+	
 	if (port->closing_wait != ASYNC_CLOSING_WAIT_NONE)
 		gs_wait_tx_flushed (port, port->closing_wait);
 
@@ -619,7 +568,7 @@ void gs_set_termios (struct tty_struct * tty,
 
 	if (!port) return;
 	if (!port->port.tty) {
-		/* This seems to happen when this is called after gs_close. */
+		
 		gs_dprintk (GS_DEBUG_TERMIOS, "gs: Odd: port->port.tty is NULL\n");
 		port->port.tty = tty;
 	}
@@ -655,15 +604,11 @@ void gs_set_termios (struct tty_struct * tty,
 			baudrate = (port->baud_base / port->custom_divisor);
 	}
 
-	/* I recommend using THIS instead of the mess in termios (and
-	   duplicating the above code). Next we should create a clean
-	   interface towards this variable. If your card supports arbitrary
-	   baud rates, (e.g. CD1400 or 16550 based cards) then everything
-	   will be very easy..... */
+	
 	port->baud = baudrate;
 
-	/* Two timer ticks seems enough to wakeup something like SLIP driver */
-	/* Baudrate/10 is cps. Divide by HZ to get chars per tick. */
+	
+	
 	tmp = (baudrate / 10 / HZ) * 2;			 
 
 	if (tmp <                 0) tmp = 0;
@@ -671,13 +616,12 @@ void gs_set_termios (struct tty_struct * tty,
 
 	port->wakeup_chars = tmp;
 
-	/* We should really wait for the characters to be all sent before
-	   changing the settings. -- CAL */
+	
 	rv = gs_wait_tx_flushed (port, MAX_SCHEDULE_TIMEOUT);
-	if (rv < 0) return /* rv */;
+	if (rv < 0) return ;
 
 	rv = port->rd->set_real_termios(port);
-	if (rv < 0) return /* rv */;
+	if (rv < 0) return ;
 
 	if ((!old_termios || 
 	     (old_termios->c_cflag & CRTSCTS)) &&
@@ -687,7 +631,7 @@ void gs_set_termios (struct tty_struct * tty,
 	}
 
 #ifdef tytso_patch_94Nov25_1726
-	/* This "makes sense", Why is it commented out? */
+	
 
 	if (!(old_termios->c_cflag & CLOCAL) &&
 	    (tty->termios->c_cflag & CLOCAL))
@@ -695,12 +639,12 @@ void gs_set_termios (struct tty_struct * tty,
 #endif
 
 	func_exit();
-	return /* 0 */;
+	return ;
 }
 
 
 
-/* Must be called with interrupts enabled */
+
 int gs_init_port(struct gs_port *port)
 {
 	unsigned long flags;
@@ -712,7 +656,7 @@ int gs_init_port(struct gs_port *port)
 		return 0;
 	}
 	if (!port->xmit_buf) {
-		/* We may sleep in get_zeroed_page() */
+		
 		unsigned long tmp;
 
 		tmp = get_zeroed_page(GFP_KERNEL);
@@ -774,11 +718,9 @@ int gs_setserial(struct gs_port *port, struct serial_struct __user *sp)
 }
 
 
-/*****************************************************************************/
 
-/*
- *      Generate the serial struct info.
- */
+
+
 
 int gs_getserial(struct gs_port *port, struct serial_struct __user *sp)
 {
@@ -792,7 +734,7 @@ int gs_getserial(struct gs_port *port, struct serial_struct __user *sp)
 	sio.custom_divisor = port->custom_divisor;
 	sio.hub6 = 0;
 
-	/* If you want you can override these. */
+	
 	sio.type = PORT_UNKNOWN;
 	sio.xmit_fifo_size = -1;
 	sio.line = -1;
