@@ -1,16 +1,4 @@
-/*
- * wm831x-irq.c  --  Interrupt controller support for Wolfson WM831x PMICs
- *
- * Copyright 2009 Wolfson Microelectronics PLC.
- *
- * Author: Mark Brown <broonie@opensource.wolfsonmicro.com>
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -24,14 +12,7 @@
 
 #include <linux/delay.h>
 
-/*
- * Since generic IRQs don't currently support interrupt controllers on
- * interrupt driven buses we don't use genirq but instead provide an
- * interface that looks very much like the standard ones.  This leads
- * to some bodges, including storing interrupt handler information in
- * the static irq_data table we use to look up the data for individual
- * interrupts, but hopefully won't last too long.
- */
+
 
 struct wm831x_irq_data {
 	int primary;
@@ -434,8 +415,7 @@ static void wm831x_handle_irq(struct wm831x *wm831x, int irq, int status)
 	}
 }
 
-/* Main interrupt handling occurs in a workqueue since we need
- * interrupts enabled to interact with the chip. */
+
 static void wm831x_irq_worker(struct work_struct *work)
 {
 	struct wm831x *wm831x = container_of(work, struct wm831x, irq_work);
@@ -462,8 +442,7 @@ static void wm831x_irq_worker(struct work_struct *work)
 
 		status = &status_regs[offset];
 
-		/* Hopefully there should only be one register to read
-		 * each time otherwise we ought to do a block read. */
+		
 		if (!read[offset]) {
 			*status = wm831x_reg_read(wm831x,
 				     irq_data_to_status_reg(&wm831x_irqs[i]));
@@ -474,7 +453,7 @@ static void wm831x_irq_worker(struct work_struct *work)
 				goto out_lock;
 			}
 
-			/* Mask out the disabled IRQs */
+			
 			*status &= ~wm831x->irq_masks[offset];
 			read[offset] = 1;
 		}
@@ -494,8 +473,7 @@ static irqreturn_t wm831x_cpu_irq(int irq, void *data)
 {
 	struct wm831x *wm831x = data;
 
-	/* Shut the interrupt to the CPU up and schedule the actual
-	 * handler; we can't check that the IRQ is asserted. */
+	
 	disable_irq_nosync(irq);
 
 	queue_work(wm831x->irq_wq, &wm831x->irq_work);
@@ -525,23 +503,17 @@ int wm831x_irq_init(struct wm831x *wm831x, int irq)
 	wm831x->irq = irq;
 	INIT_WORK(&wm831x->irq_work, wm831x_irq_worker);
 
-	/* Mask the individual interrupt sources */
+	
 	for (i = 0; i < ARRAY_SIZE(wm831x->irq_masks); i++) {
 		wm831x->irq_masks[i] = 0xffff;
 		wm831x_reg_write(wm831x, WM831X_INTERRUPT_STATUS_1_MASK + i,
 				 0xffff);
 	}
 
-	/* Enable top level interrupts, we mask at secondary level */
+	
 	wm831x_reg_write(wm831x, WM831X_SYSTEM_INTERRUPTS_MASK, 0);
 
-	/* We're good to go.  We set IRQF_SHARED since there's a
-	 * chance the driver will interoperate with another driver but
-	 * the need to disable the IRQ while handing via I2C/SPI means
-	 * that this may break and performance will be impacted.  If
-	 * this does happen it's a hardware design issue and the only
-	 * other alternative would be polling.
-	 */
+	
 	ret = request_irq(irq, wm831x_cpu_irq, IRQF_TRIGGER_LOW | IRQF_SHARED,
 			  "wm831x", wm831x);
 	if (ret != 0) {

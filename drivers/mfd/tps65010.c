@@ -1,23 +1,4 @@
-/*
- * tps65010 - driver for tps6501x power management chips
- *
- * Copyright (C) 2004 Texas Instruments
- * Copyright (C) 2004-2005 David Brownell
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -37,7 +18,7 @@
 #include <asm/gpio.h>
 
 
-/*-------------------------------------------------------------------------*/
+
 
 #define	DRIVER_VERSION	"2 May 2005"
 #define	DRIVER_NAME	(tps65010_driver.driver.name)
@@ -47,22 +28,9 @@ MODULE_LICENSE("GPL");
 
 static struct i2c_driver tps65010_driver;
 
-/*-------------------------------------------------------------------------*/
 
-/* This driver handles a family of multipurpose chips, which incorporate
- * voltage regulators, lithium ion/polymer battery charging, GPIOs, LEDs,
- * and other features often needed in portable devices like cell phones
- * or digital cameras.
- *
- * The tps65011 and tps65013 have different voltage settings compared
- * to tps65010 and tps65012.  The tps65013 has a NO_CHG status/irq.
- * All except tps65010 have "wait" mode, possibly defaulted so that
- * battery-insert != device-on.
- *
- * We could distinguish between some models by checking VDCDC1.UVLO or
- * other registers, unless they've been changed already after powerup
- * as part of board setup by a bootloader.
- */
+
+
 enum tps_model {
 	TPS65010,
 	TPS65011,
@@ -83,7 +51,7 @@ struct tps65010 {
 #define	FLAG_VBUS_CHANGED	0
 #define	FLAG_IRQ_ENABLE		1
 
-	/* copies of last register state */
+	
 	u8			chgstatus, regstatus, chgconf;
 	u8			nmask1, nmask2;
 
@@ -94,7 +62,7 @@ struct tps65010 {
 
 #define	POWER_POLL_DELAY	msecs_to_jiffies(5000)
 
-/*-------------------------------------------------------------------------*/
+
 
 #if	defined(DEBUG) || defined(CONFIG_DEBUG_FS)
 
@@ -212,16 +180,12 @@ static int dbg_show(struct seq_file *s, void *_)
 
 	mutex_lock(&tps->lock);
 
-	/* FIXME how can we tell whether a battery is present?
-	 * likely involves a charge gauging chip (like BQ26501).
-	 */
+	
 
 	seq_printf(s, "%scharging\n\n", tps->charging ? "" : "(not) ");
 
 
-	/* registers for monitoring battery charging and status; note
-	 * that reading chgstat and regstat may ack IRQs...
-	 */
+	
 	value = i2c_smbus_read_byte_data(tps->client, TPS_CHGCONFIG);
 	dbg_chgconf(tps->por, buf, sizeof buf, value);
 	seq_printf(s, "chgconfig %s", buf);
@@ -232,7 +196,7 @@ static int dbg_show(struct seq_file *s, void *_)
 	value = i2c_smbus_read_byte_data(tps->client, TPS_MASK1);
 	dbg_chgstat(buf, sizeof buf, value);
 	seq_printf(s, "mask1     %s", buf);
-	/* ignore ackint1 */
+	
 
 	value = i2c_smbus_read_byte_data(tps->client, TPS_REGSTATUS);
 	dbg_regstat(buf, sizeof buf, value);
@@ -240,25 +204,25 @@ static int dbg_show(struct seq_file *s, void *_)
 	value = i2c_smbus_read_byte_data(tps->client, TPS_MASK2);
 	dbg_regstat(buf, sizeof buf, value);
 	seq_printf(s, "mask2     %s\n", buf);
-	/* ignore ackint2 */
+	
 
 	(void) schedule_delayed_work(&tps->work, POWER_POLL_DELAY);
 
 
-	/* VMAIN voltage, enable lowpower, etc */
+	
 	value = i2c_smbus_read_byte_data(tps->client, TPS_VDCDC1);
 	seq_printf(s, "vdcdc1    %02x\n", value);
 
-	/* VCORE voltage, vibrator on/off */
+	
 	value = i2c_smbus_read_byte_data(tps->client, TPS_VDCDC2);
 	seq_printf(s, "vdcdc2    %02x\n", value);
 
-	/* both LD0s, and their lowpower behavior */
+	
 	value = i2c_smbus_read_byte_data(tps->client, TPS_VREGS1);
 	seq_printf(s, "vregs1    %02x\n\n", value);
 
 
-	/* LEDs and GPIOs */
+	
 	value = i2c_smbus_read_byte_data(tps->client, TPS_LED1_ON);
 	v2 = i2c_smbus_read_byte_data(tps->client, TPS_LED1_PER);
 	seq_printf(s, "led1 %s, on=%02x, per=%02x, %d/%d msec\n",
@@ -314,19 +278,17 @@ static const struct file_operations debug_fops = {
 #define	DEBUG_FOPS	NULL
 #endif
 
-/*-------------------------------------------------------------------------*/
 
-/* handle IRQS in a task context, so we can use I2C calls */
+
+
 static void tps65010_interrupt(struct tps65010 *tps)
 {
 	u8 tmp = 0, mask, poll;
 
-	/* IRQs won't trigger for certain events, but we can get
-	 * others by polling (normally, with external power applied).
-	 */
+	
 	poll = 0;
 
-	/* regstatus irqs */
+	
 	if (tps->nmask2) {
 		tmp = i2c_smbus_read_byte_data(tps->client, TPS_REGSTATUS);
 		mask = tmp ^ tps->regstatus;
@@ -336,24 +298,20 @@ static void tps65010_interrupt(struct tps65010 *tps)
 		mask = 0;
 	if (mask) {
 		tps->regstatus =  tmp;
-		/* may need to shut something down ... */
+		
 
-		/* "off" usually means deep sleep */
+		
 		if (tmp & TPS_REG_ONOFF) {
 			pr_info("%s: power off button\n", DRIVER_NAME);
 #if 0
-			/* REVISIT:  this might need its own workqueue
-			 * plus tweaks including deadlock avoidance ...
-			 * also needs to get error handling and probably
-			 * an #ifdef CONFIG_HIBERNATION
-			 */
+			
 			hibernate();
 #endif
 			poll = 1;
 		}
 	}
 
-	/* chgstatus irqs */
+	
 	if (tps->nmask1) {
 		tmp = i2c_smbus_read_byte_data(tps->client, TPS_CHGSTATUS);
 		mask = tmp ^ tps->chgstatus;
@@ -368,16 +326,13 @@ static void tps65010_interrupt(struct tps65010 *tps)
 		if (tmp & (TPS_CHG_USB|TPS_CHG_AC))
 			show_chgconfig(tps->por, "conf", tps->chgconf);
 
-		/* Unless it was turned off or disabled, we charge any
-		 * battery whenever there's power available for it
-		 * and the charger hasn't been disabled.
-		 */
+		
 		if (!(tps->chgstatus & ~(TPS_CHG_USB|TPS_CHG_AC))
 				&& (tps->chgstatus & (TPS_CHG_USB|TPS_CHG_AC))
 				&& (tps->chgconf & TPS_CHARGE_ENABLE)
 				) {
 			if (tps->chgstatus & TPS_CHG_USB) {
-				/* VBUS options are readonly until reconnect */
+				
 				if (mask & TPS_CHG_USB)
 					set_bit(FLAG_VBUS_CHANGED, &tps->flags);
 				charging = 1;
@@ -393,19 +348,17 @@ static void tps65010_interrupt(struct tps65010 *tps)
 		}
 	}
 
-	/* always poll to detect (a) power removal, without tps65013
-	 * NO_CHG IRQ; or (b) restart of charging after stop.
-	 */
+	
 	if ((tps->model != TPS65013 || !tps->charging)
 			&& (tps->chgstatus & (TPS_CHG_USB|TPS_CHG_AC)))
 		poll = 1;
 	if (poll)
 		(void) schedule_delayed_work(&tps->work, POWER_POLL_DELAY);
 
-	/* also potentially gpio-in rise or fall */
+	
 }
 
-/* handle IRQs and polling using keventd for now */
+
 static void tps65010_work(struct work_struct *work)
 {
 	struct tps65010		*tps;
@@ -430,7 +383,7 @@ static void tps65010_work(struct work_struct *work)
 		status = i2c_smbus_write_byte_data(tps->client,
 				TPS_CHGCONFIG, chgconfig);
 
-		/* vbus update fails unless VBUS is connected! */
+		
 		tmp = i2c_smbus_read_byte_data(tps->client, TPS_CHGCONFIG);
 		tps->chgconf = tmp;
 		show_chgconfig(tps->por, "update vbus", tmp);
@@ -452,12 +405,9 @@ static irqreturn_t tps65010_irq(int irq, void *_tps)
 	return IRQ_HANDLED;
 }
 
-/*-------------------------------------------------------------------------*/
 
-/* offsets 0..3 == GPIO1..GPIO4
- * offsets 4..5 == LED1/nPG, LED2 (we set one of the non-BLINK modes)
- * offset 6 == vibrator motor driver
- */
+
+
 static void
 tps65010_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
 {
@@ -472,7 +422,7 @@ tps65010_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
 static int
 tps65010_output(struct gpio_chip *chip, unsigned offset, int value)
 {
-	/* GPIOs may be input-only */
+	
 	if (offset < 4) {
 		struct tps65010		*tps;
 
@@ -499,18 +449,18 @@ static int tps65010_gpio_get(struct gpio_chip *chip, unsigned offset)
 		value = i2c_smbus_read_byte_data(tps->client, TPS_DEFGPIO);
 		if (value < 0)
 			return 0;
-		if (value & (1 << (offset + 4)))	/* output */
+		if (value & (1 << (offset + 4)))	
 			return !(value & (1 << offset));
-		else					/* input */
+		else					
 			return (value & (1 << offset));
 	}
 
-	/* REVISIT we *could* report LED1/nPG and LED2 state ... */
+	
 	return 0;
 }
 
 
-/*-------------------------------------------------------------------------*/
+
 
 static struct tps65010 *the_tps;
 
@@ -560,9 +510,7 @@ static int tps65010_probe(struct i2c_client *client,
 	tps->client = client;
 	tps->model = id->driver_data;
 
-	/* the IRQ is active low, but many gpio lines can't support that
-	 * so this driver uses falling-edge triggers instead.
-	 */
+	
 	if (client->irq > 0) {
 		status = request_irq(client->irq, tps65010_irq,
 			IRQF_SAMPLE_RANDOM | IRQF_TRIGGER_FALLING,
@@ -572,10 +520,7 @@ static int tps65010_probe(struct i2c_client *client,
 					client->irq, status);
 			goto fail1;
 		}
-		/* annoying race here, ideally we'd have an option
-		 * to claim the irq now and enable it later.
-		 * FIXME genirq IRQF_NOAUTOEN now solves that ...
-		 */
+		
 		disable_irq(client->irq);
 		set_bit(FLAG_IRQ_ENABLE, &tps->flags);
 	} else
@@ -587,7 +532,7 @@ static int tps65010_probe(struct i2c_client *client,
 	case TPS65012:
 		tps->por = 1;
 		break;
-	/* else CHGCONFIG.POR is replaced by AUA, enabling a WAIT mode */
+	
 	}
 	tps->chgconf = i2c_smbus_read_byte_data(client, TPS_CHGCONFIG);
 	show_chgconfig(tps->por, "conf/init", tps->chgconf);
@@ -609,17 +554,11 @@ static int tps65010_probe(struct i2c_client *client,
 	the_tps = tps;
 
 #if	defined(CONFIG_USB_GADGET) && !defined(CONFIG_USB_OTG)
-	/* USB hosts can't draw VBUS.  OTG devices could, later
-	 * when OTG infrastructure enables it.  USB peripherals
-	 * could be relying on VBUS while booting, though.
-	 */
+	
 	tps->vbus = 100;
 #endif
 
-	/* unmask the "interesting" irqs, then poll once to
-	 * kickstart monitoring, initialize shadowed status
-	 * registers, and maybe disable VBUS draw.
-	 */
+	
 	tps->nmask1 = ~0;
 	(void) i2c_smbus_write_byte_data(client, TPS_MASK1, ~tps->nmask1);
 
@@ -636,7 +575,7 @@ static int tps65010_probe(struct i2c_client *client,
 	tps->file = debugfs_create_file(DRIVER_NAME, S_IRUGO, NULL,
 				tps, DEBUG_FOPS);
 
-	/* optionally register GPIOs */
+	
 	if (board && board->base > 0) {
 		tps->outmask = board->outmask;
 
@@ -647,7 +586,7 @@ static int tps65010_probe(struct i2c_client *client,
 		tps->chip.set = tps65010_gpio_set;
 		tps->chip.direction_output = tps65010_output;
 
-		/* NOTE:  only partial support for inputs; nyet IRQs */
+		
 		tps->chip.get = tps65010_gpio_get;
 
 		tps->chip.base = board->base;
@@ -680,7 +619,7 @@ static const struct i2c_device_id tps65010_id[] = {
 	{ "tps65011", TPS65011 },
 	{ "tps65012", TPS65012 },
 	{ "tps65013", TPS65013 },
-	{ "tps65014", TPS65011 },	/* tps65011 charging at 6.5V max */
+	{ "tps65014", TPS65011 },	
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, tps65010_id);
@@ -694,13 +633,9 @@ static struct i2c_driver tps65010_driver = {
 	.id_table = tps65010_id,
 };
 
-/*-------------------------------------------------------------------------*/
 
-/* Draw from VBUS:
- *   0 mA -- DON'T DRAW (might supply power instead)
- * 100 mA -- usb unit load (slowest charge rate)
- * 500 mA -- usb high power (fast battery charge)
- */
+
+
 int tps65010_set_vbus_draw(unsigned mA)
 {
 	unsigned long	flags;
@@ -708,7 +643,7 @@ int tps65010_set_vbus_draw(unsigned mA)
 	if (!the_tps)
 		return -ENODEV;
 
-	/* assumes non-SMP */
+	
 	local_irq_save(flags);
 	if (mA >= 500)
 		mA = 500;
@@ -720,7 +655,7 @@ int tps65010_set_vbus_draw(unsigned mA)
 	if ((the_tps->chgstatus & TPS_CHG_USB)
 			&& test_and_set_bit(
 				FLAG_VBUS_CHANGED, &the_tps->flags)) {
-		/* gadget drivers call this in_irq() */
+		
 		(void) schedule_work(&the_tps->work.work);
 	}
 	local_irq_restore(flags);
@@ -729,11 +664,8 @@ int tps65010_set_vbus_draw(unsigned mA)
 }
 EXPORT_SYMBOL(tps65010_set_vbus_draw);
 
-/*-------------------------------------------------------------------------*/
-/* tps65010_set_gpio_out_value parameter:
- * gpio:  GPIO1, GPIO2, GPIO3 or GPIO4
- * value: LOW or HIGH
- */
+
+
 int tps65010_set_gpio_out_value(unsigned gpio, unsigned value)
 {
 	int	 status;
@@ -748,17 +680,17 @@ int tps65010_set_gpio_out_value(unsigned gpio, unsigned value)
 
 	defgpio = i2c_smbus_read_byte_data(the_tps->client, TPS_DEFGPIO);
 
-	/* Configure GPIO for output */
+	
 	defgpio |= 1 << (gpio + 3);
 
-	/* Writing 1 forces a logic 0 on that GPIO and vice versa */
+	
 	switch (value) {
 	case LOW:
-		defgpio |= 1 << (gpio - 1);    /* set GPIO low by writing 1 */
+		defgpio |= 1 << (gpio - 1);    
 		break;
-	/* case HIGH: */
+	
 	default:
-		defgpio &= ~(1 << (gpio - 1)); /* set GPIO high by writing 0 */
+		defgpio &= ~(1 << (gpio - 1)); 
 		break;
 	}
 
@@ -774,11 +706,8 @@ int tps65010_set_gpio_out_value(unsigned gpio, unsigned value)
 }
 EXPORT_SYMBOL(tps65010_set_gpio_out_value);
 
-/*-------------------------------------------------------------------------*/
-/* tps65010_set_led parameter:
- * led:  LED1 or LED2
- * mode: ON, OFF or BLINK
- */
+
+
 int tps65010_set_led(unsigned led, unsigned mode)
 {
 	int	 status;
@@ -857,10 +786,8 @@ int tps65010_set_led(unsigned led, unsigned mode)
 }
 EXPORT_SYMBOL(tps65010_set_led);
 
-/*-------------------------------------------------------------------------*/
-/* tps65010_set_vib parameter:
- * value: ON or OFF
- */
+
+
 int tps65010_set_vib(unsigned value)
 {
 	int	 status;
@@ -885,10 +812,8 @@ int tps65010_set_vib(unsigned value)
 }
 EXPORT_SYMBOL(tps65010_set_vib);
 
-/*-------------------------------------------------------------------------*/
-/* tps65010_set_low_pwr parameter:
- * mode: ON or OFF
- */
+
+
 int tps65010_set_low_pwr(unsigned mode)
 {
 	int	 status;
@@ -907,11 +832,11 @@ int tps65010_set_low_pwr(unsigned mode)
 
 	switch (mode) {
 	case OFF:
-		vdcdc1 &= ~TPS_ENABLE_LP; /* disable ENABLE_LP bit */
+		vdcdc1 &= ~TPS_ENABLE_LP; 
 		break;
-	/* case ON: */
+	
 	default:
-		vdcdc1 |= TPS_ENABLE_LP;  /* enable ENABLE_LP bit */
+		vdcdc1 |= TPS_ENABLE_LP;  
 		break;
 	}
 
@@ -931,11 +856,8 @@ int tps65010_set_low_pwr(unsigned mode)
 }
 EXPORT_SYMBOL(tps65010_set_low_pwr);
 
-/*-------------------------------------------------------------------------*/
-/* tps65010_config_vregs1 parameter:
- * value to be written to VREGS1 register
- * Note: The complete register is written, set all bits you need
- */
+
+
 int tps65010_config_vregs1(unsigned value)
 {
 	int	 status;
@@ -964,13 +886,10 @@ int tps65010_config_vregs1(unsigned value)
 }
 EXPORT_SYMBOL(tps65010_config_vregs1);
 
-/*-------------------------------------------------------------------------*/
-/* tps65013_set_low_pwr parameter:
- * mode: ON or OFF
- */
 
-/* FIXME: Assumes AC or USB power is present. Setting AUA bit is not
-	required if power supply is through a battery */
+
+
+
 
 int tps65013_set_low_pwr(unsigned mode)
 {
@@ -993,13 +912,13 @@ int tps65013_set_low_pwr(unsigned mode)
 
 	switch (mode) {
 	case OFF:
-		chgconfig &= ~TPS65013_AUA; /* disable AUA bit */
-		vdcdc1 &= ~TPS_ENABLE_LP; /* disable ENABLE_LP bit */
+		chgconfig &= ~TPS65013_AUA; 
+		vdcdc1 &= ~TPS_ENABLE_LP; 
 		break;
-	/* case ON: */
+	
 	default:
-		chgconfig |= TPS65013_AUA;  /* enable AUA bit */
-		vdcdc1 |= TPS_ENABLE_LP;  /* enable ENABLE_LP bit */
+		chgconfig |= TPS65013_AUA;  
+		vdcdc1 |= TPS_ENABLE_LP;  
 		break;
 	}
 
@@ -1032,7 +951,7 @@ int tps65013_set_low_pwr(unsigned mode)
 }
 EXPORT_SYMBOL(tps65013_set_low_pwr);
 
-/*-------------------------------------------------------------------------*/
+
 
 static int __init tps_init(void)
 {
@@ -1041,7 +960,7 @@ static int __init tps_init(void)
 
 	printk(KERN_INFO "%s: version %s\n", DRIVER_NAME, DRIVER_VERSION);
 
-	/* some boards have startup glitches */
+	
 	while (tries--) {
 		status = i2c_add_driver(&tps65010_driver);
 		if (the_tps)
@@ -1057,11 +976,7 @@ static int __init tps_init(void)
 
 	return status;
 }
-/* NOTE:  this MUST be initialized before the other parts of the system
- * that rely on it ... but after the i2c bus on which this relies.
- * That is, much earlier than on PC-type systems, which don't often use
- * I2C as a core system bus.
- */
+
 subsys_initcall(tps_init);
 
 static void __exit tps_exit(void)

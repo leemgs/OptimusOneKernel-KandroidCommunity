@@ -1,24 +1,4 @@
-/*
- * Core functions for:
- *  Philips UCB1400 multifunction chip
- *
- * Based on ucb1400_ts.c:
- *  Author:	Nicolas Pitre
- *  Created:	September 25, 2006
- *  Copyright:	MontaVista Software, Inc.
- *
- * Spliting done by: Marek Vasut <marek.vasut@gmail.com>
- * If something doesnt work and it worked before spliting, e-mail me,
- * dont bother Nicolas please ;-)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This code is heavily based on ucb1x00-*.c copyrighted by Russell King
- * covering the UCB1100, UCB1200 and UCB1300..  Support for the UCB1400 has
- * been made separate from ucb1x00-core/ucb1x00-ts on Russell's request.
- */
+
 
 #include <linux/module.h>
 #include <linux/sched.h>
@@ -71,7 +51,7 @@ static int ucb1400_core_probe(struct device *dev)
 		goto err0;
 	}
 
-	/* GPIO */
+	
 	ucb_gpio.ac97 = ac97;
 	ucb->ucb1400_gpio = platform_device_alloc("ucb1400_gpio", -1);
 	if (!ucb->ucb1400_gpio) {
@@ -86,7 +66,7 @@ static int ucb1400_core_probe(struct device *dev)
 	if (err)
 		goto err1;
 
-	/* TOUCHSCREEN */
+	
 	ucb_ts.ac97 = ac97;
 	ucb->ucb1400_ts = platform_device_alloc("ucb1400_ts", -1);
 	if (!ucb->ucb1400_ts) {

@@ -1,28 +1,4 @@
-/*
- * linux/drivers/i2c/chips/twl4030-power.c
- *
- * Handle TWL4030 Power initialization
- *
- * Copyright (C) 2008 Nokia Corporation
- * Copyright (C) 2006 Texas Instruments, Inc
- *
- * Written by 	Kalle Jokiniemi
- *		Peter De Schrijver <peter.de-schrijver@nokia.com>
- * Several fixes by Amit Kucheria <amit.kucheria@verdurent.com>
- *
- * This file is subject to the terms and conditions of the GNU General
- * Public License. See the file "COPYING" in the main directory of this
- * archive for more details.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/module.h>
 #include <linux/pm.h>
@@ -39,10 +15,10 @@ static u8 twl4030_start_script_address = 0x2b;
 #define PHY_TO_OFF_PM_MASTER(p)		(p - 0x36)
 #define PHY_TO_OFF_PM_RECEIVER(p)	(p - 0x5b)
 
-/* resource - hfclk */
+
 #define R_HFCLKOUT_DEV_GRP 	PHY_TO_OFF_PM_RECEIVER(0xe6)
 
-/* PM events */
+
 #define R_P1_SW_EVENTS		PHY_TO_OFF_PM_MASTER(0x46)
 #define R_P2_SW_EVENTS		PHY_TO_OFF_PM_MASTER(0x47)
 #define R_P3_SW_EVENTS		PHY_TO_OFF_PM_MASTER(0x48)
@@ -67,12 +43,12 @@ static u8 twl4030_start_script_address = 0x2b;
 #define R_KEY_1			0xC0
 #define R_KEY_2			0x0C
 
-/* resource configuration registers */
+
 
 #define DEVGROUP_OFFSET		0
 #define TYPE_OFFSET		1
 
-/* Bit positions */
+
 #define DEVGROUP_SHIFT		5
 #define DEVGROUP_MASK		(7 << DEVGROUP_SHIFT)
 #define TYPE_SHIFT		0
@@ -175,13 +151,13 @@ static int __init twl4030_config_wakeup3_sequence(u8 address)
 	int err;
 	u8 data;
 
-	/* Set SLEEP to ACTIVE SEQ address for P3 */
+	
 	err = twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, address,
 				R_SEQ_ADD_S2A3);
 	if (err)
 		goto out;
 
-	/* P3 LVL_WAKEUP should be on LEVEL */
+	
 	err = twl4030_i2c_read_u8(TWL4030_MODULE_PM_MASTER, &data,
 				R_P3_SW_EVENTS);
 	if (err)
@@ -200,13 +176,13 @@ static int __init twl4030_config_wakeup12_sequence(u8 address)
 	int err = 0;
 	u8 data;
 
-	/* Set SLEEP to ACTIVE SEQ address for P1 and P2 */
+	
 	err = twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, address,
 				R_SEQ_ADD_S2A12);
 	if (err)
 		goto out;
 
-	/* P1/P2 LVL_WAKEUP should be on LEVEL */
+	
 	err = twl4030_i2c_read_u8(TWL4030_MODULE_PM_MASTER, &data,
 				R_P1_SW_EVENTS);
 	if (err)
@@ -230,7 +206,7 @@ static int __init twl4030_config_wakeup12_sequence(u8 address)
 		goto out;
 
 	if (machine_is_omap_3430sdp() || machine_is_omap_ldp()) {
-		/* Disabling AC charger effect on sleep-active transitions */
+		
 		err = twl4030_i2c_read_u8(TWL4030_MODULE_PM_MASTER, &data,
 					R_CFG_P1_TRANSITION);
 		if (err)
@@ -253,7 +229,7 @@ static int __init twl4030_config_sleep_sequence(u8 address)
 {
 	int err;
 
-	/* Set ACTIVE to SLEEP SEQ address in T2 memory*/
+	
 	err = twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, address,
 				R_SEQ_ADD_A2S);
 
@@ -268,13 +244,13 @@ static int __init twl4030_config_warmreset_sequence(u8 address)
 	int err;
 	u8 rd_data;
 
-	/* Set WARM RESET SEQ address for P1 */
+	
 	err = twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, address,
 				R_SEQ_ADD_WARM);
 	if (err)
 		goto out;
 
-	/* P1/P2/P3 enable WARMRESET */
+	
 	err = twl4030_i2c_read_u8(TWL4030_MODULE_PM_MASTER, &rd_data,
 				R_P1_SW_EVENTS);
 	if (err)
@@ -326,7 +302,7 @@ static int __init twl4030_configure_resource(struct twl4030_resconfig *rconfig)
 
 	rconfig_addr = res_config_addrs[rconfig->resource];
 
-	/* Set resource group */
+	
 	err = twl4030_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &grp,
 				rconfig_addr + DEVGROUP_OFFSET);
 	if (err) {
@@ -346,7 +322,7 @@ static int __init twl4030_configure_resource(struct twl4030_resconfig *rconfig)
 		}
 	}
 
-	/* Set resource types */
+	
 	err = twl4030_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &type,
 				rconfig_addr + TYPE_OFFSET);
 	if (err < 0) {
@@ -381,7 +357,7 @@ static int __init load_twl4030_script(struct twl4030_script *tscript,
 	int err;
 	static int order;
 
-	/* Make sure the script isn't going beyond last valid address (0x3f) */
+	
 	if ((address + tscript->size) > END_OF_SCRIPT) {
 		pr_err("TWL4030 scripts too big error\n");
 		return -EINVAL;

@@ -1,16 +1,4 @@
-/* NXP PCF50633 Power Management Unit (PMU) driver
- *
- * (C) 2006-2008 by Openmoko, Inc.
- * Author: Harald Welte <laforge@openmoko.org>
- * 	   Balaji Rao <balajirrao@openmoko.org>
- * All rights reserved.
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/device.h>
@@ -25,7 +13,7 @@
 
 #include <linux/mfd/pcf50633/core.h>
 
-/* Two MBCS registers used during cold start */
+
 #define PCF50633_REG_MBCS1		0x4b
 #define PCF50633_REG_MBCS2		0x4c
 #define PCF50633_MBCS1_USBPRES 		0x01
@@ -56,7 +44,7 @@ static int __pcf50633_write(struct pcf50633 *pcf, u8 reg, int num, u8 *data)
 
 }
 
-/* Read a block of upto 32 regs  */
+
 int pcf50633_read_block(struct pcf50633 *pcf, u8 reg,
 					int nr_regs, u8 *data)
 {
@@ -70,7 +58,7 @@ int pcf50633_read_block(struct pcf50633 *pcf, u8 reg,
 }
 EXPORT_SYMBOL_GPL(pcf50633_read_block);
 
-/* Write a block of upto 32 regs  */
+
 int pcf50633_write_block(struct pcf50633 *pcf , u8 reg,
 					int nr_regs, u8 *data)
 {
@@ -151,7 +139,7 @@ out:
 }
 EXPORT_SYMBOL_GPL(pcf50633_reg_clear_bits);
 
-/* sysfs attributes */
+
 static ssize_t show_dump_regs(struct device *dev, struct device_attribute *attr,
 			    char *buf)
 {
@@ -159,13 +147,13 @@ static ssize_t show_dump_regs(struct device *dev, struct device_attribute *attr,
 	u8 dump[16];
 	int n, n1, idx = 0;
 	char *buf1 = buf;
-	static u8 address_no_read[] = { /* must be ascending */
+	static u8 address_no_read[] = { 
 		PCF50633_REG_INT1,
 		PCF50633_REG_INT2,
 		PCF50633_REG_INT3,
 		PCF50633_REG_INT4,
 		PCF50633_REG_INT5,
-		0 /* terminator */
+		0 
 	};
 
 	for (n = 0; n < 256; n += sizeof(dump)) {
@@ -210,7 +198,7 @@ static struct attribute *pcf_sysfs_entries[] = {
 };
 
 static struct attribute_group pcf_attr_group = {
-	.name	= NULL,			/* put in device directory */
+	.name	= NULL,			
 	.attrs	= pcf_sysfs_entries,
 };
 
@@ -321,7 +309,7 @@ static void pcf50633_irq_call_handler(struct pcf50633 *pcf, int irq)
 		pcf->irq_handler[irq].handler(irq, pcf->irq_handler[irq].data);
 }
 
-/* Maximum amount of time ONKEY is held before emergency action is taken */
+
 #define PCF50633_ONKEY1S_TIMEOUT 8
 
 static void pcf50633_irq_worker(struct work_struct *work)
@@ -332,21 +320,17 @@ static void pcf50633_irq_worker(struct work_struct *work)
 
 	pcf = container_of(work, struct pcf50633, irq_work);
 
-	/* Read the 5 INT regs in one transaction */
+	
 	ret = pcf50633_read_block(pcf, PCF50633_REG_INT1,
 						ARRAY_SIZE(pcf_int), pcf_int);
 	if (ret != ARRAY_SIZE(pcf_int)) {
 		dev_err(pcf->dev, "Error reading INT registers\n");
 
-		/*
-		 * If this doesn't ACK the interrupt to the chip, we'll be
-		 * called once again as we're level triggered.
-		 */
+		
 		goto out;
 	}
 
-	/* We immediately read the usb and adapter status. We thus make sure
-	 * only of USBINS/USBREM IRQ handlers are called */
+	
 	if (pcf_int[0] & (PCF50633_INT1_USBINS | PCF50633_INT1_USBREM)) {
 		chgstat = pcf50633_reg_read(pcf, PCF50633_REG_MBCS2);
 		if (chgstat & (0x3 << 4))
@@ -355,7 +339,7 @@ static void pcf50633_irq_worker(struct work_struct *work)
 			pcf_int[0] &= ~(1 << PCF50633_INT1_USBINS);
 	}
 
-	/* Make sure only one of ADPINS or ADPREM is set */
+	
 	if (pcf_int[0] & (PCF50633_INT1_ADPINS | PCF50633_INT1_ADPREM)) {
 		chgstat = pcf50633_reg_read(pcf, PCF50633_REG_MBCS2);
 		if (chgstat & (0x3 << 4))
@@ -368,8 +352,7 @@ static void pcf50633_irq_worker(struct work_struct *work)
 			"INT4=0x%02x INT5=0x%02x\n", pcf_int[0],
 			pcf_int[1], pcf_int[2], pcf_int[3], pcf_int[4]);
 
-	/* Some revisions of the chip don't have a 8s standby mode on
-	 * ONKEY1S press. We try to manually do it in such cases. */
+	
 	if ((pcf_int[0] & PCF50633_INT1_SECOND) && pcf->onkey1s_held) {
 		dev_info(pcf->dev, "ONKEY1S held for %d secs\n",
 							pcf->onkey1s_held);
@@ -382,11 +365,11 @@ static void pcf50633_irq_worker(struct work_struct *work)
 		dev_info(pcf->dev, "ONKEY1S held\n");
 		pcf->onkey1s_held = 1 ;
 
-		/* Unmask IRQ_SECOND */
+		
 		pcf50633_reg_clear_bits(pcf, PCF50633_REG_INT1M,
 						PCF50633_INT1_SECOND);
 
-		/* Unmask IRQ_ONKEYR */
+		
 		pcf50633_reg_clear_bits(pcf, PCF50633_REG_INT2M,
 						PCF50633_INT2_ONKEYR);
 	}
@@ -394,7 +377,7 @@ static void pcf50633_irq_worker(struct work_struct *work)
 	if ((pcf_int[1] & PCF50633_INT2_ONKEYR) && pcf->onkey1s_held) {
 		pcf->onkey1s_held = 0;
 
-		/* Mask SECOND and ONKEYR interrupts */
+		
 		if (pcf->mask_regs[0] & PCF50633_INT1_SECOND)
 			pcf50633_reg_set_bit_mask(pcf,
 					PCF50633_REG_INT1M,
@@ -408,22 +391,21 @@ static void pcf50633_irq_worker(struct work_struct *work)
 					PCF50633_INT2_ONKEYR);
 	}
 
-	/* Have we just resumed ? */
+	
 	if (pcf->is_suspended) {
 		pcf->is_suspended = 0;
 
-		/* Set the resume reason filtering out non resumers */
+		
 		for (i = 0; i < ARRAY_SIZE(pcf_int); i++)
 			pcf->resume_reason[i] = pcf_int[i] &
 						pcf->pdata->resumers[i];
 
-		/* Make sure we don't pass on any ONKEY events to
-		 * userspace now */
+		
 		pcf_int[1] &= ~(PCF50633_INT2_ONKEYR | PCF50633_INT2_ONKEYF);
 	}
 
 	for (i = 0; i < ARRAY_SIZE(pcf_int); i++) {
-		/* Unset masked interrupts */
+		
 		pcf_int[i] &= ~pcf->mask_regs[i];
 
 		for (j = 0; j < 8 ; j++)
@@ -490,14 +472,13 @@ static int pcf50633_suspend(struct device *dev, pm_message_t state)
 
 	pcf = dev_get_drvdata(dev);
 
-	/* Make sure our interrupt handlers are not called
-	 * henceforth */
+	
 	disable_irq(pcf->irq);
 
-	/* Make sure that any running IRQ worker has quit */
+	
 	cancel_work_sync(&pcf->irq_work);
 
-	/* Save the masks */
+	
 	ret = pcf50633_read_block(pcf, PCF50633_REG_INT1M,
 				ARRAY_SIZE(pcf->suspend_irq_masks),
 					pcf->suspend_irq_masks);
@@ -506,7 +487,7 @@ static int pcf50633_suspend(struct device *dev, pm_message_t state)
 		goto out;
 	}
 
-	/* Write wakeup irq masks */
+	
 	for (i = 0; i < ARRAY_SIZE(res); i++)
 		res[i] = ~pcf->pdata->resumers[i];
 
@@ -530,22 +511,19 @@ static int pcf50633_resume(struct device *dev)
 
 	pcf = dev_get_drvdata(dev);
 
-	/* Write the saved mask registers */
+	
 	ret = pcf50633_write_block(pcf, PCF50633_REG_INT1M,
 				ARRAY_SIZE(pcf->suspend_irq_masks),
 					pcf->suspend_irq_masks);
 	if (ret < 0)
 		dev_err(pcf->dev, "Error restoring saved suspend masks\n");
 
-	/* Restore regulators' state */
+	
 
 
 	get_device(pcf->dev);
 
-	/*
-	 * Clear any pending interrupts and set resume reason if any.
-	 * This will leave with enable_irq()
-	 */
+	
 	pcf50633_irq_worker(&pcf->irq_work);
 
 	return 0;
@@ -590,7 +568,7 @@ static int __devinit pcf50633_probe(struct i2c_client *client,
 	dev_info(pcf->dev, "Probed device version %d variant %d\n",
 							version, variant);
 
-	/* Enable all interrupts except RTC SECOND */
+	
 	pcf->mask_regs[0] = 0x80;
 	pcf50633_reg_write(pcf, PCF50633_REG_INT1M, pcf->mask_regs[0]);
 	pcf50633_reg_write(pcf, PCF50633_REG_INT2M, 0x00);
@@ -598,7 +576,7 @@ static int __devinit pcf50633_probe(struct i2c_client *client,
 	pcf50633_reg_write(pcf, PCF50633_REG_INT4M, 0x00);
 	pcf50633_reg_write(pcf, PCF50633_REG_INT5M, 0x00);
 
-	/* Create sub devices */
+	
 	pcf50633_client_dev_register(pcf, "pcf50633-input",
 						&pcf->input_pdev);
 	pcf50633_client_dev_register(pcf, "pcf50633-rtc",
@@ -680,7 +658,7 @@ static int __devexit pcf50633_remove(struct i2c_client *client)
 
 static struct i2c_device_id pcf50633_id_table[] = {
 	{"pcf50633", 0x73},
-	{/* end of list */}
+	{}
 };
 
 static struct i2c_driver pcf50633_driver = {

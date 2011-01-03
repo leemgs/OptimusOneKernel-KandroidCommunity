@@ -1,15 +1,4 @@
-/*
- * drivers/mfd/mfd-core.c
- *
- * core MFD support
- * Copyright (c) 2006 Ian Molton
- * Copyright (c) 2007,2008 Dmitry Baryshkov
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/platform_device.h>
@@ -36,16 +25,18 @@ static int mfd_add_device(struct device *parent, int id,
 	pdev->dev.parent = parent;
 	platform_set_drvdata(pdev, cell->driver_data);
 
-	ret = platform_device_add_data(pdev,
-			cell->platform_data, cell->data_size);
-	if (ret)
-		goto fail_res;
+	if (cell->data_size) {
+		ret = platform_device_add_data(pdev,
+				cell->platform_data, cell->data_size);
+		if (ret)
+			goto fail_res;
+	}
 
 	for (r = 0; r < cell->num_resources; r++) {
 		res[r].name = cell->resources[r].name;
 		res[r].flags = cell->resources[r].flags;
 
-		/* Find out base to use */
+		
 		if (cell->resources[r].flags & IORESOURCE_MEM) {
 			res[r].parent = mem_base;
 			res[r].start = mem_base->start +
@@ -74,7 +65,7 @@ static int mfd_add_device(struct device *parent, int id,
 
 	return 0;
 
-/*	platform_device_del(pdev); */
+
 fail_res:
 	kfree(res);
 fail_device:

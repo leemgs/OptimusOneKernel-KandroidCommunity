@@ -1,26 +1,4 @@
-/*
- *
- * Toshiba T7L66XB core mfd support
- *
- * Copyright (c) 2005, 2007, 2008 Ian Molton
- * Copyright (c) 2008 Dmitry Baryshkov
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * T7L66 features:
- *
- * Supported in this driver:
- * SD/MMC
- * SM/NAND flash controller
- *
- * As yet not supported
- * GPIO interface (on NAND pins)
- * Serial interface
- * TFT 'interface converter'
- * PCMCIA interface logic
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -38,23 +16,23 @@ enum {
 	T7L66XB_CELL_MMC,
 };
 
-#define SCR_REVID	0x08		/* b Revision ID	*/
-#define SCR_IMR		0x42		/* b Interrupt Mask	*/
-#define SCR_DEV_CTL	0xe0		/* b Device control	*/
-#define SCR_ISR		0xe1		/* b Interrupt Status	*/
-#define SCR_GPO_OC	0xf0		/* b GPO output control	*/
-#define SCR_GPO_OS	0xf1		/* b GPO output enable	*/
-#define SCR_GPI_S	0xf2		/* w GPI status		*/
-#define SCR_APDC	0xf8		/* b Active pullup down ctrl */
+#define SCR_REVID	0x08		
+#define SCR_IMR		0x42		
+#define SCR_DEV_CTL	0xe0		
+#define SCR_ISR		0xe1		
+#define SCR_GPO_OC	0xf0		
+#define SCR_GPO_OS	0xf1		
+#define SCR_GPI_S	0xf2		
+#define SCR_APDC	0xf8		
 
-#define SCR_DEV_CTL_USB		BIT(0)	/* USB enable		*/
-#define SCR_DEV_CTL_MMC		BIT(1)	/* MMC enable		*/
+#define SCR_DEV_CTL_USB		BIT(0)	
+#define SCR_DEV_CTL_MMC		BIT(1)	
 
-/*--------------------------------------------------------------------------*/
+
 
 struct t7l66xb {
 	void __iomem		*scr;
-	/* Lock to protect registers requiring read/modify/write ops. */
+	
 	spinlock_t		lock;
 
 	struct resource		rscr;
@@ -64,7 +42,7 @@ struct t7l66xb {
 	int			irq_base;
 };
 
-/*--------------------------------------------------------------------------*/
+
 
 static int t7l66xb_mmc_enable(struct platform_device *mmc)
 {
@@ -106,7 +84,7 @@ static int t7l66xb_mmc_disable(struct platform_device *mmc)
 	return 0;
 }
 
-/*--------------------------------------------------------------------------*/
+
 
 static struct tmio_mmc_data t7166xb_mmc_data = {
 	.hclk = 24000000,
@@ -164,9 +142,9 @@ static struct mfd_cell t7l66xb_cells[] = {
 	},
 };
 
-/*--------------------------------------------------------------------------*/
 
-/* Handle the T7L66XB interrupt mux */
+
+
 static void t7l66xb_irq(unsigned int irq, struct irq_desc *desc)
 {
 	struct t7l66xb *t7l66xb = get_irq_data(irq);
@@ -215,9 +193,9 @@ static struct irq_chip t7l66xb_chip = {
 	.unmask	= t7l66xb_irq_unmask,
 };
 
-/*--------------------------------------------------------------------------*/
 
-/* Install the IRQ handler */
+
+
 static void t7l66xb_attach_irq(struct platform_device *dev)
 {
 	struct t7l66xb *t7l66xb = platform_get_drvdata(dev);
@@ -258,7 +236,7 @@ static void t7l66xb_detach_irq(struct platform_device *dev)
 	}
 }
 
-/*--------------------------------------------------------------------------*/
+
 
 #ifdef CONFIG_PM
 static int t7l66xb_suspend(struct platform_device *dev, pm_message_t state)
@@ -289,7 +267,7 @@ static int t7l66xb_resume(struct platform_device *dev)
 #define t7l66xb_resume	NULL
 #endif
 
-/*--------------------------------------------------------------------------*/
+
 
 static int t7l66xb_probe(struct platform_device *dev)
 {
@@ -352,7 +330,7 @@ static int t7l66xb_probe(struct platform_device *dev)
 	if (pdata && pdata->enable)
 		pdata->enable(dev);
 
-	/* Mask all interrupts */
+	
 	tmio_iowrite8(0xbf, t7l66xb->scr + SCR_IMR);
 
 	printk(KERN_INFO "%s rev %d @ 0x%08lx, irq %d\n",
@@ -424,7 +402,7 @@ static struct platform_driver t7l66xb_platform_driver = {
 	.remove		= t7l66xb_remove,
 };
 
-/*--------------------------------------------------------------------------*/
+
 
 static int __init t7l66xb_init(void)
 {

@@ -1,16 +1,4 @@
-/*
- * wm831x-core.c  --  Device access for Wolfson WM831x PMICs
- *
- * Copyright 2009 Wolfson Microelectronics PLC.
- *
- * Author: Mark Brown <broonie@opensource.wolfsonmicro.com>
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -26,9 +14,7 @@
 #include <linux/mfd/wm831x/otp.h>
 #include <linux/mfd/wm831x/regulator.h>
 
-/* Current settings - values are 2*2^(reg_val/4) microamps.  These are
- * exported since they are used by multiple drivers.
- */
+
 int wm831x_isinkv_values[WM831X_ISINK_MAX_ISEL + 1] = {
 	2,
 	2,
@@ -114,13 +100,7 @@ static int wm831x_reg_locked(struct wm831x *wm831x, unsigned short reg)
 	}
 }
 
-/**
- * wm831x_reg_unlock: Unlock user keyed registers
- *
- * The WM831x has a user key preventing writes to particularly
- * critical registers.  This function locks those registers,
- * allowing writes to them.
- */
+
 void wm831x_reg_lock(struct wm831x *wm831x)
 {
 	int ret;
@@ -140,18 +120,12 @@ void wm831x_reg_lock(struct wm831x *wm831x)
 }
 EXPORT_SYMBOL_GPL(wm831x_reg_lock);
 
-/**
- * wm831x_reg_unlock: Unlock user keyed registers
- *
- * The WM831x has a user key preventing writes to particularly
- * critical registers.  This function locks those registers,
- * preventing spurious writes.
- */
+
 int wm831x_reg_unlock(struct wm831x *wm831x)
 {
 	int ret;
 
-	/* 0x9716 is the value required to unlock the registers */
+	
 	ret = wm831x_reg_write(wm831x, WM831X_SECURITY_KEY, 0x9716);
 	if (ret == 0) {
 		dev_vdbg(wm831x->dev, "Registers unlocked\n");
@@ -189,12 +163,7 @@ static int wm831x_read(struct wm831x *wm831x, unsigned short reg,
 	return 0;
 }
 
-/**
- * wm831x_reg_read: Read a single WM831x register.
- *
- * @wm831x: Device to read from.
- * @reg: Register to read.
- */
+
 int wm831x_reg_read(struct wm831x *wm831x, unsigned short reg)
 {
 	unsigned short val;
@@ -213,14 +182,7 @@ int wm831x_reg_read(struct wm831x *wm831x, unsigned short reg)
 }
 EXPORT_SYMBOL_GPL(wm831x_reg_read);
 
-/**
- * wm831x_bulk_read: Read multiple WM831x registers
- *
- * @wm831x: Device to read from
- * @reg: First register
- * @count: Number of registers
- * @buf: Buffer to fill.
- */
+
 int wm831x_bulk_read(struct wm831x *wm831x, unsigned short reg,
 		     int count, u16 *buf)
 {
@@ -258,13 +220,7 @@ static int wm831x_write(struct wm831x *wm831x, unsigned short reg,
 	return wm831x->write_dev(wm831x, reg, bytes, src);
 }
 
-/**
- * wm831x_reg_write: Write a single WM831x register.
- *
- * @wm831x: Device to write to.
- * @reg: Register to write to.
- * @val: Value to write.
- */
+
 int wm831x_reg_write(struct wm831x *wm831x, unsigned short reg,
 		     unsigned short val)
 {
@@ -280,14 +236,7 @@ int wm831x_reg_write(struct wm831x *wm831x, unsigned short reg,
 }
 EXPORT_SYMBOL_GPL(wm831x_reg_write);
 
-/**
- * wm831x_set_bits: Set the value of a bitfield in a WM831x register
- *
- * @wm831x: Device to write to.
- * @reg: Register to write to.
- * @mask: Mask of bits to set.
- * @val: Value to set (unshifted)
- */
+
 int wm831x_set_bits(struct wm831x *wm831x, unsigned short reg,
 		    unsigned short mask, unsigned short val)
 {
@@ -312,12 +261,7 @@ out:
 }
 EXPORT_SYMBOL_GPL(wm831x_set_bits);
 
-/**
- * wm831x_auxadc_read: Read a value from the WM831x AUXADC
- *
- * @wm831x: Device to read from.
- * @input: AUXADC input to read.
- */
+
 int wm831x_auxadc_read(struct wm831x *wm831x, enum wm831x_auxadc input)
 {
 	int tries = 10;
@@ -332,7 +276,7 @@ int wm831x_auxadc_read(struct wm831x *wm831x, enum wm831x_auxadc input)
 		goto out;
 	}
 
-	/* We force a single source at present */
+	
 	src = input;
 	ret = wm831x_reg_write(wm831x, WM831X_AUXADC_SOURCE,
 			       1 << src);
@@ -389,12 +333,7 @@ out:
 }
 EXPORT_SYMBOL_GPL(wm831x_auxadc_read);
 
-/**
- * wm831x_auxadc_read_uv: Read a voltage from the WM831x AUXADC
- *
- * @wm831x: Device to read from.
- * @input: AUXADC input to read.
- */
+
 int wm831x_auxadc_read_uv(struct wm831x *wm831x, enum wm831x_auxadc input)
 {
 	int ret;
@@ -1243,9 +1182,7 @@ static struct mfd_cell backlight_devs[] = {
 	},
 };
 
-/*
- * Instantiate the generic non-control parts of the device.
- */
+
 static int wm831x_device_init(struct wm831x *wm831x, unsigned long id, int irq)
 {
 	struct wm831x_pdata *pdata = wm831x->dev->platform_data;
@@ -1314,11 +1251,7 @@ static int wm831x_device_init(struct wm831x *wm831x, unsigned long id, int irq)
 		break;
 
 	case 0:
-		/* Some engineering samples do not have the ID set,
-		 * rely on the device being registered correctly.
-		 * This will need revisiting for future devices with
-		 * multiple dies.
-		 */
+		
 		parent = id;
 		switch (rev) {
 		case 0:
@@ -1334,14 +1267,12 @@ static int wm831x_device_init(struct wm831x *wm831x, unsigned long id, int irq)
 		goto err;
 	}
 
-	/* This will need revisiting in future but is OK for all
-	 * current parts.
-	 */
+	
 	if (parent != id)
 		dev_warn(wm831x->dev, "Device was registered as a WM831%lu\n",
 			 id);
 
-	/* Bootstrap the user key */
+	
 	ret = wm831x_reg_read(wm831x, WM831X_SECURITY_KEY);
 	if (ret < 0) {
 		dev_err(wm831x->dev, "Failed to read security key: %d\n", ret);
@@ -1366,7 +1297,7 @@ static int wm831x_device_init(struct wm831x *wm831x, unsigned long id, int irq)
 	if (ret != 0)
 		goto err;
 
-	/* The core device is up, instantiate the subdevices. */
+	
 	switch (parent) {
 	case WM8310:
 		ret = mfd_add_devices(wm831x->dev, -1,
@@ -1387,7 +1318,7 @@ static int wm831x_device_init(struct wm831x *wm831x, unsigned long id, int irq)
 		break;
 
 	default:
-		/* If this happens the bus probe function is buggy */
+		
 		BUG();
 	}
 
@@ -1397,7 +1328,7 @@ static int wm831x_device_init(struct wm831x *wm831x, unsigned long id, int irq)
 	}
 
 	if (pdata && pdata->backlight) {
-		/* Treat errors as non-critical */
+		
 		ret = mfd_add_devices(wm831x->dev, -1, backlight_devs,
 				      ARRAY_SIZE(backlight_devs), NULL, 0);
 		if (ret < 0)
@@ -1454,10 +1385,7 @@ static int wm831x_i2c_read_device(struct wm831x *wm831x, unsigned short reg,
 	return 0;
 }
 
-/* Currently we allocate the write buffer on the stack; this is OK for
- * small writes - if we need to do large writes this will need to be
- * revised.
- */
+
 static int wm831x_i2c_write_device(struct wm831x *wm831x, unsigned short reg,
 				   int bytes, void *src)
 {

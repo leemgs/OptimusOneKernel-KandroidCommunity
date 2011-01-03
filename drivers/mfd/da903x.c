@@ -1,16 +1,4 @@
-/*
- * Base driver for Dialog Semiconductor DA9030/DA9034
- *
- * Copyright (C) 2008 Compulab, Ltd.
- * 	Mike Rapoport <mike@compulab.co.il>
- *
- * Copyright (C) 2006-2008 Marvell International Ltd.
- * 	Eric Miao <eric.miao@marvell.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -319,20 +307,20 @@ static int da9034_init_chip(struct da903x_chip *chip)
 	if (err)
 		return err;
 
-	/* avoid SRAM power off during sleep*/
+	
 	__da903x_write(chip->client, 0x10, 0x07);
 	__da903x_write(chip->client, 0x11, 0xff);
 	__da903x_write(chip->client, 0x12, 0xff);
 
-	/* Enable the ONKEY power down functionality */
+	
 	__da903x_write(chip->client, DA9034_SYS_CTRL_B, 0x20);
 	__da903x_write(chip->client, DA9034_SYS_CTRL_A, 0x60);
 
-	/* workaround to make LEDs work */
+	
 	__da903x_write(chip->client, 0x90, 0x01);
 	__da903x_write(chip->client, 0xB0, 0x08);
 
-	/* make ADTV1 and SDTV1 effective */
+	
 	__da903x_write(chip->client, 0x20, 0x00);
 
 	dev_info(chip->dev, "DA9034 (CHIP ID: 0x%02x) detected\n", chip_id);
@@ -510,7 +498,7 @@ static int __devinit da903x_probe(struct i2c_client *client,
 	if (ret)
 		goto out_free_chip;
 
-	/* mask and clear all IRQs */
+	
 	chip->events_mask = 0xffffffff;
 	chip->ops->mask_events(chip, chip->events_mask);
 	chip->ops->read_events(chip, &tmp);

@@ -1,20 +1,4 @@
-/* NXP PCF50633 ADC Driver
- *
- * (C) 2006-2008 by Openmoko, Inc.
- * Author: Balaji Rao <balajirrao@openmoko.org>
- * All rights reserved.
- *
- * Broken down from monstrous PCF50633 driver mainly by
- * Harald Welte, Andy Green and Werner Almesberger
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- *
- *  NOTE: This driver does not yet support subtractive ADC mode, which means
- *  you can do only one measurement per read request.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -33,7 +17,7 @@ struct pcf50633_adc_request {
 	void (*callback)(struct pcf50633 *, void *, int);
 	void *callback_param;
 
-	/* Used in case of sync requests */
+	
 	struct completion completion;
 
 };
@@ -43,7 +27,7 @@ struct pcf50633_adc_request {
 struct pcf50633_adc {
 	struct pcf50633 *pcf;
 
-	/* Private stuff */
+	
 	struct pcf50633_adc_request *queue[PCF50633_MAX_ADC_FIFO_DEPTH];
 	int queue_head;
 	int queue_tail;
@@ -59,11 +43,11 @@ static void adc_setup(struct pcf50633 *pcf, int channel, int avg)
 {
 	channel &= PCF50633_ADCC1_ADCMUX_MASK;
 
-	/* kill ratiometric, but enable ACCSW biasing */
+	
 	pcf50633_reg_write(pcf, PCF50633_REG_ADCC2, 0x00);
 	pcf50633_reg_write(pcf, PCF50633_REG_ADCC3, 0x01);
 
-	/* start ADC conversion on selected channel */
+	
 	pcf50633_reg_write(pcf, PCF50633_REG_ADCC1, channel | avg |
 		    PCF50633_ADCC1_ADCSTART | PCF50633_ADCC1_RES_10BIT);
 }
@@ -122,7 +106,7 @@ int pcf50633_adc_sync_read(struct pcf50633 *pcf, int mux, int avg)
 	struct pcf50633_adc_request *req;
 	int err;
 
-	/* req is freed when the result is ready, in interrupt handler */
+	
 	req = kzalloc(sizeof(*req), GFP_KERNEL);
 	if (!req)
 		return -ENOMEM;
@@ -139,7 +123,7 @@ int pcf50633_adc_sync_read(struct pcf50633 *pcf, int mux, int avg)
 
 	wait_for_completion(&req->completion);
 
-	/* FIXME by this time req might be already freed */
+	
 	return req->result;
 }
 EXPORT_SYMBOL_GPL(pcf50633_adc_sync_read);
@@ -150,7 +134,7 @@ int pcf50633_adc_async_read(struct pcf50633 *pcf, int mux, int avg,
 {
 	struct pcf50633_adc_request *req;
 
-	/* req is freed when the result is ready, in interrupt handler */
+	
 	req = kmalloc(sizeof(*req), GFP_KERNEL);
 	if (!req)
 		return -ENOMEM;

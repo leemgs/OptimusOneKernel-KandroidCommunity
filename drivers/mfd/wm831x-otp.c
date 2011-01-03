@@ -1,16 +1,4 @@
-/*
- * wm831x-otp.c  --  OTP for Wolfson WM831x PMICs
- *
- * Copyright 2009 Wolfson Microelectronics PLC.
- *
- * Author: Mark Brown <broonie@opensource.wolfsonmicro.com>
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -22,10 +10,10 @@
 #include <linux/mfd/wm831x/core.h>
 #include <linux/mfd/wm831x/otp.h>
 
-/* In bytes */
+
 #define WM831X_UNIQUE_ID_LEN 16
 
-/* Read the unique ID from the chip into id */
+
 static int wm831x_unique_id_read(struct wm831x *wm831x, char *id)
 {
 	int i, val;

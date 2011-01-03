@@ -1,16 +1,4 @@
-/*
- *  linux/drivers/mfd/mcp-sa11x0.c
- *
- *  Copyright (C) 2001-2005 Russell King
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License.
- *
- *  SA11x0 MCP (Multimedia Communications Port) driver.
- *
- *  MCP read/write timeouts from Jordi Colomer, rehacked by rmk.
- */
+
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/errno.h>
@@ -61,12 +49,7 @@ mcp_sa11x0_set_audio_divisor(struct mcp *mcp, unsigned int divisor)
 	Ser4MCCR0 = mccr0;
 }
 
-/*
- * Write data to the device.  The bit should be set after 3 subframe
- * times (each frame is 64 clocks).  We wait a maximum of 6 subframes.
- * We really should try doing something more productive while we
- * wait.
- */
+
 static void
 mcp_sa11x0_write(struct mcp *mcp, unsigned int reg, unsigned int val)
 {
@@ -87,12 +70,7 @@ mcp_sa11x0_write(struct mcp *mcp, unsigned int reg, unsigned int val)
 		printk(KERN_WARNING "mcp: write timed out\n");
 }
 
-/*
- * Read data from the device.  The bit should be set after 3 subframe
- * times (each frame is 64 clocks).  We wait a maximum of 6 subframes.
- * We really should try doing something more productive while we
- * wait.
- */
+
 static unsigned int
 mcp_sa11x0_read(struct mcp *mcp, unsigned int reg)
 {
@@ -126,9 +104,7 @@ static void mcp_sa11x0_disable(struct mcp *mcp)
 	Ser4MCCR0 &= ~MCCR0_MCE;
 }
 
-/*
- * Our methods.
- */
+
 static struct mcp_ops mcp_sa11x0 = {
 	.set_telecom_divisor	= mcp_sa11x0_set_telecom_divisor,
 	.set_audio_divisor	= mcp_sa11x0_set_audio_divisor,
@@ -170,28 +146,19 @@ static int mcp_sa11x0_probe(struct platform_device *pdev)
 		ASSABET_BCR_set(ASSABET_BCR_CODEC_RST);
 	}
 
-	/*
-	 * Setup the PPC unit correctly.
-	 */
+	
 	PPDR &= ~PPC_RXD4;
 	PPDR |= PPC_TXD4 | PPC_SCLK | PPC_SFRM;
 	PSDR |= PPC_RXD4;
 	PSDR &= ~(PPC_TXD4 | PPC_SCLK | PPC_SFRM);
 	PPSR &= ~(PPC_TXD4 | PPC_SCLK | PPC_SFRM);
 
-	/*
-	 * Initialise device.  Note that we initially
-	 * set the sampling rate to minimum.
-	 */
+	
 	Ser4MCSR = -1;
 	Ser4MCCR1 = data->mccr1;
 	Ser4MCCR0 = data->mccr0 | 0x7f7f;
 
-	/*
-	 * Calculate the read/write timeout (us) from the bit clock
-	 * rate.  This is the period for 3 64-bit frames.  Always
-	 * round this time up.
-	 */
+	
 	mcp->rw_timeout = (64 * 3 * 1000000 + mcp->sclk_rate - 1) /
 			  mcp->sclk_rate;
 
@@ -239,9 +206,7 @@ static int mcp_sa11x0_resume(struct platform_device *dev)
 	return 0;
 }
 
-/*
- * The driver for the SA11x0 MCP port.
- */
+
 MODULE_ALIAS("platform:sa11x0-mcp");
 
 static struct platform_driver mcp_sa11x0_driver = {
@@ -254,9 +219,7 @@ static struct platform_driver mcp_sa11x0_driver = {
 	},
 };
 
-/*
- * This needs re-working
- */
+
 static int __init mcp_sa11x0_init(void)
 {
 	return platform_driver_register(&mcp_sa11x0_driver);

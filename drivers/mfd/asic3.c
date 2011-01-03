@@ -1,20 +1,4 @@
-/*
- * driver/mfd/asic3.c
- *
- * Compaq ASIC3 support.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * Copyright 2001 Compaq Computer Corporation.
- * Copyright 2004-2005 Phil Blundell
- * Copyright 2007-2008 OpenedHand Ltd.
- *
- * Authors: Phil Blundell <pb@handhelds.org>,
- *	    Samuel Ortiz <sameo@openedhand.com>
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/delay.h>
@@ -115,7 +99,7 @@ void asic3_set_register(struct asic3 *asic, u32 reg, u32 bits, bool set)
 	spin_unlock_irqrestore(&asic->lock, flags);
 }
 
-/* IRQs */
+
 #define MAX_ASIC_ISR_LOOPS    20
 #define ASIC3_GPIO_BASE_INCR \
 	(ASIC3_GPIO_B_BASE - ASIC3_GPIO_A_BASE)
@@ -154,11 +138,11 @@ static void asic3_irq_demux(unsigned int irq, struct irq_desc *desc)
 					     ASIC3_OFFSET(INTR, P_INT_STAT));
 		spin_unlock_irqrestore(&asic->lock, flags);
 
-		/* Check all ten register bits */
+		
 		if ((status & 0x3ff) == 0)
 			break;
 
-		/* Handle GPIO IRQs */
+		
 		for (bank = 0; bank < ASIC3_NUM_GPIO_BANKS; bank++) {
 			if (status & (1 << bank)) {
 				unsigned long base, istat;
@@ -170,7 +154,7 @@ static void asic3_irq_demux(unsigned int irq, struct irq_desc *desc)
 				istat = asic3_read_register(asic,
 							    base +
 							    ASIC3_GPIO_INT_STATUS);
-				/* Clearing IntStatus */
+				
 				asic3_write_register(asic,
 						     base +
 						     ASIC3_GPIO_INT_STATUS, 0);
@@ -195,9 +179,9 @@ static void asic3_irq_demux(unsigned int irq, struct irq_desc *desc)
 			}
 		}
 
-		/* Handle remaining IRQs in the status register */
+		
 		for (i = ASIC3_NUM_GPIOS; i < ASIC3_NR_IRQS; i++) {
-			/* They start at bit 4 and go up */
+			
 			if (status & (1 << (i - ASIC3_NUM_GPIOS + 4))) {
 				desc = irq_to_desc(asic->irq_base + i);
 				desc->handle_irq(asic->irq_base + i,
@@ -338,11 +322,7 @@ static int asic3_gpio_irq_type(unsigned int irq, unsigned int type)
 		trigger &= ~bit;
 		level |= bit;
 	} else {
-		/*
-		 * if type == IRQ_TYPE_NONE, we should mask interrupts, but
-		 * be careful to not unmask them if mask was also called.
-		 * Probably need internal state for mask.
-		 */
+		
 		dev_notice(asic->dev, "irq type not changed\n");
 	}
 	asic3_write_register(asic, bank + ASIC3_GPIO_LEVEL_TRIGGER,
@@ -382,7 +362,7 @@ static int __init asic3_irq_probe(struct platform_device *pdev)
 		return ret;
 	asic->irq_nr = ret;
 
-	/* turn on clock to IRQ controller */
+	
 	clksel |= CLOCK_SEL_CX;
 	asic3_write_register(asic, ASIC3_OFFSET(CLOCK, SEL),
 			     clksel);
@@ -426,7 +406,7 @@ static void asic3_irq_remove(struct platform_device *pdev)
 	set_irq_chained_handler(asic->irq_nr, NULL);
 }
 
-/* GPIOs */
+
 static int asic3_gpio_direction(struct gpio_chip *chip,
 				unsigned offset, int out)
 {
@@ -448,7 +428,7 @@ static int asic3_gpio_direction(struct gpio_chip *chip,
 
 	out_reg = asic3_read_register(asic, gpio_base + ASIC3_GPIO_DIRECTION);
 
-	/* Input is 0, Output is 1 */
+	
 	if (out)
 		out_reg |= mask;
 	else
@@ -541,7 +521,7 @@ static __init int asic3_gpio_probe(struct platform_device *pdev,
 	memset(out_reg, 0, ASIC3_NUM_GPIO_BANKS * sizeof(u16));
 	memset(dir_reg, 0, ASIC3_NUM_GPIO_BANKS * sizeof(u16));
 
-	/* Enable all GPIOs */
+	
 	asic3_write_register(asic, ASIC3_GPIO_OFFSET(A, MASK), 0xffff);
 	asic3_write_register(asic, ASIC3_GPIO_OFFSET(B, MASK), 0xffff);
 	asic3_write_register(asic, ASIC3_GPIO_OFFSET(C, MASK), 0xffff);
@@ -620,7 +600,7 @@ static void asic3_clk_disable(struct asic3 *asic, struct asic3_clk *clk)
 	spin_unlock_irqrestore(&asic->lock, flags);
 }
 
-/* MFD cells (SPI, PWM, LED, DS1WM, MMC) */
+
 static struct ds1wm_driver_data ds1wm_pdata = {
 	.active_high = 1,
 };
@@ -642,13 +622,13 @@ static int ds1wm_enable(struct platform_device *pdev)
 {
 	struct asic3 *asic = dev_get_drvdata(pdev->dev.parent);
 
-	/* Turn on external clocks and the OWM clock */
+	
 	asic3_clk_enable(asic, &asic->clocks[ASIC3_CLOCK_EX0]);
 	asic3_clk_enable(asic, &asic->clocks[ASIC3_CLOCK_EX1]);
 	asic3_clk_enable(asic, &asic->clocks[ASIC3_CLOCK_OWM]);
 	msleep(1);
 
-	/* Reset and enable DS1WM */
+	
 	asic3_set_register(asic, ASIC3_OFFSET(EXTCF, RESET),
 			   ASIC3_EXTCF_OWM_RESET, 1);
 	msleep(1);
@@ -711,7 +691,7 @@ static int asic3_mmc_enable(struct platform_device *pdev)
 {
 	struct asic3 *asic = dev_get_drvdata(pdev->dev.parent);
 
-	/* Not sure if it must be done bit by bit, but leaving as-is */
+	
 	asic3_set_register(asic, ASIC3_OFFSET(SDHWCTRL, SDCONF),
 			   ASIC3_SDHWCTRL_LEVCD, 1);
 	asic3_set_register(asic, ASIC3_OFFSET(SDHWCTRL, SDCONF),
@@ -722,13 +702,11 @@ static int asic3_mmc_enable(struct platform_device *pdev)
 			   ASIC3_SDHWCTRL_PCLR, 0);
 
 	asic3_clk_enable(asic, &asic->clocks[ASIC3_CLOCK_EX0]);
-	/* CLK32 used for card detection and for interruption detection
-	 * when HCLK is stopped.
-	 */
+	
 	asic3_clk_enable(asic, &asic->clocks[ASIC3_CLOCK_EX1]);
 	msleep(1);
 
-	/* HCLK 24.576 MHz, BCLK 12.288 MHz: */
+	
 	asic3_write_register(asic, ASIC3_OFFSET(CLOCK, SEL),
 		CLOCK_SEL_CX | CLOCK_SEL_SD_HCLK_SEL);
 
@@ -739,7 +717,7 @@ static int asic3_mmc_enable(struct platform_device *pdev)
 	asic3_set_register(asic, ASIC3_OFFSET(EXTCF, SELECT),
 			   ASIC3_EXTCF_SD_MEM_ENABLE, 1);
 
-	/* Enable SD card slot 3.3V power supply */
+	
 	asic3_set_register(asic, ASIC3_OFFSET(SDHWCTRL, SDCONF),
 			   ASIC3_SDHWCTRL_SDPWR, 1);
 
@@ -750,11 +728,11 @@ static int asic3_mmc_disable(struct platform_device *pdev)
 {
 	struct asic3 *asic = dev_get_drvdata(pdev->dev.parent);
 
-	/* Put in suspend mode */
+	
 	asic3_set_register(asic, ASIC3_OFFSET(SDHWCTRL, SDCONF),
 			   ASIC3_SDHWCTRL_SUSPEND, 1);
 
-	/* Disable clocks */
+	
 	asic3_clk_disable(asic, &asic->clocks[ASIC3_CLOCK_SD_HOST]);
 	asic3_clk_disable(asic, &asic->clocks[ASIC3_CLOCK_SD_BUS]);
 	asic3_clk_disable(asic, &asic->clocks[ASIC3_CLOCK_EX0]);
@@ -786,7 +764,7 @@ static int __init asic3_mfd_probe(struct platform_device *pdev,
 	if (irq < 0)
 		dev_dbg(asic->dev, "no SDIO IRQ resource\n");
 
-	/* DS1WM */
+	
 	asic3_set_register(asic, ASIC3_OFFSET(EXTCF, SELECT),
 			   ASIC3_EXTCF_OWM_SMB, 0);
 
@@ -796,7 +774,7 @@ static int __init asic3_mfd_probe(struct platform_device *pdev,
 	asic3_cell_ds1wm.platform_data = &asic3_cell_ds1wm;
 	asic3_cell_ds1wm.data_size = sizeof(asic3_cell_ds1wm);
 
-	/* MMC */
+	
 	asic3_mmc_resources[0].start >>= asic->bus_shift;
 	asic3_mmc_resources[0].end   >>= asic->bus_shift;
 	asic3_mmc_resources[1].start >>= asic->bus_shift;
@@ -823,7 +801,7 @@ static void asic3_mfd_remove(struct platform_device *pdev)
 	mfd_remove_devices(&pdev->dev);
 }
 
-/* Core */
+
 static int __init asic3_probe(struct platform_device *pdev)
 {
 	struct asic3_platform_data *pdata = pdev->dev.platform_data;
@@ -858,7 +836,7 @@ static int __init asic3_probe(struct platform_device *pdev)
 
 	asic->irq_base = pdata->irq_base;
 
-	/* calculate bus shift from mem resource */
+	
 	asic->bus_shift = 2 - (resource_size(mem) >> 12);
 
 	clksel = 0;
@@ -885,9 +863,7 @@ static int __init asic3_probe(struct platform_device *pdev)
 		goto out_irq;
 	}
 
-	/* Making a per-device copy is only needed for the
-	 * theoretical case of multiple ASIC3s on one board:
-	 */
+	
 	memcpy(asic->clocks, asic3_clk_init, sizeof(asic3_clk_init));
 
 	asic3_mfd_probe(pdev, mem);

@@ -1,14 +1,4 @@
-/*
- * Toshiba TC6387XB support
- * Copyright (c) 2005 Ian Molton
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This file contains TC6387XB base support.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/platform_device.h>
@@ -51,7 +41,7 @@ static int tc6387xb_resume(struct platform_device *dev)
 #define tc6387xb_resume   NULL
 #endif
 
-/*--------------------------------------------------------------------------*/
+
 
 static int tc6387xb_mmc_enable(struct platform_device *mmc)
 {
@@ -73,7 +63,7 @@ static int tc6387xb_mmc_disable(struct platform_device *mmc)
 	return 0;
 }
 
-/*--------------------------------------------------------------------------*/
+
 
 static struct tmio_mmc_data tc6387xb_mmc_data = {
 	.hclk = 24000000,

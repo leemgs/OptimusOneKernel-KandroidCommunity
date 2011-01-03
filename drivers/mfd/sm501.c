@@ -1,15 +1,4 @@
-/* linux/drivers/mfd/sm501.c
- *
- * Copyright (C) 2006 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *	Vincent Sanders <vince@simtec.co.uk>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * SM501 MFD driver
-*/
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -39,9 +28,9 @@ struct sm501_gpio;
 
 struct sm501_gpio_chip {
 	struct gpio_chip	gpio;
-	struct sm501_gpio	*ourgpio;	/* to get back to parent. */
+	struct sm501_gpio	*ourgpio;	
 	void __iomem		*regbase;
-	void __iomem		*control;	/* address of control reg. */
+	void __iomem		*control;	
 };
 
 struct sm501_gpio {
@@ -55,7 +44,7 @@ struct sm501_gpio {
 };
 #else
 struct sm501_gpio {
-	/* no gpio support, empty definition for sm501_devdata. */
+	
 };
 #endif
 
@@ -125,10 +114,7 @@ static unsigned long decode_div(unsigned long pll2, unsigned long val,
 
 #define fmt_freq(x) ((x) / MHZ), ((x) % MHZ), (x)
 
-/* sm501_dump_clk
- *
- * Print out the current clock configuration for the device
-*/
+
 
 static void sm501_dump_clk(struct sm501_devdata *sm)
 {
@@ -223,10 +209,7 @@ static inline void sm501_dump_regs(struct sm501_devdata *sm) { }
 static inline void sm501_dump_clk(struct sm501_devdata *sm) { }
 #endif
 
-/* sm501_sync_regs
- *
- * ensure the
-*/
+
 
 static void sm501_sync_regs(struct sm501_devdata *sm)
 {
@@ -235,9 +218,7 @@ static void sm501_sync_regs(struct sm501_devdata *sm)
 
 static inline void sm501_mdelay(struct sm501_devdata *sm, unsigned int delay)
 {
-	/* during suspend/resume, we are currently not allowed to sleep,
-	 * so change to using mdelay() instead of msleep() if we
-	 * are in one of these paths */
+	
 
 	if (sm->in_suspend)
 		mdelay(delay);
@@ -245,10 +226,7 @@ static inline void sm501_mdelay(struct sm501_devdata *sm, unsigned int delay)
 		msleep(delay);
 }
 
-/* sm501_misc_control
- *
- * alters the miscellaneous control parameters
-*/
+
 
 int sm501_misc_control(struct device *dev,
 		       unsigned long set, unsigned long clear)
@@ -276,11 +254,7 @@ int sm501_misc_control(struct device *dev,
 
 EXPORT_SYMBOL_GPL(sm501_misc_control);
 
-/* sm501_modify_reg
- *
- * Modify a register in the SM501 which may be shared with other
- * drivers.
-*/
+
 
 unsigned long sm501_modify_reg(struct device *dev,
 			       unsigned long reg,
@@ -307,10 +281,7 @@ unsigned long sm501_modify_reg(struct device *dev,
 
 EXPORT_SYMBOL_GPL(sm501_modify_reg);
 
-/* sm501_unit_power
- *
- * alters the power active gate to set specific units on or off
- */
+
 
 int sm501_unit_power(struct device *dev, unsigned int unit, unsigned int to)
 {
@@ -325,7 +296,7 @@ int sm501_unit_power(struct device *dev, unsigned int unit, unsigned int to)
 	gate = readl(sm->regs + SM501_CURRENT_GATE);
 	clock = readl(sm->regs + SM501_CURRENT_CLOCK);
 
-	mode &= 3;		/* get current power mode */
+	mode &= 3;		
 
 	if (unit >= ARRAY_SIZE(sm->unit_power)) {
 		dev_err(dev, "%s: bad unit %d\n", __func__, unit);
@@ -387,14 +358,14 @@ int sm501_unit_power(struct device *dev, unsigned int unit, unsigned int to)
 EXPORT_SYMBOL_GPL(sm501_unit_power);
 
 
-/* Perform a rounded division. */
+
 static long sm501fb_round_div(long num, long denom)
 {
-        /* n / d + 1 / 2 = (2n + d) / 2d */
+        
         return (2 * num + denom) / (2 * denom);
 }
 
-/* clock value structure. */
+
 struct sm501_clock {
 	unsigned long mclk;
 	int divider;
@@ -402,12 +373,7 @@ struct sm501_clock {
 	unsigned int m, n, k;
 };
 
-/* sm501_calc_clock
- *
- * Calculates the nearest discrete clock frequency that
- * can be achieved with the specified input clock.
- *   the maximum divisor is 3 or 5
- */
+
 
 static int sm501_calc_clock(unsigned long freq,
 			    struct sm501_clock *clock,
@@ -420,18 +386,17 @@ static int sm501_calc_clock(unsigned long freq,
 	int shift;
 	long diff;
 
-	/* try dividers 1 and 3 for CRT and for panel,
-	   try divider 5 for panel only.*/
+	
 
 	for (divider = 1; divider <= max_div; divider += 2) {
-		/* try all 8 shift values.*/
+		
 		for (shift = 0; shift < 8; shift++) {
-			/* Calculate difference to requested clock */
+			
 			diff = sm501fb_round_div(mclk, divider << shift) - freq;
 			if (diff < 0)
 				diff = -diff;
 
-			/* If it is less than the current, use it */
+			
 			if (diff < *best_diff) {
 				*best_diff = diff;
 
@@ -446,12 +411,7 @@ static int sm501_calc_clock(unsigned long freq,
 	return ret;
 }
 
-/* sm501_calc_pll
- *
- * Calculates the nearest discrete clock frequency that can be
- * achieved using the programmable PLL.
- *   the maximum divisor is 3 or 5
- */
+
 
 static unsigned long sm501_calc_pll(unsigned long freq,
 					struct sm501_clock *clock,
@@ -461,10 +421,7 @@ static unsigned long sm501_calc_pll(unsigned long freq,
 	unsigned int m, n, k;
 	long best_diff = 999999999;
 
-	/*
-	 * The SM502 datasheet doesn't specify the min/max values for M and N.
-	 * N = 1 at least doesn't work in practice.
-	 */
+	
 	for (m = 2; m <= 255; m++) {
 		for (n = 2; n <= 127; n++) {
 			for (k = 0; k <= 1; k++) {
@@ -480,16 +437,11 @@ static unsigned long sm501_calc_pll(unsigned long freq,
 		}
 	}
 
-	/* Return best clock. */
+	
 	return clock->mclk / (clock->divider << clock->shift);
 }
 
-/* sm501_select_clock
- *
- * Calculates the nearest discrete clock frequency that can be
- * achieved using the 288MHz and 336MHz PLLs.
- *   the maximum divisor is 3 or 5
- */
+
 
 static unsigned long sm501_select_clock(unsigned long freq,
 					struct sm501_clock *clock,
@@ -498,20 +450,16 @@ static unsigned long sm501_select_clock(unsigned long freq,
 	unsigned long mclk;
 	long best_diff = 999999999;
 
-	/* Try 288MHz and 336MHz clocks. */
+	
 	for (mclk = 288000000; mclk <= 336000000; mclk += 48000000) {
 		sm501_calc_clock(freq, clock, max_div, mclk, &best_diff);
 	}
 
-	/* Return best clock. */
+	
 	return clock->mclk / (clock->divider << clock->shift);
 }
 
-/* sm501_set_clock
- *
- * set one of the four clock sources to the closest available frequency to
- *  the one specified
-*/
+
 
 unsigned long sm501_set_clock(struct device *dev,
 			      int clksrc,
@@ -523,70 +471,65 @@ unsigned long sm501_set_clock(struct device *dev,
 	unsigned long clock = readl(sm->regs + SM501_CURRENT_CLOCK);
 	unsigned char reg;
 	unsigned int pll_reg = 0;
-	unsigned long sm501_freq; /* the actual frequency acheived */
+	unsigned long sm501_freq; 
 
 	struct sm501_clock to;
 
-	/* find achivable discrete frequency and setup register value
-	 * accordingly, V2XCLK, MCLK and M1XCLK are the same P2XCLK
-	 * has an extra bit for the divider */
+	
 
 	switch (clksrc) {
 	case SM501_CLOCK_P2XCLK:
-		/* This clock is divided in half so to achive the
-		 * requested frequency the value must be multiplied by
-		 * 2. This clock also has an additional pre divisor */
+		
 
 		if (sm->rev >= 0xC0) {
-			/* SM502 -> use the programmable PLL */
+			
 			sm501_freq = (sm501_calc_pll(2 * req_freq,
 						     &to, 5) / 2);
-			reg = to.shift & 0x07;/* bottom 3 bits are shift */
+			reg = to.shift & 0x07;
 			if (to.divider == 3)
-				reg |= 0x08; /* /3 divider required */
+				reg |= 0x08; 
 			else if (to.divider == 5)
-				reg |= 0x10; /* /5 divider required */
-			reg |= 0x40; /* select the programmable PLL */
+				reg |= 0x10; 
+			reg |= 0x40; 
 			pll_reg = 0x20000 | (to.k << 15) | (to.n << 8) | to.m;
 		} else {
 			sm501_freq = (sm501_select_clock(2 * req_freq,
 							 &to, 5) / 2);
-			reg = to.shift & 0x07;/* bottom 3 bits are shift */
+			reg = to.shift & 0x07;
 			if (to.divider == 3)
-				reg |= 0x08; /* /3 divider required */
+				reg |= 0x08; 
 			else if (to.divider == 5)
-				reg |= 0x10; /* /5 divider required */
+				reg |= 0x10; 
 			if (to.mclk != 288000000)
-				reg |= 0x20; /* which mclk pll is source */
+				reg |= 0x20; 
 		}
 		break;
 
 	case SM501_CLOCK_V2XCLK:
-		/* This clock is divided in half so to achive the
-		 * requested frequency the value must be multiplied by 2. */
+		
 
 		sm501_freq = (sm501_select_clock(2 * req_freq, &to, 3) / 2);
-		reg=to.shift & 0x07;	/* bottom 3 bits are shift */
+		reg=to.shift & 0x07;	
 		if (to.divider == 3)
-			reg |= 0x08;	/* /3 divider required */
+			reg |= 0x08;	
 		if (to.mclk != 288000000)
-			reg |= 0x10;	/* which mclk pll is source */
+			reg |= 0x10;	
 		break;
 
 	case SM501_CLOCK_MCLK:
 	case SM501_CLOCK_M1XCLK:
-		/* These clocks are the same and not further divided */
+		
 
 		sm501_freq = sm501_select_clock( req_freq, &to, 3);
-		reg=to.shift & 0x07;	/* bottom 3 bits are shift */
+		reg=to.shift & 0x07;	
 		if (to.divider == 3)
-			reg |= 0x08;	/* /3 divider required */
+			reg |= 0x08;	
 		if (to.mclk != 288000000)
-			reg |= 0x10;	/* which mclk pll is source */
+			reg |= 0x10;	
 		break;
 
 	default:
-		return 0; /* this is bad */
+		return 0; 
 	}
 
 	mutex_lock(&sm->clock_lock);
@@ -598,7 +541,7 @@ unsigned long sm501_set_clock(struct device *dev,
 	clock = clock & ~(0xFF << clksrc);
 	clock |= reg<<clksrc;
 
-	mode &= 3;	/* find current mode */
+	mode &= 3;	
 
 	switch (mode) {
 	case 1:
@@ -638,23 +581,20 @@ unsigned long sm501_set_clock(struct device *dev,
 
 EXPORT_SYMBOL_GPL(sm501_set_clock);
 
-/* sm501_find_clock
- *
- * finds the closest available frequency for a given clock
-*/
+
 
 unsigned long sm501_find_clock(struct device *dev,
 			       int clksrc,
 			       unsigned long req_freq)
 {
 	struct sm501_devdata *sm = dev_get_drvdata(dev);
-	unsigned long sm501_freq; /* the frequency achiveable by the 501 */
+	unsigned long sm501_freq; 
 	struct sm501_clock to;
 
 	switch (clksrc) {
 	case SM501_CLOCK_P2XCLK:
 		if (sm->rev >= 0xC0) {
-			/* SM502 -> use the programmable PLL */
+			
 			sm501_freq = (sm501_calc_pll(2 * req_freq,
 						     &to, 5) / 2);
 		} else {
@@ -673,7 +613,7 @@ unsigned long sm501_find_clock(struct device *dev,
 		break;
 
 	default:
-		sm501_freq = 0;		/* error */
+		sm501_freq = 0;		
 	}
 
 	return sm501_freq;
@@ -686,22 +626,14 @@ static struct sm501_device *to_sm_device(struct platform_device *pdev)
 	return container_of(pdev, struct sm501_device, pdev);
 }
 
-/* sm501_device_release
- *
- * A release function for the platform devices we create to allow us to
- * free any items we allocated
-*/
+
 
 static void sm501_device_release(struct device *dev)
 {
 	kfree(to_sm_device(to_platform_device(dev)));
 }
 
-/* sm501_create_subdev
- *
- * Create a skeleton platform device with resources for passing to a
- * sub-driver
-*/
+
 
 static struct platform_device *
 sm501_create_subdev(struct sm501_devdata *sm, char *name,
@@ -731,10 +663,7 @@ sm501_create_subdev(struct sm501_devdata *sm, char *name,
 	return &smdev->pdev;
 }
 
-/* sm501_register_device
- *
- * Register a platform device created with sm501_create_subdev()
-*/
+
 
 static int sm501_register_device(struct sm501_devdata *sm,
 				 struct platform_device *pdev)
@@ -763,10 +692,7 @@ static int sm501_register_device(struct sm501_devdata *sm,
 	return ret;
 }
 
-/* sm501_create_subio
- *
- * Fill in an IO resource for a sub device
-*/
+
 
 static void sm501_create_subio(struct sm501_devdata *sm,
 			       struct resource *res,
@@ -779,17 +705,14 @@ static void sm501_create_subio(struct sm501_devdata *sm,
 	res->end = res->start + size - 1;
 }
 
-/* sm501_create_mem
- *
- * Fill in an MEM resource for a sub device
-*/
+
 
 static void sm501_create_mem(struct sm501_devdata *sm,
 			     struct resource *res,
 			     resource_size_t *offs,
 			     resource_size_t size)
 {
-	*offs -= size;		/* adjust memory size */
+	*offs -= size;		
 
 	res->flags = IORESOURCE_MEM;
 	res->parent = sm->mem_res;
@@ -797,10 +720,7 @@ static void sm501_create_mem(struct sm501_devdata *sm,
 	res->end = res->start + size - 1;
 }
 
-/* sm501_create_irq
- *
- * Fill in an IRQ resource for a sub device
-*/
+
 
 static void sm501_create_irq(struct sm501_devdata *sm,
 			     struct resource *res)
@@ -915,7 +835,7 @@ static void sm501_gpio_ensure_gpio(struct sm501_gpio_chip *smchip,
 {
 	unsigned long ctrl;
 
-	/* check and modify if this pin is not set as gpio. */
+	
 
 	if (readl(smchip->control) & bit) {
 		dev_info(sm501_gpio_to_dev(smchip->ourgpio)->dev,
@@ -1076,7 +996,7 @@ static int __devinit sm501_register_gpio(struct sm501_devdata *sm)
 		goto err_claimed;
 	}
 
-	/* Register both our chips. */
+	
 
 	ret = sm501_gpio_register_chip(sm, gpio, &gpio->low);
 	if (ret) {
@@ -1178,20 +1098,14 @@ static int sm501_register_gpio_i2c_instance(struct sm501_devdata *sm,
 
 	icd = pdev->dev.platform_data;
 
-	/* We keep the pin_sda and pin_scl fields relative in case the
-	 * same platform data is passed to >1 SM501.
-	 */
+	
 
 	icd->sda_pin = sm501_gpio_pin2nr(sm, iic->pin_sda);
 	icd->scl_pin = sm501_gpio_pin2nr(sm, iic->pin_scl);
 	icd->timeout = iic->timeout;
 	icd->udelay = iic->udelay;
 
-	/* note, we can't use either of the pin numbers, as the i2c-gpio
-	 * driver uses the platform.id field to generate the bus number
-	 * to register with the i2c core; The i2c core doesn't have enough
-	 * entries to deal with anything we currently use.
-	*/
+	
 
 	pdev->id = iic->bus_num;
 
@@ -1218,10 +1132,7 @@ static int sm501_register_gpio_i2c(struct sm501_devdata *sm,
 	return 0;
 }
 
-/* sm501_dbg_regs
- *
- * Debug attribute to attach to parent device to show core registers
-*/
+
 
 static ssize_t sm501_dbg_regs(struct device *dev,
 			      struct device_attribute *attr, char *buff)
@@ -1243,13 +1154,7 @@ static ssize_t sm501_dbg_regs(struct device *dev,
 
 static DEVICE_ATTR(dbg_regs, 0666, sm501_dbg_regs, NULL);
 
-/* sm501_init_reg
- *
- * Helper function for the init code to setup a register
- *
- * clear the bits which are set in r->mask, and then set
- * the bits set in r->set.
-*/
+
 
 static inline void sm501_init_reg(struct sm501_devdata *sm,
 				  unsigned long reg,
@@ -1263,10 +1168,7 @@ static inline void sm501_init_reg(struct sm501_devdata *sm,
 	writel(tmp, sm->regs + reg);
 }
 
-/* sm501_init_regs
- *
- * Setup core register values
-*/
+
 
 static void sm501_init_regs(struct sm501_devdata *sm,
 			    struct sm501_initdata *init)
@@ -1291,13 +1193,7 @@ static void sm501_init_regs(struct sm501_devdata *sm,
 
 }
 
-/* Check the PLL sources for the M1CLK and M1XCLK
- *
- * If the M1CLK and M1XCLKs are not sourced from the same PLL, then
- * there is a risk (see errata AB-5) that the SM501 will cease proper
- * function. If this happens, then it is likely the SM501 will
- * hang the system.
-*/
+
 
 static int sm501_check_clocks(struct sm501_devdata *sm)
 {
@@ -1317,10 +1213,7 @@ static unsigned int sm501_mem_local[] = {
 	[5]	= 2*1024*1024,
 };
 
-/* sm501_init_dev
- *
- * Common init code for an SM501
-*/
+
 
 static int __devinit sm501_init_dev(struct sm501_devdata *sm)
 {
@@ -1343,7 +1236,7 @@ static int __devinit sm501_init_dev(struct sm501_devdata *sm)
 		return -EINVAL;
 	}
 
-	/* disable irqs */
+	
 	writel(0, sm->regs + SM501_IRQ_MASK);
 
 	dramctrl = readl(sm->regs + SM501_DRAM_CONTROL);
@@ -1362,7 +1255,7 @@ static int __devinit sm501_init_dev(struct sm501_devdata *sm)
 
 	sm501_dump_clk(sm);
 
-	/* check to see if we have some device initialisation */
+	
 
 	pdata = sm->platdata;
 	idata = pdata ? pdata->init : NULL;
@@ -1392,7 +1285,7 @@ static int __devinit sm501_init_dev(struct sm501_devdata *sm)
 		return -EINVAL;
 	}
 
-	/* always create a framebuffer */
+	
 	sm501_register_display(sm, &mem_avail);
 
 	return 0;
@@ -1463,7 +1356,7 @@ static int __devinit sm501_plat_probe(struct platform_device *dev)
 
 #ifdef CONFIG_PM
 
-/* power management support */
+
 
 static void sm501_set_power(struct sm501_devdata *sm, int on)
 {
@@ -1514,22 +1407,20 @@ static int sm501_plat_resume(struct platform_device *pdev)
 	sm501_dump_gate(sm);
 	sm501_dump_clk(sm);
 
-	/* check to see if we are in the same state as when suspended */
+	
 
 	if (readl(sm->regs + SM501_MISC_CONTROL) != sm->pm_misc) {
 		dev_info(sm->dev, "SM501_MISC_CONTROL changed over sleep\n");
 		writel(sm->pm_misc, sm->regs + SM501_MISC_CONTROL);
 
-		/* our suspend causes the controller state to change,
-		 * either by something attempting setup, power loss,
-		 * or an external reset event on power change */
+		
 
 		if (sm->platdata && sm->platdata->init) {
 			sm501_init_regs(sm, sm->platdata->init);
 		}
 	}
 
-	/* dump our state from resume */
+	
 
 	sm501_dump_regs(sm);
 	sm501_dump_clk(sm);
@@ -1543,15 +1434,15 @@ static int sm501_plat_resume(struct platform_device *pdev)
 #define sm501_plat_resume NULL
 #endif
 
-/* Initialisation data for PCI devices */
+
 
 static struct sm501_initdata sm501_pci_initdata = {
 	.gpio_high	= {
-		.set	= 0x3F000000,		/* 24bit panel */
+		.set	= 0x3F000000,		
 		.mask	= 0x0,
 	},
 	.misc_timing	= {
-		.set	= 0x010100,		/* SDRAM timing */
+		.set	= 0x010100,		
 		.mask	= 0x1F1F00,
 	},
 	.misc_control	= {
@@ -1561,8 +1452,7 @@ static struct sm501_initdata sm501_pci_initdata = {
 
 	.devices	= SM501_USE_ALL,
 
-	/* Errata AB-3 says that 72MHz is the fastest available
-	 * for 33MHZ PCI with proper bus-mastering operation */
+	
 
 	.mclk		= 72 * MHZ,
 	.m1xclk		= 144 * MHZ,
@@ -1600,10 +1490,10 @@ static int __devinit sm501_pci_probe(struct pci_dev *dev,
 		goto err1;
 	}
 
-	/* set a default set of platform data */
+	
 	dev->dev.platform_data = sm->platdata = &sm501_pci_platdata;
 
-	/* set a hopefully unique id for our child platform devices */
+	
 	sm->pdev_id = 32 + dev->devfn;
 
 	pci_set_drvdata(dev, sm);
@@ -1618,14 +1508,12 @@ static int __devinit sm501_pci_probe(struct pci_dev *dev,
 	sm->irq = dev->irq;
 
 #ifdef __BIG_ENDIAN
-	/* if the system is big-endian, we most probably have a
-	 * translation in the IO layer making the PCI bus little endian
-	 * so make the framebuffer swapped pixels */
+	
 
 	sm501_fb_pdata.flags |= SM501_FBPD_SWAP_FB_ENDIAN;
 #endif
 
-	/* check our resources */
+	
 
 	if (!(pci_resource_flags(dev, 0) & IORESOURCE_MEM)) {
 		dev_err(&dev->dev, "region #0 is not memory?\n");
@@ -1639,7 +1527,7 @@ static int __devinit sm501_pci_probe(struct pci_dev *dev,
 		goto err3;
 	}
 
-	/* make our resources ready for sharing */
+	
 
 	sm->io_res = &dev->resource[1];
 	sm->mem_res = &dev->resource[0];

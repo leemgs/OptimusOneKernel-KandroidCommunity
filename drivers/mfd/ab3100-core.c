@@ -1,10 +1,4 @@
-/*
- * Copyright (C) 2007-2009 ST-Ericsson
- * License terms: GNU General Public License (GPL) version 2
- * Low-level core for exclusive access to the AB3100 IC on the I2C bus
- * and some basic chip-configuration.
- * Author: Linus Walleij <linus.walleij@stericsson.com>
- */
+
 
 #include <linux/i2c.h>
 #include <linux/mutex.h>
@@ -19,24 +13,24 @@
 #include <linux/uaccess.h>
 #include <linux/mfd/ab3100.h>
 
-/* These are the only registers inside AB3100 used in this main file */
 
-/* Interrupt event registers */
+
+
 #define AB3100_EVENTA1		0x21
 #define AB3100_EVENTA2		0x22
 #define AB3100_EVENTA3		0x23
 
-/* AB3100 DAC converter registers */
+
 #define AB3100_DIS		0x00
 #define AB3100_D0C		0x01
 #define AB3100_D1C		0x02
 #define AB3100_D2C		0x03
 #define AB3100_D3C		0x04
 
-/* Chip ID register */
+
 #define AB3100_CID		0x20
 
-/* AB3100 interrupt registers */
+
 #define AB3100_IMRA1		0x24
 #define AB3100_IMRA2		0x25
 #define AB3100_IMRA3		0x26
@@ -44,19 +38,14 @@
 #define AB3100_IMRB2		0x2C
 #define AB3100_IMRB3		0x2D
 
-/* System Power Monitoring and control registers */
+
 #define AB3100_MCA		0x2E
 #define AB3100_MCB		0x2F
 
-/* SIM power up */
+
 #define AB3100_SUP		0x50
 
-/*
- * I2C communication
- *
- * The AB3100 is usually assigned address 0x48 (7-bit)
- * The chip is defined in the platform i2c_board_data section.
- */
+
 
 u8 ab3100_get_chip_type(struct ab3100 *ab3100)
 {
@@ -83,11 +72,7 @@ int ab3100_set_register_interruptible(struct ab3100 *ab3100, u8 reg, u8 regval)
 	if (err)
 		return err;
 
-	/*
-	 * A two-byte write message with the first byte containing the register
-	 * number and the second byte containing the value to be written
-	 * effectively sets a register in the AB3100.
-	 */
+	
 	err = i2c_master_send(ab3100->i2c_client, regandval, 2);
 	if (err < 0) {
 		dev_err(ab3100->dev,
@@ -100,7 +85,7 @@ int ab3100_set_register_interruptible(struct ab3100 *ab3100, u8 reg, u8 regval)
 			err);
 		err = -EIO;
 	} else {
-		/* All is well */
+		
 		err = 0;
 	}
 	mutex_unlock(&ab3100->access_mutex);
@@ -109,13 +94,7 @@ int ab3100_set_register_interruptible(struct ab3100 *ab3100, u8 reg, u8 regval)
 EXPORT_SYMBOL(ab3100_set_register_interruptible);
 
 
-/*
- * The test registers exist at an I2C bus address up one
- * from the ordinary base. They are not supposed to be used
- * in production code, but sometimes you have to do that
- * anyway. It's currently only used from this file so declare
- * it static and do not export.
- */
+
 static int ab3100_set_test_register_interruptible(struct ab3100 *ab3100,
 				    u8 reg, u8 regval)
 {
@@ -138,7 +117,7 @@ static int ab3100_set_test_register_interruptible(struct ab3100 *ab3100,
 			err);
 		err = -EIO;
 	} else {
-		/* All is well */
+		
 		err = 0;
 	}
 	mutex_unlock(&ab3100->access_mutex);
@@ -155,12 +134,7 @@ int ab3100_get_register_interruptible(struct ab3100 *ab3100, u8 reg, u8 *regval)
 	if (err)
 		return err;
 
-	/*
-	 * AB3100 require an I2C "stop" command between each message, else
-	 * it will not work. The only way of achieveing this with the
-	 * message transport layer is to send the read and write messages
-	 * separately.
-	 */
+	
 	err = i2c_master_send(ab3100->i2c_client, &reg, 1);
 	if (err < 0) {
 		dev_err(ab3100->dev,
@@ -175,7 +149,7 @@ int ab3100_get_register_interruptible(struct ab3100 *ab3100, u8 reg, u8 *regval)
 		err = -EIO;
 		goto get_reg_out_unlock;
 	} else {
-		/* All is well */
+		
 		err = 0;
 	}
 
@@ -193,7 +167,7 @@ int ab3100_get_register_interruptible(struct ab3100 *ab3100, u8 reg, u8 *regval)
 		err = -EIO;
 		goto get_reg_out_unlock;
 	} else {
-		/* All is well */
+		
 		err = 0;
 	}
 
@@ -211,16 +185,14 @@ int ab3100_get_register_page_interruptible(struct ab3100 *ab3100,
 
 	if (ab3100->chip_id == 0xa0 ||
 	    ab3100->chip_id == 0xa1)
-		/* These don't support paged reads */
+		
 		return -EIO;
 
 	err = mutex_lock_interruptible(&ab3100->access_mutex);
 	if (err)
 		return err;
 
-	/*
-	 * Paged read also require an I2C "stop" command.
-	 */
+	
 	err = i2c_master_send(ab3100->i2c_client, &first_reg, 1);
 	if (err < 0) {
 		dev_err(ab3100->dev,
@@ -251,7 +223,7 @@ int ab3100_get_register_page_interruptible(struct ab3100 *ab3100,
 		goto get_reg_page_out_unlock;
 	}
 
-	/* All is well */
+	
 	err = 0;
 
  get_reg_page_out_unlock:
@@ -271,7 +243,7 @@ int ab3100_mask_and_set_register_interruptible(struct ab3100 *ab3100,
 	if (err)
 		return err;
 
-	/* First read out the target register */
+	
 	err = i2c_master_send(ab3100->i2c_client, &reg, 1);
 	if (err < 0) {
 		dev_err(ab3100->dev,
@@ -302,11 +274,11 @@ int ab3100_mask_and_set_register_interruptible(struct ab3100 *ab3100,
 		goto get_maskset_unlock;
 	}
 
-	/* Modify the register */
+	
 	regandval[1] &= andmask;
 	regandval[1] |= ormask;
 
-	/* Write the register */
+	
 	err = i2c_master_send(ab3100->i2c_client, regandval, 2);
 	if (err < 0) {
 		dev_err(ab3100->dev,
@@ -322,7 +294,7 @@ int ab3100_mask_and_set_register_interruptible(struct ab3100 *ab3100,
 		goto get_maskset_unlock;
 	}
 
-	/* All is well */
+	
 	err = 0;
 
  get_maskset_unlock:
@@ -332,9 +304,7 @@ int ab3100_mask_and_set_register_interruptible(struct ab3100 *ab3100,
 EXPORT_SYMBOL(ab3100_mask_and_set_register_interruptible);
 
 
-/*
- * Register a simple callback for handling any AB3100 events.
- */
+
 int ab3100_event_register(struct ab3100 *ab3100,
 			  struct notifier_block *nb)
 {
@@ -343,9 +313,7 @@ int ab3100_event_register(struct ab3100 *ab3100,
 }
 EXPORT_SYMBOL(ab3100_event_register);
 
-/*
- * Remove a previously registered callback.
- */
+
 int ab3100_event_unregister(struct ab3100 *ab3100,
 			    struct notifier_block *nb)
 {
@@ -359,13 +327,13 @@ int ab3100_event_registers_startup_state_get(struct ab3100 *ab3100,
 					     u32 *fatevent)
 {
 	if (!ab3100->startup_events_read)
-		return -EAGAIN; /* Try again later */
+		return -EAGAIN; 
 	*fatevent = ab3100->startup_events;
 	return 0;
 }
 EXPORT_SYMBOL(ab3100_event_registers_startup_state_get);
 
-/* Interrupt handling worker */
+
 static void ab3100_work(struct work_struct *work)
 {
 	struct ab3100 *ab3100 = container_of(work, struct ab3100, work);
@@ -386,26 +354,21 @@ static void ab3100_work(struct work_struct *work)
 		ab3100->startup_events = fatevent;
 		ab3100->startup_events_read = true;
 	}
-	/*
-	 * The notified parties will have to mask out the events
-	 * they're interested in and react to them. They will be
-	 * notified on all events, then they use the fatevent value
-	 * to determine if they're interested.
-	 */
+	
 	blocking_notifier_call_chain(&ab3100->event_subscribers,
 				     fatevent, NULL);
 
 	dev_dbg(ab3100->dev,
 		"IRQ Event: 0x%08x\n", fatevent);
 
-	/* By now the IRQ should be acked and deasserted so enable it again */
+	
 	enable_irq(ab3100->i2c_client->irq);
 	return;
 
  err_event_wq:
 	dev_dbg(ab3100->dev,
 		"error in event workqueue\n");
-	/* Enable the IRQ anyway, what choice do we have? */
+	
 	enable_irq(ab3100->i2c_client->irq);
 	return;
 }
@@ -413,21 +376,14 @@ static void ab3100_work(struct work_struct *work)
 static irqreturn_t ab3100_irq_handler(int irq, void *data)
 {
 	struct ab3100 *ab3100 = data;
-	/*
-	 * Disable the IRQ and dispatch a worker to handle the
-	 * event. Since the chip resides on I2C this is slow
-	 * stuff and we will re-enable the interrupts once th
-	 * worker has finished.
-	 */
+	
 	disable_irq_nosync(irq);
 	schedule_work(&ab3100->work);
 	return IRQ_HANDLED;
 }
 
 #ifdef CONFIG_DEBUG_FS
-/*
- * Some debugfs entries only exposed if we're using debug
- */
+
 static int ab3100_registers_print(struct seq_file *s, void *p)
 {
 	struct ab3100 *ab3100 = s->private;
@@ -480,27 +436,18 @@ static ssize_t ab3100_get_set_reg(struct file *file,
 	int err;
 	int i = 0;
 
-	/* Get userspace string and assure termination */
+	
 	buf_size = min(count, (sizeof(buf)-1));
 	if (copy_from_user(buf, user_buf, buf_size))
 		return -EFAULT;
 	buf[buf_size] = 0;
 
-	/*
-	 * The idea is here to parse a string which is either
-	 * "0xnn" for reading a register, or "0xaa 0xbb" for
-	 * writing 0xbb to the register 0xaa. First move past
-	 * whitespace and then begin to parse the register.
-	 */
+	
 	while ((i < buf_size) && (buf[i] == ' '))
 		i++;
 	regp = i;
 
-	/*
-	 * Advance pointer to end of string then terminate
-	 * the register string. This is needed to satisfy
-	 * the strict_strtoul() function.
-	 */
+	
 	while ((i < buf_size) && (buf[i] != ' '))
 		i++;
 	buf[i] = '\0';
@@ -511,9 +458,9 @@ static ssize_t ab3100_get_set_reg(struct file *file,
 	if (user_reg > 0xff)
 		return -EINVAL;
 
-	/* Either we read or we write a register here */
+	
 	if (!priv->mode) {
-		/* Reading */
+		
 		u8 reg = (u8) user_reg;
 		u8 regvalue;
 
@@ -529,11 +476,7 @@ static ssize_t ab3100_get_set_reg(struct file *file,
 		u8 value;
 		u8 regvalue;
 
-		/*
-		 * Writing, we need some value to write to
-		 * the register so keep parsing the string
-		 * from userspace.
-		 */
+		
 		i++;
 		while ((i < buf_size) && (buf[i] == ' '))
 			i++;
@@ -634,11 +577,7 @@ static inline void ab3100_remove_debugfs(void)
 }
 #endif
 
-/*
- * Basic set-up, datastructure creation/destruction and I2C interface.
- * This sets up a default config in the AB3100 chip so that it
- * will work as expected.
- */
+
 
 struct ab3100_init_setting {
 	u8 abreg;
@@ -705,11 +644,7 @@ static int __init ab3100_setup(struct ab3100 *ab3100)
 			goto exit_no_setup;
 	}
 
-	/*
-	 * Special trick to make the AB3100 use the 32kHz clock (RTC)
-	 * bit 3 in test register 0x02 is a special, undocumented test
-	 * register bit that only exist in AB3100 P1E
-	 */
+	
 	if (ab3100->chip_id == 0xc4) {
 		dev_warn(ab3100->dev,
 			 "AB3100 P1E variant detected, "
@@ -721,13 +656,7 @@ static int __init ab3100_setup(struct ab3100 *ab3100)
 	return err;
 }
 
-/*
- * Here we define all the platform devices that appear
- * as children of the AB3100. These are regular platform
- * devices with the IORESOURCE_IO .start and .end set
- * to correspond to the internal AB3100 register range
- * mapping to the corresponding subdevice.
- */
+
 
 #define AB3100_DEVICE(devname, devid)				\
 static struct platform_device ab3100_##devname##_device = {	\
@@ -735,10 +664,7 @@ static struct platform_device ab3100_##devname##_device = {	\
 	.id		= -1,					\
 }
 
-/*
- * This lists all the subdevices and corresponding register
- * ranges.
- */
+
 AB3100_DEVICE(dac, "ab3100-dac");
 AB3100_DEVICE(leds, "ab3100-leds");
 AB3100_DEVICE(power, "ab3100-power");
@@ -778,7 +704,7 @@ struct ab_family_id {
 };
 
 static const struct ab_family_id ids[] __initdata = {
-	/* AB3100 */
+	
 	{
 		.id = 0xc0,
 		.name = "P1A"
@@ -807,7 +733,7 @@ static const struct ab_family_id ids[] __initdata = {
 		.id = 0xc8,
 		.name = "P2B/R2B"
 	},
-	/* AB3000 variants, not supported */
+	
 	{
 		.id = 0xa0
 	}, {
@@ -825,7 +751,7 @@ static const struct ab_family_id ids[] __initdata = {
 	}, {
 		.id = 0xa7
 	},
-	/* Terminator */
+	
 	{
 		.id = 0x00,
 	},
@@ -846,7 +772,7 @@ static int __init ab3100_probe(struct i2c_client *client,
 		return -ENOMEM;
 	}
 
-	/* Initialize data structure */
+	
 	mutex_init(&ab3100->access_mutex);
 	BLOCKING_INIT_NOTIFIER_HEAD(&ab3100->event_subscribers);
 
@@ -855,7 +781,7 @@ static int __init ab3100_probe(struct i2c_client *client,
 
 	i2c_set_clientdata(client, ab3100);
 
-	/* Read chip ID register */
+	
 	err = ab3100_get_register_interruptible(ab3100, AB3100_CID,
 						&ab3100->chip_id);
 	if (err) {
@@ -892,7 +818,7 @@ static int __init ab3100_probe(struct i2c_client *client,
 	dev_info(&client->dev, "Detected chip: %s\n",
 		 &ab3100->chip_name[0]);
 
-	/* Attach a second dummy i2c_client to the test register address */
+	
 	ab3100->testreg_client = i2c_new_dummy(client->adapter,
 						     client->addr + 1);
 	if (!ab3100->testreg_client) {
@@ -909,14 +835,14 @@ static int __init ab3100_probe(struct i2c_client *client,
 
 	INIT_WORK(&ab3100->work, ab3100_work);
 
-	/* This real unpredictable IRQ is of course sampled for entropy */
+	
 	err = request_irq(client->irq, ab3100_irq_handler,
 			  IRQF_DISABLED | IRQF_SAMPLE_RANDOM,
 			  "AB3100 IRQ", ab3100);
 	if (err)
 		goto exit_no_irq;
 
-	/* Set parent and a pointer back to the container in device data */
+	
 	for (i = 0; i < ARRAY_SIZE(ab3100_platform_devs); i++) {
 		ab3100_platform_devs[i]->dev.parent =
 			&client->dev;
@@ -925,7 +851,7 @@ static int __init ab3100_probe(struct i2c_client *client,
 		platform_set_drvdata(ab3100_platform_devs[i], ab3100);
 	}
 
-	/* Register the platform devices */
+	
 	platform_add_devices(ab3100_platform_devs,
 			     ARRAY_SIZE(ab3100_platform_devs));
 
@@ -947,17 +873,14 @@ static int __exit ab3100_remove(struct i2c_client *client)
 	struct ab3100 *ab3100 = i2c_get_clientdata(client);
 	int i;
 
-	/* Unregister subdevices */
+	
 	for (i = 0; i < ARRAY_SIZE(ab3100_platform_devs); i++)
 		platform_device_unregister(ab3100_platform_devs[i]);
 
 	ab3100_remove_debugfs();
 	i2c_unregister_device(ab3100->testreg_client);
 
-	/*
-	 * At this point, all subscribers should have unregistered
-	 * their notifiers so deactivate IRQ
-	 */
+	
 	free_irq(client->irq, ab3100);
 	kfree(ab3100);
 	return 0;

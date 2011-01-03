@@ -1,17 +1,4 @@
-/*
- * wm8350-i2c.c  --  Generic I2C driver for Wolfson WM8350 PMIC
- *
- * Copyright 2007, 2008 Wolfson Microelectronics PLC.
- *
- * Author: Liam Girdwood
- *         linux@wolfsonmicro.com
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -39,7 +26,7 @@ static int wm8350_i2c_read_device(struct wm8350 *wm8350, char reg,
 static int wm8350_i2c_write_device(struct wm8350 *wm8350, char reg,
 				   int bytes, void *src)
 {
-	/* we add 1 byte for device register */
+	
 	u8 msg[(WM8350_MAX_REGISTER << 1) + 1];
 	int ret;
 
@@ -118,7 +105,7 @@ static int __init wm8350_i2c_init(void)
 {
 	return i2c_add_driver(&wm8350_i2c_driver);
 }
-/* init early so consumer devices can complete system boot */
+
 subsys_initcall(wm8350_i2c_init);
 
 static void __exit wm8350_i2c_exit(void)

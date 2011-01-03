@@ -1,11 +1,4 @@
-/*
- * drivers/mfd/ab3100_otp.c
- *
- * Copyright (C) 2007-2009 ST-Ericsson AB
- * License terms: GNU General Public License (GPL) version 2
- * Driver to read out OTP from the AB3100 Mixed-signal circuit
- * Author: Linus Walleij <linus.walleij@stericsson.com>
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -14,7 +7,7 @@
 #include <linux/mfd/ab3100.h>
 #include <linux/debugfs.h>
 
-/* The OTP registers */
+
 #define AB3100_OTP0		0xb0
 #define AB3100_OTP1		0xb1
 #define AB3100_OTP2		0xb2
@@ -25,26 +18,7 @@
 #define AB3100_OTP7		0xb7
 #define AB3100_OTPP		0xbf
 
-/**
- * struct ab3100_otp
- * @dev containing device
- * @ab3100 a pointer to the parent ab3100 device struct
- * @locked whether the OTP is locked, after locking, no more bits
- *       can be changed but before locking it is still possible
- *       to change bits from 1->0.
- * @freq clocking frequency for the OTP, this frequency is either
- *       32768Hz or 1MHz/30
- * @paf product activation flag, indicates whether this is a real
- *       product (paf true) or a lab board etc (paf false)
- * @imeich if this is set it is possible to override the
- *       IMEI number found in the tac, fac and svn fields with
- *       (secured) software
- * @cid customer ID
- * @tac type allocation code of the IMEI
- * @fac final assembly code of the IMEI
- * @svn software version number of the IMEI
- * @debugfs a debugfs file used when dumping to file
- */
+
 struct ab3100_otp {
 	struct device *dev;
 	struct ab3100 *ab3100;
@@ -79,7 +53,7 @@ static int __init ab3100_otp_read(struct ab3100_otp *otp)
 		return err;
 	}
 
-	/* Cache OTP properties, they never change by nature */
+	
 	otp->locked = (otpp & 0x80);
 	otp->freq = (otpp & 0x40) ? 32768 : 34100;
 	otp->paf = (otpval[1] & 0x80);
@@ -91,10 +65,7 @@ static int __init ab3100_otp_read(struct ab3100_otp *otp)
 	return 0;
 }
 
-/*
- * This is a simple debugfs human-readable file that dumps out
- * the contents of the OTP.
- */
+
 #ifdef CONFIG_DEBUGFS
 static int show_otp(struct seq_file *s, void *v)
 {
@@ -140,7 +111,7 @@ static void __exit ab3100_otp_exit_debugfs(struct ab3100_otp *otp)
 	debugfs_remove_file(otp->debugfs);
 }
 #else
-/* Compile this out if debugfs not selected */
+
 static inline int __init ab3100_otp_init_debugfs(struct device *dev,
 						 struct ab3100_otp *otp)
 {
@@ -194,7 +165,7 @@ static int __init ab3100_otp_probe(struct platform_device *pdev)
 	}
 	otp->dev = &pdev->dev;
 
-	/* Replace platform data coming in with a local struct */
+	
 	otp->ab3100 = platform_get_drvdata(pdev);
 	platform_set_drvdata(pdev, otp);
 
@@ -204,7 +175,7 @@ static int __init ab3100_otp_probe(struct platform_device *pdev)
 
 	dev_info(&pdev->dev, "AB3100 OTP readout registered\n");
 
-	/* sysfs entries */
+	
 	for (i = 0; i < ARRAY_SIZE(ab3100_otp_attrs); i++) {
 		err = device_create_file(&pdev->dev,
 					 &ab3100_otp_attrs[i]);
@@ -212,7 +183,7 @@ static int __init ab3100_otp_probe(struct platform_device *pdev)
 			goto out_no_sysfs;
 	}
 
-	/* debugfs entries */
+	
 	err = ab3100_otp_init_debugfs(&pdev->dev, otp);
 	if (err)
 		goto out_no_debugfs;

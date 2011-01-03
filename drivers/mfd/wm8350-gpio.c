@@ -1,16 +1,4 @@
-/*
- * wm8350-core.c  --  Device access for Wolfson WM8350
- *
- * Copyright 2007, 2008 Wolfson Microelectronics PLC.
- *
- * Author: Liam Girdwood
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -188,7 +176,7 @@ static int gpio_set_invert(struct wm8350 *wm8350, int gpio, int invert)
 int wm8350_gpio_config(struct wm8350 *wm8350, int gpio, int dir, int func,
 		       int pol, int pull, int invert, int debounce)
 {
-	/* make sure we never pull up and down at the same time */
+	
 	if (pull == WM8350_GPIO_PULL_NONE) {
 		if (gpio_set_pull_up(wm8350, gpio, 0))
 			goto err;
