@@ -1,44 +1,29 @@
-/*
- * This file is subject to the terms and conditions of the GNU General Public
- * License.  See the file "COPYING" in the main directory of this archive
- * for more details.
- *
- * Copyright (c) 2004-2008 Silicon Graphics, Inc.  All Rights Reserved.
- */
 
-/*
- * Cross Partition Communication (XPC) partition support.
- *
- *	This is the part of XPC that detects the presence/absence of
- *	other partitions. It provides a heartbeat and monitors the
- *	heartbeats of other partitions.
- *
- */
+
+
 
 #include <linux/device.h>
 #include <linux/hardirq.h>
 #include "xpc.h"
 
-/* XPC is exiting flag */
+
 int xpc_exiting;
 
-/* this partition's reserved page pointers */
+
 struct xpc_rsvd_page *xpc_rsvd_page;
 static unsigned long *xpc_part_nasids;
 unsigned long *xpc_mach_nasids;
 
-static int xpc_nasid_mask_nbytes;	/* #of bytes in nasid mask */
-int xpc_nasid_mask_nlongs;	/* #of longs in nasid mask */
+static int xpc_nasid_mask_nbytes;	
+int xpc_nasid_mask_nlongs;	
 
 struct xpc_partition *xpc_partitions;
 
-/*
- * Guarantee that the kmalloc'd memory is cacheline aligned.
- */
+
 void *
 xpc_kmalloc_cacheline_aligned(size_t size, gfp_t flags, void **base)
 {
-	/* see if kmalloc will give us cachline aligned memory by default */
+	
 	*base = kmalloc(size, flags);
 	if (*base == NULL)
 		return NULL;
@@ -48,7 +33,7 @@ xpc_kmalloc_cacheline_aligned(size_t size, gfp_t flags, void **base)
 
 	kfree(*base);
 
-	/* nope, we'll have to do it ourselves */
+	
 	*base = kmalloc(size + L1_CACHE_BYTES, flags);
 	if (*base == NULL)
 		return NULL;
@@ -56,16 +41,13 @@ xpc_kmalloc_cacheline_aligned(size_t size, gfp_t flags, void **base)
 	return (void *)L1_CACHE_ALIGN((u64)*base);
 }
 
-/*
- * Given a nasid, get the physical address of the  partition's reserved page
- * for that nasid. This function returns 0 on any error.
- */
+
 static unsigned long
 xpc_get_rsvd_page_pa(int nasid)
 {
 	enum xp_retval ret;
 	u64 cookie = 0;
-	unsigned long rp_pa = nasid;	/* seed with nasid */
+	unsigned long rp_pa = nasid;	
 	size_t len = 0;
 	size_t buf_len = 0;
 	void *buf = buf;
@@ -76,12 +58,7 @@ xpc_get_rsvd_page_pa(int nasid)
 
 	while (1) {
 
-		/* !!! rp_pa will need to be _gpa on UV.
-		 * ??? So do we save it into the architecture specific parts
-		 * ??? of the xpc_partition structure? Do we rename this
-		 * ??? function or have two versions? Rename rp_pa for UV to
-		 * ??? rp_gpa?
-		 */
+		
 		ret = get_partition_rsvd_page_pa(buf, &cookie, &rp_pa, &len);
 
 		dev_dbg(xpc_part, "SAL returned with ret=%d, cookie=0x%016lx, "
@@ -91,7 +68,7 @@ xpc_get_rsvd_page_pa(int nasid)
 		if (ret != xpNeedMoreInfo)
 			break;
 
-		/* !!! L1_CACHE_ALIGN() is only a sn2-bte_copy requirement */
+		
 		if (L1_CACHE_ALIGN(len) > buf_len) {
 			kfree(buf_base);
 			buf_len = L1_CACHE_ALIGN(len);
@@ -121,11 +98,7 @@ xpc_get_rsvd_page_pa(int nasid)
 	return rp_pa;
 }
 
-/*
- * Fill the partition reserved page with the information needed by
- * other partitions to discover we are alive and establish initial
- * communications.
- */
+
 int
 xpc_setup_rsvd_page(void)
 {
@@ -134,7 +107,7 @@ xpc_setup_rsvd_page(void)
 	unsigned long rp_pa;
 	unsigned long new_ts_jiffies;
 
-	/* get the local reserved page's address */
+	
 
 	preempt_disable();
 	rp_pa = xpc_get_rsvd_page_pa(xp_cpu_to_nasid(smp_processor_id()));
@@ -146,7 +119,7 @@ xpc_setup_rsvd_page(void)
 	rp = (struct xpc_rsvd_page *)__va(rp_pa);
 
 	if (rp->SAL_version < 3) {
-		/* SAL_versions < 3 had a SAL_partid defined as a u8 */
+		
 		rp->SAL_partid &= 0xff;
 	}
 	BUG_ON(rp->SAL_partid != xp_partition_id);
@@ -161,16 +134,16 @@ xpc_setup_rsvd_page(void)
 	rp->version = XPC_RP_VERSION;
 	rp->max_npartitions = xp_max_npartitions;
 
-	/* establish the actual sizes of the nasid masks */
+	
 	if (rp->SAL_version == 1) {
-		/* SAL_version 1 didn't set the nasids_size field */
+		
 		rp->SAL_nasids_size = 128;
 	}
 	xpc_nasid_mask_nbytes = rp->SAL_nasids_size;
 	xpc_nasid_mask_nlongs = BITS_TO_LONGS(rp->SAL_nasids_size *
 					      BITS_PER_BYTE);
 
-	/* setup the pointers to the various items in the reserved page */
+	
 	xpc_part_nasids = XPC_RP_PART_NASIDS(rp);
 	xpc_mach_nasids = XPC_RP_MACH_NASIDS(rp);
 
@@ -178,11 +151,7 @@ xpc_setup_rsvd_page(void)
 	if (ret != 0)
 		return ret;
 
-	/*
-	 * Set timestamp of when reserved page was setup by XPC.
-	 * This signifies to the remote partition that our reserved
-	 * page is initialized.
-	 */
+	
 	new_ts_jiffies = jiffies;
 	if (new_ts_jiffies == 0 || new_ts_jiffies == rp->ts_jiffies)
 		new_ts_jiffies++;
@@ -195,17 +164,11 @@ xpc_setup_rsvd_page(void)
 void
 xpc_teardown_rsvd_page(void)
 {
-	/* a zero timestamp indicates our rsvd page is not initialized */
+	
 	xpc_rsvd_page->ts_jiffies = 0;
 }
 
-/*
- * Get a copy of a portion of the remote partition's rsvd page.
- *
- * remote_rp points to a buffer that is cacheline aligned for BTE copies and
- * is large enough to contain a copy of their reserved page header and
- * part_nasids mask.
- */
+
 enum xp_retval
 xpc_get_remote_rp(int nasid, unsigned long *discovered_nasids,
 		  struct xpc_rsvd_page *remote_rp, unsigned long *remote_rp_pa)
@@ -213,13 +176,13 @@ xpc_get_remote_rp(int nasid, unsigned long *discovered_nasids,
 	int l;
 	enum xp_retval ret;
 
-	/* get the reserved page's physical address */
+	
 
 	*remote_rp_pa = xpc_get_rsvd_page_pa(nasid);
 	if (*remote_rp_pa == 0)
 		return xpNoRsvdPageAddr;
 
-	/* pull over the reserved page header and part_nasids mask */
+	
 	ret = xp_remote_memcpy(xp_pa(remote_rp), *remote_rp_pa,
 			       XPC_RP_HEADER_SIZE + xpc_nasid_mask_nbytes);
 	if (ret != xpSuccess)
@@ -233,7 +196,7 @@ xpc_get_remote_rp(int nasid, unsigned long *discovered_nasids,
 			discovered_nasids[l] |= remote_part_nasids[l];
 	}
 
-	/* zero timestamp indicates the reserved page has not been setup */
+	
 	if (remote_rp->ts_jiffies == 0)
 		return xpRsvdPageNotSet;
 
@@ -242,7 +205,7 @@ xpc_get_remote_rp(int nasid, unsigned long *discovered_nasids,
 		return xpBadVersion;
 	}
 
-	/* check that both remote and local partids are valid for each side */
+	
 	if (remote_rp->SAL_partid < 0 ||
 	    remote_rp->SAL_partid >= xp_max_npartitions ||
 	    remote_rp->max_npartitions <= xp_partition_id) {
@@ -255,11 +218,7 @@ xpc_get_remote_rp(int nasid, unsigned long *discovered_nasids,
 	return xpSuccess;
 }
 
-/*
- * See if the other side has responded to a partition deactivate request
- * from us. Though we requested the remote partition to deactivate with regard
- * to us, we really only need to wait for the other side to disengage from us.
- */
+
 int
 xpc_partition_disengaged(struct xpc_partition *part)
 {
@@ -270,14 +229,11 @@ xpc_partition_disengaged(struct xpc_partition *part)
 	if (part->disengage_timeout) {
 		if (!disengaged) {
 			if (time_is_after_jiffies(part->disengage_timeout)) {
-				/* timelimit hasn't been reached yet */
+				
 				return 0;
 			}
 
-			/*
-			 * Other side hasn't responded to our deactivate
-			 * request in a timely fashion, so assume it's dead.
-			 */
+			
 
 			dev_info(xpc_part, "deactivate request to remote "
 				 "partition %d timed out\n", partid);
@@ -287,7 +243,7 @@ xpc_partition_disengaged(struct xpc_partition *part)
 		}
 		part->disengage_timeout = 0;
 
-		/* cancel the timer function, provided it's not us */
+		
 		if (!in_interrupt())
 			del_singleshot_timer_sync(&part->disengage_timer);
 
@@ -301,9 +257,7 @@ xpc_partition_disengaged(struct xpc_partition *part)
 	return disengaged;
 }
 
-/*
- * Mark specified partition as active.
- */
+
 enum xp_retval
 xpc_mark_partition_active(struct xpc_partition *part)
 {
@@ -325,9 +279,7 @@ xpc_mark_partition_active(struct xpc_partition *part)
 	return ret;
 }
 
-/*
- * Start the process of deactivating the specified partition.
- */
+
 void
 xpc_deactivate_partition(const int line, struct xpc_partition *part,
 			 enum xp_retval reason)
@@ -340,7 +292,7 @@ xpc_deactivate_partition(const int line, struct xpc_partition *part,
 		XPC_SET_REASON(part, reason, line);
 		spin_unlock_irqrestore(&part->act_lock, irq_flags);
 		if (reason == xpReactivating) {
-			/* we interrupt ourselves to reactivate partition */
+			
 			xpc_arch_ops.request_partition_reactivation(part);
 		}
 		return;
@@ -359,10 +311,10 @@ xpc_deactivate_partition(const int line, struct xpc_partition *part,
 
 	spin_unlock_irqrestore(&part->act_lock, irq_flags);
 
-	/* ask remote partition to deactivate with regard to us */
+	
 	xpc_arch_ops.request_partition_deactivation(part);
 
-	/* set a timelimit on the disengage phase of the deactivation request */
+	
 	part->disengage_timeout = jiffies + (xpc_disengage_timelimit * HZ);
 	part->disengage_timer.expires = part->disengage_timeout;
 	add_timer(&part->disengage_timer);
@@ -373,9 +325,7 @@ xpc_deactivate_partition(const int line, struct xpc_partition *part,
 	xpc_partition_going_down(part, reason);
 }
 
-/*
- * Mark specified partition as inactive.
- */
+
 void
 xpc_mark_partition_inactive(struct xpc_partition *part)
 {
@@ -390,15 +340,7 @@ xpc_mark_partition_inactive(struct xpc_partition *part)
 	part->remote_rp_pa = 0;
 }
 
-/*
- * SAL has provided a partition and machine mask.  The partition mask
- * contains a bit for each even nasid in our partition.  The machine
- * mask contains a bit for each even nasid in the entire machine.
- *
- * Using those two bit arrays, we can determine which nasids are
- * known in the machine.  Each should also have a reserved page
- * initialized if they are available for partitioning.
- */
+
 void
 xpc_discovery(void)
 {
@@ -428,11 +370,7 @@ xpc_discovery(void)
 
 	rp = (struct xpc_rsvd_page *)xpc_rsvd_page;
 
-	/*
-	 * The term 'region' in this context refers to the minimum number of
-	 * nodes that can comprise an access protection grouping. The access
-	 * protection is in regards to memory, IOI and IPI.
-	 */
+	
 	max_regions = 64;
 	region_size = xp_region_size;
 
@@ -483,7 +421,7 @@ xpc_discovery(void)
 				continue;
 			}
 
-			/* pull over the rsvd page header & part_nasids mask */
+			
 
 			ret = xpc_get_remote_rp(nasid, discovered_nasids,
 						remote_rp, &remote_rp_pa);
@@ -507,10 +445,7 @@ xpc_discovery(void)
 	kfree(remote_rp_base);
 }
 
-/*
- * Given a partid, get the nasids owned by that partition from the
- * remote partition's reserved page.
- */
+
 enum xp_retval
 xpc_initiate_partid_to_nasids(short partid, void *nasid_mask)
 {

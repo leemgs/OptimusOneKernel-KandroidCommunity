@@ -1,28 +1,6 @@
-/*
- * IBM ASM Service Processor Device Driver
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *
- * Copyright (C) IBM Corporation, 2004
- *
- * Authors: Max Asböck <amax@us.ibm.com>
- *          Vernon Mauery <vernux@us.ibm.com>
- *
- */
 
-/* Remote mouse and keyboard event handling functions */
+
+
 
 #include <linux/pci.h>
 #include "ibmasm.h"
@@ -209,7 +187,7 @@ void ibmasm_handle_mouse_interrupt(struct service_processor *sp)
 
 int ibmasm_init_remote_input_dev(struct service_processor *sp)
 {
-	/* set up the mouse input device */
+	
 	struct input_dev *mouse_dev, *keybd_dev;
 	struct pci_dev *pdev = to_pci_dev(sp->dev);
 	int error = -ENOMEM;
@@ -265,7 +243,7 @@ int ibmasm_init_remote_input_dev(struct service_processor *sp)
 
  err_unregister_mouse_dev:
 	input_unregister_device(mouse_dev);
-	mouse_dev = NULL; /* so we don't try to free it again below */
+	mouse_dev = NULL; 
  err_free_devices:
 	input_free_device(mouse_dev);
 	input_free_device(keybd_dev);

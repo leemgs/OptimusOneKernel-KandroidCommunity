@@ -1,26 +1,4 @@
-/*
- * SN Platform GRU Driver
- *
- *              PROC INTERFACES
- *
- * This file supports the /proc interfaces for the GRU driver
- *
- *  Copyright (c) 2008 Silicon Graphics, Inc.  All Rights Reserved.
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- */
+
 
 #include <linux/proc_fs.h>
 #include <linux/device.h>
@@ -284,7 +262,7 @@ static int gru_open(struct inode *inode, struct file *file)
 	return seq_open(file, &gru_seq_ops);
 }
 
-/* *INDENT-OFF* */
+
 static const struct file_operations statistics_fops = {
 	.open 		= statistics_open,
 	.read 		= seq_read,
@@ -335,7 +313,7 @@ static struct proc_entry {
 	{"gru_status", 0444, &gru_fops},
 	{NULL}
 };
-/* *INDENT-ON* */
+
 
 static struct proc_dir_entry *proc_gru __read_mostly;
 

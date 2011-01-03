@@ -1,12 +1,4 @@
-/*
- * Atmel SSC driver
- *
- * Copyright (C) 2007 Atmel Corporation
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/platform_device.h>
 #include <linux/list.h>
@@ -16,7 +8,7 @@
 #include <linux/spinlock.h>
 #include <linux/atmel-ssc.h>
 
-/* Serialize access to ssc_list and user count */
+
 static DEFINE_SPINLOCK(user_lock);
 static LIST_HEAD(ssc_list);
 
@@ -101,7 +93,7 @@ static int __init ssc_probe(struct platform_device *pdev)
 		goto out_clk;
 	}
 
-	/* disable all interrupts */
+	
 	clk_enable(ssc->clk);
 	ssc_writel(ssc->regs, IDR, ~0UL);
 	ssc_readl(ssc->regs, SR);

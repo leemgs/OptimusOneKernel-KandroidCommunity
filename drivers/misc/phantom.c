@@ -1,16 +1,4 @@
-/*
- *  Copyright (C) 2005-2007 Jiri Slaby <jirislaby@gmail.com>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  You need a userspace library to cooperate with this driver. It (and other
- *  info) may be obtained here:
- *  http://www.fi.muni.cz/~xslaby/phantom.html
- *  or alternatively, you might use OpenHaptics provided by Sensable.
- */
+
 
 #include <linux/compat.h>
 #include <linux/kernel.h>
@@ -32,7 +20,7 @@
 
 #define PHANTOM_MAX_MINORS	8
 
-#define PHN_IRQCTL		0x4c    /* irq control in caddr space */
+#define PHN_IRQCTL		0x4c    
 
 #define PHB_RUNNING		1
 #define PHB_NOT_OH		2
@@ -54,7 +42,7 @@ struct phantom_device {
 	struct mutex open_lock;
 	spinlock_t regs_lock;
 
-	/* used in NOT_OH mode */
+	
 	struct phm_regs oregs;
 	u32 ctl_reg;
 };
@@ -69,10 +57,10 @@ static int phantom_status(struct phantom_device *dev, unsigned long newstat)
 		atomic_set(&dev->counter, 0);
 		iowrite32(PHN_CTL_IRQ, dev->iaddr + PHN_CONTROL);
 		iowrite32(0x43, dev->caddr + PHN_IRQCTL);
-		ioread32(dev->caddr + PHN_IRQCTL); /* PCI posting */
+		ioread32(dev->caddr + PHN_IRQCTL); 
 	} else if ((dev->status & PHB_RUNNING) && !(newstat & PHB_RUNNING)) {
 		iowrite32(0, dev->caddr + PHN_IRQCTL);
-		ioread32(dev->caddr + PHN_IRQCTL); /* PCI posting */
+		ioread32(dev->caddr + PHN_IRQCTL); 
 	}
 
 	dev->status = newstat;
@@ -80,9 +68,7 @@ static int phantom_status(struct phantom_device *dev, unsigned long newstat)
 	return 0;
 }
 
-/*
- * File ops
- */
+
 
 static long phantom_ioctl(struct file *file, unsigned int cmd,
 		unsigned long arg)
@@ -112,7 +98,7 @@ static long phantom_ioctl(struct file *file, unsigned int cmd,
 
 		pr_debug("phantom: writing %x to %u\n", r.value, r.reg);
 
-		/* preserve amp bit (don't allow to change it when in NOT_OH) */
+		
 		if (r.reg == PHN_CONTROL && (dev->status & PHB_NOT_OH)) {
 			r.value &= ~PHN_CTL_AMP;
 			r.value |= dev->ctl_reg & PHN_CTL_AMP;
@@ -120,7 +106,7 @@ static long phantom_ioctl(struct file *file, unsigned int cmd,
 		}
 
 		iowrite32(r.value, dev->iaddr + r.reg);
-		ioread32(dev->iaddr); /* PCI posting */
+		ioread32(dev->iaddr); 
 
 		if (r.reg == PHN_CONTROL && !(r.value & PHN_CTL_IRQ))
 			phantom_status(dev, dev->status & ~PHB_RUNNING);
@@ -140,7 +126,7 @@ static long phantom_ioctl(struct file *file, unsigned int cmd,
 			for (i = 0; i < m; i++)
 				if (rs.mask & BIT(i))
 					iowrite32(rs.values[i], dev->oaddr + i);
-			ioread32(dev->iaddr); /* PCI posting */
+			ioread32(dev->iaddr); 
 		}
 		spin_unlock_irqrestore(&dev->regs_lock, flags);
 		break;
@@ -309,7 +295,7 @@ static irqreturn_t phantom_isr(int irq, void *data)
 	}
 	spin_unlock(&dev->regs_lock);
 
-	ioread32(dev->iaddr); /* PCI posting */
+	ioread32(dev->iaddr); 
 
 	atomic_inc(&dev->counter);
 	wake_up_interruptible(&dev->wait);
@@ -317,9 +303,7 @@ static irqreturn_t phantom_isr(int irq, void *data)
 	return IRQ_HANDLED;
 }
 
-/*
- * Init and deinit driver
- */
+
 
 static unsigned int __devinit phantom_get_free(void)
 {
@@ -386,7 +370,7 @@ static int __devinit phantom_probe(struct pci_dev *pdev,
 	pht->cdev.owner = THIS_MODULE;
 
 	iowrite32(0, pht->caddr + PHN_IRQCTL);
-	ioread32(pht->caddr + PHN_IRQCTL); /* PCI posting */
+	ioread32(pht->caddr + PHN_IRQCTL); 
 	retval = request_irq(pdev->irq, phantom_isr,
 			IRQF_SHARED | IRQF_DISABLED, "phantom", pht);
 	if (retval) {
@@ -438,7 +422,7 @@ static void __devexit phantom_remove(struct pci_dev *pdev)
 	cdev_del(&pht->cdev);
 
 	iowrite32(0, pht->caddr + PHN_IRQCTL);
-	ioread32(pht->caddr + PHN_IRQCTL); /* PCI posting */
+	ioread32(pht->caddr + PHN_IRQCTL); 
 	free_irq(pdev->irq, pht);
 
 	pci_iounmap(pdev, pht->oaddr);
@@ -460,7 +444,7 @@ static int phantom_suspend(struct pci_dev *pdev, pm_message_t state)
 	struct phantom_device *dev = pci_get_drvdata(pdev);
 
 	iowrite32(0, dev->caddr + PHN_IRQCTL);
-	ioread32(dev->caddr + PHN_IRQCTL); /* PCI posting */
+	ioread32(dev->caddr + PHN_IRQCTL); 
 
 	synchronize_irq(pdev->irq);
 

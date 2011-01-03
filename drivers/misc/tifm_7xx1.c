@@ -1,13 +1,4 @@
-/*
- *  tifm_7xx1.c - TI FlashMedia driver
- *
- *  Copyright (C) 2006 Alex Dubov <oakad@yahoo.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/tifm.h>
 #include <linux/dma-mapping.h>
@@ -100,14 +91,14 @@ static unsigned char tifm_7xx1_toggle_sock_power(char __iomem *sock_addr)
 	writel(readl(sock_addr + SOCK_CONTROL) | TIFM_CTRL_LED,
 	       sock_addr + SOCK_CONTROL);
 
-	/* xd needs some extra time before power on */
+	
 	if (((readl(sock_addr + SOCK_PRESENT_STATE) >> 4) & 7)
 	    == TIFM_TYPE_XD)
 		msleep(40);
 
 	writel((s_state & TIFM_CTRL_POWER_MASK) | 0x0c00,
 	       sock_addr + SOCK_CONTROL);
-	/* wait for power to stabilize */
+	
 	msleep(20);
 	for (cnt = 16; cnt <= 256; cnt <<= 1) {
 		if ((TIFM_SOCK_STATE_POWERED
@@ -179,7 +170,7 @@ static void tifm_7xx1_switch_media(struct work_struct *work)
 		media_id = tifm_7xx1_toggle_sock_power(
 				tifm_7xx1_sock_addr(fm->addr, cnt));
 
-		// tifm_alloc_device will check if media_id is valid
+		
 		sock = tifm_alloc_device(fm, cnt, media_id);
 		if (sock) {
 			sock->addr = tifm_7xx1_sock_addr(fm->addr, cnt);
@@ -300,7 +291,7 @@ static int tifm_7xx1_resume(struct pci_dev *dev)
 #define tifm_7xx1_suspend NULL
 #define tifm_7xx1_resume NULL
 
-#endif /* CONFIG_PM */
+#endif 
 
 static int tifm_7xx1_dummy_has_ms_pif(struct tifm_adapter *fm,
 				      struct tifm_dev *sock)
@@ -416,7 +407,7 @@ static void tifm_7xx1_remove(struct pci_dev *dev)
 
 static struct pci_device_id tifm_7xx1_pci_tbl [] = {
 	{ PCI_VENDOR_ID_TI, PCI_DEVICE_ID_TI_XX21_XX11_FM, PCI_ANY_ID,
-	  PCI_ANY_ID, 0, 0, 0 }, /* xx21 - the one I have */
+	  PCI_ANY_ID, 0, 0, 0 }, 
         { PCI_VENDOR_ID_TI, PCI_DEVICE_ID_TI_XX12_FM, PCI_ANY_ID,
 	  PCI_ANY_ID, 0, 0, 0 },
 	{ PCI_VENDOR_ID_TI, PCI_DEVICE_ID_TI_XX20_FM, PCI_ANY_ID,

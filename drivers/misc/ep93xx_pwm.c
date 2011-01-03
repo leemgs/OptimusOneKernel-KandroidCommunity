@@ -1,21 +1,4 @@
-/*
- *  Simple PWM driver for EP93XX
- *
- *	(c) Copyright 2009  Matthieu Crapet <mcrapet@gmail.com>
- *	(c) Copyright 2009  H Hartley Sweeten <hsweeten@visionengravers.com>
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License
- *	as published by the Free Software Foundation; either version
- *	2 of the License, or (at your option) any later version.
- *
- *  EP9307 has only one channel:
- *    - PWMOUT
- *
- *  EP9301/02/12/15 have two channels:
- *    - PWMOUT
- *    - PWMOUT1 (alternate function for EGPIO14)
- */
+
 
 #include <linux/module.h>
 #include <linux/platform_device.h>
@@ -95,14 +78,7 @@ static inline int ep93xx_pwm_is_inverted(struct ep93xx_pwm *pwm)
 	return ep93xx_pwm_readl(pwm, EP93XX_PWMx_INVERT) & 0x1;
 }
 
-/*
- * /sys/devices/platform/ep93xx-pwm.N
- *   /min_freq      read-only   minimum pwm output frequency
- *   /max_req       read-only   maximum pwm output frequency
- *   /freq          read-write  pwm output frequency (0 = disable output)
- *   /duty_percent  read-write  pwm duty cycle percent (1..99)
- *   /invert        read-write  invert pwm output
- */
+
 
 static ssize_t ep93xx_pwm_get_min_freq(struct device *dev,
 		struct device_attribute *attr, char *buf)
@@ -166,7 +142,7 @@ static ssize_t ep93xx_pwm_set_freq(struct device *dev,
 		term = ep93xx_pwm_read_tc(pwm);
 		duty = ((val + 1) * pwm->duty_percent / 100) - 1;
 
-		/* If pwm is running, order is important */
+		
 		if (val > term) {
 			ep93xx_pwm_write_tc(pwm, val);
 			ep93xx_pwm_write_dc(pwm, duty);
@@ -316,7 +292,7 @@ static int __init ep93xx_pwm_probe(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, pwm);
 
-	/* disable pwm at startup. Avoids zero value. */
+	
 	ep93xx_pwm_disable(pwm);
 	ep93xx_pwm_write_tc(pwm, EP93XX_PWM_MAX_COUNT);
 	ep93xx_pwm_write_dc(pwm, EP93XX_PWM_MAX_COUNT / 2);

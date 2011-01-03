@@ -1,18 +1,4 @@
-/*
- *	Sky CPU State Driver
- *
- *	Copyright (C) 2002 Brian Waite
- *
- *	This driver allows use of the CPU state bits
- *	It exports the /dev/sky_cpustate and also
- *	/proc/sky_cpustate pseudo-file for status information.
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License
- *	as published by the Free Software Foundation; either version
- *	2 of the License, or (at your option) any later version.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -112,9 +98,7 @@ static void cpustate_set_state(unsigned char new_state)
 	spin_unlock(&cpustate.lock);
 }
 
-/*
- *	Now all the various file operations that we export.
- */
+
 
 static ssize_t cpustate_read(struct file *file, char *buf,
 			     size_t count, loff_t * ppos)
@@ -175,9 +159,7 @@ static struct platform_driver hdpu_cpustate_driver = {
 	},
 };
 
-/*
- *	The various file operations we support.
- */
+
 static const struct file_operations cpustate_fops = {
       .owner	= THIS_MODULE,
       .open	= cpustate_open,

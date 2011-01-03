@@ -1,29 +1,11 @@
-/*
- *              GRU KERNEL MCS INSTRUCTIONS
- *
- *  Copyright (c) 2008 Silicon Graphics, Inc.  All Rights Reserved.
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- */
+
 
 #include <linux/kernel.h>
 #include "gru.h"
 #include "grulib.h"
 #include "grutables.h"
 
-/* 10 sec */
+
 #ifdef CONFIG_IA64
 #include <asm/processor.h>
 #define GRU_OPERATION_TIMEOUT	(((cycles_t) local_cpu_data->itc_freq)*10)
@@ -32,7 +14,7 @@
 #define GRU_OPERATION_TIMEOUT	((cycles_t) tsc_khz*10*1000)
 #endif
 
-/* Extract the status field from a kernel handle */
+
 #define GET_MSEG_HANDLE_STATUS(h)	(((*(unsigned long *)(h)) >> 16) & 3)
 
 struct mcs_op_statistic mcs_op_statistics[mcsop_last];
@@ -49,7 +31,7 @@ static void start_instruction(void *h)
 {
 	unsigned long *w0 = h;
 
-	wmb();		/* setting CMD bit must be last */
+	wmb();		
 	*w0 = *w0 | 1;
 	gru_flush_cache(h);
 }

@@ -1,27 +1,4 @@
-/*
- * SN Platform GRU Driver
- *
- *              FILE OPERATIONS & DRIVER INITIALIZATION
- *
- * This file supports the user system call for file open, close, mmap, etc.
- * This also incudes the driver initialization code.
- *
- *  Copyright (c) 2008 Silicon Graphics, Inc.  All Rights Reserved.
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -50,18 +27,13 @@ unsigned long gru_end_paddr __read_mostly;
 unsigned int gru_max_gids __read_mostly;
 struct gru_stats_s gru_stats;
 
-/* Guaranteed user available resources on each node */
+
 static int max_user_cbrs, max_user_dsr_bytes;
 
 static struct miscdevice gru_miscdev;
 
 
-/*
- * gru_vma_close
- *
- * Called when unmapping a device mapping. Frees all gru resources
- * and tables belonging to the vma.
- */
+
 static void gru_vma_close(struct vm_area_struct *vma)
 {
 	struct gru_vma_data *vdata;
@@ -89,13 +61,7 @@ static void gru_vma_close(struct vm_area_struct *vma)
 	STAT(vdata_free);
 }
 
-/*
- * gru_file_mmap
- *
- * Called when mmaping the device.  Initializes the vma with a fault handler
- * and private data structure necessary to allocate, track, and free the
- * underlying pages.
- */
+
 static int gru_file_mmap(struct file *file, struct vm_area_struct *vma)
 {
 	if ((vma->vm_flags & (VM_SHARED | VM_WRITE)) != (VM_SHARED | VM_WRITE))
@@ -120,9 +86,7 @@ static int gru_file_mmap(struct file *file, struct vm_area_struct *vma)
 	return 0;
 }
 
-/*
- * Create a new GRU context
- */
+
 static int gru_create_new_context(unsigned long arg)
 {
 	struct gru_create_context_req req;
@@ -157,9 +121,7 @@ static int gru_create_new_context(unsigned long arg)
 	return ret;
 }
 
-/*
- * Get GRU configuration info (temp - for emulator testing)
- */
+
 static long gru_get_config_info(unsigned long arg)
 {
 	struct gru_config_info info;
@@ -180,11 +142,7 @@ static long gru_get_config_info(unsigned long arg)
 	return 0;
 }
 
-/*
- * gru_file_unlocked_ioctl
- *
- * Called to update file attributes via IOCTL calls.
- */
+
 static long gru_file_unlocked_ioctl(struct file *file, unsigned int req,
 				    unsigned long arg)
 {
@@ -227,10 +185,7 @@ static long gru_file_unlocked_ioctl(struct file *file, unsigned int req,
 	return err;
 }
 
-/*
- * Called at init time to build tables for all GRUs that are present in the
- * system.
- */
+
 static void gru_init_chiplet(struct gru_state *gru, unsigned long paddr,
 			     void *vaddr, int nid, int bid, int grunum)
 {
@@ -331,11 +286,7 @@ static int get_base_irq(void)
 }
 #endif
 
-/*
- * gru_init
- *
- * Called at boot or module load time to initialize the GRUs.
- */
+
 static int __init gru_init(void)
 {
 	int ret, irq, chip;
@@ -345,7 +296,7 @@ static int __init gru_init(void)
 		return 0;
 
 #if defined CONFIG_IA64
-	gru_start_paddr = 0xd000000000UL; /* ZZZZZZZZZZZZZZZZZZZ fixme */
+	gru_start_paddr = 0xd000000000UL; 
 #else
 	gru_start_paddr = uv_read_local_mmr(UVH_RH_GAM_GRU_OVERLAY_CONFIG_MMR) &
 				0x7fffffffffffUL;
@@ -357,8 +308,7 @@ static int __init gru_init(void)
 	irq = get_base_irq();
 	for (chip = 0; chip < GRU_CHIPLETS_PER_BLADE; chip++) {
 		ret = request_irq(irq + chip, gru_intr, 0, id, NULL);
-		/* TODO: fix irq handling on x86. For now ignore failure because
-		 * interrupts are not required & not yet fully supported */
+		
 		if (ret) {
 			printk(KERN_WARNING
 			       "!!!WARNING: GRU ignoring request failure!!!\n");

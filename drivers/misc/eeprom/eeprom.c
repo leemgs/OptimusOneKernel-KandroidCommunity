@@ -1,24 +1,4 @@
-/*
-    Copyright (C) 1998, 1999  Frodo Looijaard <frodol@dds.nl> and
-			       Philip Edelbrock <phil@netroedge.com>
-    Copyright (C) 2003 Greg Kroah-Hartman <greg@kroah.com>
-    Copyright (C) 2003 IBM Corp.
-    Copyright (C) 2004 Jean Delvare <khali@linux-fr.org>
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -28,29 +8,29 @@
 #include <linux/i2c.h>
 #include <linux/mutex.h>
 
-/* Addresses to scan */
+
 static const unsigned short normal_i2c[] = { 0x50, 0x51, 0x52, 0x53, 0x54,
 					0x55, 0x56, 0x57, I2C_CLIENT_END };
 
-/* Insmod parameters */
+
 I2C_CLIENT_INSMOD_1(eeprom);
 
 
-/* Size of EEPROM in bytes */
+
 #define EEPROM_SIZE		256
 
-/* possible types of eeprom devices */
+
 enum eeprom_nature {
 	UNKNOWN,
 	VAIO,
 };
 
-/* Each client has this additional data */
+
 struct eeprom_data {
 	struct mutex update_lock;
-	u8 valid;			/* bitfield, bit!=0 if slice is valid */
-	unsigned long last_updated[8];	/* In jiffies, 8 slices */
-	u8 data[EEPROM_SIZE];		/* Register values */
+	u8 valid;			
+	unsigned long last_updated[8];	
+	u8 data[EEPROM_SIZE];		
 	enum eeprom_nature nature;
 };
 
@@ -100,14 +80,11 @@ static ssize_t eeprom_read(struct kobject *kobj, struct bin_attribute *bin_attr,
 	if (off + count > EEPROM_SIZE)
 		count = EEPROM_SIZE - off;
 
-	/* Only refresh slices which contain requested bytes */
+	
 	for (slice = off >> 5; slice <= (off + count - 1) >> 5; slice++)
 		eeprom_update_client(client, slice);
 
-	/* Hide Vaio private settings to regular users:
-	   - BIOS passwords: bytes 0x00 to 0x0f
-	   - UUID: bytes 0x10 to 0x1f
-	   - Serial number: 0xc0 to 0xdf */
+	
 	if (data->nature == VAIO && !capable(CAP_SYS_ADMIN)) {
 		int i;
 
@@ -134,25 +111,17 @@ static struct bin_attribute eeprom_attr = {
 	.read = eeprom_read,
 };
 
-/* Return 0 if detection is successful, -ENODEV otherwise */
+
 static int eeprom_detect(struct i2c_client *client, int kind,
 			 struct i2c_board_info *info)
 {
 	struct i2c_adapter *adapter = client->adapter;
 
-	/* EDID EEPROMs are often 24C00 EEPROMs, which answer to all
-	   addresses 0x50-0x57, but we only care about 0x50. So decline
-	   attaching to addresses >= 0x51 on DDC buses */
+	
 	if (!(adapter->class & I2C_CLASS_SPD) && client->addr >= 0x51)
 		return -ENODEV;
 
-	/* There are four ways we can read the EEPROM data:
-	   (1) I2C block reads (faster, but unsupported by most adapters)
-	   (2) Word reads (128% overhead)
-	   (3) Consecutive byte reads (88% overhead, unsafe)
-	   (4) Regular byte data reads (265% overhead)
-	   The third and fourth methods are not implemented by this driver
-	   because all known adapters support one of the first two. */
+	
 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_READ_WORD_DATA)
 	 && !i2c_check_functionality(adapter, I2C_FUNC_SMBUS_READ_I2C_BLOCK))
 		return -ENODEV;
@@ -179,8 +148,7 @@ static int eeprom_probe(struct i2c_client *client,
 	mutex_init(&data->update_lock);
 	data->nature = UNKNOWN;
 
-	/* Detect the Vaio nature of EEPROMs.
-	   We use the "PCG-" or "VGN-" prefix as the signature. */
+	
 	if (client->addr == 0x57
 	 && i2c_check_functionality(adapter, I2C_FUNC_SMBUS_READ_BYTE_DATA)) {
 		char name[4];
@@ -197,7 +165,7 @@ static int eeprom_probe(struct i2c_client *client,
 		}
 	}
 
-	/* create the sysfs eeprom file */
+	
 	err = sysfs_create_bin_file(&client->dev.kobj, &eeprom_attr);
 	if (err)
 		goto exit_kfree;

@@ -1,26 +1,5 @@
 
-/*
- * IBM ASM Service Processor Device Driver
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *
- * Copyright (C) IBM Corporation, 2004
- *
- * Author: Max Asböck <amax@us.ibm.com>
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -35,7 +14,7 @@
 #include <linux/device.h>
 #include <linux/input.h>
 
-/* Driver identification */
+
 #define DRIVER_NAME	"ibmasm"
 #define DRIVER_VERSION  "1.0"
 #define DRIVER_AUTHOR   "Max Asbock <masbock@us.ibm.com>, Vernon Mauery <vernux@us.ibm.com>"
@@ -164,13 +143,13 @@ struct service_processor {
 	struct device		*dev;
 };
 
-/* command processing */
+
 struct command *ibmasm_new_command(struct service_processor *sp, size_t buffer_size);
 void ibmasm_exec_command(struct service_processor *sp, struct command *cmd);
 void ibmasm_wait_for_response(struct command *cmd, int timeout);
 void ibmasm_receive_command_response(struct service_processor *sp, void *response,  size_t size);
 
-/* event processing */
+
 int ibmasm_event_buffer_init(struct service_processor *sp);
 void ibmasm_event_buffer_exit(struct service_processor *sp);
 void ibmasm_receive_event(struct service_processor *sp, void *data,  unsigned int data_size);
@@ -179,38 +158,38 @@ void ibmasm_event_reader_unregister(struct service_processor *sp, struct event_r
 int ibmasm_get_next_event(struct service_processor *sp, struct event_reader *reader);
 void ibmasm_cancel_next_event(struct event_reader *reader);
 
-/* heartbeat - from SP to OS */
+
 void ibmasm_register_panic_notifier(void);
 void ibmasm_unregister_panic_notifier(void);
 int ibmasm_heartbeat_init(struct service_processor *sp);
 void ibmasm_heartbeat_exit(struct service_processor *sp);
 void ibmasm_receive_heartbeat(struct service_processor *sp,  void *message, size_t size);
 
-/* reverse heartbeat - from OS to SP */
+
 void ibmasm_init_reverse_heartbeat(struct service_processor *sp, struct reverse_heartbeat *rhb);
 int ibmasm_start_reverse_heartbeat(struct service_processor *sp, struct reverse_heartbeat *rhb);
 void ibmasm_stop_reverse_heartbeat(struct reverse_heartbeat *rhb);
 
-/* dot commands */
+
 void ibmasm_receive_message(struct service_processor *sp, void *data, int data_size);
 int ibmasm_send_driver_vpd(struct service_processor *sp);
 int ibmasm_send_os_state(struct service_processor *sp, int os_state);
 
-/* low level message processing */
+
 int ibmasm_send_i2o_message(struct service_processor *sp);
 irqreturn_t ibmasm_interrupt_handler(int irq, void * dev_id);
 
-/* remote console */
+
 void ibmasm_handle_mouse_interrupt(struct service_processor *sp);
 int ibmasm_init_remote_input_dev(struct service_processor *sp);
 void ibmasm_free_remote_input_dev(struct service_processor *sp);
 
-/* file system */
+
 int ibmasmfs_register(void);
 void ibmasmfs_unregister(void);
 void ibmasmfs_add_sp(struct service_processor *sp);
 
-/* uart */
+
 #ifdef CONFIG_SERIAL_8250
 void ibmasm_register_uart(struct service_processor *sp);
 void ibmasm_unregister_uart(struct service_processor *sp);

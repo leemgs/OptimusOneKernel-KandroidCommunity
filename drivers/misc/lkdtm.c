@@ -1,47 +1,4 @@
-/*
- * Kprobe module for testing crash dumps
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *
- * Copyright (C) IBM Corporation, 2006
- *
- * Author: Ankita Garg <ankita@in.ibm.com>
- *
- * This module induces system failures at predefined crashpoints to
- * evaluate the reliability of crash dumps obtained using different dumping
- * solutions.
- *
- * It is adapted from the Linux Kernel Dump Test Tool by
- * Fernando Luis Vazquez Cao <http://lkdtt.sourceforge.net>
- *
- * Usage :  insmod lkdtm.ko [recur_count={>0}] cpoint_name=<> cpoint_type=<>
- *							[cpoint_count={>0}]
- *
- * recur_count : Recursion level for the stack overflow test. Default is 10.
- *
- * cpoint_name : Crash point where the kernel is to be crashed. It can be
- *		 one of INT_HARDWARE_ENTRY, INT_HW_IRQ_EN, INT_TASKLET_ENTRY,
- *		 FS_DEVRW, MEM_SWAPOUT, TIMERADD, SCSI_DISPATCH_CMD,
- *		 IDE_CORE_CP
- *
- * cpoint_type : Indicates the action to be taken on hitting the crash point.
- *		 It can be one of PANIC, BUG, EXCEPTION, LOOP, OVERFLOW
- *
- * cpoint_count : Indicates the number of times the crash point is to be hit
- *		  to trigger an action. The default is 10.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/fs.h>

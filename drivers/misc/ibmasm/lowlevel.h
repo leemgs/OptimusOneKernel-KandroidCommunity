@@ -1,27 +1,6 @@
-/*
- * IBM ASM Service Processor Device Driver
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *
- * Copyright (C) IBM Corporation, 2004
- *
- * Author: Max Asböck <amax@us.ibm.com>
- *
- */
 
-/* Condor service processor specific hardware definitions */
+
+
 
 #ifndef __IBMASM_CONDOR_H__
 #define __IBMASM_CONDOR_H__
@@ -38,8 +17,8 @@
 #define NO_MFAS_AVAILABLE     0xFFFFFFFF
 
 
-#define INBOUND_QUEUE_PORT   0x40  /* contains address of next free MFA */
-#define OUTBOUND_QUEUE_PORT  0x44  /* contains address of posted MFA    */
+#define INBOUND_QUEUE_PORT   0x40  
+#define OUTBOUND_QUEUE_PORT  0x44  
 
 #define SP_INTR_MASK	0x00000008
 #define UART_INTR_MASK	0x00000010
@@ -134,4 +113,4 @@ static inline struct i2o_message *get_i2o_message(void __iomem *base_address, u3
 	return (struct i2o_message *)(GET_MFA_ADDR(mfa) + base_address);
 }
 
-#endif /* __IBMASM_CONDOR_H__ */
+#endif 
