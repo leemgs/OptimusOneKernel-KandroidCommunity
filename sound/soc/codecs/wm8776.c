@@ -1,16 +1,4 @@
-/*
- * wm8776.c  --  WM8776 ALSA SoC Audio driver
- *
- * Copyright 2009 Wolfson Microelectronics plc
- *
- * Author: Mark Brown <broonie@opensource.wolfsonmicro.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * TODO: Input ALC/limiter support
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -33,7 +21,7 @@
 static struct snd_soc_codec *wm8776_codec;
 struct snd_soc_codec_device soc_codec_dev_wm8776;
 
-/* codec private data */
+
 struct wm8776_priv {
 	struct snd_soc_codec codec;
 	u16 reg_cache[WM8776_CACHEREGNUM];
@@ -45,10 +33,10 @@ static int wm8776_spi_write(struct spi_device *spi, const char *data, int len);
 #endif
 
 static const u16 wm8776_reg[WM8776_CACHEREGNUM] = {
-	0x79, 0x79, 0x79, 0xff, 0xff,  /* 4 */
-	0xff, 0x00, 0x90, 0x00, 0x00,  /* 9 */
-	0x22, 0x22, 0x22, 0x08, 0xcf,  /* 14 */
-	0xcf, 0x7b, 0x00, 0x32, 0x00,  /* 19 */
+	0x79, 0x79, 0x79, 0xff, 0xff,  
+	0xff, 0x00, 0x90, 0x00, 0x00,  
+	0x22, 0x22, 0x22, 0x08, 0xcf,  
+	0xcf, 0x7b, 0x00, 0x32, 0x00,  
 	0xa6, 0x01, 0x01
 };
 
@@ -178,7 +166,7 @@ static int wm8776_set_fmt(struct snd_soc_dai *dai, unsigned int fmt)
 	case SND_SOC_DAIFMT_LEFT_J:
 		iface |= 0x0001;
 		break;
-		/* FIXME: CHECK A/B */
+		
 	case SND_SOC_DAIFMT_DSP_A:
 		iface |= 0x0003;
 		break;
@@ -205,7 +193,7 @@ static int wm8776_set_fmt(struct snd_soc_dai *dai, unsigned int fmt)
 		return -EINVAL;
 	}
 
-	/* Finally, write out the values */
+	
 	snd_soc_update_bits(codec, reg, 0xf, iface);
 	snd_soc_update_bits(codec, WM8776_MSTRCTRL, 0x180, master);
 
@@ -249,7 +237,7 @@ static int wm8776_hw_params(struct snd_pcm_substream *substream,
 	}
 
 
-	/* Set word length */
+	
 	switch (params_format(params)) {
 	case SNDRV_PCM_FORMAT_S16_LE:
 		break;
@@ -264,7 +252,7 @@ static int wm8776_hw_params(struct snd_pcm_substream *substream,
 		break;
 	}
 
-	/* Only need to set MCLK/LRCLK ratio if we're master */
+	
 	if (snd_soc_read(codec, WM8776_MSTRCTRL) & master) {
 		for (i = 0; i < ARRAY_SIZE(mclk_ratios); i++) {
 			if (wm8776->sysclk[dai->id] / params_rate(params)
@@ -322,7 +310,7 @@ static int wm8776_set_bias_level(struct snd_soc_codec *codec,
 		break;
 	case SND_SOC_BIAS_STANDBY:
 		if (codec->bias_level == SND_SOC_BIAS_OFF) {
-			/* Disable the global powerdown; DAPM does the rest */
+			
 			snd_soc_update_bits(codec, WM8776_PWRDOWN, 1, 0);
 		}
 
@@ -404,7 +392,7 @@ static int wm8776_resume(struct platform_device *pdev)
 	u8 data[2];
 	u16 *cache = codec->reg_cache;
 
-	/* Sync reg_cache with the hardware */
+	
 	for (i = 0; i < ARRAY_SIZE(wm8776_reg); i++) {
 		data[0] = (i << 1) | ((cache[i] >> 8) & 0x0001);
 		data[1] = cache[i] & 0x00ff;
@@ -434,7 +422,7 @@ static int wm8776_probe(struct platform_device *pdev)
 	socdev->card->codec = wm8776_codec;
 	codec = wm8776_codec;
 
-	/* register pcms */
+	
 	ret = snd_soc_new_pcms(socdev, SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1);
 	if (ret < 0) {
 		dev_err(codec->dev, "failed to create pcms: %d\n", ret);
@@ -462,7 +450,7 @@ pcm_err:
 	return ret;
 }
 
-/* power down chip */
+
 static int wm8776_remove(struct platform_device *pdev)
 {
 	struct snd_soc_device *socdev = platform_get_drvdata(pdev);
@@ -526,8 +514,7 @@ static int wm8776_register(struct wm8776_priv *wm8776,
 
 	wm8776_set_bias_level(codec, SND_SOC_BIAS_STANDBY);
 
-	/* Latch the update bits; right channel only since we always
-	 * update both. */
+	
 	snd_soc_update_bits(codec, WM8776_HPRVOL, 0x100, 0x100);
 	snd_soc_update_bits(codec, WM8776_DACRVOL, 0x100, 0x100);
 
@@ -642,7 +629,7 @@ static struct spi_driver wm8776_spi_driver = {
 	.resume		= wm8776_spi_resume,
 	.remove		= __devexit_p(wm8776_spi_remove),
 };
-#endif /* CONFIG_SPI_MASTER */
+#endif 
 
 #if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
 static __devinit int wm8776_i2c_probe(struct i2c_client *i2c,

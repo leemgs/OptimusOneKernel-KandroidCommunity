@@ -1,15 +1,4 @@
-/*
- * soc-cache.c  --  ASoC register cache helpers
- *
- * Copyright 2009 Wolfson Microelectronics PLC.
- *
- * Author: Mark Brown <broonie@opensource.wolfsonmicro.com>
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- */
+
 
 #include <linux/i2c.h>
 #include <linux/spi/spi.h>
@@ -118,13 +107,13 @@ static unsigned int snd_soc_8_16_read_i2c(struct snd_soc_codec *codec,
 	int ret;
 	struct i2c_client *client = codec->control_data;
 
-	/* Write register */
+	
 	xfer[0].addr = client->addr;
 	xfer[0].flags = 0;
 	xfer[0].len = 1;
 	xfer[0].buf = &reg;
 
-	/* Read data */
+	
 	xfer[1].addr = client->addr;
 	xfer[1].flags = I2C_M_RD;
 	xfer[1].len = 2;
@@ -155,26 +144,7 @@ static struct {
 	  snd_soc_8_16_read_i2c },
 };
 
-/**
- * snd_soc_codec_set_cache_io: Set up standard I/O functions.
- *
- * @codec: CODEC to configure.
- * @type: Type of cache.
- * @addr_bits: Number of bits of register address data.
- * @data_bits: Number of bits of data per register.
- * @control: Control bus used.
- *
- * Register formats are frequently shared between many I2C and SPI
- * devices.  In order to promote code reuse the ASoC core provides
- * some standard implementations of CODEC read and write operations
- * which can be set up using this function.
- *
- * The caller is responsible for allocating and initialising the
- * actual cache.
- *
- * Note that at present this code cannot be used by CODECs with
- * volatile registers.
- */
+
 int snd_soc_codec_set_cache_io(struct snd_soc_codec *codec,
 			       int addr_bits, int data_bits,
 			       enum snd_soc_control_type control)

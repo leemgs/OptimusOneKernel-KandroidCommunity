@@ -1,20 +1,4 @@
-/*
- * File:         sound/soc/codecs/ad1836.c
- * Author:       Barry Song <Barry.Song@analog.com>
- *
- * Created:      Aug 04 2009
- * Description:  Driver for AD1836 sound chip
- *
- * Modified:
- *               Copyright 2009 Analog Devices Inc.
- *
- * Bugs:         Enter bugs at http://blackfin.uclinux.org/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -30,7 +14,7 @@
 #include <linux/spi/spi.h>
 #include "ad1836.h"
 
-/* codec private data */
+
 struct ad1836_priv {
 	struct snd_soc_codec codec;
 	u16 reg_cache[AD1836_NUM_REGS];
@@ -41,16 +25,14 @@ struct snd_soc_codec_device soc_codec_dev_ad1836;
 static int ad1836_register(struct ad1836_priv *ad1836);
 static void ad1836_unregister(struct ad1836_priv *ad1836);
 
-/*
- * AD1836 volume/mute/de-emphasis etc. controls
- */
+
 static const char *ad1836_deemp[] = {"None", "44.1kHz", "32kHz", "48kHz"};
 
 static const struct soc_enum ad1836_deemp_enum =
 	SOC_ENUM_SINGLE(AD1836_DAC_CTRL1, 8, 4, ad1836_deemp);
 
 static const struct snd_kcontrol_new ad1836_snd_controls[] = {
-	/* DAC volume control */
+	
 	SOC_DOUBLE_R("DAC1 Volume", AD1836_DAC_L1_VOL,
 			AD1836_DAC_R1_VOL, 0, 0x3FF, 0),
 	SOC_DOUBLE_R("DAC2 Volume", AD1836_DAC_L2_VOL,
@@ -58,13 +40,13 @@ static const struct snd_kcontrol_new ad1836_snd_controls[] = {
 	SOC_DOUBLE_R("DAC3 Volume", AD1836_DAC_L3_VOL,
 			AD1836_DAC_R3_VOL, 0, 0x3FF, 0),
 
-	/* ADC switch control */
+	
 	SOC_DOUBLE("ADC1 Switch", AD1836_ADC_CTRL2, AD1836_ADCL1_MUTE,
 		AD1836_ADCR1_MUTE, 1, 1),
 	SOC_DOUBLE("ADC2 Switch", AD1836_ADC_CTRL2, AD1836_ADCL2_MUTE,
 		AD1836_ADCR2_MUTE, 1, 1),
 
-	/* DAC switch control */
+	
 	SOC_DOUBLE("DAC1 Switch", AD1836_DAC_CTRL2, AD1836_DACL1_MUTE,
 		AD1836_DACR1_MUTE, 1, 1),
 	SOC_DOUBLE("DAC2 Switch", AD1836_DAC_CTRL2, AD1836_DACL2_MUTE,
@@ -72,11 +54,11 @@ static const struct snd_kcontrol_new ad1836_snd_controls[] = {
 	SOC_DOUBLE("DAC3 Switch", AD1836_DAC_CTRL2, AD1836_DACL3_MUTE,
 		AD1836_DACR3_MUTE, 1, 1),
 
-	/* ADC high-pass filter */
+	
 	SOC_SINGLE("ADC High Pass Filter Switch", AD1836_ADC_CTRL1,
 			AD1836_ADC_HIGHPASS_FILTER, 1, 0),
 
-	/* DAC de-emphasis */
+	
 	SOC_ENUM("Playback Deemphasis", ad1836_deemp_enum),
 };
 
@@ -103,17 +85,13 @@ static const struct snd_soc_dapm_route audio_paths[] = {
 	{ "ADC", "ADC2 Switch", "ADC2IN" },
 };
 
-/*
- * DAI ops entries
- */
+
 
 static int ad1836_set_dai_fmt(struct snd_soc_dai *codec_dai,
 		unsigned int fmt)
 {
 	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
-	/* at present, we support adc aux mode to interface with
-	 * blackfin sport tdm mode
-	 */
+	
 	case SND_SOC_DAIFMT_DSP_A:
 		break;
 	default:
@@ -128,7 +106,7 @@ static int ad1836_set_dai_fmt(struct snd_soc_dai *codec_dai,
 	}
 
 	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
-	/* ALCLK,ABCLK are both output, AD1836 can only be master */
+	
 	case SND_SOC_DAIFMT_CBM_CFM:
 		break;
 	default:
@@ -148,7 +126,7 @@ static int ad1836_hw_params(struct snd_pcm_substream *substream,
 	struct snd_soc_device *socdev = rtd->socdev;
 	struct snd_soc_codec *codec = socdev->card->codec;
 
-	/* bit size */
+	
 	switch (params_format(params)) {
 	case SNDRV_PCM_FORMAT_S16_LE:
 		word_len = 3;
@@ -172,16 +150,12 @@ static int ad1836_hw_params(struct snd_pcm_substream *substream,
 }
 
 
-/*
- * interface to read/write ad1836 register
- */
+
 #define AD1836_SPI_REG_SHFT 12
 #define AD1836_SPI_READ     (1 << 11)
 #define AD1836_SPI_VAL_MSK  0x3FF
 
-/*
- * write to the ad1836 register space
- */
+
 
 static int ad1836_write_reg(struct snd_soc_codec *codec, unsigned int reg,
 		unsigned int value)
@@ -209,9 +183,7 @@ static int ad1836_write_reg(struct snd_soc_codec *codec, unsigned int reg,
 	return ret;
 }
 
-/*
- * read from the ad1836 register space cache
- */
+
 static unsigned int ad1836_read_reg_cache(struct snd_soc_codec *codec,
 					  unsigned int reg)
 {
@@ -263,7 +235,7 @@ static struct snd_soc_dai_ops ad1836_dai_ops = {
 	.set_fmt = ad1836_set_dai_fmt,
 };
 
-/* codec DAI instance */
+
 struct snd_soc_dai ad1836_dai = {
 	.name = "AD1836",
 	.playback = {
@@ -314,18 +286,18 @@ static int ad1836_register(struct ad1836_priv *ad1836)
 	ad1836_dai.dev = codec->dev;
 	ad1836_codec = codec;
 
-	/* default setting for ad1836 */
-	/* de-emphasis: 48kHz, power-on dac */
+	
+	
 	codec->write(codec, AD1836_DAC_CTRL1, 0x300);
-	/* unmute dac channels */
+	
 	codec->write(codec, AD1836_DAC_CTRL2, 0x0);
-	/* high-pass filter enable, power-on adc */
+	
 	codec->write(codec, AD1836_ADC_CTRL1, 0x100);
-	/* unmute adc channles, adc aux mode */
+	
 	codec->write(codec, AD1836_ADC_CTRL2, 0x180);
-	/* left/right diff:PGA/MUX */
+	
 	codec->write(codec, AD1836_ADC_CTRL3, 0x3A);
-	/* volume */
+	
 	codec->write(codec, AD1836_DAC_L1_VOL, 0x3FF);
 	codec->write(codec, AD1836_DAC_R1_VOL, 0x3FF);
 	codec->write(codec, AD1836_DAC_L2_VOL, 0x3FF);
@@ -373,7 +345,7 @@ static int ad1836_probe(struct platform_device *pdev)
 	socdev->card->codec = ad1836_codec;
 	codec = ad1836_codec;
 
-	/* register pcms */
+	
 	ret = snd_soc_new_pcms(socdev, SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1);
 	if (ret < 0) {
 		dev_err(codec->dev, "failed to create pcms: %d\n", ret);
@@ -402,7 +374,7 @@ pcm_err:
 	return ret;
 }
 
-/* power down chip */
+
 static int ad1836_remove(struct platform_device *pdev)
 {
 	struct snd_soc_device *socdev = platform_get_drvdata(pdev);

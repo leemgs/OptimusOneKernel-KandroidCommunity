@@ -1,26 +1,4 @@
-/*
- * omap-pcm.c  --  ALSA PCM interface for the OMAP SoC
- *
- * Copyright (C) 2008 Nokia Corporation
- *
- * Contact: Jarkko Nikula <jhnikula@gmail.com>
- *          Peter Ujfalusi <peter.ujfalusi@nokia.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #include <linux/dma-mapping.h>
 #include <sound/core.h>
@@ -61,28 +39,23 @@ static void omap_pcm_dma_irq(int ch, u16 stat, void *data)
 
 	if ((cpu_is_omap1510()) &&
 			(substream->stream == SNDRV_PCM_STREAM_PLAYBACK)) {
-		/*
-		 * OMAP1510 doesn't fully support DMA progress counter
-		 * and there is no software emulation implemented yet,
-		 * so have to maintain our own playback progress counter
-		 * that can be used by omap_pcm_pointer() instead.
-		 */
+		
 		spin_lock_irqsave(&prtd->lock, flags);
 		if ((stat == OMAP_DMA_LAST_IRQ) &&
 				(prtd->period_index == runtime->periods - 1)) {
-			/* we are in sync, do nothing */
+			
 			spin_unlock_irqrestore(&prtd->lock, flags);
 			return;
 		}
 		if (prtd->period_index >= 0) {
 			if (stat & OMAP_DMA_BLOCK_IRQ) {
-				/* end of buffer reached, loop back */
+				
 				prtd->period_index = 0;
 			} else if (stat & OMAP_DMA_LAST_IRQ) {
-				/* update the counter for the last period */
+				
 				prtd->period_index = runtime->periods - 1;
 			} else if (++prtd->period_index >= runtime->periods) {
-				/* end of buffer missed? loop back */
+				
 				prtd->period_index = 0;
 			}
 		}
@@ -92,7 +65,7 @@ static void omap_pcm_dma_irq(int ch, u16 stat, void *data)
 	snd_pcm_period_elapsed(substream);
 }
 
-/* this may get called several times by oss emulation */
+
 static int omap_pcm_hw_params(struct snd_pcm_substream *substream,
 			      struct snd_pcm_hw_params *params)
 {
@@ -102,8 +75,7 @@ static int omap_pcm_hw_params(struct snd_pcm_substream *substream,
 	struct omap_pcm_dma_data *dma_data = rtd->dai->cpu_dai->dma_data;
 	int err = 0;
 
-	/* return if this is a bufferless transfer e.g.
-	 * codec <--> BT codec or GSM modem -- lg FIXME */
+	
 	if (!dma_data)
 		return 0;
 
@@ -116,10 +88,7 @@ static int omap_pcm_hw_params(struct snd_pcm_substream *substream,
 	err = omap_request_dma(dma_data->dma_req, dma_data->name,
 			       omap_pcm_dma_irq, substream, &prtd->dma_ch);
 	if (!err) {
-		/*
-		 * Link channel with itself so DMA doesn't need any
-		 * reprogramming while looping the buffer
-		 */
+		
 		omap_dma_link_lch(prtd->dma_ch, prtd->dma_ch);
 	}
 
@@ -150,16 +119,12 @@ static int omap_pcm_prepare(struct snd_pcm_substream *substream)
 	struct omap_pcm_dma_data *dma_data = prtd->dma_data;
 	struct omap_dma_channel_params dma_params;
 
-	/* return if this is a bufferless transfer e.g.
-	 * codec <--> BT codec or GSM modem -- lg FIXME */
+	
 	if (!prtd->dma_data)
 		return 0;
 
 	memset(&dma_params, 0, sizeof(dma_params));
-	/*
-	 * Note: Regardless of interface data formats supported by OMAP McBSP
-	 * or EAC blocks, internal representation is always fixed 16-bit/sample
-	 */
+	
 	dma_params.data_type			= OMAP_DMA_DATA_TYPE_S16;
 	dma_params.trigger			= dma_data->dma_req;
 	dma_params.sync_mode			= dma_data->sync_mode;
@@ -178,12 +143,7 @@ static int omap_pcm_prepare(struct snd_pcm_substream *substream)
 		dma_params.dst_start		= runtime->dma_addr;
 		dma_params.src_port		= OMAP_DMA_PORT_MPUI;
 	}
-	/*
-	 * Set DMA transfer frame size equal to ALSA period size and frame
-	 * count as no. of ALSA periods. Then with DMA frame interrupt enabled,
-	 * we can transfer the whole ALSA buffer with single DMA transfer but
-	 * still can get an interrupt at each period bounary
-	 */
+	
 	dma_params.elem_count	= snd_pcm_lib_period_bytes(substream) / 2;
 	dma_params.frame_count	= runtime->periods;
 	omap_set_dma_params(prtd->dma_ch, &dma_params);
@@ -219,7 +179,7 @@ static int omap_pcm_trigger(struct snd_pcm_substream *substream, int cmd)
 	case SNDRV_PCM_TRIGGER_RESUME:
 	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
 		prtd->period_index = 0;
-		/* Configure McBSP internal buffer usage */
+		
 		if (dma_data->set_threshold)
 			dma_data->set_threshold(substream);
 
@@ -270,7 +230,7 @@ static int omap_pcm_open(struct snd_pcm_substream *substream)
 
 	snd_soc_set_runtime_hwparams(substream, &omap_pcm_hardware);
 
-	/* Ensure that buffer size is a multiple of period size */
+	
 	ret = snd_pcm_hw_constraint_integer(runtime,
 					    SNDRV_PCM_HW_PARAM_PERIODS);
 	if (ret < 0)

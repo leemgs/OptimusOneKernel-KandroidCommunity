@@ -1,23 +1,4 @@
-/*
- * overo.c  --  SoC audio for Gumstix Overo
- *
- * Author: Steve Sakoman <steve@sakoman.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #include <linux/clk.h>
 #include <linux/platform_device.h>
@@ -43,7 +24,7 @@ static int overo_hw_params(struct snd_pcm_substream *substream,
 	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
 	int ret;
 
-	/* Set codec DAI configuration */
+	
 	ret = snd_soc_dai_set_fmt(codec_dai,
 				  SND_SOC_DAIFMT_I2S |
 				  SND_SOC_DAIFMT_NB_NF |
@@ -53,7 +34,7 @@ static int overo_hw_params(struct snd_pcm_substream *substream,
 		return ret;
 	}
 
-	/* Set cpu DAI configuration */
+	
 	ret = snd_soc_dai_set_fmt(cpu_dai,
 				  SND_SOC_DAIFMT_I2S |
 				  SND_SOC_DAIFMT_NB_NF |
@@ -63,7 +44,7 @@ static int overo_hw_params(struct snd_pcm_substream *substream,
 		return ret;
 	}
 
-	/* Set the codec system clock for DAC and ADC */
+	
 	ret = snd_soc_dai_set_sysclk(codec_dai, 0, 26000000,
 					    SND_SOC_CLOCK_IN);
 	if (ret < 0) {
@@ -78,7 +59,7 @@ static struct snd_soc_ops overo_ops = {
 	.hw_params = overo_hw_params,
 };
 
-/* Digital audio interface glue - connects codec <--> CPU */
+
 static struct snd_soc_dai_link overo_dai = {
 	.name = "TWL4030",
 	.stream_name = "TWL4030",
@@ -87,7 +68,7 @@ static struct snd_soc_dai_link overo_dai = {
 	.ops = &overo_ops,
 };
 
-/* Audio machine driver */
+
 static struct snd_soc_card snd_soc_card_overo = {
 	.name = "overo",
 	.platform = &omap_soc_platform,
@@ -95,7 +76,7 @@ static struct snd_soc_card snd_soc_card_overo = {
 	.num_links = 1,
 };
 
-/* Audio subsystem */
+
 static struct snd_soc_device overo_snd_devdata = {
 	.card = &snd_soc_card_overo,
 	.codec_dev = &soc_codec_dev_twl4030,
@@ -121,7 +102,7 @@ static int __init overo_soc_init(void)
 
 	platform_set_drvdata(overo_snd_device, &overo_snd_devdata);
 	overo_snd_devdata.dev = &overo_snd_device->dev;
-	*(unsigned int *)overo_dai.cpu_dai->private_data = 1; /* McBSP2 */
+	*(unsigned int *)overo_dai.cpu_dai->private_data = 1; 
 
 	ret = platform_device_add(overo_snd_device);
 	if (ret)

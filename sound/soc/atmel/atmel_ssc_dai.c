@@ -1,31 +1,4 @@
-/*
- * atmel_ssc_dai.c  --  ALSA SoC ATMEL SSC Audio Layer Platform driver
- *
- * Copyright (C) 2005 SAN People
- * Copyright (C) 2008 Atmel
- *
- * Author: Sedji Gaouaou <sedji.gaouaou@atmel.com>
- *         ATMEL CORP.
- *
- * Based on at91-ssc.c by
- * Frank Mandarino <fmandarino@endrelia.com>
- * Based on pxa2xx Platform drivers by
- * Liam Girdwood <lrg@slimlogic.co.uk>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -54,9 +27,7 @@
 #define NUM_SSC_DEVICES		3
 #endif
 
-/*
- * SSC PDC registers required by the PCM DMA engine.
- */
+
 static struct atmel_pdc_regs pdc_tx_reg = {
 	.xpr		= ATMEL_PDC_TPR,
 	.xcr		= ATMEL_PDC_TCR,
@@ -71,9 +42,7 @@ static struct atmel_pdc_regs pdc_rx_reg = {
 	.xncr		= ATMEL_PDC_RNCR,
 };
 
-/*
- * SSC & PDC status bits for transmit and receive.
- */
+
 static struct atmel_ssc_mask ssc_tx_mask = {
 	.ssc_enable	= SSC_BIT(CR_TXEN),
 	.ssc_disable	= SSC_BIT(CR_TXDIS),
@@ -93,9 +62,7 @@ static struct atmel_ssc_mask ssc_rx_mask = {
 };
 
 
-/*
- * DMA parameters.
- */
+
 static struct atmel_pcm_dma_params ssc_dma_params[NUM_SSC_DEVICES][2] = {
 	{{
 	.name		= "SSC0 PCM out",
@@ -156,10 +123,7 @@ static struct atmel_ssc_info ssc_info[NUM_SSC_DEVICES] = {
 };
 
 
-/*
- * SSC interrupt handler.  Passes PDC interrupts to the DMA
- * interrupt handler in the PCM driver.
- */
+
 static irqreturn_t atmel_ssc_interrupt(int irq, void *dev_id)
 {
 	struct atmel_ssc_info *ssc_p = dev_id;
@@ -171,12 +135,7 @@ static irqreturn_t atmel_ssc_interrupt(int irq, void *dev_id)
 	ssc_sr = (unsigned long)ssc_readl(ssc_p->ssc->regs, SR)
 			& (unsigned long)ssc_readl(ssc_p->ssc->regs, IMR);
 
-	/*
-	 * Loop through the substreams attached to this SSC.  If
-	 * a DMA-related interrupt occurred on that substream, call
-	 * the DMA interrupt handler function, if one has been
-	 * registered in the dma_params structure by the PCM driver.
-	 */
+	
 	for (i = 0; i < ARRAY_SIZE(ssc_p->dma_params); i++) {
 		dma_params = ssc_p->dma_params[i];
 
@@ -196,12 +155,8 @@ static irqreturn_t atmel_ssc_interrupt(int irq, void *dev_id)
 }
 
 
-/*-------------------------------------------------------------------------*\
- * DAI functions
-\*-------------------------------------------------------------------------*/
-/*
- * Startup.  Only that one substream allowed in each direction.
- */
+
+
 static int atmel_ssc_startup(struct snd_pcm_substream *substream,
 			     struct snd_soc_dai *dai)
 {
@@ -228,10 +183,7 @@ static int atmel_ssc_startup(struct snd_pcm_substream *substream,
 	return 0;
 }
 
-/*
- * Shutdown.  Clear DMA parameters and shutdown the SSC if there
- * are no other substreams open.
- */
+
 static void atmel_ssc_shutdown(struct snd_pcm_substream *substream,
 			       struct snd_soc_dai *dai)
 {
@@ -264,7 +216,7 @@ static void atmel_ssc_shutdown(struct snd_pcm_substream *substream,
 	ssc_p->dir_mask &= ~dir_mask;
 	if (!ssc_p->dir_mask) {
 		if (ssc_p->initialized) {
-			/* Shutdown the SSC clock. */
+			
 			pr_debug("atmel_ssc_dau: Stopping clock\n");
 			clk_disable(ssc_p->ssc->clk);
 
@@ -272,18 +224,16 @@ static void atmel_ssc_shutdown(struct snd_pcm_substream *substream,
 			ssc_p->initialized = 0;
 		}
 
-		/* Reset the SSC */
+		
 		ssc_writel(ssc_p->ssc->regs, CR, SSC_BIT(CR_SWRST));
-		/* Clear the SSC dividers */
+		
 		ssc_p->cmr_div = ssc_p->tcmr_period = ssc_p->rcmr_period = 0;
 	}
 	spin_unlock_irq(&ssc_p->lock);
 }
 
 
-/*
- * Record the DAI format for use in hw_params().
- */
+
 static int atmel_ssc_set_dai_fmt(struct snd_soc_dai *cpu_dai,
 		unsigned int fmt)
 {
@@ -293,9 +243,7 @@ static int atmel_ssc_set_dai_fmt(struct snd_soc_dai *cpu_dai,
 	return 0;
 }
 
-/*
- * Record SSC clock dividers for use in hw_params().
- */
+
 static int atmel_ssc_set_dai_clkdiv(struct snd_soc_dai *cpu_dai,
 	int div_id, int div)
 {
@@ -303,11 +251,7 @@ static int atmel_ssc_set_dai_clkdiv(struct snd_soc_dai *cpu_dai,
 
 	switch (div_id) {
 	case ATMEL_SSC_CMR_DIV:
-		/*
-		 * The same master clock divider is used for both
-		 * transmit and receive, so if a value has already
-		 * been set, it must match this value.
-		 */
+		
 		if (ssc_p->cmr_div == 0)
 			ssc_p->cmr_div = div;
 		else
@@ -330,9 +274,7 @@ static int atmel_ssc_set_dai_clkdiv(struct snd_soc_dai *cpu_dai,
 	return 0;
 }
 
-/*
- * Configure the SSC.
- */
+
 static int atmel_ssc_hw_params(struct snd_pcm_substream *substream,
 	struct snd_pcm_hw_params *params,
 	struct snd_soc_dai *dai)
@@ -346,11 +288,7 @@ static int atmel_ssc_hw_params(struct snd_pcm_substream *substream,
 	int start_event;
 	int ret;
 
-	/*
-	 * Currently, there is only one set of dma params for
-	 * each direction.  If more are added, this code will
-	 * have to be changed to select the proper set.
-	 */
+	
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
 		dir = 0;
 	else
@@ -362,19 +300,12 @@ static int atmel_ssc_hw_params(struct snd_pcm_substream *substream,
 
 	ssc_p->dma_params[dir] = dma_params;
 
-	/*
-	 * The cpu_dai->dma_data field is only used to communicate the
-	 * appropriate DMA parameters to the pcm driver hw_params()
-	 * function.  It should not be used for other purposes
-	 * as it is common to all substreams.
-	 */
+	
 	rtd->dai->cpu_dai->dma_data = dma_params;
 
 	channels = params_channels(params);
 
-	/*
-	 * Determine sample size in bits and the PDC increment.
-	 */
+	
 	switch (params_format(params)) {
 	case SNDRV_PCM_FORMAT_S8:
 		bits = 8;
@@ -397,10 +328,7 @@ static int atmel_ssc_hw_params(struct snd_pcm_substream *substream,
 		return -EINVAL;
 	}
 
-	/*
-	 * The SSC only supports up to 16-bit samples in I2S format, due
-	 * to the size of the Frame Mode Register FSLEN field.
-	 */
+	
 	if ((ssc_p->daifmt & SND_SOC_DAIFMT_FORMAT_MASK) == SND_SOC_DAIFMT_I2S
 		&& bits > 16) {
 		printk(KERN_WARNING
@@ -409,20 +337,12 @@ static int atmel_ssc_hw_params(struct snd_pcm_substream *substream,
 		return -EINVAL;
 	}
 
-	/*
-	 * Compute SSC register settings.
-	 */
+	
 	switch (ssc_p->daifmt
 		& (SND_SOC_DAIFMT_FORMAT_MASK | SND_SOC_DAIFMT_MASTER_MASK)) {
 
 	case SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_CBS_CFS:
-		/*
-		 * I2S format, SSC provides BCLK and LRC clocks.
-		 *
-		 * The SSC transmit and receive clocks are generated
-		 * from the MCK divider, and the BCLK signal
-		 * is output on the SSC TK line.
-		 */
+		
 		rcmr =	  SSC_BF(RCMR_PERIOD, ssc_p->rcmr_period)
 			| SSC_BF(RCMR_STTDLY, START_DELAY)
 			| SSC_BF(RCMR_START, SSC_START_FALLING_RF)
@@ -456,18 +376,7 @@ static int atmel_ssc_hw_params(struct snd_pcm_substream *substream,
 		break;
 
 	case SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_CBM_CFM:
-		/*
-		 * I2S format, CODEC supplies BCLK and LRC clocks.
-		 *
-		 * The SSC transmit clock is obtained from the BCLK signal on
-		 * on the TK line, and the SSC receive clock is
-		 * generated from the transmit clock.
-		 *
-		 *  For single channel data, one sample is transferred
-		 * on the falling edge of the LRC clock.
-		 * For two channel data, one sample is
-		 * transferred on both edges of the LRC clock.
-		 */
+		
 		start_event = ((channels == 1)
 				? SSC_START_FALLING_RF
 				: SSC_START_EDGE_RF);
@@ -505,13 +414,7 @@ static int atmel_ssc_hw_params(struct snd_pcm_substream *substream,
 		break;
 
 	case SND_SOC_DAIFMT_DSP_A | SND_SOC_DAIFMT_CBS_CFS:
-		/*
-		 * DSP/PCM Mode A format, SSC provides BCLK and LRC clocks.
-		 *
-		 * The SSC transmit and receive clocks are generated from the
-		 * MCK divider, and the BCLK signal is output
-		 * on the SSC TK line.
-		 */
+		
 		rcmr =	  SSC_BF(RCMR_PERIOD, ssc_p->rcmr_period)
 			| SSC_BF(RCMR_STTDLY, 1)
 			| SSC_BF(RCMR_START, SSC_START_RISING_RF)
@@ -557,11 +460,11 @@ static int atmel_ssc_hw_params(struct snd_pcm_substream *substream,
 
 	if (!ssc_p->initialized) {
 
-		/* Enable PMC peripheral clock for this SSC */
+		
 		pr_debug("atmel_ssc_dai: Starting clock\n");
 		clk_enable(ssc_p->ssc->clk);
 
-		/* Reset the SSC and its PDC registers */
+		
 		ssc_writel(ssc_p->ssc->regs, CR, SSC_BIT(CR_SWRST));
 
 		ssc_writel(ssc_p->ssc->regs, PDC_RPR, 0);
@@ -587,14 +490,14 @@ static int atmel_ssc_hw_params(struct snd_pcm_substream *substream,
 		ssc_p->initialized = 1;
 	}
 
-	/* set SSC clock mode register */
+	
 	ssc_writel(ssc_p->ssc->regs, CMR, ssc_p->cmr_div);
 
-	/* set receive clock mode and format */
+	
 	ssc_writel(ssc_p->ssc->regs, RCMR, rcmr);
 	ssc_writel(ssc_p->ssc->regs, RFMR, rfmr);
 
-	/* set transmit clock mode and format */
+	
 	ssc_writel(ssc_p->ssc->regs, TCMR, tcmr);
 	ssc_writel(ssc_p->ssc->regs, TFMR, tfmr);
 
@@ -637,11 +540,11 @@ static int atmel_ssc_suspend(struct snd_soc_dai *cpu_dai)
 
 	ssc_p = &ssc_info[cpu_dai->id];
 
-	/* Save the status register before disabling transmit and receive */
+	
 	ssc_p->ssc_state.ssc_sr = ssc_readl(ssc_p->ssc->regs, SR);
 	ssc_writel(ssc_p->ssc->regs, CR, SSC_BIT(CR_TXDIS) | SSC_BIT(CR_RXDIS));
 
-	/* Save the current interrupt mask, then disable unmasked interrupts */
+	
 	ssc_p->ssc_state.ssc_imr = ssc_readl(ssc_p->ssc->regs, IMR);
 	ssc_writel(ssc_p->ssc->regs, IDR, ssc_p->ssc_state.ssc_imr);
 
@@ -666,17 +569,17 @@ static int atmel_ssc_resume(struct snd_soc_dai *cpu_dai)
 
 	ssc_p = &ssc_info[cpu_dai->id];
 
-	/* restore SSC register settings */
+	
 	ssc_writel(ssc_p->ssc->regs, TFMR, ssc_p->ssc_state.ssc_tfmr);
 	ssc_writel(ssc_p->ssc->regs, TCMR, ssc_p->ssc_state.ssc_tcmr);
 	ssc_writel(ssc_p->ssc->regs, RFMR, ssc_p->ssc_state.ssc_rfmr);
 	ssc_writel(ssc_p->ssc->regs, RCMR, ssc_p->ssc_state.ssc_rcmr);
 	ssc_writel(ssc_p->ssc->regs, CMR, ssc_p->ssc_state.ssc_cmr);
 
-	/* re-enable interrupts */
+	
 	ssc_writel(ssc_p->ssc->regs, IER, ssc_p->ssc_state.ssc_imr);
 
-	/* Re-enable recieve and transmit as appropriate */
+	
 	cr = 0;
 	cr |=
 	    (ssc_p->ssc_state.ssc_sr & SSC_BIT(SR_RXEN)) ? SSC_BIT(CR_RXEN) : 0;
@@ -686,10 +589,10 @@ static int atmel_ssc_resume(struct snd_soc_dai *cpu_dai)
 
 	return 0;
 }
-#else /* CONFIG_PM */
+#else 
 #  define atmel_ssc_suspend	NULL
 #  define atmel_ssc_resume	NULL
-#endif /* CONFIG_PM */
+#endif 
 
 
 #define ATMEL_SSC_RATES (SNDRV_PCM_RATE_8000_96000)
@@ -775,7 +678,7 @@ static void __exit atmel_ssc_modexit(void)
 }
 module_exit(atmel_ssc_modexit);
 
-/* Module information */
+
 MODULE_AUTHOR("Sedji Gaouaou, sedji.gaouaou@atmel.com, www.atmel.com");
 MODULE_DESCRIPTION("ATMEL SSC ASoC Interface");
 MODULE_LICENSE("GPL");

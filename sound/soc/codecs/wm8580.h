@@ -1,16 +1,4 @@
-/*
- * wm8580.h  --  audio driver for WM8580
- *
- * Copyright 2008 Samsung Electronics.
- * Author: Ryu Euiyoul
- *         ryu.real@gmail.com
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- *
- */
+
 
 #ifndef _WM8580_H
 #define _WM8580_H

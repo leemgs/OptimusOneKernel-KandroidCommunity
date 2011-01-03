@@ -1,20 +1,4 @@
-/*
- * File:         sound/soc/codecs/ad1836.h
- * Based on:
- * Author:       Barry Song <Barry.Song@analog.com>
- *
- * Created:      Aug 04, 2009
- * Description:  definitions for AD1836 registers
- *
- * Modified:
- *
- * Bugs:         Enter bugs at http://blackfin.uclinux.org/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
+
 
 #ifndef __AD1836_H__
 #define __AD1836_H__

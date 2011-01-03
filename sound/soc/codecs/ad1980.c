@@ -1,15 +1,4 @@
-/*
- * ad1980.c  --  ALSA Soc AD1980 codec support
- *
- * Copyright:	Analog Device Inc.
- * Author:	Roy Huang <roy.huang@analog.com>
- * 		Cliff Cai <cliff.cai@analog.com>
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -29,26 +18,24 @@ static unsigned int ac97_read(struct snd_soc_codec *codec,
 static int ac97_write(struct snd_soc_codec *codec,
 	unsigned int reg, unsigned int val);
 
-/*
- * AD1980 register cache
- */
+
 static const u16 ad1980_reg[] = {
-	0x0090, 0x8000, 0x8000, 0x8000, /* 0 - 6  */
-	0x0000, 0x0000, 0x8008, 0x8008, /* 8 - e  */
-	0x8808, 0x8808, 0x0000, 0x8808, /* 10 - 16 */
-	0x8808, 0x0000, 0x8000, 0x0000, /* 18 - 1e */
-	0x0000, 0x0000, 0x0000, 0x0000, /* 20 - 26 */
-	0x03c7, 0x0000, 0xbb80, 0xbb80, /* 28 - 2e */
-	0xbb80, 0xbb80, 0x0000, 0x8080, /* 30 - 36 */
-	0x8080, 0x2000, 0x0000, 0x0000, /* 38 - 3e */
-	0x0000, 0x0000, 0x0000, 0x0000, /* reserved */
-	0x0000, 0x0000, 0x0000, 0x0000, /* reserved */
-	0x0000, 0x0000, 0x0000, 0x0000, /* reserved */
-	0x0000, 0x0000, 0x0000, 0x0000, /* reserved */
-	0x8080, 0x0000, 0x0000, 0x0000, /* 60 - 66 */
-	0x0000, 0x0000, 0x0000, 0x0000, /* reserved */
-	0x0000, 0x0000, 0x1001, 0x0000, /* 70 - 76 */
-	0x0000, 0x0000, 0x4144, 0x5370  /* 78 - 7e */
+	0x0090, 0x8000, 0x8000, 0x8000, 
+	0x0000, 0x0000, 0x8008, 0x8008, 
+	0x8808, 0x8808, 0x0000, 0x8808, 
+	0x8808, 0x0000, 0x8000, 0x0000, 
+	0x0000, 0x0000, 0x0000, 0x0000, 
+	0x03c7, 0x0000, 0xbb80, 0xbb80, 
+	0xbb80, 0xbb80, 0x0000, 0x8080, 
+	0x8080, 0x2000, 0x0000, 0x0000, 
+	0x0000, 0x0000, 0x0000, 0x0000, 
+	0x0000, 0x0000, 0x0000, 0x0000, 
+	0x0000, 0x0000, 0x0000, 0x0000, 
+	0x0000, 0x0000, 0x0000, 0x0000, 
+	0x8080, 0x0000, 0x0000, 0x0000, 
+	0x0000, 0x0000, 0x0000, 0x0000, 
+	0x0000, 0x0000, 0x1001, 0x0000, 
+	0x0000, 0x0000, 0x4144, 0x5370  
 };
 
 static const char *ad1980_rec_sel[] = {"Mic", "CD", "NC", "AUX", "Line",
@@ -159,9 +146,7 @@ retry:
 	}
 
 	soc_ac97_ops.reset(codec->ac97);
-	/* Set bit 16slot in register 74h, then every slot will has only 16
-	 * bits. This command is sent out in 20bit mode, in which case the
-	 * first nibble of data is eaten by the addr. (Tag is always 16 bit)*/
+	
 	ac97_write(codec, AC97_AD_SERIAL_CFG, 0x9900);
 
 	if (ac97_read(codec, AC97_RESET)  != 0x0090)
@@ -217,7 +202,7 @@ static int ad1980_soc_probe(struct platform_device *pdev)
 		goto codec_err;
 	}
 
-	/* register pcms */
+	
 	ret = snd_soc_new_pcms(socdev, SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1);
 	if (ret < 0)
 		goto pcm_err;
@@ -229,7 +214,7 @@ static int ad1980_soc_probe(struct platform_device *pdev)
 		goto reset_err;
 	}
 
-	/* Read out vendor ID to make sure it is ad1980 */
+	
 	if (ac97_read(codec, AC97_VENDOR_ID1) != 0x4144)
 		goto reset_err;
 
@@ -244,14 +229,14 @@ static int ad1980_soc_probe(struct platform_device *pdev)
 				"supported\n");
 	}
 
-	/* unmute captures and playbacks volume */
+	
 	ac97_write(codec, AC97_MASTER, 0x0000);
 	ac97_write(codec, AC97_PCM, 0x0000);
 	ac97_write(codec, AC97_REC_GAIN, 0x0000);
 	ac97_write(codec, AC97_CENTER_LFE_MASTER, 0x0000);
 	ac97_write(codec, AC97_SURROUND_MASTER, 0x0000);
 
-	/*power on LFE/CENTER/Surround DACs*/
+	
 	ext_status = ac97_read(codec, AC97_EXTENDED_STATUS);
 	ac97_write(codec, AC97_EXTENDED_STATUS, ext_status&~0x3800);
 

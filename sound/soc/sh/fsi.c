@@ -1,16 +1,4 @@
-/*
- * Fifo-attached Serial Interface (FSI) support for SH7724
- *
- * Copyright (C) 2009 Renesas Solutions Corp.
- * Kuninori Morimoto <morimoto.kuninori@renesas.com>
- *
- * Based on ssi.c
- * Copyright (c) 2007 Manuel Lauss <mano@roarinelk.homelinux.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -51,8 +39,8 @@
 #define MREG_START	INT_ST
 #define MREG_END	SOFT_RST
 
-/* DO_FMT */
-/* DI_FMT */
+
+
 #define CR_FMT(param) ((param) << 4)
 # define CR_MONO	0x0
 # define CR_MONO_D	0x1
@@ -61,20 +49,20 @@
 # define CR_TDM		0x4
 # define CR_TDM_D	0x5
 
-/* DOFF_CTL */
-/* DIFF_CTL */
+
+
 #define IRQ_HALF	0x00100000
 #define FIFO_CLR	0x00000001
 
-/* DOFF_ST */
+
 #define ERR_OVER	0x00000010
 #define ERR_UNDER	0x00000001
 
-/* CLK_RST */
+
 #define B_CLK		0x00000010
 #define A_CLK		0x00000001
 
-/* INT_ST */
+
 #define INT_B_IN	(1 << 12)
 #define INT_B_OUT	(1 << 8)
 #define INT_A_IN	(1 << 4)
@@ -84,13 +72,7 @@
 
 #define FSI_FMTS (SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S16_LE)
 
-/************************************************************************
 
-
-		struct
-
-
-************************************************************************/
 struct fsi_priv {
 	void __iomem *base;
 	struct snd_pcm_substream *substream;
@@ -116,16 +98,10 @@ struct fsi_master {
 
 static struct fsi_master *master;
 
-/************************************************************************
 
-
-		basic read write function
-
-
-************************************************************************/
 static int __fsi_reg_write(u32 reg, u32 data)
 {
-	/* valid data area is 24bit */
+	
 	data &= 0x00ffffff;
 
 	return ctrl_outl(data, reg);
@@ -197,13 +173,7 @@ static int fsi_master_mask_set(u32 reg, u32 mask, u32 data)
 	return __fsi_reg_mask_set((u32)(master->base + reg), mask, data);
 }
 
-/************************************************************************
 
-
-		basic function
-
-
-************************************************************************/
 static struct fsi_priv *fsi_get(struct snd_pcm_substream *substream)
 {
 	struct snd_soc_pcm_runtime *rtd;
@@ -227,10 +197,7 @@ static struct fsi_priv *fsi_get(struct snd_pcm_substream *substream)
 
 static int fsi_is_port_a(struct fsi_priv *fsi)
 {
-	/* return
-	 * 1 : port a
-	 * 0 : port b
-	 */
+	
 
 	if (fsi == &master->fsia)
 		return 1;
@@ -253,10 +220,7 @@ static int fsi_is_master_mode(struct fsi_priv *fsi, int is_play)
 
 	mode = is_play ? SH_FSI_OUT_SLAVE_MODE : SH_FSI_IN_SLAVE_MODE;
 
-	/* return
-	 * 1 : master mode
-	 * 0 : slave mode
-	 */
+	
 
 	return (mode & flags) != mode;
 }
@@ -316,7 +280,7 @@ static int fsi_get_residue(struct fsi_priv *fsi, int is_play)
 
 	runtime = fsi->substream->runtime;
 
-	/* get 1 channel data width */
+	
 	width = frames_to_bytes(runtime, 1) / fsi->chan;
 
 	if (2 == width)
@@ -327,13 +291,7 @@ static int fsi_get_residue(struct fsi_priv *fsi, int is_play)
 	return residue;
 }
 
-/************************************************************************
 
-
-		basic dma function
-
-
-************************************************************************/
 #define PORTA_DMA 0
 #define PORTB_DMA 1
 
@@ -364,13 +322,7 @@ static void fsi_free_dma_chan(void)
 	master->fsib.dma_chan = -1;
 }
 
-/************************************************************************
 
-
-		ctrl function
-
-
-************************************************************************/
 static void fsi_irq_enable(struct fsi_priv *fsi, int is_play)
 {
 	u32 data = fsi_port_ab_io_bit(fsi, is_play);
@@ -405,16 +357,16 @@ static void fsi_irq_init(struct fsi_priv *fsi, int is_play)
 	data = fsi_port_ab_io_bit(fsi, is_play);
 	ctrl = is_play ? DOFF_CTL : DIFF_CTL;
 
-	/* set IMSK */
+	
 	fsi_irq_disable(fsi, is_play);
 
-	/* set interrupt generation factor */
+	
 	fsi_reg_write(fsi, ctrl, IRQ_HALF);
 
-	/* clear FIFO */
+	
 	fsi_reg_mask_set(fsi, ctrl, FIFO_CLR, FIFO_CLR);
 
-	/* clear interrupt factor */
+	
 	fsi_master_mask_set(INT_ST, data, 0);
 }
 
@@ -422,12 +374,12 @@ static void fsi_soft_all_reset(void)
 {
 	u32 status = fsi_master_read(SOFT_RST);
 
-	/* port AB reset */
+	
 	status &= 0x000000ff;
 	fsi_master_write(SOFT_RST, status);
 	mdelay(10);
 
-	/* soft reset */
+	
 	status &= 0x000000f0;
 	fsi_master_write(SOFT_RST, status);
 	status |= 0x00000001;
@@ -443,14 +395,11 @@ static void fsi_16data_push(struct fsi_priv *fsi,
 	u32 snd;
 	int i;
 
-	/* get dma start position for FSI */
+	
 	dma_start = (u16 *)runtime->dma_area;
 	dma_start += fsi->byte_offset / 2;
 
-	/*
-	 * soft dma
-	 * FSI can not use DMA when 16bpp
-	 */
+	
 	for (i = 0; i < send; i++) {
 		snd = (u32)dma_start[i];
 		fsi_reg_write(fsi, DODT, snd << 8);
@@ -463,7 +412,7 @@ static void fsi_32data_push(struct fsi_priv *fsi,
 {
 	u32 *dma_start;
 
-	/* get dma start position for FSI */
+	
 	dma_start = (u32 *)runtime->dma_area;
 	dma_start += fsi->byte_offset / 4;
 
@@ -473,7 +422,7 @@ static void fsi_32data_push(struct fsi_priv *fsi,
 		  (u32)(fsi->base + DODT), send * 4);
 }
 
-/* playback interrupt */
+
 static int fsi_data_push(struct fsi_priv *fsi)
 {
 	struct snd_pcm_runtime *runtime;
@@ -489,9 +438,7 @@ static int fsi_data_push(struct fsi_priv *fsi)
 
 	runtime = fsi->substream->runtime;
 
-	/* FSI FIFO has limit.
-	 * So, this driver can not send periods data at a time
-	 */
+	
 	if (fsi->byte_offset >=
 	    fsi->period_len * (fsi->periods + 1)) {
 
@@ -502,16 +449,16 @@ static int fsi_data_push(struct fsi_priv *fsi)
 			fsi->byte_offset = 0;
 	}
 
-	/* get 1 channel data width */
+	
 	width = frames_to_bytes(runtime, 1) / fsi->chan;
 
-	/* get send size for alsa */
+	
 	send = (fsi->buffer_len - fsi->byte_offset) / width;
 
-	/*  get FIFO free size */
+	
 	fifo_free = (fsi->fifo_max * fsi->chan) - fsi_get_fifo_residue(fsi, 1);
 
-	/* size check */
+	
 	if (fifo_free < send)
 		send = fifo_free;
 
@@ -537,7 +484,7 @@ static irqreturn_t fsi_interrupt(int irq, void *data)
 	u32 status = fsi_master_read(SOFT_RST) & ~0x00000010;
 	u32 int_st = fsi_master_read(INT_ST);
 
-	/* clear irq status */
+	
 	fsi_master_write(SOFT_RST, status);
 	fsi_master_write(SOFT_RST, status | 0x00000010);
 
@@ -551,13 +498,7 @@ static irqreturn_t fsi_interrupt(int irq, void *data)
 	return IRQ_HANDLED;
 }
 
-/************************************************************************
 
-
-		dai ops
-
-
-************************************************************************/
 static int fsi_dai_startup(struct snd_pcm_substream *substream,
 			   struct snd_soc_dai *dai)
 {
@@ -573,7 +514,7 @@ static int fsi_dai_startup(struct snd_pcm_substream *substream,
 
 	clk_enable(master->clk);
 
-	/* CKG1 */
+	
 	data = is_play ? (1 << 0) : (1 << 4);
 	is_master = fsi_is_master_mode(fsi, is_play);
 	if (is_master)
@@ -581,7 +522,7 @@ static int fsi_dai_startup(struct snd_pcm_substream *substream,
 	else
 		fsi_reg_mask_set(fsi, CKG1, data, 0);
 
-	/* clock inversion (CKG2) */
+	
 	data = 0;
 	switch (SH_FSI_INVERSION_MASK & flags) {
 	case SH_FSI_LRM_INV:
@@ -599,7 +540,7 @@ static int fsi_dai_startup(struct snd_pcm_substream *substream,
 	}
 	fsi_reg_write(fsi, CKG2, data);
 
-	/* do fmt, di fmt */
+	
 	data = 0;
 	reg = is_play ? DO_FMT : DI_FMT;
 	fmt = is_play ? SH_FSI_GET_OFMT(flags) : SH_FSI_GET_IFMT(flags);
@@ -667,13 +608,11 @@ static int fsi_dai_startup(struct snd_pcm_substream *substream,
 	dev_dbg(dai->dev, "use %s format (%d channel) use %d DMAC\n",
 		msg, fsi->chan, fsi->dma_chan);
 
-	/*
-	 * clear clk reset if master mode
-	 */
+	
 	if (is_master)
 		fsi_clk_ctrl(fsi, 1);
 
-	/* irq setting */
+	
 	fsi_irq_init(fsi, is_play);
 
 	return ret;
@@ -699,7 +638,7 @@ static int fsi_dai_trigger(struct snd_pcm_substream *substream, int cmd,
 	int is_play = substream->stream == SNDRV_PCM_STREAM_PLAYBACK;
 	int ret = 0;
 
-	/* capture not supported */
+	
 	if (!is_play)
 		return -ENODEV;
 
@@ -725,13 +664,7 @@ static struct snd_soc_dai_ops fsi_dai_ops = {
 	.trigger	= fsi_dai_trigger,
 };
 
-/************************************************************************
 
-
-		pcm ops
-
-
-************************************************************************/
 static struct snd_pcm_hardware fsi_pcm_hardware = {
 	.info =		SNDRV_PCM_INFO_INTERLEAVED	|
 			SNDRV_PCM_INFO_MMAP		|
@@ -798,13 +731,7 @@ static struct snd_pcm_ops fsi_pcm_ops = {
 	.pointer	= fsi_pointer,
 };
 
-/************************************************************************
 
-
-		snd_soc_platform
-
-
-************************************************************************/
 #define PREALLOC_BUFFER		(32 * 1024)
 #define PREALLOC_BUFFER_MAX	(32 * 1024)
 
@@ -817,10 +744,7 @@ static int fsi_pcm_new(struct snd_card *card,
 		       struct snd_soc_dai *dai,
 		       struct snd_pcm *pcm)
 {
-	/*
-	 * dont use SNDRV_DMA_TYPE_DEV, since it will oops the SH kernel
-	 * in MMAP mode (i.e. aplay -M)
-	 */
+	
 	return snd_pcm_lib_preallocate_pages_for_all(
 		pcm,
 		SNDRV_DMA_TYPE_CONTINUOUS,
@@ -828,13 +752,7 @@ static int fsi_pcm_new(struct snd_card *card,
 		PREALLOC_BUFFER, PREALLOC_BUFFER_MAX);
 }
 
-/************************************************************************
 
-
-		alsa struct
-
-
-************************************************************************/
 struct snd_soc_dai fsi_soc_dai[] = {
 	{
 		.name			= "FSIA",
@@ -845,7 +763,7 @@ struct snd_soc_dai fsi_soc_dai[] = {
 			.channels_min	= 1,
 			.channels_max	= 8,
 		},
-		/* capture not supported */
+		
 		.ops = &fsi_dai_ops,
 	},
 	{
@@ -857,7 +775,7 @@ struct snd_soc_dai fsi_soc_dai[] = {
 			.channels_min	= 1,
 			.channels_max	= 8,
 		},
-		/* capture not supported */
+		
 		.ops = &fsi_dai_ops,
 	},
 };
@@ -871,13 +789,7 @@ struct snd_soc_platform fsi_soc_platform = {
 };
 EXPORT_SYMBOL_GPL(fsi_soc_platform);
 
-/************************************************************************
 
-
-		platform function
-
-
-************************************************************************/
 static int fsi_probe(struct platform_device *pdev)
 {
 	struct resource *res;
@@ -921,7 +833,7 @@ static int fsi_probe(struct platform_device *pdev)
 		goto exit_iounmap;
 	}
 
-	/* FSI is based on SPU mstp */
+	
 	snprintf(clk_name, sizeof(clk_name), "spu%d", pdev->id);
 	master->clk = clk_get(NULL, clk_name);
 	if (IS_ERR(master->clk)) {

@@ -1,20 +1,9 @@
-/*
- * Copyright 2005 Openedhand Ltd.
- *
- * Author: Richard Purdie <richard@openedhand.com>
- *
- * Based on WM8753.h
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #ifndef _WM8988_H
 #define _WM8988_H
 
-/* WM8988 register space */
+
 
 #define WM8988_LINVOL    0x00
 #define WM8988_RINVOL    0x01

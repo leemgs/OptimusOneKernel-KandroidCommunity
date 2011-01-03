@@ -1,20 +1,4 @@
-/* sound/soc/s3c24xx/s3c-i2c-v2.c
- *
- * ALSA Soc Audio Layer - I2S core for newer Samsung SoCs.
- *
- * Copyright (c) 2006 Wolfson Microelectronics PLC.
- *	Graeme Gregory graeme.gregory@wolfsonmicro.com
- *	linux@wolfsonmicro.com
- *
- * Copyright (c) 2008, 2007, 2004-2005 Simtec Electronics
- *	http://armlinux.simtec.co.uk/
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * This program is free software; you can redistribute  it and/or modify it
- * under  the terms of  the GNU General  Public License as published by the
- * Free Software Foundation;  either version 2 of the  License, or (at your
- * option) any later version.
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -89,7 +73,7 @@ static inline void dbg_showcon(const char *fn, u32 con)
 #endif
 
 
-/* Turn on or off the transmission path. */
+
 static void s3c2412_snd_txctrl(struct s3c_i2sv2_info *i2s, int on)
 {
 	void __iomem *regs = i2s->regs;
@@ -111,7 +95,7 @@ static void s3c2412_snd_txctrl(struct s3c_i2sv2_info *i2s, int on)
 		switch (mod & S3C2412_IISMOD_MODE_MASK) {
 		case S3C2412_IISMOD_MODE_TXONLY:
 		case S3C2412_IISMOD_MODE_TXRX:
-			/* do nothing, we are in the right mode */
+			
 			break;
 
 		case S3C2412_IISMOD_MODE_RXONLY:
@@ -128,10 +112,7 @@ static void s3c2412_snd_txctrl(struct s3c_i2sv2_info *i2s, int on)
 		writel(con, regs + S3C2412_IISCON);
 		writel(mod, regs + S3C2412_IISMOD);
 	} else {
-		/* Note, we do not have any indication that the FIFO problems
-		 * tha the S3C2410/2440 had apply here, so we should be able
-		 * to disable the DMA and TX without resetting the FIFOS.
-		 */
+		
 
 		con |=  S3C2412_IISCON_TXDMA_PAUSE;
 		con |=  S3C2412_IISCON_TXCH_PAUSE;
@@ -184,7 +165,7 @@ static void s3c2412_snd_rxctrl(struct s3c_i2sv2_info *i2s, int on)
 		switch (mod & S3C2412_IISMOD_MODE_MASK) {
 		case S3C2412_IISMOD_MODE_TXRX:
 		case S3C2412_IISMOD_MODE_RXONLY:
-			/* do nothing, we are in the right mode */
+			
 			break;
 
 		case S3C2412_IISMOD_MODE_TXONLY:
@@ -200,7 +181,7 @@ static void s3c2412_snd_rxctrl(struct s3c_i2sv2_info *i2s, int on)
 		writel(mod, regs + S3C2412_IISMOD);
 		writel(con, regs + S3C2412_IISCON);
 	} else {
-		/* See txctrl notes on FIFOs. */
+		
 
 		con &= ~S3C2412_IISCON_RXDMA_ACTIVE;
 		con |=  S3C2412_IISCON_RXDMA_PAUSE;
@@ -232,10 +213,7 @@ static void s3c2412_snd_rxctrl(struct s3c_i2sv2_info *i2s, int on)
 
 #define msecs_to_loops(t) (loops_per_jiffy / 1000 * HZ * t)
 
-/*
- * Wait for the LR signal to allow synchronisation to the L/R clock
- * from the codec. May only be needed for slave mode.
- */
+
 static int s3c2412_snd_lrsync(struct s3c_i2sv2_info *i2s)
 {
 	u32 iiscon;
@@ -259,9 +237,7 @@ static int s3c2412_snd_lrsync(struct s3c_i2sv2_info *i2s)
 	return 0;
 }
 
-/*
- * Set S3C2412 I2S DAI format
- */
+
 static int s3c2412_i2s_set_fmt(struct snd_soc_dai *cpu_dai,
 			       unsigned int fmt)
 {
@@ -280,13 +256,7 @@ static int s3c2412_i2s_set_fmt(struct snd_soc_dai *cpu_dai,
 #endif
 
 #if defined(CONFIG_PLAT_S3C64XX)
-/* From Rev1.1 datasheet, we have two master and two slave modes:
- * IMS[11:10]:
- *	00 = master mode, fed from PCLK
- *	01 = master mode, fed from CLKAUDIO
- *	10 = slave mode, using PCLK
- *	11 = slave mode, using I2SCLK
- */
+
 #define IISMOD_MASTER_MASK (1 << 11)
 #define IISMOD_SLAVE (1 << 11)
 #define IISMOD_MASTER (0 << 11)
@@ -346,7 +316,7 @@ static int s3c2412_i2s_hw_params(struct snd_pcm_substream *substream,
 	else
 		dai->cpu_dai->dma_data = i2s->dma_capture;
 
-	/* Working copies of register */
+	
 	iismod = readl(i2s->regs + S3C2412_IISMOD);
 	pr_debug("%s: r: IISMOD: %x\n", __func__, iismod);
 
@@ -363,17 +333,17 @@ static int s3c2412_i2s_hw_params(struct snd_pcm_substream *substream,
 
 #ifdef CONFIG_PLAT_S3C64XX
 	iismod &= ~(S3C64XX_IISMOD_BLC_MASK | S3C2412_IISMOD_BCLK_MASK);
-	/* Sample size */
+	
 	switch (params_format(params)) {
 	case SNDRV_PCM_FORMAT_S8:
-		/* 8 bit sample, 16fs BCLK */
+		
 		iismod |= (S3C64XX_IISMOD_BLC_8BIT | S3C2412_IISMOD_BCLK_16FS);
 		break;
 	case SNDRV_PCM_FORMAT_S16_LE:
-		/* 16 bit sample, 32fs BCLK */
+		
 		break;
 	case SNDRV_PCM_FORMAT_S24_LE:
-		/* 24 bit sample, 48fs BCLK */
+		
 		iismod |= (S3C64XX_IISMOD_BLC_24BIT | S3C2412_IISMOD_BCLK_48FS);
 		break;
 	}
@@ -399,12 +369,12 @@ static int s3c2412_i2s_trigger(struct snd_pcm_substream *substream, int cmd,
 
 	switch (cmd) {
 	case SNDRV_PCM_TRIGGER_START:
-		/* On start, ensure that the FIFOs are cleared and reset. */
+		
 
 		writel(capture ? S3C2412_IISFIC_RXFLUSH : S3C2412_IISFIC_TXFLUSH,
 		       i2s->regs + S3C2412_IISFIC);
 
-		/* clear again, just in case */
+		
 		writel(0x0, i2s->regs + S3C2412_IISFIC);
 
 	case SNDRV_PCM_TRIGGER_RESUME:
@@ -424,11 +394,7 @@ static int s3c2412_i2s_trigger(struct snd_pcm_substream *substream, int cmd,
 
 		local_irq_restore(irqs);
 
-		/*
-		 * Load the next buffer to DMA to meet the reqirement
-		 * of the auto reload mechanism of S3C24XX.
-		 * This call won't bother S3C64XX.
-		 */
+		
 		s3c2410_dma_ctrl(channel, S3C2410_DMAOP_STARTED);
 
 		break;
@@ -454,9 +420,7 @@ exit_err:
 	return ret;
 }
 
-/*
- * Set S3C2412 Clock dividers
- */
+
 static int s3c2412_i2s_set_clkdiv(struct snd_soc_dai *cpu_dai,
 				  int div_id, int div)
 {
@@ -476,7 +440,7 @@ static int s3c2412_i2s_set_clkdiv(struct snd_soc_dai *cpu_dai,
 
 	case S3C_I2SV2_DIV_RCLK:
 		if (div > 3) {
-			/* convert value to bit field */
+			
 
 			switch (div) {
 			case 256:
@@ -523,7 +487,7 @@ static int s3c2412_i2s_set_clkdiv(struct snd_soc_dai *cpu_dai,
 	return 0;
 }
 
-/* default table of all avaialable root fs divisors */
+
 static unsigned int iis_fs_tab[] = { 256, 512, 384, 768 };
 
 int s3c_i2sv2_iis_calc_rate(struct s3c_i2sv2_rate_calc *info,
@@ -598,7 +562,7 @@ int s3c_i2sv2_probe(struct platform_device *pdev,
 
 	i2s->dev = dev;
 
-	/* record our i2s structure for later use in the callbacks */
+	
 	dai->private_data = i2s;
 
 	if (!base) {
@@ -634,8 +598,7 @@ int s3c_i2sv2_probe(struct platform_device *pdev,
 
 	clk_enable(i2s->iis_pclk);
 
-	/* Mark ourselves as in TXRX mode so we can run through our cleanup
-	 * process without warnings. */
+	
 	iismod = readl(i2s->regs + S3C2412_IISMOD);
 	iismod |= S3C2412_IISMOD_MODE_TXRX;
 	writel(iismod, i2s->regs + S3C2412_IISMOD);
@@ -657,7 +620,7 @@ static int s3c2412_i2s_suspend(struct snd_soc_dai *dai)
 		i2s->suspend_iiscon = readl(i2s->regs + S3C2412_IISCON);
 		i2s->suspend_iispsr = readl(i2s->regs + S3C2412_IISPSR);
 
-		/* some basic suspend checks */
+		
 
 		iismod = readl(i2s->regs + S3C2412_IISMOD);
 

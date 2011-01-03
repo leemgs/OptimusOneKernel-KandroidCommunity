@@ -1,18 +1,4 @@
-/*
- * Generic TXx9 ACLC machine driver
- *
- * Copyright (C) 2009 Atsushi Nemoto
- *
- * Based on RBTX49xx patch from CELF patch archive.
- * (C) Copyright TOSHIBA CORPORATION 2004-2006
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This is a very generic AC97 sound machine driver for boards which
- * have (AC97) audio at ACLC (e.g. RBTX49XX boards).
- */
+
 
 #include <linux/module.h>
 #include <linux/platform_device.h>

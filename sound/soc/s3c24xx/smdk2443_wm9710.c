@@ -1,16 +1,4 @@
-/*
- * smdk2443_wm9710.c  --  SoC audio for smdk2443
- *
- * Copyright 2007 Wolfson Microelectronics PLC.
- * Author: Graeme Gregory
- *         graeme.gregory@wolfsonmicro.com or linux@wolfsonmicro.com
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/device.h>
@@ -75,7 +63,7 @@ static void __exit smdk2443_exit(void)
 module_init(smdk2443_init);
 module_exit(smdk2443_exit);
 
-/* Module information */
+
 MODULE_AUTHOR("Graeme Gregory, graeme.gregory@wolfsonmicro.com, www.wolfsonmicro.com");
 MODULE_DESCRIPTION("ALSA SoC WM9710 SMDK2443");
 MODULE_LICENSE("GPL");

@@ -1,26 +1,6 @@
-/*
- * ak4642.c  --  AK4642/AK4643 ALSA Soc Audio driver
- *
- * Copyright (C) 2009 Renesas Solutions Corp.
- * Kuninori Morimoto <morimoto.kuninori@renesas.com>
- *
- * Based on wm8731.c by Richard Purdie
- * Based on ak4535.c by Richard Purdie
- * Based on wm8753.c by Liam Girdwood
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
 
-/* ** CAUTION **
- *
- * This is very simple driver.
- * It can use headphone output / stereo input only
- *
- * AK4642 is not tested.
- * AK4643 is tested.
- */
+
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -82,7 +62,7 @@
 
 struct snd_soc_codec_device soc_codec_dev_ak4642;
 
-/* codec private data */
+
 struct ak4642_priv {
 	struct snd_soc_codec codec;
 	unsigned int sysclk;
@@ -90,9 +70,7 @@ struct ak4642_priv {
 
 static struct snd_soc_codec *ak4642_codec;
 
-/*
- * ak4642 register cache
- */
+
 static const u16 ak4642_reg[AK4642_CACHEREGNUM] = {
 	0x0000, 0x0000, 0x0001, 0x0000,
 	0x0002, 0x0000, 0x0000, 0x0000,
@@ -106,9 +84,7 @@ static const u16 ak4642_reg[AK4642_CACHEREGNUM] = {
 	0x0000,
 };
 
-/*
- * read ak4642 register cache
- */
+
 static inline unsigned int ak4642_read_reg_cache(struct snd_soc_codec *codec,
 	unsigned int reg)
 {
@@ -118,9 +94,7 @@ static inline unsigned int ak4642_read_reg_cache(struct snd_soc_codec *codec,
 	return cache[reg];
 }
 
-/*
- * write ak4642 register cache
- */
+
 static inline void ak4642_write_reg_cache(struct snd_soc_codec *codec,
 	u16 reg, unsigned int value)
 {
@@ -131,18 +105,13 @@ static inline void ak4642_write_reg_cache(struct snd_soc_codec *codec,
 	cache[reg] = value;
 }
 
-/*
- * write to the AK4642 register space
- */
+
 static int ak4642_write(struct snd_soc_codec *codec, unsigned int reg,
 	unsigned int value)
 {
 	u8 data[2];
 
-	/* data is
-	 *   D15..D8 AK4642 register offset
-	 *   D7...D0 register data
-	 */
+	
 	data[0] = reg & 0xff;
 	data[1] = value & 0xff;
 
@@ -171,21 +140,7 @@ static int ak4642_dai_startup(struct snd_pcm_substream *substream,
 	struct snd_soc_codec *codec = dai->codec;
 
 	if (is_play) {
-		/*
-		 * start headphone output
-		 *
-		 * PLL, Master Mode
-		 * Audio I/F Format :MSB justified (ADC & DAC)
-		 * Sampling Frequency: 44.1kHz
-		 * Digital Volume: −8dB
-		 * Bass Boost Level : Middle
-		 *
-		 * This operation came from example code of
-		 * "ASAHI KASEI AK4642" (japanese) manual p97.
-		 *
-		 * Example code use 0x39, 0x79 value for 0x01 address,
-		 * But we need MCKO (0x02) bit now
-		 */
+		
 		ak4642_write(codec, 0x05, 0x27);
 		ak4642_write(codec, 0x0f, 0x09);
 		ak4642_write(codec, 0x0e, 0x19);
@@ -194,23 +149,10 @@ static int ak4642_dai_startup(struct snd_pcm_substream *substream,
 		ak4642_write(codec, 0x0a, 0x28);
 		ak4642_write(codec, 0x0d, 0x28);
 		ak4642_write(codec, 0x00, 0x64);
-		ak4642_write(codec, 0x01, 0x3b); /* + MCKO bit */
-		ak4642_write(codec, 0x01, 0x7b); /* + MCKO bit */
+		ak4642_write(codec, 0x01, 0x3b); 
+		ak4642_write(codec, 0x01, 0x7b); 
 	} else {
-		/*
-		 * start stereo input
-		 *
-		 * PLL Master Mode
-		 * Audio I/F Format:MSB justified (ADC & DAC)
-		 * Sampling Frequency:44.1kHz
-		 * Pre MIC AMP:+20dB
-		 * MIC Power On
-		 * ALC setting:Refer to Table 35
-		 * ALC bit=“1”
-		 *
-		 * This operation came from example code of
-		 * "ASAHI KASEI AK4642" (japanese) manual p94.
-		 */
+		
 		ak4642_write(codec, 0x05, 0x27);
 		ak4642_write(codec, 0x02, 0x05);
 		ak4642_write(codec, 0x06, 0x3c);
@@ -231,14 +173,14 @@ static void ak4642_dai_shutdown(struct snd_pcm_substream *substream,
 	struct snd_soc_codec *codec = dai->codec;
 
 	if (is_play) {
-		/* stop headphone output */
+		
 		ak4642_write(codec, 0x01, 0x3b);
 		ak4642_write(codec, 0x01, 0x0b);
 		ak4642_write(codec, 0x00, 0x40);
 		ak4642_write(codec, 0x0e, 0x11);
 		ak4642_write(codec, 0x0f, 0x08);
 	} else {
-		/* stop stereo input */
+		
 		ak4642_write(codec, 0x00, 0x40);
 		ak4642_write(codec, 0x10, 0x00);
 		ak4642_write(codec, 0x07, 0x01);
@@ -288,10 +230,7 @@ static int ak4642_resume(struct platform_device *pdev)
 	return 0;
 }
 
-/*
- * initialise the AK4642 driver
- * register the mixer and dsp interfaces with the kernel
- */
+
 static int ak4642_init(struct ak4642_priv *ak4642)
 {
 	struct snd_soc_codec *codec = &ak4642->codec;
@@ -337,20 +276,7 @@ static int ak4642_init(struct ak4642_priv *ak4642)
 		goto reg_cache_err;
 	}
 
-	/*
-	 * clock setting
-	 *
-	 * Audio I/F Format: MSB justified (ADC & DAC)
-	 * BICK frequency at Master Mode: 64fs
-	 * Input Master Clock Select at PLL Mode: 11.2896MHz
-	 * MCKO: Enable
-	 * Sampling Frequency: 44.1kHz
-	 *
-	 * This operation came from example code of
-	 * "ASAHI KASEI AK4642" (japanese) manual p89.
-	 *
-	 * please fix-me
-	 */
+	
 	ak4642_write(codec, 0x01, 0x08);
 	ak4642_write(codec, 0x04, 0x4a);
 	ak4642_write(codec, 0x05, 0x27);
@@ -435,7 +361,7 @@ static int ak4642_probe(struct platform_device *pdev)
 
 	socdev->card->codec = ak4642_codec;
 
-	/* register pcms */
+	
 	ret = snd_soc_new_pcms(socdev, SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1);
 	if (ret < 0) {
 		printk(KERN_ERR "ak4642: failed to create pcms\n");
@@ -459,7 +385,7 @@ pcm_err:
 
 }
 
-/* power down chip */
+
 static int ak4642_remove(struct platform_device *pdev)
 {
 	struct snd_soc_device *socdev = platform_get_drvdata(pdev);

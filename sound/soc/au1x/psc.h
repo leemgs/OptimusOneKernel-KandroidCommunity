@@ -1,17 +1,4 @@
-/*
- * Au12x0/Au1550 PSC ALSA ASoC audio support.
- *
- * (c) 2007-2008 MSC Vertriebsges.m.b.H.,
- *	Manuel Lauss <mano@roarinelk.homelinux.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * NOTE: all of these drivers can only work with a SINGLE instance
- *	 of a PSC. Multiple independent audio devices are impossible
- *	 with ASoC v1.
- */
+
 
 #ifndef _AU1X_PCM_H
 #define _AU1X_PCM_H
@@ -38,7 +25,7 @@ struct au1xpsc_audio_data {
 #define SUBSTREAM_TYPE(substream) \
 	((substream)->stream == SNDRV_PCM_STREAM_PLAYBACK ? PCM_TX : PCM_RX)
 
-/* easy access macros */
+
 #define PSC_CTRL(x)	((unsigned long)((x)->mmio) + PSC_CTRL_OFFSET)
 #define PSC_SEL(x)	((unsigned long)((x)->mmio) + PSC_SEL_OFFSET)
 #define I2S_STAT(x)	((unsigned long)((x)->mmio) + PSC_I2SSTAT_OFFSET)

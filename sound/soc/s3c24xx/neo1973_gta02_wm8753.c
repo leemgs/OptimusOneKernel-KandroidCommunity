@@ -1,17 +1,4 @@
-/*
- * neo1973_gta02_wm8753.c  --  SoC audio for Openmoko Freerunner(GTA02)
- *
- * Copyright 2007 Openmoko Inc
- * Author: Graeme Gregory <graeme@openmoko.org>
- * Copyright 2007 Wolfson Microelectronics PLC.
- * Author: Graeme Gregory <linux@wolfsonmicro.com>
- * Copyright 2009 Wolfson Microelectronics
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -80,45 +67,45 @@ static int neo1973_gta02_hifi_hw_params(struct snd_pcm_substream *substream,
 		break;
 	}
 
-	/* set codec DAI configuration */
+	
 	ret = snd_soc_dai_set_fmt(codec_dai,
 		SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
 		SND_SOC_DAIFMT_CBM_CFM);
 	if (ret < 0)
 		return ret;
 
-	/* set cpu DAI configuration */
+	
 	ret = snd_soc_dai_set_fmt(cpu_dai,
 		SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
 		SND_SOC_DAIFMT_CBM_CFM);
 	if (ret < 0)
 		return ret;
 
-	/* set the codec system clock for DAC and ADC */
+	
 	ret = snd_soc_dai_set_sysclk(codec_dai, WM8753_MCLK, pll_out,
 		SND_SOC_CLOCK_IN);
 	if (ret < 0)
 		return ret;
 
-	/* set MCLK division for sample rate */
+	
 	ret = snd_soc_dai_set_clkdiv(cpu_dai, S3C24XX_DIV_MCLK,
 		S3C2410_IISMOD_32FS);
 	if (ret < 0)
 		return ret;
 
-	/* set codec BCLK division for sample rate */
+	
 	ret = snd_soc_dai_set_clkdiv(codec_dai,
 					WM8753_BCLKDIV, bclk);
 	if (ret < 0)
 		return ret;
 
-	/* set prescaler division for sample rate */
+	
 	ret = snd_soc_dai_set_clkdiv(cpu_dai, S3C24XX_DIV_PRESCALER,
 		S3C24XX_PRESCALE(4, 4));
 	if (ret < 0)
 		return ret;
 
-	/* codec PLL input is PCLK/4 */
+	
 	ret = snd_soc_dai_set_pll(codec_dai, WM8753_PLL1,
 		iis_clkrate / 4, pll_out);
 	if (ret < 0)
@@ -132,13 +119,11 @@ static int neo1973_gta02_hifi_hw_free(struct snd_pcm_substream *substream)
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_dai *codec_dai = rtd->dai->codec_dai;
 
-	/* disable the PLL */
+	
 	return snd_soc_dai_set_pll(codec_dai, WM8753_PLL1, 0, 0);
 }
 
-/*
- * Neo1973 WM8753 HiFi DAI opserations.
- */
+
 static struct snd_soc_ops neo1973_gta02_hifi_ops = {
 	.hw_params = neo1973_gta02_hifi_hw_params,
 	.hw_free = neo1973_gta02_hifi_hw_free,
@@ -161,28 +146,28 @@ static int neo1973_gta02_voice_hw_params(
 	if (params_channels(params) != 1)
 		return -EINVAL;
 
-	pcmdiv = WM8753_PCM_DIV_6; /* 2.048 MHz */
+	pcmdiv = WM8753_PCM_DIV_6; 
 
-	/* todo: gg check mode (DSP_B) against CSR datasheet */
-	/* set codec DAI configuration */
+	
+	
 	ret = snd_soc_dai_set_fmt(codec_dai, SND_SOC_DAIFMT_DSP_B |
 		SND_SOC_DAIFMT_NB_NF | SND_SOC_DAIFMT_CBS_CFS);
 	if (ret < 0)
 		return ret;
 
-	/* set the codec system clock for DAC and ADC */
+	
 	ret = snd_soc_dai_set_sysclk(codec_dai, WM8753_PCMCLK,
 		12288000, SND_SOC_CLOCK_IN);
 	if (ret < 0)
 		return ret;
 
-	/* set codec PCM division for sample rate */
+	
 	ret = snd_soc_dai_set_clkdiv(codec_dai, WM8753_PCMDIV,
 					pcmdiv);
 	if (ret < 0)
 		return ret;
 
-	/* configue and enable PLL for 12.288MHz output */
+	
 	ret = snd_soc_dai_set_pll(codec_dai, WM8753_PLL2,
 		iis_clkrate / 4, 12288000);
 	if (ret < 0)
@@ -196,7 +181,7 @@ static int neo1973_gta02_voice_hw_free(struct snd_pcm_substream *substream)
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_dai *codec_dai = rtd->dai->codec_dai;
 
-	/* disable the PLL */
+	
 	return snd_soc_dai_set_pll(codec_dai, WM8753_PLL2, 0, 0);
 }
 
@@ -210,9 +195,7 @@ static struct snd_soc_ops neo1973_gta02_voice_ops = {
 
 static u8 lm4853_state;
 
-/* This has no effect, it exists only to maintain compatibility with
- * existing ALSA state files.
- */
+
 static int lm4853_set_state(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
 {
@@ -277,33 +260,33 @@ static const struct snd_soc_dapm_widget wm8753_dapm_widgets[] = {
 };
 
 
-/* example machine audio_mapnections */
+
 static const struct snd_soc_dapm_route audio_map[] = {
 
-	/* Connections to the lm4853 amp */
+	
 	{"Stereo Out", NULL, "LOUT1"},
 	{"Stereo Out", NULL, "ROUT1"},
 
-	/* Connections to the GSM Module */
+	
 	{"GSM Line Out", NULL, "MONO1"},
 	{"GSM Line Out", NULL, "MONO2"},
 	{"RXP", NULL, "GSM Line In"},
 	{"RXN", NULL, "GSM Line In"},
 
-	/* Connections to Headset */
+	
 	{"MIC1", NULL, "Mic Bias"},
 	{"Mic Bias", NULL, "Headset Mic"},
 
-	/* Call Mic */
+	
 	{"MIC2", NULL, "Mic Bias"},
 	{"MIC2N", NULL, "Mic Bias"},
 	{"Mic Bias", NULL, "Handset Mic"},
 
-	/* Call Speaker */
+	
 	{"Handset Spk", NULL, "LOUT2"},
 	{"Handset Spk", NULL, "ROUT2"},
 
-	/* Connect the ALC pins */
+	
 	{"ACIN", NULL, "ACOP"},
 };
 
@@ -315,9 +298,7 @@ static const struct snd_kcontrol_new wm8753_neo1973_gta02_controls[] = {
 	SOC_DAPM_PIN_SWITCH("Handset Mic"),
 	SOC_DAPM_PIN_SWITCH("Handset Spk"),
 
-	/* This has no effect, it exists only to maintain compatibility with
-	 * existing ALSA state files.
-	 */
+	
 	SOC_SINGLE_EXT("Amp State Switch", 6, 0, 1, 0,
 		lm4853_get_state,
 		lm4853_set_state),
@@ -326,35 +307,32 @@ static const struct snd_kcontrol_new wm8753_neo1973_gta02_controls[] = {
 		lm4853_set_spk),
 };
 
-/*
- * This is an example machine initialisation for a wm8753 connected to a
- * neo1973 GTA02.
- */
+
 static int neo1973_gta02_wm8753_init(struct snd_soc_codec *codec)
 {
 	int err;
 
-	/* set up NC codec pins */
+	
 	snd_soc_dapm_nc_pin(codec, "OUT3");
 	snd_soc_dapm_nc_pin(codec, "OUT4");
 	snd_soc_dapm_nc_pin(codec, "LINE1");
 	snd_soc_dapm_nc_pin(codec, "LINE2");
 
-	/* Add neo1973 gta02 specific widgets */
+	
 	snd_soc_dapm_new_controls(codec, wm8753_dapm_widgets,
 				  ARRAY_SIZE(wm8753_dapm_widgets));
 
-	/* add neo1973 gta02 specific controls */
+	
 	err = snd_soc_add_controls(codec, wm8753_neo1973_gta02_controls,
 		ARRAY_SIZE(wm8753_neo1973_gta02_controls));
 
 	if (err < 0)
 		return err;
 
-	/* set up neo1973 gta02 specific audio path audio_map */
+	
 	snd_soc_dapm_add_routes(codec, audio_map, ARRAY_SIZE(audio_map));
 
-	/* set endpoints to default off mode */
+	
 	snd_soc_dapm_disable_pin(codec, "Stereo Out");
 	snd_soc_dapm_disable_pin(codec, "GSM Line Out");
 	snd_soc_dapm_disable_pin(codec, "GSM Line In");
@@ -367,9 +345,7 @@ static int neo1973_gta02_wm8753_init(struct snd_soc_codec *codec)
 	return 0;
 }
 
-/*
- * BT Codec DAI
- */
+
 static struct snd_soc_dai bt_dai = {
 	.name = "Bluetooth",
 	.id = 0,
@@ -386,7 +362,7 @@ static struct snd_soc_dai bt_dai = {
 };
 
 static struct snd_soc_dai_link neo1973_gta02_dai[] = {
-{ /* Hifi Playback - for similatious use with voice below */
+{ 
 	.name = "WM8753",
 	.stream_name = "WM8753 HiFi",
 	.cpu_dai = &s3c24xx_i2s_dai,
@@ -394,7 +370,7 @@ static struct snd_soc_dai_link neo1973_gta02_dai[] = {
 	.init = neo1973_gta02_wm8753_init,
 	.ops = &neo1973_gta02_hifi_ops,
 },
-{ /* Voice via BT */
+{ 
 	.name = "Bluetooth",
 	.stream_name = "Voice",
 	.cpu_dai = &bt_dai,
@@ -427,7 +403,7 @@ static int __init neo1973_gta02_init(void)
 		return -ENODEV;
 	}
 
-	/* register bluetooth DAI here */
+	
 	ret = snd_soc_register_dai(&bt_dai);
 	if (ret)
 		return ret;
@@ -446,7 +422,7 @@ static int __init neo1973_gta02_init(void)
 		return ret;
 	}
 
-	/* Initialise GPIOs used by amp */
+	
 	ret = gpio_request(GTA02_GPIO_HP_IN, "GTA02_HP_IN");
 	if (ret) {
 		pr_err("gta02_wm8753: Failed to register GPIO %d\n", GTA02_GPIO_HP_IN);
@@ -492,7 +468,7 @@ static void __exit neo1973_gta02_exit(void)
 }
 module_exit(neo1973_gta02_exit);
 
-/* Module information */
+
 MODULE_AUTHOR("Graeme Gregory, graeme@openmoko.org");
 MODULE_DESCRIPTION("ALSA SoC WM8753 Neo1973 GTA02");
 MODULE_LICENSE("GPL");

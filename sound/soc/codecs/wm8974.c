@@ -1,14 +1,4 @@
-/*
- * wm8974.c  --  WM8974 ALSA Soc Audio driver
- *
- * Copyright 2006-2009 Wolfson Microelectronics PLC.
- *
- * Author: Liam Girdwood <linux@wolfsonmicro.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -70,8 +60,8 @@ static const char *wm8974_eq5[] = {"5.3kHz", "6.9kHz", "9kHz", "11.7kHz" };
 static const char *wm8974_alc[] = {"ALC", "Limiter" };
 
 static const struct soc_enum wm8974_enum[] = {
-	SOC_ENUM_SINGLE(WM8974_COMP, 1, 4, wm8974_companding), /* adc */
-	SOC_ENUM_SINGLE(WM8974_COMP, 3, 4, wm8974_companding), /* dac */
+	SOC_ENUM_SINGLE(WM8974_COMP, 1, 4, wm8974_companding), 
+	SOC_ENUM_SINGLE(WM8974_COMP, 3, 4, wm8974_companding), 
 	SOC_ENUM_SINGLE(WM8974_DAC,  4, 4, wm8974_deemp),
 	SOC_ENUM_SINGLE(WM8974_EQ1,  8, 2, wm8974_eqmode),
 
@@ -172,37 +162,37 @@ SOC_SINGLE("Capture Boost(+20dB)", WM8974_ADCBOOST,  8, 1, 0),
 SOC_SINGLE("Mono Playback Switch", WM8974_MONOMIX, 6, 1, 1),
 };
 
-/* Speaker Output Mixer */
+
 static const struct snd_kcontrol_new wm8974_speaker_mixer_controls[] = {
 SOC_DAPM_SINGLE("Line Bypass Switch", WM8974_SPKMIX, 1, 1, 0),
 SOC_DAPM_SINGLE("Aux Playback Switch", WM8974_SPKMIX, 5, 1, 0),
 SOC_DAPM_SINGLE("PCM Playback Switch", WM8974_SPKMIX, 0, 1, 1),
 };
 
-/* Mono Output Mixer */
+
 static const struct snd_kcontrol_new wm8974_mono_mixer_controls[] = {
 SOC_DAPM_SINGLE("Line Bypass Switch", WM8974_MONOMIX, 1, 1, 0),
 SOC_DAPM_SINGLE("Aux Playback Switch", WM8974_MONOMIX, 2, 1, 0),
 SOC_DAPM_SINGLE("PCM Playback Switch", WM8974_MONOMIX, 0, 1, 0),
 };
 
-/* Boost mixer */
+
 static const struct snd_kcontrol_new wm8974_boost_mixer[] = {
 SOC_DAPM_SINGLE("Aux Switch", WM8974_INPPGA, 6, 1, 0),
 };
 
-/* Input PGA */
+
 static const struct snd_kcontrol_new wm8974_inpga[] = {
 SOC_DAPM_SINGLE("Aux Switch", WM8974_INPUT, 2, 1, 0),
 SOC_DAPM_SINGLE("MicN Switch", WM8974_INPUT, 1, 1, 0),
 SOC_DAPM_SINGLE("MicP Switch", WM8974_INPUT, 0, 1, 0),
 };
 
-/* AUX Input boost vol */
+
 static const struct snd_kcontrol_new wm8974_aux_boost_controls =
 SOC_DAPM_SINGLE("Aux Volume", WM8974_ADCBOOST, 0, 7, 0);
 
-/* Mic Input boost vol */
+
 static const struct snd_kcontrol_new wm8974_mic_boost_controls =
 SOC_DAPM_SINGLE("Mic Volume", WM8974_ADCBOOST, 4, 7, 0);
 
@@ -236,17 +226,17 @@ SND_SOC_DAPM_OUTPUT("SPKOUTN"),
 };
 
 static const struct snd_soc_dapm_route audio_map[] = {
-	/* Mono output mixer */
+	
 	{"Mono Mixer", "PCM Playback Switch", "DAC"},
 	{"Mono Mixer", "Aux Playback Switch", "Aux Input"},
 	{"Mono Mixer", "Line Bypass Switch", "Boost Mixer"},
 
-	/* Speaker output mixer */
+	
 	{"Speaker Mixer", "PCM Playback Switch", "DAC"},
 	{"Speaker Mixer", "Aux Playback Switch", "Aux Input"},
 	{"Speaker Mixer", "Line Bypass Switch", "Boost Mixer"},
 
-	/* Outputs */
+	
 	{"Mono Out", NULL, "Mono Mixer"},
 	{"MONOOUT", NULL, "Mono Out"},
 	{"SpkN Out", NULL, "Speaker Mixer"},
@@ -254,18 +244,18 @@ static const struct snd_soc_dapm_route audio_map[] = {
 	{"SPKOUTN", NULL, "SpkN Out"},
 	{"SPKOUTP", NULL, "SpkP Out"},
 
-	/* Boost Mixer */
+	
 	{"ADC", NULL, "Boost Mixer"},
 	{"Boost Mixer", "Aux Switch", "Aux Input"},
 	{"Boost Mixer", NULL, "Input PGA"},
 	{"Boost Mixer", NULL, "MICP"},
 
-	/* Input PGA */
+	
 	{"Input PGA", "Aux Switch", "Aux Input"},
 	{"Input PGA", "MicN Switch", "MICN"},
 	{"Input PGA", "MicP Switch", "MICP"},
 
-	/* Inputs */
+	
 	{"Aux Input", NULL, "AUX"},
 };
 
@@ -281,15 +271,14 @@ static int wm8974_add_widgets(struct snd_soc_codec *codec)
 }
 
 struct pll_ {
-	unsigned int pre_div:4; /* prescale - 1 */
+	unsigned int pre_div:4; 
 	unsigned int n:4;
 	unsigned int k;
 };
 
 static struct pll_ pll_div;
 
-/* The size in bits of the pll divide multiplied by 10
- * to allow rounding later */
+
 #define FIXED_PLL_SIZE ((1 << 24) * 10)
 
 static void pll_factors(unsigned int target, unsigned int source)
@@ -318,11 +307,11 @@ static void pll_factors(unsigned int target, unsigned int source)
 
 	K = Kpart & 0xFFFFFFFF;
 
-	/* Check if we need to round */
+	
 	if ((K % 10) >= 5)
 		K += 5;
 
-	/* Move down to proper range now rounding is done */
+	
 	K /= 10;
 
 	pll_div.k = K;
@@ -335,11 +324,11 @@ static int wm8974_set_dai_pll(struct snd_soc_dai *codec_dai,
 	u16 reg;
 
 	if (freq_in == 0 || freq_out == 0) {
-		/* Clock CODEC directly from MCLK */
+		
 		reg = snd_soc_read(codec, WM8974_CLOCK);
 		snd_soc_write(codec, WM8974_CLOCK, reg & 0x0ff);
 
-		/* Turn off PLL */
+		
 		reg = snd_soc_read(codec, WM8974_POWER1);
 		snd_soc_write(codec, WM8974_POWER1, reg & 0x1df);
 		return 0;
@@ -354,16 +343,14 @@ static int wm8974_set_dai_pll(struct snd_soc_dai *codec_dai,
 	reg = snd_soc_read(codec, WM8974_POWER1);
 	snd_soc_write(codec, WM8974_POWER1, reg | 0x020);
 
-	/* Run CODEC from PLL instead of MCLK */
+	
 	reg = snd_soc_read(codec, WM8974_CLOCK);
 	snd_soc_write(codec, WM8974_CLOCK, reg | 0x100);
 
 	return 0;
 }
 
-/*
- * Configure WM8974 clock dividers.
- */
+
 static int wm8974_set_dai_clkdiv(struct snd_soc_dai *codec_dai,
 		int div_id, int div)
 {
@@ -405,7 +392,7 @@ static int wm8974_set_dai_fmt(struct snd_soc_dai *codec_dai,
 	u16 iface = 0;
 	u16 clk = snd_soc_read(codec, WM8974_CLOCK) & 0x1fe;
 
-	/* set master/slave audio interface */
+	
 	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
 	case SND_SOC_DAIFMT_CBM_CFM:
 		clk |= 0x0001;
@@ -416,7 +403,7 @@ static int wm8974_set_dai_fmt(struct snd_soc_dai *codec_dai,
 		return -EINVAL;
 	}
 
-	/* interface format */
+	
 	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
 	case SND_SOC_DAIFMT_I2S:
 		iface |= 0x0010;
@@ -433,7 +420,7 @@ static int wm8974_set_dai_fmt(struct snd_soc_dai *codec_dai,
 		return -EINVAL;
 	}
 
-	/* clock inversion */
+	
 	switch (fmt & SND_SOC_DAIFMT_INV_MASK) {
 	case SND_SOC_DAIFMT_NB_NF:
 		break;
@@ -463,7 +450,7 @@ static int wm8974_pcm_hw_params(struct snd_pcm_substream *substream,
 	u16 iface = snd_soc_read(codec, WM8974_IFACE) & 0x19f;
 	u16 adn = snd_soc_read(codec, WM8974_ADD) & 0x1f1;
 
-	/* bit size */
+	
 	switch (params_format(params)) {
 	case SNDRV_PCM_FORMAT_S16_LE:
 		break;
@@ -478,7 +465,7 @@ static int wm8974_pcm_hw_params(struct snd_pcm_substream *substream,
 		break;
 	}
 
-	/* filter coefficient */
+	
 	switch (params_rate(params)) {
 	case 8000:
 		adn |= 0x5 << 1;
@@ -517,7 +504,7 @@ static int wm8974_mute(struct snd_soc_dai *dai, int mute)
 	return 0;
 }
 
-/* liam need to make this lower power with dapm */
+
 static int wm8974_set_bias_level(struct snd_soc_codec *codec,
 	enum snd_soc_bias_level level)
 {
@@ -526,7 +513,7 @@ static int wm8974_set_bias_level(struct snd_soc_codec *codec,
 	switch (level) {
 	case SND_SOC_BIAS_ON:
 	case SND_SOC_BIAS_PREPARE:
-		power1 |= 0x1;  /* VMID 50k */
+		power1 |= 0x1;  
 		snd_soc_write(codec, WM8974_POWER1, power1);
 		break;
 
@@ -534,12 +521,12 @@ static int wm8974_set_bias_level(struct snd_soc_codec *codec,
 		power1 |= WM8974_POWER1_BIASEN | WM8974_POWER1_BUFIOEN;
 
 		if (codec->bias_level == SND_SOC_BIAS_OFF) {
-			/* Initial cap charge at VMID 5k */
+			
 			snd_soc_write(codec, WM8974_POWER1, power1 | 0x3);
 			mdelay(100);
 		}
 
-		power1 |= 0x2;  /* VMID 500k */
+		power1 |= 0x2;  
 		snd_soc_write(codec, WM8974_POWER1, power1);
 		break;
 
@@ -572,13 +559,13 @@ struct snd_soc_dai wm8974_dai = {
 	.playback = {
 		.stream_name = "Playback",
 		.channels_min = 1,
-		.channels_max = 2,   /* Only 1 channel of data */
+		.channels_max = 2,   
 		.rates = WM8974_RATES,
 		.formats = WM8974_FORMATS,},
 	.capture = {
 		.stream_name = "Capture",
 		.channels_min = 1,
-		.channels_max = 2,   /* Only 1 channel of data */
+		.channels_max = 2,   
 		.rates = WM8974_RATES,
 		.formats = WM8974_FORMATS,},
 	.ops = &wm8974_ops,
@@ -603,7 +590,7 @@ static int wm8974_resume(struct platform_device *pdev)
 	u8 data[2];
 	u16 *cache = codec->reg_cache;
 
-	/* Sync reg_cache with the hardware */
+	
 	for (i = 0; i < ARRAY_SIZE(wm8974_reg); i++) {
 		data[0] = (i << 1) | ((cache[i] >> 8) & 0x0001);
 		data[1] = cache[i] & 0x00ff;
@@ -628,7 +615,7 @@ static int wm8974_probe(struct platform_device *pdev)
 	socdev->card->codec = wm8974_codec;
 	codec = wm8974_codec;
 
-	/* register pcms */
+	
 	ret = snd_soc_new_pcms(socdev, SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1);
 	if (ret < 0) {
 		dev_err(codec->dev, "failed to create pcms: %d\n", ret);
@@ -653,7 +640,7 @@ pcm_err:
 	return ret;
 }
 
-/* power down chip */
+
 static int wm8974_remove(struct platform_device *pdev)
 {
 	struct snd_soc_device *socdev = platform_get_drvdata(pdev);

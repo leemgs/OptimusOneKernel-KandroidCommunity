@@ -1,30 +1,4 @@
-/*
- * File:         sound/soc/codecs/ad1938.c
- * Author:       Barry Song <Barry.Song@analog.com>
- *
- * Created:      June 04 2009
- * Description:  Driver for AD1938 sound chip
- *
- * Modified:
- *               Copyright 2009 Analog Devices Inc.
- *
- * Bugs:         Enter bugs at http://blackfin.uclinux.org/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see the file COPYING, or write
- * to the Free Software Foundation, Inc.,
- * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -40,7 +14,7 @@
 #include <linux/spi/spi.h>
 #include "ad1938.h"
 
-/* codec private data */
+
 struct ad1938_priv {
 	struct snd_soc_codec codec;
 	u8 reg_cache[AD1938_NUM_REGS];
@@ -51,16 +25,14 @@ struct snd_soc_codec_device soc_codec_dev_ad1938;
 static int ad1938_register(struct ad1938_priv *ad1938);
 static void ad1938_unregister(struct ad1938_priv *ad1938);
 
-/*
- * AD1938 volume/mute/de-emphasis etc. controls
- */
+
 static const char *ad1938_deemp[] = {"None", "48kHz", "44.1kHz", "32kHz"};
 
 static const struct soc_enum ad1938_deemp_enum =
 	SOC_ENUM_SINGLE(AD1938_DAC_CTRL2, 1, 4, ad1938_deemp);
 
 static const struct snd_kcontrol_new ad1938_snd_controls[] = {
-	/* DAC volume control */
+	
 	SOC_DOUBLE_R("DAC1  Volume", AD1938_DAC_L1_VOL,
 			AD1938_DAC_R1_VOL, 0, 0xFF, 1),
 	SOC_DOUBLE_R("DAC2  Volume", AD1938_DAC_L2_VOL,
@@ -70,13 +42,13 @@ static const struct snd_kcontrol_new ad1938_snd_controls[] = {
 	SOC_DOUBLE_R("DAC4  Volume", AD1938_DAC_L4_VOL,
 			AD1938_DAC_R4_VOL, 0, 0xFF, 1),
 
-	/* ADC switch control */
+	
 	SOC_DOUBLE("ADC1 Switch", AD1938_ADC_CTRL0, AD1938_ADCL1_MUTE,
 		AD1938_ADCR1_MUTE, 1, 1),
 	SOC_DOUBLE("ADC2 Switch", AD1938_ADC_CTRL0, AD1938_ADCL2_MUTE,
 		AD1938_ADCR2_MUTE, 1, 1),
 
-	/* DAC switch control */
+	
 	SOC_DOUBLE("DAC1 Switch", AD1938_DAC_CHNL_MUTE, AD1938_DACL1_MUTE,
 		AD1938_DACR1_MUTE, 1, 1),
 	SOC_DOUBLE("DAC2 Switch", AD1938_DAC_CHNL_MUTE, AD1938_DACL2_MUTE,
@@ -86,11 +58,11 @@ static const struct snd_kcontrol_new ad1938_snd_controls[] = {
 	SOC_DOUBLE("DAC4 Switch", AD1938_DAC_CHNL_MUTE, AD1938_DACL4_MUTE,
 		AD1938_DACR4_MUTE, 1, 1),
 
-	/* ADC high-pass filter */
+	
 	SOC_SINGLE("ADC High Pass Filter Switch", AD1938_ADC_CTRL0,
 			AD1938_ADC_HIGHPASS_FILTER, 1, 0),
 
-	/* DAC de-emphasis */
+	
 	SOC_ENUM("Playback Deemphasis", ad1938_deemp_enum),
 };
 
@@ -117,9 +89,7 @@ static const struct snd_soc_dapm_route audio_paths[] = {
 	{ "ADC", "ADC2 Switch", "ADC2IN" },
 };
 
-/*
- * DAI ops entries
- */
+
 
 static int ad1938_mute(struct snd_soc_dai *dai, int mute)
 {
@@ -190,9 +160,7 @@ static int ad1938_set_dai_fmt(struct snd_soc_dai *codec_dai,
 	adc_reg = codec->read(codec, AD1938_ADC_CTRL2);
 	dac_reg = codec->read(codec, AD1938_DAC_CTRL1);
 
-	/* At present, the driver only support AUX ADC mode(SND_SOC_DAIFMT_I2S
-	 * with TDM) and ADC&DAC TDM mode(SND_SOC_DAIFMT_DSP_A)
-	 */
+	
 	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
 	case SND_SOC_DAIFMT_I2S:
 		adc_reg &= ~AD1938_ADC_SERFMT_MASK;
@@ -207,26 +175,26 @@ static int ad1938_set_dai_fmt(struct snd_soc_dai *codec_dai,
 	}
 
 	switch (fmt & SND_SOC_DAIFMT_INV_MASK) {
-	case SND_SOC_DAIFMT_NB_NF: /* normal bit clock + frame */
+	case SND_SOC_DAIFMT_NB_NF: 
 		adc_reg &= ~AD1938_ADC_LEFT_HIGH;
 		adc_reg &= ~AD1938_ADC_BCLK_INV;
 		dac_reg &= ~AD1938_DAC_LEFT_HIGH;
 		dac_reg &= ~AD1938_DAC_BCLK_INV;
 		break;
-	case SND_SOC_DAIFMT_NB_IF: /* normal bclk + invert frm */
+	case SND_SOC_DAIFMT_NB_IF: 
 		adc_reg |= AD1938_ADC_LEFT_HIGH;
 		adc_reg &= ~AD1938_ADC_BCLK_INV;
 		dac_reg |= AD1938_DAC_LEFT_HIGH;
 		dac_reg &= ~AD1938_DAC_BCLK_INV;
 		break;
-	case SND_SOC_DAIFMT_IB_NF: /* invert bclk + normal frm */
+	case SND_SOC_DAIFMT_IB_NF: 
 		adc_reg &= ~AD1938_ADC_LEFT_HIGH;
 		adc_reg |= AD1938_ADC_BCLK_INV;
 		dac_reg &= ~AD1938_DAC_LEFT_HIGH;
 		dac_reg |= AD1938_DAC_BCLK_INV;
 		break;
 
-	case SND_SOC_DAIFMT_IB_IF: /* invert bclk + frm */
+	case SND_SOC_DAIFMT_IB_IF: 
 		adc_reg |= AD1938_ADC_LEFT_HIGH;
 		adc_reg |= AD1938_ADC_BCLK_INV;
 		dac_reg |= AD1938_DAC_LEFT_HIGH;
@@ -237,25 +205,25 @@ static int ad1938_set_dai_fmt(struct snd_soc_dai *codec_dai,
 	}
 
 	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
-	case SND_SOC_DAIFMT_CBM_CFM: /* codec clk & frm master */
+	case SND_SOC_DAIFMT_CBM_CFM: 
 		adc_reg |= AD1938_ADC_LCR_MASTER;
 		adc_reg |= AD1938_ADC_BCLK_MASTER;
 		dac_reg |= AD1938_DAC_LCR_MASTER;
 		dac_reg |= AD1938_DAC_BCLK_MASTER;
 		break;
-	case SND_SOC_DAIFMT_CBS_CFM: /* codec clk slave & frm master */
+	case SND_SOC_DAIFMT_CBS_CFM: 
 		adc_reg |= AD1938_ADC_LCR_MASTER;
 		adc_reg &= ~AD1938_ADC_BCLK_MASTER;
 		dac_reg |= AD1938_DAC_LCR_MASTER;
 		dac_reg &= ~AD1938_DAC_BCLK_MASTER;
 		break;
-	case SND_SOC_DAIFMT_CBM_CFS: /* codec clk master & frame slave */
+	case SND_SOC_DAIFMT_CBM_CFS: 
 		adc_reg &= ~AD1938_ADC_LCR_MASTER;
 		adc_reg |= AD1938_ADC_BCLK_MASTER;
 		dac_reg &= ~AD1938_DAC_LCR_MASTER;
 		dac_reg |= AD1938_DAC_BCLK_MASTER;
 		break;
-	case SND_SOC_DAIFMT_CBS_CFS: /* codec clk & frm slave */
+	case SND_SOC_DAIFMT_CBS_CFS: 
 		adc_reg &= ~AD1938_ADC_LCR_MASTER;
 		adc_reg &= ~AD1938_ADC_BCLK_MASTER;
 		dac_reg &= ~AD1938_DAC_LCR_MASTER;
@@ -281,7 +249,7 @@ static int ad1938_hw_params(struct snd_pcm_substream *substream,
 	struct snd_soc_device *socdev = rtd->socdev;
 	struct snd_soc_codec *codec = socdev->card->codec;
 
-	/* bit size */
+	
 	switch (params_format(params)) {
 	case SNDRV_PCM_FORMAT_S16_LE:
 		word_len = 3;
@@ -324,17 +292,13 @@ static int ad1938_set_bias_level(struct snd_soc_codec *codec,
 	return 0;
 }
 
-/*
- * interface to read/write ad1938 register
- */
+
 
 #define AD1938_SPI_ADDR    0x4
 #define AD1938_SPI_READ    0x1
 #define AD1938_SPI_BUFLEN  3
 
-/*
- * write to the ad1938 register space
- */
+
 
 static int ad1938_write_reg(struct snd_soc_codec *codec, unsigned int reg,
 		unsigned int value)
@@ -363,9 +327,7 @@ static int ad1938_write_reg(struct snd_soc_codec *codec, unsigned int reg,
 	return ret;
 }
 
-/*
- * read from the ad1938 register space cache
- */
+
 
 static unsigned int ad1938_read_reg_cache(struct snd_soc_codec *codec,
 					  unsigned int reg)
@@ -378,9 +340,7 @@ static unsigned int ad1938_read_reg_cache(struct snd_soc_codec *codec,
 	return reg_cache[reg];
 }
 
-/*
- * read from the ad1938 register space
- */
+
 
 static unsigned int ad1938_read_reg(struct snd_soc_codec *codec,
 						unsigned int reg)
@@ -469,7 +429,7 @@ static struct snd_soc_dai_ops ad1938_dai_ops = {
 	.set_fmt = ad1938_set_dai_fmt,
 };
 
-/* codec DAI instance */
+
 struct snd_soc_dai ad1938_dai = {
 	.name = "AD1938",
 	.playback = {
@@ -521,19 +481,19 @@ static int ad1938_register(struct ad1938_priv *ad1938)
 	ad1938_dai.dev = codec->dev;
 	ad1938_codec = codec;
 
-	/* default setting for ad1938 */
+	
 
-	/* unmute dac channels */
+	
 	codec->write(codec, AD1938_DAC_CHNL_MUTE, 0x0);
-	/* de-emphasis: 48kHz, powedown dac */
+	
 	codec->write(codec, AD1938_DAC_CTRL2, 0x1A);
-	/* powerdown dac, dac in tdm mode */
+	
 	codec->write(codec, AD1938_DAC_CTRL0, 0x41);
-	/* high-pass filter enable */
+	
 	codec->write(codec, AD1938_ADC_CTRL0, 0x3);
-	/* sata delay=1, adc aux mode */
+	
 	codec->write(codec, AD1938_ADC_CTRL1, 0x43);
-	/* pll input: mclki/xi */
+	
 	codec->write(codec, AD1938_PLL_CLK_CTRL0, 0x9D);
 	codec->write(codec, AD1938_PLL_CLK_CTRL1, 0x04);
 
@@ -580,7 +540,7 @@ static int ad1938_probe(struct platform_device *pdev)
 	socdev->card->codec = ad1938_codec;
 	codec = ad1938_codec;
 
-	/* register pcms */
+	
 	ret = snd_soc_new_pcms(socdev, SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1);
 	if (ret < 0) {
 		dev_err(codec->dev, "failed to create pcms: %d\n", ret);
@@ -611,7 +571,7 @@ pcm_err:
 	return ret;
 }
 
-/* power down chip */
+
 static int ad1938_remove(struct platform_device *pdev)
 {
 	struct snd_soc_device *socdev = platform_get_drvdata(pdev);

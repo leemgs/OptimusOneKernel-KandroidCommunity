@@ -1,15 +1,4 @@
-/*
- * Generic TXx9 ACLC platform driver
- *
- * Copyright (C) 2009 Atsushi Nemoto
- *
- * Based on RBTX49xx patch from CELF patch archive.
- * (C) Copyright TOSHIBA CORPORATION 2004-2006
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -22,10 +11,7 @@
 #include "txx9aclc.h"
 
 static const struct snd_pcm_hardware txx9aclc_pcm_hardware = {
-	/*
-	 * REVISIT: SNDRV_PCM_INFO_MMAP | SNDRV_PCM_INFO_MMAP_VALID
-	 * needs more works for noncoherent MIPS.
-	 */
+	
 	.info		  = SNDRV_PCM_INFO_INTERLEAVED |
 			    SNDRV_PCM_INFO_BATCH |
 			    SNDRV_PCM_INFO_PAUSE,
@@ -101,7 +87,7 @@ static void txx9aclc_dma_complete(void *arg)
 	struct txx9aclc_dmadata *dmadata = arg;
 	unsigned long flags;
 
-	/* dma completion handler cannot submit new operations */
+	
 	spin_lock_irqsave(&dmadata->dma_lock, flags);
 	if (dmadata->frag_count >= 0) {
 		dmadata->dmacount--;
@@ -160,7 +146,7 @@ static void txx9aclc_dma_tasklet(unsigned long data)
 
 		spin_unlock_irqrestore(&dmadata->dma_lock, flags);
 		chan->device->device_terminate_all(chan);
-		/* first time */
+		
 		for (i = 0; i < NR_DMA_CHAIN; i++) {
 			desc = txx9aclc_dma_submit(dmadata,
 				dmadata->dma_addr + i * dmadata->frag_bytes);
@@ -252,7 +238,7 @@ static int txx9aclc_pcm_open(struct snd_pcm_substream *substream)
 	ret = snd_soc_set_runtime_hwparams(substream, &txx9aclc_pcm_hardware);
 	if (ret)
 		return ret;
-	/* ensure that buffer size is a multiple of period size */
+	
 	ret = snd_pcm_hw_constraint_integer(substream->runtime,
 					    SNDRV_PCM_HW_PARAM_PERIODS);
 	if (ret < 0)
@@ -328,7 +314,7 @@ static int txx9aclc_dma_init(struct txx9aclc_soc_device *dev,
 		ds->rx_reg = drvdata->physbase + ACAUDIDAT;
 	}
 
-	/* Try to grab a DMA channel */
+	
 	dma_cap_zero(mask);
 	dma_cap_set(DMA_SLAVE, mask);
 	dmadata->dma_chan = dma_request_channel(mask, filter, dmadata);
@@ -386,9 +372,9 @@ static int txx9aclc_pcm_remove(struct platform_device *pdev)
 	void __iomem *base = drvdata->base;
 	int i;
 
-	/* disable all FIFO DMAs */
+	
 	__raw_writel(ACCTL_AUDODMA | ACCTL_AUDIDMA, base + ACCTLDIS);
-	/* dummy R/W to clear pending DMAREQ if any */
+	
 	__raw_writel(__raw_readl(base + ACAUDIDAT), base + ACAUDODAT);
 
 	for (i = 0; i < 2; i++) {

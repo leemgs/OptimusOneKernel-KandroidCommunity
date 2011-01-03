@@ -1,15 +1,4 @@
-/*
- * Sample Au12x0/Au1550 PSC AC97 sound machine.
- *
- * Copyright (c) 2007-2008 Manuel Lauss <mano@roarinelk.homelinux.net>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms outlined in the file COPYING at the root of this
- *  source archive.
- *
- * This is a very generic AC97 sound machine driver for boards which
- * have (AC97) audio at PSC1 (e.g. DB1200 demoboards).
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -36,8 +25,8 @@ static int au1xpsc_sample_ac97_init(struct snd_soc_codec *codec)
 static struct snd_soc_dai_link au1xpsc_sample_ac97_dai = {
 	.name		= "AC97",
 	.stream_name	= "AC97 HiFi",
-	.cpu_dai	= &au1xpsc_ac97_dai,	/* see psc-ac97.c */
-	.codec_dai	= &ac97_dai,		/* see codecs/ac97.c */
+	.cpu_dai	= &au1xpsc_ac97_dai,	
+	.codec_dai	= &ac97_dai,		
 	.init		= au1xpsc_sample_ac97_init,
 	.ops		= NULL,
 };
@@ -50,7 +39,7 @@ static struct snd_soc_card au1xpsc_sample_ac97_machine = {
 
 static struct snd_soc_device au1xpsc_sample_ac97_devdata = {
 	.card		= &au1xpsc_sample_ac97_machine,
-	.platform	= &au1xpsc_soc_platform, /* see dbdma2.c */
+	.platform	= &au1xpsc_soc_platform, 
 	.codec_dev	= &soc_codec_dev_ac97,
 };
 
@@ -91,7 +80,7 @@ static int __init au1xpsc_sample_ac97_load(void)
 #ifdef CONFIG_SOC_AU1200
 	unsigned long io;
 
-	/* modify sys_pinfunc for AC97 on PSC1 */
+	
 	io = au_readl(SYS_PINFUNC);
 	io |= SYS_PINFUNC_P1C;
 	io &= ~(SYS_PINFUNC_P1A | SYS_PINFUNC_P1B);
@@ -101,9 +90,7 @@ static int __init au1xpsc_sample_ac97_load(void)
 
 	ret = -ENOMEM;
 
-	/* setup PSC clock source for AC97 part: external clock provided
-	 * by codec.  The psc-ac97.c driver depends on this setting!
-	 */
+	
 	au_writel(PSC_SEL_CLK_SERCLK, PSC1_BASE_ADDR + PSC_SEL_OFFSET);
 	au_sync();
 

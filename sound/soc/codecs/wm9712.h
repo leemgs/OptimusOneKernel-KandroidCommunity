@@ -1,6 +1,4 @@
-/*
- * wm9712.h  --  WM9712 Soc Audio driver
- */
+
 
 #ifndef _WM9712_H
 #define _WM9712_H

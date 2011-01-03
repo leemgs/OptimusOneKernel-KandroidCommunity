@@ -1,19 +1,9 @@
-/*
- * wm8776.h  --  WM8776 ASoC driver
- *
- * Copyright 2009 Wolfson Microelectronics plc
- *
- * Author: Mark Brown <broonie@opensource.wolfsonmicro.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef _WM8776_H
 #define _WM8776_H
 
-/* Registers */
+
 
 #define WM8776_HPLVOL    0x00
 #define WM8776_HPRVOL    0x01

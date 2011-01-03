@@ -1,8 +1,4 @@
-/*
- * OF helpers for ALSA SoC Layer
- *
- * Copyright (C) 2008, Secret Lab Technologies Ltd.
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -55,7 +51,7 @@ of_snd_soc_get_device(struct device_node *codec_node)
 	if (!of_soc)
 		return NULL;
 
-	/* Initialize the structure and add it to the global list */
+	
 	of_soc->codec_node = codec_node;
 	of_soc->id = of_snd_soc_next_index++;
 	of_soc->card.dai_link = &of_soc->dai_link;
@@ -72,8 +68,7 @@ static void of_snd_soc_register_device(struct of_snd_soc_device *of_soc)
 	struct platform_device *pdev;
 	int rc;
 
-	/* Only register the device if both the codec and platform have
-	 * been registered */
+	
 	if ((!of_soc->device.codec_data) || (!of_soc->platform_node))
 		return;
 
@@ -89,7 +84,7 @@ static void of_snd_soc_register_device(struct of_snd_soc_device *of_soc)
 	platform_set_drvdata(pdev, &of_soc->device);
 	of_soc->device.dev = &pdev->dev;
 
-	/* The ASoC device is complete; register it */
+	
 	rc = platform_device_add(pdev);
 	if (rc) {
 		pr_err("of_soc: platform_device_add() failed\n");
@@ -114,14 +109,14 @@ int of_snd_soc_register_codec(struct snd_soc_codec_device *codec_dev,
 		goto out;
 	}
 
-	/* Store the codec data */
+	
 	of_soc->device.codec_data = codec_data;
 	of_soc->device.codec_dev = codec_dev;
 	of_soc->dai_link.name = (char *)node->name;
 	of_soc->dai_link.stream_name = (char *)node->name;
 	of_soc->dai_link.codec_dai = dai;
 
-	/* Now try to register the SoC device */
+	
 	of_snd_soc_register_device(of_soc);
 
  out:
@@ -161,7 +156,7 @@ int of_snd_soc_register_platform(struct snd_soc_platform *platform,
 	of_soc->card.platform = platform;
 	of_soc->card.name = of_soc->dai_link.cpu_dai->name;
 
-	/* Now try to register the SoC device */
+	
 	of_snd_soc_register_device(of_soc);
 
  out:

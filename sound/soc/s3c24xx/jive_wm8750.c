@@ -1,15 +1,4 @@
-/* sound/soc/s3c24xx/jive_wm8750.c
- *
- * Copyright 2007,2008 Simtec Electronics
- *
- * Based on sound/soc/pxa/spitz.c
- *	Copyright 2005 Wolfson Microelectronics PLC.
- *	Copyright 2005 Openedhand Ltd.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -72,21 +61,21 @@ static int jive_hw_params(struct snd_pcm_substream *substream,
 	s3c_i2sv2_iis_calc_rate(&div, NULL, params_rate(params),
 				s3c2412_get_iisclk());
 
-	/* set codec DAI configuration */
+	
 	ret = snd_soc_dai_set_fmt(codec_dai, SND_SOC_DAIFMT_I2S |
 				  SND_SOC_DAIFMT_NB_NF |
 				  SND_SOC_DAIFMT_CBS_CFS);
 	if (ret < 0)
 		return ret;
 
-	/* set cpu DAI configuration */
+	
 	ret = snd_soc_dai_set_fmt(cpu_dai, SND_SOC_DAIFMT_I2S |
 				  SND_SOC_DAIFMT_NB_NF |
 				  SND_SOC_DAIFMT_CBS_CFS);
 	if (ret < 0)
 		return ret;
 
-	/* set the codec system clock for DAC and ADC */
+	
 	ret = snd_soc_dai_set_sysclk(codec_dai, WM8750_SYSCLK, clk,
 				     SND_SOC_CLOCK_IN);
 	if (ret < 0)
@@ -112,7 +101,7 @@ static int jive_wm8750_init(struct snd_soc_codec *codec)
 {
 	int err;
 
-	/* These endpoints are not being used. */
+	
 	snd_soc_dapm_nc_pin(codec, "LINPUT2");
 	snd_soc_dapm_nc_pin(codec, "RINPUT2");
 	snd_soc_dapm_nc_pin(codec, "LINPUT3");
@@ -120,7 +109,7 @@ static int jive_wm8750_init(struct snd_soc_codec *codec)
 	snd_soc_dapm_nc_pin(codec, "OUT3");
 	snd_soc_dapm_nc_pin(codec, "MONO");
 
-	/* Add jive specific widgets */
+	
 	err = snd_soc_dapm_new_controls(codec, wm8750_dapm_widgets,
 					ARRAY_SIZE(wm8750_dapm_widgets));
 	if (err) {
@@ -144,7 +133,7 @@ static struct snd_soc_dai_link jive_dai = {
 	.ops		= &jive_ops,
 };
 
-/* jive audio machine driver */
+
 static struct snd_soc_card snd_soc_machine_jive = {
 	.name		= "Jive",
 	.platform	= &s3c24xx_soc_platform,
@@ -152,11 +141,11 @@ static struct snd_soc_card snd_soc_machine_jive = {
 	.num_links	= 1,
 };
 
-/* jive audio private data */
+
 static struct wm8750_setup_data jive_wm8750_setup = {
 };
 
-/* jive audio subsystem */
+
 static struct snd_soc_device jive_snd_devdata = {
 	.card		= &snd_soc_machine_jive,
 	.codec_dev	= &soc_codec_dev_wm8750,

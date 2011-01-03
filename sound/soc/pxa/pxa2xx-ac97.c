@@ -1,14 +1,4 @@
-/*
- * linux/sound/pxa2xx-ac97.c -- AC97 support for the Intel PXA2xx chip.
- *
- * Author:	Nicolas Pitre
- * Created:	Dec 02, 2004
- * Copyright:	MontaVista Software Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -177,10 +167,7 @@ static struct snd_soc_dai_ops pxa_ac97_mic_dai_ops = {
 	.hw_params	= pxa2xx_ac97_hw_mic_params,
 };
 
-/*
- * There is only 1 physical AC97 interface for pxa2xx, but it
- * has extra fifo's that can be used for aux DACs and ADCs.
- */
+
 struct snd_soc_dai pxa_ac97_dai[] = {
 {
 	.name = "pxa2xx-ac97",
@@ -255,10 +242,7 @@ static int __devinit pxa2xx_ac97_dev_probe(struct platform_device *pdev)
 			pxa_ac97_dai[i].ac97_pdata = pdata->codec_pdata[0];
 	}
 
-	/* Punt most of the init to the SoC probe; we may need the machine
-	 * driver to do interesting things with the clocking to get us up
-	 * and running.
-	 */
+	
 	return snd_soc_register_dais(pxa_ac97_dai, ARRAY_SIZE(pxa_ac97_dai));
 }
 

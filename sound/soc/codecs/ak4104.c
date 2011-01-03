@@ -1,13 +1,4 @@
-/*
- * AK4104 ALSA SoC (ASoC) driver
- *
- * Copyright (c) 2009 Daniel Mack <daniel@caiaq.de>
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <sound/core.h>
@@ -18,7 +9,7 @@
 
 #include "ak4104.h"
 
-/* AK4104 registers addresses */
+
 #define AK4104_REG_CONTROL1		0x00
 #define AK4104_REG_RESERVED		0x01
 #define AK4104_REG_CONTROL2		0x02
@@ -31,7 +22,7 @@
 #define AK4104_WRITE			0xe0
 #define AK4104_RESERVED_VAL		0x5b
 
-/* Bit masks for AK4104 registers */
+
 #define AK4104_CONTROL1_RSTN		(1 << 0)
 #define AK4104_CONTROL1_PW		(1 << 1)
 #define AK4104_CONTROL1_DIF0		(1 << 2)
@@ -93,7 +84,7 @@ static int ak4104_spi_write(struct snd_soc_codec *codec, unsigned int reg,
 	reg &= AK4104_REG_MASK;
 	reg |= AK4104_WRITE;
 
-	/* only write to the hardware if value has changed */
+	
 	if (cache[reg] != value) {
 		u8 tmp[2] = { reg, value };
 		if (spi_write(spi, tmp, sizeof(tmp))) {
@@ -119,7 +110,7 @@ static int ak4104_set_dai_fmt(struct snd_soc_dai *codec_dai,
 
 	val &= ~(AK4104_CONTROL1_DIF0 | AK4104_CONTROL1_DIF1);
 
-	/* set DAI format */
+	
 	switch (format & SND_SOC_DAIFMT_FORMAT_MASK) {
 	case SND_SOC_DAIFMT_RIGHT_J:
 		break;
@@ -134,7 +125,7 @@ static int ak4104_set_dai_fmt(struct snd_soc_dai *codec_dai,
 		return -EINVAL;
 	}
 
-	/* This device can only be slave */
+	
 	if ((format & SND_SOC_DAIFMT_MASTER_MASK) != SND_SOC_DAIFMT_CBS_CFS)
 		return -EINVAL;
 
@@ -150,7 +141,7 @@ static int ak4104_hw_params(struct snd_pcm_substream *substream,
 	struct snd_soc_codec *codec = socdev->card->codec;
 	int val = 0;
 
-	/* set the IEC958 bits: consumer mode, no copyright bit */
+	
 	val |= IEC958_AES0_CON_NOT_COPYRIGHT;
 	ak4104_spi_write(codec, AK4104_REG_CHN_STATUS(0), val);
 
@@ -230,30 +221,28 @@ static int ak4104_spi_probe(struct spi_device *spi)
 	codec->reg_cache = ak4104->reg_cache;
 	codec->reg_cache_size = AK4104_NUM_REGS;
 
-	/* read all regs and fill the cache */
+	
 	ret = ak4104_fill_cache(codec);
 	if (ret < 0) {
 		dev_err(&spi->dev, "failed to fill register cache\n");
 		return ret;
 	}
 
-	/* read the 'reserved' register - according to the datasheet, it
-	 * should contain 0x5b. Not a good way to verify the presence of
-	 * the device, but there is no hardware ID register. */
+	
 	if (ak4104_read_reg_cache(codec, AK4104_REG_RESERVED) !=
 					 AK4104_RESERVED_VAL) {
 		ret = -ENODEV;
 		goto error_free_codec;
 	}
 
-	/* set power-up and non-reset bits */
+	
 	val = ak4104_read_reg_cache(codec, AK4104_REG_CONTROL1);
 	val |= AK4104_CONTROL1_PW | AK4104_CONTROL1_RSTN;
 	ret = ak4104_spi_write(codec, AK4104_REG_CONTROL1, val);
 	if (ret < 0)
 		goto error_free_codec;
 
-	/* enable transmitter */
+	
 	val = ak4104_read_reg_cache(codec, AK4104_REG_TX);
 	val |= AK4104_TX_TXE;
 	ret = ak4104_spi_write(codec, AK4104_REG_TX, val);
@@ -286,7 +275,7 @@ static int __devexit ak4104_spi_remove(struct spi_device *spi)
 	if (val < 0)
 		return val;
 
-	/* clear power-up and non-reset bits */
+	
 	val &= ~(AK4104_CONTROL1_PW | AK4104_CONTROL1_RSTN);
 	ret = ak4104_spi_write(&ak4104->codec, AK4104_REG_CONTROL1, val);
 	if (ret < 0)
@@ -303,17 +292,17 @@ static int ak4104_probe(struct platform_device *pdev)
 	struct snd_soc_codec *codec = ak4104_codec;
 	int ret;
 
-	/* Connect the codec to the socdev.  snd_soc_new_pcms() needs this. */
+	
 	socdev->card->codec = codec;
 
-	/* Register PCMs */
+	
 	ret = snd_soc_new_pcms(socdev, SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1);
 	if (ret < 0) {
 		dev_err(codec->dev, "failed to create pcms\n");
 		return ret;
 	}
 
-	/* Register the socdev */
+	
 	ret = snd_soc_init_card(socdev);
 	if (ret < 0) {
 		dev_err(codec->dev, "failed to register card\n");

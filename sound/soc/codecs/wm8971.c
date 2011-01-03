@@ -1,17 +1,4 @@
-/*
- * wm8971.c  --  WM8971 ALSA SoC Audio driver
- *
- * Copyright 2005 Lab126, Inc.
- *
- * Author: Kenneth Kiraly <kiraly@lab126.com>
- *
- * Based on wm8753.c by Liam Girdwood
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -35,33 +22,29 @@
 
 static struct workqueue_struct *wm8971_workq = NULL;
 
-/* codec private data */
+
 struct wm8971_priv {
 	unsigned int sysclk;
 };
 
-/*
- * wm8971 register cache
- * We can't read the WM8971 register space when we
- * are using 2 wire for device control, so we cache them instead.
- */
+
 static const u16 wm8971_reg[] = {
-	0x0097, 0x0097, 0x0079, 0x0079,  /*  0 */
-	0x0000, 0x0008, 0x0000, 0x000a,  /*  4 */
-	0x0000, 0x0000, 0x00ff, 0x00ff,  /*  8 */
-	0x000f, 0x000f, 0x0000, 0x0000,  /* 12 */
-	0x0000, 0x007b, 0x0000, 0x0032,  /* 16 */
-	0x0000, 0x00c3, 0x00c3, 0x00c0,  /* 20 */
-	0x0000, 0x0000, 0x0000, 0x0000,  /* 24 */
-	0x0000, 0x0000, 0x0000, 0x0000,  /* 28 */
-	0x0000, 0x0000, 0x0050, 0x0050,  /* 32 */
-	0x0050, 0x0050, 0x0050, 0x0050,  /* 36 */
-	0x0079, 0x0079, 0x0079,          /* 40 */
+	0x0097, 0x0097, 0x0079, 0x0079,  
+	0x0000, 0x0008, 0x0000, 0x000a,  
+	0x0000, 0x0000, 0x00ff, 0x00ff,  
+	0x000f, 0x000f, 0x0000, 0x0000,  
+	0x0000, 0x007b, 0x0000, 0x0032,  
+	0x0000, 0x00c3, 0x00c3, 0x00c0,  
+	0x0000, 0x0000, 0x0000, 0x0000,  
+	0x0000, 0x0000, 0x0000, 0x0000,  
+	0x0000, 0x0000, 0x0050, 0x0050,  
+	0x0050, 0x0050, 0x0050, 0x0050,  
+	0x0079, 0x0079, 0x0079,          
 };
 
 #define wm8971_reset(c)	snd_soc_write(c, WM8971_RESET, 0)
 
-/* WM8971 Controls */
+
 static const char *wm8971_bass[] = { "Linear Control", "Adaptive Boost" };
 static const char *wm8971_bass_filter[] = { "130Hz @ 48kHz",
 	"200Hz @ 48kHz" };
@@ -83,19 +66,19 @@ static const char *wm8971_adcpol[] = {"Normal", "L Invert", "R Invert",
 	"L + R Invert"};
 
 static const struct soc_enum wm8971_enum[] = {
-	SOC_ENUM_SINGLE(WM8971_BASS, 7, 2, wm8971_bass),	/* 0 */
+	SOC_ENUM_SINGLE(WM8971_BASS, 7, 2, wm8971_bass),	
 	SOC_ENUM_SINGLE(WM8971_BASS, 6, 2, wm8971_bass_filter),
 	SOC_ENUM_SINGLE(WM8971_TREBLE, 6, 2, wm8971_treble),
 	SOC_ENUM_SINGLE(WM8971_ALC1, 7, 4, wm8971_alc_func),
-	SOC_ENUM_SINGLE(WM8971_NGATE, 1, 2, wm8971_ng_type),    /* 4 */
+	SOC_ENUM_SINGLE(WM8971_NGATE, 1, 2, wm8971_ng_type),    
 	SOC_ENUM_SINGLE(WM8971_ADCDAC, 1, 4, wm8971_deemp),
 	SOC_ENUM_SINGLE(WM8971_ADCTL1, 4, 4, wm8971_mono_mux),
 	SOC_ENUM_SINGLE(WM8971_ADCTL1, 1, 2, wm8971_dac_phase),
-	SOC_ENUM_SINGLE(WM8971_LOUTM1, 0, 5, wm8971_lline_mux), /* 8 */
+	SOC_ENUM_SINGLE(WM8971_LOUTM1, 0, 5, wm8971_lline_mux), 
 	SOC_ENUM_SINGLE(WM8971_ROUTM1, 0, 5, wm8971_rline_mux),
 	SOC_ENUM_SINGLE(WM8971_LADCIN, 6, 4, wm8971_lpga_sel),
 	SOC_ENUM_SINGLE(WM8971_RADCIN, 6, 4, wm8971_rpga_sel),
-	SOC_ENUM_SINGLE(WM8971_ADCDAC, 5, 4, wm8971_adcpol),    /* 12 */
+	SOC_ENUM_SINGLE(WM8971_ADCDAC, 5, 4, wm8971_adcpol),    
 	SOC_ENUM_SINGLE(WM8971_ADCIN, 6, 4, wm8971_mono_mux),
 };
 
@@ -158,11 +141,9 @@ static const struct snd_kcontrol_new wm8971_snd_controls[] = {
 	SOC_DOUBLE_R("Mic Boost", WM8971_LADCIN, WM8971_RADCIN, 4, 3, 0),
 };
 
-/*
- * DAPM Controls
- */
 
-/* Left Mixer */
+
+
 static const struct snd_kcontrol_new wm8971_left_mixer_controls[] = {
 SOC_DAPM_SINGLE("Playback Switch", WM8971_LOUTM1, 8, 1, 0),
 SOC_DAPM_SINGLE("Left Bypass Switch", WM8971_LOUTM1, 7, 1, 0),
@@ -170,7 +151,7 @@ SOC_DAPM_SINGLE("Right Playback Switch", WM8971_LOUTM2, 8, 1, 0),
 SOC_DAPM_SINGLE("Right Bypass Switch", WM8971_LOUTM2, 7, 1, 0),
 };
 
-/* Right Mixer */
+
 static const struct snd_kcontrol_new wm8971_right_mixer_controls[] = {
 SOC_DAPM_SINGLE("Left Playback Switch", WM8971_ROUTM1, 8, 1, 0),
 SOC_DAPM_SINGLE("Left Bypass Switch", WM8971_ROUTM1, 7, 1, 0),
@@ -178,7 +159,7 @@ SOC_DAPM_SINGLE("Playback Switch", WM8971_ROUTM2, 8, 1, 0),
 SOC_DAPM_SINGLE("Right Bypass Switch", WM8971_ROUTM2, 7, 1, 0),
 };
 
-/* Mono Mixer */
+
 static const struct snd_kcontrol_new wm8971_mono_mixer_controls[] = {
 SOC_DAPM_SINGLE("Left Playback Switch", WM8971_MOUTM1, 8, 1, 0),
 SOC_DAPM_SINGLE("Left Bypass Switch", WM8971_MOUTM1, 7, 1, 0),
@@ -186,23 +167,23 @@ SOC_DAPM_SINGLE("Right Playback Switch", WM8971_MOUTM2, 8, 1, 0),
 SOC_DAPM_SINGLE("Right Bypass Switch", WM8971_MOUTM2, 7, 1, 0),
 };
 
-/* Left Line Mux */
+
 static const struct snd_kcontrol_new wm8971_left_line_controls =
 SOC_DAPM_ENUM("Route", wm8971_enum[8]);
 
-/* Right Line Mux */
+
 static const struct snd_kcontrol_new wm8971_right_line_controls =
 SOC_DAPM_ENUM("Route", wm8971_enum[9]);
 
-/* Left PGA Mux */
+
 static const struct snd_kcontrol_new wm8971_left_pga_controls =
 SOC_DAPM_ENUM("Route", wm8971_enum[10]);
 
-/* Right PGA Mux */
+
 static const struct snd_kcontrol_new wm8971_right_pga_controls =
 SOC_DAPM_ENUM("Route", wm8971_enum[11]);
 
-/* Mono ADC Mux */
+
 static const struct snd_kcontrol_new wm8971_monomux_controls =
 SOC_DAPM_ENUM("Route", wm8971_enum[13]);
 
@@ -255,78 +236,78 @@ static const struct snd_soc_dapm_widget wm8971_dapm_widgets[] = {
 };
 
 static const struct snd_soc_dapm_route audio_map[] = {
-	/* left mixer */
+	
 	{"Left Mixer", "Playback Switch", "Left DAC"},
 	{"Left Mixer", "Left Bypass Switch", "Left Line Mux"},
 	{"Left Mixer", "Right Playback Switch", "Right DAC"},
 	{"Left Mixer", "Right Bypass Switch", "Right Line Mux"},
 
-	/* right mixer */
+	
 	{"Right Mixer", "Left Playback Switch", "Left DAC"},
 	{"Right Mixer", "Left Bypass Switch", "Left Line Mux"},
 	{"Right Mixer", "Playback Switch", "Right DAC"},
 	{"Right Mixer", "Right Bypass Switch", "Right Line Mux"},
 
-	/* left out 1 */
+	
 	{"Left Out 1", NULL, "Left Mixer"},
 	{"LOUT1", NULL, "Left Out 1"},
 
-	/* left out 2 */
+	
 	{"Left Out 2", NULL, "Left Mixer"},
 	{"LOUT2", NULL, "Left Out 2"},
 
-	/* right out 1 */
+	
 	{"Right Out 1", NULL, "Right Mixer"},
 	{"ROUT1", NULL, "Right Out 1"},
 
-	/* right out 2 */
+	
 	{"Right Out 2", NULL, "Right Mixer"},
 	{"ROUT2", NULL, "Right Out 2"},
 
-	/* mono mixer */
+	
 	{"Mono Mixer", "Left Playback Switch", "Left DAC"},
 	{"Mono Mixer", "Left Bypass Switch", "Left Line Mux"},
 	{"Mono Mixer", "Right Playback Switch", "Right DAC"},
 	{"Mono Mixer", "Right Bypass Switch", "Right Line Mux"},
 
-	/* mono out */
+	
 	{"Mono Out", NULL, "Mono Mixer"},
 	{"MONO1", NULL, "Mono Out"},
 
-	/* Left Line Mux */
+	
 	{"Left Line Mux", "Line", "LINPUT1"},
 	{"Left Line Mux", "PGA", "Left PGA Mux"},
 	{"Left Line Mux", "Differential", "Differential Mux"},
 
-	/* Right Line Mux */
+	
 	{"Right Line Mux", "Line", "RINPUT1"},
 	{"Right Line Mux", "Mic", "MIC"},
 	{"Right Line Mux", "PGA", "Right PGA Mux"},
 	{"Right Line Mux", "Differential", "Differential Mux"},
 
-	/* Left PGA Mux */
+	
 	{"Left PGA Mux", "Line", "LINPUT1"},
 	{"Left PGA Mux", "Differential", "Differential Mux"},
 
-	/* Right PGA Mux */
+	
 	{"Right PGA Mux", "Line", "RINPUT1"},
 	{"Right PGA Mux", "Differential", "Differential Mux"},
 
-	/* Differential Mux */
+	
 	{"Differential Mux", "Line", "LINPUT1"},
 	{"Differential Mux", "Line", "RINPUT1"},
 
-	/* Left ADC Mux */
+	
 	{"Left ADC Mux", "Stereo", "Left PGA Mux"},
 	{"Left ADC Mux", "Mono (Left)", "Left PGA Mux"},
 	{"Left ADC Mux", "Digital Mono", "Left PGA Mux"},
 
-	/* Right ADC Mux */
+	
 	{"Right ADC Mux", "Stereo", "Right PGA Mux"},
 	{"Right ADC Mux", "Mono (Right)", "Right PGA Mux"},
 	{"Right ADC Mux", "Digital Mono", "Right PGA Mux"},
 
-	/* ADC */
+	
 	{"Left ADC", NULL, "Left ADC Mux"},
 	{"Right ADC", NULL, "Right ADC Mux"},
 };
@@ -351,51 +332,51 @@ struct _coeff_div {
 	u8 usb:1;
 };
 
-/* codec hifi mclk clock divider coefficients */
+
 static const struct _coeff_div coeff_div[] = {
-	/* 8k */
+	
 	{12288000, 8000, 1536, 0x6, 0x0},
 	{11289600, 8000, 1408, 0x16, 0x0},
 	{18432000, 8000, 2304, 0x7, 0x0},
 	{16934400, 8000, 2112, 0x17, 0x0},
 	{12000000, 8000, 1500, 0x6, 0x1},
 
-	/* 11.025k */
+	
 	{11289600, 11025, 1024, 0x18, 0x0},
 	{16934400, 11025, 1536, 0x19, 0x0},
 	{12000000, 11025, 1088, 0x19, 0x1},
 
-	/* 16k */
+	
 	{12288000, 16000, 768, 0xa, 0x0},
 	{18432000, 16000, 1152, 0xb, 0x0},
 	{12000000, 16000, 750, 0xa, 0x1},
 
-	/* 22.05k */
+	
 	{11289600, 22050, 512, 0x1a, 0x0},
 	{16934400, 22050, 768, 0x1b, 0x0},
 	{12000000, 22050, 544, 0x1b, 0x1},
 
-	/* 32k */
+	
 	{12288000, 32000, 384, 0xc, 0x0},
 	{18432000, 32000, 576, 0xd, 0x0},
 	{12000000, 32000, 375, 0xa, 0x1},
 
-	/* 44.1k */
+	
 	{11289600, 44100, 256, 0x10, 0x0},
 	{16934400, 44100, 384, 0x11, 0x0},
 	{12000000, 44100, 272, 0x11, 0x1},
 
-	/* 48k */
+	
 	{12288000, 48000, 256, 0x0, 0x0},
 	{18432000, 48000, 384, 0x1, 0x0},
 	{12000000, 48000, 250, 0x0, 0x1},
 
-	/* 88.2k */
+	
 	{11289600, 88200, 128, 0x1e, 0x0},
 	{16934400, 88200, 192, 0x1f, 0x0},
 	{12000000, 88200, 136, 0x1f, 0x1},
 
-	/* 96k */
+	
 	{12288000, 96000, 128, 0xe, 0x0},
 	{18432000, 96000, 192, 0xf, 0x0},
 	{12000000, 96000, 125, 0xe, 0x1},
@@ -436,7 +417,7 @@ static int wm8971_set_dai_fmt(struct snd_soc_dai *codec_dai,
 	struct snd_soc_codec *codec = codec_dai->codec;
 	u16 iface = 0;
 
-	/* set master/slave audio interface */
+	
 	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
 	case SND_SOC_DAIFMT_CBM_CFM:
 		iface = 0x0040;
@@ -447,7 +428,7 @@ static int wm8971_set_dai_fmt(struct snd_soc_dai *codec_dai,
 		return -EINVAL;
 	}
 
-	/* interface format */
+	
 	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
 	case SND_SOC_DAIFMT_I2S:
 		iface |= 0x0002;
@@ -467,7 +448,7 @@ static int wm8971_set_dai_fmt(struct snd_soc_dai *codec_dai,
 		return -EINVAL;
 	}
 
-	/* clock inversion */
+	
 	switch (fmt & SND_SOC_DAIFMT_INV_MASK) {
 	case SND_SOC_DAIFMT_NB_NF:
 		break;
@@ -500,7 +481,7 @@ static int wm8971_pcm_hw_params(struct snd_pcm_substream *substream,
 	u16 srate = snd_soc_read(codec, WM8971_SRATE) & 0x1c0;
 	int coeff = get_coeff(wm8971->sysclk, params_rate(params));
 
-	/* bit size */
+	
 	switch (params_format(params)) {
 	case SNDRV_PCM_FORMAT_S16_LE:
 		break;
@@ -515,7 +496,7 @@ static int wm8971_pcm_hw_params(struct snd_pcm_substream *substream,
 		break;
 	}
 
-	/* set iface & srate */
+	
 	snd_soc_write(codec, WM8971_IFACE, iface);
 	if (coeff >= 0)
 		snd_soc_write(codec, WM8971_SRATE, srate |
@@ -543,13 +524,13 @@ static int wm8971_set_bias_level(struct snd_soc_codec *codec,
 
 	switch (level) {
 	case SND_SOC_BIAS_ON:
-		/* set vmid to 50k and unmute dac */
+		
 		snd_soc_write(codec, WM8971_PWR1, pwr_reg | 0x00c1);
 		break;
 	case SND_SOC_BIAS_PREPARE:
 		break;
 	case SND_SOC_BIAS_STANDBY:
-		/* mute dac and set vmid to 500k, enable VREF */
+		
 		snd_soc_write(codec, WM8971_PWR1, pwr_reg | 0x0140);
 		break;
 	case SND_SOC_BIAS_OFF:
@@ -617,7 +598,7 @@ static int wm8971_resume(struct platform_device *pdev)
 	u16 *cache = codec->reg_cache;
 	u16 reg;
 
-	/* Sync reg_cache with the hardware */
+	
 	for (i = 0; i < ARRAY_SIZE(wm8971_reg); i++) {
 		if (i + 1 == WM8971_RESET)
 			continue;
@@ -628,7 +609,7 @@ static int wm8971_resume(struct platform_device *pdev)
 
 	wm8971_set_bias_level(codec, SND_SOC_BIAS_STANDBY);
 
-	/* charge wm8971 caps */
+	
 	if (codec->suspend_bias_level == SND_SOC_BIAS_ON) {
 		reg = snd_soc_read(codec, WM8971_PWR1) & 0xfe3e;
 		snd_soc_write(codec, WM8971_PWR1, reg | 0x01c0);
@@ -665,21 +646,21 @@ static int wm8971_init(struct snd_soc_device *socdev,
 
 	wm8971_reset(codec);
 
-	/* register pcms */
+	
 	ret = snd_soc_new_pcms(socdev, SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1);
 	if (ret < 0) {
 		printk(KERN_ERR "wm8971: failed to create pcms\n");
 		goto err;
 	}
 
-	/* charge output caps - set vmid to 5k for quick power up */
+	
 	reg = snd_soc_read(codec, WM8971_PWR1) & 0xfe3e;
 	snd_soc_write(codec, WM8971_PWR1, reg | 0x01c0);
 	codec->bias_level = SND_SOC_BIAS_STANDBY;
 	queue_delayed_work(wm8971_workq, &codec->delayed_work,
 		msecs_to_jiffies(1000));
 
-	/* set the update bits */
+	
 	reg = snd_soc_read(codec, WM8971_LDAC);
 	snd_soc_write(codec, WM8971_LDAC, reg | 0x0100);
 	reg = snd_soc_read(codec, WM8971_RDAC);
@@ -718,8 +699,7 @@ err:
 	return ret;
 }
 
-/* If the i2c layer weren't so broken, we could pass this kind of data
-   around */
+
 static struct snd_soc_device *wm8971_socdev;
 
 #if defined (CONFIG_I2C) || defined (CONFIG_I2C_MODULE)
@@ -848,7 +828,7 @@ static int wm8971_probe(struct platform_device *pdev)
 		ret = wm8971_add_i2c_device(pdev, setup);
 	}
 #endif
-	/* Add other interfaces here */
+	
 
 	if (ret != 0) {
 		destroy_workqueue(wm8971_workq);
@@ -859,7 +839,7 @@ static int wm8971_probe(struct platform_device *pdev)
 	return ret;
 }
 
-/* power down chip */
+
 static int wm8971_remove(struct platform_device *pdev)
 {
 	struct snd_soc_device *socdev = platform_get_drvdata(pdev);

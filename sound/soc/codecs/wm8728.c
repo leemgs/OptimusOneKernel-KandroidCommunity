@@ -1,14 +1,4 @@
-/*
- * wm8728.c  --  WM8728 ALSA SoC Audio driver
- *
- * Copyright 2008 Wolfson Microelectronics plc
- *
- * Author: Mark Brown <broonie@opensource.wolfsonmicro.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -30,12 +20,7 @@
 
 struct snd_soc_codec_device soc_codec_dev_wm8728;
 
-/*
- * We can't read the WM8728 register space so we cache them instead.
- * Note that the defaults here aren't the physical defaults, we latch
- * the volume update bits, mute the output and enable infinite zero
- * detect.
- */
+
 static const u16 wm8728_reg_defaults[] = {
 	0x1ff,
 	0x1ff,
@@ -53,9 +38,7 @@ SOC_DOUBLE_R_TLV("Digital Playback Volume", WM8728_DACLVOL, WM8728_DACRVOL,
 SOC_SINGLE("Deemphasis", WM8728_DACCTL, 1, 1, 0),
 };
 
-/*
- * DAPM controls.
- */
+
 static const struct snd_soc_dapm_widget wm8728_dapm_widgets[] = {
 SND_SOC_DAPM_DAC("DAC", "HiFi Playback", SND_SOC_NOPM, 0, 0),
 SND_SOC_DAPM_OUTPUT("VOUTL"),
@@ -127,9 +110,7 @@ static int wm8728_set_dai_fmt(struct snd_soc_dai *codec_dai,
 	struct snd_soc_codec *codec = codec_dai->codec;
 	u16 iface = snd_soc_read(codec, WM8728_IFCTL);
 
-	/* Currently only I2S is supported by the driver, though the
-	 * hardware is more flexible.
-	 */
+	
 	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
 	case SND_SOC_DAIFMT_I2S:
 		iface |= 1;
@@ -138,7 +119,7 @@ static int wm8728_set_dai_fmt(struct snd_soc_dai *codec_dai,
 		return -EINVAL;
 	}
 
-	/* The hardware only support full slave mode */
+	
 	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
 	case SND_SOC_DAIFMT_CBS_CFS:
 		break;
@@ -180,11 +161,11 @@ static int wm8728_set_bias_level(struct snd_soc_codec *codec,
 	case SND_SOC_BIAS_PREPARE:
 	case SND_SOC_BIAS_STANDBY:
 		if (codec->bias_level == SND_SOC_BIAS_OFF) {
-			/* Power everything up... */
+			
 			reg = snd_soc_read(codec, WM8728_DACCTL);
 			snd_soc_write(codec, WM8728_DACCTL, reg & ~0x4);
 
-			/* ..then sync in the register cache. */
+			
 			for (i = 0; i < ARRAY_SIZE(wm8728_reg_defaults); i++)
 				snd_soc_write(codec, i,
 					     snd_soc_read(codec, i));
@@ -244,10 +225,7 @@ static int wm8728_resume(struct platform_device *pdev)
 	return 0;
 }
 
-/*
- * initialise the WM8728 driver
- * register the mixer and dsp interfaces with the kernel
- */
+
 static int wm8728_init(struct snd_soc_device *socdev,
 		       enum snd_soc_control_type control)
 {
@@ -274,14 +252,14 @@ static int wm8728_init(struct snd_soc_device *socdev,
 		goto err;
 	}
 
-	/* register pcms */
+	
 	ret = snd_soc_new_pcms(socdev, SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1);
 	if (ret < 0) {
 		printk(KERN_ERR "wm8728: failed to create pcms\n");
 		goto err;
 	}
 
-	/* power on device */
+	
 	wm8728_set_bias_level(codec, SND_SOC_BIAS_STANDBY);
 
 	snd_soc_add_controls(codec, wm8728_snd_controls,
@@ -307,12 +285,7 @@ static struct snd_soc_device *wm8728_socdev;
 
 #if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
 
-/*
- * WM8728 2 wire address is determined by GPIO5
- * state during powerup.
- *    low  = 0x1a
- *    high = 0x1b
- */
+
 
 static int wm8728_i2c_probe(struct i2c_client *i2c,
 			    const struct i2c_device_id *id)
@@ -425,7 +398,7 @@ static struct spi_driver wm8728_spi_driver = {
 	.probe		= wm8728_spi_probe,
 	.remove		= __devexit_p(wm8728_spi_remove),
 };
-#endif /* CONFIG_SPI_MASTER */
+#endif 
 
 static int wm8728_probe(struct platform_device *pdev)
 {
@@ -466,7 +439,7 @@ static int wm8728_probe(struct platform_device *pdev)
 	return ret;
 }
 
-/* power down chip */
+
 static int wm8728_remove(struct platform_device *pdev)
 {
 	struct snd_soc_device *socdev = platform_get_drvdata(pdev);

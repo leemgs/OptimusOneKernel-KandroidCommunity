@@ -1,15 +1,4 @@
-/*
- * TXx9 ACLC AC97 driver
- *
- * Copyright (C) 2009 Atsushi Nemoto
- *
- * Based on RBTX49xx patch from CELF patch archive.
- * (C) Copyright TOSHIBA CORPORATION 2004-2006
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -35,7 +24,7 @@
 
 static DECLARE_WAIT_QUEUE_HEAD(ac97_waitq);
 
-/* REVISIT: How to find txx9aclc_soc_device from snd_ac97? */
+
 static struct txx9aclc_soc_device *txx9aclc_soc_dev;
 
 static int txx9aclc_regready(struct txx9aclc_soc_device *dev)
@@ -45,7 +34,7 @@ static int txx9aclc_regready(struct txx9aclc_soc_device *dev)
 	return __raw_readl(drvdata->base + ACINTSTS) & ACINT_REGACCRDY;
 }
 
-/* AC97 controller reads codec register */
+
 static unsigned short txx9aclc_ac97_read(struct snd_ac97 *ac97,
 					 unsigned short reg)
 {
@@ -79,7 +68,7 @@ done:
 	return dat;
 }
 
-/* AC97 controller writes to codec register */
+
 static void txx9aclc_ac97_write(struct snd_ac97 *ac97, unsigned short reg,
 				unsigned short val)
 {
@@ -109,7 +98,7 @@ static void txx9aclc_ac97_cold_reset(struct snd_ac97 *ac97)
 	mmiowb();
 	udelay(1);
 	__raw_writel(ACCTL_ENLINK, base + ACCTLEN);
-	/* wait for primary codec ready status */
+	
 	__raw_writel(ready, base + ACINTEN);
 	if (!wait_event_timeout(ac97_waitq,
 				(__raw_readl(base + ACINTSTS) & ready) == ready,
@@ -122,7 +111,7 @@ static void txx9aclc_ac97_cold_reset(struct snd_ac97 *ac97)
 	__raw_writel(ready, base + ACINTDIS);
 }
 
-/* AC97 controller operations */
+
 struct snd_ac97_bus_ops soc_ac97_ops = {
 	.read		= txx9aclc_ac97_read,
 	.write		= txx9aclc_ac97_write,
@@ -158,7 +147,7 @@ static void txx9aclc_ac97_remove(struct platform_device *pdev,
 	struct platform_device *aclc_pdev = to_platform_device(dai->dev);
 	struct txx9aclc_plat_drvdata *drvdata = platform_get_drvdata(aclc_pdev);
 
-	/* disable AC-link */
+	
 	__raw_writel(ACCTL_ENLINK, drvdata->base + ACCTLDIS);
 	txx9aclc_soc_dev = NULL;
 }

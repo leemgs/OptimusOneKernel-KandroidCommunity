@@ -1,44 +1,4 @@
-/*
- * Handles the Mitac mioa701 SoC system
- *
- * Copyright (C) 2008 Robert Jarzmik
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation in version 2 of the License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * This is a little schema of the sound interconnections :
- *
- *    Sagem X200                 Wolfson WM9713
- *    +--------+             +-------------------+      Rear Speaker
- *    |        |             |                   |           /-+
- *    |        +--->----->---+MONOIN         SPKL+--->----+-+  |
- *    |  GSM   |             |                   |        | |  |
- *    |        +--->----->---+PCBEEP         SPKR+--->----+-+  |
- *    |  CHIP  |             |                   |           \-+
- *    |        +---<-----<---+MONO               |
- *    |        |             |                   |      Front Speaker
- *    +--------+             |                   |           /-+
- *                           |                HPL+--->----+-+  |
- *                           |                   |        | |  |
- *                           |               OUT3+--->----+-+  |
- *                           |                   |           \-+
- *                           |                   |
- *                           |                   |     Front Micro
- *                           |                   |         +
- *                           |               MIC1+-----<--+o+
- *                           |                   |         +
- *                           +-------------------+        ---
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -62,7 +22,7 @@
 
 #define AC97_GPIO_PULL		0x58
 
-/* Use GPIO8 for rear speaker amplifier */
+
 static int rear_amp_power(struct snd_soc_codec *codec, int power)
 {
 	unsigned short reg;
@@ -90,7 +50,7 @@ static int rear_amp_event(struct snd_soc_dapm_widget *widget,
 	return rear_amp_power(codec, SND_SOC_DAPM_EVENT_ON(event));
 }
 
-/* mioa701 machine dapm widgets */
+
 static const struct snd_soc_dapm_widget mioa701_dapm_widgets[] = {
 	SND_SOC_DAPM_SPK("Front Speaker", NULL),
 	SND_SOC_DAPM_SPK("Rear Speaker", rear_amp_event),
@@ -102,28 +62,28 @@ static const struct snd_soc_dapm_widget mioa701_dapm_widgets[] = {
 };
 
 static const struct snd_soc_dapm_route audio_map[] = {
-	/* Call Mic */
+	
 	{"Mic Bias", NULL, "Front Mic"},
 	{"MIC1", NULL, "Mic Bias"},
 
-	/* Headset Mic */
+	
 	{"LINEL", NULL, "Headset Mic"},
 	{"LINER", NULL, "Headset Mic"},
 
-	/* GSM Module */
+	
 	{"MONOIN", NULL, "GSM Line Out"},
 	{"PCBEEP", NULL, "GSM Line Out"},
 	{"GSM Line In", NULL, "MONO"},
 
-	/* headphone connected to HPL, HPR */
+	
 	{"Headset", NULL, "HPL"},
 	{"Headset", NULL, "HPR"},
 
-	/* front speaker connected to HPL, OUT3 */
+	
 	{"Front Speaker", NULL, "HPL"},
 	{"Front Speaker", NULL, "OUT3"},
 
-	/* rear speaker connected to SPKL, SPKR */
+	
 	{"Rear Speaker", NULL, "SPKL"},
 	{"Rear Speaker", NULL, "SPKR"},
 };
@@ -132,17 +92,17 @@ static int mioa701_wm9713_init(struct snd_soc_codec *codec)
 {
 	unsigned short reg;
 
-	/* Add mioa701 specific widgets */
+	
 	snd_soc_dapm_new_controls(codec, ARRAY_AND_SIZE(mioa701_dapm_widgets));
 
-	/* Set up mioa701 specific audio path audio_mapnects */
+	
 	snd_soc_dapm_add_routes(codec, ARRAY_AND_SIZE(audio_map));
 
-	/* Prepare GPIO8 for rear speaker amplifier */
+	
 	reg = codec->read(codec, AC97_GPIO_CFG);
 	codec->write(codec, AC97_GPIO_CFG, reg | 0x0100);
 
-	/* Prepare MIC input */
+	
 	reg = codec->read(codec, AC97_3D_CONTROL);
 	codec->write(codec, AC97_3D_CONTROL, reg | 0xc000);
 
@@ -244,7 +204,7 @@ static void __exit mioa701_asoc_exit(void)
 module_init(mioa701_asoc_init);
 module_exit(mioa701_asoc_exit);
 
-/* Module information */
+
 MODULE_AUTHOR("Robert Jarzmik (rjarzmik@free.fr)");
 MODULE_DESCRIPTION("ALSA SoC WM9713 MIO A701");
 MODULE_LICENSE("GPL");

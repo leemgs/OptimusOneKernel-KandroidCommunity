@@ -1,21 +1,4 @@
-/*
- * omap3evm.c  -- ALSA SoC support for OMAP3 EVM
- *
- * Author: Anuj Aggarwal <anuj.aggarwal@ti.com>
- *
- * Based on sound/soc/omap/beagle.c by Steve Sakoman
- *
- * Copyright (C) 2008 Texas Instruments, Incorporated
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation version 2.
- *
- * This program is distributed "as is" WITHOUT ANY WARRANTY of any kind,
- * whether express or implied; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- */
+
 
 #include <linux/clk.h>
 #include <linux/platform_device.h>
@@ -41,7 +24,7 @@ static int omap3evm_hw_params(struct snd_pcm_substream *substream,
 	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
 	int ret;
 
-	/* Set codec DAI configuration */
+	
 	ret = snd_soc_dai_set_fmt(codec_dai,
 				  SND_SOC_DAIFMT_I2S |
 				  SND_SOC_DAIFMT_NB_NF |
@@ -51,7 +34,7 @@ static int omap3evm_hw_params(struct snd_pcm_substream *substream,
 		return ret;
 	}
 
-	/* Set cpu DAI configuration */
+	
 	ret = snd_soc_dai_set_fmt(cpu_dai,
 				  SND_SOC_DAIFMT_I2S |
 				  SND_SOC_DAIFMT_NB_NF |
@@ -61,7 +44,7 @@ static int omap3evm_hw_params(struct snd_pcm_substream *substream,
 		return ret;
 	}
 
-	/* Set the codec system clock for DAC and ADC */
+	
 	ret = snd_soc_dai_set_sysclk(codec_dai, 0, 26000000,
 				     SND_SOC_CLOCK_IN);
 	if (ret < 0) {
@@ -76,7 +59,7 @@ static struct snd_soc_ops omap3evm_ops = {
 	.hw_params = omap3evm_hw_params,
 };
 
-/* Digital audio interface glue - connects codec <--> CPU */
+
 static struct snd_soc_dai_link omap3evm_dai = {
 	.name 		= "TWL4030",
 	.stream_name 	= "TWL4030",
@@ -85,7 +68,7 @@ static struct snd_soc_dai_link omap3evm_dai = {
 	.ops 		= &omap3evm_ops,
 };
 
-/* Audio machine driver */
+
 static struct snd_soc_card snd_soc_omap3evm = {
 	.name = "omap3evm",
 	.platform = &omap_soc_platform,
@@ -93,7 +76,7 @@ static struct snd_soc_card snd_soc_omap3evm = {
 	.num_links = 1,
 };
 
-/* Audio subsystem */
+
 static struct snd_soc_device omap3evm_snd_devdata = {
 	.card = &snd_soc_omap3evm,
 	.codec_dev = &soc_codec_dev_twl4030,

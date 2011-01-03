@@ -1,23 +1,4 @@
-/*
- * omap3pandora.c  --  SoC audio for Pandora Handheld Console
- *
- * Author: Gražvydas Ignotas <notasas@gmail.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #include <linux/clk.h>
 #include <linux/platform_device.h>
@@ -45,21 +26,21 @@ static int omap3pandora_cmn_hw_params(struct snd_soc_dai *codec_dai,
 {
 	int ret;
 
-	/* Set codec DAI configuration */
+	
 	ret = snd_soc_dai_set_fmt(codec_dai, fmt);
 	if (ret < 0) {
 		pr_err(PREFIX "can't set codec DAI configuration\n");
 		return ret;
 	}
 
-	/* Set cpu DAI configuration */
+	
 	ret = snd_soc_dai_set_fmt(cpu_dai, fmt);
 	if (ret < 0) {
 		pr_err(PREFIX "can't set cpu DAI configuration\n");
 		return ret;
 	}
 
-	/* Set the codec system clock for DAC and ADC */
+	
 	ret = snd_soc_dai_set_sysclk(codec_dai, 0, 26000000,
 					    SND_SOC_CLOCK_IN);
 	if (ret < 0) {
@@ -67,7 +48,7 @@ static int omap3pandora_cmn_hw_params(struct snd_soc_dai *codec_dai,
 		return ret;
 	}
 
-	/* Set McBSP clock to external */
+	
 	ret = snd_soc_dai_set_sysclk(cpu_dai, OMAP_MCBSP_SYSCLK_CLKS_EXT, 0,
 					    SND_SOC_CLOCK_IN);
 	if (ret < 0) {
@@ -125,14 +106,7 @@ static int omap3pandora_hp_event(struct snd_soc_dapm_widget *w,
 	return 0;
 }
 
-/*
- * Audio paths on Pandora board:
- *
- *  |O| ---> PCM DAC +-> AMP -> Headphone Jack
- *  |M|         A    +--------> Line Out
- *  |A| <~~clk~~+
- *  |P| <--- TWL4030 <--------- Line In and MICs
- */
+
 static const struct snd_soc_dapm_widget omap3pandora_out_dapm_widgets[] = {
 	SND_SOC_DAPM_DAC("PCM DAC", "HiFi Playback", SND_SOC_NOPM, 0, 0),
 	SND_SOC_DAPM_PGA_E("Headphone Amplifier", SND_SOC_NOPM,
@@ -169,7 +143,7 @@ static int omap3pandora_out_init(struct snd_soc_codec *codec)
 {
 	int ret;
 
-	/* All TWL4030 output pins are floating */
+	
 	snd_soc_dapm_nc_pin(codec, "OUTL");
 	snd_soc_dapm_nc_pin(codec, "OUTR");
 	snd_soc_dapm_nc_pin(codec, "EARPIECE");
@@ -198,7 +172,7 @@ static int omap3pandora_in_init(struct snd_soc_codec *codec)
 {
 	int ret;
 
-	/* Not comnnected */
+	
 	snd_soc_dapm_nc_pin(codec, "HSMIC");
 	snd_soc_dapm_nc_pin(codec, "CARKITMIC");
 	snd_soc_dapm_nc_pin(codec, "DIGIMIC0");
@@ -223,7 +197,7 @@ static struct snd_soc_ops omap3pandora_in_ops = {
 	.hw_params = omap3pandora_in_hw_params,
 };
 
-/* Digital audio interface glue - connects codec <--> CPU */
+
 static struct snd_soc_dai_link omap3pandora_dai[] = {
 	{
 		.name = "PCM1773",
@@ -242,7 +216,7 @@ static struct snd_soc_dai_link omap3pandora_dai[] = {
 	}
 };
 
-/* SoC card */
+
 static struct snd_soc_card snd_soc_card_omap3pandora = {
 	.name = "omap3pandora",
 	.platform = &omap_soc_platform,
@@ -250,7 +224,7 @@ static struct snd_soc_card snd_soc_card_omap3pandora = {
 	.num_links = ARRAY_SIZE(omap3pandora_dai),
 };
 
-/* Audio subsystem */
+
 static struct snd_soc_device omap3pandora_snd_data = {
 	.card = &snd_soc_card_omap3pandora,
 	.codec_dev = &soc_codec_dev_twl4030,
@@ -300,8 +274,8 @@ static int __init omap3pandora_soc_init(void)
 
 	platform_set_drvdata(omap3pandora_snd_device, &omap3pandora_snd_data);
 	omap3pandora_snd_data.dev = &omap3pandora_snd_device->dev;
-	*(unsigned int *)omap_mcbsp_dai[0].private_data = 1; /* McBSP2 */
-	*(unsigned int *)omap_mcbsp_dai[1].private_data = 3; /* McBSP4 */
+	*(unsigned int *)omap_mcbsp_dai[0].private_data = 1; 
+	*(unsigned int *)omap_mcbsp_dai[1].private_data = 3; 
 
 	ret = platform_device_add(omap3pandora_snd_device);
 	if (ret) {

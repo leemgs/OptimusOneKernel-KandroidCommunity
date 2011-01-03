@@ -1,15 +1,4 @@
-/*
- * wm8988.c -- WM8988 ALSA SoC audio driver
- *
- * Copyright 2009 Wolfson Microelectronics plc
- * Copyright 2005 Openedhand Ltd.
- *
- * Author: Mark Brown <broonie@opensource.wolfsonmicro.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -29,26 +18,22 @@
 
 #include "wm8988.h"
 
-/*
- * wm8988 register cache
- * We can't read the WM8988 register space when we
- * are using 2 wire for device control, so we cache them instead.
- */
+
 static const u16 wm8988_reg[] = {
-	0x0097, 0x0097, 0x0079, 0x0079,  /*  0 */
-	0x0000, 0x0008, 0x0000, 0x000a,  /*  4 */
-	0x0000, 0x0000, 0x00ff, 0x00ff,  /*  8 */
-	0x000f, 0x000f, 0x0000, 0x0000,  /* 12 */
-	0x0000, 0x007b, 0x0000, 0x0032,  /* 16 */
-	0x0000, 0x00c3, 0x00c3, 0x00c0,  /* 20 */
-	0x0000, 0x0000, 0x0000, 0x0000,  /* 24 */
-	0x0000, 0x0000, 0x0000, 0x0000,  /* 28 */
-	0x0000, 0x0000, 0x0050, 0x0050,  /* 32 */
-	0x0050, 0x0050, 0x0050, 0x0050,  /* 36 */
-	0x0079, 0x0079, 0x0079,          /* 40 */
+	0x0097, 0x0097, 0x0079, 0x0079,  
+	0x0000, 0x0008, 0x0000, 0x000a,  
+	0x0000, 0x0000, 0x00ff, 0x00ff,  
+	0x000f, 0x000f, 0x0000, 0x0000,  
+	0x0000, 0x007b, 0x0000, 0x0032,  
+	0x0000, 0x00c3, 0x00c3, 0x00c0,  
+	0x0000, 0x0000, 0x0000, 0x0000,  
+	0x0000, 0x0000, 0x0000, 0x0000,  
+	0x0000, 0x0000, 0x0050, 0x0050,  
+	0x0050, 0x0050, 0x0050, 0x0050,  
+	0x0079, 0x0079, 0x0079,          
 };
 
-/* codec private data */
+
 struct wm8988_priv {
 	unsigned int sysclk;
 	struct snd_soc_codec codec;
@@ -59,9 +44,7 @@ struct wm8988_priv {
 
 #define wm8988_reset(c)	snd_soc_write(c, WM8988_RESET, 0)
 
-/*
- * WM8988 Controls
- */
+
 
 static const char *bass_boost_txt[] = {"Linear Control", "Adaptive Boost"};
 static const struct soc_enum bass_boost =
@@ -175,9 +158,7 @@ SOC_DOUBLE_R_TLV("Output 2 Playback Volume", WM8988_LOUT2V, WM8988_ROUT2V,
 
 };
 
-/*
- * DAPM Controls
- */
+
 
 static int wm8988_lrc_control(struct snd_soc_dapm_widget *w,
 			      struct snd_kcontrol *kcontrol, int event)
@@ -185,7 +166,7 @@ static int wm8988_lrc_control(struct snd_soc_dapm_widget *w,
 	struct snd_soc_codec *codec = w->codec;
 	u16 adctl2 = snd_soc_read(codec, WM8988_ADCTL2);
 
-	/* Use the DAC to gate LRC if active, otherwise use ADC */
+	
 	if (snd_soc_read(codec, WM8988_PWR2) & 0x180)
 		adctl2 &= ~0x4;
 	else
@@ -216,7 +197,7 @@ static const struct soc_enum wm8988_rline_enum =
 static const struct snd_kcontrol_new wm8988_right_line_controls =
 	SOC_DAPM_VALUE_ENUM("Route", wm8988_lline_enum);
 
-/* Left Mixer */
+
 static const struct snd_kcontrol_new wm8988_left_mixer_controls[] = {
 	SOC_DAPM_SINGLE("Playback Switch", WM8988_LOUTM1, 8, 1, 0),
 	SOC_DAPM_SINGLE("Left Bypass Switch", WM8988_LOUTM1, 7, 1, 0),
@@ -224,7 +205,7 @@ static const struct snd_kcontrol_new wm8988_left_mixer_controls[] = {
 	SOC_DAPM_SINGLE("Right Bypass Switch", WM8988_LOUTM2, 7, 1, 0),
 };
 
-/* Right Mixer */
+
 static const struct snd_kcontrol_new wm8988_right_mixer_controls[] = {
 	SOC_DAPM_SINGLE("Left Playback Switch", WM8988_ROUTM1, 8, 1, 0),
 	SOC_DAPM_SINGLE("Left Bypass Switch", WM8988_ROUTM1, 7, 1, 0),
@@ -235,7 +216,7 @@ static const struct snd_kcontrol_new wm8988_right_mixer_controls[] = {
 static const char *wm8988_pga_sel[] = {"Line 1", "Line 2", "Differential"};
 static const unsigned int wm8988_pga_val[] = { 0, 1, 3 };
 
-/* Left PGA Mux */
+
 static const struct soc_enum wm8988_lpga_enum =
 	SOC_VALUE_ENUM_SINGLE(WM8988_LADCIN, 6, 3,
 			      ARRAY_SIZE(wm8988_pga_sel),
@@ -244,7 +225,7 @@ static const struct soc_enum wm8988_lpga_enum =
 static const struct snd_kcontrol_new wm8988_left_pga_controls =
 	SOC_DAPM_VALUE_ENUM("Route", wm8988_lpga_enum);
 
-/* Right PGA Mux */
+
 static const struct soc_enum wm8988_rpga_enum =
 	SOC_VALUE_ENUM_SINGLE(WM8988_RADCIN, 6, 3,
 			      ARRAY_SIZE(wm8988_pga_sel),
@@ -253,14 +234,14 @@ static const struct soc_enum wm8988_rpga_enum =
 static const struct snd_kcontrol_new wm8988_right_pga_controls =
 	SOC_DAPM_VALUE_ENUM("Route", wm8988_rpga_enum);
 
-/* Differential Mux */
+
 static const char *wm8988_diff_sel[] = {"Line 1", "Line 2"};
 static const struct soc_enum diffmux =
 	SOC_ENUM_SINGLE(WM8988_ADCIN, 8, 2, wm8988_diff_sel);
 static const struct snd_kcontrol_new wm8988_diffmux_controls =
 	SOC_DAPM_ENUM("Route", diffmux);
 
-/* Mono ADC Mux */
+
 static const char *wm8988_mono_mux[] = {"Stereo", "Mono (Left)",
 	"Mono (Right)", "Digital Mono"};
 static const struct soc_enum monomux =
@@ -395,51 +376,51 @@ struct _coeff_div {
 	u8 usb:1;
 };
 
-/* codec hifi mclk clock divider coefficients */
+
 static const struct _coeff_div coeff_div[] = {
-	/* 8k */
+	
 	{12288000, 8000, 1536, 0x6, 0x0},
 	{11289600, 8000, 1408, 0x16, 0x0},
 	{18432000, 8000, 2304, 0x7, 0x0},
 	{16934400, 8000, 2112, 0x17, 0x0},
 	{12000000, 8000, 1500, 0x6, 0x1},
 
-	/* 11.025k */
+	
 	{11289600, 11025, 1024, 0x18, 0x0},
 	{16934400, 11025, 1536, 0x19, 0x0},
 	{12000000, 11025, 1088, 0x19, 0x1},
 
-	/* 16k */
+	
 	{12288000, 16000, 768, 0xa, 0x0},
 	{18432000, 16000, 1152, 0xb, 0x0},
 	{12000000, 16000, 750, 0xa, 0x1},
 
-	/* 22.05k */
+	
 	{11289600, 22050, 512, 0x1a, 0x0},
 	{16934400, 22050, 768, 0x1b, 0x0},
 	{12000000, 22050, 544, 0x1b, 0x1},
 
-	/* 32k */
+	
 	{12288000, 32000, 384, 0xc, 0x0},
 	{18432000, 32000, 576, 0xd, 0x0},
 	{12000000, 32000, 375, 0xa, 0x1},
 
-	/* 44.1k */
+	
 	{11289600, 44100, 256, 0x10, 0x0},
 	{16934400, 44100, 384, 0x11, 0x0},
 	{12000000, 44100, 272, 0x11, 0x1},
 
-	/* 48k */
+	
 	{12288000, 48000, 256, 0x0, 0x0},
 	{18432000, 48000, 384, 0x1, 0x0},
 	{12000000, 48000, 250, 0x0, 0x1},
 
-	/* 88.2k */
+	
 	{11289600, 88200, 128, 0x1e, 0x0},
 	{16934400, 88200, 192, 0x1f, 0x0},
 	{12000000, 88200, 136, 0x1f, 0x1},
 
-	/* 96k */
+	
 	{12288000, 96000, 128, 0xe, 0x0},
 	{18432000, 96000, 192, 0xf, 0x0},
 	{12000000, 96000, 125, 0xe, 0x1},
@@ -457,7 +438,7 @@ static inline int get_coeff(int mclk, int rate)
 	return -EINVAL;
 }
 
-/* The set of rates we can generate from the above for each SYSCLK */
+
 
 static unsigned int rates_12288[] = {
 	8000, 12000, 16000, 24000, 24000, 32000, 48000, 96000,
@@ -487,9 +468,7 @@ static struct snd_pcm_hw_constraint_list constraints_12 = {
 	.list	= rates_12,
 };
 
-/*
- * Note that this should be called from init rather than from hw_params.
- */
+
 static int wm8988_set_dai_sysclk(struct snd_soc_dai *codec_dai,
 		int clk_id, unsigned int freq, int dir)
 {
@@ -528,7 +507,7 @@ static int wm8988_set_dai_fmt(struct snd_soc_dai *codec_dai,
 	struct snd_soc_codec *codec = codec_dai->codec;
 	u16 iface = 0;
 
-	/* set master/slave audio interface */
+	
 	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
 	case SND_SOC_DAIFMT_CBM_CFM:
 		iface = 0x0040;
@@ -539,7 +518,7 @@ static int wm8988_set_dai_fmt(struct snd_soc_dai *codec_dai,
 		return -EINVAL;
 	}
 
-	/* interface format */
+	
 	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
 	case SND_SOC_DAIFMT_I2S:
 		iface |= 0x0002;
@@ -559,7 +538,7 @@ static int wm8988_set_dai_fmt(struct snd_soc_dai *codec_dai,
 		return -EINVAL;
 	}
 
-	/* clock inversion */
+	
 	switch (fmt & SND_SOC_DAIFMT_INV_MASK) {
 	case SND_SOC_DAIFMT_NB_NF:
 		break;
@@ -586,9 +565,7 @@ static int wm8988_pcm_startup(struct snd_pcm_substream *substream,
 	struct snd_soc_codec *codec = dai->codec;
 	struct wm8988_priv *wm8988 = codec->private_data;
 
-	/* The set of sample rates that can be supported depends on the
-	 * MCLK supplied to the CODEC - enforce this.
-	 */
+	
 	if (!wm8988->sysclk) {
 		dev_err(codec->dev,
 			"No MCLK configured, call set_sysclk() on init\n");
@@ -626,7 +603,7 @@ static int wm8988_pcm_hw_params(struct snd_pcm_substream *substream,
 		return coeff;
 	}
 
-	/* bit size */
+	
 	switch (params_format(params)) {
 	case SNDRV_PCM_FORMAT_S16_LE:
 		break;
@@ -641,7 +618,7 @@ static int wm8988_pcm_hw_params(struct snd_pcm_substream *substream,
 		break;
 	}
 
-	/* set iface & srate */
+	
 	snd_soc_write(codec, WM8988_IFACE, iface);
 	if (coeff >= 0)
 		snd_soc_write(codec, WM8988_SRATE, srate |
@@ -672,20 +649,20 @@ static int wm8988_set_bias_level(struct snd_soc_codec *codec,
 		break;
 
 	case SND_SOC_BIAS_PREPARE:
-		/* VREF, VMID=2x50k, digital enabled */
+		
 		snd_soc_write(codec, WM8988_PWR1, pwr_reg | 0x00c0);
 		break;
 
 	case SND_SOC_BIAS_STANDBY:
 		if (codec->bias_level == SND_SOC_BIAS_OFF) {
-			/* VREF, VMID=2x5k */
+			
 			snd_soc_write(codec, WM8988_PWR1, pwr_reg | 0x1c1);
 
-			/* Charge caps */
+			
 			msleep(100);
 		}
 
-		/* VREF, VMID=2*500k, digital stopped */
+		
 		snd_soc_write(codec, WM8988_PWR1, pwr_reg | 0x0141);
 		break;
 
@@ -748,7 +725,7 @@ static int wm8988_resume(struct platform_device *pdev)
 	u8 data[2];
 	u16 *cache = codec->reg_cache;
 
-	/* Sync reg_cache with the hardware */
+	
 	for (i = 0; i < WM8988_NUM_REG; i++) {
 		if (i == WM8988_RESET)
 			continue;
@@ -778,7 +755,7 @@ static int wm8988_probe(struct platform_device *pdev)
 	socdev->card->codec = wm8988_codec;
 	codec = wm8988_codec;
 
-	/* register pcms */
+	
 	ret = snd_soc_new_pcms(socdev, SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1);
 	if (ret < 0) {
 		dev_err(codec->dev, "failed to create pcms: %d\n", ret);
@@ -867,7 +844,7 @@ static int wm8988_register(struct wm8988_priv *wm8988,
 		goto err;
 	}
 
-	/* set the update bits (we always update left then right) */
+	
 	reg = snd_soc_read(codec, WM8988_RADC);
 	snd_soc_write(codec, WM8988_RADC, reg | 0x100);
 	reg = snd_soc_read(codec, WM8988_RDAC);

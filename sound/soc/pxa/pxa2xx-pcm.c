@@ -1,14 +1,4 @@
-/*
- * linux/sound/arm/pxa2xx-pcm.c -- ALSA PCM interface for the Intel PXA2xx chip
- *
- * Author:	Nicolas Pitre
- * Created:	Nov 30, 2004
- * Copyright:	(C) 2004 MontaVista Software, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/dma-mapping.h>
 
@@ -28,13 +18,11 @@ static int pxa2xx_pcm_hw_params(struct snd_pcm_substream *substream,
 	struct pxa2xx_pcm_dma_params *dma = rtd->dai->cpu_dai->dma_data;
 	int ret;
 
-	/* return if this is a bufferless transfer e.g.
-	 * codec <--> BT codec or GSM modem -- lg FIXME */
+	
 	if (!dma)
 		return 0;
 
-	/* this may get called several times by oss emulation
-	 * with different params */
+	
 	if (prtd->params == NULL) {
 		prtd->params = dma;
 		ret = pxa_request_dma(prtd->params->name, DMA_PRIO_LOW,

@@ -1,14 +1,4 @@
-/*
- * ad73311.c  --  ALSA Soc AD73311 codec support
- *
- * Copyright:	Analog Device Inc.
- * Author:	Cliff Cai <cliff.cai@analog.com>
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -57,7 +47,7 @@ static int ad73311_soc_probe(struct platform_device *pdev)
 	INIT_LIST_HEAD(&codec->dapm_widgets);
 	INIT_LIST_HEAD(&codec->dapm_paths);
 
-	/* register pcms */
+	
 	ret = snd_soc_new_pcms(socdev, SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1);
 	if (ret < 0) {
 		printk(KERN_ERR "ad73311: failed to create pcms\n");

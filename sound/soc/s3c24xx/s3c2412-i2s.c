@@ -1,20 +1,4 @@
-/* sound/soc/s3c24xx/s3c2412-i2s.c
- *
- * ALSA Soc Audio Layer - S3C2412 I2S driver
- *
- * Copyright (c) 2006 Wolfson Microelectronics PLC.
- *	Graeme Gregory graeme.gregory@wolfsonmicro.com
- *	linux@wolfsonmicro.com
- *
- * Copyright (c) 2007, 2004-2005 Simtec Electronics
- *	http://armlinux.simtec.co.uk/
- *	Ben Dooks <ben@simtec.co.uk>
- *
- * This program is free software; you can redistribute  it and/or modify it
- * under  the terms of  the GNU General  Public License as published by the
- * Free Software Foundation;  either version 2 of the  License, or (at your
- * option) any later version.
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -67,9 +51,7 @@ static struct s3c24xx_pcm_dma_params s3c2412_i2s_pcm_stereo_in = {
 
 static struct s3c_i2sv2_info s3c2412_i2s;
 
-/*
- * Set S3C2412 Clock source
- */
+
 static int s3c2412_i2s_set_sysclk(struct snd_soc_dai *cpu_dai,
 				  int clk_id, unsigned int freq, int dir)
 {
@@ -126,14 +108,14 @@ static int s3c2412_i2s_probe(struct platform_device *pdev,
 		return -ENODEV;
 	}
 
-	/* Set MPLL as the source for IIS CLK */
+	
 
 	clk_set_parent(s3c2412_i2s.iis_cclk, clk_get(NULL, "mpll"));
 	clk_enable(s3c2412_i2s.iis_cclk);
 
 	s3c2412_i2s.iis_cclk = s3c2412_i2s.iis_pclk;
 
-	/* Configure the I2S pins in correct mode */
+	
 	s3c2410_gpio_cfgpin(S3C2410_GPE0, S3C2410_GPE0_I2SLRCK);
 	s3c2410_gpio_cfgpin(S3C2410_GPE1, S3C2410_GPE1_I2SSCLK);
 	s3c2410_gpio_cfgpin(S3C2410_GPE2, S3C2410_GPE2_CDCLK);
@@ -184,7 +166,7 @@ static void __exit s3c2412_i2s_exit(void)
 }
 module_exit(s3c2412_i2s_exit);
 
-/* Module information */
+
 MODULE_AUTHOR("Ben Dooks, <ben@simtec.co.uk>");
 MODULE_DESCRIPTION("S3C2412 I2S SoC Interface");
 MODULE_LICENSE("GPL");

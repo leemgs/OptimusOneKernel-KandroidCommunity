@@ -1,15 +1,4 @@
-/*
- * zylonite.c  --  SoC audio for Zylonite
- *
- * Copyright 2008 Wolfson Microelectronics PLC.
- * Author: Mark Brown <broonie@opensource.wolfsonmicro.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -27,11 +16,7 @@
 #include "pxa2xx-ac97.h"
 #include "pxa-ssp.h"
 
-/*
- * There is a physical switch SW15 on the board which changes the MCLK
- * for the WM9713 between the standard AC97 master clock and the
- * output of the CLK_POUT signal from the PXA.
- */
+
 static int clk_pout;
 module_param(clk_pout, int, 0);
 MODULE_PARM_DESC(clk_pout, "Use CLK_POUT as WM9713 MCLK (SW15 on board).");
@@ -48,25 +33,25 @@ static const struct snd_soc_dapm_widget zylonite_dapm_widgets[] = {
 	SND_SOC_DAPM_SPK("Headset Earpiece", NULL),
 };
 
-/* Currently supported audio map */
+
 static const struct snd_soc_dapm_route audio_map[] = {
 
-	/* Headphone output connected to HPL/HPR */
+	
 	{ "Headphone", NULL,  "HPL" },
 	{ "Headphone", NULL,  "HPR" },
 
-	/* On-board earpiece */
+	
 	{ "Headset Earpiece", NULL, "OUT3" },
 
-	/* Headphone mic */
+	
 	{ "MIC2A", NULL, "Mic Bias" },
 	{ "Mic Bias", NULL, "Headset Microphone" },
 
-	/* On-board mic */
+	
 	{ "MIC1", NULL, "Mic Bias" },
 	{ "Mic Bias", NULL, "Handset Microphone" },
 
-	/* Multiactor differentially connected over SPKL/SPKR */
+	
 	{ "Multiactor", NULL, "SPKL" },
 	{ "Multiactor", NULL, "SPKR" },
 };
@@ -81,7 +66,7 @@ static int zylonite_wm9713_init(struct snd_soc_codec *codec)
 
 	snd_soc_dapm_add_routes(codec, audio_map, ARRAY_SIZE(audio_map));
 
-	/* Static setup for now */
+	
 	snd_soc_dapm_enable_pin(codec, "Headphone");
 	snd_soc_dapm_enable_pin(codec, "Headset Earpiece");
 
@@ -101,11 +86,7 @@ static int zylonite_voice_hw_params(struct snd_pcm_substream *substream,
 	int rate = params_rate(params);
 	int width = snd_pcm_format_physical_width(params_format(params));
 
-	/* Only support ratios that we can generate neatly from the AC97
-	 * based master clock - in particular, this excludes 44.1kHz.
-	 * In most applications the voice DAC will be used for telephony
-	 * data so multiples of 8kHz will be the common case.
-	 */
+	
 	switch (rate) {
 	case 8000:
 		wm9713_div = 12;
@@ -117,11 +98,11 @@ static int zylonite_voice_hw_params(struct snd_pcm_substream *substream,
 		wm9713_div = 2;
 		break;
 	default:
-		/* Don't support OSS emulation */
+		
 		return -EINVAL;
 	}
 
-	/* Add 1 to the width for the leading clock cycle */
+	
 	pll_out = rate * (width + 1) * 8;
 
 	ret = snd_soc_dai_set_sysclk(cpu_dai, PXA_SSP_CLK_AUDIO, 0, 1);

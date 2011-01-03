@@ -1,10 +1,8 @@
-/*
- * ad1980.h  --  ad1980 Soc Audio driver
- */
+
 
 #ifndef _AD1980_H
 #define _AD1980_H
-/* Bit definition of Power-Down Control/Status Register */
+
 #define ADC		0x0001
 #define DAC		0x0002
 #define ANL		0x0004

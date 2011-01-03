@@ -1,19 +1,4 @@
-/*
- * ALSA Soc PCM3008 codec support
- *
- * Author:	Hugo Villeneuve
- * Copyright (C) 2008 Lyrtech inc
- *
- * Based on AC97 Soc codec, original copyright follow:
- * Copyright 2005 Wolfson Microelectronics PLC.
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- *
- * Generic PCM3008 support.
- */
+
 
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -83,49 +68,44 @@ static int pcm3008_soc_probe(struct platform_device *pdev)
 	INIT_LIST_HEAD(&codec->dapm_widgets);
 	INIT_LIST_HEAD(&codec->dapm_paths);
 
-	/* Register PCMs. */
+	
 	ret = snd_soc_new_pcms(socdev, SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1);
 	if (ret < 0) {
 		printk(KERN_ERR "pcm3008: failed to create pcms\n");
 		goto pcm_err;
 	}
 
-	/* Register Card. */
+	
 	ret = snd_soc_init_card(socdev);
 	if (ret < 0) {
 		printk(KERN_ERR "pcm3008: failed to register card\n");
 		goto card_err;
 	}
 
-	/* DEM1  DEM0  DE-EMPHASIS_MODE
-	 * Low   Low   De-emphasis 44.1 kHz ON
-	 * Low   High  De-emphasis OFF
-	 * High  Low   De-emphasis 48 kHz ON
-	 * High  High  De-emphasis 32 kHz ON
-	 */
+	
 
-	/* Configure DEM0 GPIO (turning OFF DAC De-emphasis). */
+	
 	ret = gpio_request(setup->dem0_pin, "codec_dem0");
 	if (ret == 0)
 		ret = gpio_direction_output(setup->dem0_pin, 1);
 	if (ret != 0)
 		goto gpio_err;
 
-	/* Configure DEM1 GPIO (turning OFF DAC De-emphasis). */
+	
 	ret = gpio_request(setup->dem1_pin, "codec_dem1");
 	if (ret == 0)
 		ret = gpio_direction_output(setup->dem1_pin, 0);
 	if (ret != 0)
 		goto gpio_err;
 
-	/* Configure PDAD GPIO. */
+	
 	ret = gpio_request(setup->pdad_pin, "codec_pdad");
 	if (ret == 0)
 		ret = gpio_direction_output(setup->pdad_pin, 1);
 	if (ret != 0)
 		goto gpio_err;
 
-	/* Configure PDDA GPIO. */
+	
 	ret = gpio_request(setup->pdda_pin, "codec_pdda");
 	if (ret == 0)
 		ret = gpio_direction_output(setup->pdda_pin, 1);

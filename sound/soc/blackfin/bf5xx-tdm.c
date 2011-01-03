@@ -1,33 +1,4 @@
-/*
- * File:         sound/soc/blackfin/bf5xx-tdm.c
- * Author:       Barry Song <Barry.Song@analog.com>
- *
- * Created:      Thurs June 04 2009
- * Description:  Blackfin I2S(TDM) CPU DAI driver
- *              Even though TDM mode can be as part of I2S DAI, but there
- *              are so much difference in configuration and data flow,
- *              it's very ugly to integrate I2S and TDM into a module
- *
- * Modified:
- *               Copyright 2009 Analog Devices Inc.
- *
- * Bugs:         Enter bugs at http://blackfin.uclinux.org/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see the file COPYING, or write
- * to the Free Software Foundation, Inc.,
- * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -72,14 +43,7 @@ static struct sport_param sport_params[2] = {
 	}
 };
 
-/*
- * Setting the TFS pin selector for SPORT 0 based on whether the selected
- * port id F or G. If the port is F then no conflict should exist for the
- * TFS. When Port G is selected and EMAC then there is a conflict between
- * the PHY interrupt line and TFS.  Current settings prevent the conflict
- * by ignoring the TFS pin when Port G is selected. This allows both
- * codecs and EMAC using Port G concurrently.
- */
+
 #ifdef CONFIG_BF527_SPORT0_PORTG
 #define LOCAL_SPORT0_TFS (0)
 #else
@@ -96,7 +60,7 @@ static int bf5xx_tdm_set_dai_fmt(struct snd_soc_dai *cpu_dai,
 {
 	int ret = 0;
 
-	/* interface format:support TDM,slave mode */
+	
 	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
 	case SND_SOC_DAIFMT_DSP_A:
 		break;
@@ -137,7 +101,7 @@ static int bf5xx_tdm_hw_params(struct snd_pcm_substream *substream,
 		bf5xx_tdm.rcr2 |= 31;
 		sport_handle->wdsize = 4;
 		break;
-		/* at present, we only support 32bit transfer */
+		
 	default:
 		pr_err("not supported PCM format yet\n");
 		return -EINVAL;
@@ -145,14 +109,7 @@ static int bf5xx_tdm_hw_params(struct snd_pcm_substream *substream,
 	}
 
 	if (!bf5xx_tdm.configured) {
-		/*
-		 * TX and RX are not independent,they are enabled at the
-		 * same time, even if only one side is running. So, we
-		 * need to configure both of them at the time when the first
-		 * stream is opened.
-		 *
-		 * CPU DAI:slave mode.
-		 */
+		
 		ret = sport_config_rx(sport_handle, bf5xx_tdm.rcr1,
 			bf5xx_tdm.rcr2, 0, 0);
 		if (ret) {
@@ -176,7 +133,7 @@ static int bf5xx_tdm_hw_params(struct snd_pcm_substream *substream,
 static void bf5xx_tdm_shutdown(struct snd_pcm_substream *substream,
 	struct snd_soc_dai *dai)
 {
-	/* No active stream, SPORT is allowed to be configured again. */
+	
 	if (!dai->active)
 		bf5xx_tdm.configured = 0;
 }
@@ -265,7 +222,7 @@ static int __devinit bfin_tdm_probe(struct platform_device *pdev)
 		return -EFAULT;
 	}
 
-	/* request DMA for SPORT */
+	
 	sport_handle = sport_init(&sport_params[sport_num], 4, \
 		8 * sizeof(u32), NULL);
 	if (!sport_handle) {
@@ -273,7 +230,7 @@ static int __devinit bfin_tdm_probe(struct platform_device *pdev)
 		return -ENODEV;
 	}
 
-	/* SPORT works in TDM mode */
+	
 	ret = sport_set_multichannel(sport_handle, 8, 0xFF, 1);
 	if (ret) {
 		pr_err("SPORT is busy!\n");
@@ -336,7 +293,7 @@ static void __exit bfin_tdm_exit(void)
 }
 module_exit(bfin_tdm_exit);
 
-/* Module information */
+
 MODULE_AUTHOR("Barry Song");
 MODULE_DESCRIPTION("TDM driver for ADI Blackfin");
 MODULE_LICENSE("GPL");

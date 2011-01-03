@@ -1,30 +1,4 @@
-/*
- * File:         sound/soc/blackfin/bf5xx-i2s.c
- * Author:       Cliff Cai <Cliff.Cai@analog.com>
- *
- * Created:      Tue June 06 2008
- * Description:  Blackfin I2S CPU DAI driver
- *
- * Modified:
- *               Copyright 2008 Analog Devices Inc.
- *
- * Bugs:         Enter bugs at http://blackfin.uclinux.org/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see the file COPYING, or write
- * to the Free Software Foundation, Inc.,
- * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -71,14 +45,7 @@ static struct sport_param sport_params[2] = {
 	}
 };
 
-/*
- * Setting the TFS pin selector for SPORT 0 based on whether the selected
- * port id F or G. If the port is F then no conflict should exist for the
- * TFS. When Port G is selected and EMAC then there is a conflict between
- * the PHY interrupt line and TFS.  Current settings prevent the conflict
- * by ignoring the TFS pin when Port G is selected. This allows both
- * codecs and EMAC using Port G concurrently.
- */
+
 #ifdef CONFIG_BF527_SPORT0_PORTG
 #define LOCAL_SPORT0_TFS (0)
 #else
@@ -95,7 +62,7 @@ static int bf5xx_i2s_set_dai_fmt(struct snd_soc_dai *cpu_dai,
 {
 	int ret = 0;
 
-	/* interface format:support I2S,slave mode */
+	
 	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
 	case SND_SOC_DAIFMT_I2S:
 		bf5xx_i2s.tcr1 |= TFSR | TCKFE;
@@ -138,7 +105,7 @@ static int bf5xx_i2s_startup(struct snd_pcm_substream *substream,
 {
 	pr_debug("%s enter\n", __func__);
 
-	/*this counter is used for counting how many pcm streams are opened*/
+	
 	bf5xx_i2s.counter++;
 	return 0;
 }
@@ -170,14 +137,7 @@ static int bf5xx_i2s_hw_params(struct snd_pcm_substream *substream,
 	}
 
 	if (!bf5xx_i2s.configured) {
-		/*
-		 * TX and RX are not independent,they are enabled at the
-		 * same time, even if only one side is running. So, we
-		 * need to configure both of them at the time when the first
-		 * stream is opened.
-		 *
-		 * CPU DAI:slave mode.
-		 */
+		
 		bf5xx_i2s.configured = 1;
 		ret = sport_config_rx(sport_handle, bf5xx_i2s.rcr1,
 				      bf5xx_i2s.rcr2, 0, 0);
@@ -202,7 +162,7 @@ static void bf5xx_i2s_shutdown(struct snd_pcm_substream *substream,
 {
 	pr_debug("%s enter\n", __func__);
 	bf5xx_i2s.counter--;
-	/* No active stream, SPORT is allowed to be configured again. */
+	
 	if (!bf5xx_i2s.counter)
 		bf5xx_i2s.configured = 0;
 }
@@ -216,7 +176,7 @@ static int bf5xx_i2s_probe(struct platform_device *pdev,
 		return -EFAULT;
 	}
 
-	/* request DMA for SPORT */
+	
 	sport_handle = sport_init(&sport_params[sport_num], 4, \
 			2 * sizeof(u32), NULL);
 	if (!sport_handle) {
@@ -323,7 +283,7 @@ static void __exit bfin_i2s_exit(void)
 }
 module_exit(bfin_i2s_exit);
 
-/* Module information */
+
 MODULE_AUTHOR("Cliff Cai");
 MODULE_DESCRIPTION("I2S driver for ADI Blackfin");
 MODULE_LICENSE("GPL");

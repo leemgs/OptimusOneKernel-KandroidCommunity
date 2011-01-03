@@ -1,13 +1,4 @@
-/*
- * ALSA PCM interface for the Stretch s6000 family
- *
- * Author:      Daniel Gloeckner, <dg@emlix.com>
- * Copyright:   (C) 2009 emlix GmbH <info@emlix.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef _S6000_PCM_H
 #define _S6000_PCM_H

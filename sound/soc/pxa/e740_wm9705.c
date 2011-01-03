@@ -1,13 +1,4 @@
-/*
- * e740-wm9705.c  --  SoC audio for e740
- *
- * Copyright 2007 (c) Ian Molton <spyro@f2s.com>
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation; version 2 ONLY.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -161,7 +152,7 @@ static int __init e740_init(void)
 	if (ret)
 		goto free_op_amp_gpio;
 
-	/* Disable audio */
+	
 	ret = gpio_direction_output(GPIO_E740_MIC_ON, 0);
 	if (ret)
 		goto free_apwr_gpio;
@@ -185,7 +176,7 @@ static int __init e740_init(void)
 	if (!ret)
 		return 0;
 
-/* Fail gracefully */
+
 	platform_device_put(e740_snd_device);
 free_apwr_gpio:
 	gpio_free(GPIO_E740_WM9705_nAVDD2);
@@ -205,7 +196,7 @@ static void __exit e740_exit(void)
 module_init(e740_init);
 module_exit(e740_exit);
 
-/* Module information */
+
 MODULE_AUTHOR("Ian Molton <spyro@f2s.com>");
 MODULE_DESCRIPTION("ALSA SoC driver for e740");
 MODULE_LICENSE("GPL v2");

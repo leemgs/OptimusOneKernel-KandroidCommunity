@@ -1,13 +1,4 @@
-/*
- * FSI-AK464x sound support for ms7724se
- *
- * Copyright (C) 2009 Renesas Solutions Corp.
- * Kuninori Morimoto <morimoto.kuninori@renesas.com>
- *
- * This file is subject to the terms and conditions of the GNU General Public
- * License.  See the file "COPYING" in the main directory of this archive
- * for more details.
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -25,7 +16,7 @@
 static struct snd_soc_dai_link fsi_dai_link = {
 	.name		= "AK4642",
 	.stream_name	= "AK4642",
-	.cpu_dai	= &fsi_soc_dai[0], /* fsi */
+	.cpu_dai	= &fsi_soc_dai[0], 
 	.codec_dai	= &ak4642_dai,
 	.ops		= NULL,
 };

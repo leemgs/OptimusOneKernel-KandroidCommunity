@@ -1,33 +1,4 @@
-/*
- * sam9g20_wm8731  --  SoC audio for AT91SAM9G20-based
- * 			ATMEL AT91SAM9G20ek board.
- *
- *  Copyright (C) 2005 SAN People
- *  Copyright (C) 2008 Atmel
- *
- * Authors: Sedji Gaouaou <sedji.gaouaou@atmel.com>
- *
- * Based on ati_b1_wm8731.c by:
- * Frank Mandarino <fmandarino@endrelia.com>
- * Copyright 2006 Endrelia Technologies Inc.
- * Based on corgi.c by:
- * Copyright 2005 Wolfson Microelectronics PLC.
- * Copyright 2005 Openedhand Ltd.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -56,11 +27,7 @@
 
 #define MCLK_RATE 12000000
 
-/*
- * As shipped the board does not have inputs.  However, it is relatively
- * straightforward to modify the board to hook them up so support is left
- * in the driver.
- */
+
 #undef ENABLE_MIC_INPUT
 
 static struct clk *mclk;
@@ -73,13 +40,13 @@ static int at91sam9g20ek_hw_params(struct snd_pcm_substream *substream,
 	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
 	int ret;
 
-	/* set codec DAI configuration */
+	
 	ret = snd_soc_dai_set_fmt(codec_dai, SND_SOC_DAIFMT_I2S |
 		SND_SOC_DAIFMT_NB_NF | SND_SOC_DAIFMT_CBM_CFM);
 	if (ret < 0)
 		return ret;
 
-	/* set cpu DAI configuration */
+	
 	ret = snd_soc_dai_set_fmt(cpu_dai, SND_SOC_DAIFMT_I2S |
 		SND_SOC_DAIFMT_NB_NF | SND_SOC_DAIFMT_CBM_CFM);
 	if (ret < 0)
@@ -125,17 +92,15 @@ static const struct snd_soc_dapm_widget at91sam9g20ek_dapm_widgets[] = {
 
 static const struct snd_soc_dapm_route intercon[] = {
 
-	/* speaker connected to LHPOUT */
+	
 	{"Ext Spk", NULL, "LHPOUT"},
 
-	/* mic is connected to Mic Jack, with WM8731 Mic Bias */
+	
 	{"MICIN", NULL, "Mic Bias"},
 	{"Mic Bias", NULL, "Int Mic"},
 };
 
-/*
- * Logic for a wm8731 as connected on a at91sam9g20ek board.
- */
+
 static int at91sam9g20ek_wm8731_init(struct snd_soc_codec *codec)
 {
 	struct snd_soc_dai *codec_dai = &codec->dai[0];
@@ -152,13 +117,13 @@ static int at91sam9g20ek_wm8731_init(struct snd_soc_codec *codec)
 		return ret;
 	}
 
-	/* Add specific widgets */
+	
 	snd_soc_dapm_new_controls(codec, at91sam9g20ek_dapm_widgets,
 				  ARRAY_SIZE(at91sam9g20ek_dapm_widgets));
-	/* Set up specific audio path interconnects */
+	
 	snd_soc_dapm_add_routes(codec, intercon, ARRAY_SIZE(intercon));
 
-	/* not connected */
+	
 	snd_soc_dapm_nc_pin(codec, "RLINEIN");
 	snd_soc_dapm_nc_pin(codec, "LLINEIN");
 
@@ -168,7 +133,7 @@ static int at91sam9g20ek_wm8731_init(struct snd_soc_codec *codec)
 	snd_soc_dapm_nc_pin(codec, "Int Mic");
 #endif
 
-	/* always connected */
+	
 	snd_soc_dapm_enable_pin(codec, "Ext Spk");
 
 	snd_soc_dapm_sync(codec);
@@ -210,9 +175,7 @@ static int __init at91sam9g20ek_init(void)
 	if (!machine_is_at91sam9g20ek())
 		return -ENODEV;
 
-	/*
-	 * Codec MCLK is supplied by PCK0 - set it up.
-	 */
+	
 	mclk = clk_get(NULL, "pck0");
 	if (IS_ERR(mclk)) {
 		printk(KERN_ERR "ASoC: Failed to get MCLK\n");
@@ -235,9 +198,7 @@ static int __init at91sam9g20ek_init(void)
 
 	clk_set_rate(mclk, MCLK_RATE);
 
-	/*
-	 * Request SSC device
-	 */
+	
 	ssc = ssc_request(0);
 	if (IS_ERR(ssc)) {
 		printk(KERN_ERR "ASoC: Failed to request SSC 0\n");
@@ -296,7 +257,7 @@ static void __exit at91sam9g20ek_exit(void)
 module_init(at91sam9g20ek_init);
 module_exit(at91sam9g20ek_exit);
 
-/* Module information */
+
 MODULE_AUTHOR("Sedji Gaouaou <sedji.gaouaou@atmel.com>");
 MODULE_DESCRIPTION("ALSA SoC AT91SAM9G20EK_WM8731");
 MODULE_LICENSE("GPL");

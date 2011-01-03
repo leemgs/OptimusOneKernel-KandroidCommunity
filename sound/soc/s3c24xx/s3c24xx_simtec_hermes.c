@@ -1,11 +1,4 @@
-/* sound/soc/s3c24xx/s3c24xx_simtec_hermes.c
- *
- * Copyright 2009 Simtec Electronics
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/module.h>
 #include <linux/clk.h>
@@ -35,44 +28,36 @@ static const struct snd_soc_dapm_widget dapm_widgets[] = {
 };
 
 static const struct snd_soc_dapm_route base_map[] = {
-	/* Headphone connected to HP{L,R}OUT and HP{L,R}COM */
+	
 
 	{ "Headphone Jack", NULL, "HPLOUT" },
 	{ "Headphone Jack", NULL, "HPLCOM" },
 	{ "Headphone Jack", NULL, "HPROUT" },
 	{ "Headphone Jack", NULL, "HPRCOM" },
 
-	/* ZV connected to Line1 */
+	
 
 	{ "LINE1L", NULL, "ZV" },
 	{ "LINE1R", NULL, "ZV" },
 
-	/* Line In connected to Line2 */
+	
 
 	{ "LINE2L", NULL, "Line In" },
 	{ "LINE2R", NULL, "Line In" },
 
-	/* Microphone connected to MIC3R and MIC_BIAS */
+	
 
 	{ "MIC3L", NULL, "Mic Jack" },
 
-	/* GSM connected to MONO_LOUT and MIC3L (in) */
+	
 
 	{ "GSM Out", NULL, "MONO_LOUT" },
 	{ "MIC3L", NULL, "GSM In" },
 
-	/* Speaker is connected to LINEOUT{LN,LP,RN,RP}, however we are
-	 * not using the DAPM to power it up and down as there it makes
-	 * a click when powering up. */
+	
 };
 
-/**
- * simtec_hermes_init - initialise and add controls
- * @codec; The codec instance to attach to.
- *
- * Attach our controls and configure the necessary codec
- * mappings for our sound card instance.
-*/
+
 static int simtec_hermes_init(struct snd_soc_codec *codec)
 {
 	snd_soc_dapm_new_controls(codec, dapm_widgets,
@@ -102,7 +87,7 @@ static struct snd_soc_dai_link simtec_dai_aic33 = {
 	.init		= simtec_hermes_init,
 };
 
-/* simtec audio machine driver */
+
 static struct snd_soc_card snd_soc_machine_simtec_aic33 = {
 	.name		= "Simtec-Hermes",
 	.platform	= &s3c24xx_soc_platform,
@@ -110,7 +95,7 @@ static struct snd_soc_card snd_soc_machine_simtec_aic33 = {
 	.num_links	= 1,
 };
 
-/* simtec audio subsystem */
+
 static struct snd_soc_device simtec_snd_devdata_aic33 = {
 	.card		= &snd_soc_machine_simtec_aic33,
 	.codec_dev	= &soc_codec_dev_aic3x,

@@ -1,25 +1,4 @@
-/*
- * osk5912.c  --  SoC audio for OSK 5912
- *
- * Copyright (C) 2008 Mistral Solutions
- *
- * Contact: Arun KS  <arunks@mistralsolutions.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #include <linux/clk.h>
 #include <linux/platform_device.h>
@@ -59,7 +38,7 @@ static int osk_hw_params(struct snd_pcm_substream *substream,
 	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
 	int err;
 
-	/* Set codec DAI configuration */
+	
 	err = snd_soc_dai_set_fmt(codec_dai,
 				  SND_SOC_DAIFMT_DSP_B |
 				  SND_SOC_DAIFMT_NB_NF |
@@ -69,7 +48,7 @@ static int osk_hw_params(struct snd_pcm_substream *substream,
 		return err;
 	}
 
-	/* Set cpu DAI configuration */
+	
 	err = snd_soc_dai_set_fmt(cpu_dai,
 				  SND_SOC_DAIFMT_DSP_B |
 				  SND_SOC_DAIFMT_NB_NF |
@@ -79,7 +58,7 @@ static int osk_hw_params(struct snd_pcm_substream *substream,
 		return err;
 	}
 
-	/* Set the codec system clock for DAC and ADC */
+	
 	err =
 	    snd_soc_dai_set_sysclk(codec_dai, 0, CODEC_CLOCK, SND_SOC_CLOCK_IN);
 
@@ -116,11 +95,11 @@ static const struct snd_soc_dapm_route audio_map[] = {
 static int osk_tlv320aic23_init(struct snd_soc_codec *codec)
 {
 
-	/* Add osk5912 specific widgets */
+	
 	snd_soc_dapm_new_controls(codec, tlv320aic23_dapm_widgets,
 				  ARRAY_SIZE(tlv320aic23_dapm_widgets));
 
-	/* Set up osk5912 specific audio path audio_map */
+	
 	snd_soc_dapm_add_routes(codec, audio_map, ARRAY_SIZE(audio_map));
 
 	snd_soc_dapm_enable_pin(codec, "Headphone Jack");
@@ -132,7 +111,7 @@ static int osk_tlv320aic23_init(struct snd_soc_codec *codec)
 	return 0;
 }
 
-/* Digital audio interface glue - connects codec <--> CPU */
+
 static struct snd_soc_dai_link osk_dai = {
 	.name = "TLV320AIC23",
 	.stream_name = "AIC23",
@@ -142,7 +121,7 @@ static struct snd_soc_dai_link osk_dai = {
 	.ops = &osk_ops,
 };
 
-/* Audio machine driver */
+
 static struct snd_soc_card snd_soc_card_osk = {
 	.name = "OSK5912",
 	.platform = &omap_soc_platform,
@@ -150,7 +129,7 @@ static struct snd_soc_card snd_soc_card_osk = {
 	.num_links = 1,
 };
 
-/* Audio subsystem */
+
 static struct snd_soc_device osk_snd_devdata = {
 	.card = &snd_soc_card_osk,
 	.codec_dev = &soc_codec_dev_tlv320aic23,
@@ -173,7 +152,7 @@ static int __init osk_soc_init(void)
 
 	platform_set_drvdata(osk_snd_device, &osk_snd_devdata);
 	osk_snd_devdata.dev = &osk_snd_device->dev;
-	*(unsigned int *)osk_dai.cpu_dai->private_data = 0;	/* McBSP1 */
+	*(unsigned int *)osk_dai.cpu_dai->private_data = 0;	
 	err = platform_device_add(osk_snd_device);
 	if (err)
 		goto err1;
@@ -186,9 +165,7 @@ static int __init osk_soc_init(void)
 		return -ENODEV;
 	}
 
-	/*
-	 * Configure 12 MHz output on MCLK.
-	 */
+	
 	curRate = (uint) clk_get_rate(tlv320aic23_mclk);
 	if (curRate != CODEC_CLOCK) {
 		if (clk_set_rate(tlv320aic23_mclk, CODEC_CLOCK)) {

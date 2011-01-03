@@ -1,30 +1,4 @@
-/*
- * File:         sound/soc/blackfin/bf5xx-ad73311.c
- * Author:       Cliff Cai <Cliff.Cai@analog.com>
- *
- * Created:      Thur Sep 25 2008
- * Description:  Board driver for ad73311 sound chip
- *
- * Modified:
- *               Copyright 2008 Analog Devices Inc.
- *
- * Bugs:         Enter bugs at http://blackfin.uclinux.org/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see the file COPYING, or write
- * to the Free Software Foundation, Inc.,
- * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -71,7 +45,7 @@ static int snd_ad73311_startup(void)
 {
 	pr_debug("%s enter\n", __func__);
 
-	/* Pull up SE pin on AD73311L */
+	
 	gpio_set_value(GPIO_SE, 1);
 	return 0;
 }
@@ -82,10 +56,7 @@ static int snd_ad73311_configure(void)
 	unsigned short status = 0;
 	int count = 0;
 
-	/* DMCLK = MCLK = 16.384 MHz
-	 * SCLK = DMCLK/8 = 2.048 MHz
-	 * Sample Rate = DMCLK/2048  = 8 KHz
-	 */
+	
 	ctrl_regs[0] = AD_CONTROL | AD_WRITE | CTRL_REG_B | REGB_MCDIV(0) | \
 			REGB_SCDIV(0) | REGB_DIRATE(0);
 	ctrl_regs[1] = AD_CONTROL | AD_WRITE | CTRL_REG_C | REGC_PUDEV | \
@@ -104,16 +75,14 @@ static int snd_ad73311_configure(void)
 	bfin_write_SPORT_TCR2(0xF);
 	SSYNC();
 
-	/* SPORT Tx Register is a 8 x 16 FIFO, all the data can be put to
-	 * FIFO before enable SPORT to transfer the data
-	 */
+	
 	for (count = 0; count < 6; count++)
 		bfin_write_SPORT_TX16(ctrl_regs[count]);
 	SSYNC();
 	bfin_write_SPORT_TCR1(bfin_read_SPORT_TCR1() | TSPEN);
 	SSYNC();
 
-	/* When TUVF is set, the data is already send out */
+	
 	while (!(status & TUVF) && ++count < 10000) {
 		udelay(1);
 		status = bfin_read_SPORT_STAT();
@@ -167,7 +136,7 @@ static int bf5xx_ad73311_hw_params(struct snd_pcm_substream *substream,
 	pr_debug("%s rate %d format %x\n", __func__, params_rate(params),
 		params_format(params));
 
-	/* set cpu DAI configuration */
+	
 	ret = snd_soc_dai_set_fmt(cpu_dai, SND_SOC_DAIFMT_DSP_A |
 		SND_SOC_DAIFMT_NB_NF | SND_SOC_DAIFMT_CBM_CFM);
 	if (ret < 0)
@@ -233,7 +202,7 @@ static void __exit bf5xx_ad73311_exit(void)
 module_init(bf5xx_ad73311_init);
 module_exit(bf5xx_ad73311_exit);
 
-/* Module information */
+
 MODULE_AUTHOR("Cliff Cai");
 MODULE_DESCRIPTION("ALSA SoC AD73311 Blackfin");
 MODULE_LICENSE("GPL");

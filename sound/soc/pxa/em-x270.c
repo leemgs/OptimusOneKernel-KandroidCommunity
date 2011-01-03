@@ -1,23 +1,4 @@
-/*
- * SoC audio driver for EM-X270, eXeda and CM-X300
- *
- * Copyright 2007, 2009 CompuLab, Ltd.
- *
- * Author: Mike Rapoport <mike@compulab.co.il>
- *
- * Copied from tosa.c:
- * Copyright 2005 Wolfson Microelectronics PLC.
- * Copyright 2005 Openedhand Ltd.
- *
- * Authors: Liam Girdwood <lrg@slimlogic.co.uk>
- *          Richard Purdie <richard@openedhand.com>
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -94,7 +75,7 @@ static void __exit em_x270_exit(void)
 module_init(em_x270_init);
 module_exit(em_x270_exit);
 
-/* Module information */
+
 MODULE_AUTHOR("Mike Rapoport");
 MODULE_DESCRIPTION("ALSA SoC EM-X270, eXeda and CM-X300");
 MODULE_LICENSE("GPL");

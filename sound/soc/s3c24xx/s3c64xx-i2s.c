@@ -1,16 +1,4 @@
-/* sound/soc/s3c24xx/s3c64xx-i2s.c
- *
- * ALSA SoC Audio Layer - S3C64XX I2S driver
- *
- * Copyright 2008 Openmoko, Inc.
- * Copyright 2008 Simtec Electronics
- *      Ben Dooks <ben@simtec.co.uk>
- *      http://armlinux.simtec.co.uk/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -119,7 +107,7 @@ EXPORT_SYMBOL_GPL(s3c64xx_i2s_get_clock);
 static int s3c64xx_i2s_probe(struct platform_device *pdev,
 			     struct snd_soc_dai *dai)
 {
-	/* configure GPIO for i2s port */
+	
 	switch (dai->id) {
 	case 0:
 		s3c_gpio_cfgpin(S3C64XX_GPD(0), S3C64XX_GPD0_I2S0_CLK);
@@ -233,7 +221,7 @@ static __devinit int s3c64xx_iis_dev_probe(struct platform_device *pdev)
 	return 0;
 
 err_i2sv2:
-	/* Not implemented for I2Sv2 core yet */
+	
 err_clk:
 	clk_put(i2s->iis_cclk);
 err:
@@ -267,7 +255,7 @@ static void __exit s3c64xx_i2s_exit(void)
 }
 module_exit(s3c64xx_i2s_exit);
 
-/* Module information */
+
 MODULE_AUTHOR("Ben Dooks, <ben@simtec.co.uk>");
 MODULE_DESCRIPTION("S3C64XX I2S SoC Interface");
 MODULE_LICENSE("GPL");

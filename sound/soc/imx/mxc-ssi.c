@@ -1,23 +1,4 @@
-/*
- * mxc-ssi.c  --  SSI driver for Freescale IMX
- *
- * Copyright 2006 Wolfson Microelectronics PLC.
- * Author: Liam Girdwood
- *         liam.girdwood@wolfsonmicro.com or linux@wolfsonmicro.com
- *
- *  Based on mxc-alsa-mc13783 (C) 2006 Freescale.
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- *
- * TODO:
- *   Need to rework SSI register defs when new defs go into mainline.
- *   Add support for TDM and FIFO 1.
- *   Add support for i.mx3x DMA interface.
- *
- */
+
 
 
 #include <linux/module.h>
@@ -41,7 +22,7 @@
 
 static int ssi_active[2] = {0, 0};
 
-/* DMA information for mx1_mx2 platforms */
+
 static struct mx1_mx2_pcm_dma_params imx_ssi1_pcm_stereo_out0 = {
 	.name			= "SSI1 PCM Stereo out 0",
 	.transfer_type = DMA_MODE_WRITE,
@@ -158,10 +139,7 @@ void put_ssi_clk(int ssi)
 }
 EXPORT_SYMBOL(put_ssi_clk);
 
-/*
- * SSI system clock configuration.
- * Should only be called when port is inactive (i.e. SSIEN = 0).
- */
+
 static int imx_ssi_set_dai_sysclk(struct snd_soc_dai *cpu_dai,
 	int clk_id, unsigned int freq, int dir)
 {
@@ -205,10 +183,7 @@ static int imx_ssi_set_dai_sysclk(struct snd_soc_dai *cpu_dai,
 	return 0;
 }
 
-/*
- * SSI Clock dividers
- * Should only be called when port is inactive (i.e. SSIEN = 0).
- */
+
 static int imx_ssi_set_dai_clkdiv(struct snd_soc_dai *cpu_dai,
 	int div_id, int div)
 {
@@ -266,10 +241,7 @@ static int imx_ssi_set_dai_clkdiv(struct snd_soc_dai *cpu_dai,
 	return 0;
 }
 
-/*
- * SSI Network Mode or TDM slots configuration.
- * Should only be called when port is inactive (i.e. SSIEN = 0).
- */
+
 static int imx_ssi_set_dai_tdm_slot(struct snd_soc_dai *cpu_dai,
 	unsigned int mask, int slots)
 {
@@ -306,21 +278,13 @@ static int imx_ssi_set_dai_tdm_slot(struct snd_soc_dai *cpu_dai,
 	return 0;
 }
 
-/*
- * SSI DAI format configuration.
- * Should only be called when port is inactive (i.e. SSIEN = 0).
- * Note: We don't use the I2S modes but instead manually configure the
- * SSI for I2S.
- */
+
 static int imx_ssi_set_dai_fmt(struct snd_soc_dai *cpu_dai,
 		unsigned int fmt)
 {
 	u32 stcr = 0, srcr = 0, scr;
 
-	/*
-	 * This is done to avoid this function to modify
-	 * previous set values in stcr
-	 */
+	
 	stcr = SSI1_STCR;
 
 	if (cpu_dai->id == IMX_DAI_SSI0 || cpu_dai->id == IMX_DAI_SSI2)
@@ -333,31 +297,31 @@ static int imx_ssi_set_dai_fmt(struct snd_soc_dai *cpu_dai,
 		return 0;
 	}
 
-	/* DAI mode */
+	
 	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
 	case SND_SOC_DAIFMT_I2S:
-		/* data on rising edge of bclk, frame low 1clk before data */
+		
 		stcr |= SSI_STCR_TFSI | SSI_STCR_TEFS | SSI_STCR_TXBIT0;
 		srcr |= SSI_SRCR_RFSI | SSI_SRCR_REFS | SSI_SRCR_RXBIT0;
 		break;
 	case SND_SOC_DAIFMT_LEFT_J:
-		/* data on rising edge of bclk, frame high with data */
+		
 		stcr |= SSI_STCR_TXBIT0;
 		srcr |= SSI_SRCR_RXBIT0;
 		break;
 	case SND_SOC_DAIFMT_DSP_B:
-		/* data on rising edge of bclk, frame high with data */
+		
 		stcr |= SSI_STCR_TFSL;
 		srcr |= SSI_SRCR_RFSL;
 		break;
 	case SND_SOC_DAIFMT_DSP_A:
-		/* data on rising edge of bclk, frame high 1clk before data */
+		
 		stcr |= SSI_STCR_TFSL | SSI_STCR_TEFS;
 		srcr |= SSI_SRCR_RFSL | SSI_SRCR_REFS;
 		break;
 	}
 
-	/* DAI clock inversion */
+	
 	switch (fmt & SND_SOC_DAIFMT_INV_MASK) {
 	case SND_SOC_DAIFMT_IB_IF:
 		stcr |= SSI_STCR_TFSI;
@@ -381,7 +345,7 @@ static int imx_ssi_set_dai_fmt(struct snd_soc_dai *cpu_dai,
 		break;
 	}
 
-	/* DAI clock master masks */
+	
 	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
 	case SND_SOC_DAIFMT_CBS_CFS:
 		stcr |= SSI_STCR_TFDIR | SSI_STCR_TXDIR;
@@ -417,7 +381,7 @@ static int imx_ssi_startup(struct snd_pcm_substream *substream,
 	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
 
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
-		/* set up TX DMA params */
+		
 		switch (cpu_dai->id) {
 		case IMX_DAI_SSI0:
 			cpu_dai->dma_data = &imx_ssi1_pcm_stereo_out0;
@@ -433,7 +397,7 @@ static int imx_ssi_startup(struct snd_pcm_substream *substream,
 		}
 		pr_debug("%s: (playback)\n", __func__);
 	} else {
-		/* set up RX DMA params */
+		
 		switch (cpu_dai->id) {
 		case IMX_DAI_SSI0:
 			cpu_dai->dma_data = &imx_ssi1_pcm_stereo_in0;
@@ -450,16 +414,13 @@ static int imx_ssi_startup(struct snd_pcm_substream *substream,
 		pr_debug("%s: (capture)\n", __func__);
 	}
 
-	/*
-	 * we cant really change any SSI values after SSI is enabled
-	 * need to fix in software for max flexibility - lrg
-	 */
+	
 	if (cpu_dai->active) {
 		printk(KERN_WARNING "Warning ssi already enabled\n");
 		return 0;
 	}
 
-	/* reset the SSI port - Sect 45.4.4 */
+	
 	if (cpu_dai->id == IMX_DAI_SSI0 || cpu_dai->id == IMX_DAI_SSI2) {
 
 		if (!ssi_clk0)
@@ -470,7 +431,7 @@ static int imx_ssi_startup(struct snd_pcm_substream *substream,
 			return 0;
 		}
 
-		/* SSI1 Reset */
+		
 		SSI1_SCR = 0;
 
 		SSI1_SFCSR = SSI_SFCSR_RFWM1(RXFIFO_WATERMARK) |
@@ -487,7 +448,7 @@ static int imx_ssi_startup(struct snd_pcm_substream *substream,
 			return 0;
 		}
 
-		/* SSI2 Reset */
+		
 		SSI2_SCR = 0;
 
 		SSI2_SFCSR = SSI_SFCSR_RFWM1(RXFIFO_WATERMARK) |
@@ -518,7 +479,7 @@ int imx_ssi_hw_tx_params(struct snd_pcm_substream *substream,
 		sier = SSI2_SIER;
 	}
 
-	/* DAI data (word) size */
+	
 	switch (params_format(params)) {
 	case SNDRV_PCM_FORMAT_S16_LE:
 		stccr |= SSI_STCCR_WL(16);
@@ -531,7 +492,7 @@ int imx_ssi_hw_tx_params(struct snd_pcm_substream *substream,
 		break;
 	}
 
-	/* enable interrupts */
+	
 	if (cpu_dai->id == IMX_DAI_SSI0 || cpu_dai->id == IMX_DAI_SSI2)
 		stcr |= SSI_STCR_TFEN0;
 	else
@@ -570,7 +531,7 @@ int imx_ssi_hw_rx_params(struct snd_pcm_substream *substream,
 		sier = SSI2_SIER;
 	}
 
-	/* DAI data (word) size */
+	
 	switch (params_format(params)) {
 	case SNDRV_PCM_FORMAT_S16_LE:
 		srccr |= SSI_SRCCR_WL(16);
@@ -583,7 +544,7 @@ int imx_ssi_hw_rx_params(struct snd_pcm_substream *substream,
 		break;
 	}
 
-	/* enable interrupts */
+	
 	if (cpu_dai->id == IMX_DAI_SSI0 || cpu_dai->id == IMX_DAI_SSI2)
 		srcr |= SSI_SRCR_RFEN0;
 	else
@@ -603,10 +564,7 @@ int imx_ssi_hw_rx_params(struct snd_pcm_substream *substream,
 	return 0;
 }
 
-/*
- * Should only be called when port is inactive (i.e. SSIEN = 0),
- * although can be called multiple times by upper layers.
- */
+
 int imx_ssi_hw_params(struct snd_pcm_substream *substream,
 				struct snd_pcm_hw_params *params,
 				struct snd_soc_dai *dai)
@@ -616,7 +574,7 @@ int imx_ssi_hw_params(struct snd_pcm_substream *substream,
 
 	int ret;
 
-	/* cant change any parameters when SSI is running */
+	
 	if (cpu_dai->id == IMX_DAI_SSI0 || cpu_dai->id == IMX_DAI_SSI2) {
 		if (SSI1_SCR & SSI_SCR_SSIEN) {
 			printk(KERN_WARNING "Warning ssi already enabled\n");
@@ -629,13 +587,7 @@ int imx_ssi_hw_params(struct snd_pcm_substream *substream,
 		}
 	}
 
-	/*
-	 * Configure both tx and rx params with the same settings. This is
-	 * really a harware restriction because SSI must be disabled until
-	 * we can change those values. If there is an active audio stream in
-	 * one direction, enabling the other direction with different
-	 * settings would mean disturbing the running one.
-	 */
+	
 	ret = imx_ssi_hw_tx_params(substream, params);
 	if (ret < 0)
 		return ret;
@@ -651,7 +603,7 @@ int imx_ssi_prepare(struct snd_pcm_substream *substream,
 
 	pr_debug("%s\n", __func__);
 
-	/* Enable clks here to follow SSI recommended init sequence */
+	
 	if (cpu_dai->id == IMX_DAI_SSI0 || cpu_dai->id == IMX_DAI_SSI2) {
 		ret = clk_enable(ssi_clk0);
 		if (ret < 0)
@@ -712,7 +664,7 @@ static void imx_ssi_shutdown(struct snd_pcm_substream *substream,
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
 
-	/* shutdown SSI if neither Tx or Rx is active */
+	
 	if (!cpu_dai->active) {
 
 		if (cpu_dai->id == IMX_DAI_SSI0 ||

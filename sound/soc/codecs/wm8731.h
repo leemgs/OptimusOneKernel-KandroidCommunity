@@ -1,21 +1,9 @@
-/*
- * wm8731.h  --  WM8731 Soc Audio driver
- *
- * Copyright 2005 Openedhand Ltd.
- *
- * Author: Richard Purdie <richard@openedhand.com>
- *
- * Based on wm8753.h
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef _WM8731_H
 #define _WM8731_H
 
-/* WM8731 register space */
+
 
 #define WM8731_LINVOL   0x00
 #define WM8731_RINVOL   0x01

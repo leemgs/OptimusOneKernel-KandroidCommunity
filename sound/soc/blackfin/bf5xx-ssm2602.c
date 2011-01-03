@@ -1,30 +1,4 @@
-/*
- * File:         sound/soc/blackfin/bf5xx-ssm2602.c
- * Author:       Cliff Cai <Cliff.Cai@analog.com>
- *
- * Created:      Tue June 06 2008
- * Description:  board driver for SSM2602 sound chip
- *
- * Modified:
- *               Copyright 2008 Analog Devices Inc.
- *
- * Bugs:         Enter bugs at http://blackfin.uclinux.org/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see the file COPYING, or write
- * to the Free Software Foundation, Inc.,
- * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -67,13 +41,7 @@ static int bf5xx_ssm2602_hw_params(struct snd_pcm_substream *substream,
 
 	pr_debug("%s rate %d format %x\n", __func__, params_rate(params),
 		params_format(params));
-	/*
-	 * If you are using a crystal source which frequency is not 12MHz
-	 * then modify the below case statement with frequency of the crystal.
-	 *
-	 * If you are using the SPORT to generate clocking then this is
-	 * where to do it.
-	 */
+	
 
 	switch (params_rate(params)) {
 	case 8000:
@@ -87,16 +55,14 @@ static int bf5xx_ssm2602_hw_params(struct snd_pcm_substream *substream,
 		break;
 	}
 
-	/*
-	 * CODEC is master for BCLK and LRC in this configuration.
-	 */
+	
 
-	/* set codec DAI configuration */
+	
 	ret = snd_soc_dai_set_fmt(codec_dai, SND_SOC_DAIFMT_I2S |
 		SND_SOC_DAIFMT_NB_NF | SND_SOC_DAIFMT_CBM_CFM);
 	if (ret < 0)
 		return ret;
-	/* set cpu DAI configuration */
+	
 	ret = snd_soc_dai_set_fmt(cpu_dai, SND_SOC_DAIFMT_I2S |
 		SND_SOC_DAIFMT_NB_NF | SND_SOC_DAIFMT_CBM_CFM);
 	if (ret < 0)
@@ -123,12 +89,7 @@ static struct snd_soc_dai_link bf5xx_ssm2602_dai = {
 	.ops = &bf5xx_ssm2602_ops,
 };
 
-/*
- * SSM2602 2 wire address is determined by CSB
- * state during powerup.
- *    low  = 0x1a
- *    high = 0x1b
- */
+
 
 static struct ssm2602_setup_data bf5xx_ssm2602_setup = {
 	.i2c_bus = 0,
@@ -179,7 +140,7 @@ static void __exit bf5xx_ssm2602_exit(void)
 module_init(bf5xx_ssm2602_init);
 module_exit(bf5xx_ssm2602_exit);
 
-/* Module information */
+
 MODULE_AUTHOR("Cliff Cai");
 MODULE_DESCRIPTION("ALSA SoC SSM2602 BF527-EZKIT");
 MODULE_LICENSE("GPL");

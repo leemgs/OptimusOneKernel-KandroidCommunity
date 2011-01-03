@@ -1,17 +1,4 @@
-/*
- * uda134x.c  --  UDA134X ALSA SoC Codec driver
- *
- * Modifications by Christian Pellegrin <chripell@evolware.org>
- *
- * Copyright 2007 Dension Audio Systems Ltd.
- * Author: Zoltan Devai
- *
- * Based on the WM87xx drivers by Liam Girdwood and Richard Purdie
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/delay.h>
@@ -28,17 +15,7 @@
 
 
 #define POWER_OFF_ON_STANDBY 1
-/*
-  ALSA SOC usually puts the device in standby mode when it's not used
-  for sometime. If you define POWER_OFF_ON_STANDBY the driver will
-  turn off the ADC/DAC when this callback is invoked and turn it back
-  on when needed. Unfortunately this will result in a very light bump
-  (it can be audible only with good earphones). If this bothers you
-  just comment this line, you will have slightly higher power
-  consumption . Please note that sending the L3 command for ADC is
-  enough to make the bump, so it doesn't make difference if you
-  completely take off power from the codec.
- */
+
 
 #define UDA134X_RATES SNDRV_PCM_RATE_8000_48000
 #define UDA134X_FORMATS (SNDRV_PCM_FMTBIT_S8 | SNDRV_PCM_FMTBIT_S16_LE | \
@@ -52,17 +29,15 @@ struct uda134x_priv {
 	struct snd_pcm_substream *slave_substream;
 };
 
-/* In-data addresses are hard-coded into the reg-cache values */
+
 static const char uda134x_reg[UDA134X_REGS_NUM] = {
-	/* Extended address registers */
+	
 	0x04, 0x04, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00,
-	/* Status, data regs */
+	
 	0x00, 0x83, 0x00, 0x40, 0x80, 0x00,
 };
 
-/*
- * The codec has no support for reading its registers except for peak level...
- */
+
 static inline unsigned int uda134x_read_reg_cache(struct snd_soc_codec *codec,
 	unsigned int reg)
 {
@@ -73,9 +48,7 @@ static inline unsigned int uda134x_read_reg_cache(struct snd_soc_codec *codec,
 	return cache[reg];
 }
 
-/*
- * Write the register cache
- */
+
 static inline void uda134x_write_reg_cache(struct snd_soc_codec *codec,
 	u8 reg, unsigned int value)
 {
@@ -86,10 +59,7 @@ static inline void uda134x_write_reg_cache(struct snd_soc_codec *codec,
 	cache[reg] = value;
 }
 
-/*
- * Write to the uda134x registers
- *
- */
+
 static int uda134x_write(struct snd_soc_codec *codec, unsigned int reg,
 	unsigned int value)
 {
@@ -122,7 +92,7 @@ static int uda134x_write(struct snd_soc_codec *codec, unsigned int reg,
 		addr = UDA134X_DATA1_ADDR;
 		break;
 	default:
-		/* It's an extended address register */
+		
 		addr =  (reg | UDA134X_EXTADDR_PREFIX);
 
 		ret = l3_write(&pd->l3,
@@ -238,7 +208,7 @@ static int uda134x_hw_params(struct snd_pcm_substream *substream,
 	pr_debug("%s sysclk: %d, rate:%d\n", __func__,
 		 uda134x->sysclk, params_rate(params));
 
-	/* set SYSCLK / fs ratio */
+	
 	switch (uda134x->sysclk / params_rate(params)) {
 	case 512:
 		break;
@@ -256,7 +226,7 @@ static int uda134x_hw_params(struct snd_pcm_substream *substream,
 	pr_debug("%s dai_fmt: %d, params_format:%d\n", __func__,
 		 uda134x->dai_fmt, params_format(params));
 
-	/* set DAI format and word length */
+	
 	switch (uda134x->dai_fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
 	case SND_SOC_DAIFMT_I2S:
 		break;
@@ -299,10 +269,7 @@ static int uda134x_set_dai_sysclk(struct snd_soc_dai *codec_dai,
 	pr_debug("%s clk_id: %d, freq: %u, dir: %d\n", __func__,
 		 clk_id, freq, dir);
 
-	/* Anything between 256fs*8Khz and 512fs*48Khz should be acceptable
-	   because the codec is slave. Of course limitations of the clock
-	   master (the IIS controller) apply.
-	   We'll error out on set_hw_params if it's not OK */
+	
 	if ((freq >= (256 * 8000)) && (freq <= (512 * 48000))) {
 		uda134x->sysclk = freq;
 		return 0;
@@ -320,20 +287,20 @@ static int uda134x_set_dai_fmt(struct snd_soc_dai *codec_dai,
 
 	pr_debug("%s fmt: %08X\n", __func__, fmt);
 
-	/* codec supports only full slave mode */
+	
 	if ((fmt & SND_SOC_DAIFMT_MASTER_MASK) != SND_SOC_DAIFMT_CBS_CFS) {
 		printk(KERN_ERR "%s unsupported slave mode\n", __func__);
 		return -EINVAL;
 	}
 
-	/* no support for clock inversion */
+	
 	if ((fmt & SND_SOC_DAIFMT_INV_MASK) != SND_SOC_DAIFMT_NB_NF) {
 		printk(KERN_ERR "%s unsupported clock inversion\n", __func__);
 		return -EINVAL;
 	}
 
-	/* We can't setup DAI format here as it depends on the word bit num */
-	/* so let's just store the value for later */
+	
+	
 	uda134x->dai_fmt = fmt;
 
 	return 0;
@@ -351,26 +318,26 @@ static int uda134x_set_bias_level(struct snd_soc_codec *codec,
 
 	switch (level) {
 	case SND_SOC_BIAS_ON:
-		/* ADC, DAC on */
+		
 		reg = uda134x_read_reg_cache(codec, UDA134X_STATUS1);
 		uda134x_write(codec, UDA134X_STATUS1, reg | 0x03);
 		break;
 	case SND_SOC_BIAS_PREPARE:
-		/* power on */
+		
 		if (pd->power) {
 			pd->power(1);
-			/* Sync reg_cache with the hardware */
+			
 			for (i = 0; i < ARRAY_SIZE(uda134x_reg); i++)
 				codec->write(codec, i, *cache++);
 		}
 		break;
 	case SND_SOC_BIAS_STANDBY:
-		/* ADC, DAC power off */
+		
 		reg = uda134x_read_reg_cache(codec, UDA134X_STATUS1);
 		uda134x_write(codec, UDA134X_STATUS1, reg & ~(0x03));
 		break;
 	case SND_SOC_BIAS_OFF:
-		/* power off */
+		
 		if (pd->power)
 			pd->power(0);
 		break;
@@ -442,7 +409,7 @@ static struct snd_soc_dai_ops uda134x_dai_ops = {
 
 struct snd_soc_dai uda134x_dai = {
 	.name = "UDA134X",
-	/* playback capabilities */
+	
 	.playback = {
 		.stream_name = "Playback",
 		.channels_min = 1,
@@ -450,7 +417,7 @@ struct snd_soc_dai uda134x_dai = {
 		.rates = UDA134X_RATES,
 		.formats = UDA134X_FORMATS,
 	},
-	/* capture capabilities */
+	
 	.capture = {
 		.stream_name = "Capture",
 		.channels_min = 1,
@@ -458,7 +425,7 @@ struct snd_soc_dai uda134x_dai = {
 		.rates = UDA134X_RATES,
 		.formats = UDA134X_FORMATS,
 	},
-	/* pcm operations */
+	
 	.ops = &uda134x_dai_ops,
 };
 EXPORT_SYMBOL(uda134x_dai);
@@ -534,7 +501,7 @@ static int uda134x_soc_probe(struct platform_device *pdev)
 
 	uda134x_reset(codec);
 
-	/* register pcms */
+	
 	ret = snd_soc_new_pcms(socdev, SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1);
 	if (ret < 0) {
 		printk(KERN_ERR "UDA134X: failed to register pcms\n");
@@ -582,7 +549,7 @@ priv_err:
 	return ret;
 }
 
-/* power down chip */
+
 static int uda134x_soc_remove(struct platform_device *pdev)
 {
 	struct snd_soc_device *socdev = platform_get_drvdata(pdev);
@@ -625,7 +592,7 @@ static int uda134x_soc_resume(struct platform_device *pdev)
 #else
 #define uda134x_soc_suspend NULL
 #define uda134x_soc_resume NULL
-#endif /* CONFIG_PM */
+#endif 
 
 struct snd_soc_codec_device soc_codec_dev_uda134x = {
 	.probe =        uda134x_soc_probe,

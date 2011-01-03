@@ -1,15 +1,4 @@
-/*
- * wm_hubs.c  --  WM8993/4 common code
- *
- * Copyright 2009 Wolfson Microelectronics plc
- *
- * Author: Mark Brown <broonie@opensource.wolfsonmicro.com>
- *
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -81,9 +70,7 @@ static void wait_for_dc_servo(struct snd_soc_codec *codec)
 		dev_err(codec->dev, "Timed out waiting for DC Servo\n");
 }
 
-/*
- * Update the DC servo calibration on gain changes
- */
+
 static int wm8993_put_dc_servo(struct snd_kcontrol *kcontrol,
 			      struct snd_ctl_elem_value *ucontrol)
 {
@@ -92,7 +79,7 @@ static int wm8993_put_dc_servo(struct snd_kcontrol *kcontrol,
 
 	ret = snd_soc_put_volsw_2r(kcontrol, ucontrol);
 
-	/* Only need to do this if the outputs are active */
+	
 	if (snd_soc_read(codec, WM8993_POWER_MANAGEMENT_1)
 	    & (WM8993_HPOUT1L_ENA | WM8993_HPOUT1R_ENA))
 		snd_soc_update_bits(codec,
@@ -271,7 +258,7 @@ static int hp_event(struct snd_soc_dapm_widget *w,
 		reg |= WM8993_HPOUT1L_DLY | WM8993_HPOUT1R_DLY;
 		snd_soc_write(codec, WM8993_ANALOGUE_HP_0, reg);
 
-		/* Start the DC servo */
+		
 		snd_soc_update_bits(codec, WM8993_DC_SERVO_0,
 				    0xFFFF,
 				    WM8993_DCS_ENA_CHAN_0 |
@@ -457,7 +444,7 @@ SND_SOC_DAPM_MIXER("IN2L PGA", WM8993_POWER_MANAGEMENT_2, 7, 0,
 SND_SOC_DAPM_MIXER("IN2R PGA", WM8993_POWER_MANAGEMENT_2, 5, 0,
 		   in2r_pga, ARRAY_SIZE(in2r_pga)),
 
-/* Dummy widgets to represent differential paths */
+
 SND_SOC_DAPM_PGA("Direct Voice", SND_SOC_NOPM, 0, 0, NULL, 0),
 
 SND_SOC_DAPM_MIXER("MIXINL", WM8993_POWER_MANAGEMENT_2, 9, 0,
@@ -676,7 +663,7 @@ static const struct snd_soc_dapm_route lineout2_se_routes[] = {
 
 int wm_hubs_add_analogue_controls(struct snd_soc_codec *codec)
 {
-	/* Latch volume update bits & default ZC on */
+	
 	snd_soc_update_bits(codec, WM8993_LEFT_LINE_INPUT_1_2_VOLUME,
 			    WM8993_IN1_VU, WM8993_IN1_VU);
 	snd_soc_update_bits(codec, WM8993_RIGHT_LINE_INPUT_1_2_VOLUME,

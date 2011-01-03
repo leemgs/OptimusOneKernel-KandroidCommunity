@@ -1,13 +1,4 @@
-/*
- * ALSA PCM interface for the TI DAVINCI processor
- *
- * Author:      Vladimir Barinov, <vbarinov@embeddedalley.com>
- * Copyright:   (C) 2007 MontaVista Software, Inc., <source@mvista.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -50,10 +41,10 @@ static struct snd_pcm_hardware davinci_pcm_hardware = {
 
 struct davinci_runtime_data {
 	spinlock_t lock;
-	int period;		/* current DMA period */
-	int master_lch;		/* Master DMA channel */
-	int slave_lch;		/* linked parameter RAM reload slot */
-	struct davinci_pcm_dma_params *params;	/* DMA params */
+	int period;		
+	int master_lch;		
+	int slave_lch;		
+	struct davinci_pcm_dma_params *params;	
 };
 
 static void davinci_pcm_enqueue_dma(struct snd_pcm_substream *substream)
@@ -129,7 +120,7 @@ static int davinci_pcm_dma_request(struct snd_pcm_substream *substream)
 	struct edmacc_param p_ram;
 	int ret;
 
-	/* Request master DMA channel */
+	
 	ret = edma_alloc_channel(prtd->params->channel,
 				  davinci_pcm_dma_irq, substream,
 				  EVENTQ_0);
@@ -137,7 +128,7 @@ static int davinci_pcm_dma_request(struct snd_pcm_substream *substream)
 		return ret;
 	prtd->master_lch = ret;
 
-	/* Request parameter RAM reload slot */
+	
 	ret = edma_alloc_slot(EDMA_CTLR(prtd->master_lch), EDMA_SLOT_ANY);
 	if (ret < 0) {
 		edma_free_channel(prtd->master_lch);
@@ -145,15 +136,7 @@ static int davinci_pcm_dma_request(struct snd_pcm_substream *substream)
 	}
 	prtd->slave_lch = ret;
 
-	/* Issue transfer completion IRQ when the channel completes a
-	 * transfer, then always reload from the same slot (by a kind
-	 * of loopback link).  The completion IRQ handler will update
-	 * the reload slot with a new buffer.
-	 *
-	 * REVISIT save p_ram here after setting up everything except
-	 * the buffer and its length (ccnt) ... use it as a template
-	 * so davinci_pcm_enqueue_dma() takes less time in IRQ.
-	 */
+	
 	edma_read_slot(prtd->slave_lch, &p_ram);
 	p_ram.opt |= TCINTEN | EDMA_TCC(EDMA_CHAN_SLOT(prtd->master_lch));
 	p_ram.link_bcntrld = EDMA_CHAN_SLOT(prtd->slave_lch) << 5;
@@ -198,7 +181,7 @@ static int davinci_pcm_prepare(struct snd_pcm_substream *substream)
 	prtd->period = 0;
 	davinci_pcm_enqueue_dma(substream);
 
-	/* Copy self-linked parameter RAM entry into master channel */
+	
 	edma_read_slot(prtd->slave_lch, &temp);
 	edma_write_slot(prtd->master_lch, &temp);
 	davinci_pcm_enqueue_dma(substream);
@@ -244,7 +227,7 @@ static int davinci_pcm_open(struct snd_pcm_substream *substream)
 		return -ENODEV;
 
 	snd_soc_set_runtime_hwparams(substream, &davinci_pcm_hardware);
-	/* ensure that buffer size is a multiple of period size */
+	
 	ret = snd_pcm_hw_constraint_integer(runtime,
 						SNDRV_PCM_HW_PARAM_PERIODS);
 	if (ret < 0)

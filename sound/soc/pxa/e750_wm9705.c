@@ -1,13 +1,4 @@
-/*
- * e750-wm9705.c  --  SoC audio for e750
- *
- * Copyright 2007 (c) Ian Molton <spyro@f2s.com>
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation; version 2 ONLY.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -101,7 +92,7 @@ static struct snd_soc_dai_link e750_dai[] = {
 		.cpu_dai = &pxa_ac97_dai[PXA2XX_DAI_AC97_HIFI],
 		.codec_dai = &wm9705_dai[WM9705_DAI_AC97_HIFI],
 		.init = e750_ac97_init,
-		/* use ops to check startup state */
+		
 	},
 	{
 		.name = "AC97 Aux",
@@ -161,7 +152,7 @@ static int __init e750_init(void)
 	if (!ret)
 		return 0;
 
-/* Fail gracefully */
+
 	platform_device_put(e750_snd_device);
 free_spk_amp_gpio:
 	gpio_free(GPIO_E750_SPK_AMP_OFF);
@@ -181,7 +172,7 @@ static void __exit e750_exit(void)
 module_init(e750_init);
 module_exit(e750_exit);
 
-/* Module information */
+
 MODULE_AUTHOR("Ian Molton <spyro@f2s.com>");
 MODULE_DESCRIPTION("ALSA SoC driver for e750");
 MODULE_LICENSE("GPL v2");

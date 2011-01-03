@@ -1,15 +1,11 @@
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef _IMX_SSI_H
 #define _IMX_SSI_H
 
 #include <mach/hardware.h>
 
-/* SSI regs definition - MOVE to /arch/arm/plat-mxc/include/mach/ when stable */
+
 #define SSI1_IO_BASE_ADDR	IO_ADDRESS(SSI1_BASE_ADDR)
 #define SSI2_IO_BASE_ADDR	IO_ADDRESS(SSI2_BASE_ADDR)
 
@@ -206,20 +202,20 @@
 #define SSI_SACNT_FV          (x << 1)
 #define SSI_SACNT_AC97EN      (x << 0)
 
-/* Watermarks for FIFO's */
+
 #define TXFIFO_WATERMARK				0x4
 #define RXFIFO_WATERMARK				0x4
 
-/* i.MX DAI SSP ID's */
-#define IMX_DAI_SSI0			0 /* SSI1 FIFO 0 */
-#define IMX_DAI_SSI1			1 /* SSI1 FIFO 1 */
-#define IMX_DAI_SSI2			2 /* SSI2 FIFO 0 */
-#define IMX_DAI_SSI3			3 /* SSI2 FIFO 1 */
 
-/* SSI clock sources */
+#define IMX_DAI_SSI0			0 
+#define IMX_DAI_SSI1			1 
+#define IMX_DAI_SSI2			2 
+#define IMX_DAI_SSI3			3 
+
+
 #define IMX_SSP_SYS_CLK		0
 
-/* SSI audio dividers */
+
 #define IMX_SSI_TX_DIV_2			0
 #define IMX_SSI_TX_DIV_PSR			1
 #define IMX_SSI_TX_DIV_PM			2
@@ -228,7 +224,7 @@
 #define IMX_SSI_RX_DIV_PM			5
 
 
-/* SSI Div 2 */
+
 #define IMX_SSI_DIV_2_OFF		(~SSI_STCCR_DIV2)
 #define IMX_SSI_DIV_2_ON		SSI_STCCR_DIV2
 

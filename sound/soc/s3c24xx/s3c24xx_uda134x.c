@@ -1,15 +1,4 @@
-/*
- * Modifications by Christian Pellegrin <chripell@evolware.org>
- *
- * s3c24xx_uda134x.c  --  S3C24XX_UDA134X ALSA SoC Audio board driver
- *
- * Copyright 2007 Dension Audio Systems Ltd.
- * Author: Zoltan Devai
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/clk.h>
@@ -29,26 +18,12 @@
 #include "../codecs/uda134x.h"
 
 
-/* #define ENFORCE_RATES 1 */
-/*
-  Unfortunately the S3C24XX in master mode has a limited capacity of
-  generating the clock for the codec. If you define this only rates
-  that are really available will be enforced. But be careful, most
-  user level application just want the usual sampling frequencies (8,
-  11.025, 22.050, 44.1 kHz) and anyway resampling is a costly
-  operation for embedded systems. So if you aren't very lucky or your
-  hardware engineer wasn't very forward-looking it's better to leave
-  this undefined. If you do so an approximate value for the requested
-  sampling rate in the range -/+ 5% will be chosen. If this in not
-  possible an error will be returned.
-*/
+
+
 
 static struct clk *xtal;
 static struct clk *pclk;
-/* this is need because we don't have a place where to keep the
- * pointers to the clocks in each substream. We get the clocks only
- * when we are actually using them so we don't block stuff like
- * frequency change or oscillator power-off */
+
 static int clk_users;
 static DEFINE_MUTEX(clk_lock);
 
@@ -209,7 +184,7 @@ static int s3c24xx_uda134x_hw_params(struct snd_pcm_substream *substream,
 	if (ret < 0)
 		return ret;
 
-	/* set the codec system clock for DAC and ADC */
+	
 	ret = snd_soc_dai_set_sysclk(codec_dai, 0, clk,
 			SND_SOC_CLOCK_OUT);
 	if (ret < 0)

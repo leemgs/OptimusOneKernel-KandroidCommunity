@@ -1,11 +1,4 @@
-/* sound/soc/s3c24xx/s3c24xx_simtec.h
- *
- * Copyright 2009 Simtec Electronics
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 extern void simtec_audio_init(struct snd_soc_codec *codec);
 

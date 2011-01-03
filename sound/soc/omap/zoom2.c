@@ -1,23 +1,4 @@
-/*
- * zoom2.c  --  SoC audio for Zoom2
- *
- * Author: Misael Lopez Cruz <x0052729@ti.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #include <linux/clk.h>
 #include <linux/platform_device.h>
@@ -46,7 +27,7 @@ static int zoom2_hw_params(struct snd_pcm_substream *substream,
 	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
 	int ret;
 
-	/* Set codec DAI configuration */
+	
 	ret = snd_soc_dai_set_fmt(codec_dai,
 				  SND_SOC_DAIFMT_I2S |
 				  SND_SOC_DAIFMT_NB_NF |
@@ -56,7 +37,7 @@ static int zoom2_hw_params(struct snd_pcm_substream *substream,
 		return ret;
 	}
 
-	/* Set cpu DAI configuration */
+	
 	ret = snd_soc_dai_set_fmt(cpu_dai,
 				  SND_SOC_DAIFMT_I2S |
 				  SND_SOC_DAIFMT_NB_NF |
@@ -66,7 +47,7 @@ static int zoom2_hw_params(struct snd_pcm_substream *substream,
 		return ret;
 	}
 
-	/* Set the codec system clock for DAC and ADC */
+	
 	ret = snd_soc_dai_set_sysclk(codec_dai, 0, 26000000,
 					SND_SOC_CLOCK_IN);
 	if (ret < 0) {
@@ -89,7 +70,7 @@ static int zoom2_hw_voice_params(struct snd_pcm_substream *substream,
 	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
 	int ret;
 
-	/* Set codec DAI configuration */
+	
 	ret = snd_soc_dai_set_fmt(codec_dai,
 				SND_SOC_DAIFMT_DSP_A |
 				SND_SOC_DAIFMT_IB_NF |
@@ -99,7 +80,7 @@ static int zoom2_hw_voice_params(struct snd_pcm_substream *substream,
 		return ret;
 	}
 
-	/* Set cpu DAI configuration */
+	
 	ret = snd_soc_dai_set_fmt(cpu_dai,
 				SND_SOC_DAIFMT_DSP_A |
 				SND_SOC_DAIFMT_IB_NF |
@@ -109,7 +90,7 @@ static int zoom2_hw_voice_params(struct snd_pcm_substream *substream,
 		return ret;
 	}
 
-	/* Set the codec system clock for DAC and ADC */
+	
 	ret = snd_soc_dai_set_sysclk(codec_dai, 0, 26000000,
 					SND_SOC_CLOCK_IN);
 	if (ret < 0) {
@@ -124,7 +105,7 @@ static struct snd_soc_ops zoom2_voice_ops = {
 	.hw_params = zoom2_hw_voice_params,
 };
 
-/* Zoom2 machine DAPM */
+
 static const struct snd_soc_dapm_widget zoom2_twl4030_dapm_widgets[] = {
 	SND_SOC_DAPM_MIC("Ext Mic", NULL),
 	SND_SOC_DAPM_SPK("Ext Spk", NULL),
@@ -134,25 +115,25 @@ static const struct snd_soc_dapm_widget zoom2_twl4030_dapm_widgets[] = {
 };
 
 static const struct snd_soc_dapm_route audio_map[] = {
-	/* External Mics: MAINMIC, SUBMIC with bias*/
+	
 	{"MAINMIC", NULL, "Mic Bias 1"},
 	{"SUBMIC", NULL, "Mic Bias 2"},
 	{"Mic Bias 1", NULL, "Ext Mic"},
 	{"Mic Bias 2", NULL, "Ext Mic"},
 
-	/* External Speakers: HFL, HFR */
+	
 	{"Ext Spk", NULL, "HFL"},
 	{"Ext Spk", NULL, "HFR"},
 
-	/* Headset Stereophone:  HSOL, HSOR */
+	
 	{"Headset Stereophone", NULL, "HSOL"},
 	{"Headset Stereophone", NULL, "HSOR"},
 
-	/* Headset Mic: HSMIC with bias */
+	
 	{"HSMIC", NULL, "Headset Mic Bias"},
 	{"Headset Mic Bias", NULL, "Headset Mic"},
 
-	/* Aux In: AUXL, AUXR */
+	
 	{"Aux In", NULL, "AUXL"},
 	{"Aux In", NULL, "AUXR"},
 };
@@ -161,23 +142,23 @@ static int zoom2_twl4030_init(struct snd_soc_codec *codec)
 {
 	int ret;
 
-	/* Add Zoom2 specific widgets */
+	
 	ret = snd_soc_dapm_new_controls(codec, zoom2_twl4030_dapm_widgets,
 				ARRAY_SIZE(zoom2_twl4030_dapm_widgets));
 	if (ret)
 		return ret;
 
-	/* Set up Zoom2 specific audio path audio_map */
+	
 	snd_soc_dapm_add_routes(codec, audio_map, ARRAY_SIZE(audio_map));
 
-	/* Zoom2 connected pins */
+	
 	snd_soc_dapm_enable_pin(codec, "Ext Mic");
 	snd_soc_dapm_enable_pin(codec, "Ext Spk");
 	snd_soc_dapm_enable_pin(codec, "Headset Mic");
 	snd_soc_dapm_enable_pin(codec, "Headset Stereophone");
 	snd_soc_dapm_enable_pin(codec, "Aux In");
 
-	/* TWL4030 not connected pins */
+	
 	snd_soc_dapm_nc_pin(codec, "CARKITMIC");
 	snd_soc_dapm_nc_pin(codec, "DIGIMIC0");
 	snd_soc_dapm_nc_pin(codec, "DIGIMIC1");
@@ -199,7 +180,7 @@ static int zoom2_twl4030_voice_init(struct snd_soc_codec *codec)
 {
 	unsigned short reg;
 
-	/* Enable voice interface */
+	
 	reg = codec->read(codec, TWL4030_REG_VOICE_IF);
 	reg |= TWL4030_VIF_DIN_EN | TWL4030_VIF_DOUT_EN | TWL4030_VIF_EN;
 	codec->write(codec, TWL4030_REG_VOICE_IF, reg);
@@ -207,7 +188,7 @@ static int zoom2_twl4030_voice_init(struct snd_soc_codec *codec)
 	return 0;
 }
 
-/* Digital audio interface glue - connects codec <--> CPU */
+
 static struct snd_soc_dai_link zoom2_dai[] = {
 	{
 		.name = "TWL4030 I2S",
@@ -227,7 +208,7 @@ static struct snd_soc_dai_link zoom2_dai[] = {
 	},
 };
 
-/* Audio machine driver */
+
 static struct snd_soc_card snd_soc_zoom2 = {
 	.name = "Zoom2",
 	.platform = &omap_soc_platform,
@@ -235,21 +216,21 @@ static struct snd_soc_card snd_soc_zoom2 = {
 	.num_links = ARRAY_SIZE(zoom2_dai),
 };
 
-/* EXTMUTE callback function */
+
 void zoom2_set_hs_extmute(int mute)
 {
 	gpio_set_value(ZOOM2_HEADSET_EXTMUTE_GPIO, mute);
 }
 
-/* twl4030 setup */
+
 static struct twl4030_setup_data twl4030_setup = {
-	.ramp_delay_value = 3,	/* 161 ms */
+	.ramp_delay_value = 3,	
 	.sysclk = 26000,
 	.hs_extmute = 1,
 	.set_hs_extmute = zoom2_set_hs_extmute,
 };
 
-/* Audio subsystem */
+
 static struct snd_soc_device zoom2_snd_devdata = {
 	.card = &snd_soc_zoom2,
 	.codec_dev = &soc_codec_dev_twl4030,
@@ -276,8 +257,8 @@ static int __init zoom2_soc_init(void)
 
 	platform_set_drvdata(zoom2_snd_device, &zoom2_snd_devdata);
 	zoom2_snd_devdata.dev = &zoom2_snd_device->dev;
-	*(unsigned int *)zoom2_dai[0].cpu_dai->private_data = 1; /* McBSP2 */
-	*(unsigned int *)zoom2_dai[1].cpu_dai->private_data = 2; /* McBSP3 */
+	*(unsigned int *)zoom2_dai[0].cpu_dai->private_data = 1; 
+	*(unsigned int *)zoom2_dai[1].cpu_dai->private_data = 2; 
 
 	ret = platform_device_add(zoom2_snd_device);
 	if (ret)

@@ -1,15 +1,4 @@
-/*
- * wm_hubs.h  --  WM899x common code
- *
- * Copyright 2009 Wolfson Microelectronics plc
- *
- * Author: Mark Brown <broonie@opensource.wolfsonmicro.com>
- *
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef _WM_HUBS_H
 #define _WM_HUBS_H

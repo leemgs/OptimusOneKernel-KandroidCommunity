@@ -1,13 +1,4 @@
-/*
- * e800-wm9712.c  --  SoC audio for e800
- *
- * Copyright 2007 (c) Ian Molton <spyro@f2s.com>
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation; version 2 ONLY.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -148,7 +139,7 @@ static int __init e800_init(void)
 	if (!ret)
 		return 0;
 
-/* Fail gracefully */
+
 	platform_device_put(e800_snd_device);
 free_spk_amp_gpio:
 	gpio_free(GPIO_E800_SPK_AMP_ON);
@@ -168,7 +159,7 @@ static void __exit e800_exit(void)
 module_init(e800_init);
 module_exit(e800_exit);
 
-/* Module information */
+
 MODULE_AUTHOR("Ian Molton <spyro@f2s.com>");
 MODULE_DESCRIPTION("ALSA SoC driver for e800");
 MODULE_LICENSE("GPL v2");

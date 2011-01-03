@@ -1,18 +1,4 @@
-/*
- * s3c24xx-pcm.c  --  ALSA Soc Audio Layer
- *
- * (c) 2006 Wolfson Microelectronics PLC.
- * Graeme Gregory graeme.gregory@wolfsonmicro.com or linux@wolfsonmicro.com
- *
- * Copyright 2004-2005 Simtec Electronics
- *	http://armlinux.simtec.co.uk/
- *	Ben Dooks <ben@simtec.co.uk>
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -66,11 +52,7 @@ struct s3c24xx_runtime_data {
 	struct s3c24xx_pcm_dma_params *params;
 };
 
-/* s3c24xx_pcm_enqueue
- *
- * place a dma buffer onto the queue for the dma system
- * to handle.
-*/
+
 static void s3c24xx_pcm_enqueue(struct snd_pcm_substream *substream)
 {
 	struct s3c24xx_runtime_data *prtd = substream->runtime->private_data;
@@ -151,15 +133,13 @@ static int s3c24xx_pcm_hw_params(struct snd_pcm_substream *substream,
 
 	pr_debug("Entered %s\n", __func__);
 
-	/* return if this is a bufferless transfer e.g.
-	 * codec <--> BT codec or GSM modem -- lg FIXME */
+	
 	if (!dma)
 		return 0;
 
-	/* this may get called several times by oss emulation
-	 * with different params -HW */
+	
 	if (prtd->params == NULL) {
-		/* prepare DMA */
+		
 		prtd->params = dma;
 
 		pr_debug("params %p, client %p, channel %d\n", prtd->params,
@@ -173,7 +153,7 @@ static int s3c24xx_pcm_hw_params(struct snd_pcm_substream *substream,
 			return ret;
 		}
 
-		/* use the circular buffering if we have it available. */
+		
 		if (s3c_dma_has_circular())
 			s3c2410_dma_setflags(prtd->params->channel,
 					     S3C2410_DMAF_CIRCULAR);
@@ -204,7 +184,7 @@ static int s3c24xx_pcm_hw_free(struct snd_pcm_substream *substream)
 
 	pr_debug("Entered %s\n", __func__);
 
-	/* TODO - do we need to ensure DMA flushed */
+	
 	snd_pcm_set_runtime_buffer(substream, NULL);
 
 	if (prtd->params) {
@@ -222,13 +202,11 @@ static int s3c24xx_pcm_prepare(struct snd_pcm_substream *substream)
 
 	pr_debug("Entered %s\n", __func__);
 
-	/* return if this is a bufferless transfer e.g.
-	 * codec <--> BT codec or GSM modem -- lg FIXME */
+	
 	if (!prtd->params)
 		return 0;
 
-	/* channel needs configuring for mem=>device, increment memory addr,
-	 * sync to pclk, half-word transfers to the IIS-FIFO. */
+	
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
 		s3c2410_dma_devconfig(prtd->params->channel,
 				      S3C2410_DMASRC_MEM,
@@ -242,12 +220,12 @@ static int s3c24xx_pcm_prepare(struct snd_pcm_substream *substream)
 	s3c2410_dma_config(prtd->params->channel,
 			   prtd->params->dma_size);
 
-	/* flush the DMA channel */
+	
 	s3c2410_dma_ctrl(prtd->params->channel, S3C2410_DMAOP_FLUSH);
 	prtd->dma_loaded = 0;
 	prtd->dma_pos = prtd->dma_start;
 
-	/* enqueue dma buffers */
+	
 	s3c24xx_pcm_enqueue(substream);
 
 	return ret;
@@ -309,11 +287,7 @@ s3c24xx_pcm_pointer(struct snd_pcm_substream *substream)
 
 	pr_debug("Pointer %x %x\n", src, dst);
 
-	/* we seem to be getting the odd error from the pcm library due
-	 * to out-of-bounds pointers. this is maybe due to the dma engine
-	 * not having loaded the new values for the channel before being
-	 * callled... (todo - fix )
-	 */
+	
 
 	if (res >= snd_pcm_lib_buffer_bytes(substream)) {
 		if (res == snd_pcm_lib_buffer_bytes(substream))

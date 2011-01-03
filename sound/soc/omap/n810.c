@@ -1,25 +1,4 @@
-/*
- * n810.c  --  SoC audio for Nokia N810
- *
- * Copyright (C) 2008 Nokia Corporation
- *
- * Contact: Jarkko Nikula <jhnikula@gmail.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- */
+
 
 #include <linux/clk.h>
 #include <linux/i2c.h>
@@ -119,7 +98,7 @@ static int n810_hw_params(struct snd_pcm_substream *substream,
 	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
 	int err;
 
-	/* Set codec DAI configuration */
+	
 	err = snd_soc_dai_set_fmt(codec_dai,
 					 SND_SOC_DAIFMT_I2S |
 					 SND_SOC_DAIFMT_NB_NF |
@@ -127,7 +106,7 @@ static int n810_hw_params(struct snd_pcm_substream *substream,
 	if (err < 0)
 		return err;
 
-	/* Set cpu DAI configuration */
+	
 	err = snd_soc_dai_set_fmt(cpu_dai,
 				       SND_SOC_DAIFMT_I2S |
 				       SND_SOC_DAIFMT_NB_NF |
@@ -135,7 +114,7 @@ static int n810_hw_params(struct snd_pcm_substream *substream,
 	if (err < 0)
 		return err;
 
-	/* Set the codec system clock for DAC and ADC */
+	
 	err = snd_soc_dai_set_sysclk(codec_dai, 0, 12000000,
 					    SND_SOC_CLOCK_IN);
 
@@ -275,7 +254,7 @@ static int n810_aic33_init(struct snd_soc_codec *codec)
 {
 	int err;
 
-	/* Not connected */
+	
 	snd_soc_dapm_nc_pin(codec, "MONO_LOUT");
 	snd_soc_dapm_nc_pin(codec, "HPLCOM");
 	snd_soc_dapm_nc_pin(codec, "HPRCOM");
@@ -285,17 +264,17 @@ static int n810_aic33_init(struct snd_soc_codec *codec)
 	snd_soc_dapm_nc_pin(codec, "LINE2L");
 	snd_soc_dapm_nc_pin(codec, "LINE2R");
 
-	/* Add N810 specific controls */
+	
 	err = snd_soc_add_controls(codec, aic33_n810_controls,
 				ARRAY_SIZE(aic33_n810_controls));
 	if (err < 0)
 		return err;
 
-	/* Add N810 specific widgets */
+	
 	snd_soc_dapm_new_controls(codec, aic33_dapm_widgets,
 				  ARRAY_SIZE(aic33_dapm_widgets));
 
-	/* Set up N810 specific audio path audio_map */
+	
 	snd_soc_dapm_add_routes(codec, audio_map, ARRAY_SIZE(audio_map));
 
 	snd_soc_dapm_sync(codec);
@@ -303,7 +282,7 @@ static int n810_aic33_init(struct snd_soc_codec *codec)
 	return 0;
 }
 
-/* Digital audio interface glue - connects codec <--> CPU */
+
 static struct snd_soc_dai_link n810_dai = {
 	.name = "TLV320AIC33",
 	.stream_name = "AIC33",
@@ -313,7 +292,7 @@ static struct snd_soc_dai_link n810_dai = {
 	.ops = &n810_ops,
 };
 
-/* Audio machine driver */
+
 static struct snd_soc_card snd_soc_n810 = {
 	.name = "N810",
 	.platform = &omap_soc_platform,
@@ -321,13 +300,13 @@ static struct snd_soc_card snd_soc_n810 = {
 	.num_links = 1,
 };
 
-/* Audio private data */
+
 static struct aic3x_setup_data n810_aic33_setup = {
 	.gpio_func[0] = AIC3X_GPIO1_FUNC_DISABLED,
 	.gpio_func[1] = AIC3X_GPIO2_FUNC_DIGITAL_MIC_INPUT,
 };
 
-/* Audio subsystem */
+
 static struct snd_soc_device n810_snd_devdata = {
 	.card = &snd_soc_n810,
 	.codec_dev = &soc_codec_dev_aic3x,
@@ -336,9 +315,7 @@ static struct snd_soc_device n810_snd_devdata = {
 
 static struct platform_device *n810_snd_device;
 
-/* temporary i2c device creation until this can be moved into the machine
- * support file.
-*/
+
 static struct i2c_board_info i2c_device[] = {
 	{ I2C_BOARD_INFO("tlv320aic3x", 0x1b), }
 };
@@ -359,7 +336,7 @@ static int __init n810_soc_init(void)
 
 	platform_set_drvdata(n810_snd_device, &n810_snd_devdata);
 	n810_snd_devdata.dev = &n810_snd_device->dev;
-	*(unsigned int *)n810_dai.cpu_dai->private_data = 1; /* McBSP2 */
+	*(unsigned int *)n810_dai.cpu_dai->private_data = 1; 
 	err = platform_device_add(n810_snd_device);
 	if (err)
 		goto err1;
@@ -378,10 +355,7 @@ static int __init n810_soc_init(void)
 		err = PTR_ERR(sys_clkout2);
 		goto err3;
 	}
-	/*
-	 * Configure 12 MHz output on SYS_CLKOUT2. Therefore we must use
-	 * 96 MHz as its parent in order to get 12 MHz
-	 */
+	
 	func96m_clk = clk_get(dev, "func_96m_ck");
 	if (IS_ERR(func96m_clk)) {
 		dev_err(dev, "Could not get func 96M clock\n");

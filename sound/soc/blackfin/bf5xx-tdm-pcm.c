@@ -1,30 +1,4 @@
-/*
- * File:         sound/soc/blackfin/bf5xx-tdm-pcm.c
- * Author:       Barry Song <Barry.Song@analog.com>
- *
- * Created:      Tue June 06 2009
- * Description:  DMA driver for tdm codec
- *
- * Modified:
- *               Copyright 2009 Analog Devices Inc.
- *
- * Bugs:         Enter bugs at http://blackfin.uclinux.org/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see the file COPYING, or write
- * to the Free Software Foundation, Inc.,
- * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -91,7 +65,7 @@ static int bf5xx_pcm_prepare(struct snd_pcm_substream *substream)
 	int fragsize_bytes = frames_to_bytes(runtime, runtime->period_size);
 
 	fragsize_bytes /= runtime->channels;
-	/* inflate the fragsize to match the dma width of SPORT */
+	
 	fragsize_bytes *= 8;
 
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
@@ -144,7 +118,7 @@ static snd_pcm_uframes_t bf5xx_pcm_pointer(struct snd_pcm_substream *substream)
 
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
 		diff = sport_curr_offset_tx(sport);
-		frames = diff / (8*4); /* 32 bytes per frame */
+		frames = diff / (8*4); 
 	} else {
 		diff = sport_curr_offset_rx(sport);
 		frames = diff / (8*4);

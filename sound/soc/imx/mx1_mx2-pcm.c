@@ -1,18 +1,4 @@
-/*
- * mx1_mx2-pcm.c -- ALSA SoC interface for Freescale i.MX1x, i.MX2x CPUs
- *
- * Copyright 2009 Vista Silicon S.L.
- * Author: Javier Martin
- *         javier.martin@vista-silicon.com
- *
- * Based on mxc-pcm.c by Liam Girdwood.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -55,13 +41,7 @@ struct mx1_mx2_runtime_data {
 };
 
 
-/**
-  * This function stops the current dma transfer for playback
-  * and clears the dma pointers.
-  *
-  * @param	substream	pointer to the structure of the current stream.
-  *
-  */
+
 static int audio_stop_dma(struct snd_pcm_substream *substream)
 {
 	struct snd_pcm_runtime *runtime = substream->runtime;
@@ -76,7 +56,7 @@ static int audio_stop_dma(struct snd_pcm_substream *substream)
 	prtd->period = 0;
 	prtd->periods = 0;
 
-	/* this stops the dma channel and clears the buffer ptrs */
+	
 
 	imx_dma_disable(prtd->dma_ch);
 
@@ -85,14 +65,7 @@ static int audio_stop_dma(struct snd_pcm_substream *substream)
 	return 0;
 }
 
-/**
-  * This function is called whenever a new audio block needs to be
-  * transferred to the codec. The function receives the address and the size
-  * of the new block and start a new DMA transfer.
-  *
-  * @param	substream	pointer to the structure of the current stream.
-  *
-  */
+
 static int dma_new_period(struct snd_pcm_substream *substream)
 {
 	struct snd_pcm_runtime *runtime =  substream->runtime;
@@ -136,7 +109,7 @@ static int dma_new_period(struct snd_pcm_substream *substream)
 		pr_debug("dev_addr = %x\ndma_size = %d\n",
 			(unsigned int) dev_addr, dma_size);
 
-		prtd->tx_spin = 1; /* FGA little trick to retrieve DMA pos */
+		prtd->tx_spin = 1; 
 		prtd->period++;
 		prtd->period %= runtime->periods;
     }
@@ -144,14 +117,7 @@ static int dma_new_period(struct snd_pcm_substream *substream)
 }
 
 
-/**
-  * This is a callback which will be called
-  * when a TX transfer finishes. The call occurs
-  * in interrupt context.
-  *
-  * @param	dat	pointer to the structure of the current stream.
-  *
-  */
+
 static void audio_dma_irq(int channel, void *data)
 {
 	struct snd_pcm_substream *substream;
@@ -174,27 +140,15 @@ static void audio_dma_irq(int channel, void *data)
 
 	pr_debug("%s: irq per %d offset %x\n", __func__, prtd->periods, offset);
 
-	/*
-	  * If we are getting a callback for an active stream then we inform
-	  * the PCM middle layer we've finished a period
-	  */
+	
 	if (prtd->active)
 		snd_pcm_period_elapsed(substream);
 
-	/*
-	  * Trig next DMA transfer
-	  */
+	
 	dma_new_period(substream);
 }
 
-/**
-  * This function configures the hardware to allow audio
-  * playback operations. It is called by ALSA framework.
-  *
-  * @param	substream	pointer to the structure of the current stream.
-  *
-  * @return              0 on success, -1 otherwise.
-  */
+
 static int
 snd_mx1_mx2_prepare(struct snd_pcm_substream *substream)
 {
@@ -251,13 +205,13 @@ static int mx1_mx2_pcm_trigger(struct snd_pcm_substream *substream, int cmd)
 	switch (cmd) {
 	case SNDRV_PCM_TRIGGER_START:
 		prtd->tx_spin = 0;
-		/* requested stream startup */
+		
 		prtd->active = 1;
 		pr_debug("%s: starting dma_new_period\n", __func__);
 		ret = dma_new_period(substream);
 		break;
 	case SNDRV_PCM_TRIGGER_STOP:
-		/* requested stream shutdown */
+		
 		pr_debug("%s: stopping dma transfer\n", __func__);
 		ret = audio_stop_dma(substream);
 		break;
@@ -276,7 +230,7 @@ mx1_mx2_pcm_pointer(struct snd_pcm_substream *substream)
 	struct mx1_mx2_runtime_data *prtd = runtime->private_data;
 	unsigned int offset = 0;
 
-	/* tx_spin value is used here to check if a transfer is active */
+	
 	if (prtd->tx_spin) {
 		offset = (runtime->period_size * (prtd->periods)) +
 						(runtime->period_size >> 1);
@@ -399,7 +353,7 @@ static int mx1_mx2_pcm_preallocate_dma_buffer(struct snd_pcm *pcm, int stream)
 	buf->dev.dev = pcm->card->dev;
 	buf->private_data = NULL;
 
-	/* Reserve uncached-buffered memory area for DMA */
+	
 	buf->area = dma_alloc_writecombine(pcm->card->dev, size,
 					   &buf->addr, GFP_KERNEL);
 

@@ -1,13 +1,4 @@
-/*
- * ALSA PCM interface for the TI DAVINCI processor
- *
- * Author:      Vladimir Barinov, <vbarinov@embeddedalley.com>
- * Copyright:   (C) 2007 MontaVista Software, Inc., <source@mvista.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #ifndef _DAVINCI_PCM_H
 #define _DAVINCI_PCM_H
@@ -17,11 +8,11 @@
 
 
 struct davinci_pcm_dma_params {
-	int channel;			/* sync dma channel ID */
+	int channel;			
 	unsigned short acnt;
-	dma_addr_t dma_addr;		/* device physical address for DMA */
-	enum dma_event_q eventq_no;	/* event queue number */
-	unsigned char data_type;	/* xfer data type */
+	dma_addr_t dma_addr;		
+	enum dma_event_q eventq_no;	
+	unsigned char data_type;	
 	unsigned char convert_mono_stereo;
 };
 

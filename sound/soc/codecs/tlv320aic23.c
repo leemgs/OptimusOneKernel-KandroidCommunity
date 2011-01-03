@@ -1,22 +1,4 @@
-/*
- * ALSA SoC TLV320AIC23 codec driver
- *
- * Author:      Arun KS, <arunks@mistralsolutions.com>
- * Copyright:   (C) 2008 Mistral Solutions Pvt Ltd.,
- *
- * Based on sound/soc/codecs/wm8731.c by Richard Purdie
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * Notes:
- *  The AIC23 is a driver for a low power stereo audio
- *  codec tlv320aic23
- *
- *  The machine layer should disable unsupported inputs/outputs by
- *  snd_soc_dapm_disable_pin(codec, "LHPOUT"), etc.
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -37,19 +19,15 @@
 
 #define AIC23_VERSION "0.1"
 
-/*
- * AIC23 register cache
- */
+
 static const u16 tlv320aic23_reg[] = {
-	0x0097, 0x0097, 0x00F9, 0x00F9,	/* 0 */
-	0x001A, 0x0004, 0x0007, 0x0001,	/* 4 */
-	0x0020, 0x0000, 0x0000, 0x0000,	/* 8 */
-	0x0000, 0x0000, 0x0000, 0x0000,	/* 12 */
+	0x0097, 0x0097, 0x00F9, 0x00F9,	
+	0x001A, 0x0004, 0x0007, 0x0001,	
+	0x0020, 0x0000, 0x0000, 0x0000,	
+	0x0000, 0x0000, 0x0000, 0x0000,	
 };
 
-/*
- * read tlv320aic23 register cache
- */
+
 static inline unsigned int tlv320aic23_read_reg_cache(struct snd_soc_codec
 						      *codec, unsigned int reg)
 {
@@ -59,9 +37,7 @@ static inline unsigned int tlv320aic23_read_reg_cache(struct snd_soc_codec
 	return cache[reg];
 }
 
-/*
- * write tlv320aic23 register cache
- */
+
 static inline void tlv320aic23_write_reg_cache(struct snd_soc_codec *codec,
 					       u8 reg, u16 value)
 {
@@ -71,19 +47,14 @@ static inline void tlv320aic23_write_reg_cache(struct snd_soc_codec *codec,
 	cache[reg] = value;
 }
 
-/*
- * write to the tlv320aic23 register space
- */
+
 static int tlv320aic23_write(struct snd_soc_codec *codec, unsigned int reg,
 			     unsigned int value)
 {
 
 	u8 data[2];
 
-	/* TLV320AIC23 has 7 bit address and 9 bits of data
-	 * so we need to switch one data bit into reg and rest
-	 * of data into val
-	 */
+	
 
 	if ((reg < 0 || reg > 9) && (reg != 15)) {
 		printk(KERN_WARNING "%s Invalid register R%u\n", __func__, reg);
@@ -130,13 +101,7 @@ static int snd_soc_tlv320aic23_put_volsw(struct snd_kcontrol *kcontrol,
 
 	val = (ucontrol->value.integer.value[0] & 0x07);
 
-	/* linear conversion to userspace
-	* 000	=	-6db
-	* 001	=	-9db
-	* 010	=	-12db
-	* 011	=	-18db (Min)
-	* 100	=	0db (Max)
-	*/
+	
 	val = (val >= 4) ? 4  : (3 - val);
 
 	reg = tlv320aic23_read_reg_cache(codec, TLV320AIC23_ANLG) & (~0x1C0);
@@ -183,7 +148,7 @@ static const struct snd_kcontrol_new tlv320aic23_snd_controls[] = {
 	SOC_ENUM("Playback De-emphasis", tlv320aic23_deemph),
 };
 
-/* PGA Mixer controls for Line and Mic switch */
+
 static const struct snd_kcontrol_new tlv320aic23_output_mixer_controls[] = {
 	SOC_DAPM_SINGLE("Line Bypass Switch", TLV320AIC23_ANLG, 3, 1, 0),
 	SOC_DAPM_SINGLE("Mic Sidetone Switch", TLV320AIC23_ANLG, 5, 1, 0),
@@ -213,31 +178,31 @@ static const struct snd_soc_dapm_widget tlv320aic23_dapm_widgets[] = {
 };
 
 static const struct snd_soc_dapm_route intercon[] = {
-	/* Output Mixer */
+	
 	{"Output Mixer", "Line Bypass Switch", "Line Input"},
 	{"Output Mixer", "Playback Switch", "DAC"},
 	{"Output Mixer", "Mic Sidetone Switch", "Mic Input"},
 
-	/* Outputs */
+	
 	{"RHPOUT", NULL, "Output Mixer"},
 	{"LHPOUT", NULL, "Output Mixer"},
 	{"LOUT", NULL, "Output Mixer"},
 	{"ROUT", NULL, "Output Mixer"},
 
-	/* Inputs */
+	
 	{"Line Input", "NULL", "LLINEIN"},
 	{"Line Input", "NULL", "RLINEIN"},
 
 	{"Mic Input", "NULL", "MICIN"},
 
-	/* input mux */
+	
 	{"Capture Source", "Line", "Line Input"},
 	{"Capture Source", "Mic", "Mic Input"},
 	{"ADC", NULL, "Capture Source"},
 
 };
 
-/* AIC23 driver data */
+
 struct aic23 {
 	struct snd_soc_codec codec;
 	int mclk;
@@ -245,33 +210,21 @@ struct aic23 {
 	int requested_dac;
 };
 
-/*
- * Common Crystals used
- * 11.2896 Mhz /128 = *88.2k  /192 = 58.8k
- * 12.0000 Mhz /125 = *96k    /136 = 88.235K
- * 12.2880 Mhz /128 = *96k    /192 = 64k
- * 16.9344 Mhz /128 = 132.3k /192 = *88.2k
- * 18.4320 Mhz /128 = 144k   /192 = *96k
- */
 
-/*
- * Normal BOSR 0-256/2 = 128, 1-384/2 = 192
- * USB BOSR 0-250/2 = 125, 1-272/2 = 136
- */
+
+
 static const int bosr_usb_divisor_table[] = {
 	128, 125, 192, 136
 };
 #define LOWER_GROUP ((1<<0) | (1<<1) | (1<<2) | (1<<3) | (1<<6) | (1<<7))
 #define UPPER_GROUP ((1<<8) | (1<<9) | (1<<10) | (1<<11)        | (1<<15))
 static const unsigned short sr_valid_mask[] = {
-	LOWER_GROUP|UPPER_GROUP,	/* Normal, bosr - 0*/
-	LOWER_GROUP,			/* Usb, bosr - 0*/
-	LOWER_GROUP|UPPER_GROUP,	/* Normal, bosr - 1*/
-	UPPER_GROUP,			/* Usb, bosr - 1*/
+	LOWER_GROUP|UPPER_GROUP,	
+	LOWER_GROUP,			
+	LOWER_GROUP|UPPER_GROUP,	
+	UPPER_GROUP,			
 };
-/*
- * Every divisor is a factor of 11*12
- */
+
 #define SR_MULT (11*12)
 #define A(x) (SR_MULT/x)
 static const unsigned char sr_adc_mult_table[] = {
@@ -306,9 +259,7 @@ static int find_rate(int mclk, u32 need_adc, u32 need_dac)
 
 	need_adc *= SR_MULT;
 	need_dac *= SR_MULT;
-	/*
-	 * rates given are +/- 1/32
-	 */
+	
 	adc_l = need_adc - (need_adc >> 5);
 	adc_h = need_adc + (need_adc >> 5);
 	dac_l = need_dac - (need_dac >> 5);
@@ -335,7 +286,7 @@ static int find_rate(int mclk, u32 need_adc, u32 need_dac)
 			}
 			score = get_score((adc >> 1), adc_l, adc_h, need_adc,
 					(dac >> 1), dac_l, dac_h, need_dac);
-			/* prefer to have a /2 */
+			
 			if ((score != UINT_MAX) && (best_score >= score)) {
 				best_score = score;
 				best_i = i;
@@ -368,7 +319,7 @@ static void get_current_sample_rates(struct snd_soc_codec *codec, int mclk,
 static int set_sample_rate_control(struct snd_soc_codec *codec, int mclk,
 		u32 sample_rate_adc, u32 sample_rate_dac)
 {
-	/* Search for the right sample rate */
+	
 	int data = find_rate(mclk, sample_rate_adc, sample_rate_dac);
 	if (data < 0) {
 		printk(KERN_ERR "%s:Invalid rate %u,%u requested\n",
@@ -392,7 +343,7 @@ static int tlv320aic23_add_widgets(struct snd_soc_codec *codec)
 	snd_soc_dapm_new_controls(codec, tlv320aic23_dapm_widgets,
 				  ARRAY_SIZE(tlv320aic23_dapm_widgets));
 
-	/* set up audio path interconnects */
+	
 	snd_soc_dapm_add_routes(codec, intercon, ARRAY_SIZE(intercon));
 
 	snd_soc_dapm_new_widgets(codec);
@@ -455,7 +406,7 @@ static int tlv320aic23_pcm_prepare(struct snd_pcm_substream *substream,
 	struct snd_soc_device *socdev = rtd->socdev;
 	struct snd_soc_codec *codec = socdev->card->codec;
 
-	/* set active */
+	
 	tlv320aic23_write(codec, TLV320AIC23_ACTIVE, 0x0001);
 
 	return 0;
@@ -469,7 +420,7 @@ static void tlv320aic23_shutdown(struct snd_pcm_substream *substream,
 	struct snd_soc_codec *codec = socdev->card->codec;
 	struct aic23 *aic23 = container_of(codec, struct aic23, codec);
 
-	/* deactivate */
+	
 	if (!codec->active) {
 		udelay(50);
 		tlv320aic23_write(codec, TLV320AIC23_ACTIVE, 0x0);
@@ -506,7 +457,7 @@ static int tlv320aic23_set_dai_fmt(struct snd_soc_dai *codec_dai,
 	iface_reg =
 	    tlv320aic23_read_reg_cache(codec, TLV320AIC23_DIGT_FMT) & (~0x03);
 
-	/* set master/slave audio interface */
+	
 	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
 	case SND_SOC_DAIFMT_CBM_CFM:
 		iface_reg |= TLV320AIC23_MS_MASTER;
@@ -518,7 +469,7 @@ static int tlv320aic23_set_dai_fmt(struct snd_soc_dai *codec_dai,
 
 	}
 
-	/* interface format */
+	
 	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
 	case SND_SOC_DAIFMT_I2S:
 		iface_reg |= TLV320AIC23_FOR_I2S;
@@ -559,17 +510,17 @@ static int tlv320aic23_set_bias_level(struct snd_soc_codec *codec,
 
 	switch (level) {
 	case SND_SOC_BIAS_ON:
-		/* vref/mid, osc on, dac unmute */
+		
 		tlv320aic23_write(codec, TLV320AIC23_PWR, reg);
 		break;
 	case SND_SOC_BIAS_PREPARE:
 		break;
 	case SND_SOC_BIAS_STANDBY:
-		/* everything off except vref/vmid, */
+		
 		tlv320aic23_write(codec, TLV320AIC23_PWR, reg | 0x0040);
 		break;
 	case SND_SOC_BIAS_OFF:
-		/* everything off, dac mute, inactive */
+		
 		tlv320aic23_write(codec, TLV320AIC23_ACTIVE, 0x0);
 		tlv320aic23_write(codec, TLV320AIC23_PWR, 0xffff);
 		break;
@@ -627,7 +578,7 @@ static int tlv320aic23_resume(struct platform_device *pdev)
 	struct snd_soc_codec *codec = socdev->card->codec;
 	u16 reg;
 
-	/* Sync reg_cache with the hardware */
+	
 	for (reg = 0; reg < TLV320AIC23_RESET; reg++) {
 		u16 val = tlv320aic23_read_reg_cache(codec, reg);
 		tlv320aic23_write(codec, reg, val);
@@ -639,10 +590,7 @@ static int tlv320aic23_resume(struct platform_device *pdev)
 	return 0;
 }
 
-/*
- * initialise the AIC23 driver
- * register the mixer and dsp interfaces with the kernel
- */
+
 static int tlv320aic23_init(struct snd_soc_device *socdev)
 {
 	struct snd_soc_codec *codec = socdev->card->codec;
@@ -662,22 +610,22 @@ static int tlv320aic23_init(struct snd_soc_device *socdev)
 	if (codec->reg_cache == NULL)
 		return -ENOMEM;
 
-	/* Reset codec */
+	
 	tlv320aic23_write(codec, TLV320AIC23_RESET, 0);
 
-	/* register pcms */
+	
 	ret = snd_soc_new_pcms(socdev, SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1);
 	if (ret < 0) {
 		printk(KERN_ERR "tlv320aic23: failed to create pcms\n");
 		goto pcm_err;
 	}
 
-	/* power on device */
+	
 	tlv320aic23_set_bias_level(codec, SND_SOC_BIAS_STANDBY);
 
 	tlv320aic23_write(codec, TLV320AIC23_DIGT, TLV320AIC23_DEEMP_44K);
 
-	/* Unmute input */
+	
 	reg = tlv320aic23_read_reg_cache(codec, TLV320AIC23_LINVOL);
 	tlv320aic23_write(codec, TLV320AIC23_LINVOL,
 			  (reg & (~TLV320AIC23_LIM_MUTED)) |
@@ -693,7 +641,7 @@ static int tlv320aic23_init(struct snd_soc_device *socdev)
 			 (reg) & (~TLV320AIC23_BYPASS_ON) &
 			 (~TLV320AIC23_MICM_MUTED));
 
-	/* Default output volume */
+	
 	tlv320aic23_write(codec, TLV320AIC23_LCHNVOL,
 			  TLV320AIC23_DEFAULT_OUT_VOL &
 			  TLV320AIC23_OUT_VOL_MASK);
@@ -724,10 +672,7 @@ pcm_err:
 static struct snd_soc_device *tlv320aic23_socdev;
 
 #if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
-/*
- * If the i2c layer weren't so broken, we could pass this kind of data
- * around
- */
+
 static int tlv320aic23_codec_probe(struct i2c_client *i2c,
 				   const struct i2c_device_id *i2c_id)
 {

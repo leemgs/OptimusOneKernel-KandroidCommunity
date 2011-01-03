@@ -1,16 +1,4 @@
-/*
- * mx27vis_wm8974.c  --  SoC audio for mx27vis
- *
- * Copyright 2009 Vista Silicon S.L.
- * Author: Javier Martin
- *         javier.martin@vista-silicon.com
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -33,32 +21,27 @@
 
 static struct snd_soc_card mx27vis;
 
-/**
-  * This function connects SSI1 (HPCR1) as slave to
-  * SSI1 external signals (PPCR1)
-  * As slave, HPCR1 must set TFSDIR and TCLKDIR as inputs from
-  * port 4
-  */
+
 void audmux_connect_1_4(void)
 {
 	pr_debug("AUDMUX: normal operation mode\n");
-	/* Reset HPCR1 and PPCR1 */
+	
 
 	DAM_HPCR1 = 0x00000000;
 	DAM_PPCR1 = 0x00000000;
 
-	/* set to synchronous */
+	
 	DAM_HPCR1 |= AUDMUX_HPCR_SYN;
 	DAM_PPCR1 |= AUDMUX_PPCR_SYN;
 
 
-	/* set Rx sources 1 <--> 4 */
-	DAM_HPCR1 |= AUDMUX_HPCR_RXDSEL(3); /* port 4 */
-	DAM_PPCR1 |= AUDMUX_PPCR_RXDSEL(0); /* port 1 */
+	
+	DAM_HPCR1 |= AUDMUX_HPCR_RXDSEL(3); 
+	DAM_PPCR1 |= AUDMUX_PPCR_RXDSEL(0); 
 
-	/* set Tx frame and Clock direction and source  4 --> 1 output */
+	
 	DAM_HPCR1 |= AUDMUX_HPCR_TFSDIR | AUDMUX_HPCR_TCLKDIR;
-	DAM_HPCR1 |= AUDMUX_HPCR_TFCSEL(3); /* TxDS and TxCclk from port 4 */
+	DAM_HPCR1 |= AUDMUX_HPCR_TFCSEL(3); 
 
 	return;
 }
@@ -72,10 +55,7 @@ static int mx27vis_hifi_hw_params(struct snd_pcm_substream *substream,
 	unsigned int pll_out = 0, bclk = 0, fmt = 0, mclk = 0;
 	int ret = 0;
 
-	/*
-	 * The WM8974 is better at generating accurate audio clocks than the
-	 * MX27 SSI controller, so we will use it as master when we can.
-	 */
+	
 	switch (params_rate(params)) {
 	case 8000:
 		fmt = SND_SOC_DAIFMT_CBM_CFM;
@@ -119,7 +99,7 @@ static int mx27vis_hifi_hw_params(struct snd_pcm_substream *substream,
 		break;
 	}
 
-	/* set codec DAI configuration */
+	
 	ret = codec_dai->ops->set_fmt(codec_dai,
 		SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_IF |
 		SND_SOC_DAIFMT_SYNC | fmt);
@@ -128,7 +108,7 @@ static int mx27vis_hifi_hw_params(struct snd_pcm_substream *substream,
 		return ret;
 	}
 
-	/* set cpu DAI configuration */
+	
 	ret = cpu_dai->ops->set_fmt(cpu_dai,
 		SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
 		SND_SOC_DAIFMT_SYNC | fmt);
@@ -137,10 +117,10 @@ static int mx27vis_hifi_hw_params(struct snd_pcm_substream *substream,
 		return ret;
 	}
 
-	/* Put DC field of STCCR to 1 (not zero) */
+	
 	ret = cpu_dai->ops->set_tdm_slot(cpu_dai, 0, 2);
 
-	/* set the SSI system clock as input */
+	
 	ret = cpu_dai->ops->set_sysclk(cpu_dai, IMX_SSP_SYS_CLK, 0,
 		SND_SOC_CLOCK_IN);
 	if (ret < 0) {
@@ -148,7 +128,7 @@ static int mx27vis_hifi_hw_params(struct snd_pcm_substream *substream,
 		return ret;
 	}
 
-	/* set codec BCLK division for sample rate */
+	
 	ret = codec_dai->ops->set_clkdiv(codec_dai, WM8974_BCLKDIV, bclk);
 	if (ret < 0) {
 		printk(KERN_ERR "Error when setting BCLK division\n");
@@ -156,7 +136,7 @@ static int mx27vis_hifi_hw_params(struct snd_pcm_substream *substream,
 	}
 
 
-	/* codec PLL input is 25 MHz */
+	
 	ret = codec_dai->ops->set_pll(codec_dai, IGNORED_ARG,
 					25000000, pll_out);
 	if (ret < 0) {
@@ -164,7 +144,7 @@ static int mx27vis_hifi_hw_params(struct snd_pcm_substream *substream,
 		return ret;
 	}
 
-	/*set codec MCLK division for sample rate */
+	
 	ret = codec_dai->ops->set_clkdiv(codec_dai, WM8974_MCLKDIV, mclk);
 	if (ret < 0) {
 		printk(KERN_ERR "Error when setting MCLK division\n");
@@ -179,13 +159,11 @@ static int mx27vis_hifi_hw_free(struct snd_pcm_substream *substream)
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_dai *codec_dai = rtd->dai->codec_dai;
 
-	/* disable the PLL */
+	
 	return codec_dai->ops->set_pll(codec_dai, IGNORED_ARG, 0, 0);
 }
 
-/*
- * mx27vis WM8974 HiFi DAI opserations.
- */
+
 static struct snd_soc_ops mx27vis_hifi_ops = {
 	.hw_params = mx27vis_hifi_hw_params,
 	.hw_free = mx27vis_hifi_hw_free,
@@ -224,7 +202,7 @@ static int mx27vis_remove(struct platform_device *pdev)
 }
 
 static struct snd_soc_dai_link mx27vis_dai[] = {
-{ /* Hifi Playback*/
+{ 
 	.name = "WM8974",
 	.stream_name = "WM8974 HiFi",
 	.cpu_dai = &imx_ssi_pcm_dai[0],
@@ -251,7 +229,7 @@ static struct snd_soc_device mx27vis_snd_devdata = {
 
 static struct platform_device *mx27vis_snd_device;
 
-/* Temporal definition of board specific behaviour */
+
 void gpio_ssi_active(int ssi_num)
 {
 	int ret = 0;
@@ -296,7 +274,7 @@ static int __init mx27vis_init(void)
 		platform_device_put(mx27vis_snd_device);
 	}
 
-	/* WM8974 uses SSI1 (HPCR1) via AUDMUX port 4 for audio (PPCR1) */
+	
 	gpio_ssi_active(0);
 	audmux_connect_1_4();
 
@@ -305,7 +283,7 @@ static int __init mx27vis_init(void)
 
 static void __exit mx27vis_exit(void)
 {
-	/* We should call some "ssi_gpio_inactive()" properly */
+	
 }
 
 module_init(mx27vis_init);

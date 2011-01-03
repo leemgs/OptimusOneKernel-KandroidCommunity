@@ -1,20 +1,4 @@
-/*
- * SoC audio for ln2440sbc
- *
- * Copyright 2007 KonekTel, a.s.
- * Author: Ivan Kuten
- *         ivan.kuten@promwad.com
- *
- * Heavily based on smdk2443_wm9710.c
- * Copyright 2007 Wolfson Microelectronics PLC.
- * Author: Graeme Gregory
- *         graeme.gregory@wolfsonmicro.com or linux@wolfsonmicro.com
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/device.h>
@@ -79,7 +63,7 @@ static void __exit ln2440sbc_exit(void)
 module_init(ln2440sbc_init);
 module_exit(ln2440sbc_exit);
 
-/* Module information */
+
 MODULE_AUTHOR("Ivan Kuten");
 MODULE_DESCRIPTION("ALSA SoC ALC650 LN2440SBC");
 MODULE_LICENSE("GPL");

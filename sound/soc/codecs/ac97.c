@@ -1,16 +1,4 @@
-/*
- * ac97.c  --  ALSA Soc AC97 codec support
- *
- * Copyright 2005 Wolfson Microelectronics PLC.
- * Author: Liam Girdwood <lrg@slimlogic.co.uk>
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- *
- * Generic AC97 support.
- */
+
 
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -102,12 +90,12 @@ static int ac97_soc_probe(struct platform_device *pdev)
 	INIT_LIST_HEAD(&codec->dapm_widgets);
 	INIT_LIST_HEAD(&codec->dapm_paths);
 
-	/* register pcms */
+	
 	ret = snd_soc_new_pcms(socdev, SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1);
 	if (ret < 0)
 		goto err;
 
-	/* add codec as bus device for standard ac97 */
+	
 	ret = snd_ac97_bus(codec->card, 0, &soc_ac97_ops, NULL, &ac97_bus);
 	if (ret < 0)
 		goto bus_err;

@@ -1,18 +1,4 @@
-/*
- * spitz.c  --  SoC audio for Sharp SL-Cxx00 models Spitz, Borzoi and Akita
- *
- * Copyright 2005 Wolfson Microelectronics PLC.
- * Copyright 2005 Openedhand Ltd.
- *
- * Authors: Liam Girdwood <lrg@slimlogic.co.uk>
- *          Richard Purdie <richard@openedhand.com>
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -39,7 +25,7 @@
 #define SPITZ_SPK_ON    0
 #define SPITZ_SPK_OFF   1
 
- /* audio clock in Hz - rounded from 12.235MHz */
+ 
 #define SPITZ_AUDIO_CLOCK 12288000
 
 static int spitz_jack_func;
@@ -52,10 +38,10 @@ static void spitz_ext_control(struct snd_soc_codec *codec)
 	else
 		snd_soc_dapm_disable_pin(codec, "Ext Spk");
 
-	/* set up jack connection */
+	
 	switch (spitz_jack_func) {
 	case SPITZ_HP:
-		/* enable and unmute hp jack, disable mic bias */
+		
 		snd_soc_dapm_disable_pin(codec, "Headset Jack");
 		snd_soc_dapm_disable_pin(codec, "Mic Jack");
 		snd_soc_dapm_disable_pin(codec, "Line Jack");
@@ -64,7 +50,7 @@ static void spitz_ext_control(struct snd_soc_codec *codec)
 		gpio_set_value(SPITZ_GPIO_MUTE_R, 1);
 		break;
 	case SPITZ_MIC:
-		/* enable mic jack and bias, mute hp */
+		
 		snd_soc_dapm_disable_pin(codec, "Headphone Jack");
 		snd_soc_dapm_disable_pin(codec, "Headset Jack");
 		snd_soc_dapm_disable_pin(codec, "Line Jack");
@@ -73,7 +59,7 @@ static void spitz_ext_control(struct snd_soc_codec *codec)
 		gpio_set_value(SPITZ_GPIO_MUTE_R, 0);
 		break;
 	case SPITZ_LINE:
-		/* enable line jack, disable mic bias and mute hp */
+		
 		snd_soc_dapm_disable_pin(codec, "Headphone Jack");
 		snd_soc_dapm_disable_pin(codec, "Headset Jack");
 		snd_soc_dapm_disable_pin(codec, "Mic Jack");
@@ -82,7 +68,7 @@ static void spitz_ext_control(struct snd_soc_codec *codec)
 		gpio_set_value(SPITZ_GPIO_MUTE_R, 0);
 		break;
 	case SPITZ_HEADSET:
-		/* enable and unmute headset jack enable mic bias, mute L hp */
+		
 		snd_soc_dapm_disable_pin(codec, "Headphone Jack");
 		snd_soc_dapm_enable_pin(codec, "Mic Jack");
 		snd_soc_dapm_disable_pin(codec, "Line Jack");
@@ -92,7 +78,7 @@ static void spitz_ext_control(struct snd_soc_codec *codec)
 		break;
 	case SPITZ_HP_OFF:
 
-		/* jack removed, everything off */
+		
 		snd_soc_dapm_disable_pin(codec, "Headphone Jack");
 		snd_soc_dapm_disable_pin(codec, "Headset Jack");
 		snd_soc_dapm_disable_pin(codec, "Mic Jack");
@@ -109,7 +95,7 @@ static int spitz_startup(struct snd_pcm_substream *substream)
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_codec *codec = rtd->socdev->card->codec;
 
-	/* check the jack status at stream startup */
+	
 	spitz_ext_control(codec);
 	return 0;
 }
@@ -137,25 +123,25 @@ static int spitz_hw_params(struct snd_pcm_substream *substream,
 		break;
 	}
 
-	/* set codec DAI configuration */
+	
 	ret = snd_soc_dai_set_fmt(codec_dai, SND_SOC_DAIFMT_I2S |
 		SND_SOC_DAIFMT_NB_NF | SND_SOC_DAIFMT_CBS_CFS);
 	if (ret < 0)
 		return ret;
 
-	/* set cpu DAI configuration */
+	
 	ret = snd_soc_dai_set_fmt(cpu_dai, SND_SOC_DAIFMT_I2S |
 		SND_SOC_DAIFMT_NB_NF | SND_SOC_DAIFMT_CBS_CFS);
 	if (ret < 0)
 		return ret;
 
-	/* set the codec system clock for DAC and ADC */
+	
 	ret = snd_soc_dai_set_sysclk(codec_dai, WM8750_SYSCLK, clk,
 		SND_SOC_CLOCK_IN);
 	if (ret < 0)
 		return ret;
 
-	/* set the I2S system clock as input (unused) */
+	
 	ret = snd_soc_dai_set_sysclk(cpu_dai, PXA2XX_I2S_SYSCLK, 0,
 		SND_SOC_CLOCK_IN);
 	if (ret < 0)
@@ -223,36 +209,36 @@ static int spitz_mic_bias(struct snd_soc_dapm_widget *w,
 	return 0;
 }
 
-/* spitz machine dapm widgets */
+
 static const struct snd_soc_dapm_widget wm8750_dapm_widgets[] = {
 	SND_SOC_DAPM_HP("Headphone Jack", NULL),
 	SND_SOC_DAPM_MIC("Mic Jack", spitz_mic_bias),
 	SND_SOC_DAPM_SPK("Ext Spk", NULL),
 	SND_SOC_DAPM_LINE("Line Jack", NULL),
 
-	/* headset is a mic and mono headphone */
+	
 	SND_SOC_DAPM_HP("Headset Jack", NULL),
 };
 
-/* Spitz machine audio_map */
+
 static const struct snd_soc_dapm_route audio_map[] = {
 
-	/* headphone connected to LOUT1, ROUT1 */
+	
 	{"Headphone Jack", NULL, "LOUT1"},
 	{"Headphone Jack", NULL, "ROUT1"},
 
-	/* headset connected to ROUT1 and LINPUT1 with bias (def below) */
+	
 	{"Headset Jack", NULL, "ROUT1"},
 
-	/* ext speaker connected to LOUT2, ROUT2  */
+	
 	{"Ext Spk", NULL , "ROUT2"},
 	{"Ext Spk", NULL , "LOUT2"},
 
-	/* mic is connected to input 1 - with bias */
+	
 	{"LINPUT1", NULL, "Mic Bias"},
 	{"Mic Bias", NULL, "Mic Jack"},
 
-	/* line is connected to input 1 - no bias */
+	
 	{"LINPUT1", NULL, "Line Jack"},
 };
 
@@ -271,14 +257,12 @@ static const struct snd_kcontrol_new wm8750_spitz_controls[] = {
 		spitz_set_spk),
 };
 
-/*
- * Logic for a wm8750 as connected on a Sharp SL-Cxx00 Device
- */
+
 static int spitz_wm8750_init(struct snd_soc_codec *codec)
 {
 	int err;
 
-	/* NC codec pins */
+	
 	snd_soc_dapm_nc_pin(codec, "RINPUT1");
 	snd_soc_dapm_nc_pin(codec, "LINPUT2");
 	snd_soc_dapm_nc_pin(codec, "RINPUT2");
@@ -287,24 +271,24 @@ static int spitz_wm8750_init(struct snd_soc_codec *codec)
 	snd_soc_dapm_nc_pin(codec, "OUT3");
 	snd_soc_dapm_nc_pin(codec, "MONO1");
 
-	/* Add spitz specific controls */
+	
 	err = snd_soc_add_controls(codec, wm8750_spitz_controls,
 				ARRAY_SIZE(wm8750_spitz_controls));
 	if (err < 0)
 		return err;
 
-	/* Add spitz specific widgets */
+	
 	snd_soc_dapm_new_controls(codec, wm8750_dapm_widgets,
 				  ARRAY_SIZE(wm8750_dapm_widgets));
 
-	/* Set up spitz specific audio paths */
+	
 	snd_soc_dapm_add_routes(codec, audio_map, ARRAY_SIZE(audio_map));
 
 	snd_soc_dapm_sync(codec);
 	return 0;
 }
 
-/* spitz digital audio interface glue - connects codec <--> CPU */
+
 static struct snd_soc_dai_link spitz_dai = {
 	.name = "wm8750",
 	.stream_name = "WM8750",
@@ -314,7 +298,7 @@ static struct snd_soc_dai_link spitz_dai = {
 	.ops = &spitz_ops,
 };
 
-/* spitz audio machine driver */
+
 static struct snd_soc_card snd_soc_spitz = {
 	.name = "Spitz",
 	.platform = &pxa2xx_soc_platform,
@@ -322,13 +306,13 @@ static struct snd_soc_card snd_soc_spitz = {
 	.num_links = 1,
 };
 
-/* spitz audio private data */
+
 static struct wm8750_setup_data spitz_wm8750_setup = {
 	.i2c_bus = 0,
 	.i2c_address = 0x1b,
 };
 
-/* spitz audio subsystem */
+
 static struct snd_soc_device spitz_snd_devdata = {
 	.card = &snd_soc_spitz,
 	.codec_dev = &soc_codec_dev_wm8750,
