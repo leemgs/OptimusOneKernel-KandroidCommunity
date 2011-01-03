@@ -1,7 +1,4 @@
-/*
- * Copyright (C) 2002 Roman Zippel <zippel@linux-m68k.org>
- * Released under the terms of the GNU GPL v2.0.
- */
+
 
 #include <locale.h>
 #include <ctype.h>
@@ -138,7 +135,7 @@ static int conf_string(struct menu *menu)
 		case '\n':
 			break;
 		case '?':
-			/* print help */
+			
 			if (line[1] == '\n') {
 				print_help(menu);
 				def = NULL;
@@ -469,10 +466,7 @@ int main(int ac, char **av)
 			struct timeval now;
 			unsigned int seed;
 
-			/*
-			 * Use microseconds derived seed,
-			 * compensate for systems where it may be zero
-			 */
+			
 			gettimeofday(&now, NULL);
 
 			seed = (unsigned int)((now.tv_sec + 1) * (now.tv_usec + 1));
@@ -496,7 +490,7 @@ int main(int ac, char **av)
 	}
 	name = av[optind];
 	conf_parse(name);
-	//zconfdump(stdout);
+	
 	if (sync_kconfig) {
 		name = conf_get_configname();
 		if (stat(name, &tmpstat)) {
@@ -585,9 +579,9 @@ int main(int ac, char **av)
 		rootEntry = &rootmenu;
 		conf(&rootmenu);
 		input_mode = ask_silent;
-		/* fall through */
+		
 	case ask_silent:
-		/* Update until a loop caused no more changes */
+		
 		do {
 			conf_cnt = 0;
 			check_conf(&rootmenu);
@@ -596,9 +590,7 @@ int main(int ac, char **av)
 	}
 
 	if (sync_kconfig) {
-		/* silentoldconfig is used during the build so we shall update autoconf.
-		 * All other commands are only used to generate a config.
-		 */
+		
 		if (conf_get_changed() && conf_write(NULL)) {
 			fprintf(stderr, _("\n*** Error during writing of the kernel configuration.\n\n"));
 			exit(1);

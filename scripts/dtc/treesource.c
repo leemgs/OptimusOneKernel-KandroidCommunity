@@ -1,22 +1,4 @@
-/*
- * (C) Copyright David Gibson <dwg@au1.ibm.com>, IBM Corporation.  2005.
- *
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
- *                                                                   USA
- */
+
 
 #include "dtc.h"
 #include "srcpos.h"
@@ -124,7 +106,7 @@ static void write_propval_string(FILE *f, struct data val)
 	}
 	fprintf(f, "\"");
 
-	/* Wrap up any labels at the end of the value */
+	
 	for_each_marker_of_type(m, LABEL) {
 		assert (m->offset == val.len);
 		fprintf(f, " %s:", m->ref);
@@ -153,7 +135,7 @@ static void write_propval_cells(FILE *f, struct data val)
 		fprintf(f, " ");
 	}
 
-	/* Wrap up any labels at the end of the value */
+	
 	for_each_marker_of_type(m, LABEL) {
 		assert (m->offset == val.len);
 		fprintf(f, " %s:", m->ref);
@@ -181,7 +163,7 @@ static void write_propval_bytes(FILE *f, struct data val)
 		fprintf(f, " ");
 	}
 
-	/* Wrap up any labels at the end of the value */
+	
 	for_each_marker_of_type(m, LABEL) {
 		assert (m->offset == val.len);
 		fprintf(f, " %s:", m->ref);

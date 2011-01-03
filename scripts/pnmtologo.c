@@ -1,16 +1,5 @@
 
-/*
- *  Convert a logo in ASCII PNM format to C source suitable for inclusion in
- *  the Linux kernel
- *
- *  (C) Copyright 2001-2003 by Geert Uytterhoeven <geert@linux-m68k.org>
- *
- *  --------------------------------------------------------------------------
- *
- *  This file is subject to the terms and conditions of the GNU General Public
- *  License. See the file COPYING in the main directory of the Linux
- *  distribution for more details.
- */
+
 
 #include <ctype.h>
 #include <errno.h>
@@ -28,10 +17,10 @@ static const char *outputname;
 static FILE *out;
 
 
-#define LINUX_LOGO_MONO		1	/* monochrome black/white */
-#define LINUX_LOGO_VGA16	2	/* 16 colors VGA text palette */
-#define LINUX_LOGO_CLUT224	3	/* 224 colors */
-#define LINUX_LOGO_GRAY256	4	/* 256 levels grayscale */
+#define LINUX_LOGO_MONO		1	
+#define LINUX_LOGO_VGA16	2	
+#define LINUX_LOGO_CLUT224	3	
+#define LINUX_LOGO_GRAY256	4	
 
 static const char *logo_types[LINUX_LOGO_GRAY256+1] = {
     [LINUX_LOGO_MONO] = "LINUX_LOGO_MONO",
@@ -84,13 +73,13 @@ static unsigned int get_number(FILE *fp)
 {
     int c, val;
 
-    /* Skip leading whitespace */
+    
     do {
 	c = fgetc(fp);
 	if (c == EOF)
 	    die("%s: end of file\n", filename);
 	if (c == '#') {
-	    /* Ignore comments 'till end of line */
+	    
 	    do {
 		c = fgetc(fp);
 		if (c == EOF)
@@ -99,7 +88,7 @@ static unsigned int get_number(FILE *fp)
 	}
     } while (isspace(c));
 
-    /* Parse decimal number */
+    
     val = 0;
     while (isdigit(c)) {
 	val = 10*val+c-'0';
@@ -123,12 +112,12 @@ static void read_image(void)
     int magic;
     unsigned int maxval;
 
-    /* open image file */
+    
     fp = fopen(filename, "r");
     if (!fp)
 	die("Cannot open file %s: %s\n", filename, strerror(errno));
 
-    /* check file type and read file header */
+    
     magic = fgetc(fp);
     if (magic != 'P')
 	die("%s is not a PNM file\n", filename);
@@ -137,13 +126,13 @@ static void read_image(void)
 	case '1':
 	case '2':
 	case '3':
-	    /* Plain PBM/PGM/PPM */
+	    
 	    break;
 
 	case '4':
 	case '5':
 	case '6':
-	    /* Binary PBM/PGM/PPM */
+	    
 	    die("%s: Binary PNM is not supported\n"
 		"Use pnmnoraw(1) to convert it to ASCII PNM\n", filename);
 
@@ -153,7 +142,7 @@ static void read_image(void)
     logo_width = get_number(fp);
     logo_height = get_number(fp);
 
-    /* allocate image data */
+    
     logo_data = (struct color **)malloc(logo_height*sizeof(struct color *));
     if (!logo_data)
 	die("%s\n", strerror(errno));
@@ -163,10 +152,10 @@ static void read_image(void)
 	    die("%s\n", strerror(errno));
     }
 
-    /* read image data */
+    
     switch (magic) {
 	case '1':
-	    /* Plain PBM */
+	    
 	    for (i = 0; i < logo_height; i++)
 		for (j = 0; j < logo_width; j++)
 		    logo_data[i][j].red = logo_data[i][j].green =
@@ -174,7 +163,7 @@ static void read_image(void)
 	    break;
 
 	case '2':
-	    /* Plain PGM */
+	    
 	    maxval = get_number(fp);
 	    for (i = 0; i < logo_height; i++)
 		for (j = 0; j < logo_width; j++)
@@ -183,7 +172,7 @@ static void read_image(void)
 	    break;
 
 	case '3':
-	    /* Plain PPM */
+	    
 	    maxval = get_number(fp);
 	    for (i = 0; i < logo_height; i++)
 		for (j = 0; j < logo_width; j++) {
@@ -194,7 +183,7 @@ static void read_image(void)
 	    break;
     }
 
-    /* close file */
+    
     fclose(fp);
 }
 
@@ -220,7 +209,7 @@ static inline int is_equal(struct color c1, struct color c2)
 
 static void write_header(void)
 {
-    /* open logo file */
+    
     if (outputname) {
 	out = fopen(outputname, "w");
 	if (!out)
@@ -255,7 +244,7 @@ static void write_footer(void)
     fprintf(out, "\t.data\t\t= %s_data\n", logoname);
     fputs("};\n\n", out);
 
-    /* close logo file */
+    
     if (outputname)
 	fclose(out);
 }
@@ -278,16 +267,16 @@ static void write_logo_mono(void)
     unsigned int i, j;
     unsigned char val, bit;
 
-    /* validate image */
+    
     for (i = 0; i < logo_height; i++)
 	for (j = 0; j < logo_width; j++)
 	    if (!is_black(logo_data[i][j]) && !is_white(logo_data[i][j]))
 		die("Image must be monochrome\n");
 
-    /* write file header */
+    
     write_header();
 
-    /* write logo data */
+    
     for (i = 0; i < logo_height; i++) {
 	for (j = 0; j < logo_width;) {
 	    for (val = 0, bit = 0x80; bit && j < logo_width; j++, bit >>= 1)
@@ -297,7 +286,7 @@ static void write_logo_mono(void)
 	}
     }
 
-    /* write logo structure and file footer */
+    
     write_footer();
 }
 
@@ -306,7 +295,7 @@ static void write_logo_vga16(void)
     unsigned int i, j, k;
     unsigned char val;
 
-    /* validate image */
+    
     for (i = 0; i < logo_height; i++)
 	for (j = 0; j < logo_width; j++) {
 	    for (k = 0; k < 16; k++)
@@ -318,10 +307,10 @@ static void write_logo_vga16(void)
 		    "of colors\n");
 	}
 
-    /* write file header */
+    
     write_header();
 
-    /* write logo data */
+    
     for (i = 0; i < logo_height; i++)
 	for (j = 0; j < logo_width; j++) {
 	    for (k = 0; k < 16; k++)
@@ -337,7 +326,7 @@ static void write_logo_vga16(void)
 	    write_hex(val);
 	}
 
-    /* write logo structure and file footer */
+    
     write_footer();
 }
 
@@ -345,7 +334,7 @@ static void write_logo_clut224(void)
 {
     unsigned int i, j, k;
 
-    /* validate image */
+    
     for (i = 0; i < logo_height; i++)
 	for (j = 0; j < logo_width; j++) {
 	    for (k = 0; k < logo_clutsize; k++)
@@ -360,10 +349,10 @@ static void write_logo_clut224(void)
 	    }
 	}
 
-    /* write file header */
+    
     write_header();
 
-    /* write logo data */
+    
     for (i = 0; i < logo_height; i++)
 	for (j = 0; j < logo_width; j++) {
 	    for (k = 0; k < logo_clutsize; k++)
@@ -373,7 +362,7 @@ static void write_logo_clut224(void)
 	}
     fputs("\n};\n\n", out);
 
-    /* write logo clut */
+    
     fprintf(out, "static unsigned char %s_clut[] __initdata = {\n",
 	    logoname);
     write_hex_cnt = 0;
@@ -383,7 +372,7 @@ static void write_logo_clut224(void)
 	write_hex(logo_clut[i].blue);
     }
 
-    /* write logo structure and file footer */
+    
     write_footer();
 }
 
@@ -391,21 +380,21 @@ static void write_logo_gray256(void)
 {
     unsigned int i, j;
 
-    /* validate image */
+    
     for (i = 0; i < logo_height; i++)
 	for (j = 0; j < logo_width; j++)
 	    if (!is_gray(logo_data[i][j]))
 		die("Image must be grayscale\n");
 
-    /* write file header */
+    
     write_header();
 
-    /* write logo data */
+    
     for (i = 0; i < logo_height; i++)
 	for (j = 0; j < logo_width; j++)
 	    write_hex(logo_data[i][j].red);
 
-    /* write logo structure and file footer */
+    
     write_footer();
 }
 

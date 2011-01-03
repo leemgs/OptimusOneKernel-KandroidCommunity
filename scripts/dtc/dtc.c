@@ -1,35 +1,15 @@
-/*
- * (C) Copyright David Gibson <dwg@au1.ibm.com>, IBM Corporation.  2005.
- *
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
- *                                                                   USA
- */
+
 
 #include "dtc.h"
 #include "srcpos.h"
 
 #include "version_gen.h"
 
-/*
- * Command line options
- */
-int quiet;		/* Level of quietness */
-int reservenum;		/* Number of memory reservation slots */
-int minsize;		/* Minimum blob size */
-int padsize;		/* Additional padding to blob */
+
+int quiet;		
+int reservenum;		
+int minsize;		
+int padsize;		
 
 char *join_path(const char *path, const char *name)
 {
@@ -178,7 +158,7 @@ int main(int argc, char *argv[])
 	else
 		arg = argv[optind];
 
-	/* minsize and padsize are mutually exclusive */
+	
 	if (minsize && padsize)
 		die("Can't set both -p and -S\n");
 
@@ -217,7 +197,7 @@ int main(int argc, char *argv[])
 	} else if (streq(outform, "asm")) {
 		dt_to_asm(outf, bi, outversion);
 	} else if (streq(outform, "null")) {
-		/* do nothing */
+		
 	} else {
 		die("Unknown output format \"%s\"\n", outform);
 	}

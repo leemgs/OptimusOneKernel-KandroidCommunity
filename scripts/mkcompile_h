@@ -64,8 +64,18 @@ UTS_TRUNCATE="cut -b -$UTS_LEN"
   echo \#define UTS_VERSION \"`echo $UTS_VERSION | $UTS_TRUNCATE`\"
 
   echo \#define LINUX_COMPILE_TIME \"`date +%T`\"
-  echo \#define LINUX_COMPILE_BY \"`whoami`\"
-  echo \#define LINUX_COMPILE_HOST \"`hostname | $UTS_TRUNCATE`\"
+
+#  echo \#define LINUX_COMPILE_BY \"`whoami`\"
+#  echo \#define LINUX_COMPILE_HOST \"`hostname | $UTS_TRUNCATE`\"
+
+LGE_HOSTNAME=`hostname`
+
+if [ "$LGE_HOSTNAME" = "s-ibm31-server" ]; then
+  LGE_HOSTNAME=lge
+fi
+
+echo \#define LINUX_COMPILE_BY \"mclab1\"
+echo \#define LINUX_COMPILE_HOST \"$LGE_HOSTNAME\"
 
   if [ -x /bin/dnsdomainname ]; then
     domain=`dnsdomainname 2> /dev/null`

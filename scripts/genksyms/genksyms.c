@@ -1,25 +1,4 @@
-/* Generate kernel symbol version hashes.
-   Copyright 1996, 1997 Linux International.
 
-   New implementation contributed by Richard Henderson <rth@tamu.edu>
-   Based on original work by Bjorn Ekwall <bj0rn@blox.se>
-
-   This file was part of the Linux modutils 2.4.22: moved back into the
-   kernel sources by Rusty Russell/Kai Germaschewski.
-
-   This program is free software; you can redistribute it and/or modify it
-   under the terms of the GNU General Public License as published by the
-   Free Software Foundation; either version 2 of the License, or (at your
-   option) any later version.
-
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software Foundation,
-   Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 
 #include <stdio.h>
 #include <string.h>
@@ -29,10 +8,10 @@
 #include <stdarg.h>
 #ifdef __GNU_LIBRARY__
 #include <getopt.h>
-#endif				/* __GNU_LIBRARY__ */
+#endif				
 
 #include "genksyms.h"
-/*----------------------------------------------------------------------*/
+
 
 #define HASH_BUCKETS  4096
 
@@ -62,7 +41,7 @@ static void print_list(FILE * f, struct string_list *list);
 static void print_location(void);
 static void print_type_name(enum symbol_type type, const char *name);
 
-/*----------------------------------------------------------------------*/
+
 
 static const unsigned int crctab32[] = {
 	0x00000000U, 0x77073096U, 0xee0e612cU, 0x990951baU, 0x076dc419U,
@@ -136,7 +115,7 @@ static unsigned long crc32(const char *s)
 	return partial_crc32(s, 0xffffffff) ^ 0xffffffff;
 }
 
-/*----------------------------------------------------------------------*/
+
 
 static enum symbol_type map_to_ns(enum symbol_type t)
 {
@@ -188,7 +167,7 @@ static struct symbol *__add_symbol(const char *name, enum symbol_type type,
 		if (map_to_ns(sym->type) == map_to_ns(type) &&
 		    strcmp(name, sym->name) == 0) {
 			if (is_reference)
-				/* fall through */ ;
+				 ;
 			else if (sym->type == type &&
 				 equal_list(sym->defn, defn)) {
 				if (!sym->is_declared && sym->is_override) {
@@ -271,7 +250,7 @@ static struct symbol *add_reference_symbol(const char *name, enum symbol_type ty
 	return __add_symbol(name, type, defn, is_extern, 1);
 }
 
-/*----------------------------------------------------------------------*/
+
 
 void free_node(struct string_list *node)
 {
@@ -470,7 +449,7 @@ static unsigned long expand_and_crc_sym(struct symbol *sym, unsigned long crc)
 
 		case SYM_TYPEDEF:
 			subsym = find_symbol(cur->string, cur->tag);
-			/* FIXME: Bad reference files can segfault here. */
+			
 			if (subsym->expansion_trail) {
 				if (flag_dump_defs)
 					fprintf(debugfile, "%s ", cur->string);
@@ -610,12 +589,12 @@ void export_symbol(const char *name)
 		if (flag_dump_defs)
 			fputs(">\n", debugfile);
 
-		/* Used as a linker script. */
+		
 		printf("%s__crc_%s = 0x%08lx ;\n", mod_prefix, name, crc);
 	}
 }
 
-/*----------------------------------------------------------------------*/
+
 
 static void print_location(void)
 {
@@ -660,7 +639,7 @@ static void genksyms_usage(void)
 	      "  -q, --quiet           Disable warnings (default)\n"
 	      "  -h, --help            Print this message\n"
 	      "  -V, --version         Print the release version\n"
-#else				/* __GNU_LIBRARY__ */
+#else				
 	      "  -a                    Select architecture\n"
 	      "  -d                    Increment the debug level (repeatable)\n"
 	      "  -D                    Dump expanded symbol defs (for debugging only)\n"
@@ -671,7 +650,7 @@ static void genksyms_usage(void)
 	      "  -q                    Disable warnings (default)\n"
 	      "  -h                    Print this message\n"
 	      "  -V                    Print the release version\n"
-#endif				/* __GNU_LIBRARY__ */
+#endif				
 	      , stderr);
 }
 
@@ -697,9 +676,9 @@ int main(int argc, char **argv)
 
 	while ((o = getopt_long(argc, argv, "a:dwqVDr:T:ph",
 				&long_opts[0], NULL)) != EOF)
-#else				/* __GNU_LIBRARY__ */
+#else				
 	while ((o = getopt(argc, argv, "a:dwqVDr:T:ph")) != EOF)
-#endif				/* __GNU_LIBRARY__ */
+#endif				
 		switch (o) {
 		case 'a':
 			arch = optarg;
@@ -755,7 +734,7 @@ int main(int argc, char **argv)
 		yy_flex_debug = (flag_debug > 2);
 
 		debugfile = stderr;
-		/* setlinebuf(debugfile); */
+		
 	}
 
 	if (flag_reference)

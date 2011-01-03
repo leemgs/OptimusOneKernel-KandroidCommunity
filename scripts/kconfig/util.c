@@ -1,14 +1,9 @@
-/*
- * Copyright (C) 2002-2005 Roman Zippel <zippel@linux-m68k.org>
- * Copyright (C) 2002-2005 Sam Ravnborg <sam@ravnborg.org>
- *
- * Released under the terms of the GNU GPL v2.0.
- */
+
 
 #include <string.h>
 #include "lkc.h"
 
-/* file already present in list? If not add it */
+
 struct file *file_lookup(const char *name)
 {
 	struct file *file;
@@ -26,7 +21,7 @@ struct file *file_lookup(const char *name)
 	return file;
 }
 
-/* write a dependency file as used by kbuild to track dependencies */
+
 int file_write_dep(const char *name)
 {
 	struct symbol *sym, *env_sym;
@@ -72,7 +67,7 @@ int file_write_dep(const char *name)
 }
 
 
-/* Allocate initial growable sting */
+
 struct gstr str_new(void)
 {
 	struct gstr gs;
@@ -82,7 +77,7 @@ struct gstr str_new(void)
 	return gs;
 }
 
-/* Allocate and assign growable string */
+
 struct gstr str_assign(const char *s)
 {
 	struct gstr gs;
@@ -91,7 +86,7 @@ struct gstr str_assign(const char *s)
 	return gs;
 }
 
-/* Free storage for growable string */
+
 void str_free(struct gstr *gs)
 {
 	if (gs->s)
@@ -100,7 +95,7 @@ void str_free(struct gstr *gs)
 	gs->len = 0;
 }
 
-/* Append to growable string */
+
 void str_append(struct gstr *gs, const char *s)
 {
 	size_t l;
@@ -114,18 +109,18 @@ void str_append(struct gstr *gs, const char *s)
 	}
 }
 
-/* Append printf formatted string to growable string */
+
 void str_printf(struct gstr *gs, const char *fmt, ...)
 {
 	va_list ap;
-	char s[10000]; /* big enough... */
+	char s[10000]; 
 	va_start(ap, fmt);
 	vsnprintf(s, sizeof(s), fmt, ap);
 	str_append(gs, s);
 	va_end(ap);
 }
 
-/* Retrieve value of growable string */
+
 const char *str_get(struct gstr *gs)
 {
 	return gs->s;

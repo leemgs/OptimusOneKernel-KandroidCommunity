@@ -1,28 +1,4 @@
-/*
- *
- * mdp - make dummy policy
- *
- * When pointed at a kernel tree, builds a dummy policy for that kernel
- * with exactly one type with full rights to itself.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *
- * Copyright (C) IBM Corporation, 2006
- *
- * Authors: Serge E. Hallyn <serue@us.ibm.com>
- */
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -128,7 +104,7 @@ int main(int argc, char *argv[])
 	}
 
 	classlist_len = sizeof(classlist) / sizeof(char *);
-	/* print out the classes */
+	
 	for (i=1; i < classlist_len; i++) {
 		if(classlist[i])
 			fprintf(fout, "class %s\n", classlist[i]);
@@ -138,12 +114,12 @@ int main(int argc, char *argv[])
 	fprintf(fout, "\n");
 
 	initial_sid_to_string_len = sizeof(initial_sid_to_string) / sizeof (char *);
-	/* print out the sids */
+	
 	for (i=1; i < initial_sid_to_string_len; i++)
 		fprintf(fout, "sid %s\n", initial_sid_to_string[i]);
 	fprintf(fout, "\n");
 
-	/* print out the commons */
+	
 	for (i=0; i< sizeof(common)/sizeof(struct common); i++) {
 		char cname[101];
 		find_common_name(common[i].cname, cname, 100);
@@ -155,13 +131,13 @@ int main(int argc, char *argv[])
 	}
 	fprintf(fout, "\n");
 
-	/* print out the class permissions */
+	
 	for (i=1; i < classlist_len; i++) {
 		if (classlist[i]) {
 			int firstperm = -1, numperms = 0;
 
 			fprintf(fout, "class %s\n", classlist[i]);
-			/* does it inherit from a common? */
+			
 			for (j=0; j < sizeof(av_inherit)/sizeof(struct av_inherit); j++)
 				if (av_inherit[j].class == i)
 					fprintf(fout, "inherits %s\n", av_inherit[j].common);
@@ -179,7 +155,7 @@ int main(int argc, char *argv[])
 			}
 
 			fprintf(fout, "{\n");
-			/* print out the av_perms */
+			
 			for (j=0; j < numperms; j++) {
 				fprintf(fout, "\t%s\n", av_perms[firstperm+j].perm_s);
 			}
@@ -188,13 +164,13 @@ int main(int argc, char *argv[])
 	}
 	fprintf(fout, "\n");
 
-	/* NOW PRINT OUT MLS STUFF */
+	
 	if (mls) {
 		printf("MLS not yet implemented\n");
 		exit(1);
 	}
 
-	/* types, roles, and allows */
+	
 	fprintf(fout, "type base_t;\n");
 	fprintf(fout, "role base_r types { base_t };\n");
 	for (i=1; i < classlist_len; i++) {
@@ -206,7 +182,7 @@ int main(int argc, char *argv[])
 	fprintf(fout, "user user_u roles { base_r };\n");
 	fprintf(fout, "\n");
 
-	/* default sids */
+	
 	for (i=1; i < initial_sid_to_string_len; i++)
 		fprintf(fout, "sid %s user_u:base_r:base_t\n", initial_sid_to_string[i]);
 	fprintf(fout, "\n");

@@ -10,7 +10,7 @@ use strict;
 my $P = $0;
 $P =~ s@.*/@@g;
 
-my $V = '0.30';
+my $V = '0.30-1-g63fc28b';
 
 use Getopt::Long qw(:config no_auto_abbrev);
 
@@ -2597,6 +2597,17 @@ sub process {
 		    $stat =~ /^.\s*extern\s+/)
 		{
 			WARN("externs should be avoided in .c files\n" .  $herecurr);
+		}
+
+# check for capitalized name of function or variable.
+		if ($line =~ /^.*$Type\s*($Ident).*/) 
+		{
+			my $function_name = $1;
+
+			if ($function_name =~ /^[A-Z]?.*[A-Z].*/ )
+			{
+				WARN("capitalized character should be avoided in name of function or variable\n" .  $herecurr);
+			}
 		}
 
 # checks for new __setup's

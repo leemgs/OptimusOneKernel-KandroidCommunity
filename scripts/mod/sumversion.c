@@ -10,28 +10,7 @@
 #include <limits.h>
 #include "modpost.h"
 
-/*
- * Stolen form Cryptographic API.
- *
- * MD4 Message Digest Algorithm (RFC1320).
- *
- * Implementation derived from Andrew Tridgell and Steve French's
- * CIFS MD4 implementation, and the cryptoapi implementation
- * originally based on the public domain implementation written
- * by Colin Plumb in 1993.
- *
- * Copyright (c) Andrew Tridgell 1997-1998.
- * Modified by Steve French (sfrench@us.ibm.com) 2002
- * Copyright (c) Cryptoapi developers.
- * Copyright (c) 2002 David S. Miller (davem@redhat.com)
- * Copyright (c) 2002 James Morris <jmorris@intercode.com.au>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- */
+
 #define MD4_DIGEST_SIZE		16
 #define MD4_HMAC_BLOCK_SIZE	64
 #define MD4_BLOCK_WORDS		16
@@ -68,7 +47,7 @@ static inline uint32_t H(uint32_t x, uint32_t y, uint32_t z)
 #define ROUND2(a,b,c,d,k,s) (a = lshift(a + G(b,c,d) + k + (uint32_t)0x5A827999,s))
 #define ROUND3(a,b,c,d,k,s) (a = lshift(a + H(b,c,d) + k + (uint32_t)0x6ED9EBA1,s))
 
-/* XXX: this stuff can be optimized */
+
 static inline void le32_to_cpu_array(uint32_t *buf, unsigned int words)
 {
 	while (words--) {
@@ -252,7 +231,7 @@ static int parse_comment(const char *file, unsigned long len)
 	return i;
 }
 
-/* FIXME: Handle .s files differently (eg. # starts comments) --RR */
+
 static int parse_file(const char *fname, struct md4_ctx *md)
 {
 	char *file;
@@ -263,7 +242,7 @@ static int parse_file(const char *fname, struct md4_ctx *md)
 		return 0;
 
 	for (i = 0; i < len; i++) {
-		/* Collapse and ignore \ and CR. */
+		
 		if (file[i] == '\\' && (i+1 < len) && file[i+1] == '\n') {
 			i++;
 			continue;

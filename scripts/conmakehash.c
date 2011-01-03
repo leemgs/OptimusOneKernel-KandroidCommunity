@@ -1,18 +1,4 @@
-/*
- * conmakehash.c
- *
- * Create arrays for initializing the kernel folded tables (using a hash
- * table turned out to be to limiting...)  Unfortunately we can't simply
- * preinitialize the tables at compile time since kfree() cannot accept
- * memory not allocated by kmalloc(), and doing our own memory management
- * just for this seems like massive overkill.
- *
- * Copyright (C) 1995-1997 H. Peter Anvin
- *
- * This program is a part of the Linux kernel, and may be freely
- * copied under the terms of the GNU General Public License (GPL),
- * version 2, or at your option any later version.
- */
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,7 +32,7 @@ static int getunicode(char **p0)
 }
 
 unicode unitable[MAX_FONTLEN][255];
-				/* Massive overkill, but who cares? */
+				
 int unicount[MAX_FONTLEN];
 
 static void addpair(int fp, int un)
@@ -55,13 +41,13 @@ static void addpair(int fp, int un)
 
   if ( un <= 0xfffe )
     {
-      /* Check it isn't a duplicate */
+      
 
       for ( i = 0 ; i < unicount[fp] ; i++ )
 	if ( unitable[fp][i] == un )
 	  return;
 
-      /* Add to list */
+      
 
       if ( unicount[fp] > 254 )
 	{
@@ -73,7 +59,7 @@ static void addpair(int fp, int un)
       unicount[fp]++;
     }
 
-  /* otherwise: ignore */
+  
 }
 
 int main(int argc, char *argv[])
@@ -104,15 +90,15 @@ int main(int argc, char *argv[])
 	}
     }
 
-  /* For now we assume the default font is always 256 characters. */    
+      
   fontlen = 256;
 
-  /* Initialize table */
+  
 
   for ( i = 0 ; i < fontlen ; i++ )
     unicount[i] = 0;
 
-  /* Now we come to the tricky part.  Parse the input table. */
+  
 
   while ( fgets(buffer, sizeof(buffer), ctbl) != NULL )
     {
@@ -123,21 +109,12 @@ int main(int argc, char *argv[])
 
       p = buffer;
 
-/*
- * Syntax accepted:
- *	<fontpos>	<unicode> <unicode> ...
- *	<range>		idem
- *	<range>		<unicode range>
- *
- * where <range> ::= <fontpos>-<fontpos>
- * and <unicode> ::= U+<h><h><h><h>
- * and <h> ::= <hexadecimal digit>
- */
+
 
       while (*p == ' ' || *p == '\t')
 	p++;
       if (!*p || *p == '#')
-	continue;	/* skip comment or blank line */
+	continue;	
 
       fp0 = strtol(p, &p1, 0);
       if (p1 == p)
@@ -180,8 +157,7 @@ int main(int argc, char *argv[])
 
       if (fp1)
 	{
-	  /* we have a range; expect the word "idem" or a Unicode range of the
-	     same length */
+	  
 	  while (*p == ' ' || *p == '\t')
 	    p++;
 	  if (!strncmp(p, "idem", 4))
@@ -224,7 +200,7 @@ int main(int argc, char *argv[])
         }
       else
 	{
-	    /* no range; expect a list of unicode values for a single font position */
+	    
 
 	    while ( (un0 = getunicode(&p)) >= 0 )
 	      addpair(fp0, un0);
@@ -235,12 +211,12 @@ int main(int argc, char *argv[])
 	fprintf(stderr, "%s: trailing junk (%s) ignored\n", tblname, p);
     }
 
-  /* Okay, we hit EOF, now output hash table */
+  
   
   fclose(ctbl);
   
 
-  /* Compute total size of Unicode list */
+  
   nuni = 0;
   for ( i = 0 ; i < fontlen ; i++ )
     nuni += unicount[i];

@@ -1,7 +1,4 @@
-/*
- * Copyright (C) 2002 Roman Zippel <zippel@linux-m68k.org>
- * Released under the terms of the GNU GPL v2.0.
- */
+
 
 #include <ctype.h>
 #include <stdlib.h>
@@ -191,7 +188,7 @@ static void sym_calc_visibility(struct symbol *sym)
 	struct property *prop;
 	tristate tri;
 
-	/* any prompt visible? */
+	
 	tri = no;
 	for_all_prompts(sym, prop) {
 		prop->visible.tri = expr_calc_value(prop->visible.expr);
@@ -222,7 +219,7 @@ static struct symbol *sym_calc_choice(struct symbol *sym)
 	struct property *prop;
 	struct expr *e;
 
-	/* is the user choice visible? */
+	
 	def_sym = sym->def[S_DEF_USER].val;
 	if (def_sym) {
 		sym_calc_visibility(def_sym);
@@ -230,7 +227,7 @@ static struct symbol *sym_calc_choice(struct symbol *sym)
 			return def_sym;
 	}
 
-	/* any of the defaults visible? */
+	
 	for_all_defaults(sym, prop) {
 		prop->visible.tri = expr_calc_value(prop->visible.expr);
 		if (prop->visible.tri == no)
@@ -241,7 +238,7 @@ static struct symbol *sym_calc_choice(struct symbol *sym)
 			return def_sym;
 	}
 
-	/* just get the first visible value */
+	
 	prop = sym_get_choice_prop(sym);
 	expr_list_for_each_sym(prop->expr, e, def_sym) {
 		sym_calc_visibility(def_sym);
@@ -249,7 +246,7 @@ static struct symbol *sym_calc_choice(struct symbol *sym)
 			return def_sym;
 	}
 
-	/* no choice? reset tristate value */
+	
 	sym->curr.tri = no;
 	return NULL;
 }
@@ -289,7 +286,7 @@ void sym_calc_value(struct symbol *sym)
 
 	sym_calc_visibility(sym);
 
-	/* set default if recursively called */
+	
 	sym->curr = newval;
 
 	switch (sym_get_type(sym)) {
@@ -300,9 +297,7 @@ void sym_calc_value(struct symbol *sym)
 			newval.tri = (prop_get_symbol(prop)->curr.val == sym) ? yes : no;
 		} else {
 			if (sym->visible != no) {
-				/* if the symbol is visible use the user value
-				 * if available, otherwise try the default value
-				 */
+				
 				sym->flags |= SYMBOL_WRITE;
 				if (sym_has_value(sym)) {
 					newval.tri = EXPR_AND(sym->def[S_DEF_USER].tri,
@@ -441,10 +436,7 @@ bool sym_set_tristate_value(struct symbol *sym, tristate val)
 		sym->flags |= SYMBOL_DEF_USER;
 		sym_set_changed(sym);
 	}
-	/*
-	 * setting a choice value also resets the new flag of the choice
-	 * symbol and all other choice values.
-	 */
+	
 	if (sym_is_choice_value(sym) && val == yes) {
 		struct symbol *cs = prop_get_symbol(sym_get_choice_prop(sym));
 		struct property *prop;
@@ -730,7 +722,7 @@ struct symbol **sym_re_search(const char *pattern)
 	regex_t re;
 
 	cnt = size = 0;
-	/* Skip if empty */
+	
 	if (strlen(pattern) == 0)
 		return NULL;
 	if (regcomp(&re, pattern, REG_EXTENDED|REG_NOSUB|REG_ICASE))
@@ -790,7 +782,7 @@ static struct symbol *sym_check_expr_deps(struct expr *e)
 	return NULL;
 }
 
-/* return NULL when dependencies are OK */
+
 static struct symbol *sym_check_sym_deps(struct symbol *sym)
 {
 	struct symbol *sym2;
@@ -865,7 +857,7 @@ struct symbol *sym_check_deps(struct symbol *sym)
 		return NULL;
 
 	if (sym_is_choice_value(sym)) {
-		/* for choice groups start the check with main choice symbol */
+		
 		prop = sym_get_choice_prop(sym);
 		sym2 = sym_check_deps(prop_get_symbol(prop));
 	} else if (sym_is_choice(sym)) {
@@ -900,7 +892,7 @@ struct property *prop_alloc(enum prop_type type, struct symbol *sym)
 	prop->file = current_file;
 	prop->lineno = zconf_lineno();
 
-	/* append property to the prop list of symbol */
+	
 	if (sym) {
 		for (propp = &sym->prop; *propp; propp = &(*propp)->next)
 			;

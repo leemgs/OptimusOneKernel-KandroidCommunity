@@ -1,28 +1,4 @@
-/***************************************************************************
- * binoffset.c
- * (C) 2002 Randy Dunlap <rdunlap@xenotime.net>
 
-#   This program is free software; you can redistribute it and/or modify
-#   it under the terms of the GNU General Public License as published by
-#   the Free Software Foundation; either version 2 of the License, or
-#   (at your option) any later version.
-#
-#   This program is distributed in the hope that it will be useful,
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
-#
-#   You should have received a copy of the GNU General Public License
-#   along with this program; if not, write to the Free Software
-#   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-# binoffset.c:
-# - searches a (binary) file for a specified (binary) pattern
-# - returns the offset of the located pattern or ~0 if not found
-# - exits with exit status 0 normally or non-0 if pattern is not found
-#   or any other error occurs.
-
-****************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,10 +17,10 @@
 char		*progname;
 char		*inputname;
 int		inputfd;
-unsigned int	bix;			/* buf index */
-unsigned char	patterns [PAT_SIZE] = {0}; /* byte-sized pattern array */
-int		pat_len;		/* actual number of pattern bytes */
-unsigned char	*madr;			/* mmap address */
+unsigned int	bix;			
+unsigned char	patterns [PAT_SIZE] = {0}; 
+int		pat_len;		
+unsigned char	*madr;			
 size_t		filesize;
 int		num_matches = 0;
 off_t		firstloc = 0;
@@ -160,4 +136,4 @@ int main (int argc, char *argv [])
 	exit (num_matches ? 0 : 2);
 }
 
-/* end binoffset.c */
+

@@ -1,12 +1,4 @@
-/*
- * Copyright (C) 2002 Roman Zippel <zippel@linux-m68k.org>
- * Released under the terms of the GNU GPL v2.0.
- *
- * Introduced single menu mode (show all sub-menus in one large tree).
- * 2002-11-06 Petr Baudis <pasky@ucw.cz>
- *
- * i18n, 2005, Arnaldo Carvalho de Melo <acme@conectiva.com.br>
- */
+
 
 #include <ctype.h>
 #include <errno.h>
@@ -339,7 +331,7 @@ again:
 		return;
 	}
 
-	/* strip CONFIG_ if necessary */
+	
 	dialog_input = dialog_input_result;
 	if (strncasecmp(dialog_input_result, "CONFIG_", 7) == 0)
 		dialog_input += 7;
@@ -492,7 +484,7 @@ static void build_conf(struct menu *menu)
 				item_set_data(menu);
 				break;
 			default:
-				tmp = 2 + strlen(sym_get_string_value(sym)); /* () = 2 */
+				tmp = 2 + strlen(sym_get_string_value(sym)); 
 				item_make("(%s)", sym_get_string_value(sym));
 				tmp = indent - tmp + 4;
 				if (tmp < 0)

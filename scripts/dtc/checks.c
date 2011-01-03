@@ -1,22 +1,4 @@
-/*
- * (C) Copyright David Gibson <dwg@au1.ibm.com>, IBM Corporation.  2007.
- *
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
- *                                                                   USA
- */
+
 
 #include "dtc.h"
 
@@ -96,7 +78,7 @@ static inline void check_msg(struct check *c, const char *fmt, ...)
 	va_start(ap, fmt);
 
 	if ((c->level < WARN) || (c->level <= quiet))
-		return; /* Suppress message */
+		return; 
 
 	fprintf(stderr, "%s (%s): ",
 		(c->level == ERROR) ? "ERROR" : "Warning", c->name);
@@ -172,9 +154,7 @@ out:
 	return error;
 }
 
-/*
- * Utility check functions
- */
+
 
 static void check_is_string(struct check *c, struct node *root,
 			    struct node *node)
@@ -184,7 +164,7 @@ static void check_is_string(struct check *c, struct node *root,
 
 	prop = get_property(node, propname);
 	if (!prop)
-		return; /* Not present, assumed ok */
+		return; 
 
 	if (!data_is_one_string(prop->val))
 		FAIL(c, "\"%s\" property in %s is not a string",
@@ -201,7 +181,7 @@ static void check_is_cell(struct check *c, struct node *root,
 
 	prop = get_property(node, propname);
 	if (!prop)
-		return; /* Not present, assumed ok */
+		return; 
 
 	if (prop->val.len != sizeof(cell_t))
 		FAIL(c, "\"%s\" property in %s is not a single cell",
@@ -210,9 +190,7 @@ static void check_is_cell(struct check *c, struct node *root,
 #define CHECK_IS_CELL(nm, propname, lvl) \
 	CHECK(nm, NULL, check_is_cell, NULL, (propname), (lvl))
 
-/*
- * Structural check functions
- */
+
 
 static void check_duplicate_node_names(struct check *c, struct node *dt,
 				       struct node *node)
@@ -287,7 +265,7 @@ static void check_explicit_phandles(struct check *c, struct node *root,
 
 	prop = get_property(node, "linux,phandle");
 	if (! prop)
-		return; /* No phandle, that's fine */
+		return; 
 
 	if (prop->val.len != sizeof(cell_t)) {
 		FAIL(c, "%s has bad length (%d) linux,phandle property",
@@ -325,15 +303,14 @@ static void check_name_properties(struct check *c, struct node *root,
 		}
 
 	if (!prop)
-		return; /* No name property, that's fine */
+		return; 
 
 	if ((prop->val.len != node->basenamelen+1)
 	    || (memcmp(prop->val.val, node->name, node->basenamelen) != 0)) {
 		FAIL(c, "\"name\" property in %s is incorrect (\"%s\" instead"
 		     " of base node name)", node->fullpath, prop->val.val);
 	} else {
-		/* The name property is correct, and therefore redundant.
-		 * Delete it */
+		
 		*pp = prop->next;
 		free(prop->name);
 		data_free(prop->val);
@@ -343,9 +320,7 @@ static void check_name_properties(struct check *c, struct node *root,
 CHECK_IS_STRING(name_is_string, "name", ERROR);
 NODE_CHECK(name_properties, NULL, ERROR, &name_is_string);
 
-/*
- * Reference fixup functions
- */
+
 
 static void fixup_phandle_references(struct check *c, struct node *dt,
 				     struct node *node, struct property *prop)
@@ -396,9 +371,7 @@ static void fixup_path_references(struct check *c, struct node *dt,
 CHECK(path_references, NULL, NULL, fixup_path_references, NULL, ERROR,
       &duplicate_node_names);
 
-/*
- * Semantic checks
- */
+
 CHECK_IS_CELL(address_cells_is_cell, "#address-cells", WARN);
 CHECK_IS_CELL(size_cells_is_cell, "#size-cells", WARN);
 CHECK_IS_CELL(interrupt_cells_is_cell, "#interrupt-cells", WARN);
@@ -439,7 +412,7 @@ static void check_reg_format(struct check *c, struct node *dt,
 
 	prop = get_property(node, "reg");
 	if (!prop)
-		return; /* No "reg", that's fine */
+		return; 
 
 	if (!node->parent) {
 		FAIL(c, "Root node has a \"reg\" property");
@@ -501,16 +474,14 @@ static void check_ranges_format(struct check *c, struct node *dt,
 }
 NODE_CHECK(ranges_format, NULL, WARN, &addr_size_cells);
 
-/*
- * Style checks
- */
+
 static void check_avoid_default_addr_size(struct check *c, struct node *dt,
 					  struct node *node)
 {
 	struct property *reg, *ranges;
 
 	if (!node->parent)
-		return; /* Ignore root node */
+		return; 
 
 	reg = get_property(node, "reg");
 	ranges = get_property(node, "ranges");

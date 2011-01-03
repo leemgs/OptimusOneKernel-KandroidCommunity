@@ -1,7 +1,4 @@
-/*
- * Copyright (C) 2002 Roman Zippel <zippel@linux-m68k.org>
- * Released under the terms of the GNU GPL v2.0.
- */
+
 
 #ifndef LKC_H
 #define LKC_H
@@ -72,7 +69,7 @@ void zconf_nextfile(const char *name);
 int zconf_lineno(void);
 char *zconf_curname(void);
 
-/* confdata.c */
+
 const char *conf_get_configname(void);
 const char *conf_get_autoconfig_name(void);
 char *conf_get_default_confname(void);
@@ -80,10 +77,10 @@ void sym_set_change_count(int count);
 void sym_add_change_count(int count);
 void conf_set_all_new_symbols(enum conf_def_mode mode);
 
-/* kconfig_load.c */
+
 void kconfig_load(void);
 
-/* menu.c */
+
 void menu_init(void);
 void menu_warn(struct menu *menu, const char *fmt, ...);
 struct menu *menu_add_menu(void);
@@ -99,7 +96,7 @@ void menu_add_option(int token, char *arg);
 void menu_finalize(struct menu *parent);
 void menu_set_type(int type);
 
-/* util.c */
+
 struct file *file_lookup(const char *name);
 int file_write_dep(const char *name);
 
@@ -114,7 +111,7 @@ void str_append(struct gstr *gs, const char *s);
 void str_printf(struct gstr *gs, const char *fmt, ...);
 const char *str_get(struct gstr *gs);
 
-/* symbol.c */
+
 extern struct expr *sym_env_list;
 
 void sym_init(void);
@@ -166,4 +163,4 @@ static inline bool sym_has_value(struct symbol *sym)
 }
 #endif
 
-#endif /* LKC_H */
+#endif 

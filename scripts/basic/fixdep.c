@@ -1,107 +1,5 @@
-/*
- * "Optimize" a list of dependencies as spit out by gcc -MD
- * for the kernel build
- * ===========================================================================
- *
- * Author       Kai Germaschewski
- * Copyright    2002 by Kai Germaschewski  <kai.germaschewski@gmx.de>
- *
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- *
- *
- * Introduction:
- *
- * gcc produces a very nice and correct list of dependencies which
- * tells make when to remake a file.
- *
- * To use this list as-is however has the drawback that virtually
- * every file in the kernel includes <linux/autoconf.h>.
- *
- * If the user re-runs make *config, linux/autoconf.h will be
- * regenerated.  make notices that and will rebuild every file which
- * includes autoconf.h, i.e. basically all files. This is extremely
- * annoying if the user just changed CONFIG_HIS_DRIVER from n to m.
- *
- * So we play the same trick that "mkdep" played before. We replace
- * the dependency on linux/autoconf.h by a dependency on every config
- * option which is mentioned in any of the listed prequisites.
- *
- * kconfig populates a tree in include/config/ with an empty file
- * for each config symbol and when the configuration is updated
- * the files representing changed config options are touched
- * which then let make pick up the changes and the files that use
- * the config symbols are rebuilt.
- *
- * So if the user changes his CONFIG_HIS_DRIVER option, only the objects
- * which depend on "include/linux/config/his/driver.h" will be rebuilt,
- * so most likely only his driver ;-)
- *
- * The idea above dates, by the way, back to Michael E Chastain, AFAIK.
- *
- * So to get dependencies right, there are two issues:
- * o if any of the files the compiler read changed, we need to rebuild
- * o if the command line given to the compile the file changed, we
- *   better rebuild as well.
- *
- * The former is handled by using the -MD output, the later by saving
- * the command line used to compile the old object and comparing it
- * to the one we would now use.
- *
- * Again, also this idea is pretty old and has been discussed on
- * kbuild-devel a long time ago. I don't have a sensibly working
- * internet connection right now, so I rather don't mention names
- * without double checking.
- *
- * This code here has been based partially based on mkdep.c, which
- * says the following about its history:
- *
- *   Copyright abandoned, Michael Chastain, <mailto:mec@shout.net>.
- *   This is a C version of syncdep.pl by Werner Almesberger.
- *
- *
- * It is invoked as
- *
- *   fixdep <depfile> <target> <cmdline>
- *
- * and will read the dependency file <depfile>
- *
- * The transformed dependency snipped is written to stdout.
- *
- * It first generates a line
- *
- *   cmd_<target> = <cmdline>
- *
- * and then basically copies the .<target>.d file to stdout, in the
- * process filtering out the dependency on linux/autoconf.h and adding
- * dependencies on include/config/my/option.h for every
- * CONFIG_MY_OPTION encountered in any of the prequisites.
- *
- * It will also filter out all the dependencies on *.ver. We need
- * to make sure that the generated version checksum are globally up
- * to date before even starting the recursive build, so it's too late
- * at this point anyway.
- *
- * The algorithm to grep for "CONFIG_..." is bit unusual, but should
- * be fast ;-) We don't even try to really parse the header files, but
- * merely grep, i.e. if CONFIG_FOO is mentioned in a comment, it will
- * be picked up as well. It's not a problem with respect to
- * correctness, since that can only give too many dependencies, thus
- * we cannot miss a rebuild. Since people tend to not mention totally
- * unrelated CONFIG_ options all over the place, it's not an
- * efficiency problem either.
- *
- * (Note: it'd be easy to port over the complete mkdep state machine,
- *  but I don't think the added complexity is worth it)
- */
-/*
- * Note 2: if somebody writes HELLO_CONFIG_BOOM in a file, it will depend onto
- * CONFIG_BOOM. This could seem a bug (not too hard to fix), but please do not
- * fix it! Some UserModeLinux files (look at arch/um/) call CONFIG_BOOM as
- * UML_CONFIG_BOOM, to avoid conflicts with /usr/include/linux/autoconf.h,
- * through arch/um/include/uml-config.h; this fixdep "bug" makes sure that
- * those files will have correct dependencies.
- */
+
+
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -130,9 +28,7 @@ static void usage(void)
 	exit(1);
 }
 
-/*
- * Print out the commandline prefixed with cmd_<target filename> :=
- */
+
 static void print_cmdline(void)
 {
 	printf("cmd_%s := %s\n\n", target, cmdline);
@@ -142,10 +38,7 @@ char * str_config  = NULL;
 int    size_config = 0;
 int    len_config  = 0;
 
-/*
- * Grow the configuration string to a desired length.
- * Usually the first growth is plenty.
- */
+
 static void grow_config(int len)
 {
 	while (len_config + len > size_config) {
@@ -159,9 +52,7 @@ static void grow_config(int len)
 
 
 
-/*
- * Lookup a value in the configuration string.
- */
+
 static int is_defined_config(const char * name, int len)
 {
 	const char * pconfig;
@@ -175,9 +66,7 @@ static int is_defined_config(const char * name, int len)
 	return 0;
 }
 
-/*
- * Add a new value to the configuration string.
- */
+
 static void define_config(const char * name, int len)
 {
 	grow_config(len + 1);
@@ -187,18 +76,14 @@ static void define_config(const char * name, int len)
 	str_config[len_config++] = '\n';
 }
 
-/*
- * Clear the set of configuration strings.
- */
+
 static void clear_config(void)
 {
 	len_config = 0;
 	define_config("", 0);
 }
 
-/*
- * Record the use of a CONFIG_* word.
- */
+
 static void use_config(char *m, int slen)
 {
 	char s[PATH_MAX];
@@ -223,7 +108,7 @@ static void use_config(char *m, int slen)
 static void parse_config_file(char *map, size_t len)
 {
 	int *end = (int *) (map + len);
-	/* start at +1, so that p can never be < map */
+	
 	int *m   = (int *) map + 1;
 	char *p, *q;
 
@@ -253,7 +138,7 @@ static void parse_config_file(char *map, size_t len)
 	}
 }
 
-/* test is s ends in sub */
+
 static int strrcmp(char *s, char *sub)
 {
 	int slen = strlen(s);

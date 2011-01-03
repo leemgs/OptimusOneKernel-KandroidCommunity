@@ -1,19 +1,8 @@
-/* Simple code to turn various tables in an ELF file into alias definitions.
- * This deals with kernel datastructures where they should be
- * dealt with: in the kernel source.
- *
- * Copyright 2002-2003  Rusty Russell, IBM Corporation
- *           2003       Kai Germaschewski
- *
- *
- * This software may be used and distributed according to the terms
- * of the GNU General Public License, incorporated herein by reference.
- */
+
 
 #include "modpost.h"
 
-/* We use the ELF typedefs for kernel_ulong_t but bite the bullet and
- * use either stdint.h or inttypes.h for the rest. */
+
 #if KERNEL_ELFCLASS == ELFCLASS32
 typedef Elf32_Addr	kernel_ulong_t;
 #define BITS_PER_LONG 32
@@ -33,9 +22,7 @@ typedef uint32_t	__u32;
 typedef uint16_t	__u16;
 typedef unsigned char	__u8;
 
-/* Big exception to the "don't include kernel headers into userspace, which
- * even potentially has different endianness and word sizes, since
- * we handle those differences explicitly below */
+
 #include "../../include/linux/mod_devicetable.h"
 
 #define ADD(str, sep, cond, field)                              \
@@ -51,7 +38,7 @@ do {                                                            \
                 sprintf(str + strlen(str), "*");                \
 } while(0)
 
-/* Always end in a wildcard, for future extension */
+
 static inline void add_wildcard(char *str)
 {
 	int len = strlen(str);
@@ -61,13 +48,7 @@ static inline void add_wildcard(char *str)
 }
 
 unsigned int cross_build = 0;
-/**
- * Check that sizeof(device_id type) are consistent with size of section
- * in .o file. If in-consistent then userspace and kernel does not agree
- * on actual size which is a bug.
- * Also verify that the final entry in the table is all zeros.
- * Ignore both checks if build host differ from target host and size differs.
- **/
+
 static void device_id_check(const char *modname, const char *device_id,
 			    unsigned long size, unsigned long id_size,
 			    void *symval)
@@ -83,7 +64,7 @@ static void device_id_check(const char *modname, const char *device_id,
 		      "in mod_devicetable.h\n",
 		      modname, device_id, id_size, device_id, size, device_id);
 	}
-	/* Verify last one is a terminator */
+	
 	for (i = 0; i < id_size; i++ ) {
 		if (*(uint8_t*)(symval+size-id_size+i)) {
 			fprintf(stderr,"%s: struct %s_device_id is %lu bytes.  "
@@ -99,8 +80,8 @@ static void device_id_check(const char *modname, const char *device_id,
 	}
 }
 
-/* USB is special because the bcdDevice can be matched against a numeric range */
-/* Looks like "usb:vNpNdNdcNdscNdpNicNiscNipN" */
+
+
 static void do_usb_entry(struct usb_device_id *id,
 			 unsigned int bcdDevice_initial, int bcdDevice_initial_digits,
 			 unsigned char range_lo, unsigned char range_hi,
@@ -162,18 +143,15 @@ static void do_usb_entry_multi(struct usb_device_id *id, struct module *mod)
 	devhi = id->match_flags & USB_DEVICE_ID_MATCH_DEV_HI ?
 		TO_NATIVE(id->bcdDevice_hi) : ~0x0U;
 
-	/*
-	 * Some modules (visor) have empty slots as placeholder for
-	 * run-time specification that results in catch-all alias
-	 */
+	
 	if (!(id->idVendor | id->idProduct | id->bDeviceClass | id->bInterfaceClass))
 		return;
 
-	/* Convert numeric bcdDevice range into fnmatch-able pattern(s) */
+	
 	for (ndigits = sizeof(id->bcdDevice_lo) * 2 - 1; devlo <= devhi; ndigits--) {
 		clo = devlo & 0xf;
 		chi = devhi & 0xf;
-		if (chi > 9)	/* it's bcd not hex */
+		if (chi > 9)	
 			chi = 9;
 		devlo >>= 4;
 		devhi >>= 4;
@@ -199,14 +177,14 @@ static void do_usb_table(void *symval, unsigned long size,
 
 	device_id_check(mod->name, "usb", size, id_size, symval);
 
-	/* Leave last one: it's the terminator. */
+	
 	size -= id_size;
 
 	for (i = 0; i < size; i += id_size)
 		do_usb_entry_multi(symval + i, mod);
 }
 
-/* Looks like: hid:bNvNpN */
+
 static int do_hid_entry(const char *filename,
 			     struct hid_device_id *id, char *alias)
 {
@@ -221,7 +199,7 @@ static int do_hid_entry(const char *filename,
 	return 1;
 }
 
-/* Looks like: ieee1394:venNmoNspNverN */
+
 static int do_ieee1394_entry(const char *filename,
 			     struct ieee1394_device_id *id, char *alias)
 {
@@ -245,11 +223,11 @@ static int do_ieee1394_entry(const char *filename,
 	return 1;
 }
 
-/* Looks like: pci:vNdNsvNsdNbcNscNiN. */
+
 static int do_pci_entry(const char *filename,
 			struct pci_device_id *id, char *alias)
 {
-	/* Class field can be divided into these three. */
+	
 	unsigned char baseclass, subclass, interface,
 		baseclass_mask, subclass_mask, interface_mask;
 
@@ -288,7 +266,7 @@ static int do_pci_entry(const char *filename,
 	return 1;
 }
 
-/* looks like: "ccw:tNmNdtNdmN" */
+
 static int do_ccw_entry(const char *filename,
 			struct ccw_device_id *id, char *alias)
 {
@@ -311,7 +289,7 @@ static int do_ccw_entry(const char *filename,
 	return 1;
 }
 
-/* looks like: "ap:tN" */
+
 static int do_ap_entry(const char *filename,
 		       struct ap_device_id *id, char *alias)
 {
@@ -319,7 +297,7 @@ static int do_ap_entry(const char *filename,
 	return 1;
 }
 
-/* looks like: "css:tN" */
+
 static int do_css_entry(const char *filename,
 			struct css_device_id *id, char *alias)
 {
@@ -327,7 +305,7 @@ static int do_css_entry(const char *filename,
 	return 1;
 }
 
-/* Looks like: "serio:tyNprNidNexN" */
+
 static int do_serio_entry(const char *filename,
 			  struct serio_device_id *id, char *alias)
 {
@@ -346,7 +324,7 @@ static int do_serio_entry(const char *filename,
 	return 1;
 }
 
-/* looks like: "acpi:ACPI0003 or acpi:PNP0C0B" or "acpi:LNXVIDEO" */
+
 static int do_acpi_entry(const char *filename,
 			struct acpi_device_id *id, char *alias)
 {
@@ -354,7 +332,7 @@ static int do_acpi_entry(const char *filename,
 	return 1;
 }
 
-/* looks like: "pnp:dD" */
+
 static void do_pnp_device_entry(void *symval, unsigned long size,
 				struct module *mod)
 {
@@ -373,7 +351,7 @@ static void do_pnp_device_entry(void *symval, unsigned long size,
 		buf_printf(&mod->dev_table_buf,
 			   "MODULE_ALIAS(\"pnp:d%s*\");\n", id);
 
-		/* fix broken pnp bus lowercasing */
+		
 		for (j = 0; j < sizeof(acpi_id); j++)
 			acpi_id[j] = toupper(id[j]);
 		buf_printf(&mod->dev_table_buf,
@@ -381,7 +359,7 @@ static void do_pnp_device_entry(void *symval, unsigned long size,
 	}
 }
 
-/* looks like: "pnp:dD" for every device of the card */
+
 static void do_pnp_card_entries(void *symval, unsigned long size,
 				struct module *mod)
 {
@@ -404,7 +382,7 @@ static void do_pnp_card_entries(void *symval, unsigned long size,
 			if (!id[0])
 				break;
 
-			/* find duplicate, already added value */
+			
 			for (i2 = 0; i2 < i && !dup; i2++) {
 				const struct pnp_card_device_id *card2 = &cards[i2];
 
@@ -421,7 +399,7 @@ static void do_pnp_card_entries(void *symval, unsigned long size,
 				}
 			}
 
-			/* add an individual alias for every device entry */
+			
 			if (!dup) {
 				char acpi_id[sizeof(card->devs[0].id)];
 				int k;
@@ -429,7 +407,7 @@ static void do_pnp_card_entries(void *symval, unsigned long size,
 				buf_printf(&mod->dev_table_buf,
 					   "MODULE_ALIAS(\"pnp:d%s*\");\n", id);
 
-				/* fix broken pnp bus lowercasing */
+				
 				for (k = 0; k < sizeof(acpi_id); k++)
 					acpi_id[k] = toupper(id[k]);
 				buf_printf(&mod->dev_table_buf,
@@ -439,7 +417,7 @@ static void do_pnp_card_entries(void *symval, unsigned long size,
 	}
 }
 
-/* Looks like: pcmcia:mNcNfNfnNpfnNvaNvbNvcNvdN. */
+
 static int do_pcmcia_entry(const char *filename,
 			   struct pcmcia_device_id *id, char *alias)
 {
@@ -491,7 +469,7 @@ static int do_of_entry (const char *filename, struct of_device_id *of, char *ali
                      of->type[0] ? "*" : "",
                      of->compatible);
 
-    /* Replace all whitespace with underscores */
+    
     for (tmp = alias; tmp && *tmp; tmp++)
         if (isspace (*tmp))
             *tmp = '_';
@@ -508,7 +486,7 @@ static int do_vio_entry(const char *filename, struct vio_device_id *vio,
 	sprintf(alias, "vio:T%sS%s", vio->type[0] ? vio->type : "*",
 			vio->compat[0] ? vio->compat : "*");
 
-	/* Replace all whitespace with underscores */
+	
 	for (tmp = alias; tmp && *tmp; tmp++)
 		if (isspace (*tmp))
 			*tmp = '_';
@@ -529,7 +507,7 @@ static void do_input(char *alias,
 			sprintf(alias + strlen(alias), "%X,*", i);
 }
 
-/* input:b0v0p0e0-eXkXrXaXmXlXsXfXwX where X is comma-separated %02X. */
+
 static int do_input_entry(const char *filename, struct input_device_id *id,
 			  char *alias)
 {
@@ -582,7 +560,7 @@ static int do_eisa_entry(const char *filename, struct eisa_device_id *eisa,
 	return 1;
 }
 
-/* Looks like: parisc:tNhvNrevNsvN */
+
 static int do_parisc_entry(const char *filename, struct parisc_device_id *id,
 		char *alias)
 {
@@ -601,7 +579,7 @@ static int do_parisc_entry(const char *filename, struct parisc_device_id *id,
 	return 1;
 }
 
-/* Looks like: sdio:cNvNdN. */
+
 static int do_sdio_entry(const char *filename,
 			struct sdio_device_id *id, char *alias)
 {
@@ -617,7 +595,7 @@ static int do_sdio_entry(const char *filename,
 	return 1;
 }
 
-/* Looks like: ssb:vNidNrevN. */
+
 static int do_ssb_entry(const char *filename,
 			struct ssb_device_id *id, char *alias)
 {
@@ -633,7 +611,7 @@ static int do_ssb_entry(const char *filename,
 	return 1;
 }
 
-/* Looks like: virtio:dNvN */
+
 static int do_virtio_entry(const char *filename, struct virtio_device_id *id,
 			   char *alias)
 {
@@ -648,7 +626,7 @@ static int do_virtio_entry(const char *filename, struct virtio_device_id *id,
 	return 1;
 }
 
-/* Looks like: i2c:S */
+
 static int do_i2c_entry(const char *filename, struct i2c_device_id *id,
 			char *alias)
 {
@@ -657,7 +635,7 @@ static int do_i2c_entry(const char *filename, struct i2c_device_id *id,
 	return 1;
 }
 
-/* Looks like: spi:S */
+
 static int do_spi_entry(const char *filename, struct spi_device_id *id,
 			char *alias)
 {
@@ -687,7 +665,7 @@ static const struct dmifield {
 
 static void dmi_ascii_filter(char *d, const char *s)
 {
-	/* Filter out characters we don't want to see in the modalias string */
+	
 	for (; *s; s++)
 		if (*s > ' ' && *s < 127 && *s != ':')
 			*(d++) = *s;
@@ -727,7 +705,7 @@ static int do_platform_entry(const char *filename,
 	return 1;
 }
 
-/* Ignore any prefix, eg. some architectures prepend _ */
+
 static inline int sym_is(const char *symbol, const char *name)
 {
 	const char *match;
@@ -749,7 +727,7 @@ static void do_table(void *symval, unsigned long size,
 	int (*do_entry)(const char *, void *entry, char *alias) = function;
 
 	device_id_check(mod->name, device_id, size, id_size, symval);
-	/* Leave last one: it's the terminator. */
+	
 	size -= id_size;
 
 	for (i = 0; i < size; i += id_size) {
@@ -760,20 +738,18 @@ static void do_table(void *symval, unsigned long size,
 	}
 }
 
-/* Create MODULE_ALIAS() statements.
- * At this time, we cannot write the actual output C source yet,
- * so we write into the mod->dev_table_buf buffer. */
+
 void handle_moddevtable(struct module *mod, struct elf_info *info,
 			Elf_Sym *sym, const char *symname)
 {
 	void *symval;
 	char *zeros = NULL;
 
-	/* We're looking for a section relative symbol */
+	
 	if (!sym->st_shndx || sym->st_shndx >= info->hdr->e_shnum)
 		return;
 
-	/* Handle all-NULL symbols allocated into .bss */
+	
 	if (info->sechdrs[sym->st_shndx].sh_type & SHT_NOBITS) {
 		zeros = calloc(1, sym->st_size);
 		symval = zeros;
@@ -788,7 +764,7 @@ void handle_moddevtable(struct module *mod, struct elf_info *info,
 			 sizeof(struct pci_device_id), "pci",
 			 do_pci_entry, mod);
 	else if (sym_is(symname, "__mod_usb_device_table"))
-		/* special case to handle bcdDevice ranges */
+		
 		do_usb_table(symval, sym->st_size, mod);
 	else if (sym_is(symname, "__mod_hid_device_table"))
 		do_table(symval, sym->st_size,
@@ -877,7 +853,7 @@ void handle_moddevtable(struct module *mod, struct elf_info *info,
 	free(zeros);
 }
 
-/* Now add out buffered information to the generated C source */
+
 void add_moddevtable(struct buffer *buf, struct module *mod)
 {
 	buf_printf(buf, "\n");

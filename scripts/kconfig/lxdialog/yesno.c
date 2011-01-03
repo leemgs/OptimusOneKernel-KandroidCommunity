@@ -1,29 +1,8 @@
-/*
- *  yesno.c -- implements the yes/no box
- *
- *  ORIGINAL AUTHOR: Savio Lam (lam836@cs.cuhk.hk)
- *  MODIFIED FOR LINUX KERNEL CONFIG BY: William Roadcap (roadcap@cfw.com)
- *
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License
- *  as published by the Free Software Foundation; either version 2
- *  of the License, or (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include "dialog.h"
 
-/*
- * Display termination buttons
- */
+
 static void print_buttons(WINDOW * dialog, int height, int width, int selected)
 {
 	int x = width / 2 - 10;
@@ -36,9 +15,7 @@ static void print_buttons(WINDOW * dialog, int height, int width, int selected)
 	wrefresh(dialog);
 }
 
-/*
- * Display a dialog box with two buttons - Yes and No
- */
+
 int dialog_yesno(const char *title, const char *prompt, int height, int width)
 {
 	int i, x, y, key = 0, button = 0;
@@ -50,7 +27,7 @@ do_resize:
 	if (getmaxx(stdscr) < (width + 4))
 		return -ERRDISPLAYTOOSMALL;
 
-	/* center dialog box on screen */
+	
 	x = (COLS - width) / 2;
 	y = (LINES - height) / 2;
 
@@ -110,5 +87,5 @@ do_resize:
 	}
 
 	delwin(dialog);
-	return key;		/* ESC pressed */
+	return key;		
 }

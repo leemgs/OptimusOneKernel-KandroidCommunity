@@ -1,8 +1,4 @@
-/*
- * Arnaldo Carvalho de Melo <acme@conectiva.com.br>, 2005
- *
- * Released under the terms of the GNU GPL v2.0
- */
+
 
 #include <stdlib.h>
 #include <string.h>
@@ -216,7 +212,7 @@ static void menu__xgettext(void)
 	struct message *m = message__list;
 
 	while (m != NULL) {
-		/* skip empty lines ("") */
+		
 		if (strlen(m->msg) > sizeof("\"\""))
 			message__print_gettext_msgid_msgstr(m);
 		m = m->next;

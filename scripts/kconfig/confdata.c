@@ -1,7 +1,4 @@
-/*
- * Copyright (C) 2002 Roman Zippel <zippel@linux-m68k.org>
- * Released under the terms of the GNU GPL v2.0.
- */
+
 
 #include <sys/stat.h>
 #include <ctype.h>
@@ -582,10 +579,7 @@ static int conf_split_config(void)
 			continue;
 		if (sym->flags & SYMBOL_WRITE) {
 			if (sym->flags & SYMBOL_DEF_AUTO) {
-				/*
-				 * symbol has old and new value,
-				 * so compare them...
-				 */
+				
 				switch (sym->type) {
 				case S_BOOLEAN:
 				case S_TRISTATE:
@@ -604,10 +598,7 @@ static int conf_split_config(void)
 					break;
 				}
 			} else {
-				/*
-				 * If there is no old value, only 'no' (unset)
-				 * is allowed as new value.
-				 */
+				
 				switch (sym->type) {
 				case S_BOOLEAN:
 				case S_TRISTATE:
@@ -619,15 +610,11 @@ static int conf_split_config(void)
 				}
 			}
 		} else if (!(sym->flags & SYMBOL_DEF_AUTO))
-			/* There is neither an old nor a new value. */
+			
 			continue;
-		/* else
-		 *	There is an old value, but no new value ('no' (unset)
-		 *	isn't saved in auto.conf, so the old value is always
-		 *	different from 'no').
-		 */
+		
 
-		/* Replace all '_' and append ".h" */
+		
 		s = sym->name;
 		d = path;
 		while ((c = *s++)) {
@@ -636,17 +623,14 @@ static int conf_split_config(void)
 		}
 		strcpy(d, ".h");
 
-		/* Assume directory path already exists. */
+		
 		fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
 		if (fd == -1) {
 			if (errno != ENOENT) {
 				res = 1;
 				break;
 			}
-			/*
-			 * Create directory components,
-			 * unless they exist already.
-			 */
+			
 			d = path;
 			while ((d = strchr(d, '/'))) {
 				*d = 0;
@@ -656,7 +640,7 @@ static int conf_split_config(void)
 				}
 				*d++ = '/';
 			}
-			/* Try it again. */
+			
 			fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
 			if (fd == -1) {
 				res = 1;
@@ -780,10 +764,7 @@ int conf_write_autoconf(void)
 	if (rename(".tmpconfig.h", name))
 		return 1;
 	name = conf_get_autoconfig_name();
-	/*
-	 * This must be the last step, kbuild has a dependency on auto.conf
-	 * and this marks the successful completion of the previous steps.
-	 */
+	
 	if (rename(".tmpconfig", name))
 		return 1;
 
@@ -860,15 +841,7 @@ void conf_set_all_new_symbols(enum conf_def_mode mode)
 
 	if (mode != def_random)
 		return;
-	/*
-	 * We have different type of choice blocks.
-	 * If curr.tri equal to mod then we can select several
-	 * choice symbols in one block.
-	 * In this case we do nothing.
-	 * If curr.tri equal yes then only one symbol can be
-	 * selected in a choice block and we set it to yes,
-	 * and the rest to no.
-	 */
+	
 	for_all_symbols(i, csym) {
 		if (sym_has_value(csym) || !sym_is_choice(csym))
 			continue;
@@ -880,15 +853,12 @@ void conf_set_all_new_symbols(enum conf_def_mode mode)
 
 		prop = sym_get_choice_prop(csym);
 
-		/* count entries in choice block */
+		
 		cnt = 0;
 		expr_list_for_each_sym(prop->expr, e, sym)
 			cnt++;
 
-		/*
-		 * find a random value and set it to yes,
-		 * set the rest to no so we have only one set
-		 */
+		
 		def = (rand() % cnt);
 
 		cnt = 0;
@@ -902,7 +872,7 @@ void conf_set_all_new_symbols(enum conf_def_mode mode)
 			}
 		}
 		csym->flags |= SYMBOL_DEF_USER;
-		/* clear VALID to get value calculated */
+		
 		csym->flags &= ~(SYMBOL_VALID);
 	}
 }

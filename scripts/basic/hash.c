@@ -1,7 +1,4 @@
-/*
- * Copyright (C) 2008 Red Hat, Inc., Jason Baron <jbaron@redhat.com>
- *
- */
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,9 +14,7 @@ static void usage(void)
 	exit(1);
 }
 
-/* djb2 hashing algorithm by Dan Bernstein. From:
- * http://www.cse.yorku.ca/~oz/hash.html
- */
+
 
 static unsigned int djb2_hash(char *str)
 {
