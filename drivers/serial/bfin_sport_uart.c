@@ -1,64 +1,12 @@
-/*
- * File:	linux/drivers/serial/bfin_sport_uart.c
- *
- * Based on:	drivers/serial/bfin_5xx.c by Aubrey Li.
- * Author:	Roy Huang <roy.huang@analog.com>
- *
- * Created:	Nov 22, 2006
- * Copyright:	(c) 2006-2007 Analog Devices Inc.
- * Description: this driver enable SPORTs on Blackfin emulate UART.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see the file COPYING, or write
- * to the Free Software Foundation, Inc.,
- * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- */
 
-/*
- * This driver and the hardware supported are in term of EE-191 of ADI.
- * http://www.analog.com/UploadedFiles/Application_Notes/399447663EE191.pdf
- * This application note describe how to implement a UART on a Sharc DSP,
- * but this driver is implemented on Blackfin Processor.
- */
 
-/* After reset, there is a prelude of low level pulse when transmit data first
- * time. No addtional pulse in following transmit.
- * According to document:
- * The SPORTs are ready to start transmitting or receiving data no later than
- * three serial clock cycles after they are enabled in the SPORTx_TCR1 or
- * SPORTx_RCR1 register. No serial clock cycles are lost from this point on.
- * The first internal frame sync will occur one frame sync delay after the
- * SPORTs are ready. External frame syncs can occur as soon as the SPORT is
- * ready.
- */
 
-/* Thanks to Axel Alatalo <axel@rubico.se> for fixing sport rx bug. Sometimes
- * sport receives data incorrectly. The following is Axel's words.
- * As EE-191, sport rx samples 3 times of the UART baudrate and takes the
- * middle smaple of every 3 samples as the data bit. For a 8-N-1 UART setting,
- * 30 samples will be required for a byte. If transmitter sends a 1/3 bit short
- * byte due to buadrate drift, then the 30th sample of a byte, this sample is
- * also the third sample of the stop bit, will happens on the immediately
- * following start bit which will be thrown away and missed. Thus since parts
- * of the startbit will be missed and the receiver will begin to drift, the
- * effect accumulates over time until synchronization is lost.
- * If only require 2 samples of the stopbit (by sampling in total 29 samples),
- * then a to short byte as in the case above will be tolerated. Then the 1/3
- * early startbit will trigger a framesync since the last read is complete
- * after only 2/3 stopbit and framesync is active during the last 1/3 looking
- * for a possible early startbit. */
 
-//#define DEBUG
+
+
+
+
+
 
 #include <linux/module.h>
 #include <linux/ioport.h>
@@ -100,7 +48,7 @@ static void sport_stop_tx(struct uart_port *port);
 static inline void tx_one_byte(struct sport_uart_port *up, unsigned int value)
 {
 	pr_debug("%s value:%x\n", __func__, value);
-	/* Place a Start and Stop bit */
+	
 	__asm__ __volatile__ (
 		"R2 = b#01111111100;"
 		"R3 = b#10000000001;"
@@ -124,7 +72,7 @@ static inline unsigned int rx_one_byte(struct sport_uart_port *up)
 	value = SPORT_GET_RX32(up);
 	pr_debug("%s value:%x\n", __func__, value);
 
-	/* Extract 8 bits data */
+	
 	__asm__ __volatile__ (
 		"%[extr] = 0;"
 		"%[mask1] = 0x1801(Z);"
@@ -152,12 +100,12 @@ static int sport_uart_setup(struct sport_uart_port *up, int sclk, int baud_rate)
 {
 	int tclkdiv, tfsdiv, rclkdiv;
 
-	/* Set TCR1 and TCR2 */
+	
 	SPORT_PUT_TCR1(up, (LATFS | ITFS | TFSR | TLSBIT | ITCLK));
 	SPORT_PUT_TCR2(up, 10);
 	pr_debug("%s TCR1:%x, TCR2:%x\n", __func__, SPORT_GET_TCR1(up), SPORT_GET_TCR2(up));
 
-	/* Set RCR1 and RCR2 */
+	
 	SPORT_PUT_RCR1(up, (RCKFE | LARFS | LRFS | RFSR | IRCLK));
 	SPORT_PUT_RCR2(up, 28);
 	pr_debug("%s RCR1:%x, RCR2:%x\n", __func__, SPORT_GET_RCR1(up), SPORT_GET_RCR2(up));
@@ -208,13 +156,13 @@ static irqreturn_t sport_uart_err_irq(int irq, void *dev_id)
 	struct tty_struct *tty = up->port.state->port.tty;
 	unsigned int stat = SPORT_GET_STAT(up);
 
-	/* Overflow in RX FIFO */
+	
 	if (stat & ROVF) {
 		up->port.icount.overrun++;
 		tty_insert_flip_char(tty, 0, TTY_OVERRUN);
-		SPORT_PUT_STAT(up, ROVF); /* Clear ROVF bit */
+		SPORT_PUT_STAT(up, ROVF); 
 	}
-	/* These should not happen */
+	
 	if (stat & (TOVF | TUVF | RUVF)) {
 		printk(KERN_ERR "SPORT Error:%s %s %s\n",
 				(stat & TOVF)?"TX overflow":"",
@@ -228,7 +176,7 @@ static irqreturn_t sport_uart_err_irq(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-/* Reqeust IRQ, Setup clock */
+
 static int sport_startup(struct uart_port *port)
 {
 	struct sport_uart_port *up = (struct sport_uart_port *)port;
@@ -267,7 +215,7 @@ static int sport_startup(struct uart_port *port)
 
 	sport_uart_setup(up, get_sclk(), port->uartclk);
 
-	/* Enable receive interrupt */
+	
 	SPORT_PUT_RCR1(up, (SPORT_GET_RCR1(up) | RSPEN));
 	SSYNC();
 
@@ -353,10 +301,7 @@ static void sport_stop_tx(struct uart_port *port)
 		udelay(1);
 		stat = SPORT_GET_STAT(up);
 	}
-	/* Although the hold register is empty, last byte is still in shift
-	 * register and not sent out yet. If baud rate is lower than default,
-	 * delay should be longer. For example, if the baud rate is 9600,
-	 * the delay must be at least 2ms by experience */
+	
 	udelay(500);
 
 	SPORT_PUT_TCR1(up, (SPORT_GET_TCR1(up) & ~TSPEN));
@@ -370,10 +315,10 @@ static void sport_start_tx(struct uart_port *port)
 	struct sport_uart_port *up = (struct sport_uart_port *)port;
 
 	pr_debug("%s enter\n", __func__);
-	/* Write data into SPORT FIFO before enable SPROT to transmit */
+	
 	sport_uart_tx_chars(up);
 
-	/* Enable transmit, then an interrupt will generated */
+	
 	SPORT_PUT_TCR1(up, (SPORT_GET_TCR1(up) | TSPEN));
 	SSYNC();
 	pr_debug("%s exit\n", __func__);
@@ -384,7 +329,7 @@ static void sport_stop_rx(struct uart_port *port)
 	struct sport_uart_port *up = (struct sport_uart_port *)port;
 
 	pr_debug("%s enter\n", __func__);
-	/* Disable sport to stop rx */
+	
 	SPORT_PUT_RCR1(up, (SPORT_GET_RCR1(up) & ~RSPEN));
 	SSYNC();
 }
@@ -405,7 +350,7 @@ static void sport_shutdown(struct uart_port *port)
 
 	pr_debug("%s enter\n", __func__);
 
-	/* Disable sport */
+	
 	SPORT_PUT_TCR1(up, (SPORT_GET_TCR1(up) & ~TSPEN));
 	SPORT_PUT_RCR1(up, (SPORT_GET_RCR1(up) & ~RSPEN));
 	SSYNC();
@@ -481,7 +426,7 @@ struct uart_ops sport_uart_ops = {
 };
 
 static struct sport_uart_port sport_uart_ports[] = {
-	{ /* SPORT 0 */
+	{ 
 		.name	= "SPORT0",
 		.tx_irq = IRQ_SPORT0_TX,
 		.rx_irq = IRQ_SPORT0_RX,
@@ -497,7 +442,7 @@ static struct sport_uart_port sport_uart_ports[] = {
 			.ops		= &sport_uart_ops,
 			.line		= 0,
 		},
-	}, { /* SPORT 1 */
+	}, { 
 		.name	= "SPORT1",
 		.tx_irq = IRQ_SPORT1_TX,
 		.rx_irq = IRQ_SPORT1_RX,

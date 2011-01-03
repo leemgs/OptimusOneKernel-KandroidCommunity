@@ -1,14 +1,4 @@
-/*
- *  Serial Port driver for a NWP uart device
- *
- *    Copyright (C) 2008 IBM Corp., Benjamin Krill <ben@codiert.org>
- *
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License
- *  as published by the Free Software Foundation; either version
- *  2 of the License, or (at your option) any later version.
- *
- */
+
 #include <linux/init.h>
 #include <linux/console.h>
 #include <linux/serial.h>
@@ -42,7 +32,7 @@ static void wait_for_bits(struct nwpserial_port *up, int bits)
 {
 	unsigned int status, tmout = 10000;
 
-	/* Wait up to 10ms for the character(s) to be sent. */
+	
 	do {
 		status = dcr_read(up->dcr_host, UART_LSR);
 
@@ -57,7 +47,7 @@ static void nwpserial_console_putchar(struct uart_port *port, int c)
 {
 	struct nwpserial_port *up;
 	up = container_of(port, struct nwpserial_port, port);
-	/* check if tx buffer is full */
+	
 	wait_for_bits(up, UART_LSR_THRE);
 	dcr_write(up->dcr_host, UART_TX, c);
 	up->port.icount.tx++;
@@ -75,17 +65,17 @@ nwpserial_console_write(struct console *co, const char *s, unsigned int count)
 	else
 		spin_lock_irqsave(&up->port.lock, flags);
 
-	/* save and disable interrupt */
+	
 	up->ier = dcr_read(up->dcr_host, UART_IER);
 	dcr_write(up->dcr_host, UART_IER, up->ier & ~UART_IER_RDI);
 
 	uart_console_write(&up->port, s, count, nwpserial_console_putchar);
 
-	/* wait for transmitter to become emtpy */
+	
 	while ((dcr_read(up->dcr_host, UART_LSR) & UART_LSR_THRE) == 0)
 		cpu_relax();
 
-	/* restore interrupt state */
+	
 	dcr_write(up->dcr_host, UART_IER, up->ier);
 
 	if (locked)
@@ -104,9 +94,9 @@ static struct console nwpserial_console = {
 #define NWPSERIAL_CONSOLE	(&nwpserial_console)
 #else
 #define NWPSERIAL_CONSOLE	NULL
-#endif /* CONFIG_SERIAL_OF_PLATFORM_NWPSERIAL_CONSOLE */
+#endif 
 
-/**************************************************************************/
+
 
 static int nwpserial_request_port(struct uart_port *port)
 {
@@ -115,7 +105,7 @@ static int nwpserial_request_port(struct uart_port *port)
 
 static void nwpserial_release_port(struct uart_port *port)
 {
-	/* N/A */
+	
 }
 
 static void nwpserial_config_port(struct uart_port *port, int flags)
@@ -133,7 +123,7 @@ static irqreturn_t nwpserial_interrupt(int irq, void *dev_id)
 
 	spin_lock(&up->port.lock);
 
-	/* check if the uart was the interrupt source. */
+	
 	iir = dcr_read(up->dcr_host, UART_IIR);
 	if (!iir) {
 		ret = IRQ_NONE;
@@ -150,7 +140,7 @@ static irqreturn_t nwpserial_interrupt(int irq, void *dev_id)
 	tty_flip_buffer_push(tty);
 	ret = IRQ_HANDLED;
 
-	/* clear interrupt */
+	
 	dcr_write(up->dcr_host, UART_IIR, 1);
 out:
 	spin_unlock(&up->port.lock);
@@ -164,21 +154,21 @@ static int nwpserial_startup(struct uart_port *port)
 
 	up = container_of(port, struct nwpserial_port, port);
 
-	/* disable flow control by default */
+	
 	up->mcr = dcr_read(up->dcr_host, UART_MCR) & ~UART_MCR_AFE;
 	dcr_write(up->dcr_host, UART_MCR, up->mcr);
 
-	/* register interrupt handler */
+	
 	err = request_irq(up->port.irq, nwpserial_interrupt,
 			IRQF_SHARED, "nwpserial", up);
 	if (err)
 		return err;
 
-	/* enable interrupts */
+	
 	up->ier = UART_IER_RDI;
 	dcr_write(up->dcr_host, UART_IER, up->ier);
 
-	/* enable receiving */
+	
 	up->port.ignore_status_mask &= ~NWPSERIAL_STATUS_RXVALID;
 
 	return 0;
@@ -189,14 +179,14 @@ static void nwpserial_shutdown(struct uart_port *port)
 	struct nwpserial_port *up;
 	up = container_of(port, struct nwpserial_port, port);
 
-	/* disable receiving */
+	
 	up->port.ignore_status_mask |= NWPSERIAL_STATUS_RXVALID;
 
-	/* disable interrupts from this port */
+	
 	up->ier = 0;
 	dcr_write(up->dcr_host, UART_IER, up->ier);
 
-	/* free irq */
+	
 	free_irq(up->port.irq, port);
 }
 
@@ -221,36 +211,36 @@ static void nwpserial_set_termios(struct uart_port *port,
 				| NWPSERIAL_STATUS_TXFULL;
 
 	up->port.ignore_status_mask = 0;
-	/* ignore all characters if CREAD is not set */
+	
 	if ((termios->c_cflag & CREAD) == 0)
 		up->port.ignore_status_mask |= NWPSERIAL_STATUS_RXVALID;
 
-	/* Copy back the old hardware settings */
+	
 	if (old)
 		tty_termios_copy_hw(termios, old);
 }
 
 static void nwpserial_break_ctl(struct uart_port *port, int ctl)
 {
-	/* N/A */
+	
 }
 
 static void nwpserial_enable_ms(struct uart_port *port)
 {
-	/* N/A */
+	
 }
 
 static void nwpserial_stop_rx(struct uart_port *port)
 {
 	struct nwpserial_port *up;
 	up = container_of(port, struct nwpserial_port, port);
-	/* don't forward any more data (like !CREAD) */
+	
 	up->port.ignore_status_mask = NWPSERIAL_STATUS_RXVALID;
 }
 
 static void nwpserial_putchar(struct nwpserial_port *up, unsigned char c)
 {
-	/* check if tx buffer is full */
+	
 	wait_for_bits(up, UART_LSR_THRE);
 	dcr_write(up->dcr_host, UART_TX, c);
 	up->port.icount.tx++;
@@ -281,12 +271,12 @@ static unsigned int nwpserial_get_mctrl(struct uart_port *port)
 
 static void nwpserial_set_mctrl(struct uart_port *port, unsigned int mctrl)
 {
-	/* N/A */
+	
 }
 
 static void nwpserial_stop_tx(struct uart_port *port)
 {
-	/* N/A */
+	
 }
 
 static unsigned int nwpserial_tx_empty(struct uart_port *port)
@@ -348,17 +338,17 @@ int nwpserial_register_port(struct uart_port *port)
 	if (dn == NULL)
 		goto out;
 
-	/* get dcr base. */
+	
 	dcr_base = dcr_resource_start(dn, 0);
 
-	/* find matching entry */
+	
 	for (i = 0; i < NWPSERIAL_NR; i++)
 		if (nwpserial_ports[i].port.iobase == dcr_base) {
 			up = &nwpserial_ports[i];
 			break;
 		}
 
-	/* we didn't find a mtching entry, search for a free port */
+	
 	if (up == NULL)
 		for (i = 0; i < NWPSERIAL_NR; i++)
 			if (nwpserial_ports[i].port.type == PORT_UNKNOWN &&
@@ -438,7 +428,7 @@ static int __init nwpserial_console_init(void)
 	int dcr_len;
 	int i;
 
-	/* search for a free port */
+	
 	for (i = 0; i < NWPSERIAL_NR; i++)
 		if (nwpserial_ports[i].port.type == PORT_UNKNOWN) {
 			up = &nwpserial_ports[i];
@@ -474,4 +464,4 @@ static int __init nwpserial_console_init(void)
 	return 0;
 }
 console_initcall(nwpserial_console_init);
-#endif /* CONFIG_SERIAL_OF_PLATFORM_NWPSERIAL_CONSOLE */
+#endif 

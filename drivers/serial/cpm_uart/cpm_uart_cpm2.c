@@ -1,31 +1,4 @@
-/*
- *  linux/drivers/serial/cpm_uart_cpm2.c
- *
- *  Driver for CPM (SCC/SMC) serial ports; CPM2 definitions
- *
- *  Maintainer: Kumar Gala (galak@kernel.crashing.org) (CPM2)
- *              Pantelis Antoniou (panto@intracom.gr) (CPM1)
- *
- *  Copyright (C) 2004 Freescale Semiconductor, Inc.
- *            (C) 2004 Intracom, S.A.
- *            (C) 2006 MontaVista Software, Inc.
- *		Vitaly Bordug <vbordug@ru.mvista.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/tty.h>
@@ -48,7 +21,7 @@
 
 #include "cpm_uart.h"
 
-/**************************************************************/
+
 
 void cpm_line_cr_cmd(struct uart_cpm_port *port, int cmd)
 {
@@ -63,9 +36,7 @@ void __iomem *cpm_uart_map_pram(struct uart_cpm_port *port,
 	struct resource res;
 	unsigned long len;
 
-	/* Don't remap parameter RAM if it has already been initialized
-	 * during console setup.
-	 */
+	
 	if (IS_SMC(port) && port->smcup)
 		return port->smcup;
 	else if (!IS_SMC(port) && port->sccup)
@@ -103,12 +74,7 @@ void cpm_uart_unmap_pram(struct uart_cpm_port *port, void __iomem *pram)
 		iounmap(pram);
 }
 
-/*
- * Allocate DP-Ram and memory buffers. We need to allocate a transmit and
- * receive buffer descriptors from dual port ram, and a character
- * buffer area from host mem. If we are allocating for the console we need
- * to do it from bootmem
- */
+
 int cpm_uart_allocbuf(struct uart_cpm_port *pinfo, unsigned int is_con)
 {
 	int dpmemsz, memsz;

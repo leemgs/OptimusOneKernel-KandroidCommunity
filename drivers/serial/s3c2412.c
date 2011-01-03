@@ -1,14 +1,4 @@
-/* linux/drivers/serial/s3c2412.c
- *
- * Driver for Samsung S3C2412 and S3C2413 SoC onboard UARTs.
- *
- * Ben Dooks, Copyright (c) 2003-2005,2008 Simtec Electronics
- *	http://armlinux.simtec.co.uk/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/module.h>
 #include <linux/ioport.h>
@@ -83,14 +73,14 @@ static int s3c2412_serial_resetport(struct uart_port *port,
 	dbg("%s: port=%p (%08lx), cfg=%p\n",
 	    __func__, port, port->mapbase, cfg);
 
-	/* ensure we don't change the clock settings... */
+	
 
 	ucon &= S3C2412_UCON_CLKMASK;
 
 	wr_regl(port, S3C2410_UCON,  ucon | cfg->ucon);
 	wr_regl(port, S3C2410_ULCON, cfg->ulcon);
 
-	/* reset both fifos */
+	
 
 	wr_regl(port, S3C2410_UFCON, cfg->ufcon | S3C2410_UFCON_RESETBOTH);
 	wr_regl(port, S3C2410_UFCON, cfg->ufcon);
@@ -113,7 +103,7 @@ static struct s3c24xx_uart_info s3c2412_uart_inf = {
 	.reset_port	= s3c2412_serial_resetport,
 };
 
-/* device management */
+
 
 static int s3c2412_serial_probe(struct platform_device *dev)
 {

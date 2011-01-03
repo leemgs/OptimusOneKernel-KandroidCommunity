@@ -1,34 +1,4 @@
-/*
- *  linux/drivers/char/amba.c
- *
- *  Driver for AMBA serial ports
- *
- *  Based on drivers/char/serial.c, by Linus Torvalds, Theodore Ts'o.
- *
- *  Copyright 1999 ARM Limited
- *  Copyright (C) 2000 Deep Blue Solutions Ltd.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * This is a generic driver for ARM AMBA-type serial ports.  They
- * have a lot of 16550-like features, but are not register compatible.
- * Note that although they do have CTS, DCD and DSR inputs, they do
- * not have an RI input, nor do they have DTR or RTS outputs.  If
- * required, these have to be supplied via some other means (eg, GPIO)
- * and hooked into this driver.
- */
+
 
 #if defined(CONFIG_SERIAL_AMBA_PL011_CONSOLE) && defined(CONFIG_MAGIC_SYSRQ)
 #define SUPPORT_SYSRQ
@@ -62,18 +32,16 @@
 #define UART_DR_ERROR		(UART011_DR_OE|UART011_DR_BE|UART011_DR_PE|UART011_DR_FE)
 #define UART_DUMMY_DR_RX	(1 << 16)
 
-/*
- * We wrap our port structure around the generic uart_port.
- */
+
 struct uart_amba_port {
 	struct uart_port	port;
 	struct clk		*clk;
-	unsigned int		im;	/* interrupt mask */
+	unsigned int		im;	
 	unsigned int		old_status;
-	unsigned int		ifls;	/* vendor-specific */
+	unsigned int		ifls;	
 };
 
-/* There is by now at least one vendor with differing details, so handle it */
+
 struct vendor_data {
 	unsigned int		ifls;
 	unsigned int		fifosize;
@@ -133,10 +101,7 @@ static void pl011_rx_chars(struct uart_amba_port *uap)
 		flag = TTY_NORMAL;
 		uap->port.icount.rx++;
 
-		/*
-		 * Note that the error handling code is
-		 * out of the main execution path
-		 */
+		
 		if (unlikely(ch & UART_DR_ERROR)) {
 			if (ch & UART011_DR_BE) {
 				ch &= ~(UART011_DR_FE | UART011_DR_PE);
@@ -353,7 +318,7 @@ static void pl010_put_poll_char(struct uart_port *port,
 	writew(ch, uap->port.membase + UART01x_DR);
 }
 
-#endif /* CONFIG_CONSOLE_POLL */
+#endif 
 
 static int pl011_startup(struct uart_port *port)
 {
@@ -361,27 +326,21 @@ static int pl011_startup(struct uart_port *port)
 	unsigned int cr;
 	int retval;
 
-	/*
-	 * Try to enable the clock producer.
-	 */
+	
 	retval = clk_enable(uap->clk);
 	if (retval)
 		goto out;
 
 	uap->port.uartclk = clk_get_rate(uap->clk);
 
-	/*
-	 * Allocate the IRQ
-	 */
+	
 	retval = request_irq(uap->port.irq, pl011_int, 0, "uart-pl011", uap);
 	if (retval)
 		goto clk_dis;
 
 	writew(uap->ifls, uap->port.membase + UART011_IFLS);
 
-	/*
-	 * Provoke TX FIFO interrupt into asserting.
-	 */
+	
 	cr = UART01x_CR_UARTEN | UART011_CR_TXE | UART011_CR_LBE;
 	writew(cr, uap->port.membase + UART011_CR);
 	writew(0, uap->port.membase + UART011_FBRD);
@@ -394,14 +353,10 @@ static int pl011_startup(struct uart_port *port)
 	cr = UART01x_CR_UARTEN | UART011_CR_RXE | UART011_CR_TXE;
 	writew(cr, uap->port.membase + UART011_CR);
 
-	/*
-	 * initialise the old status of the modem signals
-	 */
+	
 	uap->old_status = readw(uap->port.membase + UART01x_FR) & UART01x_FR_MODEM_ANY;
 
-	/*
-	 * Finally, enable interrupts
-	 */
+	
 	spin_lock_irq(&uap->port.lock);
 	uap->im = UART011_RXIM | UART011_RTIM;
 	writew(uap->im, uap->port.membase + UART011_IMSC);
@@ -420,35 +375,25 @@ static void pl011_shutdown(struct uart_port *port)
 	struct uart_amba_port *uap = (struct uart_amba_port *)port;
 	unsigned long val;
 
-	/*
-	 * disable all interrupts
-	 */
+	
 	spin_lock_irq(&uap->port.lock);
 	uap->im = 0;
 	writew(uap->im, uap->port.membase + UART011_IMSC);
 	writew(0xffff, uap->port.membase + UART011_ICR);
 	spin_unlock_irq(&uap->port.lock);
 
-	/*
-	 * Free the interrupt
-	 */
+	
 	free_irq(uap->port.irq, uap);
 
-	/*
-	 * disable the port
-	 */
+	
 	writew(UART01x_CR_UARTEN | UART011_CR_TXE, uap->port.membase + UART011_CR);
 
-	/*
-	 * disable break condition and fifos
-	 */
+	
 	val = readw(uap->port.membase + UART011_LCRH);
 	val &= ~(UART01x_LCRH_BRK | UART01x_LCRH_FEN);
 	writew(val, uap->port.membase + UART011_LCRH);
 
-	/*
-	 * Shut down the clock producer
-	 */
+	
 	clk_disable(uap->clk);
 }
 
@@ -460,9 +405,7 @@ pl011_set_termios(struct uart_port *port, struct ktermios *termios,
 	unsigned long flags;
 	unsigned int baud, quot;
 
-	/*
-	 * Ask the core to calculate the divisor for us.
-	 */
+	
 	baud = uart_get_baud_rate(port, termios, old, 0, port->uartclk/16);
 	quot = port->uartclk * 4 / baud;
 
@@ -476,7 +419,7 @@ pl011_set_termios(struct uart_port *port, struct ktermios *termios,
 	case CS7:
 		lcr_h = UART01x_LCRH_WLEN_7;
 		break;
-	default: // CS8
+	default: 
 		lcr_h = UART01x_LCRH_WLEN_8;
 		break;
 	}
@@ -492,9 +435,7 @@ pl011_set_termios(struct uart_port *port, struct ktermios *termios,
 
 	spin_lock_irqsave(&port->lock, flags);
 
-	/*
-	 * Update the per-port timeout.
-	 */
+	
 	uart_update_timeout(port, termios->c_cflag, baud);
 
 	port->read_status_mask = UART011_DR_OE | 255;
@@ -503,44 +444,33 @@ pl011_set_termios(struct uart_port *port, struct ktermios *termios,
 	if (termios->c_iflag & (BRKINT | PARMRK))
 		port->read_status_mask |= UART011_DR_BE;
 
-	/*
-	 * Characters to ignore
-	 */
+	
 	port->ignore_status_mask = 0;
 	if (termios->c_iflag & IGNPAR)
 		port->ignore_status_mask |= UART011_DR_FE | UART011_DR_PE;
 	if (termios->c_iflag & IGNBRK) {
 		port->ignore_status_mask |= UART011_DR_BE;
-		/*
-		 * If we're ignoring parity and break indicators,
-		 * ignore overruns too (for real raw support).
-		 */
+		
 		if (termios->c_iflag & IGNPAR)
 			port->ignore_status_mask |= UART011_DR_OE;
 	}
 
-	/*
-	 * Ignore all characters if CREAD is not set.
-	 */
+	
 	if ((termios->c_cflag & CREAD) == 0)
 		port->ignore_status_mask |= UART_DUMMY_DR_RX;
 
 	if (UART_ENABLE_MS(port, termios->c_cflag))
 		pl011_enable_ms(port);
 
-	/* first, disable everything */
+	
 	old_cr = readw(port->membase + UART011_CR);
 	writew(0, port->membase + UART011_CR);
 
-	/* Set baud rate */
+	
 	writew(quot & 0x3f, port->membase + UART011_FBRD);
 	writew(quot >> 6, port->membase + UART011_IBRD);
 
-	/*
-	 * ----------v----------v----------v----------v-----
-	 * NOTE: MUST BE WRITTEN AFTER UARTLCR_M & UARTLCR_L
-	 * ----------^----------^----------^----------^-----
-	 */
+	
 	writew(lcr_h, port->membase + UART011_LCRH);
 	writew(old_cr, port->membase + UART011_CR);
 
@@ -552,26 +482,20 @@ static const char *pl011_type(struct uart_port *port)
 	return port->type == PORT_AMBA ? "AMBA/PL011" : NULL;
 }
 
-/*
- * Release the memory region(s) being used by 'port'
- */
+
 static void pl010_release_port(struct uart_port *port)
 {
 	release_mem_region(port->mapbase, SZ_4K);
 }
 
-/*
- * Request the memory region(s) being used by 'port'
- */
+
 static int pl010_request_port(struct uart_port *port)
 {
 	return request_mem_region(port->mapbase, SZ_4K, "uart-pl011")
 			!= NULL ? 0 : -EBUSY;
 }
 
-/*
- * Configure/autoconfigure the port.
- */
+
 static void pl010_config_port(struct uart_port *port, int flags)
 {
 	if (flags & UART_CONFIG_TYPE) {
@@ -580,9 +504,7 @@ static void pl010_config_port(struct uart_port *port, int flags)
 	}
 }
 
-/*
- * verify the new serial_struct (for TIOCSSERIAL).
- */
+
 static int pl010_verify_port(struct uart_port *port, struct serial_struct *ser)
 {
 	int ret = 0;
@@ -639,9 +561,7 @@ pl011_console_write(struct console *co, const char *s, unsigned int count)
 
 	clk_enable(uap->clk);
 
-	/*
-	 *	First save the CR then disable the interrupts
-	 */
+	
 	old_cr = readw(uap->port.membase + UART011_CR);
 	new_cr = old_cr & ~UART011_CR_CTSEN;
 	new_cr |= UART01x_CR_UARTEN | UART011_CR_TXE;
@@ -649,10 +569,7 @@ pl011_console_write(struct console *co, const char *s, unsigned int count)
 
 	uart_console_write(&uap->port, s, count, pl011_console_putchar);
 
-	/*
-	 *	Finally, wait for transmitter to become empty
-	 *	and restore the TCR
-	 */
+	
 	do {
 		status = readw(uap->port.membase + UART01x_FR);
 	} while (status & UART01x_FR_BUSY);
@@ -698,11 +615,7 @@ static int __init pl011_console_setup(struct console *co, char *options)
 	int parity = 'n';
 	int flow = 'n';
 
-	/*
-	 * Check whether an invalid uart number has been specified, and
-	 * if so, search for the first available port that does have
-	 * console support.
-	 */
+	
 	if (co->index >= UART_NR)
 		co->index = 0;
 	uap = amba_ports[co->index];
@@ -895,10 +808,7 @@ static void __exit pl011_exit(void)
 	uart_unregister_driver(&amba_reg);
 }
 
-/*
- * While this can be a module, if builtin it's most likely the console
- * So let's leave module_exit but move module_init to an earlier place
- */
+
 arch_initcall(pl011_init);
 module_exit(pl011_exit);
 

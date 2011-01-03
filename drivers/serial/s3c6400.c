@@ -1,16 +1,4 @@
-/* linux/drivers/serial/s3c6400.c
- *
- * Driver for Samsung S3C6400 and S3C6410 SoC onboard UARTs.
- *
- * Copyright 2008 Openmoko,  Inc.
- * Copyright 2008 Simtec Electronics
- *	Ben Dooks <ben@simtec.co.uk>
- *	http://armlinux.simtec.co.uk/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/module.h>
 #include <linux/ioport.h>
@@ -38,7 +26,7 @@ static int s3c6400_serial_setsource(struct uart_port *port,
 	} else if (strcmp(clk->name, "uclk1") == 0)
 		ucon |= S3C6400_UCON_UCLK1;
 	else if (strcmp(clk->name, "pclk") == 0) {
-		/* See notes about transitioning from UCLK to PCLK */
+		
 		ucon &= ~S3C6400_UCON_UCLK0;
 	} else {
 		printk(KERN_ERR "unknown clock source %s\n", clk->name);
@@ -83,14 +71,14 @@ static int s3c6400_serial_resetport(struct uart_port *port,
 	dbg("s3c6400_serial_resetport: port=%p (%08lx), cfg=%p\n",
 	    port, port->mapbase, cfg);
 
-	/* ensure we don't change the clock settings... */
+	
 
 	ucon &= S3C6400_UCON_CLKMASK;
 
 	wr_regl(port, S3C2410_UCON,  ucon | cfg->ucon);
 	wr_regl(port, S3C2410_ULCON, cfg->ulcon);
 
-	/* reset both fifos */
+	
 
 	wr_regl(port, S3C2410_UFCON, cfg->ufcon | S3C2410_UFCON_RESETBOTH);
 	wr_regl(port, S3C2410_UFCON, cfg->ufcon);
@@ -114,7 +102,7 @@ static struct s3c24xx_uart_info s3c6400_uart_inf = {
 	.reset_port	= s3c6400_serial_resetport,
 };
 
-/* device management */
+
 
 static int s3c6400_serial_probe(struct platform_device *dev)
 {

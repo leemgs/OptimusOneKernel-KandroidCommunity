@@ -1,30 +1,6 @@
-/*
- *  m32r_sio.c
- *
- *  Driver for M32R serial ports
- *
- *  Based on drivers/char/serial.c, by Linus Torvalds, Theodore Ts'o.
- *  Based on drivers/serial/8250.c.
- *
- *  Copyright (C) 2001  Russell King.
- *  Copyright (C) 2004  Hirokazu Takata <takata at linux-m32r.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
 
-/*
- * A note about mapbase / membase
- *
- *  mapbase is the physical address of the IO port.  Currently, we don't
- *  support this very well, and it may well be dropped from this driver
- *  in future.  As such, mapbase should be NULL.
- *
- *  membase is an 'ioremapped' cookie.  This is compatible with the old
- *  serial.c driver, and is currently the preferred form.
- */
+
+
 
 #if defined(CONFIG_SERIAL_M32R_SIO_CONSOLE) && defined(CONFIG_MAGIC_SYSRQ)
 #define SUPPORT_SYSRQ
@@ -52,9 +28,7 @@
 #include "m32r_sio.h"
 #include "m32r_sio_reg.h"
 
-/*
- * Debugging.
- */
+
 #if 0
 #define DEBUG_AUTOCONF(fmt...)	printk(fmt)
 #else
@@ -69,43 +43,35 @@
 
 #define PASS_LIMIT	256
 
-/*
- * We default to IRQ0 for the "no irq" hack.   Some
- * machine types want others as well - they're free
- * to redefine this in their header file.
- */
+
 #define is_real_interrupt(irq)	((irq) != 0)
 
 #define BASE_BAUD	115200
 
-/* Standard COM flags */
+
 #define STD_COM_FLAGS (UPF_BOOT_AUTOCONF | UPF_SKIP_TEST)
 
-/*
- * SERIAL_PORT_DFNS tells us about built-in ports that have no
- * standard enumeration mechanism.   Platforms that can find all
- * serial ports via mechanisms like ACPI or PCI need not supply it.
- */
+
 #if defined(CONFIG_PLAT_USRV)
 
 #define SERIAL_PORT_DFNS						\
-       /* UART  CLK     PORT   IRQ            FLAGS */			\
-	{ 0, BASE_BAUD, 0x3F8, PLD_IRQ_UART0, STD_COM_FLAGS }, /* ttyS0 */ \
-	{ 0, BASE_BAUD, 0x2F8, PLD_IRQ_UART1, STD_COM_FLAGS }, /* ttyS1 */
+       			\
+	{ 0, BASE_BAUD, 0x3F8, PLD_IRQ_UART0, STD_COM_FLAGS },  \
+	{ 0, BASE_BAUD, 0x2F8, PLD_IRQ_UART1, STD_COM_FLAGS }, 
 
-#else /* !CONFIG_PLAT_USRV */
+#else 
 
 #if defined(CONFIG_SERIAL_M32R_PLDSIO)
 #define SERIAL_PORT_DFNS						\
 	{ 0, BASE_BAUD, ((unsigned long)PLD_ESIO0CR), PLD_IRQ_SIO0_RCV,	\
-	  STD_COM_FLAGS }, /* ttyS0 */
+	  STD_COM_FLAGS }, 
 #else
 #define SERIAL_PORT_DFNS						\
 	{ 0, BASE_BAUD, M32R_SIO_OFFSET, M32R_IRQ_SIO0_R,		\
-	  STD_COM_FLAGS }, /* ttyS0 */
+	  STD_COM_FLAGS }, 
 #endif
 
-#endif /* !CONFIG_PLAT_USRV */
+#endif 
 
 static struct old_serial_port old_serial_port[] = {
 	SERIAL_PORT_DFNS
@@ -115,19 +81,17 @@ static struct old_serial_port old_serial_port[] = {
 
 struct uart_sio_port {
 	struct uart_port	port;
-	struct timer_list	timer;		/* "no irq" timer */
-	struct list_head	list;		/* ports on this IRQ */
+	struct timer_list	timer;		
+	struct list_head	list;		
 	unsigned short		rev;
 	unsigned char		acr;
 	unsigned char		ier;
 	unsigned char		lcr;
-	unsigned char		mcr_mask;	/* mask of user bits */
-	unsigned char		mcr_force;	/* mask of forced bits */
+	unsigned char		mcr_mask;	
+	unsigned char		mcr_force;	
 	unsigned char		lsr_break_flag;
 
-	/*
-	 * We provide a per-port pm hook.
-	 */
+	
 	void			(*pm)(struct uart_port *port,
 				      unsigned int state, unsigned int old);
 };
@@ -139,9 +103,7 @@ struct irq_info {
 
 static struct irq_info irq_lists[NR_IRQS];
 
-/*
- * Here we define the default xmit fifo size used for each type of UART.
- */
+
 static const struct serial_uart_config uart_config[] = {
 	[PORT_UNKNOWN] = {
 		.name			= "unknown",
@@ -198,7 +160,7 @@ static void sio_error(int *status)
 	} while ((*status = __sio_in(PLD_ESIO0CR)) != 3);
 }
 
-#else /* not CONFIG_SERIAL_M32R_PLDSIO */
+#else 
 
 #define __sio_in(x) inl(x)
 #define __sio_out(v,x) outl((v),(x))
@@ -218,12 +180,12 @@ static inline void sio_set_baud_rate(unsigned long baud)
 
 static void sio_reset(void)
 {
-	__sio_out(0x00000300, M32R_SIO0_CR_PORTL);	/* init status */
-	__sio_out(0x00000800, M32R_SIO0_MOD1_PORTL);	/* 8bit        */
-	__sio_out(0x00000080, M32R_SIO0_MOD0_PORTL);	/* 1stop non   */
+	__sio_out(0x00000300, M32R_SIO0_CR_PORTL);	
+	__sio_out(0x00000800, M32R_SIO0_MOD1_PORTL);	
+	__sio_out(0x00000080, M32R_SIO0_MOD0_PORTL);	
 	sio_set_baud_rate(BAUD_RATE);
 	__sio_out(0x00000000, M32R_SIO0_TRCR_PORTL);
-	__sio_out(0x00000003, M32R_SIO0_CR_PORTL);	/* RXCEN */
+	__sio_out(0x00000003, M32R_SIO0_CR_PORTL);	
 }
 
 static void sio_init(void)
@@ -244,7 +206,7 @@ static void sio_error(int *status)
 	} while ((*status = __sio_in(M32R_SIO0_CR_PORTL)) != 3);
 }
 
-#endif /* CONFIG_SERIAL_M32R_PLDSIO */
+#endif 
 
 static unsigned int sio_in(struct uart_sio_port *up, int offset)
 {
@@ -337,18 +299,11 @@ static void receive_chars(struct uart_sio_port *up, int *status)
 
 		if (unlikely(*status & (UART_LSR_BI | UART_LSR_PE |
 				       UART_LSR_FE | UART_LSR_OE))) {
-			/*
-			 * For statistics only
-			 */
+			
 			if (*status & UART_LSR_BI) {
 				*status &= ~(UART_LSR_FE | UART_LSR_PE);
 				up->port.icount.brk++;
-				/*
-				 * We do the SysRQ and SAK checking
-				 * here because otherwise the break
-				 * may get masked by ignore_status_mask
-				 * or read_status_mask.
-				 */
+				
 				if (uart_handle_break(&up->port))
 					goto ignore_char;
 			} else if (*status & UART_LSR_PE)
@@ -358,13 +313,11 @@ static void receive_chars(struct uart_sio_port *up, int *status)
 			if (*status & UART_LSR_OE)
 				up->port.icount.overrun++;
 
-			/*
-			 * Mask off conditions which should be ingored.
-			 */
+			
 			*status &= up->port.read_status_mask;
 
 			if (up->port.line == up->port.cons->index) {
-				/* Recover the break flag from console xmit */
+				
 				*status |= up->lsr_break_flag;
 				up->lsr_break_flag = 0;
 			}
@@ -383,11 +336,7 @@ static void receive_chars(struct uart_sio_port *up, int *status)
 			tty_insert_flip_char(tty, ch, flag);
 
 		if (*status & UART_LSR_OE) {
-			/*
-			 * Overrun is special, since it's reported
-			 * immediately, and doesn't affect the current
-			 * character.
-			 */
+			
 			tty_insert_flip_char(tty, 0, TTY_OVERRUN);
 		}
 	ignore_char:
@@ -402,7 +351,7 @@ static void transmit_chars(struct uart_sio_port *up)
 	int count;
 
 	if (up->port.x_char) {
-#ifndef CONFIG_SERIAL_M32R_PLDSIO	/* XXX */
+#ifndef CONFIG_SERIAL_M32R_PLDSIO	
 		serial_out(up, UART_TX, up->port.x_char);
 #endif
 		up->port.icount.tx++;
@@ -434,9 +383,7 @@ static void transmit_chars(struct uart_sio_port *up)
 		m32r_sio_stop_tx(&up->port);
 }
 
-/*
- * This handles the interrupt from one port.
- */
+
 static inline void m32r_sio_handle_port(struct uart_sio_port *up,
 	unsigned int status)
 {
@@ -448,20 +395,7 @@ static inline void m32r_sio_handle_port(struct uart_sio_port *up,
 		transmit_chars(up);
 }
 
-/*
- * This is the serial driver's interrupt routine.
- *
- * Arjan thinks the old way was overly complex, so it got simplified.
- * Alan disagrees, saying that need the complexity to handle the weird
- * nature of ISA shared interrupts.  (This is a special exception.)
- *
- * In order to handle ISA shared interrupts properly, we need to check
- * that all ports have been serviced, and therefore the ISA interrupt
- * line has been de-asserted.
- *
- * This means we need to loop through all ports. checking that they
- * don't have an interrupt pending.
- */
+
 static irqreturn_t m32r_sio_interrupt(int irq, void *dev_id)
 {
 	struct irq_info *i = dev_id;
@@ -471,8 +405,8 @@ static irqreturn_t m32r_sio_interrupt(int irq, void *dev_id)
 	DEBUG_INTR("m32r_sio_interrupt(%d)...", irq);
 
 #ifdef CONFIG_SERIAL_M32R_PLDSIO
-//	if (irq == PLD_IRQ_SIO0_SND)
-//		irq = PLD_IRQ_SIO0_RCV;
+
+
 #else
 	if (irq == M32R_IRQ_SIO0_S)
 		irq = M32R_IRQ_SIO0_R;
@@ -513,13 +447,7 @@ static irqreturn_t m32r_sio_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-/*
- * To support ISA shared interrupts, we need to have one interrupt
- * handler that ensures that the IRQ line has been deasserted
- * before returning.  Failing to do this will result in the IRQ
- * line being stuck active, and, since ISA irqs are edge triggered,
- * no more IRQs will be seen.
- */
+
 static void serial_do_unlink(struct irq_info *i, struct uart_sio_port *up)
 {
 	spin_lock_irq(&i->lock);
@@ -578,9 +506,7 @@ static void serial_unlink_irq_chain(struct uart_sio_port *up)
 	serial_do_unlink(i, up);
 }
 
-/*
- * This function is used to handle ports that do not have an interrupt.
- */
+
 static void m32r_sio_timeout(unsigned long data)
 {
 	struct uart_sio_port *up = (struct uart_sio_port *)data;
@@ -634,11 +560,7 @@ static int m32r_sio_startup(struct uart_port *port)
 
 	sio_init();
 
-	/*
-	 * If the "interrupt" for this port doesn't correspond with any
-	 * hardware interrupt, we use a timer-based system.  The original
-	 * driver used to do this with IRQ0.
-	 */
+	
 	if (!is_real_interrupt(up->port.irq)) {
 		unsigned int timeout = up->port.timeout;
 
@@ -652,19 +574,11 @@ static int m32r_sio_startup(struct uart_port *port)
 			return retval;
 	}
 
-	/*
-	 * Finally, enable interrupts.  Note: Modem status interrupts
-	 * are set via set_termios(), which will be occurring imminently
-	 * anyway, so we don't enable them here.
-	 * - M32R_SIO: 0x0c
-	 * - M32R_PLDSIO: 0x04
-	 */
+	
 	up->ier = UART_IER_MSI | UART_IER_RLSI | UART_IER_RDI;
 	sio_out(up, SIOTRCR, up->ier);
 
-	/*
-	 * And clear the interrupt registers again for luck.
-	 */
+	
 	sio_reset();
 
 	return 0;
@@ -674,15 +588,11 @@ static void m32r_sio_shutdown(struct uart_port *port)
 {
 	struct uart_sio_port *up = (struct uart_sio_port *)port;
 
-	/*
-	 * Disable interrupts from this port
-	 */
+	
 	up->ier = 0;
 	sio_out(up, SIOTRCR, 0);
 
-	/*
-	 * Disable break condition and FIFOs
-	 */
+	
 
 	sio_init();
 
@@ -733,9 +643,7 @@ static void m32r_sio_set_termios(struct uart_port *port,
 		cval |= UART_LCR_SPAR;
 #endif
 
-	/*
-	 * Ask the core to calculate the divisor for us.
-	 */
+	
 #ifdef CONFIG_SERIAL_M32R_PLDSIO
 	baud = uart_get_baud_rate(port, termios, old, 0, port->uartclk/4);
 #else
@@ -743,17 +651,12 @@ static void m32r_sio_set_termios(struct uart_port *port,
 #endif
 	quot = m32r_sio_get_divisor(port, baud);
 
-	/*
-	 * Ok, we're now changing the port state.  Do it with
-	 * interrupts disabled.
-	 */
+	
 	spin_lock_irqsave(&up->port.lock, flags);
 
 	sio_set_baud_rate(baud);
 
-	/*
-	 * Update the per-port timeout.
-	 */
+	
 	uart_update_timeout(port, termios->c_cflag, baud);
 
 	up->port.read_status_mask = UART_LSR_OE | UART_LSR_THRE | UART_LSR_DR;
@@ -762,38 +665,29 @@ static void m32r_sio_set_termios(struct uart_port *port,
 	if (termios->c_iflag & (BRKINT | PARMRK))
 		up->port.read_status_mask |= UART_LSR_BI;
 
-	/*
-	 * Characteres to ignore
-	 */
+	
 	up->port.ignore_status_mask = 0;
 	if (termios->c_iflag & IGNPAR)
 		up->port.ignore_status_mask |= UART_LSR_PE | UART_LSR_FE;
 	if (termios->c_iflag & IGNBRK) {
 		up->port.ignore_status_mask |= UART_LSR_BI;
-		/*
-		 * If we're ignoring parity and break indicators,
-		 * ignore overruns too (for real raw support).
-		 */
+		
 		if (termios->c_iflag & IGNPAR)
 			up->port.ignore_status_mask |= UART_LSR_OE;
 	}
 
-	/*
-	 * ignore all characters if CREAD is not set
-	 */
+	
 	if ((termios->c_cflag & CREAD) == 0)
 		up->port.ignore_status_mask |= UART_LSR_DR;
 
-	/*
-	 * CTS flow control flag and modem status interrupts
-	 */
+	
 	up->ier &= ~UART_IER_MSI;
 	if (UART_ENABLE_MS(&up->port, termios->c_cflag))
 		up->ier |= UART_IER_MSI;
 
 	serial_out(up, UART_IER, up->ier);
 
-	up->lcr = cval;					/* Save LCR */
+	up->lcr = cval;					
 	spin_unlock_irqrestore(&up->port.lock, flags);
 }
 
@@ -806,11 +700,7 @@ static void m32r_sio_pm(struct uart_port *port, unsigned int state,
 		up->pm(port, state, oldstate);
 }
 
-/*
- * Resource handling.  This is complicated by the fact that resources
- * depend on the port type.  Maybe we should be claiming the standard
- * 8250 ports, and then trying to get other resources as necessary?
- */
+
 static int
 m32r_sio_request_std_resource(struct uart_sio_port *up, struct resource **res)
 {
@@ -853,9 +743,7 @@ static void m32r_sio_release_port(struct uart_port *port)
 	switch (up->port.iotype) {
 	case UPIO_MEM:
 		if (up->port.mapbase) {
-			/*
-			 * Unmap the area.
-			 */
+			
 			iounmap(up->port.membase);
 			up->port.membase = NULL;
 
@@ -888,9 +776,7 @@ static int m32r_sio_request_port(struct uart_port *port)
 
 	ret = m32r_sio_request_std_resource(up, &res);
 
-	/*
-	 * If we have a mapbase, then request that as well.
-	 */
+	
 	if (ret == 0 && up->port.flags & UPF_IOREMAP) {
 		int size = res->end - res->start + 1;
 
@@ -998,9 +884,7 @@ static void __init m32r_sio_register_ports(struct uart_driver *drv)
 		init_timer(&up->timer);
 		up->timer.function = m32r_sio_timeout;
 
-		/*
-		 * ALPHA_KLUDGE_MCR needs to be killed.
-		 */
+		
 		up->mcr_mask = ~ALPHA_KLUDGE_MCR;
 		up->mcr_force = ALPHA_KLUDGE_MCR;
 
@@ -1010,14 +894,12 @@ static void __init m32r_sio_register_ports(struct uart_driver *drv)
 
 #ifdef CONFIG_SERIAL_M32R_SIO_CONSOLE
 
-/*
- *	Wait for transmitter & holding register to empty
- */
+
 static inline void wait_for_xmitr(struct uart_sio_port *up)
 {
 	unsigned int status, tmout = 10000;
 
-	/* Wait up to 10ms for the character(s) to be sent. */
+	
 	do {
 		status = sio_in(up, SIOSTS);
 
@@ -1026,7 +908,7 @@ static inline void wait_for_xmitr(struct uart_sio_port *up)
 		udelay(1);
 	} while ((status & UART_EMPTY) != UART_EMPTY);
 
-	/* Wait up to 1s for flow control if necessary */
+	
 	if (up->port.flags & UPF_CONS_FLOW) {
 		tmout = 1000000;
 		while (--tmout)
@@ -1042,30 +924,20 @@ static void m32r_sio_console_putchar(struct uart_port *port, int ch)
 	sio_out(up, SIOTXB, ch);
 }
 
-/*
- *	Print a string to the serial port trying not to disturb
- *	any possible real use of the port...
- *
- *	The console_lock must be held when we get here.
- */
+
 static void m32r_sio_console_write(struct console *co, const char *s,
 	unsigned int count)
 {
 	struct uart_sio_port *up = &m32r_sio_ports[co->index];
 	unsigned int ier;
 
-	/*
-	 *	First save the UER then disable the interrupts
-	 */
+	
 	ier = sio_in(up, SIOTRCR);
 	sio_out(up, SIOTRCR, 0);
 
 	uart_console_write(&up->port, s, count, m32r_sio_console_putchar);
 
-	/*
-	 *	Finally, wait for transmitter to become empty
-	 *	and restore the IER
-	 */
+	
 	wait_for_xmitr(up);
 	sio_out(up, SIOTRCR, ier);
 }
@@ -1078,18 +950,12 @@ static int __init m32r_sio_console_setup(struct console *co, char *options)
 	int parity = 'n';
 	int flow = 'n';
 
-	/*
-	 * Check whether an invalid uart number has been specified, and
-	 * if so, search for the first available port that does have
-	 * console support.
-	 */
+	
 	if (co->index >= UART_NR)
 		co->index = 0;
 	port = &m32r_sio_ports[co->index].port;
 
-	/*
-	 * Temporary fix.
-	 */
+	
 	spin_lock_init(&port->lock);
 
 	if (options)
@@ -1134,23 +1000,13 @@ static struct uart_driver m32r_sio_reg = {
 	.cons			= M32R_SIO_CONSOLE,
 };
 
-/**
- *	m32r_sio_suspend_port - suspend one serial port
- *	@line: serial line number
- *
- *	Suspend one serial port.
- */
+
 void m32r_sio_suspend_port(int line)
 {
 	uart_suspend_port(&m32r_sio_reg, &m32r_sio_ports[line].port);
 }
 
-/**
- *	m32r_sio_resume_port - resume one serial port
- *	@line: serial line number
- *
- *	Resume one serial port.
- */
+
 void m32r_sio_resume_port(int line)
 {
 	uart_resume_port(&m32r_sio_reg, &m32r_sio_ports[line].port);

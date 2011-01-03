@@ -1,18 +1,4 @@
-/*
- * drivers/serial/msm_serial.h
- *
- * Copyright (C) 2007 Google, Inc.
- * Author: Robert Love <rlove@google.com>
- *
- * This software is licensed under the terms of the GNU General Public
- * License version 2, as published by the Free Software Foundation, and
- * may be copied, distributed, and modified under those terms.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- */
+
 
 #ifndef __DRIVERS_SERIAL_MSM_SERIAL_H
 #define __DRIVERS_SERIAL_MSM_SERIAL_H
@@ -47,11 +33,14 @@
 #define UART_CSR_19200	0xBB
 #define UART_CSR_14400	0xAA
 #define UART_CSR_9600	0x99
+#define UART_CSR_7200	0x88
 #define UART_CSR_4800	0x77
 #define UART_CSR_2400	0x55
 #define UART_CSR_1200	0x44
 #define UART_CSR_600	0x33
 #define UART_CSR_300	0x22
+#define UART_CSR_150	0x11
+#define UART_CSR_75	0x00
 
 #define UART_TF		0x000C
 
@@ -114,4 +103,4 @@
 #define UART_MISR	0x0010
 #define UART_ISR	0x0014
 
-#endif	/* __DRIVERS_SERIAL_MSM_SERIAL_H */
+#endif	

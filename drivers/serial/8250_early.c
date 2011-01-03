@@ -1,28 +1,4 @@
-/*
- * Early serial console for 8250/16550 devices
- *
- * (c) Copyright 2004 Hewlett-Packard Development Company, L.P.
- *	Bjorn Helgaas <bjorn.helgaas@hp.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * Based on the 8250.c serial driver, Copyright (C) 2001 Russell King,
- * and on early_printk.c by Andi Kleen.
- *
- * This is for use before the serial driver has initialized, in
- * particular, before the UARTs have been discovered and named.
- * Instead of specifying the console device as, e.g., "ttyS0",
- * we locate the device directly by its MMIO or I/O port address.
- *
- * The user can specify the device directly, e.g.,
- *	earlycon=uart8250,io,0x3f8,9600n8
- *	earlycon=uart8250,mmio,0xff5e0000,115200n8
- * or
- *	console=uart8250,io,0x3f8,9600n8
- *	console=uart8250,mmio,0xff5e0000,115200n8
- */
+
 
 #include <linux/tty.h>
 #include <linux/init.h>
@@ -40,7 +16,7 @@
 
 struct early_serial8250_device {
 	struct uart_port port;
-	char options[16];		/* e.g., 115200n8 */
+	char options[16];		
 	unsigned int baud;
 };
 
@@ -88,13 +64,13 @@ static void __init early_serial8250_write(struct console *console,
 	struct uart_port *port = &early_device.port;
 	unsigned int ier;
 
-	/* Save the IER and disable interrupts */
+	
 	ier = serial_in(port, UART_IER);
 	serial_out(port, UART_IER, 0);
 
 	uart_console_write(port, s, count, serial_putc);
 
-	/* Wait for transmitter to become empty and restore the IER */
+	
 	wait_for_xmitr(port);
 	serial_out(port, UART_IER, ier);
 }
@@ -120,10 +96,10 @@ static void __init init_port(struct early_serial8250_device *device)
 	unsigned int divisor;
 	unsigned char c;
 
-	serial_out(port, UART_LCR, 0x3);	/* 8n1 */
-	serial_out(port, UART_IER, 0);		/* no interrupt */
-	serial_out(port, UART_FCR, 0);		/* no fifo */
-	serial_out(port, UART_MCR, 0x3);	/* DTR + RTS */
+	serial_out(port, UART_LCR, 0x3);	
+	serial_out(port, UART_IER, 0);		
+	serial_out(port, UART_FCR, 0);		
+	serial_out(port, UART_MCR, 0x3);	
 
 	divisor = port->uartclk / (16 * device->baud);
 	c = serial_in(port, UART_LCR);

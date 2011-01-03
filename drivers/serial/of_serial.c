@@ -1,14 +1,4 @@
-/*
- *  Serial Port driver for Open Firmware platform devices
- *
- *    Copyright (C) 2006 Arnd Bergmann <arnd@arndb.de>, IBM Corp.
- *
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License
- *  as published by the Free Software Foundation; either version
- *  2 of the License, or (at your option) any later version.
- *
- */
+
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/serial_core.h>
@@ -23,9 +13,7 @@ struct of_serial_info {
 	int line;
 };
 
-/*
- * Fill a struct uart_port for a given device node
- */
+
 static int __devinit of_platform_serial_setup(struct of_device *ofdev,
 					int type, struct uart_port *port)
 {
@@ -52,12 +40,12 @@ static int __devinit of_platform_serial_setup(struct of_device *ofdev,
 	spin_lock_init(&port->lock);
 	port->mapbase = resource.start;
 
-	/* Check for shifted address mapping */
+	
 	prop = of_get_property(np, "reg-offset", &prop_size);
 	if (prop && (prop_size == sizeof(u32)))
 		port->mapbase += *prop;
 
-	/* Check for registers offset within the devices address range */
+	
 	prop = of_get_property(np, "reg-shift", &prop_size);
 	if (prop && (prop_size == sizeof(u32)))
 		port->regshift = *prop;
@@ -69,16 +57,14 @@ static int __devinit of_platform_serial_setup(struct of_device *ofdev,
 	port->flags = UPF_SHARE_IRQ | UPF_BOOT_AUTOCONF | UPF_IOREMAP
 		| UPF_FIXED_PORT | UPF_FIXED_TYPE;
 	port->dev = &ofdev->dev;
-	/* If current-speed was set, then try not to change it. */
+	
 	if (spd)
 		port->custom_divisor = *clk / (16 * (*spd));
 
 	return 0;
 }
 
-/*
- * Try to register a serial port
- */
+
 static int __devinit of_platform_serial_probe(struct of_device *ofdev,
 						const struct of_device_id *id)
 {
@@ -111,7 +97,7 @@ static int __devinit of_platform_serial_probe(struct of_device *ofdev,
 		break;
 #endif
 	default:
-		/* need to add code for these */
+		
 	case PORT_UNKNOWN:
 		dev_info(&ofdev->dev, "Unknown serial port found, ignored\n");
 		ret = -ENODEV;
@@ -130,9 +116,7 @@ out:
 	return ret;
 }
 
-/*
- * Release a line
- */
+
 static int of_platform_serial_remove(struct of_device *ofdev)
 {
 	struct of_serial_info *info = dev_get_drvdata(&ofdev->dev);
@@ -148,16 +132,14 @@ static int of_platform_serial_remove(struct of_device *ofdev)
 		break;
 #endif
 	default:
-		/* need to add code for these */
+		
 		break;
 	}
 	kfree(info);
 	return 0;
 }
 
-/*
- * A few common types, add more as needed.
- */
+
 static struct of_device_id __devinitdata of_platform_serial_table[] = {
 	{ .type = "serial", .compatible = "ns8250",   .data = (void *)PORT_8250, },
 	{ .type = "serial", .compatible = "ns16450",  .data = (void *)PORT_16450, },
@@ -170,7 +152,7 @@ static struct of_device_id __devinitdata of_platform_serial_table[] = {
 					.data = (void *)PORT_NWPSERIAL, },
 #endif
 	{ .type = "serial",			      .data = (void *)PORT_UNKNOWN, },
-	{ /* end of list */ },
+	{  },
 };
 
 static struct of_platform_driver of_platform_serial_driver = {

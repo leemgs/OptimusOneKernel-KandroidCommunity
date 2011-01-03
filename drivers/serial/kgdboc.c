@@ -1,16 +1,4 @@
-/*
- * Based on the same principle as kgdboe using the NETPOLL api, this
- * driver uses a console polling api to implement a gdb serial inteface
- * which is multiplexed on a console port.
- *
- * Maintainer: Jason Wessel <jason.wessel@windriver.com>
- *
- * 2007-2008 (c) Jason Wessel - Wind River Systems, Inc.
- *
- * This file is licensed under the terms of the GNU General Public
- * License version 2. This program is licensed "as is" without any
- * warranty of any kind, whether express or implied.
- */
+
 #include <linux/kernel.h>
 #include <linux/ctype.h>
 #include <linux/kgdb.h>
@@ -20,7 +8,7 @@
 
 static struct kgdb_io		kgdboc_io_ops;
 
-/* -1 = init not run yet, 0 = unconfigured, 1 = configured. */
+
 static int configured		= -1;
 
 static char config[MAX_CONFIG_LEN];
@@ -81,7 +69,7 @@ noconfig:
 
 static int __init init_kgdboc(void)
 {
-	/* Already configured? */
+	
 	if (configured == 1)
 		return 0;
 
@@ -115,7 +103,7 @@ static int param_set_kgdboc_var(const char *kmessage, struct kernel_param *kp)
 		return -ENOSPC;
 	}
 
-	/* Only copy in the string if the init function has not run yet */
+	
 	if (configured < 0) {
 		strcpy(config, kmessage);
 		return 0;
@@ -129,27 +117,27 @@ static int param_set_kgdboc_var(const char *kmessage, struct kernel_param *kp)
 	}
 
 	strcpy(config, kmessage);
-	/* Chop out \n char as a result of echo */
+	
 	if (config[len - 1] == '\n')
 		config[len - 1] = '\0';
 
 	if (configured == 1)
 		cleanup_kgdboc();
 
-	/* Go and configure with the new params. */
+	
 	return configure_kgdboc();
 }
 
 static void kgdboc_pre_exp_handler(void)
 {
-	/* Increment the module count when the debugger is active */
+	
 	if (!kgdb_connected)
 		try_module_get(THIS_MODULE);
 }
 
 static void kgdboc_post_exp_handler(void)
 {
-	/* decrement the module count when the debugger detaches */
+	
 	if (!kgdb_connected)
 		module_put(THIS_MODULE);
 }

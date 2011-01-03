@@ -1,35 +1,4 @@
-/*======================================================================
 
-    A driver for PCMCIA serial devices
-
-    serial_cs.c 1.134 2002/05/04 05:48:53
-
-    The contents of this file are subject to the Mozilla Public
-    License Version 1.1 (the "License"); you may not use this file
-    except in compliance with the License. You may obtain a copy of
-    the License at http://www.mozilla.org/MPL/
-
-    Software distributed under the License is distributed on an "AS
-    IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
-    implied. See the License for the specific language governing
-    rights and limitations under the License.
-
-    The initial developer of the original code is David A. Hinds
-    <dahinds@users.sourceforge.net>.  Portions created by David A. Hinds
-    are Copyright (C) 1999 David A. Hinds.  All Rights Reserved.
-
-    Alternatively, the contents of this file may be used under the
-    terms of the GNU General Public License version 2 (the "GPL"), in which
-    case the provisions of the GPL are applicable instead of the
-    above.  If you wish to allow the use of your version of this file
-    only under the terms of the GPL and not to allow others to use
-    your version of this file under the MPL, indicate your decision
-    by deleting the provisions above and replace them with the notice
-    and other provisions required by the GPL.  If you do not delete
-    the provisions above, a recipient may use your version of this
-    file under either the MPL or the GPL.
-    
-======================================================================*/
 
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -63,26 +32,26 @@ static char *version = "serial_cs.c 1.134 2002/05/04 05:48:53 (David Hinds)";
 #define DEBUG(n, args...)
 #endif
 
-/*====================================================================*/
 
-/* Parameters that can be set with 'insmod' */
 
-/* Enable the speaker? */
+
+
+
 static int do_sound = 1;
-/* Skip strict UART tests? */
+
 static int buggy_uart;
 
 module_param(do_sound, int, 0444);
 module_param(buggy_uart, int, 0444);
 
-/*====================================================================*/
 
-/* Table of multi-port card ID's */
+
+
 
 struct serial_quirk {
 	unsigned int manfid;
 	unsigned int prodid;
-	int multi;		/* 1 = multifunction, > 1 = # ports */
+	int multi;		
 	void (*config)(struct pcmcia_device *);
 	void (*setup)(struct pcmcia_device *, struct uart_port *);
 	void (*wakeup)(struct pcmcia_device *);
@@ -108,11 +77,7 @@ struct serial_cfg_mem {
 	u_char buf[256];
 };
 
-/*
- * vers_1 5.0, "Brain Boxes", "2-Port RS232 card", "r6"
- * manfid 0x0160, 0x0104
- * This card appears to have a 14.7456MHz clock.
- */
+
 static void quirk_setup_brainboxes_0104(struct pcmcia_device *link, struct uart_port *port)
 {
 	port->uartclk = 14745600;
@@ -142,10 +107,7 @@ static int quirk_post_ibm(struct pcmcia_device *link)
 	return -ENODEV;
 }
 
-/*
- * Nokia cards are not really multiport cards.  Shouldn't this
- * be handled by setting the quirk entry .multi = 0 | 1 ?
- */
+
 static void quirk_config_nokia(struct pcmcia_device *link)
 {
 	struct serial_info *info = link->priv;
@@ -161,12 +123,8 @@ static void quirk_wakeup_oxsemi(struct pcmcia_device *link)
 	outb(12, info->c950ctrl + 1);
 }
 
-/* request_region? oxsemi branch does no request_region too... */
-/*
- * This sequence is needed to properly initialize MC45 attached to OXCF950.
- * I tried decreasing these msleep()s, but it worked properly (survived
- * 1000 stop/start operations) with these timeouts (or bigger).
- */
+
+
 static void quirk_wakeup_possio_gcc(struct pcmcia_device *link)
 {
 	struct serial_info *info = link->priv;
@@ -187,9 +145,7 @@ static void quirk_wakeup_possio_gcc(struct pcmcia_device *link)
 	outb(0xC, ctrl + 1);
 }
 
-/*
- * Socket Dual IO: this enables irq's for second port
- */
+
 static void quirk_config_socket(struct pcmcia_device *link)
 {
 	struct serial_info *info = link->priv;
@@ -271,12 +227,7 @@ static const struct serial_quirk quirks[] = {
 static int serial_config(struct pcmcia_device * link);
 
 
-/*======================================================================
 
-    After a card is removed, serial_remove() will unregister
-    the serial device(s), and release the PCMCIA configuration.
-    
-======================================================================*/
 
 static void serial_remove(struct pcmcia_device *link)
 {
@@ -285,9 +236,7 @@ static void serial_remove(struct pcmcia_device *link)
 
 	DEBUG(0, "serial_release(0x%p)\n", link);
 
-	/*
-	 * Recheck to see if the device is still configured.
-	 */
+	
 	for (i = 0; i < info->ndev; i++)
 		serial8250_unregister_port(info->line[i]);
 
@@ -322,13 +271,7 @@ static int serial_resume(struct pcmcia_device *link)
 	return 0;
 }
 
-/*======================================================================
 
-    serial_attach() creates an "instance" of the driver, allocating
-    local data structures for one device.  The device is registered
-    with Card Services.
-
-======================================================================*/
 
 static int serial_probe(struct pcmcia_device *link)
 {
@@ -336,7 +279,7 @@ static int serial_probe(struct pcmcia_device *link)
 
 	DEBUG(0, "serial_attach()\n");
 
-	/* Create new serial device */
+	
 	info = kzalloc(sizeof (*info), GFP_KERNEL);
 	if (!info)
 		return -ENOMEM;
@@ -357,14 +300,7 @@ static int serial_probe(struct pcmcia_device *link)
 	return serial_config(link);
 }
 
-/*======================================================================
 
-    This deletes a driver "instance".  The device is de-registered
-    with Card Services.  If it has been released, all local data
-    structures are freed.  Otherwise, the structures will be freed
-    when the device is released.
-
-======================================================================*/
 
 static void serial_detach(struct pcmcia_device *link)
 {
@@ -372,21 +308,17 @@ static void serial_detach(struct pcmcia_device *link)
 
 	DEBUG(0, "serial_detach(0x%p)\n", link);
 
-	/*
-	 * Ensure any outstanding scheduled tasks are completed.
-	 */
+	
 	flush_scheduled_work();
 
-	/*
-	 * Ensure that the ports have been released.
-	 */
+	
 	serial_remove(link);
 
-	/* free bits */
+	
 	kfree(info);
 }
 
-/*====================================================================*/
+
 
 static int setup_serial(struct pcmcia_device *handle, struct serial_info * info,
 			unsigned int iobase, int irq)
@@ -424,7 +356,7 @@ static int setup_serial(struct pcmcia_device *handle, struct serial_info * info,
 	return 0;
 }
 
-/*====================================================================*/
+
 
 static int
 first_tuple(struct pcmcia_device *handle, tuple_t * tuple, cisparse_t * parse)
@@ -439,7 +371,7 @@ first_tuple(struct pcmcia_device *handle, tuple_t * tuple, cisparse_t * parse)
 	return pcmcia_parse_tuple(tuple, parse);
 }
 
-/*====================================================================*/
+
 
 static int simple_config_check(struct pcmcia_device *p_dev,
 			       cistpl_cftable_entry_t *cf,
@@ -490,7 +422,7 @@ static int simple_config(struct pcmcia_device *link)
 	struct serial_info *info = link->priv;
 	int i = -ENODEV, try;
 
-	/* If the card is already configured, look up the port and irq */
+	
 	if (link->function_config) {
 		unsigned int port = 0;
 		if ((link->io.BasePort2 != 0) &&
@@ -508,15 +440,12 @@ static int simple_config(struct pcmcia_device *link)
 		}
 	}
 
-	/* First pass: look for a config entry that looks normal.
-	 * Two tries: without IO aliases, then with aliases */
+	
 	for (try = 0; try < 4; try++)
 		if (!pcmcia_loop_config(link, simple_config_check, &try))
 			goto found_port;
 
-	/* Second pass: try to find an entry that isn't picky about
-	   its base address, then try to grab any standard serial port
-	   address, and finally try to get any free port. */
+	
 	if (!pcmcia_loop_config(link, simple_config_check_notpicky, NULL))
 		goto found_port;
 
@@ -534,9 +463,7 @@ found_port:
 	if (info->multi && (info->manfid == MANFID_3COM))
 		link->conf.ConfigIndex &= ~(0x08);
 
-	/*
-	 * Apply any configuration quirks.
-	 */
+	
 	if (info->quirk && info->quirk->config)
 		info->quirk->config(link);
 
@@ -556,8 +483,7 @@ static int multi_config_check(struct pcmcia_device *p_dev,
 {
 	int *base2 = priv_data;
 
-	/* The quad port cards have bad CIS's, so just look for a
-	   window larger than 8 ports and assume it will be right */
+	
 	if ((cf->io.nwin == 1) && (cf->io.win[0].len > 8)) {
 		p_dev->io.BasePort1 = cf->io.win[0].base;
 		p_dev->io.IOAddrLines = cf->io.flags & CISTPL_IO_LINES_MASK;
@@ -594,10 +520,10 @@ static int multi_config(struct pcmcia_device *link)
 	struct serial_info *info = link->priv;
 	int i, base2 = 0;
 
-	/* First, look for a generic full-sized window */
+	
 	link->io.NumPorts1 = info->multi * 8;
 	if (pcmcia_loop_config(link, multi_config_check, &base2)) {
-		/* If that didn't work, look for two windows */
+		
 		link->io.NumPorts1 = link->io.NumPorts2 = 8;
 		info->multi = 2;
 		if (pcmcia_loop_config(link, multi_config_check_notpicky,
@@ -610,16 +536,14 @@ static int multi_config(struct pcmcia_device *link)
 
 	i = pcmcia_request_irq(link, &link->irq);
 	if (i != 0) {
-		/* FIXME: comment does not fit, error handling does not fit */
+		
 		printk(KERN_NOTICE
 		       "serial_cs: no usable port range found, giving up\n");
 		cs_error(link, RequestIRQ, i);
 		link->irq.AssignedIRQ = 0;
 	}
 
-	/*
-	 * Apply any configuration quirks.
-	 */
+	
 	if (info->quirk && info->quirk->config)
 		info->quirk->config(link);
 
@@ -629,10 +553,7 @@ static int multi_config(struct pcmcia_device *link)
 		return -ENODEV;
 	}
 
-	/* The Oxford Semiconductor OXCF950 cards are in fact single-port:
-	 * 8 registers are for the UART, the others are extra registers.
-	 * Siemen's MC45 PCMCIA (Possio's GCC) is OXCF950 based too.
-	 */
+	
 	if (info->manfid == MANFID_OXSEMI || (info->manfid == MANFID_POSSIO &&
 				info->prodid == PRODID_POSSIO_GCC)) {
 		int err;
@@ -648,10 +569,7 @@ static int multi_config(struct pcmcia_device *link)
 		}
 		info->c950ctrl = base2;
 
-		/*
-		 * FIXME: We really should wake up the port prior to
-		 * handing it over to the serial layer.
-		 */
+		
 		if (info->quirk && info->quirk->wakeup)
 			info->quirk->wakeup(link);
 
@@ -665,13 +583,7 @@ static int multi_config(struct pcmcia_device *link)
 	return 0;
 }
 
-/*======================================================================
 
-    serial_config() is scheduled to run after a CARD_INSERTION event
-    is received, to configure the PCMCIA socket, and to make the
-    serial device available to the system.
-
-======================================================================*/
 
 static int serial_config(struct pcmcia_device * link)
 {
@@ -699,7 +611,7 @@ static int serial_config(struct pcmcia_device * link)
 	tuple->TupleDataMax = 255;
 	tuple->Attributes = 0;
 
-	/* Get configuration register information */
+	
 	tuple->DesiredTuple = CISTPL_CONFIG;
 	last_ret = first_tuple(link, tuple, parse);
 	if (last_ret != 0) {
@@ -709,12 +621,12 @@ static int serial_config(struct pcmcia_device * link)
 	link->conf.ConfigBase = parse->config.base;
 	link->conf.Present = parse->config.rmask[0];
 
-	/* Is this a compliant multifunction card? */
+	
 	tuple->DesiredTuple = CISTPL_LONGLINK_MFC;
 	tuple->Attributes = TUPLE_RETURN_COMMON | TUPLE_RETURN_LINK;
 	info->multi = (first_tuple(link, tuple, parse) == 0);
 
-	/* Is this a multiport card? */
+	
 	tuple->DesiredTuple = CISTPL_MANFID;
 	info->manfid = link->manf_id;
 	info->prodid = link->card_id;
@@ -728,8 +640,7 @@ static int serial_config(struct pcmcia_device * link)
 			break;
 		}
 
-	/* Another check for dual-serial cards: look for either serial or
-	   multifunction cards that ask for appropriate IO port ranges */
+	
 	tuple->DesiredTuple = CISTPL_FUNCID;
 	if ((info->multi == 0) &&
 	    (link->has_func_id) &&
@@ -745,9 +656,7 @@ static int serial_config(struct pcmcia_device * link)
 		}
 	}
 
-	/*
-	 * Apply any multi-port quirk.
-	 */
+	
 	if (info->quirk && info->quirk->multi != -1)
 		info->multi = info->quirk->multi;
 
@@ -759,10 +668,7 @@ static int serial_config(struct pcmcia_device * link)
 	if (info->ndev == 0)
 		goto failed;
 
-	/*
-	 * Apply any post-init quirk.  FIXME: This should really happen
-	 * before we register the port, since it might already be in use.
-	 */
+	
 	if (info->quirk && info->quirk->post)
 		if (info->quirk->post(link))
 			goto failed;
@@ -879,10 +785,10 @@ static struct pcmcia_device_id serial_ids[] = {
 	PCMCIA_MFC_DEVICE_CIS_MANF_CARD(1, 0x0175, 0x0000, "cis/DP83903.cis"),
 	PCMCIA_MFC_DEVICE_CIS_MANF_CARD(1, 0x0101, 0x0035, "cis/3CXEM556.cis"),
 	PCMCIA_MFC_DEVICE_CIS_MANF_CARD(1, 0x0101, 0x003d, "cis/3CXEM556.cis"),
-	PCMCIA_DEVICE_CIS_PROD_ID12("Sierra Wireless", "AC850", 0xd85f6206, 0x42a2c018, "cis/SW_8xx_SER.cis"), /* Sierra Wireless AC850 3G Network Adapter R1 */
-	PCMCIA_DEVICE_CIS_PROD_ID12("Sierra Wireless", "AC710/AC750", 0xd85f6206, 0x761b11e0, "cis/SW_7xx_SER.cis"),  /* Sierra Wireless AC710/AC750 GPRS Network Adapter R1 */
-	PCMCIA_DEVICE_CIS_MANF_CARD(0x0192, 0xa555, "cis/SW_555_SER.cis"),  /* Sierra Aircard 555 CDMA 1xrtt Modem -- pre update */
-	PCMCIA_DEVICE_CIS_MANF_CARD(0x013f, 0xa555, "cis/SW_555_SER.cis"),  /* Sierra Aircard 555 CDMA 1xrtt Modem -- post update */
+	PCMCIA_DEVICE_CIS_PROD_ID12("Sierra Wireless", "AC850", 0xd85f6206, 0x42a2c018, "cis/SW_8xx_SER.cis"), 
+	PCMCIA_DEVICE_CIS_PROD_ID12("Sierra Wireless", "AC710/AC750", 0xd85f6206, 0x761b11e0, "cis/SW_7xx_SER.cis"),  
+	PCMCIA_DEVICE_CIS_MANF_CARD(0x0192, 0xa555, "cis/SW_555_SER.cis"),  
+	PCMCIA_DEVICE_CIS_MANF_CARD(0x013f, 0xa555, "cis/SW_555_SER.cis"),  
 	PCMCIA_DEVICE_CIS_PROD_ID12("MultiTech", "PCMCIA 56K DataFax", 0x842047ee, 0xc2efcf03, "cis/MT5634ZLX.cis"),
 	PCMCIA_DEVICE_CIS_PROD_ID12("ADVANTECH", "COMpad-32/85B-2", 0x96913a85, 0x27ab5437, "cis/COMpad2.cis"),
 	PCMCIA_DEVICE_CIS_PROD_ID12("ADVANTECH", "COMpad-32/85B-4", 0x96913a85, 0xcec8f102, "cis/COMpad4.cis"),
@@ -914,9 +820,9 @@ static struct pcmcia_device_id serial_ids[] = {
 	PCMCIA_MFC_DEVICE_PROD_ID12(2,"Elan","Serial Port: SL432",0x3beb8cf2,0x1cce7ac4),
 	PCMCIA_MFC_DEVICE_PROD_ID12(3,"Elan","Serial Port: SL432",0x3beb8cf2,0x1cce7ac4),
 	PCMCIA_DEVICE_MANF_CARD(0x0279, 0x950b),
-	/* too generic */
-	/* PCMCIA_MFC_DEVICE_MANF_CARD(0, 0x0160, 0x0002), */
-	/* PCMCIA_MFC_DEVICE_MANF_CARD(1, 0x0160, 0x0002), */
+	
+	
+	
 	PCMCIA_DEVICE_FUNC_ID(2),
 	PCMCIA_DEVICE_NULL,
 };

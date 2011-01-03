@@ -1,66 +1,8 @@
-/*
- * Driver for the PSC of the Freescale MPC52xx PSCs configured as UARTs.
- *
- * FIXME According to the usermanual the status bits in the status register
- * are only updated when the peripherals access the FIFO and not when the
- * CPU access them. So since we use this bits to know when we stop writing
- * and reading, they may not be updated in-time and a race condition may
- * exists. But I haven't be able to prove this and I don't care. But if
- * any problem arises, it might worth checking. The TX/RX FIFO Stats
- * registers should be used in addition.
- * Update: Actually, they seem updated ... At least the bits we use.
- *
- *
- * Maintainer : Sylvain Munaut <tnt@246tNt.com>
- *
- * Some of the code has been inspired/copied from the 2.4 code written
- * by Dale Farnsworth <dfarnsworth@mvista.com>.
- *
- * Copyright (C) 2008 Freescale Semiconductor Inc.
- *                    John Rigby <jrigby@gmail.com>
- * Added support for MPC5121
- * Copyright (C) 2006 Secret Lab Technologies Ltd.
- *                    Grant Likely <grant.likely@secretlab.ca>
- * Copyright (C) 2004-2006 Sylvain Munaut <tnt@246tNt.com>
- * Copyright (C) 2003 MontaVista, Software, Inc.
- *
- * This file is licensed under the terms of the GNU General Public License
- * version 2. This program is licensed "as is" without any warranty of any
- * kind, whether express or implied.
- */
 
-/* Platform device Usage :
- *
- * Since PSCs can have multiple function, the correct driver for each one
- * is selected by calling mpc52xx_match_psc_function(...). The function
- * handled by this driver is "uart".
- *
- * The driver init all necessary registers to place the PSC in uart mode without
- * DCD. However, the pin multiplexing aren't changed and should be set either
- * by the bootloader or in the platform init code.
- *
- * The idx field must be equal to the PSC index (e.g. 0 for PSC1, 1 for PSC2,
- * and so on). So the PSC1 is mapped to /dev/ttyPSC0, PSC2 to /dev/ttyPSC1 and
- * so on. But be warned, it's an ABSOLUTE REQUIREMENT ! This is needed mainly
- * fpr the console code : without this 1:1 mapping, at early boot time, when we
- * are parsing the kernel args console=ttyPSC?, we wouldn't know which PSC it
- * will be mapped to.
- */
 
-/* OF Platform device Usage :
- *
- * This driver is only used for PSCs configured in uart mode.  The device
- * tree will have a node for each PSC with "mpc52xx-psc-uart" in the compatible
- * list.
- *
- * By default, PSC devices are enumerated in the order they are found.  However
- * a particular PSC number can be forces by adding 'device_no = <port#>'
- * to the device node.
- *
- * The driver init all necessary registers to place the PSC in uart mode without
- * DCD. However, the pin multiplexing aren't changed and should be set either
- * by the bootloader or in the platform init code.
- */
+
+
+
 
 #undef DEBUG
 
@@ -85,24 +27,18 @@
 #include <linux/serial_core.h>
 
 
-/* We've been assigned a range on the "Low-density serial ports" major */
+
 #define SERIAL_PSC_MAJOR	204
 #define SERIAL_PSC_MINOR	148
 
 
-#define ISR_PASS_LIMIT 256	/* Max number of iteration in the interrupt */
+#define ISR_PASS_LIMIT 256	
 
 
 static struct uart_port mpc52xx_uart_ports[MPC52xx_PSC_MAXNUM];
-	/* Rem: - We use the read_status_mask as a shadow of
-	 *        psc->mpc52xx_psc_imr
-	 *      - It's important that is array is all zero on start as we
-	 *        use it to know if it's initialized or not ! If it's not sure
-	 *        it's cleared, then a memset(...,0,...) should be added to
-	 *        the console_init
-	 */
+	
 
-/* lookup table for matching device nodes to index numbers */
+
 static struct device_node *mpc52xx_uart_nodes[MPC52xx_PSC_MAXNUM];
 
 static void mpc52xx_uart_of_enumerate(void);
@@ -111,12 +47,11 @@ static void mpc52xx_uart_of_enumerate(void);
 #define PSC(port) ((struct mpc52xx_psc __iomem *)((port)->membase))
 
 
-/* Forward declaration of the interruption handling routine */
+
 static irqreturn_t mpc52xx_uart_int(int irq, void *dev_id);
 
 
-/* Simple macro to test if a port is console or not. This one is taken
- * for serial_core.c and maybe should be moved to serial_core.h ? */
+
 #ifdef CONFIG_SERIAL_CORE_CONSOLE
 #define uart_console(port) \
 	((port)->cons && (port)->cons->index == (port)->line)
@@ -124,9 +59,9 @@ static irqreturn_t mpc52xx_uart_int(int irq, void *dev_id);
 #define uart_console(port)	(0)
 #endif
 
-/* ======================================================================== */
-/* PSC fifo operations for isolating differences between 52xx and 512x      */
-/* ======================================================================== */
+
+
+
 
 struct psc_ops {
 	void		(*fifo_init)(struct uart_port *port);
@@ -154,7 +89,7 @@ static void mpc52xx_psc_fifo_init(struct uart_port *port)
 	struct mpc52xx_psc __iomem *psc = PSC(port);
 	struct mpc52xx_psc_fifo __iomem *fifo = FIFO_52xx(port);
 
-	/* /32 prescaler */
+	
 	out_be16(&psc->mpc52xx_psc_clock_select, 0xdd00);
 
 	out_8(&fifo->rfcntl, 0x00);
@@ -245,14 +180,10 @@ static void mpc52xx_psc_cw_restore_ints(struct uart_port *port)
 	out_be16(&PSC(port)->mpc52xx_psc_imr, port->read_status_mask);
 }
 
-/* Search for bus-frequency property in this node or a parent */
+
 static unsigned long mpc52xx_getuartclk(void *p)
 {
-	/*
-	 * 5200 UARTs have a / 32 prescaler
-	 * but the generic serial code assumes 16
-	 * so return ipb freq / 2
-	 */
+	
 	return mpc5xxx_get_bus_frequency(p) / 2;
 }
 
@@ -275,7 +206,7 @@ static struct psc_ops mpc52xx_psc_ops = {
 	.getuartclk = mpc52xx_getuartclk,
 };
 
-#endif /* CONFIG_MPC52xx */
+#endif 
 
 #ifdef CONFIG_PPC_MPC512x
 #define FIFO_512x(port) ((struct mpc512x_psc_fifo __iomem *)(PSC(port)+1))
@@ -415,9 +346,9 @@ static struct psc_ops mpc512x_psc_ops = {
 
 static struct psc_ops *psc_ops;
 
-/* ======================================================================== */
-/* UART operations                                                          */
-/* ======================================================================== */
+
+
+
 
 static unsigned int
 mpc52xx_uart_tx_empty(struct uart_port *port)
@@ -451,14 +382,14 @@ mpc52xx_uart_get_mctrl(struct uart_port *port)
 static void
 mpc52xx_uart_stop_tx(struct uart_port *port)
 {
-	/* port->lock taken by caller */
+	
 	psc_ops->stop_tx(port);
 }
 
 static void
 mpc52xx_uart_start_tx(struct uart_port *port)
 {
-	/* port->lock taken by caller */
+	
 	psc_ops->start_tx(port);
 }
 
@@ -470,8 +401,8 @@ mpc52xx_uart_send_xchar(struct uart_port *port, char ch)
 
 	port->x_char = ch;
 	if (ch) {
-		/* Make sure tx interrupts are on */
-		/* Truly necessary ??? They should be anyway */
+		
+		
 		psc_ops->start_tx(port);
 	}
 
@@ -481,7 +412,7 @@ mpc52xx_uart_send_xchar(struct uart_port *port, char ch)
 static void
 mpc52xx_uart_stop_rx(struct uart_port *port)
 {
-	/* port->lock taken by caller */
+	
 	psc_ops->stop_rx(port);
 }
 
@@ -490,9 +421,9 @@ mpc52xx_uart_enable_ms(struct uart_port *port)
 {
 	struct mpc52xx_psc __iomem *psc = PSC(port);
 
-	/* clear D_*-bits by reading them */
+	
 	in_8(&psc->mpc52xx_psc_ipcr);
-	/* enable CTS and DCD as IPC interrupts */
+	
 	out_8(&psc->mpc52xx_psc_acr, MPC52xx_PSC_IEC_CTS | MPC52xx_PSC_IEC_DCD);
 
 	port->read_status_mask |= MPC52xx_PSC_IMR_IPC;
@@ -519,18 +450,18 @@ mpc52xx_uart_startup(struct uart_port *port)
 	struct mpc52xx_psc __iomem *psc = PSC(port);
 	int ret;
 
-	/* Request IRQ */
+	
 	ret = request_irq(port->irq, mpc52xx_uart_int,
 		IRQF_DISABLED | IRQF_SAMPLE_RANDOM,
 		"mpc52xx_psc_uart", port);
 	if (ret)
 		return ret;
 
-	/* Reset/activate the port, clear and enable interrupts */
+	
 	out_8(&psc->command, MPC52xx_PSC_RST_RX);
 	out_8(&psc->command, MPC52xx_PSC_RST_TX);
 
-	out_be32(&psc->sicr, 0);	/* UART mode DCD ignored */
+	out_be32(&psc->sicr, 0);	
 
 	psc_ops->fifo_init(port);
 
@@ -545,7 +476,7 @@ mpc52xx_uart_shutdown(struct uart_port *port)
 {
 	struct mpc52xx_psc __iomem *psc = PSC(port);
 
-	/* Shut down the port.  Leave TX active if on a console port */
+	
 	out_8(&psc->command, MPC52xx_PSC_RST_RX);
 	if (!uart_console(port))
 		out_8(&psc->command, MPC52xx_PSC_RST_TX);
@@ -553,7 +484,7 @@ mpc52xx_uart_shutdown(struct uart_port *port)
 	port->read_status_mask = 0;
 	out_be16(&psc->mpc52xx_psc_imr, port->read_status_mask);
 
-	/* Release interrupt */
+	
 	free_irq(port->irq, port);
 }
 
@@ -567,7 +498,7 @@ mpc52xx_uart_set_termios(struct uart_port *port, struct ktermios *new,
 	unsigned short ctr;
 	unsigned int j, baud, quot;
 
-	/* Prepare what we're gonna write */
+	
 	mr1 = 0;
 
 	switch (new->c_cflag & CSIZE) {
@@ -606,19 +537,17 @@ mpc52xx_uart_set_termios(struct uart_port *port, struct ktermios *new,
 	quot = uart_get_divisor(port, baud);
 	ctr = quot & 0xffff;
 
-	/* Get the lock */
+	
 	spin_lock_irqsave(&port->lock, flags);
 
-	/* Update the per-port timeout */
+	
 	uart_update_timeout(port, new->c_cflag, baud);
 
-	/* Do our best to flush TX & RX, so we don't lose anything */
-	/* But we don't wait indefinitely ! */
-	j = 5000000;	/* Maximum wait */
-	/* FIXME Can't receive chars since set_termios might be called at early
-	 * boot for the console, all stuff is not yet ready to receive at that
-	 * time and that just makes the kernel oops */
-	/* while (j-- && mpc52xx_uart_int_rx_chars(port)); */
+	
+	
+	j = 5000000;	
+	
+	
 	while (!mpc52xx_uart_tx_empty(port) && --j)
 		udelay(1);
 
@@ -627,11 +556,11 @@ mpc52xx_uart_set_termios(struct uart_port *port, struct ktermios *new,
 			"Unable to flush RX & TX fifos in-time in set_termios."
 			"Some chars may have been lost.\n");
 
-	/* Reset the TX & RX */
+	
 	out_8(&psc->command, MPC52xx_PSC_RST_RX);
 	out_8(&psc->command, MPC52xx_PSC_RST_TX);
 
-	/* Send new mode settings */
+	
 	out_8(&psc->command, MPC52xx_PSC_SEL_MODE_REG_1);
 	out_8(&psc->mode, mr1);
 	out_8(&psc->mode, mr2);
@@ -641,11 +570,11 @@ mpc52xx_uart_set_termios(struct uart_port *port, struct ktermios *new,
 	if (UART_ENABLE_MS(port, new->c_cflag))
 		mpc52xx_uart_enable_ms(port);
 
-	/* Reenable TX & RX */
+	
 	out_8(&psc->command, MPC52xx_PSC_TX_ENABLE);
 	out_8(&psc->command, MPC52xx_PSC_RX_ENABLE);
 
-	/* We're all set, release the lock */
+	
 	spin_unlock_irqrestore(&port->lock, flags);
 }
 
@@ -658,7 +587,7 @@ mpc52xx_uart_type(struct uart_port *port)
 static void
 mpc52xx_uart_release_port(struct uart_port *port)
 {
-	/* remapped by us ? */
+	
 	if (port->flags & UPF_IOREMAP) {
 		iounmap(port->membase);
 		port->membase = NULL;
@@ -672,7 +601,7 @@ mpc52xx_uart_request_port(struct uart_port *port)
 {
 	int err;
 
-	if (port->flags & UPF_IOREMAP) /* Need to remap ? */
+	if (port->flags & UPF_IOREMAP) 
 		port->membase = ioremap(port->mapbase,
 					sizeof(struct mpc52xx_psc));
 
@@ -728,8 +657,8 @@ static struct uart_ops mpc52xx_uart_ops = {
 	.startup	= mpc52xx_uart_startup,
 	.shutdown	= mpc52xx_uart_shutdown,
 	.set_termios	= mpc52xx_uart_set_termios,
-/*	.pm		= mpc52xx_uart_pm,		Not supported yet */
-/*	.set_wake	= mpc52xx_uart_set_wake,	Not supported yet */
+
+
 	.type		= mpc52xx_uart_type,
 	.release_port	= mpc52xx_uart_release_port,
 	.request_port	= mpc52xx_uart_request_port,
@@ -738,9 +667,9 @@ static struct uart_ops mpc52xx_uart_ops = {
 };
 
 
-/* ======================================================================== */
-/* Interrupt handling                                                       */
-/* ======================================================================== */
+
+
+
 
 static inline int
 mpc52xx_uart_int_rx_chars(struct uart_port *port)
@@ -749,12 +678,12 @@ mpc52xx_uart_int_rx_chars(struct uart_port *port)
 	unsigned char ch, flag;
 	unsigned short status;
 
-	/* While we can read, do so ! */
+	
 	while (psc_ops->raw_rx_rdy(port)) {
-		/* Get the char */
+		
 		ch = psc_ops->read_char(port);
 
-		/* Handle sysreq char */
+		
 #ifdef SUPPORT_SYSRQ
 		if (uart_handle_sysrq_char(port, ch)) {
 			port->sysrq = 0;
@@ -762,7 +691,7 @@ mpc52xx_uart_int_rx_chars(struct uart_port *port)
 		}
 #endif
 
-		/* Store it */
+		
 
 		flag = TTY_NORMAL;
 		port->icount.rx++;
@@ -786,17 +715,13 @@ mpc52xx_uart_int_rx_chars(struct uart_port *port)
 				port->icount.frame++;
 			}
 
-			/* Clear error condition */
+			
 			out_8(&PSC(port)->command, MPC52xx_PSC_RST_ERR_STAT);
 
 		}
 		tty_insert_flip_char(tty, ch, flag);
 		if (status & MPC52xx_PSC_SR_OE) {
-			/*
-			 * Overrun is special, since it's
-			 * reported immediately, and doesn't
-			 * affect the current character
-			 */
+			
 			tty_insert_flip_char(tty, 0, TTY_OVERRUN);
 			port->icount.overrun++;
 		}
@@ -814,7 +739,7 @@ mpc52xx_uart_int_tx_chars(struct uart_port *port)
 {
 	struct circ_buf *xmit = &port->state->xmit;
 
-	/* Process out of band chars */
+	
 	if (port->x_char) {
 		psc_ops->write_char(port, port->x_char);
 		port->icount.tx++;
@@ -822,13 +747,13 @@ mpc52xx_uart_int_tx_chars(struct uart_port *port)
 		return 1;
 	}
 
-	/* Nothing to do ? */
+	
 	if (uart_circ_empty(xmit) || uart_tx_stopped(port)) {
 		mpc52xx_uart_stop_tx(port);
 		return 0;
 	}
 
-	/* Send chars */
+	
 	while (psc_ops->raw_tx_rdy(port)) {
 		psc_ops->write_char(port, xmit->buf[xmit->tail]);
 		xmit->tail = (xmit->tail + 1) & (UART_XMIT_SIZE - 1);
@@ -837,11 +762,11 @@ mpc52xx_uart_int_tx_chars(struct uart_port *port)
 			break;
 	}
 
-	/* Wake up */
+	
 	if (uart_circ_chars_pending(xmit) < WAKEUP_CHARS)
 		uart_write_wakeup(port);
 
-	/* Maybe we're done after all */
+	
 	if (uart_circ_empty(xmit)) {
 		mpc52xx_uart_stop_tx(port);
 		return 0;
@@ -860,9 +785,9 @@ mpc52xx_uart_int(int irq, void *dev_id)
 
 	spin_lock(&port->lock);
 
-	/* While we have stuff to do, we continue */
+	
 	do {
-		/* If we don't find anything to do, we stop */
+		
 		keepgoing = 0;
 
 		psc_ops->rx_clr_irq(port);
@@ -880,7 +805,7 @@ mpc52xx_uart_int(int irq, void *dev_id)
 		if (status & MPC52xx_PSC_D_CTS)
 			uart_handle_cts_change(port, !(status & MPC52xx_PSC_CTS));
 
-		/* Limit number of iteration */
+		
 		if (!(--pass))
 			keepgoing = 0;
 
@@ -892,9 +817,9 @@ mpc52xx_uart_int(int irq, void *dev_id)
 }
 
 
-/* ======================================================================== */
-/* Console ( if applicable )                                                */
-/* ======================================================================== */
+
+
+
 
 #ifdef CONFIG_SERIAL_MPC52xx_CONSOLE
 
@@ -907,14 +832,14 @@ mpc52xx_console_get_options(struct uart_port *port,
 
 	pr_debug("mpc52xx_console_get_options(port=%p)\n", port);
 
-	/* Read the mode registers */
+	
 	out_8(&psc->command, MPC52xx_PSC_SEL_MODE_REG_1);
 	mr1 = in_8(&psc->mode);
 
-	/* CT{U,L}R are write-only ! */
+	
 	*baud = CONFIG_SERIAL_MPC52xx_CONSOLE_BAUD;
 
-	/* Parse them */
+	
 	switch (mr1 & MPC52xx_PSC_MODE_BITS_MASK) {
 	case MPC52xx_PSC_MODE_5_BITS:
 		*bits = 5;
@@ -942,30 +867,30 @@ mpc52xx_console_write(struct console *co, const char *s, unsigned int count)
 	struct uart_port *port = &mpc52xx_uart_ports[co->index];
 	unsigned int i, j;
 
-	/* Disable interrupts */
+	
 	psc_ops->cw_disable_ints(port);
 
-	/* Wait the TX buffer to be empty */
-	j = 5000000;	/* Maximum wait */
+	
+	j = 5000000;	
 	while (!mpc52xx_uart_tx_empty(port) && --j)
 		udelay(1);
 
-	/* Write all the chars */
+	
 	for (i = 0; i < count; i++, s++) {
-		/* Line return handling */
+		
 		if (*s == '\n')
 			psc_ops->write_char(port, '\r');
 
-		/* Send the char */
+		
 		psc_ops->write_char(port, *s);
 
-		/* Wait the TX buffer to be empty */
-		j = 20000;	/* Maximum wait */
+		
+		j = 20000;	
 		while (!mpc52xx_uart_tx_empty(port) && --j)
 			udelay(1);
 	}
 
-	/* Restore interrupt state */
+	
 	psc_ops->cw_restore_ints(port);
 }
 
@@ -1000,7 +925,7 @@ mpc52xx_console_setup(struct console *co, char *options)
 	pr_debug("Console on ttyPSC%x is %s\n",
 		 co->index, mpc52xx_uart_nodes[co->index]->full_name);
 
-	/* Fetch register locations */
+	
 	ret = of_address_to_resource(np, 0, &res);
 	if (ret) {
 		pr_debug("Could not get resources for PSC%x\n", co->index);
@@ -1013,8 +938,7 @@ mpc52xx_console_setup(struct console *co, char *options)
 		return -EINVAL;
 	}
 
-	/* Basic port init. Needed since we use some uart_??? func before
-	 * real init for early access */
+	
 	spin_lock_init(&port->lock);
 	port->uartclk = uartclk;
 	port->ops	= &mpc52xx_uart_ops;
@@ -1029,7 +953,7 @@ mpc52xx_console_setup(struct console *co, char *options)
 		 (void *)port->mapbase, port->membase,
 		 port->irq, port->uartclk);
 
-	/* Setup the port parameters accoding to options */
+	
 	if (options)
 		uart_parse_options(options, &baud, &parity, &bits, &flow);
 	else
@@ -1050,7 +974,7 @@ static struct console mpc52xx_console = {
 	.device	= uart_console_device,
 	.setup	= mpc52xx_console_setup,
 	.flags	= CON_PRINTBUFFER,
-	.index	= -1,	/* Specified on the cmdline (e.g. console=ttyPSC0) */
+	.index	= -1,	
 	.data	= &mpc52xx_uart_driver,
 };
 
@@ -1071,9 +995,9 @@ console_initcall(mpc52xx_console_init);
 #endif
 
 
-/* ======================================================================== */
-/* UART Driver                                                              */
-/* ======================================================================== */
+
+
+
 
 static struct uart_driver mpc52xx_uart_driver = {
 	.driver_name	= "mpc52xx_psc_uart",
@@ -1084,16 +1008,16 @@ static struct uart_driver mpc52xx_uart_driver = {
 	.cons		= MPC52xx_PSC_CONSOLE,
 };
 
-/* ======================================================================== */
-/* OF Platform Driver                                                       */
-/* ======================================================================== */
+
+
+
 
 static struct of_device_id mpc52xx_uart_of_match[] = {
 #ifdef CONFIG_PPC_MPC52xx
 	{ .compatible = "fsl,mpc5200-psc-uart", .data = &mpc52xx_psc_ops, },
-	/* binding used by old lite5200 device trees: */
+	
 	{ .compatible = "mpc5200-psc-uart", .data = &mpc52xx_psc_ops, },
-	/* binding used by efika: */
+	
 	{ .compatible = "mpc5200-serial", .data = &mpc52xx_psc_ops, },
 #endif
 #ifdef CONFIG_PPC_MPC512x
@@ -1113,7 +1037,7 @@ mpc52xx_uart_of_probe(struct of_device *op, const struct of_device_id *match)
 
 	dev_dbg(&op->dev, "mpc52xx_uart_probe(op=%p, match=%p)\n", op, match);
 
-	/* Check validity & presence */
+	
 	for (idx = 0; idx < MPC52xx_PSC_MAXNUM; idx++)
 		if (mpc52xx_uart_nodes[idx] == op->node)
 			break;
@@ -1128,7 +1052,7 @@ mpc52xx_uart_of_probe(struct of_device *op, const struct of_device_id *match)
 		return -EINVAL;
 	}
 
-	/* Init the port structure */
+	
 	port = &mpc52xx_uart_ports[idx];
 
 	spin_lock_init(&port->lock);
@@ -1141,7 +1065,7 @@ mpc52xx_uart_of_probe(struct of_device *op, const struct of_device_id *match)
 	port->ops	= &mpc52xx_uart_ops;
 	port->dev	= &op->dev;
 
-	/* Search for IRQ and mapbase */
+	
 	ret = of_address_to_resource(op->node, 0, &res);
 	if (ret)
 		return ret;
@@ -1161,7 +1085,7 @@ mpc52xx_uart_of_probe(struct of_device *op, const struct of_device_id *match)
 	dev_dbg(&op->dev, "mpc52xx-psc uart at %p, irq=%x, freq=%i\n",
 		(void *)port->mapbase, port->irq, port->uartclk);
 
-	/* Add the port to the uart sub-system */
+	
 	ret = uart_add_one_port(&mpc52xx_uart_driver, port);
 	if (ret) {
 		irq_dispose_mapping(port->irq);
@@ -1215,7 +1139,7 @@ mpc52xx_uart_of_assign(struct device_node *np)
 {
 	int i;
 
-	/* Find the first free PSC number */
+	
 	for (i = 0; i < MPC52xx_PSC_MAXNUM; i++) {
 		if (mpc52xx_uart_nodes[i] == NULL) {
 			of_node_get(np);
@@ -1236,7 +1160,7 @@ mpc52xx_uart_of_enumerate(void)
 	if (enum_done)
 		return;
 
-	/* Assign index to each PSC in device tree */
+	
 	for_each_matching_node(np, mpc52xx_uart_of_match) {
 		match = of_match_node(mpc52xx_uart_of_match, np);
 		psc_ops = match->data;
@@ -1268,9 +1192,9 @@ static struct of_platform_driver mpc52xx_uart_of_driver = {
 };
 
 
-/* ======================================================================== */
-/* Module                                                                   */
-/* ======================================================================== */
+
+
+
 
 static int __init
 mpc52xx_uart_init(void)

@@ -1,19 +1,4 @@
-/*
- *  m32r_sio.h
- *
- *  Driver for M32R serial ports
- *
- *  Based on drivers/char/serial.c, by Linus Torvalds, Theodore Ts'o.
- *  Based on drivers/serial/8250.h.
- *
- *  Copyright (C) 2001  Russell King.
- *  Copyright (C) 2004  Hirokazu Takata <takata at linux-m32r.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
+
 
 
 struct m32r_sio_probe {

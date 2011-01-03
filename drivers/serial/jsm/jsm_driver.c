@@ -1,29 +1,4 @@
-/************************************************************************
- * Copyright 2003 Digi International (www.digi.com)
- *
- * Copyright (C) 2004 IBM Corporation. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY, EXPRESS OR IMPLIED; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- * PURPOSE.  See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 * Temple Place - Suite 330, Boston,
- * MA  02111-1307, USA.
- *
- * Contact Information:
- * Scott H Kilau <Scott_Kilau@digi.com>
- * Wendy Xiong   <wendyx@us.ibm.com>
- *
- *
- ***********************************************************************/
+
 #include <linux/moduleparam.h>
 #include <linux/pci.h>
 
@@ -78,7 +53,7 @@ static int __devinit jsm_probe_one(struct pci_dev *pdev, const struct pci_device
 		goto out_release_regions;
 	}
 
-	/* store the info for the board we've found */
+	
 	brd->boardnum = adapter_count++;
 	brd->pci_dev = pdev;
 	if (pdev->device == PCIE_DEVICE_ID_NEO_4_IBM)
@@ -90,7 +65,7 @@ static int __devinit jsm_probe_one(struct pci_dev *pdev, const struct pci_device
 
 	spin_lock_init(&brd->bd_intr_lock);
 
-	/* store which revision we have */
+	
 	brd->rev = pdev->revision;
 
 	brd->irq = pdev->irq;
@@ -98,7 +73,7 @@ static int __devinit jsm_probe_one(struct pci_dev *pdev, const struct pci_device
 	jsm_printk(INIT, INFO, &brd->pci_dev,
 		"jsm_found_board - NEO adapter\n");
 
-	/* get the PCI Base Address Registers */
+	
 	brd->membase	= pci_resource_start(pdev, 0);
 	brd->membase_end = pci_resource_end(pdev, 0);
 
@@ -107,7 +82,7 @@ static int __devinit jsm_probe_one(struct pci_dev *pdev, const struct pci_device
 	else
 		brd->membase &= ~15;
 
-	/* Assign the board_ops struct */
+	
 	brd->bd_ops = &jsm_neo_ops;
 
 	brd->bd_uart_offset = 0x200;
@@ -138,26 +113,20 @@ static int __devinit jsm_probe_one(struct pci_dev *pdev, const struct pci_device
 
 	rc = jsm_uart_port_init(brd);
 	if (rc < 0) {
-		/* XXX: leaking all resources from jsm_tty_init here! */
+		
 		dev_err(&pdev->dev, "Can't init uart port (%d)\n", rc);
 		rc = -ENXIO;
 		goto out_free_irq;
 	}
 
-	/* Log the information about the board */
+	
 	dev_info(&pdev->dev, "board %d: Digi Neo (rev %d), irq %d\n",
 			adapter_count, brd->rev, brd->irq);
 
-	/*
-	 * allocate flip buffer for board.
-	 *
-	 * Okay to malloc with GFP_KERNEL, we are not at interrupt
-	 * context, and there are no locks held.
-	 */
+	
 	brd->flipbuf = kzalloc(MYFLIPLEN, GFP_KERNEL);
 	if (!brd->flipbuf) {
-		/* XXX: leaking all resources from jsm_tty_init and
-		 	jsm_uart_port_init here! */
+		
 		dev_err(&pdev->dev, "memory allocation for flipbuf failed\n");
 		rc = -ENOMEM;
 		goto out_free_irq;
@@ -190,7 +159,7 @@ static void __devexit jsm_remove_one(struct pci_dev *pdev)
 	free_irq(brd->irq, brd);
 	iounmap(brd->re_map_membase);
 
-	/* Free all allocated channels structs */
+	
 	for (i = 0; i < brd->maxports; i++) {
 		if (brd->channels[i]) {
 			kfree(brd->channels[i]->ch_rqueue);

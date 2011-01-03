@@ -1,41 +1,17 @@
-/*
- * File:	linux/drivers/serial/bfin_sport_uart.h
- *
- * Based on:	include/asm-blackfin/mach-533/bfin_serial_5xx.h
- * Author:	Roy Huang <roy.huang>analog.com>
- *
- * Created:	Nov 22, 2006
- * Copyright:	(C) Analog Device Inc.
- * Description: this driver enable SPORTs on Blackfin emulate UART.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see the file COPYING, or write
- * to the Free Software Foundation, Inc.,
- * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- */
 
 
-#define OFFSET_TCR1		0x00	/* Transmit Configuration 1 Register */
-#define OFFSET_TCR2		0x04	/* Transmit Configuration 2 Register */
-#define OFFSET_TCLKDIV		0x08	/* Transmit Serial Clock Divider Register */
-#define OFFSET_TFSDIV		0x0C	/* Transmit Frame Sync Divider Register */
-#define OFFSET_TX		0x10	/* Transmit Data Register		*/
-#define OFFSET_RX		0x18	/* Receive Data Register		*/
-#define OFFSET_RCR1		0x20	/* Receive Configuration 1 Register	*/
-#define OFFSET_RCR2		0x24	/* Receive Configuration 2 Register	*/
-#define OFFSET_RCLKDIV		0x28	/* Receive Serial Clock Divider Register */
-#define OFFSET_RFSDIV		0x2c	/* Receive Frame Sync Divider Register */
-#define OFFSET_STAT		0x30	/* Status Register			*/
+
+#define OFFSET_TCR1		0x00	
+#define OFFSET_TCR2		0x04	
+#define OFFSET_TCLKDIV		0x08	
+#define OFFSET_TFSDIV		0x0C	
+#define OFFSET_TX		0x10	
+#define OFFSET_RX		0x18	
+#define OFFSET_RCR1		0x20	
+#define OFFSET_RCR2		0x24	
+#define OFFSET_RCLKDIV		0x28	
+#define OFFSET_RFSDIV		0x2c	
+#define OFFSET_STAT		0x30	
 
 #define SPORT_GET_TCR1(sport)		bfin_read16(((sport)->port.membase + OFFSET_TCR1))
 #define SPORT_GET_TCR2(sport)		bfin_read16(((sport)->port.membase + OFFSET_TCR2))

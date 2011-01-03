@@ -1,27 +1,4 @@
-/*
- *  linux/drivers/char/clps711x.c
- *
- *  Driver for CLPS711x serial ports
- *
- *  Based on drivers/char/serial.c, by Linus Torvalds, Theodore Ts'o.
- *
- *  Copyright 1999 ARM Limited
- *  Copyright (C) 2000 Deep Blue Solutions Ltd.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #if defined(CONFIG_SERIAL_CLPS711X_CONSOLE) && defined(CONFIG_MAGIC_SYSRQ)
 #define SUPPORT_SYSRQ
@@ -50,9 +27,7 @@
 #define SERIAL_CLPS711X_MINOR	40
 #define SERIAL_CLPS711X_NR	UART_NR
 
-/*
- * We use the relevant SYSCON register as a base address for these ports.
- */
+
 #define UBRLCR(port)		((port)->iobase + UBRLCR1 - SYSCON1)
 #define UARTDR(port)		((port)->iobase + UARTDR1 - SYSCON1)
 #define SYSFLG(port)		((port)->iobase + SYSFLG1 - SYSCON1)
@@ -104,10 +79,7 @@ static irqreturn_t clps711xuart_int_rx(int irq, void *dev_id)
 
 		flg = TTY_NORMAL;
 
-		/*
-		 * Note that the error handling code is
-		 * out of the main execution path
-		 */
+		
 		if (unlikely(ch & UART_ANY_ERR)) {
 			if (ch & UARTDR_PARERR)
 				port->icount.parity++;
@@ -131,10 +103,7 @@ static irqreturn_t clps711xuart_int_rx(int irq, void *dev_id)
 		if (uart_handle_sysrq_char(port, ch))
 			goto ignore_char;
 
-		/*
-		 * CHECK: does overrun affect the current character?
-		 * ASSUMPTION: it does not.
-		 */
+		
 		uart_insert_char(port, ch, UARTDR_OVERR, ch, flg);
 
 	ignore_char:
@@ -232,9 +201,7 @@ static int clps711xuart_startup(struct uart_port *port)
 
 	tx_enabled(port) = 1;
 
-	/*
-	 * Allocate the IRQs
-	 */
+	
 	retval = request_irq(TX_IRQ(port), clps711xuart_int_tx, 0,
 			     "clps711xuart_tx", port);
 	if (retval)
@@ -247,9 +214,7 @@ static int clps711xuart_startup(struct uart_port *port)
 		return retval;
 	}
 
-	/*
-	 * enable the port
-	 */
+	
 	syscon = clps_readl(SYSCON(port));
 	syscon |= SYSCON_UARTEN;
 	clps_writel(syscon, SYSCON(port));
@@ -261,22 +226,16 @@ static void clps711xuart_shutdown(struct uart_port *port)
 {
 	unsigned int ubrlcr, syscon;
 
-	/*
-	 * Free the interrupt
-	 */
-	free_irq(TX_IRQ(port), port);	/* TX interrupt */
-	free_irq(RX_IRQ(port), port);	/* RX interrupt */
+	
+	free_irq(TX_IRQ(port), port);	
+	free_irq(RX_IRQ(port), port);	
 
-	/*
-	 * disable the port
-	 */
+	
 	syscon = clps_readl(SYSCON(port));
 	syscon &= ~SYSCON_UARTEN;
 	clps_writel(syscon, SYSCON(port));
 
-	/*
-	 * disable break condition and fifos
-	 */
+	
 	ubrlcr = clps_readl(UBRLCR(port));
 	ubrlcr &= ~(UBRLCR_FIFOEN | UBRLCR_BREAK);
 	clps_writel(ubrlcr, UBRLCR(port));
@@ -289,14 +248,10 @@ clps711xuart_set_termios(struct uart_port *port, struct ktermios *termios,
 	unsigned int ubrlcr, baud, quot;
 	unsigned long flags;
 
-	/*
-	 * We don't implement CREAD.
-	 */
+	
 	termios->c_cflag |= CREAD;
 
-	/*
-	 * Ask the core to calculate the divisor for us.
-	 */
+	
 	baud = uart_get_baud_rate(port, termios, old, 0, port->uartclk/16); 
 	quot = uart_get_divisor(port, baud);
 
@@ -310,7 +265,7 @@ clps711xuart_set_termios(struct uart_port *port, struct ktermios *termios,
 	case CS7:
 		ubrlcr = UBRLCR_WRDLEN7;
 		break;
-	default: // CS8
+	default: 
 		ubrlcr = UBRLCR_WRDLEN8;
 		break;
 	}
@@ -326,26 +281,19 @@ clps711xuart_set_termios(struct uart_port *port, struct ktermios *termios,
 
 	spin_lock_irqsave(&port->lock, flags);
 
-	/*
-	 * Update the per-port timeout.
-	 */
+	
 	uart_update_timeout(port, termios->c_cflag, baud);
 
 	port->read_status_mask = UARTDR_OVERR;
 	if (termios->c_iflag & INPCK)
 		port->read_status_mask |= UARTDR_PARERR | UARTDR_FRMERR;
 
-	/*
-	 * Characters to ignore
-	 */
+	
 	port->ignore_status_mask = 0;
 	if (termios->c_iflag & IGNPAR)
 		port->ignore_status_mask |= UARTDR_FRMERR | UARTDR_PARERR;
 	if (termios->c_iflag & IGNBRK) {
-		/*
-		 * If we're ignoring parity and break indicators,
-		 * ignore overruns to (for real raw support).
-		 */
+		
 		if (termios->c_iflag & IGNPAR)
 			port->ignore_status_mask |= UARTDR_OVERR;
 	}
@@ -362,9 +310,7 @@ static const char *clps711xuart_type(struct uart_port *port)
 	return port->type == PORT_CLPS711X ? "CLPS711x" : NULL;
 }
 
-/*
- * Configure/autoconfigure the port.
- */
+
 static void clps711xuart_config_port(struct uart_port *port, int flags)
 {
 	if (flags & UART_CONFIG_TYPE)
@@ -401,7 +347,7 @@ static struct uart_ops clps711x_pops = {
 static struct uart_port clps711x_ports[UART_NR] = {
 	{
 		.iobase		= SYSCON1,
-		.irq		= IRQ_UTXINT1, /* IRQ_URXINT1, IRQ_UMSINT */
+		.irq		= IRQ_UTXINT1, 
 		.uartclk	= 3686400,
 		.fifosize	= 16,
 		.ops		= &clps711x_pops,
@@ -410,7 +356,7 @@ static struct uart_port clps711x_ports[UART_NR] = {
 	},
 	{
 		.iobase		= SYSCON2,
-		.irq		= IRQ_UTXINT2, /* IRQ_URXINT2 */
+		.irq		= IRQ_UTXINT2, 
 		.uartclk	= 3686400,
 		.fifosize	= 16,
 		.ops		= &clps711x_pops,
@@ -427,14 +373,7 @@ static void clps711xuart_console_putchar(struct uart_port *port, int ch)
 	clps_writel(ch, UARTDR(port));
 }
 
-/*
- *	Print a string to the serial port trying not to disturb
- *	any possible real use of the port...
- *
- *	The console_lock must be held when we get here.
- *
- *	Note that this is called with interrupts already disabled
- */
+
 static void
 clps711xuart_console_write(struct console *co, const char *s,
 			   unsigned int count)
@@ -442,18 +381,13 @@ clps711xuart_console_write(struct console *co, const char *s,
 	struct uart_port *port = clps711x_ports + co->index;
 	unsigned int status, syscon;
 
-	/*
-	 *	Ensure that the port is enabled.
-	 */
+	
 	syscon = clps_readl(SYSCON(port));
 	clps_writel(syscon | SYSCON_UARTEN, SYSCON(port));
 
 	uart_console_write(port, s, count, clps711xuart_console_putchar);
 
-	/*
-	 *	Finally, wait for transmitter to become empty
-	 *	and restore the uart state.
-	 */
+	
 	do {
 		status = clps_readl(SYSFLG(port));
 	} while (status & SYSFLG_UBUSY);
@@ -496,11 +430,7 @@ static int __init clps711xuart_console_setup(struct console *co, char *options)
 	int parity = 'n';
 	int flow = 'n';
 
-	/*
-	 * Check whether an invalid uart number has been specified, and
-	 * if so, search for the first available port that does have
-	 * console support.
-	 */
+	
 	port = uart_get_console(clps711x_ports, UART_NR, co);
 
 	if (options)

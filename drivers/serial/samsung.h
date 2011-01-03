@@ -1,14 +1,4 @@
-/* linux/drivers/serial/samsung.h
- *
- * Driver for Samsung SoC onboard UARTs.
- *
- * Ben Dooks, Copyright (c) 2003-2005,2008 Simtec Electronics
- *	http://armlinux.simtec.co.uk/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 struct s3c24xx_uart_info {
 	char			*name;
@@ -21,16 +11,16 @@ struct s3c24xx_uart_info {
 	unsigned long		tx_fifoshift;
 	unsigned long		tx_fifofull;
 
-	/* uart port features */
+	
 
 	unsigned int		has_divslot:1;
 
-	/* clock source control */
+	
 
 	int (*get_clksrc)(struct uart_port *, struct s3c24xx_uart_clksrc *clk);
 	int (*set_clksrc)(struct uart_port *, struct s3c24xx_uart_clksrc *clk);
 
-	/* uart controls */
+	
 	int (*reset_port)(struct uart_port *, struct s3c2410_uartcfg *);
 };
 
@@ -54,12 +44,12 @@ struct s3c24xx_uart_port {
 #endif
 };
 
-/* conversion functions */
+
 
 #define s3c24xx_dev_to_port(__dev) (struct uart_port *)dev_get_drvdata(__dev)
 #define s3c24xx_dev_to_cfg(__dev) (struct s3c2410_uartcfg *)((__dev)->platform_data)
 
-/* register access controls */
+
 
 #define portaddr(port, reg) ((port)->membase + (reg))
 

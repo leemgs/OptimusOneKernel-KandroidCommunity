@@ -1,21 +1,10 @@
-/*
- *  linux/drivers/serial/8250_mca.c
- *
- *  Copyright (C) 2005 Russell King.
- *  Data taken from include/asm-i386/serial.h
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/mca.h>
 #include <linux/serial_8250.h>
 
-/*
- * FIXME: Should we be doing AUTO_IRQ here?
- */
+
 #ifdef CONFIG_SERIAL_8250_DETECT_IRQ
 #define MCA_FLAGS	UPF_BOOT_AUTOCONF | UPF_SKIP_TEST | UPF_AUTO_IRQ
 #else

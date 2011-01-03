@@ -1,14 +1,4 @@
-/* linux/drivers/serial/s3c240.c
- *
- * Driver for Samsung SoC onboard UARTs.
- *
- * Ben Dooks, Copyright (c) 2003-2005 Simtec Electronics
- *	http://armlinux.simtec.co.uk/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
-*/
+
 
 #include <linux/module.h>
 #include <linux/ioport.h>
@@ -48,7 +38,7 @@ static int s3c2400_serial_resetport(struct uart_port *port,
 	wr_regl(port, S3C2410_UCON,  cfg->ucon);
 	wr_regl(port, S3C2410_ULCON, cfg->ulcon);
 
-	/* reset both fifos */
+	
 
 	wr_regl(port, S3C2410_UFCON, cfg->ufcon | S3C2410_UFCON_RESETBOTH);
 	wr_regl(port, S3C2410_UFCON, cfg->ufcon);

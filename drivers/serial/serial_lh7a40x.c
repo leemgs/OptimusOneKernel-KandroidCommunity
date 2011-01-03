@@ -1,31 +1,6 @@
-/* drivers/serial/serial_lh7a40x.c
- *
- *  Copyright (C) 2004 Coastal Environmental Systems
- *
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License
- *  version 2 as published by the Free Software Foundation.
- *
- */
 
-/* Driver for Sharp LH7A40X embedded serial ports
- *
- *  Based on drivers/char/serial.c, by Linus Torvalds, Theodore Ts'o.
- *  Based on drivers/serial/amba.c, by Deep Blue Solutions Ltd.
- *
- *  ---
- *
- * This driver supports the embedded UARTs of the Sharp LH7A40X series
- * CPUs.  While similar to the 16550 and other UART chips, there is
- * nothing close to register compatibility.  Moreover, some of the
- * modem control lines are not available, either in the chip or they
- * are lacking in the board-level implementation.
- *
- * - Use of SIRDIS
- *   For simplicity, we disable the IR functions of any UART whenever
- *   we enable it.
- *
- */
+
+
 
 
 #if defined(CONFIG_SERIAL_LH7A40X_CONSOLE) && defined(CONFIG_MAGIC_SYSRQ)
@@ -68,8 +43,8 @@
 #define UART_R_INTEN	(0x18)
 #define UART_R_ISR	(0x1c)
 
-#define UARTEN		(0x01)		/* UART enable */
-#define SIRDIS		(0x02)		/* Serial IR disable (UART1 only) */
+#define UARTEN		(0x01)		
+#define SIRDIS		(0x02)		
 
 #define RxEmpty		(0x10)
 #define TxEmpty		(0x80)
@@ -99,17 +74,17 @@
 #define WLEN_7		(0x40)
 #define WLEN_6		(0x20)
 #define WLEN_5		(0x00)
-#define WLEN		(0x60)	/* Mask for all word-length bits */
+#define WLEN		(0x60)	
 #define STP2		(0x08)
-#define PEN		(0x02)	/* Parity Enable */
-#define EPS		(0x04)	/* Even Parity Set */
-#define FEN		(0x10)	/* FIFO Enable */
-#define BRK		(0x01)	/* Send Break */
+#define PEN		(0x02)	
+#define EPS		(0x04)	
+#define FEN		(0x10)	
+#define BRK		(0x01)	
 
 
 struct uart_port_lh7a40x {
 	struct uart_port port;
-	unsigned int statusPrev; /* Most recently read modem status */
+	unsigned int statusPrev; 
 };
 
 static void lh7a40xuart_stop_tx (struct uart_port* port)
@@ -121,9 +96,7 @@ static void lh7a40xuart_start_tx (struct uart_port* port)
 {
 	BIT_SET (port, UART_R_INTEN, TxInt);
 
-	/* *** FIXME: do I need to check for startup of the
-		      transmitter?  The old driver did, but AMBA
-		      doesn't . */
+	
 }
 
 static void lh7a40xuart_stop_rx (struct uart_port* port)
@@ -139,8 +112,8 @@ static void lh7a40xuart_enable_ms (struct uart_port* port)
 static void lh7a40xuart_rx_chars (struct uart_port* port)
 {
 	struct tty_struct* tty = port->state->port.tty;
-	int cbRxMax = 256;	/* (Gross) limit on receive */
-	unsigned int data;	/* Received data and status */
+	int cbRxMax = 256;	
+	unsigned int data;	
 	unsigned int flag;
 
 	while (!(UR (port, UART_R_STATUS) & nRxRdy) && --cbRxMax) {
@@ -162,7 +135,7 @@ static void lh7a40xuart_rx_chars (struct uart_port* port)
 			if (data & RxOverrunError)
 				++port->icount.overrun;
 
-				/* Mask by termios, leave Rx'd byte */
+				
 			data &= port->read_status_mask | 0xff;
 
 			if (data & RxBreak)
@@ -198,10 +171,7 @@ static void lh7a40xuart_tx_chars (struct uart_port* port)
 		return;
 	}
 
-	/* Unlike the AMBA UART, the lh7a40x UART does not guarantee
-	   that at least half of the FIFO is empty.  Instead, we check
-	   status for every character.  Using the AMBA method causes
-	   the transmitter to drop characters. */
+	
 
 	do {
 		UR (port, UART_R_DATA) = xmit->buf[xmit->tail];
@@ -225,9 +195,9 @@ static void lh7a40xuart_modem_status (struct uart_port* port)
 	unsigned int delta
 		= status ^ ((struct uart_port_lh7a40x*) port)->statusPrev;
 
-	BIT_SET (port, UART_R_RAWISR, MSEOI); /* Clear modem status intr */
+	BIT_SET (port, UART_R_RAWISR, MSEOI); 
 
-	if (!delta)		/* Only happens if we missed 2 transitions */
+	if (!delta)		
 		return;
 
 	((struct uart_port_lh7a40x*) port)->statusPrev = status;
@@ -290,11 +260,10 @@ static unsigned int lh7a40xuart_get_mctrl (struct uart_port* port)
 
 static void lh7a40xuart_set_mctrl (struct uart_port* port, unsigned int mctrl)
 {
-	/* None of the ports supports DTR. UART1 supports RTS through GPIO. */
-	/* Note, kernel appears to be setting DTR and RTS on console. */
+	
+	
 
-	/* *** FIXME: this deserves more work.  There's some work in
-	       tracing all of the IO pins. */
+	
 #if 0
 	if( port->mapbase == UART1_PHYS) {
 		gpioRegs_t *gpio = (gpioRegs_t *)IO_ADDRESS(GPIO_PHYS);
@@ -313,9 +282,9 @@ static void lh7a40xuart_break_ctl (struct uart_port* port, int break_state)
 
 	spin_lock_irqsave(&port->lock, flags);
 	if (break_state == -1)
-		BIT_SET (port, UART_R_FCON, BRK); /* Assert break */
+		BIT_SET (port, UART_R_FCON, BRK); 
 	else
-		BIT_CLR (port, UART_R_FCON, BRK); /* Deassert break */
+		BIT_CLR (port, UART_R_FCON, BRK); 
 	spin_unlock_irqrestore(&port->lock, flags);
 }
 
@@ -328,12 +297,11 @@ static int lh7a40xuart_startup (struct uart_port* port)
 	if (retval)
 		return retval;
 
-				/* Initial modem control-line settings */
+				
 	((struct uart_port_lh7a40x*) port)->statusPrev
 		= UR (port, UART_R_STATUS);
 
-	/* There is presently no configuration option to enable IR.
-	   Thus, we always disable it. */
+	
 
 	BIT_SET (port, UART_R_CON, UARTEN | SIRDIS);
 	BIT_SET (port, UART_R_INTEN, RxTimeoutInt | RxInt);
@@ -360,7 +328,7 @@ static void lh7a40xuart_set_termios (struct uart_port* port,
 	unsigned int quot;
 
 	baud = uart_get_baud_rate (port, termios, old, 8, port->uartclk/16);
-	quot = uart_get_divisor (port, baud); /* -1 performed elsewhere */
+	quot = uart_get_divisor (port, baud); 
 
 	switch (termios->c_cflag & CSIZE) {
 	case CS5:
@@ -397,19 +365,19 @@ static void lh7a40xuart_set_termios (struct uart_port* port,
 	if (termios->c_iflag & (BRKINT | PARMRK))
 		port->read_status_mask |= RxBreak;
 
-		/* Figure mask for status we ignore */
+		
 	port->ignore_status_mask = 0;
 	if (termios->c_iflag & IGNPAR)
 		port->ignore_status_mask |= RxFramingError | RxParityError;
 	if (termios->c_iflag & IGNBRK) {
 		port->ignore_status_mask |= RxBreak;
-		/* Ignore overrun when ignorning parity */
-		/* *** FIXME: is this in the right place? */
+		
+		
 		if (termios->c_iflag & IGNPAR)
 			port->ignore_status_mask |= RxOverrunError;
 	}
 
-		/* Ignore all receive errors when receive disabled */
+		
 	if ((termios->c_cflag & CREAD) == 0)
 		port->ignore_status_mask |= RxError;
 
@@ -419,12 +387,12 @@ static void lh7a40xuart_set_termios (struct uart_port* port,
 	if (UART_ENABLE_MS (port, termios->c_cflag))
 		inten |= ModemInt;
 
-	BIT_CLR (port, UART_R_CON, UARTEN);	/* Disable UART */
-	UR (port, UART_R_INTEN) = 0;		/* Disable interrupts */
-	UR (port, UART_R_BRCON) = quot - 1;	/* Set baud rate divisor */
-	UR (port, UART_R_FCON)  = fcon;		/* Set FIFO and frame ctrl */
-	UR (port, UART_R_INTEN) = inten;	/* Enable interrupts */
-	UR (port, UART_R_CON)   = con;		/* Restore UART mode */
+	BIT_CLR (port, UART_R_CON, UARTEN);	
+	UR (port, UART_R_INTEN) = 0;		
+	UR (port, UART_R_BRCON) = quot - 1;	
+	UR (port, UART_R_FCON)  = fcon;		
+	UR (port, UART_R_INTEN) = inten;	
+	UR (port, UART_R_CON)   = con;		
 
 	spin_unlock_irqrestore(&port->lock, flags);
 }
@@ -463,7 +431,7 @@ static int lh7a40xuart_verify_port (struct uart_port* port,
 		ret = -EINVAL;
 	if (ser->irq < 0 || ser->irq >= nr_irqs)
 		ret = -EINVAL;
-	if (ser->baud_base < 9600) /* *** FIXME: is this true? */
+	if (ser->baud_base < 9600) 
 		ret = -EINVAL;
 	return ret;
 }
@@ -550,16 +518,16 @@ static void lh7a40xuart_console_write (struct console* co,
 	unsigned int inten = UR (port, UART_R_INTEN);
 
 
-	UR (port, UART_R_INTEN) = 0;		/* Disable all interrupts */
-	BIT_SET (port, UART_R_CON, UARTEN | SIRDIS); /* Enable UART */
+	UR (port, UART_R_INTEN) = 0;		
+	BIT_SET (port, UART_R_CON, UARTEN | SIRDIS); 
 
 	uart_console_write(port, s, count, lh7a40xuart_console_putchar);
 
-				/* Wait until all characters are sent */
+				
 	while (UR (port, UART_R_STATUS) & TxBusy)
 		;
 
-				/* Restore control and interrupt mask */
+				
 	UR (port, UART_R_CON) = con;
 	UR (port, UART_R_INTEN) = inten;
 }
@@ -599,7 +567,7 @@ static int __init lh7a40xuart_console_setup (struct console* co, char* options)
 	int parity = 'n';
 	int flow = 'n';
 
-	if (co->index >= DEV_NR) /* Bounds check on device number */
+	if (co->index >= DEV_NR) 
 		co->index = 0;
 	port = &lh7a40x_ports[co->index].port;
 
@@ -654,7 +622,7 @@ static int __init lh7a40xuart_init(void)
 		int i;
 
 		for (i = 0; i < DEV_NR; i++) {
-			/* UART3, when used, requires GPIO pin reallocation */
+			
 			if (lh7a40x_ports[i].port.mapbase == UART3_PHYS)
 				GPIO_PINMUX |= 1<<3;
 			uart_add_one_port (&lh7a40x_reg,
