@@ -1,12 +1,4 @@
-/*
- * MUSB OTG controller driver for Blackfin Processors
- *
- * Copyright 2006-2008 Analog Devices Inc.
- *
- * Enter bugs at http://blackfin.uclinux.org/
- *
- * Licensed under the GPL-2 or later.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -22,9 +14,7 @@
 #include "musb_core.h"
 #include "blackfin.h"
 
-/*
- * Load an endpoint's FIFO
- */
+
 void musb_write_fifo(struct musb_hw_ep *hw_ep, u16 len, const u8 *src)
 {
 	void __iomem *fifo = hw_ep->fifo;
@@ -47,9 +37,7 @@ void musb_write_fifo(struct musb_hw_ep *hw_ep, u16 len, const u8 *src)
 			len & 0x01 ? (len >> 1) + 1 : len >> 1);
 }
 
-/*
- * Unload an endpoint's FIFO
- */
+
 void musb_read_fifo(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
 {
 	void __iomem *fifo = hw_ep->fifo;
@@ -63,7 +51,7 @@ void musb_read_fifo(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
 	invalidate_dcache_range((unsigned int)dst,
 		(unsigned int)(dst + len));
 
-	/* Setup DMA address register */
+	
 	dma_reg = (u16) ((u32) dst & 0xFFFF);
 	bfin_write16(USB_DMA_REG(epnum, USB_DMAx_ADDR_LOW), dma_reg);
 	SSYNC();
@@ -72,25 +60,25 @@ void musb_read_fifo(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
 	bfin_write16(USB_DMA_REG(epnum, USB_DMAx_ADDR_HIGH), dma_reg);
 	SSYNC();
 
-	/* Setup DMA count register */
+	
 	bfin_write16(USB_DMA_REG(epnum, USB_DMAx_COUNT_LOW), len);
 	bfin_write16(USB_DMA_REG(epnum, USB_DMAx_COUNT_HIGH), 0);
 	SSYNC();
 
-	/* Enable the DMA */
+	
 	dma_reg = (epnum << 4) | DMA_ENA | INT_ENA;
 	bfin_write16(USB_DMA_REG(epnum, USB_DMAx_CTRL), dma_reg);
 	SSYNC();
 
-	/* Wait for compelete */
+	
 	while (!(bfin_read_USB_DMA_INTERRUPT() & (1 << epnum)))
 		cpu_relax();
 
-	/* acknowledge dma interrupt */
+	
 	bfin_write_USB_DMA_INTERRUPT(1 << epnum);
 	SSYNC();
 
-	/* Reset DMA */
+	
 	bfin_write16(USB_DMA_REG(epnum, USB_DMAx_CTRL), 0);
 	SSYNC();
 #else
@@ -126,9 +114,7 @@ static irqreturn_t blackfin_interrupt(int irq, void *__hci)
 
 	spin_unlock_irqrestore(&musb->lock, flags);
 
-	/* REVISIT we sometimes get spurious IRQs on g_ep0
-	 * not clear why... fall in BF54x too.
-	 */
+	
 	if (retval != IRQ_HANDLED)
 		DBG(5, "spurious?\n");
 
@@ -145,7 +131,7 @@ static void musb_conn_timer_handler(unsigned long _musb)
 	switch (musb->xceiv->state) {
 	case OTG_STATE_A_IDLE:
 	case OTG_STATE_A_WAIT_BCON:
-		/* Start a new session */
+		
 		val = musb_readw(musb->mregs, MUSB_DEVCTL);
 		val |= MUSB_DEVCTL_SESSION;
 		musb_writew(musb->mregs, MUSB_DEVCTL, val);
@@ -157,7 +143,7 @@ static void musb_conn_timer_handler(unsigned long _musb)
 		} else {
 			gpio_set_value(musb->config->gpio_vrsel, 0);
 
-			/* Ignore VBUSERROR and SUSPEND IRQ */
+			
 			val = musb_readb(musb->mregs, MUSB_INTRUSBE);
 			val &= ~MUSB_INTR_VBUSERROR;
 			musb_writeb(musb->mregs, MUSB_INTRUSBE, val);
@@ -204,7 +190,7 @@ static void bfin_set_vbus(struct musb *musb, int is_on)
 		gpio_set_value(musb->config->gpio_vrsel, 0);
 
 	DBG(1, "VBUS %s, devctl %02x "
-		/* otg %3x conf %08x prcm %08x */ "\n",
+		 "\n",
 		otg_state_string(musb),
 		musb_readb(musb->mregs, MUSB_DEVCTL));
 }
@@ -232,12 +218,7 @@ void musb_platform_set_mode(struct musb *musb, u8 musb_mode)
 int __init musb_platform_init(struct musb *musb)
 {
 
-	/*
-	 * Rev 1.0 BF549 EZ-KITs require PE7 to be high for both DEVICE
-	 * and OTG HOST modes, while rev 1.1 and greater require PE7 to
-	 * be low for DEVICE mode and high for HOST mode. We set it high
-	 * here because we are in host mode
-	 */
+	
 
 	if (gpio_request(musb->config->gpio_vrsel, "USB_VRSEL")) {
 		printk(KERN_ERR "Failed ro request USB_VRSEL GPIO_%d \n",
@@ -261,11 +242,9 @@ int __init musb_platform_init(struct musb *musb)
 		SSYNC();
 	}
 
-	/* TODO
-	 * Set SIC-IVG register
-	 */
+	
 
-	/* Configure PLL oscillator register */
+	
 	bfin_write_USB_PLLOSC_CTRL(0x30a8);
 	SSYNC();
 
@@ -278,7 +257,7 @@ int __init musb_platform_init(struct musb *musb)
 	bfin_write_USB_EP_NI0_TXMAXP(64);
 	SSYNC();
 
-	/* Route INTRUSB/INTR_RX/INTR_TX to USB_INT0*/
+	
 	bfin_write_USB_GLOBINTR(0x7);
 	SSYNC();
 
@@ -316,7 +295,7 @@ int musb_platform_resume(struct musb *musb)
 int musb_platform_exit(struct musb *musb)
 {
 
-	bfin_vbus_power(musb, 0 /*off*/, 1);
+	bfin_vbus_power(musb, 0 , 1);
 	gpio_free(musb->config->gpio_vrsel);
 	musb_platform_suspend(musb);
 

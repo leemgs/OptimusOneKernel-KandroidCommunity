@@ -1,24 +1,4 @@
-/*
- * R8A66597 UDC
- *
- * Copyright (C) 2007-2009 Renesas Solutions Corp.
- *
- * Author : Yoshihiro Shimoda <shimoda.yoshihiro@renesas.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; version 2 of the License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- */
+
 
 #ifndef __R8A66597_H__
 #define __R8A66597_H__
@@ -74,14 +54,14 @@ struct r8a66597_ep {
 	struct list_head	queue;
 	unsigned		busy:1;
 	unsigned		wedge:1;
-	unsigned		internal_ccpl:1;	/* use only control */
+	unsigned		internal_ccpl:1;	
 
-	/* this member can able to after r8a66597_enable */
+	
 	unsigned		use_dma:1;
 	u16			pipenum;
 	u16			type;
 	const struct usb_endpoint_descriptor	*desc;
-	/* register address */
+	
 	unsigned char		fifoaddr;
 	unsigned char		fifosel;
 	unsigned char		fifoctr;
@@ -106,13 +86,13 @@ struct r8a66597 {
 	struct r8a66597_ep	*epaddr2ep[16];
 
 	struct timer_list	timer;
-	struct usb_request	*ep0_req;	/* for internal request */
-	u16			ep0_data;	/* for internal request */
+	struct usb_request	*ep0_req;	
+	u16			ep0_data;	
 	u16			old_vbus;
 	u16			scount;
 	u16			old_dvsq;
 
-	/* pipe config */
+	
 	unsigned char bulk;
 	unsigned char interrupt;
 	unsigned char isochronous;
@@ -140,16 +120,16 @@ static inline void r8a66597_read_fifo(struct r8a66597 *r8a66597,
 	int i;
 
 	if (r8a66597->pdata->on_chip) {
-		/* 32-bit accesses for on_chip controllers */
+		
 
-		/* aligned buf case */
+		
 		if (len >= 4 && !((unsigned long)buf & 0x03)) {
 			insl(fifoaddr, buf, len / 4);
 			buf += len & ~0x03;
 			len &= 0x03;
 		}
 
-		/* unaligned buf case */
+		
 		for (i = 0; i < len; i++) {
 			if (!(i & 0x03))
 				data = inl(fifoaddr);
@@ -157,16 +137,16 @@ static inline void r8a66597_read_fifo(struct r8a66597 *r8a66597,
 			buf[i] = (data >> ((i & 0x03) * 8)) & 0xff;
 		}
 	} else {
-		/* 16-bit accesses for external controllers */
+		
 
-		/* aligned buf case */
+		
 		if (len >= 2 && !((unsigned long)buf & 0x01)) {
 			insw(fifoaddr, buf, len / 2);
 			buf += len & ~0x01;
 			len &= 0x01;
 		}
 
-		/* unaligned buf case */
+		
 		for (i = 0; i < len; i++) {
 			if (!(i & 0x01))
 				data = inw(fifoaddr);
@@ -192,14 +172,14 @@ static inline void r8a66597_write_fifo(struct r8a66597 *r8a66597,
 	int i;
 
 	if (r8a66597->pdata->on_chip) {
-		/* 32-bit access only if buf is 32-bit aligned */
+		
 		if (len >= 4 && !((unsigned long)buf & 0x03)) {
 			outsl(fifoaddr, buf, len / 4);
 			buf += len & ~0x03;
 			len &= 0x03;
 		}
 	} else {
-		/* 16-bit access only if buf is 16-bit aligned */
+		
 		if (len >= 2 && !((unsigned long)buf & 0x01)) {
 			outsw(fifoaddr, buf, len / 2);
 			buf += len & ~0x01;
@@ -207,12 +187,12 @@ static inline void r8a66597_write_fifo(struct r8a66597 *r8a66597,
 		}
 	}
 
-	/* adjust fifo address in the little endian case */
+	
 	if (!(r8a66597_read(r8a66597, CFIFOSEL) & BIGEND)) {
 		if (r8a66597->pdata->on_chip)
-			adj = 0x03; /* 32-bit wide */
+			adj = 0x03; 
 		else
-			adj = 0x01; /* 16-bit wide */
+			adj = 0x01; 
 	}
 
 	for (i = 0; i < len; i++)
@@ -271,5 +251,5 @@ static inline u16 get_xtal_from_pdata(struct r8a66597_platdata *pdata)
 #define disable_irq_nrdy(r8a66597, pipenum)	\
 	disable_pipe_irq(r8a66597, pipenum, NRDYENB)
 
-#endif	/* __R8A66597_H__ */
+#endif	
 

@@ -1,15 +1,4 @@
-/*
- * Qualcomm Serial USB driver
- *
- *	Copyright (c) 2008 QUALCOMM Incorporated.
- *	Copyright (c) 2009 Greg Kroah-Hartman <gregkh@suse.de>
- *	Copyright (c) 2009 Novell Inc.
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License version
- *	2 as published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/tty.h>
 #include <linux/tty_flip.h>
@@ -22,32 +11,32 @@
 static int debug;
 
 static struct usb_device_id id_table[] = {
-	{USB_DEVICE(0x05c6, 0x9211)},	/* Acer Gobi QDL device */
-	{USB_DEVICE(0x05c6, 0x9212)},	/* Acer Gobi Modem Device */
-	{USB_DEVICE(0x03f0, 0x1f1d)},	/* HP un2400 Gobi Modem Device */
-	{USB_DEVICE(0x03f0, 0x201d)},	/* HP un2400 Gobi QDL Device */
-	{USB_DEVICE(0x04da, 0x250d)},	/* Panasonic Gobi Modem device */
-	{USB_DEVICE(0x04da, 0x250c)},	/* Panasonic Gobi QDL device */
-	{USB_DEVICE(0x413c, 0x8172)},	/* Dell Gobi Modem device */
-	{USB_DEVICE(0x413c, 0x8171)},	/* Dell Gobi QDL device */
-	{USB_DEVICE(0x1410, 0xa001)},	/* Novatel Gobi Modem device */
-	{USB_DEVICE(0x1410, 0xa008)},	/* Novatel Gobi QDL device */
-	{USB_DEVICE(0x0b05, 0x1776)},	/* Asus Gobi Modem device */
-	{USB_DEVICE(0x0b05, 0x1774)},	/* Asus Gobi QDL device */
-	{USB_DEVICE(0x19d2, 0xfff3)},	/* ONDA Gobi Modem device */
-	{USB_DEVICE(0x19d2, 0xfff2)},	/* ONDA Gobi QDL device */
-	{USB_DEVICE(0x1557, 0x0a80)},	/* OQO Gobi QDL device */
-	{USB_DEVICE(0x05c6, 0x9001)},   /* Generic Gobi Modem device */
-	{USB_DEVICE(0x05c6, 0x9002)},	/* Generic Gobi Modem device */
-	{USB_DEVICE(0x05c6, 0x9202)},	/* Generic Gobi Modem device */
-	{USB_DEVICE(0x05c6, 0x9203)},	/* Generic Gobi Modem device */
-	{USB_DEVICE(0x05c6, 0x9222)},	/* Generic Gobi Modem device */
-	{USB_DEVICE(0x05c6, 0x9008)},	/* Generic Gobi QDL device */
-	{USB_DEVICE(0x05c6, 0x9201)},	/* Generic Gobi QDL device */
-	{USB_DEVICE(0x05c6, 0x9221)},	/* Generic Gobi QDL device */
-	{USB_DEVICE(0x05c6, 0x9231)},	/* Generic Gobi QDL device */
-	{USB_DEVICE(0x1f45, 0x0001)},	/* Unknown Gobi QDL device */
-	{ }				/* Terminating entry */
+	{USB_DEVICE(0x05c6, 0x9211)},	
+	{USB_DEVICE(0x05c6, 0x9212)},	
+	{USB_DEVICE(0x03f0, 0x1f1d)},	
+	{USB_DEVICE(0x03f0, 0x201d)},	
+	{USB_DEVICE(0x04da, 0x250d)},	
+	{USB_DEVICE(0x04da, 0x250c)},	
+	{USB_DEVICE(0x413c, 0x8172)},	
+	{USB_DEVICE(0x413c, 0x8171)},	
+	{USB_DEVICE(0x1410, 0xa001)},	
+	{USB_DEVICE(0x1410, 0xa008)},	
+	{USB_DEVICE(0x0b05, 0x1776)},	
+	{USB_DEVICE(0x0b05, 0x1774)},	
+	{USB_DEVICE(0x19d2, 0xfff3)},	
+	{USB_DEVICE(0x19d2, 0xfff2)},	
+	{USB_DEVICE(0x1557, 0x0a80)},	
+	{USB_DEVICE(0x05c6, 0x9001)},   
+	{USB_DEVICE(0x05c6, 0x9002)},	
+	{USB_DEVICE(0x05c6, 0x9202)},	
+	{USB_DEVICE(0x05c6, 0x9203)},	
+	{USB_DEVICE(0x05c6, 0x9222)},	
+	{USB_DEVICE(0x05c6, 0x9008)},	
+	{USB_DEVICE(0x05c6, 0x9201)},	
+	{USB_DEVICE(0x05c6, 0x9221)},	
+	{USB_DEVICE(0x05c6, 0x9231)},	
+	{USB_DEVICE(0x1f45, 0x0001)},	
+	{ }				
 };
 MODULE_DEVICE_TABLE(usb, id_table);
 
@@ -76,7 +65,7 @@ static int qcprobe(struct usb_serial *serial, const struct usb_device_id *id)
 
 	switch (nintf) {
 	case 1:
-		/* QDL mode */
+		
 		if (serial->interface->num_altsetting == 2) {
 			struct usb_host_interface *intf;
 
@@ -99,7 +88,7 @@ static int qcprobe(struct usb_serial *serial, const struct usb_device_id *id)
 		break;
 
 	case 4:
-		/* Composite mode */
+		
 		if (ifnum == 2) {
 			dbg("Modem port found");
 			retval = usb_set_interface(serial->dev, ifnum, 0);

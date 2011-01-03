@@ -1,16 +1,4 @@
-/*
- * Copyright (C) 2009
- * Guennadi Liakhovetski, DENX Software Engineering, <lg@denx.de>
- *
- * Description:
- * Helper routines for i.MX3x SoCs from Freescale, needed by the fsl_usb2_udc.c
- * driver to function correctly on these systems.
- *
- * This program is free software; you can redistribute  it and/or modify it
- * under  the terms of  the GNU General  Public License as published by the
- * Free Software Foundation;  either version 2 of the  License, or (at your
- * option) any later version.
- */
+
 #include <linux/clk.h>
 #include <linux/delay.h>
 #include <linux/err.h>
@@ -38,7 +26,7 @@ int fsl_udc_clk_init(struct platform_device *pdev)
 		goto eenahb;
 	}
 
-	/* make sure USB_CLK is running at 60 MHz +/- 1000 Hz */
+	
 	mxc_usb_clk = clk_get(&pdev->dev, "usb");
 	if (IS_ERR(mxc_usb_clk)) {
 		dev_err(&pdev->dev, "clk_get(\"usb\") failed\n");
@@ -76,7 +64,7 @@ void fsl_udc_clk_finalize(struct platform_device *pdev)
 {
 	struct fsl_usb2_platform_data *pdata = pdev->dev.platform_data;
 
-	/* ULPI transceivers don't need usbpll */
+	
 	if (pdata->phy_mode == FSL_USB2_PHY_ULPI) {
 		clk_disable(mxc_usb_clk);
 		clk_put(mxc_usb_clk);

@@ -1,32 +1,11 @@
-/*
- * linux/drivers/usb/gadget/s3c2410_udc.h
- * Samsung on-chip full speed USB device controllers
- *
- * Copyright (C) 2004-2007 Herbert Pötzl - Arnaud Patard
- *	Additional cleanups by Ben Dooks <ben-linux@fluff.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- */
+
 
 #ifndef _S3C2410_UDC_H
 #define _S3C2410_UDC_H
 
 struct s3c2410_ep {
 	struct list_head		queue;
-	unsigned long			last_io;	/* jiffies timestamp */
+	unsigned long			last_io;	
 	struct usb_gadget		*gadget;
 	struct s3c2410_udc		*dev;
 	const struct usb_endpoint_descriptor *desc;
@@ -43,10 +22,10 @@ struct s3c2410_ep {
 };
 
 
-/* Warning : ep0 has a fifo of 16 bytes */
-/* Don't try to set 32 or 64            */
-/* also testusb 14 fails  wit 16 but is */
-/* fine with 8                          */
+
+
+
+
 #define EP0_FIFO_SIZE		 8
 #define EP_FIFO_SIZE		64
 #define DEFAULT_POWER_STATE	0x00
@@ -56,15 +35,15 @@ struct s3c2410_ep {
 static const char ep0name [] = "ep0";
 
 static const char *const ep_name[] = {
-	ep0name,                                /* everyone has ep0 */
-	/* s3c2410 four bidirectional bulk endpoints */
+	ep0name,                                
+	
 	"ep1-bulk", "ep2-bulk", "ep3-bulk", "ep4-bulk",
 };
 
 #define S3C2410_ENDPOINTS       ARRAY_SIZE(ep_name)
 
 struct s3c2410_request {
-	struct list_head		queue;		/* ep's requests */
+	struct list_head		queue;		
 	struct usb_request		req;
 };
 

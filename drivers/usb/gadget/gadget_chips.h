@@ -1,16 +1,4 @@
-/*
- * USB device controllers have lots of quirks.  Use these macros in
- * gadget drivers or other code that needs to deal with them, and which
- * autoconfigures instead of using early binding to the hardware.
- *
- * This SHOULD eventually work like the ARM mach_is_*() stuff, driven by
- * some config file that gets updated as new hardware is supported.
- * (And avoiding all runtime comparisons in typical one-choice configs!)
- *
- * NOTE:  some of these controller drivers may not be available yet.
- * Some are available on 2.4 kernels; several are available, but not
- * yet pushed in the 2.6 mainline tree.
- */
+
 
 #ifndef __GADGET_CHIPS_H
 #define __GADGET_CHIPS_H
@@ -45,14 +33,14 @@
 #define	gadget_is_goku(g)	0
 #endif
 
-/* SH3 UDC -- not yet ported 2.4 --> 2.6 */
+
 #ifdef CONFIG_USB_GADGET_SUPERH
 #define	gadget_is_sh(g)		!strcmp("sh_udc", (g)->name)
 #else
 #define	gadget_is_sh(g)		0
 #endif
 
-/* not yet stable on 2.6 (would help "original Zaurus") */
+
 #ifdef CONFIG_USB_GADGET_SA1100
 #define	gadget_is_sa1100(g)	!strcmp("sa1100_udc", (g)->name)
 #else
@@ -65,7 +53,7 @@
 #define	gadget_is_lh7a40x(g)	0
 #endif
 
-/* handhelds.org tree (?) */
+
 #ifdef CONFIG_USB_GADGET_MQ11XX
 #define	gadget_is_mq11xx(g)	!strcmp("mq11xx_udc", (g)->name)
 #else
@@ -78,14 +66,14 @@
 #define	gadget_is_omap(g)	0
 #endif
 
-/* not yet ported 2.4 --> 2.6 */
+
 #ifdef CONFIG_USB_GADGET_N9604
 #define	gadget_is_n9604(g)	!strcmp("n9604_udc", (g)->name)
 #else
 #define	gadget_is_n9604(g)	0
 #endif
 
-/* various unstable versions available */
+
 #ifdef CONFIG_USB_GADGET_PXA27X
 #define	gadget_is_pxa27x(g)	!strcmp("pxa27x_udc", (g)->name)
 #else
@@ -122,15 +110,15 @@
 #define gadget_is_fsl_usb2(g)	0
 #endif
 
-/* Mentor high speed function controller */
-/* from Montavista kernel (?) */
+
+
 #ifdef CONFIG_USB_GADGET_MUSBHSFC
 #define gadget_is_musbhsfc(g)	!strcmp("musbhsfc_udc", (g)->name)
 #else
 #define gadget_is_musbhsfc(g)	0
 #endif
 
-/* Mentor high speed "dual role" controller, in peripheral role */
+
 #ifdef CONFIG_USB_GADGET_MUSB_HDRC
 #define gadget_is_musbhdrc(g)	!strcmp("musb_hdrc", (g)->name)
 #else
@@ -143,7 +131,7 @@
 #define gadget_is_langwell(g)	0
 #endif
 
-/* from Montavista kernel (?) */
+
 #ifdef CONFIG_USB_GADGET_MPC8272
 #define gadget_is_mpc8272(g)	!strcmp("mpc8272_udc", (g)->name)
 #else
@@ -156,7 +144,7 @@
 #define	gadget_is_m66592(g)	0
 #endif
 
-/* Freescale CPM/QE UDC SUPPORT */
+
 #ifdef CONFIG_USB_GADGET_FSL_QE
 #define gadget_is_fsl_qe(g)	!strcmp("fsl_qe_udc", (g)->name)
 #else
@@ -169,9 +157,15 @@
 #define gadget_is_ci13xxx(g)	0
 #endif
 
-// CONFIG_USB_GADGET_SX2
-// CONFIG_USB_GADGET_AU1X00
-// ...
+#ifdef CONFIG_USB_GADGET_MSM_72K
+#define	gadget_is_msm72k(g)	!strcmp("msm72k_udc", (g)->name)
+#else
+#define	gadget_is_msm72k(g)	0
+#endif
+
+
+
+
 
 #ifdef CONFIG_USB_GADGET_R8A66597
 #define	gadget_is_r8a66597(g)	!strcmp("r8a66597_udc", (g)->name)
@@ -180,21 +174,7 @@
 #endif
 
 
-/**
- * usb_gadget_controller_number - support bcdDevice id convention
- * @gadget: the controller being driven
- *
- * Return a 2-digit BCD value associated with the peripheral controller,
- * suitable for use as part of a bcdDevice value, or a negative error code.
- *
- * NOTE:  this convention is purely optional, and has no meaning in terms of
- * any USB specification.  If you want to use a different convention in your
- * gadget driver firmware -- maybe a more formal revision ID -- feel free.
- *
- * Hosts see these bcdDevice numbers, and are allowed (but not encouraged!)
- * to change their behavior accordingly.  For example it might help avoiding
- * some chip bug.
- */
+
 static inline int usb_gadget_controller_number(struct usb_gadget *gadget)
 {
 	if (gadget_is_net2280(gadget))
@@ -247,30 +227,29 @@ static inline int usb_gadget_controller_number(struct usb_gadget *gadget)
 		return 0x24;
 	else if (gadget_is_r8a66597(gadget))
 		return 0x25;
+	else if (gadget_is_msm72k(gadget))
+		return 0x26;
 	return -ENOENT;
 }
 
 
-/**
- * gadget_supports_altsettings - return true if altsettings work
- * @gadget: the gadget in question
- */
+
 static inline bool gadget_supports_altsettings(struct usb_gadget *gadget)
 {
-	/* PXA 21x/25x/26x has no altsettings at all */
+	
 	if (gadget_is_pxa(gadget))
 		return false;
 
-	/* PXA 27x and 3xx have *broken* altsetting support */
+	
 	if (gadget_is_pxa27x(gadget))
 		return false;
 
-	/* SH3 hardware just doesn't do altsettings */
+	
 	if (gadget_is_sh(gadget))
 		return false;
 
-	/* Everything else is *presumably* fine ... */
+	
 	return true;
 }
 
-#endif /* __GADGET_CHIPS_H */
+#endif 

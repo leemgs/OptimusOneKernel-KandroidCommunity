@@ -1,25 +1,10 @@
-/*
- * Infinity Unlimited USB Phoenix driver
- *
- * Copyright (C) 2007 Alain Degreffe (eczema@ecze.com)
- *
- *
- * Original code taken from iuutool ( Copyright (C) 2006 Juan Carlos Borrás )
- *
- *	This program is free software; you can redistribute it and/or modify
- *	it under the terms of the GNU General Public License as published by
- *	the Free Software Foundation; either version 2 of the License, or
- *	(at your option) any later version.
- *
- *  And tested with help of WB Electronics
- *
- */
+
 
 #define   IUU_USB_VENDOR_ID  0x104f
 #define   IUU_USB_PRODUCT_ID  0x0004
 #define   IUU_USB_OP_TIMEOUT  0x0200
 
-/* Programmer commands */
+
 
 #define IUU_NO_OPERATION   0x00
 #define IUU_GET_FIRMWARE_VERSION   0x01

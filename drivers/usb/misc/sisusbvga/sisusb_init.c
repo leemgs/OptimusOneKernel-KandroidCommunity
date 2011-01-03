@@ -1,40 +1,4 @@
-/*
- * sisusb - usb kernel driver for SiS315(E) based USB2VGA dongles
- *
- * Display mode initializing code
- *
- * Copyright (C) 2001-2005 by Thomas Winischhofer, Vienna, Austria
- *
- * If distributed as part of the Linux kernel, this code is licensed under the
- * terms of the GPL v2.
- *
- * Otherwise, the following license terms apply:
- *
- * * Redistribution and use in source and binary forms, with or without
- * * modification, are permitted provided that the following conditions
- * * are met:
- * * 1) Redistributions of source code must retain the above copyright
- * *    notice, this list of conditions and the following disclaimer.
- * * 2) Redistributions in binary form must reproduce the above copyright
- * *    notice, this list of conditions and the following disclaimer in the
- * *    documentation and/or other materials provided with the distribution.
- * * 3) The name of the author may not be used to endorse or promote products
- * *    derived from this software without specific prior written permission.
- * *
- * * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
- * * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
- * * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Author:	Thomas Winischhofer <thomas@winischhofer.net>
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -50,9 +14,9 @@
 
 #include "sisusb_init.h"
 
-/*********************************************/
-/*         POINTER INITIALIZATION            */
-/*********************************************/
+
+
+
 
 static void SiSUSB_InitPtr(struct SiS_Private *SiS_Pr)
 {
@@ -67,9 +31,9 @@ static void SiSUSB_InitPtr(struct SiS_Private *SiS_Pr)
 	SiS_Pr->SiS_VCLKData = SiSUSB_VCLKData;
 }
 
-/*********************************************/
-/*          HELPER: SetReg, GetReg           */
-/*********************************************/
+
+
+
 
 static void
 SiS_SetReg(struct SiS_Private *SiS_Pr, unsigned long port,
@@ -127,18 +91,18 @@ SiS_SetRegOR(struct SiS_Private *SiS_Pr, unsigned long port,
 	sisusb_setidxregor(SiS_Pr->sisusb, port, index, DataOR);
 }
 
-/*********************************************/
-/*      HELPER: DisplayOn, DisplayOff        */
-/*********************************************/
+
+
+
 
 static void SiS_DisplayOn(struct SiS_Private *SiS_Pr)
 {
 	SiS_SetRegAND(SiS_Pr, SiS_Pr->SiS_P3c4, 0x01, 0xDF);
 }
 
-/*********************************************/
-/*        HELPER: Init Port Addresses        */
-/*********************************************/
+
+
+
 
 static void SiSUSBRegInit(struct SiS_Private *SiS_Pr, unsigned long BaseAddr)
 {
@@ -159,34 +123,29 @@ static void SiSUSBRegInit(struct SiS_Private *SiS_Pr, unsigned long BaseAddr)
 	SiS_Pr->SiS_Part1Port = BaseAddr + SIS_CRT2_PORT_04;
 }
 
-/*********************************************/
-/*             HELPER: GetSysFlags           */
-/*********************************************/
+
+
+
 
 static void SiS_GetSysFlags(struct SiS_Private *SiS_Pr)
 {
 	SiS_Pr->SiS_MyCR63 = 0x63;
 }
 
-/*********************************************/
-/*         HELPER: Init PCI & Engines        */
-/*********************************************/
+
+
+
 
 static void SiSInitPCIetc(struct SiS_Private *SiS_Pr)
 {
 	SiS_SetReg(SiS_Pr, SiS_Pr->SiS_P3c4, 0x20, 0xa1);
-	/*  - Enable 2D (0x40)
-	 *  - Enable 3D (0x02)
-	 *  - Enable 3D vertex command fetch (0x10)
-	 *  - Enable 3D command parser (0x08)
-	 *  - Enable 3D G/L transformation engine (0x80)
-	 */
+	
 	SiS_SetRegOR(SiS_Pr, SiS_Pr->SiS_P3c4, 0x1E, 0xDA);
 }
 
-/*********************************************/
-/*        HELPER: SET SEGMENT REGISTERS      */
-/*********************************************/
+
+
+
 
 static void SiS_SetSegRegLower(struct SiS_Private *SiS_Pr, unsigned short value)
 {
@@ -247,9 +206,9 @@ static void SiS_ResetSegmentRegisters(struct SiS_Private *SiS_Pr)
 	SiS_ResetSegmentRegOver(SiS_Pr);
 }
 
-/*********************************************/
-/*           HELPER: SearchModeID            */
-/*********************************************/
+
+
+
 
 static int
 SiS_SearchModeID(struct SiS_Private *SiS_Pr, unsigned short *ModeNo,
@@ -280,19 +239,19 @@ SiS_SearchModeID(struct SiS_Private *SiS_Pr, unsigned short *ModeNo,
 	return 1;
 }
 
-/*********************************************/
-/*            HELPER: ENABLE CRT1            */
-/*********************************************/
+
+
+
 
 static void SiS_HandleCRT1(struct SiS_Private *SiS_Pr)
 {
-	/* Enable CRT1 gating */
+	
 	SiS_SetRegAND(SiS_Pr, SiS_Pr->SiS_P3d4, SiS_Pr->SiS_MyCR63, 0xbf);
 }
 
-/*********************************************/
-/*           HELPER: GetColorDepth           */
-/*********************************************/
+
+
+
 
 static unsigned short
 SiS_GetColorDepth(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
@@ -314,9 +273,9 @@ SiS_GetColorDepth(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
 	return ColorDepth[index];
 }
 
-/*********************************************/
-/*             HELPER: GetOffset             */
-/*********************************************/
+
+
+
 
 static unsigned short
 SiS_GetOffset(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
@@ -342,9 +301,9 @@ SiS_GetOffset(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
 	return temp;
 }
 
-/*********************************************/
-/*                   SEQ                     */
-/*********************************************/
+
+
+
 
 static void
 SiS_SetSeqRegs(struct SiS_Private *SiS_Pr, unsigned short StandTableIndex)
@@ -363,9 +322,9 @@ SiS_SetSeqRegs(struct SiS_Private *SiS_Pr, unsigned short StandTableIndex)
 	}
 }
 
-/*********************************************/
-/*                  MISC                     */
-/*********************************************/
+
+
+
 
 static void
 SiS_SetMiscRegs(struct SiS_Private *SiS_Pr, unsigned short StandTableIndex)
@@ -375,9 +334,9 @@ SiS_SetMiscRegs(struct SiS_Private *SiS_Pr, unsigned short StandTableIndex)
 	SiS_SetRegByte(SiS_Pr, SiS_Pr->SiS_P3c2, Miscdata);
 }
 
-/*********************************************/
-/*                  CRTC                     */
-/*********************************************/
+
+
+
 
 static void
 SiS_SetCRTCRegs(struct SiS_Private *SiS_Pr, unsigned short StandTableIndex)
@@ -393,9 +352,9 @@ SiS_SetCRTCRegs(struct SiS_Private *SiS_Pr, unsigned short StandTableIndex)
 	}
 }
 
-/*********************************************/
-/*                   ATT                     */
-/*********************************************/
+
+
+
 
 static void
 SiS_SetATTRegs(struct SiS_Private *SiS_Pr, unsigned short StandTableIndex)
@@ -418,9 +377,9 @@ SiS_SetATTRegs(struct SiS_Private *SiS_Pr, unsigned short StandTableIndex)
 	SiS_GetRegByte(SiS_Pr, SiS_Pr->SiS_P3da);
 }
 
-/*********************************************/
-/*                   GRC                     */
-/*********************************************/
+
+
+
 
 static void
 SiS_SetGRCRegs(struct SiS_Private *SiS_Pr, unsigned short StandTableIndex)
@@ -434,14 +393,14 @@ SiS_SetGRCRegs(struct SiS_Private *SiS_Pr, unsigned short StandTableIndex)
 	}
 
 	if (SiS_Pr->SiS_ModeType > ModeVGA) {
-		/* 256 color disable */
+		
 		SiS_SetRegAND(SiS_Pr, SiS_Pr->SiS_P3ce, 0x05, 0xBF);
 	}
 }
 
-/*********************************************/
-/*          CLEAR EXTENDED REGISTERS         */
-/*********************************************/
+
+
+
 
 static void SiS_ClearExt1Regs(struct SiS_Private *SiS_Pr, unsigned short ModeNo)
 {
@@ -454,9 +413,9 @@ static void SiS_ClearExt1Regs(struct SiS_Private *SiS_Pr, unsigned short ModeNo)
 	SiS_SetRegAND(SiS_Pr, SiS_Pr->SiS_P3c4, 0x37, 0xFE);
 }
 
-/*********************************************/
-/*              Get rate index               */
-/*********************************************/
+
+
+
 
 static unsigned short
 SiS_GetRatePtr(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
@@ -493,9 +452,9 @@ SiS_GetRatePtr(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
 	return (rrti + i);
 }
 
-/*********************************************/
-/*                  SYNC                     */
-/*********************************************/
+
+
+
 
 static void SiS_SetCRT1Sync(struct SiS_Private *SiS_Pr, unsigned short rrti)
 {
@@ -505,9 +464,9 @@ static void SiS_SetCRT1Sync(struct SiS_Private *SiS_Pr, unsigned short rrti)
 	SiS_SetRegByte(SiS_Pr, SiS_Pr->SiS_P3c2, sync);
 }
 
-/*********************************************/
-/*                  CRTC/2                   */
-/*********************************************/
+
+
+
 
 static void
 SiS_SetCRT1CRTC(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
@@ -551,11 +510,11 @@ SiS_SetCRT1CRTC(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
 		SiS_SetReg(SiS_Pr, SiS_Pr->SiS_P3d4, 0x14, 0x4F);
 }
 
-/*********************************************/
-/*               OFFSET & PITCH              */
-/*********************************************/
-/*  (partly overruled by SetPitch() in XF86) */
-/*********************************************/
+
+
+
+
+
 
 static void
 SiS_SetCRT1Offset(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
@@ -581,9 +540,9 @@ SiS_SetCRT1Offset(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
 	SiS_SetReg(SiS_Pr, SiS_Pr->SiS_P3c4, 0x10, temp);
 }
 
-/*********************************************/
-/*                  VCLK                     */
-/*********************************************/
+
+
+
 
 static void
 SiS_SetCRT1VCLK(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
@@ -600,9 +559,9 @@ SiS_SetCRT1VCLK(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
 	SiS_SetReg(SiS_Pr, SiS_Pr->SiS_P3c4, 0x2D, 0x01);
 }
 
-/*********************************************/
-/*                  FIFO                     */
-/*********************************************/
+
+
+
 
 static void
 SiS_SetCRT1FIFO_310(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
@@ -610,7 +569,7 @@ SiS_SetCRT1FIFO_310(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
 {
 	unsigned short modeflag = SiS_Pr->SiS_EModeIDTable[mi].Ext_ModeFlag;
 
-	/* disable auto-threshold */
+	
 	SiS_SetRegAND(SiS_Pr, SiS_Pr->SiS_P3c4, 0x3D, 0xFE);
 
 	SiS_SetReg(SiS_Pr, SiS_Pr->SiS_P3c4, 0x08, 0xAE);
@@ -625,9 +584,9 @@ SiS_SetCRT1FIFO_310(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
 	}
 }
 
-/*********************************************/
-/*              MODE REGISTERS               */
-/*********************************************/
+
+
+
 
 static void
 SiS_SetVCLKState(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
@@ -647,7 +606,7 @@ SiS_SetVCLKState(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
 	if (VCLK >= 166)
 		SiS_SetRegAND(SiS_Pr, SiS_Pr->SiS_P3c4, 0x1f, 0xe7);
 
-	/* DAC speed */
+	
 	data = 0x03;
 	if (VCLK >= 260)
 		data = 0x00;
@@ -672,7 +631,7 @@ SiS_SetCRT1ModeRegs(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
 		infoflag = SiS_Pr->SiS_RefIndex[rrti].Ext_InfoFlag;
 	}
 
-	/* Disable DPMS */
+	
 	SiS_SetRegAND(SiS_Pr, SiS_Pr->SiS_P3c4, 0x1F, 0x3F);
 
 	data = 0;
@@ -688,7 +647,7 @@ SiS_SetCRT1ModeRegs(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
 
 	data = 0;
 	if (infoflag & InterlaceMode) {
-		/* data = (Hsync / 8) - ((Htotal / 8) / 2) + 3 */
+		
 		unsigned short hrs =
 		    (SiS_GetReg(SiS_Pr, SiS_Pr->SiS_P3d4, 0x04) |
 		     ((SiS_GetReg(SiS_Pr, SiS_Pr->SiS_P3c4, 0x0b) & 0xc0) << 2))
@@ -731,9 +690,9 @@ SiS_SetCRT1ModeRegs(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
 		SiS_SetReg(SiS_Pr, SiS_Pr->SiS_P3d4, 0x52, 0x6c);
 }
 
-/*********************************************/
-/*                 LOAD DAC                  */
-/*********************************************/
+
+
+
 
 static void
 SiS_WriteDAC(struct SiS_Private *SiS_Pr, unsigned long DACData,
@@ -842,9 +801,9 @@ SiS_LoadDAC(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
 	}
 }
 
-/*********************************************/
-/*         SET CRT1 REGISTER GROUP           */
-/*********************************************/
+
+
+
 
 static void
 SiS_SetCRT1Group(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
@@ -885,9 +844,9 @@ SiS_SetCRT1Group(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
 	SiS_DisplayOn(SiS_Pr);
 }
 
-/*********************************************/
-/*                 SiSSetMode()              */
-/*********************************************/
+
+
+
 
 int SiSUSBSetMode(struct SiS_Private *SiS_Pr, unsigned short ModeNo)
 {
@@ -912,7 +871,7 @@ int SiSUSBSetMode(struct SiS_Private *SiS_Pr, unsigned short ModeNo)
 
 	SiS_Pr->SiS_SetFlag = LowModeTests;
 
-	/* Set mode on CRT1 */
+	
 	SiS_SetCRT1Group(SiS_Pr, ModeNo, ModeIdIndex);
 
 	SiS_HandleCRT1(SiS_Pr);
@@ -920,7 +879,7 @@ int SiSUSBSetMode(struct SiS_Private *SiS_Pr, unsigned short ModeNo)
 	SiS_DisplayOn(SiS_Pr);
 	SiS_SetRegByte(SiS_Pr, SiS_Pr->SiS_P3c6, 0xFF);
 
-	/* Store mode number */
+	
 	SiS_SetReg(SiS_Pr, SiS_Pr->SiS_P3d4, 0x34, ModeNo);
 
 	return 1;
@@ -957,4 +916,4 @@ int SiSUSBSetVESAMode(struct SiS_Private *SiS_Pr, unsigned short VModeNo)
 	return SiSUSBSetMode(SiS_Pr, ModeNo);
 }
 
-#endif /* INCL_SISUSB_CON */
+#endif 

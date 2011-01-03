@@ -1,59 +1,28 @@
-/*
- * OHCI HCD(Host Controller Driver) for USB.
- *
- *(C) Copyright 1999 Roman Weissgaerber <weissg@vienna.at>
- *(C) Copyright 2000-2002 David Brownell <dbrownell@users.sourceforge.net>
- *(C) Copyright 2002 Hewlett-Packard Company
- *
- * Bus glue for Toshiba Mobile IO(TMIO) Controller's OHCI core
- * (C) Copyright 2005 Chris Humbert <mahadri-usb@drigon.com>
- * (C) Copyright 2007, 2008 Dmitry Baryshkov <dbaryshkov@gmail.com>
- *
- * This is known to work with the following variants:
- *	TC6393XB revision 3	(32kB SRAM)
- *
- * The TMIO's OHCI core DMAs through a small internal buffer that
- * is directly addressable by the CPU.
- *
- * Written from sparse documentation from Toshiba and Sharp's driver
- * for the 2.4 kernel,
- *	usb-ohci-tc6393.c(C) Copyright 2004 Lineo Solutions, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
 
-/*#include <linux/fs.h>
-#include <linux/mount.h>
-#include <linux/pagemap.h>
-#include <linux/init.h>
-#include <linux/namei.h>
-#include <linux/sched.h>*/
+
+
 #include <linux/platform_device.h>
 #include <linux/mfd/core.h>
 #include <linux/mfd/tmio.h>
 #include <linux/dma-mapping.h>
 
-/*-------------------------------------------------------------------------*/
 
-/*
- * USB Host Controller Configuration Register
- */
-#define CCR_REVID	0x08	/* b Revision ID				*/
-#define CCR_BASE	0x10	/* l USB Control Register Base Address Low	*/
-#define CCR_ILME	0x40	/* b Internal Local Memory Enable		*/
-#define CCR_PM		0x4c	/* w Power Management			*/
-#define CCR_INTC	0x50	/* b INT Control				*/
-#define CCR_LMW1L	0x54	/* w Local Memory Window 1 LMADRS Low	*/
-#define CCR_LMW1H	0x56	/* w Local Memory Window 1 LMADRS High	*/
-#define CCR_LMW1BL	0x58	/* w Local Memory Window 1 Base Address Low	*/
-#define CCR_LMW1BH	0x5A	/* w Local Memory Window 1 Base Address High	*/
-#define CCR_LMW2L	0x5C	/* w Local Memory Window 2 LMADRS Low	*/
-#define CCR_LMW2H	0x5E	/* w Local Memory Window 2 LMADRS High	*/
-#define CCR_LMW2BL	0x60	/* w Local Memory Window 2 Base Address Low	*/
-#define CCR_LMW2BH	0x62	/* w Local Memory Window 2 Base Address High	*/
-#define CCR_MISC	0xFC	/* b MISC					*/
+
+
+#define CCR_REVID	0x08	
+#define CCR_BASE	0x10	
+#define CCR_ILME	0x40	
+#define CCR_PM		0x4c	
+#define CCR_INTC	0x50	
+#define CCR_LMW1L	0x54	
+#define CCR_LMW1H	0x56	
+#define CCR_LMW1BL	0x58	
+#define CCR_LMW1BH	0x5A	
+#define CCR_LMW2L	0x5C	
+#define CCR_LMW2H	0x5E	
+#define CCR_LMW2BL	0x60	
+#define CCR_LMW2BH	0x62	
+#define CCR_MISC	0xFC	
 
 #define CCR_PM_GKEN      0x0001
 #define CCR_PM_CKRNEN    0x0002
@@ -63,16 +32,16 @@
 #define CCR_PM_PMEE      0x0100
 #define CCR_PM_PMES      0x8000
 
-/*-------------------------------------------------------------------------*/
+
 
 struct tmio_hcd {
 	void __iomem		*ccr;
-	spinlock_t		lock; /* protects RMW cycles */
+	spinlock_t		lock; 
 };
 
 #define hcd_to_tmio(hcd)	((struct tmio_hcd *)(hcd_to_ohci(hcd) + 1))
 
-/*-------------------------------------------------------------------------*/
+
 
 static void tmio_write_pm(struct platform_device *dev)
 {
@@ -153,24 +122,24 @@ static const struct hc_driver ohci_tmio_hc_driver = {
 	.product_desc =		"TMIO OHCI USB Host Controller",
 	.hcd_priv_size =	sizeof(struct ohci_hcd) + sizeof (struct tmio_hcd),
 
-	/* generic hardware linkage */
+	
 	.irq =			ohci_irq,
 	.flags =		HCD_USB11 | HCD_MEMORY | HCD_LOCAL_MEM,
 
-	/* basic lifecycle operations */
+	
 	.start =		ohci_tmio_start,
 	.stop =			ohci_stop,
 	.shutdown =		ohci_shutdown,
 
-	/* managing i/o requests and associated device resources */
+	
 	.urb_enqueue =		ohci_urb_enqueue,
 	.urb_dequeue =		ohci_urb_dequeue,
 	.endpoint_disable =	ohci_endpoint_disable,
 
-	/* scheduling support */
+	
 	.get_frame_number =	ohci_get_frame,
 
-	/* root hub support */
+	
 	.hub_status_data =	ohci_hub_status_data,
 	.hub_control =		ohci_hub_control,
 #ifdef	CONFIG_PM
@@ -180,7 +149,7 @@ static const struct hc_driver ohci_tmio_hc_driver = {
 	.start_port_reset =	ohci_start_port_reset,
 };
 
-/*-------------------------------------------------------------------------*/
+
 static struct platform_driver ohci_hcd_tmio_driver;
 
 static int __devinit ohci_hcd_tmio_drv_probe(struct platform_device *dev)
@@ -308,7 +277,7 @@ static int ohci_hcd_tmio_drv_suspend(struct platform_device *dev, pm_message_t s
 	spin_lock_irqsave(&tmio->lock, flags);
 
 	misc = tmio_ioread8(tmio->ccr + CCR_MISC);
-	misc |= 1 << 3; /* USSUSP */
+	misc |= 1 << 3; 
 	tmio_iowrite8(misc, tmio->ccr + CCR_MISC);
 
 	spin_unlock_irqrestore(&tmio->lock, flags);
@@ -349,7 +318,7 @@ static int ohci_hcd_tmio_drv_resume(struct platform_device *dev)
 	spin_lock_irqsave(&tmio->lock, flags);
 
 	misc = tmio_ioread8(tmio->ccr + CCR_MISC);
-	misc &= ~(1 << 3); /* USSUSP */
+	misc &= ~(1 << 3); 
 	tmio_iowrite8(misc, tmio->ccr + CCR_MISC);
 
 	spin_unlock_irqrestore(&tmio->lock, flags);

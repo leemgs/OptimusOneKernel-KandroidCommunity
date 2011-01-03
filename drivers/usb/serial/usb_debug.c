@@ -1,12 +1,4 @@
-/*
- * USB Debug cable driver
- *
- * Copyright (C) 2006 Greg Kroah-Hartman <greg@kroah.com>
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License version
- *	2 as published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -49,9 +41,7 @@ static int usb_debug_open(struct tty_struct *tty, struct usb_serial_port *port)
 	return usb_serial_generic_open(tty, port);
 }
 
-/* This HW really does not support a serial break, so one will be
- * emulated when ever the break state is set to true.
- */
+
 static void usb_debug_break_ctl(struct tty_struct *tty, int break_state)
 {
 	struct usb_serial_port *port = tty->driver_data;

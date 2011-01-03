@@ -1,91 +1,4 @@
-/*
- * Wireless USB - Cable Based Association
- *
- *
- * Copyright (C) 2006 Intel Corporation
- * Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>
- * Copyright (C) 2008 Cambridge Silicon Radio Ltd.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version
- * 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
- *
- *
- * WUSB devices have to be paired (associated in WUSB lingo) so
- * that they can connect to the system.
- *
- * One way of pairing is using CBA-Cable Based Association. First
- * time you plug the device with a cable, association is done between
- * host and device and subsequent times, you can connect wirelessly
- * without having to associate again. That's the idea.
- *
- * This driver does nothing Earth shattering. It just provides an
- * interface to chat with the wire-connected device so we can get a
- * CDID (device ID) that might have been previously associated to a
- * CHID (host ID) and to set up a new <CHID,CDID,CK> triplet
- * (connection context), with the CK being the secret, or connection
- * key. This is the pairing data.
- *
- * When a device with the CBA capability connects, the probe routine
- * just creates a bunch of sysfs files that a user space enumeration
- * manager uses to allow it to connect wirelessly to the system or not.
- *
- * The process goes like this:
- *
- * 1. Device plugs, cbaf is loaded, notifications happen.
- *
- * 2. The connection manager (CM) sees a device with CBAF capability
- *    (the wusb_chid etc. files in /sys/devices/blah/OURDEVICE).
- *
- * 3. The CM writes the host name, supported band groups, and the CHID
- *    (host ID) into the wusb_host_name, wusb_host_band_groups and
- *    wusb_chid files. These get sent to the device and the CDID (if
- *    any) for this host is requested.
- *
- * 4. The CM can verify that the device's supported band groups
- *    (wusb_device_band_groups) are compatible with the host.
- *
- * 5. The CM reads the wusb_cdid file.
- *
- * 6. The CM looks up its database
- *
- * 6.1 If it has a matching CHID,CDID entry, the device has been
- *     authorized before (paired) and nothing further needs to be
- *     done.
- *
- * 6.2 If the CDID is zero (or the CM doesn't find a matching CDID in
- *     its database), the device is assumed to be not known.  The CM
- *     may associate the host with device by: writing a randomly
- *     generated CDID to wusb_cdid and then a random CK to wusb_ck
- *     (this uploads the new CC to the device).
- *
- *     CMD may choose to prompt the user before associating with a new
- *     device.
- *
- * 7. Device is unplugged.
- *
- * When the device tries to connect wirelessly, it will present its
- * CDID to the WUSB host controller.  The CM will query the
- * database. If the CHID/CDID pair found, it will (with a 4-way
- * handshake) challenge the device to demonstrate it has the CK secret
- * key (from our database) without actually exchanging it. Once
- * satisfied, crypto keys are derived from the CK, the device is
- * connected and all communication is encrypted.
- *
- * References:
- *   [WUSB-AM] Association Models Supplement to the Certified Wireless
- *             Universal Serial Bus Specification, version 1.0.
- */
+
 #include <linux/module.h>
 #include <linux/ctype.h>
 #include <linux/usb.h>
@@ -97,9 +10,9 @@
 #include <linux/usb/wusb.h>
 #include <linux/usb/association.h>
 
-#define CBA_NAME_LEN 0x40 /* [WUSB-AM] table 4-7 */
+#define CBA_NAME_LEN 0x40 
 
-/* An instance of a Cable-Based-Association-Framework device */
+
 struct cbaf {
 	struct usb_device *usb_dev;
 	struct usb_interface *usb_iface;
@@ -117,17 +30,7 @@ struct cbaf {
 	struct wusb_ckhdid ck;
 };
 
-/*
- * Verify that a CBAF USB-interface has what we need
- *
- * According to [WUSB-AM], CBA devices should provide at least two
- * interfaces:
- *  - RETRIEVE_HOST_INFO
- *  - ASSOCIATE
- *
- * If the device doesn't provide these interfaces, we do not know how
- * to deal with it.
- */
+
 static int cbaf_check(struct cbaf *cbaf)
 {
 	int result;
@@ -143,7 +46,7 @@ static int cbaf_check(struct cbaf *cbaf)
 		CBAF_REQ_GET_ASSOCIATION_INFORMATION,
 		USB_DIR_IN | USB_TYPE_CLASS | USB_RECIP_INTERFACE,
 		0, cbaf->usb_iface->cur_altsetting->desc.bInterfaceNumber,
-		cbaf->buffer, cbaf->buffer_size, 1000 /* FIXME: arbitrary */);
+		cbaf->buffer, cbaf->buffer_size, 1000 );
 	if (result < 0) {
 		dev_err(dev, "Cannot get available association types: %d\n",
 			result);
@@ -165,11 +68,7 @@ static int cbaf_check(struct cbaf *cbaf)
 			(size_t)assoc_size, sizeof(*assoc_info));
 		return result;
 	}
-	/*
-	 * From now on, we just verify, but won't error out unless we
-	 * don't find the AR_TYPE_WUSB_{RETRIEVE_HOST_INFO,ASSOCIATE}
-	 * types.
-	 */
+	
 	itr = cbaf->buffer + sizeof(*assoc_info);
 	top = cbaf->buffer + assoc_size;
 	dev_dbg(dev, "Found %u association requests (%zu bytes)\n",
@@ -196,14 +95,14 @@ static int cbaf_check(struct cbaf *cbaf)
 
 		switch (ar_type) {
 		case AR_TYPE_WUSB:
-			/* Verify we have what is mandated by [WUSB-AM]. */
+			
 			switch (ar_subtype) {
 			case AR_TYPE_WUSB_RETRIEVE_HOST_INFO:
 				ar_name = "RETRIEVE_HOST_INFO";
 				ar_rhi = 1;
 				break;
 			case AR_TYPE_WUSB_ASSOCIATE:
-				/* send assoc data */
+				
 				ar_name = "ASSOCIATE";
 				ar_assoc = 1;
 				break;
@@ -242,7 +141,7 @@ static const struct wusb_cbaf_host_info cbaf_host_info_defaults = {
 	.HostFriendlyName_hdr     = WUSB_AR_HostFriendlyName,
 };
 
-/* Send WUSB host information (CHID and name) to a CBAF device */
+
 static int cbaf_send_host_info(struct cbaf *cbaf)
 {
 	struct wusb_cbaf_host_info *hi;
@@ -253,7 +152,7 @@ static int cbaf_send_host_info(struct cbaf *cbaf)
 	memset(hi, 0, sizeof(*hi));
 	*hi = cbaf_host_info_defaults;
 	hi->CHID = cbaf->chid;
-	hi->LangID = 0;	/* FIXME: I guess... */
+	hi->LangID = 0;	
 	strlcpy(hi->HostFriendlyName, cbaf->host_name, CBA_NAME_LEN);
 	name_len = strlen(cbaf->host_name);
 	hi->HostFriendlyName_hdr.len = cpu_to_le16(name_len);
@@ -264,16 +163,10 @@ static int cbaf_send_host_info(struct cbaf *cbaf)
 			USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_INTERFACE,
 			0x0101,
 			cbaf->usb_iface->cur_altsetting->desc.bInterfaceNumber,
-			hi, hi_size, 1000 /* FIXME: arbitrary */);
+			hi, hi_size, 1000 );
 }
 
-/*
- * Get device's information (CDID) associated to CHID
- *
- * The device will return it's information (CDID, name, bandgroups)
- * associated to the CHID we have set before, or 0 CDID and default
- * name and bandgroup if no CHID set or unknown.
- */
+
 static int cbaf_cdid_get(struct cbaf *cbaf)
 {
 	int result;
@@ -287,7 +180,7 @@ static int cbaf_cdid_get(struct cbaf *cbaf)
 		CBAF_REQ_GET_ASSOCIATION_REQUEST,
 		USB_DIR_IN | USB_TYPE_CLASS | USB_RECIP_INTERFACE,
 		0x0200, cbaf->usb_iface->cur_altsetting->desc.bInterfaceNumber,
-		di, cbaf->buffer_size, 1000 /* FIXME: arbitrary */);
+		di, cbaf->buffer_size, 1000 );
 	if (result < 0) {
 		dev_err(dev, "Cannot request device information: %d\n", result);
 		return result;
@@ -506,9 +399,7 @@ static const struct wusb_cbaf_cc_data_fail cbaf_cc_data_fail_defaults = {
 	.AssociationStatus_hdr    = WUSB_AR_AssociationStatus,
 };
 
-/*
- * Send a new CC to the device.
- */
+
 static int cbaf_cc_upload(struct cbaf *cbaf)
 {
 	int result;
@@ -535,7 +426,7 @@ static int cbaf_cc_upload(struct cbaf *cbaf)
 		CBAF_REQ_SET_ASSOCIATION_RESPONSE,
 		USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_INTERFACE,
 		0x0201, cbaf->usb_iface->cur_altsetting->desc.bInterfaceNumber,
-		ccd, sizeof(*ccd), 1000 /* FIXME: arbitrary */);
+		ccd, sizeof(*ccd), 1000 );
 
 	return result;
 }
@@ -584,7 +475,7 @@ static struct attribute *cbaf_dev_attrs[] = {
 };
 
 static struct attribute_group cbaf_dev_attr_group = {
-	.name = NULL,	/* we want them in the same directory */
+	.name = NULL,	
 	.attrs = cbaf_dev_attrs,
 };
 
@@ -637,7 +528,7 @@ static void cbaf_disconnect(struct usb_interface *iface)
 	usb_set_intfdata(iface, NULL);
 	usb_put_intf(iface);
 	kfree(cbaf->buffer);
-	/* paranoia: clean up crypto keys */
+	
 	kzfree(cbaf);
 }
 

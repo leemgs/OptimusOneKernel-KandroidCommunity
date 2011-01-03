@@ -1,17 +1,4 @@
-/*
- * Silicon Laboratories CP210x USB to RS232 serial adaptor driver
- *
- * Copyright (C) 2005 Craig Shelley (craig@microtron.org.uk)
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License version
- *	2 as published by the Free Software Foundation.
- *
- * Support to set flow control line levels using TIOCMGET and TIOCMSET
- * thanks to Karl Hiramoto karl@hiramoto.org. RTSCTS hardware flow
- * control thanks to Munir Nassar nassarmu@real-time.com
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/errno.h>
@@ -24,15 +11,11 @@
 #include <linux/uaccess.h>
 #include <linux/usb/serial.h>
 
-/*
- * Version Information
- */
+
 #define DRIVER_VERSION "v0.09"
 #define DRIVER_DESC "Silicon Labs CP210x RS232 serial adaptor driver"
 
-/*
- * Function Prototypes
- */
+
 static int cp210x_open(struct tty_struct *tty, struct usb_serial_port *);
 static void cp210x_cleanup(struct usb_serial_port *);
 static void cp210x_close(struct usb_serial_port *);
@@ -56,67 +39,67 @@ static int cp210x_carrier_raised(struct usb_serial_port *p);
 static int debug;
 
 static struct usb_device_id id_table [] = {
-	{ USB_DEVICE(0x0471, 0x066A) }, /* AKTAKOM ACE-1001 cable */
-	{ USB_DEVICE(0x0489, 0xE000) }, /* Pirelli Broadband S.p.A, DP-L10 SIP/GSM Mobile */
-	{ USB_DEVICE(0x0745, 0x1000) }, /* CipherLab USB CCD Barcode Scanner 1000 */
-	{ USB_DEVICE(0x08e6, 0x5501) }, /* Gemalto Prox-PU/CU contactless smartcard reader */
-	{ USB_DEVICE(0x08FD, 0x000A) }, /* Digianswer A/S , ZigBee/802.15.4 MAC Device */
-	{ USB_DEVICE(0x0FCF, 0x1003) }, /* Dynastream ANT development board */
-	{ USB_DEVICE(0x0FCF, 0x1004) }, /* Dynastream ANT2USB */
-	{ USB_DEVICE(0x0FCF, 0x1006) }, /* Dynastream ANT development board */
-	{ USB_DEVICE(0x10A6, 0xAA26) }, /* Knock-off DCU-11 cable */
-	{ USB_DEVICE(0x10AB, 0x10C5) }, /* Siemens MC60 Cable */
-	{ USB_DEVICE(0x10B5, 0xAC70) }, /* Nokia CA-42 USB */
-	{ USB_DEVICE(0x10C4, 0x0F91) }, /* Vstabi */
-	{ USB_DEVICE(0x10C4, 0x1101) }, /* Arkham Technology DS101 Bus Monitor */
-	{ USB_DEVICE(0x10C4, 0x1601) }, /* Arkham Technology DS101 Adapter */
-	{ USB_DEVICE(0x10C4, 0x800A) }, /* SPORTident BSM7-D-USB main station */
-	{ USB_DEVICE(0x10C4, 0x803B) }, /* Pololu USB-serial converter */
-	{ USB_DEVICE(0x10C4, 0x8053) }, /* Enfora EDG1228 */
-	{ USB_DEVICE(0x10C4, 0x8054) }, /* Enfora GSM2228 */
-	{ USB_DEVICE(0x10C4, 0x8066) }, /* Argussoft In-System Programmer */
-	{ USB_DEVICE(0x10C4, 0x807A) }, /* Crumb128 board */
-	{ USB_DEVICE(0x10C4, 0x80CA) }, /* Degree Controls Inc */
-	{ USB_DEVICE(0x10C4, 0x80DD) }, /* Tracient RFID */
-	{ USB_DEVICE(0x10C4, 0x80F6) }, /* Suunto sports instrument */
-	{ USB_DEVICE(0x10C4, 0x8115) }, /* Arygon NFC/Mifare Reader */
-	{ USB_DEVICE(0x10C4, 0x813D) }, /* Burnside Telecom Deskmobile */
-	{ USB_DEVICE(0x10C4, 0x813F) }, /* Tams Master Easy Control */
-	{ USB_DEVICE(0x10C4, 0x814A) }, /* West Mountain Radio RIGblaster P&P */
-	{ USB_DEVICE(0x10C4, 0x814B) }, /* West Mountain Radio RIGtalk */
-	{ USB_DEVICE(0x10C4, 0x815E) }, /* Helicomm IP-Link 1220-DVM */
-	{ USB_DEVICE(0x10C4, 0x819F) }, /* MJS USB Toslink Switcher */
-	{ USB_DEVICE(0x10C4, 0x81A6) }, /* ThinkOptics WavIt */
-	{ USB_DEVICE(0x10C4, 0x81AC) }, /* MSD Dash Hawk */
-	{ USB_DEVICE(0x10C4, 0x81C8) }, /* Lipowsky Industrie Elektronik GmbH, Baby-JTAG */
-	{ USB_DEVICE(0x10C4, 0x81E2) }, /* Lipowsky Industrie Elektronik GmbH, Baby-LIN */
-	{ USB_DEVICE(0x10C4, 0x81E7) }, /* Aerocomm Radio */
-	{ USB_DEVICE(0x10C4, 0x81F2) }, /* C1007 HF band RFID controller */
-	{ USB_DEVICE(0x10C4, 0x8218) }, /* Lipowsky Industrie Elektronik GmbH, HARP-1 */
-	{ USB_DEVICE(0x10C4, 0x822B) }, /* Modem EDGE(GSM) Comander 2 */
-	{ USB_DEVICE(0x10C4, 0x826B) }, /* Cygnal Integrated Products, Inc., Fasttrax GPS demostration module */
-	{ USB_DEVICE(0x10c4, 0x8293) }, /* Telegesys ETRX2USB */
-	{ USB_DEVICE(0x10C4, 0x82F9) }, /* Procyon AVS */
-	{ USB_DEVICE(0x10C4, 0x8341) }, /* Siemens MC35PU GPRS Modem */
-	{ USB_DEVICE(0x10C4, 0x8382) }, /* Cygnal Integrated Products, Inc. */
-	{ USB_DEVICE(0x10C4, 0x83A8) }, /* Amber Wireless AMB2560 */
-	{ USB_DEVICE(0x10C4, 0x8411) }, /* Kyocera GPS Module */
-	{ USB_DEVICE(0x10C4, 0x846E) }, /* BEI USB Sensor Interface (VCP) */
-	{ USB_DEVICE(0x10C4, 0xEA60) }, /* Silicon Labs factory default */
-	{ USB_DEVICE(0x10C4, 0xEA61) }, /* Silicon Labs factory default */
-	{ USB_DEVICE(0x10C4, 0xF001) }, /* Elan Digital Systems USBscope50 */
-	{ USB_DEVICE(0x10C4, 0xF002) }, /* Elan Digital Systems USBwave12 */
-	{ USB_DEVICE(0x10C4, 0xF003) }, /* Elan Digital Systems USBpulse100 */
-	{ USB_DEVICE(0x10C4, 0xF004) }, /* Elan Digital Systems USBcount50 */
-	{ USB_DEVICE(0x10C5, 0xEA61) }, /* Silicon Labs MobiData GPRS USB Modem */
-	{ USB_DEVICE(0x10CE, 0xEA6A) }, /* Silicon Labs MobiData GPRS USB Modem 100EU */
-	{ USB_DEVICE(0x13AD, 0x9999) }, /* Baltech card reader */
-	{ USB_DEVICE(0x1555, 0x0004) }, /* Owen AC4 USB-RS485 Converter */
-	{ USB_DEVICE(0x166A, 0x0303) }, /* Clipsal 5500PCU C-Bus USB interface */
-	{ USB_DEVICE(0x16D6, 0x0001) }, /* Jablotron serial interface */
-	{ USB_DEVICE(0x18EF, 0xE00F) }, /* ELV USB-I2C-Interface */
-	{ USB_DEVICE(0x413C, 0x9500) }, /* DW700 GPS USB interface */
-	{ } /* Terminating Entry */
+	{ USB_DEVICE(0x0471, 0x066A) }, 
+	{ USB_DEVICE(0x0489, 0xE000) }, 
+	{ USB_DEVICE(0x0745, 0x1000) }, 
+	{ USB_DEVICE(0x08e6, 0x5501) }, 
+	{ USB_DEVICE(0x08FD, 0x000A) }, 
+	{ USB_DEVICE(0x0FCF, 0x1003) }, 
+	{ USB_DEVICE(0x0FCF, 0x1004) }, 
+	{ USB_DEVICE(0x0FCF, 0x1006) }, 
+	{ USB_DEVICE(0x10A6, 0xAA26) }, 
+	{ USB_DEVICE(0x10AB, 0x10C5) }, 
+	{ USB_DEVICE(0x10B5, 0xAC70) }, 
+	{ USB_DEVICE(0x10C4, 0x0F91) }, 
+	{ USB_DEVICE(0x10C4, 0x1101) }, 
+	{ USB_DEVICE(0x10C4, 0x1601) }, 
+	{ USB_DEVICE(0x10C4, 0x800A) }, 
+	{ USB_DEVICE(0x10C4, 0x803B) }, 
+	{ USB_DEVICE(0x10C4, 0x8053) }, 
+	{ USB_DEVICE(0x10C4, 0x8054) }, 
+	{ USB_DEVICE(0x10C4, 0x8066) }, 
+	{ USB_DEVICE(0x10C4, 0x807A) }, 
+	{ USB_DEVICE(0x10C4, 0x80CA) }, 
+	{ USB_DEVICE(0x10C4, 0x80DD) }, 
+	{ USB_DEVICE(0x10C4, 0x80F6) }, 
+	{ USB_DEVICE(0x10C4, 0x8115) }, 
+	{ USB_DEVICE(0x10C4, 0x813D) }, 
+	{ USB_DEVICE(0x10C4, 0x813F) }, 
+	{ USB_DEVICE(0x10C4, 0x814A) }, 
+	{ USB_DEVICE(0x10C4, 0x814B) }, 
+	{ USB_DEVICE(0x10C4, 0x815E) }, 
+	{ USB_DEVICE(0x10C4, 0x819F) }, 
+	{ USB_DEVICE(0x10C4, 0x81A6) }, 
+	{ USB_DEVICE(0x10C4, 0x81AC) }, 
+	{ USB_DEVICE(0x10C4, 0x81C8) }, 
+	{ USB_DEVICE(0x10C4, 0x81E2) }, 
+	{ USB_DEVICE(0x10C4, 0x81E7) }, 
+	{ USB_DEVICE(0x10C4, 0x81F2) }, 
+	{ USB_DEVICE(0x10C4, 0x8218) }, 
+	{ USB_DEVICE(0x10C4, 0x822B) }, 
+	{ USB_DEVICE(0x10C4, 0x826B) }, 
+	{ USB_DEVICE(0x10c4, 0x8293) }, 
+	{ USB_DEVICE(0x10C4, 0x82F9) }, 
+	{ USB_DEVICE(0x10C4, 0x8341) }, 
+	{ USB_DEVICE(0x10C4, 0x8382) }, 
+	{ USB_DEVICE(0x10C4, 0x83A8) }, 
+	{ USB_DEVICE(0x10C4, 0x8411) }, 
+	{ USB_DEVICE(0x10C4, 0x846E) }, 
+	{ USB_DEVICE(0x10C4, 0xEA60) }, 
+	{ USB_DEVICE(0x10C4, 0xEA61) }, 
+	{ USB_DEVICE(0x10C4, 0xF001) }, 
+	{ USB_DEVICE(0x10C4, 0xF002) }, 
+	{ USB_DEVICE(0x10C4, 0xF003) }, 
+	{ USB_DEVICE(0x10C4, 0xF004) }, 
+	{ USB_DEVICE(0x10C5, 0xEA61) }, 
+	{ USB_DEVICE(0x10CE, 0xEA6A) }, 
+	{ USB_DEVICE(0x13AD, 0x9999) }, 
+	{ USB_DEVICE(0x1555, 0x0004) }, 
+	{ USB_DEVICE(0x166A, 0x0303) }, 
+	{ USB_DEVICE(0x16D6, 0x0001) }, 
+	{ USB_DEVICE(0x18EF, 0xE00F) }, 
+	{ USB_DEVICE(0x413C, 0x9500) }, 
+	{ } 
 };
 
 MODULE_DEVICE_TABLE(usb, id_table);
@@ -149,11 +132,11 @@ static struct usb_serial_driver cp210x_device = {
 	.carrier_raised		= cp210x_carrier_raised
 };
 
-/* Config request types */
+
 #define REQTYPE_HOST_TO_DEVICE	0x41
 #define REQTYPE_DEVICE_TO_HOST	0xc1
 
-/* Config request codes */
+
 #define CP210X_IFC_ENABLE	0x00
 #define CP210X_SET_BAUDDIV	0x01
 #define CP210X_GET_BAUDDIV	0x02
@@ -179,14 +162,14 @@ static struct usb_serial_driver cp210x_device = {
 #define CP210X_GET_EVENTSTATE	0x16
 #define CP210X_SET_CHARS	0x19
 
-/* CP210X_IFC_ENABLE */
+
 #define UART_ENABLE		0x0001
 #define UART_DISABLE		0x0000
 
-/* CP210X_(SET|GET)_BAUDDIV */
+
 #define BAUD_RATE_GEN_FREQ	0x384000
 
-/* CP210X_(SET|GET)_LINE_CTL */
+
 #define BITS_DATA_MASK		0X0f00
 #define BITS_DATA_5		0X0500
 #define BITS_DATA_6		0X0600
@@ -206,11 +189,11 @@ static struct usb_serial_driver cp210x_device = {
 #define BITS_STOP_1_5		0x0001
 #define BITS_STOP_2		0x0002
 
-/* CP210X_SET_BREAK */
+
 #define BREAK_ON		0x0000
 #define BREAK_OFF		0x0001
 
-/* CP210X_(SET_MHS|GET_MDMSTS) */
+
 #define CONTROL_DTR		0x0001
 #define CONTROL_RTS		0x0002
 #define CONTROL_CTS		0x0010
@@ -220,13 +203,7 @@ static struct usb_serial_driver cp210x_device = {
 #define CONTROL_WRITE_DTR	0x0100
 #define CONTROL_WRITE_RTS	0x0200
 
-/*
- * cp210x_get_config
- * Reads from the CP210x configuration registers
- * 'size' is specified in bytes.
- * 'data' is a pointer to a pre-allocated array of integers large
- * enough to hold 'size' bytes (with 4 bytes to each integer)
- */
+
 static int cp210x_get_config(struct usb_serial_port *port, u8 request,
 		unsigned int *data, int size)
 {
@@ -234,7 +211,7 @@ static int cp210x_get_config(struct usb_serial_port *port, u8 request,
 	__le32 *buf;
 	int result, i, length;
 
-	/* Number of integers required to contain the array */
+	
 	length = (((size - 1) | 3) + 1)/4;
 
 	buf = kcalloc(length, sizeof(__le32), GFP_KERNEL);
@@ -243,12 +220,12 @@ static int cp210x_get_config(struct usb_serial_port *port, u8 request,
 		return -ENOMEM;
 	}
 
-	/* Issue the request, attempting to read 'size' bytes */
+	
 	result = usb_control_msg(serial->dev, usb_rcvctrlpipe(serial->dev, 0),
 				request, REQTYPE_DEVICE_TO_HOST, 0x0000,
 				0, buf, size, 300);
 
-	/* Convert data into an array of integers */
+	
 	for (i = 0; i < length; i++)
 		data[i] = le32_to_cpu(buf[i]);
 
@@ -264,12 +241,7 @@ static int cp210x_get_config(struct usb_serial_port *port, u8 request,
 	return 0;
 }
 
-/*
- * cp210x_set_config
- * Writes to the CP210x configuration registers
- * Values less than 16 bits wide are sent directly
- * 'size' is specified in bytes.
- */
+
 static int cp210x_set_config(struct usb_serial_port *port, u8 request,
 		unsigned int *data, int size)
 {
@@ -277,7 +249,7 @@ static int cp210x_set_config(struct usb_serial_port *port, u8 request,
 	__le32 *buf;
 	int result, i, length;
 
-	/* Number of integers required to contain the array */
+	
 	length = (((size - 1) | 3) + 1)/4;
 
 	buf = kmalloc(length * sizeof(__le32), GFP_KERNEL);
@@ -287,7 +259,7 @@ static int cp210x_set_config(struct usb_serial_port *port, u8 request,
 		return -ENOMEM;
 	}
 
-	/* Array of integers into bytes */
+	
 	for (i = 0; i < length; i++)
 		buf[i] = cpu_to_le32(data[i]);
 
@@ -312,7 +284,7 @@ static int cp210x_set_config(struct usb_serial_port *port, u8 request,
 		return -EPROTO;
 	}
 
-	/* Single data value */
+	
 	result = usb_control_msg(serial->dev,
 			usb_sndctrlpipe(serial->dev, 0),
 			request, REQTYPE_HOST_TO_DEVICE, data[0],
@@ -320,21 +292,14 @@ static int cp210x_set_config(struct usb_serial_port *port, u8 request,
 	return 0;
 }
 
-/*
- * cp210x_set_config_single
- * Convenience function for calling cp210x_set_config on single data values
- * without requiring an integer pointer
- */
+
 static inline int cp210x_set_config_single(struct usb_serial_port *port,
 		u8 request, unsigned int data)
 {
 	return cp210x_set_config(port, request, &data, 2);
 }
 
-/*
- * cp210x_quantise_baudrate
- * Quantises the baud rate as per AN205 Table 1
- */
+
 static unsigned int cp210x_quantise_baudrate(unsigned int baud) {
 	if      (baud <= 56)       baud = 0;
 	else if (baud <= 300)      baud = 300;
@@ -385,7 +350,7 @@ static int cp210x_open(struct tty_struct *tty, struct usb_serial_port *port)
 		return -EPROTO;
 	}
 
-	/* Start reading from the device */
+	
 	usb_fill_bulk_urb(port->read_urb, serial->dev,
 			usb_rcvbulkpipe(serial->dev,
 			port->bulk_in_endpointAddress),
@@ -400,7 +365,7 @@ static int cp210x_open(struct tty_struct *tty, struct usb_serial_port *port)
 		return result;
 	}
 
-	/* Configure the termios structure */
+	
 	cp210x_get_termios(tty, port);
 	return 0;
 }
@@ -412,7 +377,7 @@ static void cp210x_cleanup(struct usb_serial_port *port)
 	dbg("%s - port %d", __func__, port->number);
 
 	if (serial->dev) {
-		/* shutdown any bulk reads that might be going on */
+		
 		if (serial->num_bulk_out)
 			usb_kill_urb(port->write_urb);
 		if (serial->num_bulk_in)
@@ -424,7 +389,7 @@ static void cp210x_close(struct usb_serial_port *port)
 {
 	dbg("%s - port %d", __func__, port->number);
 
-	/* shutdown our urbs */
+	
 	dbg("%s - shutting down urbs", __func__);
 	usb_kill_urb(port->write_urb);
 	usb_kill_urb(port->read_urb);
@@ -435,12 +400,7 @@ static void cp210x_close(struct usb_serial_port *port)
 	mutex_unlock(&port->serial->disc_mutex);
 }
 
-/*
- * cp210x_get_termios
- * Reads the baud rate, data bits, parity, stop bits and flow control mode
- * from the device, corrects any unsupported values, and configures the
- * termios structure to reflect the state of the device
- */
+
 static void cp210x_get_termios(struct tty_struct *tty,
 	struct usb_serial_port *port)
 {
@@ -459,10 +419,7 @@ static void cp210x_get_termios(struct tty_struct *tty,
 	}
 }
 
-/*
- * cp210x_get_termios_port
- * This is the heart of cp210x_get_termios which always uses a &usb_serial_port.
- */
+
 static void cp210x_get_termios_port(struct usb_serial_port *port,
 	unsigned int *cflagp, unsigned int *baudp)
 {
@@ -473,7 +430,7 @@ static void cp210x_get_termios_port(struct usb_serial_port *port,
 	dbg("%s - port %d", __func__, port->number);
 
 	cp210x_get_config(port, CP210X_GET_BAUDDIV, &baud, 2);
-	/* Convert to baudrate */
+	
 	if (baud)
 		baud = cp210x_quantise_baudrate((BAUD_RATE_GEN_FREQ + baud/2)/ baud);
 
@@ -606,7 +563,7 @@ static void cp210x_set_termios(struct tty_struct *tty,
 	old_cflag = old_termios->c_cflag;
 	baud = cp210x_quantise_baudrate(tty_get_baud_rate(tty));
 
-	/* If the baud rate is to be updated*/
+	
 	if (baud != tty_termios_baud_rate(old_termios) && baud != 0) {
 		dbg("%s - Setting baud rate to %d baud", __func__,
 				baud);
@@ -616,10 +573,10 @@ static void cp210x_set_termios(struct tty_struct *tty,
 			baud = tty_termios_baud_rate(old_termios);
 		}
 	}
-	/* Report back the resulting baud rate */
+	
 	tty_encode_baud_rate(tty, baud, baud);
 
-	/* If the number of data bits is to be updated */
+	
 	if ((cflag & CSIZE) != (old_cflag & CSIZE)) {
 		cp210x_get_config(port, CP210X_GET_LINE_CTL, &bits, 2);
 		bits &= ~BITS_DATA_MASK;
@@ -640,10 +597,7 @@ static void cp210x_set_termios(struct tty_struct *tty,
 			bits |= BITS_DATA_8;
 			dbg("%s - data bits = 8", __func__);
 			break;
-		/*case CS9:
-			bits |= BITS_DATA_9;
-			dbg("%s - data bits = 9", __func__);
-			break;*/
+		
 		default:
 			dbg("cp210x driver does not "
 					"support the number of bits requested,"
@@ -806,7 +760,7 @@ static void cp210x_break_ctl (struct tty_struct *tty, int break_state)
 
 static int cp210x_startup(struct usb_serial *serial)
 {
-	/* cp210x buffers behave strangely unless device is reset */
+	
 	usb_reset_device(serial->dev);
 	return 0;
 }
@@ -817,7 +771,7 @@ static void cp210x_disconnect(struct usb_serial *serial)
 
 	dbg("%s", __func__);
 
-	/* Stop reads and writes on all ports */
+	
 	for (i = 0; i < serial->num_ports; ++i)
 		cp210x_cleanup(serial->port[i]);
 }
@@ -828,16 +782,16 @@ static int __init cp210x_init(void)
 
 	retval = usb_serial_register(&cp210x_device);
 	if (retval)
-		return retval; /* Failed to register */
+		return retval; 
 
 	retval = usb_register(&cp210x_driver);
 	if (retval) {
-		/* Failed to register */
+		
 		usb_serial_deregister(&cp210x_device);
 		return retval;
 	}
 
-	/* Success */
+	
 	printk(KERN_INFO KBUILD_MODNAME ": " DRIVER_VERSION ":"
 	       DRIVER_DESC "\n");
 	return 0;

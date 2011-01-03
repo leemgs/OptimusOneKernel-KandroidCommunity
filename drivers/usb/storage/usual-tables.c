@@ -1,25 +1,4 @@
-/* Driver for USB Mass Storage devices
- * Usual Tables File for usb-storage and libusual
- *
- * Copyright (C) 2009 Alan Stern (stern@rowland.harvard.edu)
- *
- * Please see http://www.one-eyed-alien.net/~mdharm/linux-usb for more
- * information about this driver.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2, or (at your option) any
- * later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -27,9 +6,7 @@
 #include <linux/usb_usual.h>
 
 
-/*
- * The table of devices
- */
+
 #define UNUSUAL_DEV(id_vendor, id_product, bcdDeviceMin, bcdDeviceMax, \
 		    vendorName, productName, useProtocol, useTransport, \
 		    initFunction, flags) \
@@ -48,7 +25,7 @@
 
 struct usb_device_id usb_storage_usb_ids[] = {
 #	include "unusual_devs.h"
-	{ }		/* Terminating entry */
+	{ }		
 };
 EXPORT_SYMBOL_GPL(usb_storage_usb_ids);
 
@@ -59,9 +36,7 @@ MODULE_DEVICE_TABLE(usb, usb_storage_usb_ids);
 #undef USUAL_DEV
 
 
-/*
- * The table of devices to ignore
- */
+
 struct ignore_entry {
 	u16	vid, pid, bcdmin, bcdmax;
 };
@@ -88,13 +63,13 @@ static struct ignore_entry ignore_ids[] = {
 #	include "unusual_sddr09.h"
 #	include "unusual_sddr55.h"
 #	include "unusual_usbat.h"
-	{ }		/* Terminating entry */
+	{ }		
 };
 
 #undef UNUSUAL_DEV
 
 
-/* Return an error if a device is in the ignore_ids list */
+
 int usb_usual_ignore_device(struct usb_interface *intf)
 {
 	struct usb_device *udev;

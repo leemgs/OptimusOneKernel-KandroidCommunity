@@ -1,35 +1,4 @@
-/*
- * MUSB OTG driver - support for Mentor's DMA controller
- *
- * Copyright 2005 Mentor Graphics Corporation
- * Copyright (C) 2005-2007 by Texas Instruments
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA
- *
- * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN
- * NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- */
+
 #include <linux/device.h>
 #include <linux/interrupt.h>
 #include <linux/platform_device.h>
@@ -38,7 +7,7 @@
 
 static int dma_controller_start(struct dma_controller *c)
 {
-	/* nothing to do */
+	
 	return 0;
 }
 
@@ -91,7 +60,7 @@ static struct dma_channel *dma_channel_allocate(struct dma_controller *c,
 			channel->private_data = musb_channel;
 			channel->status = MUSB_DMA_STATUS_FREE;
 			channel->max_len = 0x10000;
-			/* Tx => mode 1; Rx => mode 0 */
+			
 			channel->desired_mode = transmit;
 			channel->actual_len = 0;
 			break;
@@ -151,11 +120,11 @@ static void configure_channel(struct dma_channel *channel,
 				? (1 << MUSB_HSDMA_TRANSMIT_SHIFT)
 				: 0);
 
-	/* address/count */
+	
 	musb_write_hsdma_addr(mbase, bchannel, dma_addr);
 	musb_write_hsdma_count(mbase, bchannel, len);
 
-	/* control (this should start things) */
+	
 	musb_writew(mbase,
 		MUSB_HSDMA_CHANNEL_OFFSET(bchannel, MUSB_HSDMA_CONTROL),
 		csr);
@@ -203,10 +172,7 @@ static int dma_channel_abort(struct dma_channel *channel)
 			offset = MUSB_EP_OFFSET(musb_channel->epnum,
 						MUSB_TXCSR);
 
-			/*
-			 * The programming guide says that we must clear
-			 * the DMAENAB bit before the DMAMODE bit...
-			 */
+			
 			csr = musb_readw(mbase, offset);
 			csr &= ~(MUSB_TXCSR_AUTOSET | MUSB_TXCSR_DMAENAB);
 			musb_writew(mbase, offset, csr);
@@ -292,7 +258,7 @@ static irqreturn_t dma_controller_irq(int irq, void *private_data)
 
 				channel->status = MUSB_DMA_STATUS_FREE;
 
-				/* completed */
+				
 				if ((devctl & MUSB_DEVCTL_HM)
 					&& (musb_channel->transmit)
 					&& ((channel->desired_mode == 0)
@@ -304,16 +270,13 @@ static irqreturn_t dma_controller_irq(int irq, void *private_data)
 								    MUSB_TXCSR);
 					u16 txcsr;
 
-					/*
-					 * The programming guide says that we
-					 * must clear DMAENAB before DMAMODE.
-					 */
+					
 					musb_ep_select(mbase, epnum);
 					txcsr = musb_readw(mbase, offset);
 					txcsr &= ~(MUSB_TXCSR_DMAENAB
 							| MUSB_TXCSR_AUTOSET);
 					musb_writew(mbase, offset, txcsr);
-					/* Send out the packet */
+					
 					txcsr &= ~MUSB_TXCSR_DMAMODE;
 					txcsr |=  MUSB_TXCSR_TXPKTRDY;
 					musb_writew(mbase, offset, txcsr);
@@ -325,7 +288,7 @@ static irqreturn_t dma_controller_irq(int irq, void *private_data)
 	}
 
 #ifdef CONFIG_BLACKFIN
-	/* Clear DMA interrup flags */
+	
 	musb_writeb(mbase, MUSB_HSDMA_INTR, int_hsdma);
 #endif
 

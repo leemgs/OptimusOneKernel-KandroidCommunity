@@ -1,20 +1,4 @@
-/*
- * Wireless Host Controller (WHC) WUSB operations.
- *
- * Copyright (C) 2007 Cambridge Silicon Radio Ltd.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version
- * 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/uwb/umc.h>
@@ -35,11 +19,7 @@ static int whc_update_di(struct whc *whc, int idx)
 			     100, "DI update");
 }
 
-/*
- * WHCI starts MMCs based on there being a valid GTK so these need
- * only start/stop the asynchronous and periodic schedules and send a
- * channel stop command.
- */
+
 
 int whc_wusbhc_start(struct wusbhc *wusbhc)
 {
@@ -121,10 +101,7 @@ int whc_dev_info_set(struct wusbhc *wusbhc, struct wusb_dev *wusb_dev)
 	return ret;
 }
 
-/*
- * Set the number of Device Notification Time Slots (DNTS) and enable
- * device notifications.
- */
+
 int whc_set_num_dnts(struct wusbhc *wusbhc, u8 interval, u8 slots)
 {
 	struct whc *whc = wusbhc_to_whc(wusbhc);
@@ -163,12 +140,7 @@ static int whc_set_key(struct whc *whc, u8 key_index, uint32_t tkid,
 	return ret;
 }
 
-/**
- * whc_set_ptk - set the PTK to use for a device.
- *
- * The index into the key table for this PTK is the same as the
- * device's port index.
- */
+
 int whc_set_ptk(struct wusbhc *wusbhc, u8 port_idx, u32 tkid,
 		const void *ptk, size_t key_size)
 {
@@ -194,12 +166,7 @@ out:
 	return ret;
 }
 
-/**
- * whc_set_gtk - set the GTK for subsequent broadcast packets
- *
- * The GTK is stored in the last entry in the key table (the previous
- * N_DEVICES entries are for the per-device PTKs).
- */
+
 int whc_set_gtk(struct wusbhc *wusbhc, u32 tkid,
 		const void *gtk, size_t key_size)
 {

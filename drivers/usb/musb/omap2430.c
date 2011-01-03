@@ -1,29 +1,4 @@
-/*
- * Copyright (C) 2005-2007 by Texas Instruments
- * Some code has been taken from tusb6010.c
- * Copyrights for that are attributable to:
- * Copyright (C) 2006 Nokia Corporation
- * Tony Lindgren <tony@atomide.com>
- *
- * This file is part of the Inventra Controller Driver for Linux.
- *
- * The Inventra Controller Driver for Linux is free software; you
- * can redistribute it and/or modify it under the terms of the GNU
- * General Public License version 2 as published by the Free Software
- * Foundation.
- *
- * The Inventra Controller Driver for Linux is distributed in
- * the hope that it will be useful, but WITHOUT ANY WARRANTY;
- * without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
- * License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with The Inventra Controller Driver for Linux ; if not,
- * write to the Free Software Foundation, Inc., 59 Temple Place,
- * Suite 330, Boston, MA  02111-1307  USA
- *
- */
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/sched.h>
@@ -76,7 +51,7 @@ static void musb_do_idle(unsigned long _musb)
 		break;
 #ifdef CONFIG_USB_MUSB_HDRC_HCD
 	case OTG_STATE_A_SUSPEND:
-		/* finish RESUME signaling? */
+		
 		if (musb->port1_status & MUSB_PORT_STAT_RESUME) {
 			power = musb_readb(musb->mregs, MUSB_POWER);
 			power &= ~MUSB_POWER_RESUME;
@@ -87,7 +62,7 @@ static void musb_do_idle(unsigned long _musb)
 						| MUSB_PORT_STAT_RESUME);
 			musb->port1_status |= USB_PORT_STAT_C_SUSPEND << 16;
 			usb_hcd_poll_rh_status(musb_to_hcd(musb));
-			/* NOTE: it might really be A_WAIT_BCON ... */
+			
 			musb->xceiv->state = OTG_STATE_A_HOST;
 		}
 		break;
@@ -115,7 +90,7 @@ void musb_platform_try_idle(struct musb *musb, unsigned long timeout)
 	if (timeout == 0)
 		timeout = default_timeout;
 
-	/* Never idle if active, or when VBUS timeout is not set as host */
+	
 	if (musb->is_active || ((musb->a_wait_bcon == 0)
 			&& (musb->xceiv->state == OTG_STATE_A_WAIT_BCON))) {
 		DBG(4, "%s active, deleting timer\n", otg_state_string(musb));
@@ -153,10 +128,7 @@ static void omap_vbus_power(struct musb *musb, int is_on, int sleeping)
 static void omap_set_vbus(struct musb *musb, int is_on)
 {
 	u8		devctl;
-	/* HDRC controls CPEN, but beware current surges during device
-	 * connect.  They can trigger transient overcurrent conditions
-	 * that must be ignored.
-	 */
+	
 
 	devctl = musb_readb(musb->mregs, MUSB_DEVCTL);
 
@@ -170,9 +142,7 @@ static void omap_set_vbus(struct musb *musb, int is_on)
 	} else {
 		musb->is_active = 0;
 
-		/* NOTE:  we're skipping A_WAIT_VFALL -> A_IDLE and
-		 * jumping right to B_IDLE...
-		 */
+		
 
 		musb->xceiv->default_a = 0;
 		musb->xceiv->state = OTG_STATE_B_IDLE;
@@ -183,7 +153,7 @@ static void omap_set_vbus(struct musb *musb, int is_on)
 	musb_writeb(musb->mregs, MUSB_DEVCTL, devctl);
 
 	DBG(1, "VBUS %s, devctl %02x "
-		/* otg %3x conf %08x prcm %08x */ "\n",
+		 "\n",
 		otg_state_string(musb),
 		musb_readb(musb->mregs, MUSB_DEVCTL));
 }
@@ -208,10 +178,7 @@ int __init musb_platform_init(struct musb *musb)
 	omap_cfg_reg(AE5_2430_USB0HS_STP);
 #endif
 
-	/* We require some kind of external transceiver, hooked
-	 * up through ULPI.  TWL4030-family PMICs include one,
-	 * which needs a driver, drivers aren't always needed.
-	 */
+	
 	musb->xceiv = otg_get_transceiver();
 	if (!musb->xceiv) {
 		pr_err("HS USB OTG: no transceiver configured\n");
@@ -221,18 +188,15 @@ int __init musb_platform_init(struct musb *musb)
 	musb_platform_resume(musb);
 
 	l = omap_readl(OTG_SYSCONFIG);
-	l &= ~ENABLEWAKEUP;	/* disable wakeup */
-	l &= ~NOSTDBY;		/* remove possible nostdby */
-	l |= SMARTSTDBY;	/* enable smart standby */
-	l &= ~AUTOIDLE;		/* disable auto idle */
-	l &= ~NOIDLE;		/* remove possible noidle */
-	l |= SMARTIDLE;		/* enable smart idle */
-	/*
-	 * MUSB AUTOIDLE don't work in 3430.
-	 * Workaround by Richard Woodruff/TI
-	 */
+	l &= ~ENABLEWAKEUP;	
+	l &= ~NOSTDBY;		
+	l |= SMARTSTDBY;	
+	l &= ~AUTOIDLE;		
+	l &= ~NOIDLE;		
+	l |= SMARTIDLE;		
+	
 	if (!cpu_is_omap3430())
-		l |= AUTOIDLE;		/* enable auto idle */
+		l |= AUTOIDLE;		
 	omap_writel(l, OTG_SYSCONFIG);
 
 	l = omap_readl(OTG_INTERFSEL);
@@ -262,13 +226,13 @@ int musb_platform_suspend(struct musb *musb)
 	if (!musb->clock)
 		return 0;
 
-	/* in any role */
+	
 	l = omap_readl(OTG_FORCESTDBY);
-	l |= ENABLEFORCE;	/* enable MSTANDBY */
+	l |= ENABLEFORCE;	
 	omap_writel(l, OTG_FORCESTDBY);
 
 	l = omap_readl(OTG_SYSCONFIG);
-	l |= ENABLEWAKEUP;	/* enable wakeup */
+	l |= ENABLEWAKEUP;	
 	omap_writel(l, OTG_SYSCONFIG);
 
 	otg_set_suspend(musb->xceiv, 1);
@@ -296,11 +260,11 @@ static int musb_platform_resume(struct musb *musb)
 		clk_enable(musb->clock);
 
 	l = omap_readl(OTG_SYSCONFIG);
-	l &= ~ENABLEWAKEUP;	/* disable wakeup */
+	l &= ~ENABLEWAKEUP;	
 	omap_writel(l, OTG_SYSCONFIG);
 
 	l = omap_readl(OTG_FORCESTDBY);
-	l &= ~ENABLEFORCE;	/* disable MSTANDBY */
+	l &= ~ENABLEFORCE;	
 	omap_writel(l, OTG_FORCESTDBY);
 
 	return 0;
@@ -310,7 +274,7 @@ static int musb_platform_resume(struct musb *musb)
 int musb_platform_exit(struct musb *musb)
 {
 
-	omap_vbus_power(musb, 0 /*off*/, 1);
+	omap_vbus_power(musb, 0 , 1);
 
 	musb_platform_suspend(musb);
 

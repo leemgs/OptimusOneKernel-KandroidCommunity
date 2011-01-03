@@ -1,15 +1,4 @@
-/*
- * EHCI HCD (Host Controller Driver) for USB.
- *
- * Bus Glue for AMD Alchemy Au1xxx
- *
- * Based on "ohci-au1xxx.c" by Matt Porter <mporter@kernel.crashing.org>
- *
- * Modified for AMD Alchemy Au1200 EHC
- *  by K.Boge <karsten.boge@amd.com>
- *
- * This file is licenced under the GPL.
- */
+
 
 #include <linux/platform_device.h>
 #include <asm/mach-au1x00/au1000.h>
@@ -41,12 +30,12 @@ extern int usb_disabled(void);
 
 static void au1xxx_start_ehc(void)
 {
-	/* enable clock to EHCI block and HS PHY PLL*/
+	
 	au_writel(au_readl(USB_HOST_CONFIG) | USBH_ENABLE_CE, USB_HOST_CONFIG);
 	au_sync();
 	udelay(1000);
 
-	/* enable EHCI mmio */
+	
 	au_writel(au_readl(USB_HOST_CONFIG) | USBH_ENABLE_INIT, USB_HOST_CONFIG);
 	au_sync();
 	udelay(1000);
@@ -56,15 +45,15 @@ static void au1xxx_stop_ehc(void)
 {
 	unsigned long c;
 
-	/* Disable mem */
+	
 	au_writel(au_readl(USB_HOST_CONFIG) & ~USBH_DISABLE, USB_HOST_CONFIG);
 	au_sync();
 	udelay(1000);
 
-	/* Disable EHC clock. If the HS PHY is unused disable it too. */
+	
 	c = au_readl(USB_HOST_CONFIG) & ~USB_MCFG_EHCCLKEN;
-	if (!(c & USB_MCFG_UCECLKEN))		/* UDC disabled? */
-		c &= ~USB_MCFG_PHYPLLEN;	/* yes: disable HS PHY PLL */
+	if (!(c & USB_MCFG_UCECLKEN))		
+		c &= ~USB_MCFG_PHYPLLEN;	
 	au_writel(c, USB_HOST_CONFIG);
 	au_sync();
 }
@@ -74,39 +63,26 @@ static const struct hc_driver ehci_au1xxx_hc_driver = {
 	.product_desc		= "Au1xxx EHCI",
 	.hcd_priv_size		= sizeof(struct ehci_hcd),
 
-	/*
-	 * generic hardware linkage
-	 */
+	
 	.irq			= ehci_irq,
 	.flags			= HCD_MEMORY | HCD_USB2,
 
-	/*
-	 * basic lifecycle operations
-	 *
-	 * FIXME -- ehci_init() doesn't do enough here.
-	 * See ehci-ppc-soc for a complete implementation.
-	 */
+	
 	.reset			= ehci_init,
 	.start			= ehci_run,
 	.stop			= ehci_stop,
 	.shutdown		= ehci_shutdown,
 
-	/*
-	 * managing i/o requests and associated device resources
-	 */
+	
 	.urb_enqueue		= ehci_urb_enqueue,
 	.urb_dequeue		= ehci_urb_dequeue,
 	.endpoint_disable	= ehci_endpoint_disable,
 	.endpoint_reset		= ehci_endpoint_reset,
 
-	/*
-	 * scheduling support
-	 */
+	
 	.get_frame_number	= ehci_get_frame,
 
-	/*
-	 * root hub support
-	 */
+	
 	.hub_status_data	= ehci_hub_status_data,
 	.hub_control		= ehci_hub_control,
 	.bus_suspend		= ehci_bus_suspend,
@@ -127,7 +103,7 @@ static int ehci_hcd_au1xxx_drv_probe(struct platform_device *pdev)
 		return -ENODEV;
 
 #if defined(CONFIG_SOC_AU1200) && defined(CONFIG_DMA_COHERENT)
-	/* Au1200 AB USB does not support coherent memory */
+	
 	if (!(read_c0_prid() & 0xff)) {
 		printk(KERN_INFO "%s: this is chip revision AB!\n", pdev->name);
 		printk(KERN_INFO "%s: update your board or re-configure"
@@ -165,7 +141,7 @@ static int ehci_hcd_au1xxx_drv_probe(struct platform_device *pdev)
 	ehci = hcd_to_ehci(hcd);
 	ehci->caps = hcd->regs;
 	ehci->regs = hcd->regs + HC_LENGTH(readl(&ehci->caps->hc_capbase));
-	/* cache this readonly data; minimize chip reads */
+	
 	ehci->hcs_params = readl(&ehci->caps->hcs_params);
 
 	ret = usb_add_hcd(hcd, pdev->resource[1].start,
@@ -212,14 +188,7 @@ static int ehci_hcd_au1xxx_drv_suspend(struct device *dev)
 	if (time_before(jiffies, ehci->next_statechange))
 		msleep(10);
 
-	/* Root hub was already suspended. Disable irq emission and
-	 * mark HW unaccessible, bail out if RH has been resumed. Use
-	 * the spinlock to properly synchronize with possible pending
-	 * RH suspend or resume activity.
-	 *
-	 * This is still racy as hcd->state is manipulated outside of
-	 * any locks =P But that will be a different fix.
-	 */
+	
 	spin_lock_irqsave(&ehci->lock, flags);
 	if (hcd->state != HC_STATE_SUSPENDED) {
 		rc = -EINVAL;
@@ -235,8 +204,8 @@ static int ehci_hcd_au1xxx_drv_suspend(struct device *dev)
 bail:
 	spin_unlock_irqrestore(&ehci->lock, flags);
 
-	// could save FLADJ in case of Vaux power loss
-	// ... we'd only use it to handle clock skew
+	
+	
 
 	return rc;
 }
@@ -248,17 +217,15 @@ static int ehci_hcd_au1xxx_drv_resume(struct device *dev)
 
 	au1xxx_start_ehc();
 
-	// maybe restore FLADJ
+	
 
 	if (time_before(jiffies, ehci->next_statechange))
 		msleep(100);
 
-	/* Mark hardware accessible again as we are out of D3 state by now */
+	
 	set_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags);
 
-	/* If CF is still set, we maintained PCI Vaux power.
-	 * Just undo the effect of ehci_pci_suspend().
-	 */
+	
 	if (ehci_readl(ehci, &ehci->regs->configured_flag) == FLAG_CF) {
 		int	mask = INTR_MASK;
 
@@ -272,13 +239,11 @@ static int ehci_hcd_au1xxx_drv_resume(struct device *dev)
 	ehci_dbg(ehci, "lost power, restarting\n");
 	usb_root_hub_lost_power(hcd->self.root_hub);
 
-	/* Else reset, to cope with power loss or flush-to-storage
-	 * style "resume" having let BIOS kick in during reboot.
-	 */
+	
 	(void) ehci_halt(ehci);
 	(void) ehci_reset(ehci);
 
-	/* emptying the schedule aborts any urbs */
+	
 	spin_lock_irq(&ehci->lock);
 	if (ehci->reclaim)
 		end_unlink_async(ehci);
@@ -287,9 +252,9 @@ static int ehci_hcd_au1xxx_drv_resume(struct device *dev)
 
 	ehci_writel(ehci, ehci->command, &ehci->regs->command);
 	ehci_writel(ehci, FLAG_CF, &ehci->regs->configured_flag);
-	ehci_readl(ehci, &ehci->regs->command);	/* unblock posted writes */
+	ehci_readl(ehci, &ehci->regs->command);	
 
-	/* here we "know" root ports should always stay powered */
+	
 	ehci_port_power(ehci, 1);
 
 	hcd->state = HC_STATE_SUSPENDED;

@@ -1,32 +1,4 @@
-/*
-  USB Driver for GSM modems
 
-  Copyright (C) 2005  Matthias Urlichs <smurf@smurf.noris.de>
-
-  This driver is free software; you can redistribute it and/or modify
-  it under the terms of Version 2 of the GNU General Public License as
-  published by the Free Software Foundation.
-
-  Portions copied from the Keyspan driver by Hugh Blemings <hugh@blemings.org>
-
-  History: see the git log.
-
-  Work sponsored by: Sigos GmbH, Germany <info@sigos.de>
-
-  This driver exists because the "normal" serial driver doesn't work too well
-  with GSM modems. Issues:
-  - data loss -- one single Receive URB is not nearly enough
-  - nonstandard flow (Option devices) control
-  - controlling the baud rate doesn't make sense
-
-  This driver is named "option" because the most common device it's
-  used for is a PC-Card (with an internal OHCI-USB interface, behind
-  which the GSM interface sits), made by Option Inc.
-
-  Some of the "one port" devices actually exhibit multiple USB instances
-  on the USB bus. This is not a bug, these ports are used for different
-  device features.
-*/
 
 #define DRIVER_VERSION "v0.7.2"
 #define DRIVER_AUTHOR "Matthias Urlichs <smurf@smurf.noris.de>"
@@ -42,7 +14,7 @@
 #include <linux/usb.h>
 #include <linux/usb/serial.h>
 
-/* Function prototypes */
+
 static int  option_probe(struct usb_serial *serial,
 			const struct usb_device_id *id);
 static int  option_open(struct tty_struct *tty, struct usb_serial_port *port);
@@ -70,7 +42,7 @@ static int  option_suspend(struct usb_serial *serial, pm_message_t message);
 static int  option_resume(struct usb_serial *serial);
 #endif
 
-/* Vendor and product IDs */
+
 #define OPTION_VENDOR_ID			0x0AF0
 #define OPTION_PRODUCT_COLT			0x5000
 #define OPTION_PRODUCT_RICOLA			0x6000
@@ -176,25 +148,25 @@ static int  option_resume(struct usb_serial *serial);
 
 #define NOVATELWIRELESS_VENDOR_ID		0x1410
 
-/* YISO PRODUCTS */
+
 
 #define YISO_VENDOR_ID				0x0EAB
 #define YISO_PRODUCT_U893			0xC893
 
-/* MERLIN EVDO PRODUCTS */
+
 #define NOVATELWIRELESS_PRODUCT_V640		0x1100
 #define NOVATELWIRELESS_PRODUCT_V620		0x1110
 #define NOVATELWIRELESS_PRODUCT_V740		0x1120
 #define NOVATELWIRELESS_PRODUCT_V720		0x1130
 
-/* MERLIN HSDPA/HSPA PRODUCTS */
+
 #define NOVATELWIRELESS_PRODUCT_U730		0x1400
 #define NOVATELWIRELESS_PRODUCT_U740		0x1410
 #define NOVATELWIRELESS_PRODUCT_U870		0x1420
 #define NOVATELWIRELESS_PRODUCT_XU870		0x1430
 #define NOVATELWIRELESS_PRODUCT_X950D		0x1450
 
-/* EXPEDITE PRODUCTS */
+
 #define NOVATELWIRELESS_PRODUCT_EV620		0x2100
 #define NOVATELWIRELESS_PRODUCT_ES720		0x2110
 #define NOVATELWIRELESS_PRODUCT_E725		0x2120
@@ -203,7 +175,7 @@ static int  option_resume(struct usb_serial *serial);
 #define NOVATELWIRELESS_PRODUCT_EU740		0x2410
 #define NOVATELWIRELESS_PRODUCT_EU870D		0x2420
 
-/* OVATION PRODUCTS */
+
 #define NOVATELWIRELESS_PRODUCT_MC727		0x4100
 #define NOVATELWIRELESS_PRODUCT_MC950D		0x4400
 #define NOVATELWIRELESS_PRODUCT_U727		0x5010
@@ -211,7 +183,7 @@ static int  option_resume(struct usb_serial *serial);
 #define NOVATELWIRELESS_PRODUCT_MC760		0x6000
 #define NOVATELWIRELESS_PRODUCT_OVMC760		0x6002
 
-/* FUTURE NOVATEL PRODUCTS */
+
 #define NOVATELWIRELESS_PRODUCT_EVDO_HIGHSPEED	0X6001
 #define NOVATELWIRELESS_PRODUCT_HSPA_FULLSPEED	0X7000
 #define NOVATELWIRELESS_PRODUCT_HSPA_HIGHSPEED	0X7001
@@ -221,7 +193,7 @@ static int  option_resume(struct usb_serial *serial);
 #define NOVATELWIRELESS_PRODUCT_HSPA_EMBEDDED_HIGHSPEED	0X9001
 #define NOVATELWIRELESS_PRODUCT_GLOBAL		0XA001
 
-/* AMOI PRODUCTS */
+
 #define AMOI_VENDOR_ID				0x1614
 #define AMOI_PRODUCT_H01			0x0800
 #define AMOI_PRODUCT_H01A			0x7002
@@ -229,7 +201,7 @@ static int  option_resume(struct usb_serial *serial);
 
 #define DELL_VENDOR_ID				0x413C
 
-/* Dell modems */
+
 #define DELL_PRODUCT_5700_MINICARD		0x8114
 #define DELL_PRODUCT_5500_MINICARD		0x8115
 #define DELL_PRODUCT_5505_MINICARD		0x8116
@@ -294,7 +266,7 @@ static int  option_resume(struct usb_serial *serial);
 #define TELIT_PRODUCT_UC864E			0x1003
 #define TELIT_PRODUCT_UC864G			0x1004
 
-/* ZTE PRODUCTS */
+
 #define ZTE_VENDOR_ID				0x19d2
 #define ZTE_PRODUCT_MF622			0x0001
 #define ZTE_PRODUCT_MF628			0x0015
@@ -316,11 +288,11 @@ static int  option_resume(struct usb_serial *serial);
 #define QISDA_PRODUCT_H20_4515			0x4515
 #define QISDA_PRODUCT_H20_4519			0x4519
 
-/* TLAYTECH PRODUCTS */
+
 #define TLAYTECH_VENDOR_ID			0x20B9
 #define TLAYTECH_PRODUCT_TEU800			0x1682
 
-/* TOSHIBA PRODUCTS */
+
 #define TOSHIBA_VENDOR_ID			0x0930
 #define TOSHIBA_PRODUCT_HSDPA_MINICARD		0x1302
 #define TOSHIBA_PRODUCT_G450			0x0d45
@@ -328,19 +300,19 @@ static int  option_resume(struct usb_serial *serial);
 #define ALINK_VENDOR_ID				0x1e0e
 #define ALINK_PRODUCT_3GU			0x9200
 
-/* ALCATEL PRODUCTS */
+
 #define ALCATEL_VENDOR_ID			0x1bbb
 #define ALCATEL_PRODUCT_X060S			0x0000
 
-/* Airplus products */
+
 #define AIRPLUS_VENDOR_ID			0x1011
 #define AIRPLUS_PRODUCT_MCD650			0x3198
 
-/* 4G Systems products */
+
 #define FOUR_G_SYSTEMS_VENDOR_ID		0x1c9e
 #define FOUR_G_SYSTEMS_PRODUCT_W14		0x9603
 
-/* Haier products */
+
 #define HAIER_VENDOR_ID				0x201e
 #define HAIER_PRODUCT_CE100			0x2009
 
@@ -443,58 +415,58 @@ static struct usb_device_id option_ids[] = {
 	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_E143F, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_E14AC) },
 	{ USB_DEVICE(AMOI_VENDOR_ID, AMOI_PRODUCT_9508) },
-	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_V640) }, /* Novatel Merlin V640/XV620 */
-	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_V620) }, /* Novatel Merlin V620/S620 */
-	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_V740) }, /* Novatel Merlin EX720/V740/X720 */
-	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_V720) }, /* Novatel Merlin V720/S720/PC720 */
-	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_U730) }, /* Novatel U730/U740 (VF version) */
-	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_U740) }, /* Novatel U740 */
-	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_U870) }, /* Novatel U870 */
-	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_XU870) }, /* Novatel Merlin XU870 HSDPA/3G */
-	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_X950D) }, /* Novatel X950D */
-	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_EV620) }, /* Novatel EV620/ES620 CDMA/EV-DO */
-	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_ES720) }, /* Novatel ES620/ES720/U720/USB720 */
-	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_E725) }, /* Novatel E725/E726 */
-	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_ES620) }, /* Novatel Merlin ES620 SM Bus */
-	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_EU730) }, /* Novatel EU730 and Vodafone EU740 */
-	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_EU740) }, /* Novatel non-Vodafone EU740 */
-	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_EU870D) }, /* Novatel EU850D/EU860D/EU870D */
-	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_MC950D) }, /* Novatel MC930D/MC950D */
-	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_MC727) }, /* Novatel MC727/U727/USB727 */
-	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_MC727_NEW) }, /* Novatel MC727/U727/USB727 refresh */
-	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_U727) }, /* Novatel MC727/U727/USB727 */
-	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_MC760) }, /* Novatel MC760/U760/USB760 */
-	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_OVMC760) }, /* Novatel Ovation MC760 */
-	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_HSPA_FULLSPEED) }, /* Novatel HSPA product */
-	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_EVDO_EMBEDDED_FULLSPEED) }, /* Novatel EVDO Embedded product */
-	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_HSPA_EMBEDDED_FULLSPEED) }, /* Novatel HSPA Embedded product */
-	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_EVDO_HIGHSPEED) }, /* Novatel EVDO product */
-	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_HSPA_HIGHSPEED) }, /* Novatel HSPA product */
-	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_EVDO_EMBEDDED_HIGHSPEED) }, /* Novatel EVDO Embedded product */
-	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_HSPA_EMBEDDED_HIGHSPEED) }, /* Novatel HSPA Embedded product */
-	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_GLOBAL) }, /* Novatel Global product */
+	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_V640) }, 
+	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_V620) }, 
+	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_V740) }, 
+	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_V720) }, 
+	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_U730) }, 
+	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_U740) }, 
+	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_U870) }, 
+	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_XU870) }, 
+	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_X950D) }, 
+	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_EV620) }, 
+	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_ES720) }, 
+	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_E725) }, 
+	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_ES620) }, 
+	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_EU730) }, 
+	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_EU740) }, 
+	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_EU870D) }, 
+	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_MC950D) }, 
+	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_MC727) }, 
+	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_MC727_NEW) }, 
+	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_U727) }, 
+	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_MC760) }, 
+	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_OVMC760) }, 
+	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_HSPA_FULLSPEED) }, 
+	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_EVDO_EMBEDDED_FULLSPEED) }, 
+	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_HSPA_EMBEDDED_FULLSPEED) }, 
+	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_EVDO_HIGHSPEED) }, 
+	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_HSPA_HIGHSPEED) }, 
+	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_EVDO_EMBEDDED_HIGHSPEED) }, 
+	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_HSPA_EMBEDDED_HIGHSPEED) }, 
+	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, NOVATELWIRELESS_PRODUCT_GLOBAL) }, 
 
 	{ USB_DEVICE(AMOI_VENDOR_ID, AMOI_PRODUCT_H01) },
 	{ USB_DEVICE(AMOI_VENDOR_ID, AMOI_PRODUCT_H01A) },
 	{ USB_DEVICE(AMOI_VENDOR_ID, AMOI_PRODUCT_H02) },
 
-	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5700_MINICARD) },		/* Dell Wireless 5700 Mobile Broadband CDMA/EVDO Mini-Card == Novatel Expedite EV620 CDMA/EV-DO */
-	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5500_MINICARD) },		/* Dell Wireless 5500 Mobile Broadband HSDPA Mini-Card == Novatel Expedite EU740 HSDPA/3G */
-	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5505_MINICARD) },		/* Dell Wireless 5505 Mobile Broadband HSDPA Mini-Card == Novatel Expedite EU740 HSDPA/3G */
-	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5700_EXPRESSCARD) },		/* Dell Wireless 5700 Mobile Broadband CDMA/EVDO ExpressCard == Novatel Merlin XV620 CDMA/EV-DO */
-	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5510_EXPRESSCARD) },		/* Dell Wireless 5510 Mobile Broadband HSDPA ExpressCard == Novatel Merlin XU870 HSDPA/3G */
-	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5700_MINICARD_SPRINT) },	/* Dell Wireless 5700 Mobile Broadband CDMA/EVDO Mini-Card == Novatel Expedite E720 CDMA/EV-DO */
-	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5700_MINICARD_TELUS) },	/* Dell Wireless 5700 Mobile Broadband CDMA/EVDO Mini-Card == Novatel Expedite ET620 CDMA/EV-DO */
-	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5720_MINICARD_VZW) }, 	/* Dell Wireless 5720 == Novatel EV620 CDMA/EV-DO */
-	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5720_MINICARD_SPRINT) }, 	/* Dell Wireless 5720 == Novatel EV620 CDMA/EV-DO */
-	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5720_MINICARD_TELUS) }, 	/* Dell Wireless 5720 == Novatel EV620 CDMA/EV-DO */
-	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5520_MINICARD_CINGULAR) },	/* Dell Wireless HSDPA 5520 == Novatel Expedite EU860D */
-	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5520_MINICARD_GENERIC_L) },	/* Dell Wireless HSDPA 5520 */
-	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5520_MINICARD_GENERIC_I) },	/* Dell Wireless 5520 Voda I Mobile Broadband (3G HSDPA) Minicard */
-	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5730_MINICARD_SPRINT) },	/* Dell Wireless 5730 Mobile Broadband EVDO/HSPA Mini-Card */
-	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5730_MINICARD_TELUS) },	/* Dell Wireless 5730 Mobile Broadband EVDO/HSPA Mini-Card */
-	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5730_MINICARD_VZW) }, 	/* Dell Wireless 5730 Mobile Broadband EVDO/HSPA Mini-Card */
-	{ USB_DEVICE(ANYDATA_VENDOR_ID, ANYDATA_PRODUCT_ADU_E100A) },	/* ADU-E100, ADU-310 */
+	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5700_MINICARD) },		
+	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5500_MINICARD) },		
+	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5505_MINICARD) },		
+	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5700_EXPRESSCARD) },		
+	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5510_EXPRESSCARD) },		
+	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5700_MINICARD_SPRINT) },	
+	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5700_MINICARD_TELUS) },	
+	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5720_MINICARD_VZW) }, 	
+	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5720_MINICARD_SPRINT) }, 	
+	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5720_MINICARD_TELUS) }, 	
+	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5520_MINICARD_CINGULAR) },	
+	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5520_MINICARD_GENERIC_L) },	
+	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5520_MINICARD_GENERIC_I) },	
+	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5730_MINICARD_SPRINT) },	
+	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5730_MINICARD_TELUS) },	
+	{ USB_DEVICE(DELL_VENDOR_ID, DELL_PRODUCT_5730_MINICARD_VZW) }, 	
+	{ USB_DEVICE(ANYDATA_VENDOR_ID, ANYDATA_PRODUCT_ADU_E100A) },	
 	{ USB_DEVICE(ANYDATA_VENDOR_ID, ANYDATA_PRODUCT_ADU_500A) },
 	{ USB_DEVICE(ANYDATA_VENDOR_ID, ANYDATA_PRODUCT_ADU_620UW) },
 	{ USB_DEVICE(AXESSTEL_VENDOR_ID, AXESSTEL_PRODUCT_MV110H) },
@@ -518,12 +490,12 @@ static struct usb_device_id option_ids[] = {
 	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_1012) },
 	{ USB_DEVICE(KYOCERA_VENDOR_ID, KYOCERA_PRODUCT_KPC650) },
 	{ USB_DEVICE(KYOCERA_VENDOR_ID, KYOCERA_PRODUCT_KPC680) },
-	{ USB_DEVICE(QUALCOMM_VENDOR_ID, 0x6000)}, /* ZTE AC8700 */
-	{ USB_DEVICE(QUALCOMM_VENDOR_ID, 0x6613)}, /* Onda H600/ZTE MF330 */
-	{ USB_DEVICE(MAXON_VENDOR_ID, 0x6280) }, /* BP3-USB & BP3-EXT HSDPA */
+	{ USB_DEVICE(QUALCOMM_VENDOR_ID, 0x6000)}, 
+	{ USB_DEVICE(QUALCOMM_VENDOR_ID, 0x6613)}, 
+	{ USB_DEVICE(MAXON_VENDOR_ID, 0x6280) }, 
 	{ USB_DEVICE(TELIT_VENDOR_ID, TELIT_PRODUCT_UC864E) },
 	{ USB_DEVICE(TELIT_VENDOR_ID, TELIT_PRODUCT_UC864G) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, ZTE_PRODUCT_MF622, 0xff, 0xff, 0xff) }, /* ZTE WCDMA products */
+	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, ZTE_PRODUCT_MF622, 0xff, 0xff, 0xff) }, 
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0002, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0003, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0004, 0xff, 0xff, 0xff) },
@@ -618,7 +590,7 @@ static struct usb_device_id option_ids[] = {
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0160, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0161, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0162, 0xff, 0xff, 0xff) },
-	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0014, 0xff, 0xff, 0xff) }, /* ZTE CDMA products */
+	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0014, 0xff, 0xff, 0xff) }, 
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0027, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0059, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, 0x0060, 0xff, 0xff, 0xff) },
@@ -631,13 +603,13 @@ static struct usb_device_id option_ids[] = {
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZTE_VENDOR_ID, ZTE_PRODUCT_AC2726, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE(BENQ_VENDOR_ID, BENQ_PRODUCT_H10) },
 	{ USB_DEVICE(DLINK_VENDOR_ID, DLINK_PRODUCT_DWM_652) },
-	{ USB_DEVICE(ALINK_VENDOR_ID, DLINK_PRODUCT_DWM_652_U5) }, /* Yes, ALINK_VENDOR_ID */
+	{ USB_DEVICE(ALINK_VENDOR_ID, DLINK_PRODUCT_DWM_652_U5) }, 
 	{ USB_DEVICE(QISDA_VENDOR_ID, QISDA_PRODUCT_H21_4512) },
 	{ USB_DEVICE(QISDA_VENDOR_ID, QISDA_PRODUCT_H21_4523) },
 	{ USB_DEVICE(QISDA_VENDOR_ID, QISDA_PRODUCT_H20_4515) },
 	{ USB_DEVICE(QISDA_VENDOR_ID, QISDA_PRODUCT_H20_4519) },
 	{ USB_DEVICE(TOSHIBA_VENDOR_ID, TOSHIBA_PRODUCT_G450) },
-	{ USB_DEVICE(TOSHIBA_VENDOR_ID, TOSHIBA_PRODUCT_HSDPA_MINICARD ) }, /* Toshiba 3G HSDPA == Novatel Expedite EU870D MiniCard */
+	{ USB_DEVICE(TOSHIBA_VENDOR_ID, TOSHIBA_PRODUCT_HSDPA_MINICARD ) }, 
 	{ USB_DEVICE(ALINK_VENDOR_ID, 0x9000) },
 	{ USB_DEVICE(ALINK_VENDOR_ID, 0xce16) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ALINK_VENDOR_ID, ALINK_PRODUCT_3GU, 0xff, 0xff, 0xff) },
@@ -646,7 +618,7 @@ static struct usb_device_id option_ids[] = {
 	{ USB_DEVICE(TLAYTECH_VENDOR_ID, TLAYTECH_PRODUCT_TEU800) },
 	{ USB_DEVICE(FOUR_G_SYSTEMS_VENDOR_ID, FOUR_G_SYSTEMS_PRODUCT_W14) },
 	{ USB_DEVICE(HAIER_VENDOR_ID, HAIER_PRODUCT_CE100) },
-	{ } /* Terminating entry */
+	{ } 
 };
 MODULE_DEVICE_TABLE(usb, option_ids);
 
@@ -663,9 +635,7 @@ static struct usb_driver option_driver = {
 	.no_dynamic_id = 	1,
 };
 
-/* The card has three separate interfaces, which the serial driver
- * recognizes separately, thus num_port=1.
- */
+
 
 static struct usb_serial_driver option_1port_device = {
 	.driver = {
@@ -698,7 +668,7 @@ static struct usb_serial_driver option_1port_device = {
 
 static int debug;
 
-/* per port private data */
+
 
 #define N_IN_URB 4
 #define N_OUT_URB 4
@@ -712,20 +682,20 @@ struct option_intf_private {
 };
 
 struct option_port_private {
-	/* Input endpoints and buffer for this port */
+	
 	struct urb *in_urbs[N_IN_URB];
 	u8 *in_buffer[N_IN_URB];
-	/* Output endpoints and buffer for this port */
+	
 	struct urb *out_urbs[N_OUT_URB];
 	u8 *out_buffer[N_OUT_URB];
-	unsigned long out_busy;		/* Bit vector of URBs in use */
+	unsigned long out_busy;		
 	int opened;
 	struct usb_anchor delayed;
 
-	/* Settings for the port */
-	int rts_state;	/* Handshaking pins (outputs) */
+	
+	int rts_state;	
 	int dtr_state;
-	int cts_state;	/* Handshaking pins (inputs) */
+	int cts_state;	
 	int dsr_state;
 	int dcd_state;
 	int ri_state;
@@ -733,7 +703,7 @@ struct option_port_private {
 	unsigned long tx_start_time[N_OUT_URB];
 };
 
-/* Functions used by new usb-serial code. */
+
 static int __init option_init(void)
 {
 	int retval;
@@ -768,7 +738,7 @@ static int option_probe(struct usb_serial *serial,
 			const struct usb_device_id *id)
 {
 	struct option_intf_private *data;
-	/* D-Link DWM 652 still exposes CD-Rom emulation interface in modem mode */
+	
 	if (serial->dev->descriptor.idVendor == DLINK_VENDOR_ID &&
 		serial->dev->descriptor.idProduct == DLINK_PRODUCT_DWM_652 &&
 		serial->interface->cur_altsetting->desc.bInterfaceClass == 0x8)
@@ -785,7 +755,7 @@ static void option_set_termios(struct tty_struct *tty,
 		struct usb_serial_port *port, struct ktermios *old_termios)
 {
 	dbg("%s", __func__);
-	/* Doesn't support option setting */
+	
 	tty_termios_copy_hw(tty->termios, old_termios);
 	option_send_setup(port);
 }
@@ -816,7 +786,7 @@ static int option_tiocmset(struct tty_struct *tty, struct file *file,
 
 	portdata = usb_get_serial_port_data(port);
 
-	/* FIXME: what locks portdata fields ? */
+	
 	if (set & TIOCM_RTS)
 		portdata->rts_state = 1;
 	if (set & TIOCM_DTR)
@@ -829,7 +799,7 @@ static int option_tiocmset(struct tty_struct *tty, struct file *file,
 	return option_send_setup(port);
 }
 
-/* Write */
+
 static int option_write(struct tty_struct *tty, struct usb_serial_port *port,
 			const unsigned char *buf, int count)
 {
@@ -837,7 +807,7 @@ static int option_write(struct tty_struct *tty, struct usb_serial_port *port,
 	struct option_intf_private *intfdata;
 	int i;
 	int left, todo;
-	struct urb *this_urb = NULL; /* spurious */
+	struct urb *this_urb = NULL; 
 	int err;
 	unsigned long flags;
 
@@ -868,7 +838,7 @@ static int option_write(struct tty_struct *tty, struct usb_serial_port *port,
 		if (err < 0)
 			break;
 
-		/* send the data */
+		
 		memcpy(this_urb->transfer_buffer, buf, todo);
 		this_urb->transfer_buffer_length = todo;
 
@@ -928,7 +898,7 @@ static void option_indat_callback(struct urb *urb)
 			dbg("%s: empty read urb received", __func__);
 		tty_kref_put(tty);
 
-		/* Resubmit urb so we continue receiving */
+		
 		if (port->port.count && status != -ESHUTDOWN) {
 			err = usb_submit_urb(urb, GFP_ATOMIC);
 			if (err)
@@ -1017,7 +987,7 @@ static void option_instat_callback(struct urb *urb)
 	} else
 		err("%s: error %d", __func__, status);
 
-	/* Resubmit urb so we continue receiving IRQ data */
+	
 	if (status != -ESHUTDOWN && status != -ENOENT) {
 		err = usb_submit_urb(urb, GFP_ATOMIC);
 		if (err)
@@ -1058,8 +1028,7 @@ static int option_chars_in_buffer(struct tty_struct *tty)
 
 	for (i = 0; i < N_OUT_URB; i++) {
 		this_urb = portdata->out_urbs[i];
-		/* FIXME: This locking is insufficient as this_urb may
-		   go unused during the test */
+		
 		if (this_urb && test_bit(i, &portdata->out_busy))
 			data_len += this_urb->transfer_buffer_length;
 	}
@@ -1080,7 +1049,7 @@ static int option_open(struct tty_struct *tty, struct usb_serial_port *port)
 
 	dbg("%s", __func__);
 
-	/* Start reading from the IN endpoint */
+	
 	for (i = 0; i < N_IN_URB; i++) {
 		urb = portdata->in_urbs[i];
 		if (!urb)
@@ -1131,7 +1100,7 @@ static void option_close(struct usb_serial_port *port)
 	portdata = usb_get_serial_port_data(port);
 
 	if (serial->dev) {
-		/* Stop reading/writing urbs */
+		
 		spin_lock_irq(&intfdata->susp_lock);
 		portdata->opened = 0;
 		spin_unlock_irq(&intfdata->susp_lock);
@@ -1145,7 +1114,7 @@ static void option_close(struct usb_serial_port *port)
 	}
 }
 
-/* Helper functions used by option_setup_urbs */
+
 static struct urb *option_setup_urb(struct usb_serial *serial, int endpoint,
 		int dir, void *ctx, char *buf, int len,
 		void (*callback)(struct urb *))
@@ -1153,15 +1122,15 @@ static struct urb *option_setup_urb(struct usb_serial *serial, int endpoint,
 	struct urb *urb;
 
 	if (endpoint == -1)
-		return NULL;		/* endpoint not needed */
+		return NULL;		
 
-	urb = usb_alloc_urb(0, GFP_KERNEL);		/* No ISO */
+	urb = usb_alloc_urb(0, GFP_KERNEL);		
 	if (urb == NULL) {
 		dbg("%s: alloc for endpoint %d failed.", __func__, endpoint);
 		return NULL;
 	}
 
-		/* Fill URB using supplied data. */
+		
 	usb_fill_bulk_urb(urb, serial->dev,
 		      usb_sndbulkpipe(serial->dev, endpoint) | dir,
 		      buf, len, callback, ctx);
@@ -1169,7 +1138,7 @@ static struct urb *option_setup_urb(struct usb_serial *serial, int endpoint,
 	return urb;
 }
 
-/* Setup urbs */
+
 static void option_setup_urbs(struct usb_serial *serial)
 {
 	int i, j;
@@ -1182,7 +1151,7 @@ static void option_setup_urbs(struct usb_serial *serial)
 		port = serial->port[i];
 		portdata = usb_get_serial_port_data(port);
 
-		/* Do indat endpoints first */
+		
 		for (j = 0; j < N_IN_URB; ++j) {
 			portdata->in_urbs[j] = option_setup_urb(serial,
 					port->bulk_in_endpointAddress,
@@ -1191,7 +1160,7 @@ static void option_setup_urbs(struct usb_serial *serial)
 					IN_BUFLEN, option_indat_callback);
 		}
 
-		/* outdat endpoints */
+		
 		for (j = 0; j < N_OUT_URB; ++j) {
 			portdata->out_urbs[j] = option_setup_urb(serial,
 					port->bulk_out_endpointAddress,
@@ -1203,11 +1172,7 @@ static void option_setup_urbs(struct usb_serial *serial)
 }
 
 
-/** send RTS/DTR state to the port.
- *
- * This is exactly the same as SET_CONTROL_LINE_STATE from the PSTN
- * CDC.
-*/
+
 static int option_send_setup(struct usb_serial_port *port)
 {
 	struct usb_serial *serial = port->serial;
@@ -1237,7 +1202,7 @@ static int option_startup(struct usb_serial *serial)
 
 	dbg("%s", __func__);
 
-	/* Now setup per port private data */
+	
 	for (i = 0; i < serial->num_ports; i++) {
 		port = serial->port[i];
 		portdata = kzalloc(sizeof(*portdata), GFP_KERNEL);
@@ -1291,7 +1256,7 @@ static void stop_read_write_urbs(struct usb_serial *serial)
 	struct usb_serial_port *port;
 	struct option_port_private *portdata;
 
-	/* Stop reading/writing urbs */
+	
 	for (i = 0; i < serial->num_ports; ++i) {
 		port = serial->port[i];
 		portdata = usb_get_serial_port_data(port);
@@ -1317,7 +1282,7 @@ static void option_release(struct usb_serial *serial)
 
 	dbg("%s", __func__);
 
-	/* Now free them */
+	
 	for (i = 0; i < serial->num_ports; ++i) {
 		port = serial->port[i];
 		portdata = usb_get_serial_port_data(port);
@@ -1339,7 +1304,7 @@ static void option_release(struct usb_serial *serial)
 		}
 	}
 
-	/* Now free per port private data */
+	
 	for (i = 0; i < serial->num_ports; i++) {
 		port = serial->port[i];
 		kfree(usb_get_serial_port_data(port));
@@ -1397,7 +1362,7 @@ static int option_resume(struct usb_serial *serial)
 	int err = 0;
 
 	dbg("%s entered", __func__);
-	/* get the interrupt URBs resubmitted unconditionally */
+	
 	for (i = 0; i < serial->num_ports; i++) {
 		port = serial->port[i];
 		if (!port->interrupt_in_urb) {
@@ -1414,11 +1379,11 @@ static int option_resume(struct usb_serial *serial)
 	}
 
 	for (i = 0; i < serial->num_ports; i++) {
-		/* walk all ports */
+		
 		port = serial->port[i];
 		portdata = usb_get_serial_port_data(port);
 
-		/* skip closed ports */
+		
 		spin_lock_irq(&intfdata->susp_lock);
 		if (!portdata->opened) {
 			spin_unlock_irq(&intfdata->susp_lock);

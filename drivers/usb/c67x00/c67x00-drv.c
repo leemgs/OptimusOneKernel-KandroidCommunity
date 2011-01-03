@@ -1,38 +1,6 @@
-/*
- * c67x00-drv.c: Cypress C67X00 USB Common infrastructure
- *
- * Copyright (C) 2006-2008 Barco N.V.
- *    Derived from the Cypress cy7c67200/300 ezusb linux driver and
- *    based on multiple host controller drivers inside the linux kernel.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA  02110-1301  USA.
- */
 
-/*
- * This file implements the common infrastructure for using the c67x00.
- * It is both the link between the platform configuration and subdrivers and
- * the link between the common hardware parts and the subdrivers (e.g.
- * interrupt handling).
- *
- * The c67x00 has 2 SIE's (serial interface engine) wich can be configured
- * to be host, device or OTG (with some limitations, E.G. only SIE1 can be OTG).
- *
- * Depending on the platform configuration, the SIE's are created and
- * the corresponding subdriver is initialized (c67x00_probe_sie).
- */
+
+
 
 #include <linux/device.h>
 #include <linux/io.h>
@@ -112,7 +80,7 @@ static irqreturn_t c67x00_irq(int irq, void *__dev)
 	return IRQ_HANDLED;
 }
 
-/* ------------------------------------------------------------------------- */
+
 
 static int __devinit c67x00_drv_probe(struct platform_device *pdev)
 {

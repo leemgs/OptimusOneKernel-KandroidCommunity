@@ -1,38 +1,7 @@
-/*
- * dummy_hcd.c -- Dummy/Loopback USB host and device emulator driver.
- *
- * Maintainer: Alan Stern <stern@rowland.harvard.edu>
- *
- * Copyright (C) 2003 David Brownell
- * Copyright (C) 2003-2005 Alan Stern
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
 
 
-/*
- * This exposes a device side "USB gadget" API, driven by requests to a
- * Linux-USB host controller driver.  USB traffic is simulated; there's
- * no need for USB hardware.  Use this with two other drivers:
- *
- *  - Gadget driver, responding to requests (slave);
- *  - Host-side device driver, as already familiar in Linux.
- *
- * Having this all in one kernel can help some stages of development,
- * bypassing some hardware (and driver) issues.  UML could help too.
- */
+
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -61,7 +30,7 @@
 #define DRIVER_DESC	"USB Host+Gadget Emulator"
 #define DRIVER_VERSION	"02 May 2005"
 
-#define POWER_BUDGET	500	/* in mA; use 8 for low-power port testing */
+#define POWER_BUDGET	500	
 
 static const char	driver_name [] = "dummy_hcd";
 static const char	driver_desc [] = "USB Host+Gadget Emulator";
@@ -72,12 +41,12 @@ MODULE_DESCRIPTION (DRIVER_DESC);
 MODULE_AUTHOR ("David Brownell");
 MODULE_LICENSE ("GPL");
 
-/*-------------------------------------------------------------------------*/
 
-/* gadget side driver data structres */
+
+
 struct dummy_ep {
 	struct list_head		queue;
-	unsigned long			last_io;	/* jiffies timestamp */
+	unsigned long			last_io;	
 	struct usb_gadget		*gadget;
 	const struct usb_endpoint_descriptor *desc;
 	struct usb_ep			ep;
@@ -88,7 +57,7 @@ struct dummy_ep {
 };
 
 struct dummy_request {
-	struct list_head		queue;		/* ep's requests */
+	struct list_head		queue;		
 	struct usb_request		req;
 };
 
@@ -103,42 +72,30 @@ static inline struct dummy_request *usb_request_to_dummy_request
 	return container_of (_req, struct dummy_request, req);
 }
 
-/*-------------------------------------------------------------------------*/
 
-/*
- * Every device has ep0 for control requests, plus up to 30 more endpoints,
- * in one of two types:
- *
- *   - Configurable:  direction (in/out), type (bulk, iso, etc), and endpoint
- *     number can be changed.  Names like "ep-a" are used for this type.
- *
- *   - Fixed Function:  in other cases.  some characteristics may be mutable;
- *     that'd be hardware-specific.  Names like "ep12out-bulk" are used.
- *
- * Gadget drivers are responsible for not setting up conflicting endpoint
- * configurations, illegal or unsupported packet lengths, and so on.
- */
+
+
 
 static const char ep0name [] = "ep0";
 
 static const char *const ep_name [] = {
-	ep0name,				/* everyone has ep0 */
+	ep0name,				
 
-	/* act like a net2280: high speed, six configurable endpoints */
+	
 	"ep-a", "ep-b", "ep-c", "ep-d", "ep-e", "ep-f",
 
-	/* or like pxa250: fifteen fixed function endpoints */
+	
 	"ep1in-bulk", "ep2out-bulk", "ep3in-iso", "ep4out-iso", "ep5in-int",
 	"ep6in-bulk", "ep7out-bulk", "ep8in-iso", "ep9out-iso", "ep10in-int",
 	"ep11in-bulk", "ep12out-bulk", "ep13in-iso", "ep14out-iso",
 		"ep15in-int",
 
-	/* or like sa1100: two fixed function endpoints */
+	
 	"ep1out-bulk", "ep2in-bulk",
 };
 #define DUMMY_ENDPOINTS	ARRAY_SIZE(ep_name)
 
-/*-------------------------------------------------------------------------*/
+
 
 #define FIFO_SIZE		64
 
@@ -157,9 +114,7 @@ enum dummy_rh_state {
 struct dummy {
 	spinlock_t			lock;
 
-	/*
-	 * SLAVE/GADGET side support
-	 */
+	
 	struct dummy_ep			ep [DUMMY_ENDPOINTS];
 	int				address;
 	struct usb_gadget		gadget;
@@ -172,9 +127,7 @@ struct dummy {
 	unsigned			active:1;
 	unsigned			old_active:1;
 
-	/*
-	 * MASTER/HOST side support
-	 */
+	
 	enum dummy_rh_state		rh_state;
 	struct timer_list		timer;
 	u32				port_status;
@@ -223,11 +176,11 @@ static inline struct dummy *gadget_dev_to_dummy (struct device *dev)
 
 static struct dummy			*the_controller;
 
-/*-------------------------------------------------------------------------*/
 
-/* SLAVE/GADGET SIDE UTILITY ROUTINES */
 
-/* called with spinlock held */
+
+
+
 static void nuke (struct dummy *dum, struct dummy_ep *ep)
 {
 	while (!list_empty (&ep->queue)) {
@@ -243,25 +196,25 @@ static void nuke (struct dummy *dum, struct dummy_ep *ep)
 	}
 }
 
-/* caller must hold lock */
+
 static void
 stop_activity (struct dummy *dum)
 {
 	struct dummy_ep	*ep;
 
-	/* prevent any more requests */
+	
 	dum->address = 0;
 
-	/* The timer is left running so that outstanding URBs can fail */
+	
 
-	/* nuke any pending requests first, so driver i/o is quiesced */
+	
 	list_for_each_entry (ep, &dum->gadget.ep_list, ep.ep_list)
 		nuke (dum, ep);
 
-	/* driver now does any non-usb quiescing necessary */
+	
 }
 
-/* caller must hold lock */
+
 static void
 set_link_state (struct dummy *dum)
 {
@@ -269,7 +222,7 @@ set_link_state (struct dummy *dum)
 	if ((dum->port_status & USB_PORT_STAT_POWER) == 0)
 		dum->port_status = 0;
 
-	/* UDC suspend must cause a disconnect */
+	
 	else if (!dum->pullup || dum->udc_suspended) {
 		dum->port_status &= ~(USB_PORT_STAT_CONNECTION |
 					USB_PORT_STAT_ENABLE |
@@ -318,14 +271,9 @@ set_link_state (struct dummy *dum)
 	dum->old_active = dum->active;
 }
 
-/*-------------------------------------------------------------------------*/
 
-/* SLAVE/GADGET SIDE DRIVER
- *
- * This only tracks gadget state.  All the work is done when the host
- * side tries some (emulated) i/o operation.  Real device controller
- * drivers would do real i/o using dma, fifos, irqs, timers, etc.
- */
+
+
 
 #define is_enabled(dum) \
 	(dum->port_status & USB_PORT_STAT_ENABLE)
@@ -347,14 +295,7 @@ dummy_enable (struct usb_ep *_ep, const struct usb_endpoint_descriptor *desc)
 		return -ESHUTDOWN;
 	max = le16_to_cpu(desc->wMaxPacketSize) & 0x3ff;
 
-	/* drivers must not request bad settings, since lower levels
-	 * (hardware or its drivers) may not check.  some endpoints
-	 * can't do iso, many have maxpacket limitations, etc.
-	 *
-	 * since this "hardware" driver is here to help debugging, we
-	 * have some extra sanity checks.  (there could be more though,
-	 * especially for "ep9out" style fixed function ones.)
-	 */
+	
 	retval = -EINVAL;
 	switch (desc->bmAttributes & 0x03) {
 	case USB_ENDPOINT_XFER_BULK:
@@ -369,26 +310,26 @@ dummy_enable (struct usb_ep *_ep, const struct usb_endpoint_descriptor *desc)
 			goto done;
 		case USB_SPEED_FULL:
 			if (max == 8 || max == 16 || max == 32 || max == 64)
-				/* we'll fake any legal size */
+				
 				break;
-			/* save a return statement */
+			
 		default:
 			goto done;
 		}
 		break;
 	case USB_ENDPOINT_XFER_INT:
-		if (strstr (ep->ep.name, "-iso")) /* bulk is ok */
+		if (strstr (ep->ep.name, "-iso")) 
 			goto done;
-		/* real hardware might not handle all packet sizes */
+		
 		switch (dum->gadget.speed) {
 		case USB_SPEED_HIGH:
 			if (max <= 1024)
 				break;
-			/* save a return statement */
+			
 		case USB_SPEED_FULL:
 			if (max <= 64)
 				break;
-			/* save a return statement */
+			
 		default:
 			if (max <= 8)
 				break;
@@ -399,22 +340,22 @@ dummy_enable (struct usb_ep *_ep, const struct usb_endpoint_descriptor *desc)
 		if (strstr (ep->ep.name, "-bulk")
 				|| strstr (ep->ep.name, "-int"))
 			goto done;
-		/* real hardware might not handle all packet sizes */
+		
 		switch (dum->gadget.speed) {
 		case USB_SPEED_HIGH:
 			if (max <= 1024)
 				break;
-			/* save a return statement */
+			
 		case USB_SPEED_FULL:
 			if (max <= 1023)
 				break;
-			/* save a return statement */
+			
 		default:
 			goto done;
 		}
 		break;
 	default:
-		/* few chips support control except on ep0 */
+		
 		goto done;
 	}
 
@@ -434,9 +375,7 @@ dummy_enable (struct usb_ep *_ep, const struct usb_endpoint_descriptor *desc)
 		 }; val; }),
 		max);
 
-	/* at this point real hardware should be NAKing transfers
-	 * to that endpoint, until a buffer is queued to it.
-	 */
+	
 	ep->halted = ep->wedged = 0;
 	retval = 0;
 done:
@@ -532,7 +471,7 @@ dummy_queue (struct usb_ep *_ep, struct usb_request *_req,
 	_req->actual = 0;
 	spin_lock_irqsave (&dum->lock, flags);
 
-	/* implement an emulated single-request FIFO */
+	
 	if (ep->desc && (ep->desc->bEndpointAddress & USB_DIR_IN) &&
 			list_empty (&dum->fifo_req.queue) &&
 			list_empty (&ep->queue) &&
@@ -554,9 +493,7 @@ dummy_queue (struct usb_ep *_ep, struct usb_request *_req,
 		list_add_tail(&req->queue, &ep->queue);
 	spin_unlock_irqrestore (&dum->lock, flags);
 
-	/* real hardware would likely enable transfers here, in case
-	 * it'd been left NAKing.
-	 */
+	
 	return 0;
 }
 
@@ -620,7 +557,7 @@ dummy_set_halt_and_wedge(struct usb_ep *_ep, int value, int wedged)
 		if (wedged)
 			ep->wedged = 1;
 	}
-	/* FIXME clear emulated data toggle too */
+	
 	return 0;
 }
 
@@ -651,9 +588,9 @@ static const struct usb_ep_ops dummy_ep_ops = {
 	.set_wedge	= dummy_set_wedge,
 };
 
-/*-------------------------------------------------------------------------*/
 
-/* there are both host and device side versions of this call ... */
+
+
 static int dummy_g_get_frame (struct usb_gadget *_gadget)
 {
 	struct timeval	tv;
@@ -676,9 +613,9 @@ static int dummy_wakeup (struct usb_gadget *_gadget)
 			 dum->rh_state != DUMMY_RH_SUSPENDED)
 		return -EIO;
 
-	/* FIXME: What if the root hub is suspended but the port isn't? */
+	
 
-	/* hub notices our request, issues downstream resume, etc */
+	
 	dum->resuming = 1;
 	dum->re_timeout = jiffies + msecs_to_jiffies(20);
 	mod_timer (&dummy_to_hcd (dum)->rh_timer, dum->re_timeout);
@@ -719,9 +656,9 @@ static const struct usb_gadget_ops dummy_ops = {
 	.pullup		= dummy_pullup,
 };
 
-/*-------------------------------------------------------------------------*/
 
-/* "function" sysfs attribute */
+
+
 static ssize_t
 show_function (struct device *dev, struct device_attribute *attr, char *buf)
 {
@@ -733,21 +670,9 @@ show_function (struct device *dev, struct device_attribute *attr, char *buf)
 }
 static DEVICE_ATTR (function, S_IRUGO, show_function, NULL);
 
-/*-------------------------------------------------------------------------*/
 
-/*
- * Driver registration/unregistration.
- *
- * This is basically hardware-specific; there's usually only one real USB
- * device (not host) controller since that's how USB devices are intended
- * to work.  So most implementations of these api calls will rely on the
- * fact that only one driver will ever bind to the hardware.  But curious
- * hardware can be built with discrete components, so the gadget API doesn't
- * require that assumption.
- *
- * For this emulator, it might be convenient to create a usb slave device
- * for each driver that registers:  just add to a big root hub.
- */
+
+
 
 int
 usb_gadget_register_driver (struct usb_gadget_driver *driver)
@@ -763,10 +688,7 @@ usb_gadget_register_driver (struct usb_gadget_driver *driver)
 			|| driver->speed == USB_SPEED_UNKNOWN)
 		return -EINVAL;
 
-	/*
-	 * SLAVE side init ... the layer above hardware, which
-	 * can't enumerate without help from the driver we're binding.
-	 */
+	
 
 	dum->devstatus = 0;
 
@@ -805,7 +727,7 @@ usb_gadget_register_driver (struct usb_gadget_driver *driver)
 		return retval;
 	}
 
-	/* khubd will enumerate this in a while */
+	
 	spin_lock_irq (&dum->lock);
 	dum->pullup = 1;
 	set_link_state (dum);
@@ -851,7 +773,7 @@ EXPORT_SYMBOL (usb_gadget_unregister_driver);
 
 #undef is_enabled
 
-/* just declare this in any driver that really need it */
+
 extern int net2280_set_fifo_mode (struct usb_gadget *gadget, int mode);
 
 int net2280_set_fifo_mode (struct usb_gadget *gadget, int mode)
@@ -861,8 +783,7 @@ int net2280_set_fifo_mode (struct usb_gadget *gadget, int mode)
 EXPORT_SYMBOL (net2280_set_fifo_mode);
 
 
-/* The gadget structure is stored inside the hcd structure and will be
- * released along with it. */
+
 static void
 dummy_gadget_release (struct device *dev)
 {
@@ -880,7 +801,7 @@ static int dummy_udc_probe (struct platform_device *pdev)
 	dum->gadget.ops = &dummy_ops;
 	dum->gadget.is_dualspeed = 1;
 
-	/* maybe claim OTG support, though we won't complete HNP */
+	
 	dum->gadget.is_otg = (dummy_to_hcd(dum)->self.otg_port != 0);
 
 	dev_set_name(&dum->gadget.dev, "gadget");
@@ -948,19 +869,9 @@ static struct platform_driver dummy_udc_driver = {
 	},
 };
 
-/*-------------------------------------------------------------------------*/
 
-/* MASTER/HOST SIDE DRIVER
- *
- * this uses the hcd framework to hook up to host side drivers.
- * its root hub will only have one device, otherwise it acts like
- * a normal host controller.
- *
- * when urbs are queued, they're just stuck on a list that we
- * scan in a timer callback.  that callback connects writes from
- * the host with reads from the device, and so on, based on the
- * usb 2.0 rules.
- */
+
+
 
 static int dummy_urb_enqueue (
 	struct usb_hcd			*hcd,
@@ -997,9 +908,9 @@ static int dummy_urb_enqueue (
 	list_add_tail (&urbp->urbp_list, &dum->urbp_list);
 	urb->hcpriv = urbp;
 	if (usb_pipetype (urb->pipe) == PIPE_CONTROL)
-		urb->error_count = 1;		/* mark as a new urb */
+		urb->error_count = 1;		
 
-	/* kick the scheduler, it'll do the rest */
+	
 	if (!timer_pending (&dum->timer))
 		mod_timer (&dum->timer, jiffies + 1);
 
@@ -1014,8 +925,7 @@ static int dummy_urb_dequeue(struct usb_hcd *hcd, struct urb *urb, int status)
 	unsigned long	flags;
 	int		rc;
 
-	/* giveback happens automatically in timer callback,
-	 * so make sure the callback happens */
+	
 	dum = hcd_to_dummy (hcd);
 	spin_lock_irqsave (&dum->lock, flags);
 
@@ -1028,7 +938,7 @@ static int dummy_urb_dequeue(struct usb_hcd *hcd, struct urb *urb, int status)
 	return rc;
 }
 
-/* transfer up to a frame's worth; caller must own lock */
+
 static int
 transfer(struct dummy *dum, struct urb *urb, struct dummy_ep *ep, int limit,
 		int *status)
@@ -1036,24 +946,18 @@ transfer(struct dummy *dum, struct urb *urb, struct dummy_ep *ep, int limit,
 	struct dummy_request	*req;
 
 top:
-	/* if there's no request queued, the device is NAKing; return */
+	
 	list_for_each_entry (req, &ep->queue, queue) {
 		unsigned	host_len, dev_len, len;
 		int		is_short, to_host;
 		int		rescan = 0;
 
-		/* 1..N packets of ep->ep.maxpacket each ... the last one
-		 * may be short (including zero length).
-		 *
-		 * writer can send a zlp explicitly (length 0) or implicitly
-		 * (length mod maxpacket zero, and 'zero' flag); they always
-		 * terminate reads.
-		 */
+		
 		host_len = urb->transfer_buffer_length - urb->actual_length;
 		dev_len = req->req.length - req->req.actual;
 		len = min (host_len, dev_len);
 
-		/* FIXME update emulated data toggle too */
+		
 
 		to_host = usb_pipein (urb->pipe);
 		if (unlikely (len == 0))
@@ -1061,21 +965,21 @@ top:
 		else {
 			char		*ubuf, *rbuf;
 
-			/* not enough bandwidth left? */
+			
 			if (limit < ep->ep.maxpacket && limit < len)
 				break;
 			len = min (len, (unsigned) limit);
 			if (len == 0)
 				break;
 
-			/* use an extra pass for the final short packet */
+			
 			if (len > ep->ep.maxpacket) {
 				rescan = 1;
 				len -= (len % ep->ep.maxpacket);
 			}
 			is_short = (len % ep->ep.maxpacket) != 0;
 
-			/* else transfer packet(s) */
+			
 			ubuf = urb->transfer_buffer + urb->actual_length;
 			rbuf = req->req.buf + req->req.actual;
 			if (to_host)
@@ -1089,13 +993,7 @@ top:
 			req->req.actual += len;
 		}
 
-		/* short packets terminate, maybe with overflow/underflow.
-		 * it's only really an error to write too much.
-		 *
-		 * partially filling a buffer optionally blocks queue advances
-		 * (so completion handlers can clean up the queue) but we don't
-		 * need to emulate such data-in-flight.
-		 */
+		
 		if (is_short) {
 			if (host_len == dev_len) {
 				req->req.status = 0;
@@ -1114,7 +1012,7 @@ top:
 					req->req.status = 0;
 			}
 
-		/* many requests terminate without a short packet */
+		
 		} else {
 			if (req->req.length == req->req.actual
 					&& !req->req.zero)
@@ -1125,7 +1023,7 @@ top:
 				*status = 0;
 		}
 
-		/* device side completion --> continuable */
+		
 		if (req->req.status != -EINPROGRESS) {
 			list_del_init (&req->queue);
 
@@ -1133,15 +1031,15 @@ top:
 			req->req.complete (&ep->ep, &req->req);
 			spin_lock (&dum->lock);
 
-			/* requests might have been unlinked... */
+			
 			rescan = 1;
 		}
 
-		/* host side completion --> terminate */
+		
 		if (*status != -EINPROGRESS)
 			break;
 
-		/* rescan to continue with any other queued i/o */
+		
 		if (rescan)
 			goto top;
 	}
@@ -1155,10 +1053,10 @@ static int periodic_bytes (struct dummy *dum, struct dummy_ep *ep)
 	if (dum->gadget.speed == USB_SPEED_HIGH) {
 		int	tmp;
 
-		/* high bandwidth mode */
+		
 		tmp = le16_to_cpu(ep->desc->wMaxPacketSize);
 		tmp = (tmp >> 11) & 0x03;
-		tmp *= 8 /* applies to entire frame */;
+		tmp *= 8 ;
 		limit += limit * tmp;
 	}
 	return limit;
@@ -1197,9 +1095,7 @@ static struct dummy_ep *find_endpoint (struct dummy *dum, u8 address)
 #define Ep_Request	(USB_TYPE_STANDARD | USB_RECIP_ENDPOINT)
 #define Ep_InRequest	(Ep_Request | USB_DIR_IN)
 
-/* drive both sides of the transfers; looks like irq handlers to
- * both drivers except the callbacks aren't in_irq().
- */
+
 static void dummy_timer (unsigned long _dum)
 {
 	struct dummy		*dum = (struct dummy *) _dum;
@@ -1208,25 +1104,25 @@ static void dummy_timer (unsigned long _dum)
 	int			limit, total;
 	int			i;
 
-	/* simplistic model for one frame's bandwidth */
+	
 	switch (dum->gadget.speed) {
 	case USB_SPEED_LOW:
-		total = 8/*bytes*/ * 12/*packets*/;
+		total = 8 * 12;
 		break;
 	case USB_SPEED_FULL:
-		total = 64/*bytes*/ * 19/*packets*/;
+		total = 64 * 19;
 		break;
 	case USB_SPEED_HIGH:
-		total = 512/*bytes*/ * 13/*packets*/ * 8/*uframes*/;
+		total = 512 * 13 * 8;
 		break;
 	default:
 		dev_err (dummy_dev(dum), "bogus device speed\n");
 		return;
 	}
 
-	/* FIXME if HZ != 1000 this will probably misbehave ... */
+	
 
-	/* look at each urb queued by the host side driver */
+	
 	spin_lock_irqsave (&dum->lock, flags);
 
 	if (!dum->udev) {
@@ -1258,20 +1154,17 @@ restart:
 			continue;
 		type = usb_pipetype (urb->pipe);
 
-		/* used up this frame's non-periodic bandwidth?
-		 * FIXME there's infinite bandwidth for control and
-		 * periodic transfers ... unrealistic.
-		 */
+		
 		if (total <= 0 && type == PIPE_BULK)
 			continue;
 
-		/* find the gadget's ep for this request (if configured) */
+		
 		address = usb_pipeendpoint (urb->pipe);
 		if (usb_pipein (urb->pipe))
 			address |= USB_DIR_IN;
 		ep = find_endpoint(dum, address);
 		if (!ep) {
-			/* set_configuration() disagreement */
+			
 			dev_dbg (dummy_dev(dum),
 				"no ep configured for urb %p\n",
 				urb);
@@ -1283,19 +1176,19 @@ restart:
 			continue;
 		ep->already_seen = 1;
 		if (ep == &dum->ep [0] && urb->error_count) {
-			ep->setup_stage = 1;	/* a new urb */
+			ep->setup_stage = 1;	
 			urb->error_count = 0;
 		}
 		if (ep->halted && !ep->setup_stage) {
-			/* NOTE: must not be iso! */
+			
 			dev_dbg (dummy_dev(dum), "ep %s halted, urb %p\n",
 					ep->ep.name, urb);
 			status = -EPIPE;
 			goto return_urb;
 		}
-		/* FIXME make sure both ends agree on maxpacket */
+		
 
-		/* handle control requests */
+		
 		if (ep == &dum->ep [0] && ep->setup_stage) {
 			struct usb_ctrlrequest		setup;
 			int				value = 1;
@@ -1307,7 +1200,7 @@ restart:
 			w_index = le16_to_cpu(setup.wIndex);
 			w_value = le16_to_cpu(setup.wValue);
 
-			/* paranoia, in case of stale queued data */
+			
 			list_for_each_entry (req, &ep->queue, queue) {
 				list_del_init (&req->queue);
 				req->req.status = -EOVERFLOW;
@@ -1321,10 +1214,7 @@ restart:
 				goto restart;
 			}
 
-			/* gadget driver never sees set_address or operations
-			 * on standard feature flags.  some hardware doesn't
-			 * even expose them.
-			 */
+			
 			ep->last_io = jiffies;
 			ep->setup_stage = 0;
 			ep->halted = 0;
@@ -1364,7 +1254,7 @@ restart:
 					}
 
 				} else if (setup.bRequestType == Ep_Request) {
-					// endpoint halt
+					
 					ep2 = find_endpoint (dum, w_index);
 					if (!ep2 || ep2->ep.name == ep0name) {
 						value = -EOPNOTSUPP;
@@ -1389,7 +1279,7 @@ restart:
 						break;
 					}
 				} else if (setup.bRequestType == Ep_Request) {
-					// endpoint halt
+					
 					ep2 = find_endpoint (dum, w_index);
 					if (!ep2) {
 						value = -EOPNOTSUPP;
@@ -1410,9 +1300,9 @@ restart:
 						) {
 					char *buf;
 
-					// device: remote wakeup, selfpowered
-					// interface: nothing
-					// endpoint: halt
+					
+					
+					
 					buf = (char *)urb->transfer_buffer;
 					if (urb->transfer_buffer_length > 0) {
 						if (setup.bRequestType ==
@@ -1440,9 +1330,7 @@ restart:
 				break;
 			}
 
-			/* gadget driver handles all other requests.  block
-			 * until setup() returns; no reentrancy issues etc.
-			 */
+			
 			if (value > 0) {
 				spin_unlock (&dum->lock);
 				value = dum->driver->setup (&dum->gadget,
@@ -1450,11 +1338,11 @@ restart:
 				spin_lock (&dum->lock);
 
 				if (value >= 0) {
-					/* no delays (max 64KB data stage) */
+					
 					limit = 64*1024;
 					goto treat_control_like_bulk;
 				}
-				/* error, see below */
+				
 			}
 
 			if (value < 0) {
@@ -1469,27 +1357,21 @@ restart:
 			goto return_urb;
 		}
 
-		/* non-control requests */
+		
 		limit = total;
 		switch (usb_pipetype (urb->pipe)) {
 		case PIPE_ISOCHRONOUS:
-			/* FIXME is it urb->interval since the last xfer?
-			 * use urb->iso_frame_desc[i].
-			 * complete whether or not ep has requests queued.
-			 * report random errors, to debug drivers.
-			 */
+			
 			limit = max (limit, periodic_bytes (dum, ep));
 			status = -ENOSYS;
 			break;
 
 		case PIPE_INTERRUPT:
-			/* FIXME is it urb->interval since the last xfer?
-			 * this almost certainly polls too fast.
-			 */
+			
 			limit = max (limit, periodic_bytes (dum, ep));
-			/* FALLTHROUGH */
+			
 
-		// case PIPE_BULK:  case PIPE_CONTROL:
+		
 		default:
 		treat_control_like_bulk:
 			ep->last_io = jiffies;
@@ -1497,7 +1379,7 @@ restart:
 			break;
 		}
 
-		/* incomplete transfer? */
+		
 		if (status == -EINPROGRESS)
 			continue;
 
@@ -1519,14 +1401,14 @@ return_urb:
 		usb_put_dev (dum->udev);
 		dum->udev = NULL;
 	} else if (dum->rh_state == DUMMY_RH_RUNNING) {
-		/* want a 1 msec delay here */
+		
 		mod_timer (&dum->timer, jiffies + msecs_to_jiffies(1));
 	}
 
 	spin_unlock_irqrestore (&dum->lock, flags);
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 #define PORT_C_MASK \
 	((USB_PORT_STAT_C_CONNECTION \
@@ -1602,7 +1484,7 @@ static int dummy_hub_control (
 		switch (wValue) {
 		case USB_PORT_FEAT_SUSPEND:
 			if (dum->port_status & USB_PORT_STAT_SUSPEND) {
-				/* 20msec resume signaling */
+				
 				dum->resuming = 1;
 				dum->re_timeout = jiffies +
 						msecs_to_jiffies(20);
@@ -1611,7 +1493,7 @@ static int dummy_hub_control (
 		case USB_PORT_FEAT_POWER:
 			if (dum->port_status & USB_PORT_STAT_POWER)
 				dev_dbg (dummy_dev(dum), "power-off\n");
-			/* FALLS THROUGH */
+			
 		default:
 			dum->port_status &= ~(1 << wValue);
 			set_link_state (dum);
@@ -1627,9 +1509,7 @@ static int dummy_hub_control (
 		if (wIndex != 1)
 			retval = -EPIPE;
 
-		/* whoever resets or resumes must GetPortStatus to
-		 * complete it!!
-		 */
+		
 		if (dum->resuming &&
 				time_after_eq (jiffies, dum->re_timeout)) {
 			dum->port_status |= (USB_PORT_STAT_C_SUSPEND << 16);
@@ -1641,7 +1521,7 @@ static int dummy_hub_control (
 			dum->port_status &= ~USB_PORT_STAT_RESET;
 			if (dum->pullup) {
 				dum->port_status |= USB_PORT_STAT_ENABLE;
-				/* give it the best speed we agree on */
+				
 				dum->gadget.speed = dum->driver->speed;
 				dum->gadget.ep0->maxpacket = 64;
 				switch (dum->gadget.speed) {
@@ -1673,9 +1553,7 @@ static int dummy_hub_control (
 			if (dum->active) {
 				dum->port_status |= USB_PORT_STAT_SUSPEND;
 
-				/* HNP would happen here; for now we
-				 * assume b_bus_req is always true.
-				 */
+				
 				set_link_state (dum);
 				if (((1 << USB_DEVICE_B_HNP_ENABLE)
 						& dum->devstatus) != 0)
@@ -1688,14 +1566,14 @@ static int dummy_hub_control (
 			set_link_state (dum);
 			break;
 		case USB_PORT_FEAT_RESET:
-			/* if it's already enabled, disable */
+			
 			dum->port_status &= ~(USB_PORT_STAT_ENABLE
 					| USB_PORT_STAT_LOW_SPEED
 					| USB_PORT_STAT_HIGH_SPEED);
 			dum->devstatus = 0;
-			/* 50msec reset signaling */
+			
 			dum->re_timeout = jiffies + msecs_to_jiffies(50);
-			/* FALLS THROUGH */
+			
 		default:
 			if ((dum->port_status & USB_PORT_STAT_POWER) != 0) {
 				dum->port_status |= (1 << wValue);
@@ -1709,7 +1587,7 @@ static int dummy_hub_control (
 			"hub control req%04x v%04x i%04x l%d\n",
 			typeReq, wValue, wIndex, wLength);
 
-		/* "protocol stall" on error */
+		
 		retval = -EPIPE;
 	}
 	spin_unlock_irqrestore (&dum->lock, flags);
@@ -1754,7 +1632,7 @@ static int dummy_bus_resume (struct usb_hcd *hcd)
 	return rc;
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 static inline ssize_t
 show_urb (char *buf, size_t size, struct urb *urb)
@@ -1811,11 +1689,7 @@ static int dummy_start (struct usb_hcd *hcd)
 
 	dum = hcd_to_dummy (hcd);
 
-	/*
-	 * MASTER side init ... we emulate a root hub that'll only ever
-	 * talk to one device (the slave side).  Also appears in sysfs,
-	 * just like more familiar pci-based HCDs.
-	 */
+	
 	spin_lock_init (&dum->lock);
 	init_timer (&dum->timer);
 	dum->timer.function = dummy_timer;
@@ -1832,7 +1706,7 @@ static int dummy_start (struct usb_hcd *hcd)
 	hcd->self.otg_port = 1;
 #endif
 
-	/* FIXME 'urbs' should be a per-device thing, maybe in usbcore */
+	
 	return device_create_file (dummy_dev(dum), &dev_attr_urbs);
 }
 
@@ -1847,7 +1721,7 @@ static void dummy_stop (struct usb_hcd *hcd)
 	dev_info (dummy_dev(dum), "stopped\n");
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 static int dummy_h_get_frame (struct usb_hcd *hcd)
 {
@@ -1947,7 +1821,7 @@ static struct platform_driver dummy_hcd_driver = {
 	},
 };
 
-/*-------------------------------------------------------------------------*/
+
 
 static struct platform_device *the_udc_pdev;
 static struct platform_device *the_hcd_pdev;

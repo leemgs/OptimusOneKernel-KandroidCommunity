@@ -1,24 +1,4 @@
-/*
- * OHCI HCD (Host Controller Driver) for USB.
- *
- * Copyright (C) 2008 Renesas Solutions Corp.
- *
- * Author : Yoshihiro Shimoda <shimoda.yoshihiro@renesas.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; version 2 of the License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- */
+
 
 #include <linux/platform_device.h>
 
@@ -38,34 +18,24 @@ static const struct hc_driver ohci_sh_hc_driver = {
 	.product_desc =		"SuperH OHCI",
 	.hcd_priv_size =	sizeof(struct ohci_hcd),
 
-	/*
-	 * generic hardware linkage
-	 */
+	
 	.irq =			ohci_irq,
 	.flags =		HCD_USB11 | HCD_MEMORY,
 
-	/*
-	 * basic lifecycle operations
-	 */
+	
 	.start =		ohci_sh_start,
 	.stop =			ohci_stop,
 	.shutdown =		ohci_shutdown,
 
-	/*
-	 * managing i/o requests and associated device resources
-	 */
+	
 	.urb_enqueue =		ohci_urb_enqueue,
 	.urb_dequeue =		ohci_urb_dequeue,
 	.endpoint_disable =	ohci_endpoint_disable,
 
-	/*
-	 * scheduling support
-	 */
+	
 	.get_frame_number =	ohci_get_frame,
 
-	/*
-	 * root hub support
-	 */
+	
 	.hub_status_data =	ohci_hub_status_data,
 	.hub_control =		ohci_hub_control,
 #ifdef	CONFIG_PM
@@ -75,7 +45,7 @@ static const struct hc_driver ohci_sh_hc_driver = {
 	.start_port_reset =	ohci_start_port_reset,
 };
 
-/*-------------------------------------------------------------------------*/
+
 
 #define resource_len(r) (((r)->end - (r)->start) + 1)
 static int ohci_hcd_sh_probe(struct platform_device *pdev)
@@ -100,7 +70,7 @@ static int ohci_hcd_sh_probe(struct platform_device *pdev)
 		return -ENODEV;
 	}
 
-	/* initialize hcd */
+	
 	hcd = usb_create_hcd(&ohci_sh_hc_driver, &pdev->dev, (char *)hcd_name);
 	if (!hcd) {
 		err("Failed to create hcd");

@@ -1,22 +1,4 @@
-/* vi: ts=8 sw=8
- *
- * TI 3410/5052 USB Serial Driver
- *
- * Copyright (C) 2004 Texas Instruments
- *
- * This driver is based on the Linux io_ti driver, which is
- *   Copyright (C) 2000-2002 Inside Out Networks
- *   Copyright (C) 2001-2002 Greg Kroah-Hartman
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * For questions or problems with this driver, contact Texas Instruments
- * technical support, or Al Borchers <alborchers@steinerpoint.com>, or
- * Peter Berger <pberger@brimson.com>.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/errno.h>
@@ -38,7 +20,7 @@
 
 #include "ti_usb_3410_5052.h"
 
-/* Defines */
+
 
 #define TI_DRIVER_VERSION	"v0.9"
 #define TI_DRIVER_AUTHOR	"Al Borchers <alborchers@steinerpoint.com>"
@@ -50,12 +32,12 @@
 
 #define TI_TRANSFER_TIMEOUT	2
 
-#define TI_DEFAULT_CLOSING_WAIT	4000		/* in .01 secs */
+#define TI_DEFAULT_CLOSING_WAIT	4000		
 
-/* supported setserial flags */
+
 #define TI_SET_SERIAL_FLAGS	0
 
-/* read urb states */
+
 #define TI_READ_URB_RUNNING	0
 #define TI_READ_URB_STOPPING	1
 #define TI_READ_URB_STOPPED	2
@@ -63,19 +45,19 @@
 #define TI_EXTRA_VID_PID_COUNT	5
 
 
-/* Structures */
+
 
 struct ti_port {
 	int			tp_is_open;
 	__u8			tp_msr;
 	__u8			tp_lsr;
 	__u8			tp_shadow_mcr;
-	__u8			tp_uart_mode;	/* 232 or 485 modes */
+	__u8			tp_uart_mode;	
 	unsigned int		tp_uart_base_addr;
 	int			tp_flags;
-	int			tp_closing_wait;/* in .01 secs */
+	int			tp_closing_wait;
 	struct async_icount	tp_icount;
-	wait_queue_head_t	tp_msr_wait;	/* wait for msr change */
+	wait_queue_head_t	tp_msr_wait;	
 	wait_queue_head_t	tp_write_wait;
 	struct ti_device	*tp_tdev;
 	struct usb_serial_port	*tp_port;
@@ -94,7 +76,7 @@ struct ti_device {
 };
 
 
-/* Function Declarations */
+
 
 static int ti_startup(struct usb_serial *serial);
 static void ti_release(struct usb_serial *serial);
@@ -144,7 +126,7 @@ static int ti_write_byte(struct ti_device *tdev, unsigned long addr,
 
 static int ti_download_firmware(struct ti_device *tdev);
 
-/* circular buffer */
+
 static struct circ_buf *ti_buf_alloc(void);
 static void ti_buf_free(struct circ_buf *cb);
 static void ti_buf_clear(struct circ_buf *cb);
@@ -154,9 +136,9 @@ static int ti_buf_put(struct circ_buf *cb, const char *buf, int count);
 static int ti_buf_get(struct circ_buf *cb, char *buf, int count);
 
 
-/* Data */
 
-/* module parameters */
+
+
 static int debug;
 static int closing_wait = TI_DEFAULT_CLOSING_WAIT;
 static ushort vendor_3410[TI_EXTRA_VID_PID_COUNT];
@@ -168,10 +150,10 @@ static unsigned int vendor_5052_count;
 static ushort product_5052[TI_EXTRA_VID_PID_COUNT];
 static unsigned int product_5052_count;
 
-/* supported devices */
-/* the array dimension is the number of default entries plus */
-/* TI_EXTRA_VID_PID_COUNT user defined entries plus 1 terminating */
-/* null entry */
+
+
+
+
 static struct usb_device_id ti_id_table_3410[10+TI_EXTRA_VID_PID_COUNT+1] = {
 	{ USB_DEVICE(TI_VENDOR_ID, TI_3410_PRODUCT_ID) },
 	{ USB_DEVICE(TI_VENDOR_ID, TI_3410_EZ430_ID) },
@@ -275,7 +257,7 @@ static struct usb_serial_driver ti_2port_device = {
 };
 
 
-/* Module */
+
 
 MODULE_AUTHOR(TI_DRIVER_AUTHOR);
 MODULE_DESCRIPTION(TI_DRIVER_DESC);
@@ -311,14 +293,14 @@ MODULE_PARM_DESC(product_5052,
 MODULE_DEVICE_TABLE(usb, ti_id_table_combined);
 
 
-/* Functions */
+
 
 static int __init ti_init(void)
 {
 	int i, j, c;
 	int ret;
 
-	/* insert extra vendor and product ids */
+	
 	c = ARRAY_SIZE(ti_id_table_combined) - 2 * TI_EXTRA_VID_PID_COUNT - 1;
 	j = ARRAY_SIZE(ti_id_table_3410) - TI_EXTRA_VID_PID_COUNT - 1;
 	for (i = 0; i < min(vendor_3410_count, product_3410_count); i++, j++, c++) {
@@ -390,7 +372,7 @@ static int ti_startup(struct usb_serial *serial)
 	    dev->descriptor.bNumConfigurations,
 	    dev->actconfig->desc.bConfigurationValue);
 
-	/* create device structure */
+	
 	tdev = kzalloc(sizeof(struct ti_device), GFP_KERNEL);
 	if (tdev == NULL) {
 		dev_err(&dev->dev, "%s - out of memory\n", __func__);
@@ -400,18 +382,18 @@ static int ti_startup(struct usb_serial *serial)
 	tdev->td_serial = serial;
 	usb_set_serial_data(serial, tdev);
 
-	/* determine device type */
+	
 	if (usb_match_id(serial->interface, ti_id_table_3410))
 		tdev->td_is_3410 = 1;
 	dbg("%s - device type is %s", __func__,
 				tdev->td_is_3410 ? "3410" : "5052");
 
-	/* if we have only 1 configuration, download firmware */
+	
 	if (dev->descriptor.bNumConfigurations == 1) {
 		if ((status = ti_download_firmware(tdev)) != 0)
 			goto free_tdev;
 
-		/* 3410 must be reset, 5052 resets itself */
+		
 		if (tdev->td_is_3410) {
 			msleep_interruptible(100);
 			usb_reset_device(dev);
@@ -421,14 +403,14 @@ static int ti_startup(struct usb_serial *serial)
 		goto free_tdev;
 	}
 
-	/* the second configuration must be set */
+	
 	if (dev->actconfig->desc.bConfigurationValue == TI_BOOT_CONFIG) {
 		status = usb_driver_set_configuration(dev, TI_ACTIVE_CONFIG);
 		status = status ? status : -ENODEV;
 		goto free_tdev;
 	}
 
-	/* set up port structures */
+	
 	for (i = 0; i < serial->num_ports; ++i) {
 		tport = kzalloc(sizeof(struct ti_port), GFP_KERNEL);
 		if (tport == NULL) {
@@ -452,7 +434,7 @@ static int ti_startup(struct usb_serial *serial)
 		tport->tp_port = serial->port[i];
 		tport->tp_tdev = tdev;
 		usb_set_serial_port_data(serial->port[i], tport);
-		tport->tp_uart_mode = 0;	/* default is RS232 */
+		tport->tp_uart_mode = 0;	
 	}
 
 	return 0;
@@ -511,7 +493,7 @@ static int ti_open(struct tty_struct *tty, struct usb_serial_port *port)
 	dev = port->serial->dev;
 	tdev = tport->tp_tdev;
 
-	/* only one open on any port on a device at a time */
+	
 	if (mutex_lock_interruptible(&tdev->td_open_close_lock))
 		return -ERESTARTSYS;
 
@@ -522,7 +504,7 @@ static int ti_open(struct tty_struct *tty, struct usb_serial_port *port)
 	tport->tp_msr = 0;
 	tport->tp_shadow_mcr |= (TI_MCR_RTS | TI_MCR_DTR);
 
-	/* start interrupt urb the first time a port is opened on this device */
+	
 	if (tdev->td_open_port_count == 0) {
 		dbg("%s - start interrupt in urb", __func__);
 		urb = tdev->td_serial->port[0]->interrupt_in_urb;
@@ -581,8 +563,7 @@ static int ti_open(struct tty_struct *tty, struct usb_serial_port *port)
 		goto unlink_int_urb;
 	}
 
-	/* reset the data toggle on the bulk endpoints to work around bug in
-	 * host controllers where things get out of sync some times */
+	
 	usb_clear_halt(dev, port->write_urb->pipe);
 	usb_clear_halt(dev, port->read_urb->pipe);
 
@@ -607,7 +588,7 @@ static int ti_open(struct tty_struct *tty, struct usb_serial_port *port)
 		goto unlink_int_urb;
 	}
 
-	/* start read urb */
+	
 	dbg("%s - start read urb", __func__);
 	urb = port->read_urb;
 	if (!urb) {
@@ -674,11 +655,11 @@ static void ti_close(struct usb_serial_port *port)
 			"%s - cannot send close port command, %d\n"
 							, __func__, status);
 
-	/* if mutex_lock is interrupted, continue anyway */
+	
 	do_unlock = !mutex_lock_interruptible(&tdev->td_open_close_lock);
 	--tport->tp_tdev->td_open_port_count;
 	if (tport->tp_tdev->td_open_port_count <= 0) {
-		/* last port is closed, shut down interrupt urb */
+		
 		usb_kill_urb(port->serial->port[0]->interrupt_in_urb);
 		tport->tp_tdev->td_open_port_count = 0;
 	}
@@ -825,7 +806,7 @@ static int ti_ioctl(struct tty_struct *tty, struct file *file,
 			cnow = tport->tp_icount;
 			if (cnow.rng == cprev.rng && cnow.dsr == cprev.dsr &&
 			    cnow.dcd == cprev.dcd && cnow.cts == cprev.cts)
-				return -EIO; /* no change => error */
+				return -EIO; 
 			if (((arg & TIOCM_RNG) && (cnow.rng != cprev.rng)) ||
 			    ((arg & TIOCM_DSR) && (cnow.dsr != cprev.dsr)) ||
 			    ((arg & TIOCM_CD)  && (cnow.dcd != cprev.dcd)) ||
@@ -878,7 +859,7 @@ static void ti_set_termios(struct tty_struct *tty,
 
 	config->wFlags = 0;
 
-	/* these flags must be set */
+	
 	config->wFlags |= TI_UART_ENABLE_MS_INTS;
 	config->wFlags |= TI_UART_ENABLE_AUTO_START_DMA;
 	config->bUartMode = (__u8)(tport->tp_uart_mode);
@@ -899,7 +880,7 @@ static void ti_set_termios(struct tty_struct *tty,
 		    break;
 	}
 
-	/* CMSPAR isn't supported by this driver */
+	
 	tty->termios->c_cflag &= ~CMSPAR;
 
 	if (cflag & PARENB) {
@@ -921,7 +902,7 @@ static void ti_set_termios(struct tty_struct *tty,
 		config->bStopBits = TI_UART_1_STOP_BITS;
 
 	if (cflag & CRTSCTS) {
-		/* RTS flow control must be off to drop RTS for baud rate B0 */
+		
 		if ((cflag & CBAUD) != B0)
 			config->wFlags |= TI_UART_ENABLE_RTS_IN;
 		config->wFlags |= TI_UART_ENABLE_CTS_OUT;
@@ -951,7 +932,7 @@ static void ti_set_termios(struct tty_struct *tty,
 	else
 		config->wBaudRate = (__u16)((461538 + baud/2) / baud);
 
-	/* FIXME: Should calculate resulting baud here and report it back */
+	
 	if ((cflag & CBAUD) != B0)
 		tty_encode_baud_rate(tty, baud, baud);
 
@@ -968,9 +949,9 @@ static void ti_set_termios(struct tty_struct *tty,
 		dev_err(&port->dev, "%s - cannot set config on port %d, %d\n",
 					__func__, port_number, status);
 
-	/* SET_CONFIG asserts RTS and DTR, reset them correctly */
+	
 	mcr = tport->tp_shadow_mcr;
-	/* if baud rate is B0, clear RTS and DTR */
+	
 	if ((cflag & CBAUD) == B0)
 		mcr &= ~(TI_MCR_DTR | TI_MCR_RTS);
 	status = ti_set_mcr(tport, mcr);
@@ -1217,7 +1198,7 @@ static void ti_bulk_in_callback(struct urb *urb)
 	}
 
 exit:
-	/* continue to read unless stopping */
+	
 	spin_lock(&tport->tp_lock);
 	if (tport->tp_read_urb_state == TI_READ_URB_RUNNING) {
 		urb->dev = port->serial->dev;
@@ -1260,7 +1241,7 @@ static void ti_bulk_out_callback(struct urb *urb)
 		wake_up_interruptible(&tport->tp_write_wait);
 	}
 
-	/* send any buffered data */
+	
 	ti_send(tport);
 }
 
@@ -1291,7 +1272,7 @@ static void ti_send(struct ti_port *tport)
 {
 	int count, result;
 	struct usb_serial_port *port = tport->tp_port;
-	struct tty_struct *tty = tty_port_tty_get(&port->port);	/* FIXME */
+	struct tty_struct *tty = tty_port_tty_get(&port->port);	
 	unsigned long flags;
 
 
@@ -1327,14 +1308,14 @@ static void ti_send(struct ti_port *tport)
 		dev_err(&port->dev, "%s - submit write urb failed, %d\n",
 							__func__, result);
 		tport->tp_write_urb_in_use = 0;
-		/* TODO: reschedule ti_send */
+		
 	} else {
 		spin_lock_irqsave(&tport->tp_lock, flags);
 		tport->tp_icount.tx += count;
 		spin_unlock_irqrestore(&tport->tp_lock, flags);
 	}
 
-	/* more room in the buffer for new writes, wakeup */
+	
 	if (tty)
 		tty_wakeup(tty);
 	tty_kref_put(tty);
@@ -1467,7 +1448,7 @@ static void ti_handle_new_msr(struct ti_port *tport, __u8 msr)
 
 	tport->tp_msr = msr & TI_MSR_MASK;
 
-	/* handle CTS flow control */
+	
 	tty = tty_port_tty_get(&tport->tp_port->port);
 	if (tty && C_CRTSCTS(tty)) {
 		if (msr & TI_MSR_CTS) {
@@ -1491,7 +1472,7 @@ static void ti_drain(struct ti_port *tport, unsigned long timeout, int flush)
 
 	spin_lock_irq(&tport->tp_lock);
 
-	/* wait for data to drain from the buffer */
+	
 	tdev->td_urb_error = 0;
 	init_waitqueue_entry(&wait, current);
 	add_wait_queue(&tport->tp_write_wait, &wait);
@@ -1500,7 +1481,7 @@ static void ti_drain(struct ti_port *tport, unsigned long timeout, int flush)
 		if (ti_buf_data_avail(tport->tp_write_buf) == 0
 		|| timeout == 0 || signal_pending(current)
 		|| tdev->td_urb_error
-		|| port->serial->disconnected)  /* disconnect */
+		|| port->serial->disconnected)  
 			break;
 		spin_unlock_irq(&tport->tp_lock);
 		timeout = schedule_timeout(timeout);
@@ -1509,15 +1490,15 @@ static void ti_drain(struct ti_port *tport, unsigned long timeout, int flush)
 	set_current_state(TASK_RUNNING);
 	remove_wait_queue(&tport->tp_write_wait, &wait);
 
-	/* flush any remaining data in the buffer */
+	
 	if (flush)
 		ti_buf_clear(tport->tp_write_buf);
 
 	spin_unlock_irq(&tport->tp_lock);
 
 	mutex_lock(&port->serial->disc_mutex);
-	/* wait for data to drain from the device */
-	/* wait for empty tx register, plus 20 ms */
+	
+	
 	timeout += jiffies;
 	tport->tp_lsr &= ~TI_LSR_TX_EMPTY;
 	while ((long)(jiffies - timeout) < 0 && !signal_pending(current)
@@ -1688,7 +1669,7 @@ static int ti_download_firmware(struct ti_device *tdev)
 	const struct firmware *fw_p;
 	char buf[32];
 
-	/* try ID specific firmware first, then try generic firmware */
+	
 	sprintf(buf, "ti_usb-v%04x-p%04x.fw", dev->descriptor.idVendor,
 	    dev->descriptor.idProduct);
 	if ((status = request_firmware(&fw_p, buf, &dev->dev)) != 0) {
@@ -1746,13 +1727,9 @@ static int ti_download_firmware(struct ti_device *tdev)
 }
 
 
-/* Circular Buffer Functions */
 
-/*
- * ti_buf_alloc
- *
- * Allocate a circular buffer and all associated memory.
- */
+
+
 
 static struct circ_buf *ti_buf_alloc(void)
 {
@@ -1774,11 +1751,7 @@ static struct circ_buf *ti_buf_alloc(void)
 }
 
 
-/*
- * ti_buf_free
- *
- * Free the buffer and all associated memory.
- */
+
 
 static void ti_buf_free(struct circ_buf *cb)
 {
@@ -1787,11 +1760,7 @@ static void ti_buf_free(struct circ_buf *cb)
 }
 
 
-/*
- * ti_buf_clear
- *
- * Clear out all data in the circular buffer.
- */
+
 
 static void ti_buf_clear(struct circ_buf *cb)
 {
@@ -1799,12 +1768,7 @@ static void ti_buf_clear(struct circ_buf *cb)
 }
 
 
-/*
- * ti_buf_data_avail
- *
- * Return the number of bytes of data available in the circular
- * buffer.
- */
+
 
 static int ti_buf_data_avail(struct circ_buf *cb)
 {
@@ -1812,12 +1776,7 @@ static int ti_buf_data_avail(struct circ_buf *cb)
 }
 
 
-/*
- * ti_buf_space_avail
- *
- * Return the number of bytes of space available in the circular
- * buffer.
- */
+
 
 static int ti_buf_space_avail(struct circ_buf *cb)
 {
@@ -1825,14 +1784,7 @@ static int ti_buf_space_avail(struct circ_buf *cb)
 }
 
 
-/*
- * ti_buf_put
- *
- * Copy data data from a user buffer and put it into the circular buffer.
- * Restrict to the amount of space available.
- *
- * Return the number of bytes copied.
- */
+
 
 static int ti_buf_put(struct circ_buf *cb, const char *buf, int count)
 {
@@ -1855,14 +1807,7 @@ static int ti_buf_put(struct circ_buf *cb, const char *buf, int count)
 }
 
 
-/*
- * ti_buf_get
- *
- * Get data from the circular buffer and copy to the given buffer.
- * Restrict to the amount of data available.
- *
- * Return the number of bytes copied.
- */
+
 
 static int ti_buf_get(struct circ_buf *cb, char *buf, int count)
 {

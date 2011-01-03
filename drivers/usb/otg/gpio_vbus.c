@@ -1,12 +1,4 @@
-/*
- * gpio-vbus.c - simple GPIO VBUS sensing driver for B peripheral devices
- *
- * Copyright (c) 2008 Philipp Zabel <philipp.zabel@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/platform_device.h>
@@ -22,13 +14,7 @@
 #include <linux/usb/otg.h>
 
 
-/*
- * A simple GPIO VBUS sensing driver for B peripheral only devices
- * with internal transceivers. It can control a D+ pullup GPIO and
- * a regulator to limit the current drawn from VBUS.
- *
- * Needs to be loaded before the UDC driver that will use it.
- */
+
 struct gpio_vbus_data {
 	struct otg_transceiver otg;
 	struct device          *dev;
@@ -39,21 +25,13 @@ struct gpio_vbus_data {
 };
 
 
-/*
- * This driver relies on "both edges" triggering.  VBUS has 100 msec to
- * stabilize, so the peripheral controller driver may need to cope with
- * some bouncing due to current surges (e.g. charging local capacitance)
- * and contact chatter.
- *
- * REVISIT in desperate straits, toggling between rising and falling
- * edges might be workable.
- */
+
 #define VBUS_IRQ_FLAGS \
 	( IRQF_SAMPLE_RANDOM | IRQF_SHARED \
 	| IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING )
 
 
-/* interface to regulator framework */
+
 static void set_vbus_draw(struct gpio_vbus_data *gpio_vbus, unsigned mA)
 {
 	struct regulator *vbus_draw = gpio_vbus->vbus_draw;
@@ -99,24 +77,20 @@ static void gpio_vbus_work(struct work_struct *work)
 	if (!gpio_vbus->otg.gadget)
 		return;
 
-	/* Peripheral controllers which manage the pullup themselves won't have
-	 * gpio_pullup configured here.  If it's configured here, we'll do what
-	 * isp1301_omap::b_peripheral() does and enable the pullup here... although
-	 * that may complicate usb_gadget_{,dis}connect() support.
-	 */
+	
 	gpio = pdata->gpio_pullup;
 	if (is_vbus_powered(pdata)) {
 		gpio_vbus->otg.state = OTG_STATE_B_PERIPHERAL;
 		usb_gadget_vbus_connect(gpio_vbus->otg.gadget);
 
-		/* drawing a "unit load" is *always* OK, except for OTG */
+		
 		set_vbus_draw(gpio_vbus, 100);
 
-		/* optionally enable D+ pullup */
+		
 		if (gpio_is_valid(gpio))
 			gpio_set_value(gpio, !pdata->gpio_pullup_inverted);
 	} else {
-		/* optionally disable D+ pullup */
+		
 		if (gpio_is_valid(gpio))
 			gpio_set_value(gpio, pdata->gpio_pullup_inverted);
 
@@ -127,7 +101,7 @@ static void gpio_vbus_work(struct work_struct *work)
 	}
 }
 
-/* VBUS change IRQ handler */
+
 static irqreturn_t gpio_vbus_irq(int irq, void *data)
 {
 	struct platform_device *pdev = data;
@@ -144,9 +118,9 @@ static irqreturn_t gpio_vbus_irq(int irq, void *data)
 	return IRQ_HANDLED;
 }
 
-/* OTG transceiver interface */
 
-/* bind/unbind the peripheral controller */
+
+
 static int gpio_vbus_set_peripheral(struct otg_transceiver *otg,
 				struct usb_gadget *gadget)
 {
@@ -165,7 +139,7 @@ static int gpio_vbus_set_peripheral(struct otg_transceiver *otg,
 		dev_dbg(&pdev->dev, "unregistering gadget '%s'\n",
 			otg->gadget->name);
 
-		/* optionally disable D+ pullup */
+		
 		if (gpio_is_valid(gpio))
 			gpio_set_value(gpio, pdata->gpio_pullup_inverted);
 
@@ -181,12 +155,12 @@ static int gpio_vbus_set_peripheral(struct otg_transceiver *otg,
 	otg->gadget = gadget;
 	dev_dbg(&pdev->dev, "registered gadget '%s'\n", gadget->name);
 
-	/* initialize connection state */
+	
 	gpio_vbus_irq(irq, pdev);
 	return 0;
 }
 
-/* effective for B devices, ignored for A-peripheral */
+
 static int gpio_vbus_set_power(struct otg_transceiver *otg, unsigned mA)
 {
 	struct gpio_vbus_data *gpio_vbus;
@@ -198,23 +172,18 @@ static int gpio_vbus_set_power(struct otg_transceiver *otg, unsigned mA)
 	return 0;
 }
 
-/* for non-OTG B devices: set/clear transceiver suspend mode */
+
 static int gpio_vbus_set_suspend(struct otg_transceiver *otg, int suspend)
 {
 	struct gpio_vbus_data *gpio_vbus;
 
 	gpio_vbus = container_of(otg, struct gpio_vbus_data, otg);
 
-	/* draw max 0 mA from vbus in suspend mode; or the previously
-	 * recorded amount of current if not suspended
-	 *
-	 * NOTE: high powered configs (mA > 100) may draw up to 2.5 mA
-	 * if they're wake-enabled ... we don't handle that yet.
-	 */
+	
 	return gpio_vbus_set_power(otg, suspend ? 0 : gpio_vbus->mA);
 }
 
-/* platform driver interface */
+
 
 static int __init gpio_vbus_probe(struct platform_device *pdev)
 {
@@ -255,7 +224,7 @@ static int __init gpio_vbus_probe(struct platform_device *pdev)
 	} else
 		irq = gpio_to_irq(gpio);
 
-	/* if data line pullup is in use, initialize it to "not pulling up" */
+	
 	gpio = pdata->gpio_pullup;
 	if (gpio_is_valid(gpio)) {
 		err = gpio_request(gpio, "udc_pullup");
@@ -278,7 +247,7 @@ static int __init gpio_vbus_probe(struct platform_device *pdev)
 	}
 	INIT_WORK(&gpio_vbus->work, gpio_vbus_work);
 
-	/* only active when a gadget is registered */
+	
 	err = otg_set_transceiver(&gpio_vbus->otg);
 	if (err) {
 		dev_err(&pdev->dev, "can't register transceiver, err: %d\n",
@@ -326,7 +295,7 @@ static int __exit gpio_vbus_remove(struct platform_device *pdev)
 	return 0;
 }
 
-/* NOTE:  the gpio-vbus device may *NOT* be hotplugged */
+
 
 MODULE_ALIAS("platform:gpio-vbus");
 

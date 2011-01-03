@@ -1,33 +1,12 @@
-/*
- * linux/drivers/usb/gadget/lh7a40x_udc.c
- * Sharp LH7A40x on-chip full speed USB device controllers
- *
- * Copyright (C) 2004 Mikko Lahteenmaki, Nordic ID
- * Copyright (C) 2004 Bo Henriksen, Nordic ID
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- */
+
 
 #include <linux/platform_device.h>
 
 #include "lh7a40x_udc.h"
 
-//#define DEBUG printk
-//#define DEBUG_EP0 printk
-//#define DEBUG_SETUP printk
+
+
+
 
 #ifndef DEBUG_EP0
 # define DEBUG_EP0(fmt,args...)
@@ -43,7 +22,7 @@
 #define	DRIVER_DESC			"LH7A40x USB Device Controller"
 #define	DRIVER_VERSION		__DATE__
 
-#ifndef _BIT			/* FIXME - what happended to _BIT in 2.6.7bk18? */
+#ifndef _BIT			
 #define _BIT(x) (1<<(x))
 #endif
 
@@ -53,9 +32,7 @@ static const char driver_name[] = "lh7a40x_udc";
 static const char driver_desc[] = DRIVER_DESC;
 static const char ep0name[] = "ep0-control";
 
-/*
-  Local definintions.
-*/
+
 
 #ifndef NO_STATES
 static char *state_names[] = {
@@ -67,9 +44,7 @@ static char *state_names[] = {
 };
 #endif
 
-/*
-  Local declarations.
-*/
+
 static int lh7a40x_ep_enable(struct usb_ep *ep,
 			     const struct usb_endpoint_descriptor *);
 static int lh7a40x_ep_disable(struct usb_ep *ep);
@@ -108,7 +83,7 @@ static struct usb_ep_ops lh7a40x_ep_ops = {
 	.fifo_flush = lh7a40x_fifo_flush,
 };
 
-/* Inline code */
+
 
 static __inline__ int write_packet(struct lh7a40x_ep *ep,
 				   struct lh7a40x_request *req, int max)
@@ -163,26 +138,22 @@ static __inline__ void usb_clear(u32 val, u32 port)
 	*ioport = after;
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 #define GPIO_PORTC_DR 	(0x80000E08)
 #define GPIO_PORTC_DDR 	(0x80000E18)
 #define GPIO_PORTC_PDR 	(0x80000E70)
 
-/* get port C pin data register */
+
 #define get_portc_pdr(bit) 		((usb_read(GPIO_PORTC_PDR) & _BIT(bit)) != 0)
-/* get port C data direction register */
+
 #define get_portc_ddr(bit) 		((usb_read(GPIO_PORTC_DDR) & _BIT(bit)) != 0)
-/* set port C data register */
+
 #define set_portc_dr(bit, val) 	(val ? usb_set(_BIT(bit), GPIO_PORTC_DR) : usb_clear(_BIT(bit), GPIO_PORTC_DR))
-/* set port C data direction register */
+
 #define set_portc_ddr(bit, val) (val ? usb_set(_BIT(bit), GPIO_PORTC_DDR) : usb_clear(_BIT(bit), GPIO_PORTC_DDR))
 
-/*
- * LPD7A404 GPIO's:
- * Port C bit 1 = USB Port 1 Power Enable
- * Port C bit 2 = USB Port 1 Data Carrier Detect
- */
+
 #define is_usb_connected() 		get_portc_pdr(2)
 
 #ifdef CONFIG_USB_GADGET_DEBUG_FILES
@@ -205,7 +176,7 @@ udc_proc_read(char *page, char **start, off_t off, int count,
 
 	local_irq_save(flags);
 
-	/* basic device status */
+	
 	t = scnprintf(next, size,
 		      DRIVER_DESC "\n"
 		      "%s version: %s\n"
@@ -241,58 +212,54 @@ udc_proc_read(char *page, char **start, off_t off, int count,
 #define create_proc_files() 	create_proc_read_entry(proc_node_name, 0, NULL, udc_proc_read, dev)
 #define remove_proc_files() 	remove_proc_entry(proc_node_name, NULL)
 
-#else	/* !CONFIG_USB_GADGET_DEBUG_FILES */
+#else	
 
 #define create_proc_files() do {} while (0)
 #define remove_proc_files() do {} while (0)
 
-#endif	/* CONFIG_USB_GADGET_DEBUG_FILES */
+#endif	
 
-/*
- * 	udc_disable - disable USB device controller
- */
+
 static void udc_disable(struct lh7a40x_udc *dev)
 {
 	DEBUG("%s, %p\n", __func__, dev);
 
 	udc_set_address(dev, 0);
 
-	/* Disable interrupts */
+	
 	usb_write(0, USB_IN_INT_EN);
 	usb_write(0, USB_OUT_INT_EN);
 	usb_write(0, USB_INT_EN);
 
-	/* Disable the USB */
+	
 	usb_write(0, USB_PM);
 
 #ifdef CONFIG_ARCH_LH7A404
-	/* Disable USB power */
+	
 	set_portc_dr(1, 0);
 #endif
 
-	/* if hardware supports it, disconnect from usb */
-	/* make_usb_disappear(); */
+	
+	
 
 	dev->ep0state = WAIT_FOR_SETUP;
 	dev->gadget.speed = USB_SPEED_UNKNOWN;
 	dev->usb_address = 0;
 }
 
-/*
- * 	udc_reinit - initialize software state
- */
+
 static void udc_reinit(struct lh7a40x_udc *dev)
 {
 	u32 i;
 
 	DEBUG("%s, %p\n", __func__, dev);
 
-	/* device/ep0 records init */
+	
 	INIT_LIST_HEAD(&dev->gadget.ep_list);
 	INIT_LIST_HEAD(&dev->gadget.ep0->ep_list);
 	dev->ep0state = WAIT_FOR_SETUP;
 
-	/* basic endpoint records init */
+	
 	for (i = 0; i < UDC_MAX_ENDPOINTS; i++) {
 		struct lh7a40x_ep *ep = &dev->ep[i];
 
@@ -305,15 +272,13 @@ static void udc_reinit(struct lh7a40x_udc *dev)
 		ep->pio_irqs = 0;
 	}
 
-	/* the rest was statically initialized, and is read-only */
+	
 }
 
 #define BYTES2MAXP(x)	(x / 8)
 #define MAXP2BYTES(x)	(x * 8)
 
-/* until it's enabled, this UDC should be completely invisible
- * to any USB host.
- */
+
 static void udc_enable(struct lh7a40x_udc *dev)
 {
 	int ep;
@@ -323,27 +288,25 @@ static void udc_enable(struct lh7a40x_udc *dev)
 	dev->gadget.speed = USB_SPEED_UNKNOWN;
 
 #ifdef CONFIG_ARCH_LH7A404
-	/* Set Port C bit 1 & 2 as output */
+	
 	set_portc_ddr(1, 1);
 	set_portc_ddr(2, 1);
 
-	/* Enable USB power */
+	
 	set_portc_dr(1, 0);
 #endif
 
-	/*
-	 * C.f Chapter 18.1.3.1 Initializing the USB
-	 */
+	
 
-	/* Disable the USB */
+	
 	usb_clear(PM_USB_ENABLE, USB_PM);
 
-	/* Reset APB & I/O sides of the USB */
+	
 	usb_set(USB_RESET_APB | USB_RESET_IO, USB_RESET);
 	mdelay(5);
 	usb_clear(USB_RESET_APB | USB_RESET_IO, USB_RESET);
 
-	/* Set MAXP values for each */
+	
 	for (ep = 0; ep < UDC_MAX_ENDPOINTS; ep++) {
 		struct lh7a40x_ep *ep_reg = &dev->ep[ep];
 		u32 csr;
@@ -355,7 +318,7 @@ static void udc_enable(struct lh7a40x_udc *dev)
 		case ep_interrupt:
 			usb_clear(USB_IN_CSR2_USB_DMA_EN | USB_IN_CSR2_AUTO_SET,
 				  ep_reg->csr2);
-			/* Fall through */
+			
 		case ep_control:
 			usb_write(BYTES2MAXP(ep_maxpacket(ep_reg)),
 				  USB_IN_MAXP);
@@ -368,45 +331,38 @@ static void udc_enable(struct lh7a40x_udc *dev)
 			break;
 		}
 
-		/* Read & Write CSR1, just in case */
+		
 		csr = usb_read(ep_reg->csr1);
 		usb_write(csr, ep_reg->csr1);
 
 		flush(ep_reg);
 	}
 
-	/* Disable interrupts */
+	
 	usb_write(0, USB_IN_INT_EN);
 	usb_write(0, USB_OUT_INT_EN);
 	usb_write(0, USB_INT_EN);
 
-	/* Enable interrupts */
+	
 	usb_set(USB_IN_INT_EP0, USB_IN_INT_EN);
 	usb_set(USB_INT_RESET_INT | USB_INT_RESUME_INT, USB_INT_EN);
-	/* Dont enable rest of the interrupts */
-	/* usb_set(USB_IN_INT_EP3 | USB_IN_INT_EP1 | USB_IN_INT_EP0, USB_IN_INT_EN);
-	   usb_set(USB_OUT_INT_EP2, USB_OUT_INT_EN); */
+	
+	
 
-	/* Enable SUSPEND */
+	
 	usb_set(PM_ENABLE_SUSPEND, USB_PM);
 
-	/* Enable the USB */
+	
 	usb_set(PM_USB_ENABLE, USB_PM);
 
 #ifdef CONFIG_ARCH_LH7A404
-	/* NOTE: DOES NOT WORK! */
-	/* Let host detect UDC:
-	 * Software must write a 0 to the PMR:DCP_CTRL bit to turn this
-	 * transistor on and pull the USBDP pin HIGH.
-	 */
-	/* usb_clear(PM_USB_DCP, USB_PM);
-	   usb_set(PM_USB_DCP, USB_PM); */
+	
+	
+	
 #endif
 }
 
-/*
-  Register entry point for the peripheral controller driver.
-*/
+
 int usb_gadget_register_driver(struct usb_gadget_driver *driver)
 {
 	struct lh7a40x_udc *dev = the_controller;
@@ -425,7 +381,7 @@ int usb_gadget_register_driver(struct usb_gadget_driver *driver)
 	if (dev->driver)
 		return -EBUSY;
 
-	/* first hook up the driver ... */
+	
 	dev->driver = driver;
 	dev->gadget.dev.driver = &driver->driver;
 
@@ -441,10 +397,7 @@ int usb_gadget_register_driver(struct usb_gadget_driver *driver)
 		return retval;
 	}
 
-	/* ... then enable host detection and ep0; and we're ready
-	 * for set_configuration as well as eventual disconnect.
-	 * NOTE:  this shouldn't power up until later.
-	 */
+	
 	printk(KERN_WARNING "%s: registered gadget driver '%s'\n",
 	       dev->gadget.name, driver->driver.name);
 
@@ -455,9 +408,7 @@ int usb_gadget_register_driver(struct usb_gadget_driver *driver)
 
 EXPORT_SYMBOL(usb_gadget_register_driver);
 
-/*
-  Unregister entry point for the peripheral controller driver.
-*/
+
 int usb_gadget_unregister_driver(struct usb_gadget_driver *driver)
 {
 	struct lh7a40x_udc *dev = the_controller;
@@ -485,12 +436,9 @@ int usb_gadget_unregister_driver(struct usb_gadget_driver *driver)
 
 EXPORT_SYMBOL(usb_gadget_unregister_driver);
 
-/*-------------------------------------------------------------------------*/
 
-/** Write request to FIFO (max write == maxp size)
- *  Return:  0 = still running, 1 = completed, negative = errno
- *  NOTE: INDEX register must be set for EP
- */
+
+
 static int write_fifo(struct lh7a40x_ep *ep, struct lh7a40x_request *req)
 {
 	u32 max;
@@ -508,7 +456,7 @@ static int write_fifo(struct lh7a40x_ep *ep, struct lh7a40x_request *req)
 		count = write_packet(ep, req, max);
 		usb_set(USB_IN_CSR1_IN_PKT_RDY, ep->csr1);
 
-		/* last packet is usually short (or a zlp) */
+		
 		if (unlikely(count != max))
 			is_last = is_short = 1;
 		else {
@@ -517,7 +465,7 @@ static int write_fifo(struct lh7a40x_ep *ep, struct lh7a40x_request *req)
 				is_last = 0;
 			else
 				is_last = 1;
-			/* interrupt/iso maxpacket may not fill the fifo */
+			
 			is_short = unlikely(max < ep_maxpacket(ep));
 		}
 
@@ -526,7 +474,7 @@ static int write_fifo(struct lh7a40x_ep *ep, struct lh7a40x_request *req)
 		      is_last ? "/L" : "", is_short ? "/S" : "",
 		      req->req.length - req->req.actual, req);
 
-		/* requests complete when all IN data is in the FIFO */
+		
 		if (is_last) {
 			done(ep, req, 0);
 			if (list_empty(&ep->queue)) {
@@ -541,10 +489,7 @@ static int write_fifo(struct lh7a40x_ep *ep, struct lh7a40x_request *req)
 	return 0;
 }
 
-/** Read to request from FIFO (max read == bytes in fifo)
- *  Return:  0 = still running, 1 = completed, negative = errno
- *  NOTE: INDEX register must be set for EP
- */
+
 static int read_fifo(struct lh7a40x_ep *ep, struct lh7a40x_request *req)
 {
 	u32 csr;
@@ -552,7 +497,7 @@ static int read_fifo(struct lh7a40x_ep *ep, struct lh7a40x_request *req)
 	unsigned bufferspace, count, is_short;
 	volatile u32 *fifo = (volatile u32 *)ep->fifo;
 
-	/* make sure there's a packet in the FIFO. */
+	
 	csr = usb_read(ep->csr1);
 	if (!(csr & USB_OUT_CSR1_OUT_PKT_RDY)) {
 		DEBUG("%s: Packet NOT ready!\n", __func__);
@@ -563,7 +508,7 @@ static int read_fifo(struct lh7a40x_ep *ep, struct lh7a40x_request *req)
 	prefetchw(buf);
 	bufferspace = req->req.length - req->req.actual;
 
-	/* read all bytes from this packet */
+	
 	count = usb_read(USB_OUT_FIFO_WC1);
 	req->req.actual += min(count, bufferspace);
 
@@ -576,10 +521,7 @@ static int read_fifo(struct lh7a40x_ep *ep, struct lh7a40x_request *req)
 		u8 byte = (u8) (*fifo & 0xff);
 
 		if (unlikely(bufferspace == 0)) {
-			/* this happens when the driver's buffer
-			 * is smaller than what the host sent.
-			 * discard the extra data.
-			 */
+			
 			if (req->req.status != -EOVERFLOW)
 				printk(KERN_WARNING "%s overflow %d\n",
 				       ep->ep.name, count);
@@ -592,7 +534,7 @@ static int read_fifo(struct lh7a40x_ep *ep, struct lh7a40x_request *req)
 
 	usb_clear(USB_OUT_CSR1_OUT_PKT_RDY, ep->csr1);
 
-	/* completion */
+	
 	if (is_short || req->req.actual == req->req.length) {
 		done(ep, req, 0);
 		usb_set(USB_OUT_CSR1_FIFO_FLUSH, ep->csr1);
@@ -602,14 +544,11 @@ static int read_fifo(struct lh7a40x_ep *ep, struct lh7a40x_request *req)
 		return 1;
 	}
 
-	/* finished that packet.  the next one may be waiting... */
+	
 	return 0;
 }
 
-/*
- *	done - retire a request; caller blocked irqs
- *  INDEX register is preserved to keep same
- */
+
 static void done(struct lh7a40x_ep *ep, struct lh7a40x_request *req, int status)
 {
 	unsigned int stopped = ep->stopped;
@@ -628,21 +567,21 @@ static void done(struct lh7a40x_ep *ep, struct lh7a40x_request *req, int status)
 		      ep->ep.name, &req->req, status,
 		      req->req.actual, req->req.length);
 
-	/* don't modify queue heads during completion callback */
+	
 	ep->stopped = 1;
-	/* Read current index (completion may modify it) */
+	
 	index = usb_read(USB_INDEX);
 
 	spin_unlock(&ep->dev->lock);
 	req->req.complete(&ep->ep, &req->req);
 	spin_lock(&ep->dev->lock);
 
-	/* Restore index */
+	
 	usb_set_index(index);
 	ep->stopped = stopped;
 }
 
-/** Enable EP interrupt */
+
 static void pio_irq_enable(int ep)
 {
 	DEBUG("%s: %d\n", __func__, ep);
@@ -663,7 +602,7 @@ static void pio_irq_enable(int ep)
 	}
 }
 
-/** Disable EP interrupt */
+
 static void pio_irq_disable(int ep)
 {
 	DEBUG("%s: %d\n", __func__, ep);
@@ -684,80 +623,55 @@ static void pio_irq_disable(int ep)
 	}
 }
 
-/*
- * 	nuke - dequeue ALL requests
- */
+
 void nuke(struct lh7a40x_ep *ep, int status)
 {
 	struct lh7a40x_request *req;
 
 	DEBUG("%s, %p\n", __func__, ep);
 
-	/* Flush FIFO */
+	
 	flush(ep);
 
-	/* called with irqs blocked */
+	
 	while (!list_empty(&ep->queue)) {
 		req = list_entry(ep->queue.next, struct lh7a40x_request, queue);
 		done(ep, req, status);
 	}
 
-	/* Disable IRQ if EP is enabled (has descriptor) */
+	
 	if (ep->desc)
 		pio_irq_disable(ep_index(ep));
 }
 
-/*
-void nuke_all(struct lh7a40x_udc *dev)
-{
-	int n;
-	for(n=0; n<UDC_MAX_ENDPOINTS; n++) {
-		struct lh7a40x_ep *ep = &dev->ep[n];
-		usb_set_index(n);
-		nuke(ep, 0);
-	}
-}*/
 
-/*
-static void flush_all(struct lh7a40x_udc *dev)
-{
-	int n;
-    for (n = 0; n < UDC_MAX_ENDPOINTS; n++)
-    {
-		struct lh7a40x_ep *ep = &dev->ep[n];
-		flush(ep);
-    }
-}
-*/
 
-/** Flush EP
- * NOTE: INDEX register must be set before this call
- */
+
+
+
 static void flush(struct lh7a40x_ep *ep)
 {
 	DEBUG("%s, %p\n", __func__, ep);
 
 	switch (ep->ep_type) {
 	case ep_control:
-		/* check, by implication c.f. 15.1.2.11 */
+		
 		break;
 
 	case ep_bulk_in:
 	case ep_interrupt:
-		/* if(csr & USB_IN_CSR1_IN_PKT_RDY) */
+		
 		usb_set(USB_IN_CSR1_FIFO_FLUSH, ep->csr1);
 		break;
 
 	case ep_bulk_out:
-		/* if(csr & USB_OUT_CSR1_OUT_PKT_RDY) */
+		
 		usb_set(USB_OUT_CSR1_FIFO_FLUSH, ep->csr1);
 		break;
 	}
 }
 
-/**
- * lh7a40x_in_epn - handle IN interrupt
- */
+
 static void lh7a40x_in_epn(struct lh7a40x_udc *dev, u32 ep_idx, u32 intr)
 {
 	u32 csr;
@@ -771,7 +685,7 @@ static void lh7a40x_in_epn(struct lh7a40x_udc *dev, u32 ep_idx, u32 intr)
 
 	if (csr & USB_IN_CSR1_SENT_STALL) {
 		DEBUG("USB_IN_CSR1_SENT_STALL\n");
-		usb_set(USB_IN_CSR1_SENT_STALL /*|USB_IN_CSR1_SEND_STALL */ ,
+		usb_set(USB_IN_CSR1_SENT_STALL  ,
 			ep->csr1);
 		return;
 	}
@@ -794,9 +708,8 @@ static void lh7a40x_in_epn(struct lh7a40x_udc *dev, u32 ep_idx, u32 intr)
 	write_fifo(ep, req);
 }
 
-/* ********************************************************************************************* */
-/* Bulk OUT (recv)
- */
+
+
 
 static void lh7a40x_out_epn(struct lh7a40x_udc *dev, u32 ep_idx, u32 intr)
 {
@@ -820,7 +733,7 @@ static void lh7a40x_out_epn(struct lh7a40x_udc *dev, u32 ep_idx, u32 intr)
 			if (csr & USB_OUT_CSR1_SENT_STALL) {
 				DEBUG("%s: stall sent, flush fifo\n",
 				      __func__);
-				/* usb_set(USB_OUT_CSR1_FIFO_FLUSH, ep->csr1); */
+				
 				flush(ep);
 			} else if (csr & USB_OUT_CSR1_OUT_PKT_RDY) {
 				if (list_empty(&ep->queue))
@@ -845,7 +758,7 @@ static void lh7a40x_out_epn(struct lh7a40x_udc *dev, u32 ep_idx, u32 intr)
 		}
 
 	} else {
-		/* Throw packet away.. */
+		
 		printk(KERN_WARNING "%s: No descriptor?!?\n", __func__);
 		flush(ep);
 	}
@@ -856,12 +769,12 @@ static void stop_activity(struct lh7a40x_udc *dev,
 {
 	int i;
 
-	/* don't disconnect drivers more than once */
+	
 	if (dev->gadget.speed == USB_SPEED_UNKNOWN)
 		driver = 0;
 	dev->gadget.speed = USB_SPEED_UNKNOWN;
 
-	/* prevent new request submissions, kill any outstanding requests  */
+	
 	for (i = 0; i < UDC_MAX_ENDPOINTS; i++) {
 		struct lh7a40x_ep *ep = &dev->ep[i];
 		ep->stopped = 1;
@@ -870,54 +783,49 @@ static void stop_activity(struct lh7a40x_udc *dev,
 		nuke(ep, -ESHUTDOWN);
 	}
 
-	/* report disconnect; the driver is already quiesced */
+	
 	if (driver) {
 		spin_unlock(&dev->lock);
 		driver->disconnect(&dev->gadget);
 		spin_lock(&dev->lock);
 	}
 
-	/* re-init driver-visible data structures */
+	
 	udc_reinit(dev);
 }
 
-/** Handle USB RESET interrupt
- */
+
 static void lh7a40x_reset_intr(struct lh7a40x_udc *dev)
 {
-#if 0				/* def CONFIG_ARCH_LH7A404 */
-	/* Does not work always... */
+#if 0				
+	
 
 	DEBUG("%s: %d\n", __func__, dev->usb_address);
 
 	if (!dev->usb_address) {
-		/*usb_set(USB_RESET_IO, USB_RESET);
-		   mdelay(5);
-		   usb_clear(USB_RESET_IO, USB_RESET); */
+		
 		return;
 	}
-	/* Put the USB controller into reset. */
+	
 	usb_set(USB_RESET_IO, USB_RESET);
 
-	/* Set Device ID to 0 */
+	
 	udc_set_address(dev, 0);
 
-	/* Let PLL2 settle down */
+	
 	mdelay(5);
 
-	/* Release the USB controller from reset */
+	
 	usb_clear(USB_RESET_IO, USB_RESET);
 
-	/* Re-enable UDC */
+	
 	udc_enable(dev);
 
 #endif
 	dev->gadget.speed = USB_SPEED_FULL;
 }
 
-/*
- *	lh7a40x usb client interrupt handler.
- */
+
 static irqreturn_t lh7a40x_udc_irq(int irq, void *_dev)
 {
 	struct lh7a40x_udc *dev = _dev;
@@ -931,7 +839,7 @@ static irqreturn_t lh7a40x_udc_irq(int irq, void *_dev)
 		u32 intr_out = usb_read(USB_OUT_INT);
 		u32 intr_int = usb_read(USB_INT);
 
-		/* Test also against enable bits.. (lh7a40x errata).. Sigh.. */
+		
 		u32 in_en = usb_read(USB_IN_INT_EN);
 		u32 out_en = usb_read(USB_OUT_INT_EN);
 
@@ -1029,7 +937,7 @@ static int lh7a40x_ep_enable(struct usb_ep *_ep,
 		return -EINVAL;
 	}
 
-	/* xfer types must match, except that interrupt ~= bulk */
+	
 	if (ep->bmAttributes != desc->bmAttributes
 	    && ep->bmAttributes != USB_ENDPOINT_XFER_BULK
 	    && desc->bmAttributes != USB_ENDPOINT_XFER_INT) {
@@ -1037,7 +945,7 @@ static int lh7a40x_ep_enable(struct usb_ep *_ep,
 		return -EINVAL;
 	}
 
-	/* hardware _could_ do smaller, but driver doesn't */
+	
 	if ((desc->bmAttributes == USB_ENDPOINT_XFER_BULK
 	     && le16_to_cpu(desc->wMaxPacketSize) != ep_maxpacket(ep))
 	    || !desc->wMaxPacketSize) {
@@ -1060,16 +968,14 @@ static int lh7a40x_ep_enable(struct usb_ep *_ep,
 
 	spin_unlock_irqrestore(&ep->dev->lock, flags);
 
-	/* Reset halt state (does flush) */
+	
 	lh7a40x_set_halt(_ep, 0);
 
 	DEBUG("%s: enabled %s\n", __func__, _ep->name);
 	return 0;
 }
 
-/** Disable EP
- *  NOTE: Sets INDEX register
- */
+
 static int lh7a40x_ep_disable(struct usb_ep *_ep)
 {
 	struct lh7a40x_ep *ep;
@@ -1088,10 +994,10 @@ static int lh7a40x_ep_disable(struct usb_ep *_ep)
 
 	usb_set_index(ep_index(ep));
 
-	/* Nuke all pending requests (does flush) */
+	
 	nuke(ep, -ESHUTDOWN);
 
-	/* Disable ep IRQ */
+	
 	pio_irq_disable(ep_index(ep));
 
 	ep->desc = 0;
@@ -1130,10 +1036,7 @@ static void lh7a40x_free_request(struct usb_ep *ep, struct usb_request *_req)
 	kfree(req);
 }
 
-/** Queue one request
- *  Kickstart transfer if needed
- *  NOTE: Sets INDEX register
- */
+
 static int lh7a40x_queue(struct usb_ep *_ep, struct usb_request *_req,
 			 gfp_t gfp_flags)
 {
@@ -1172,19 +1075,19 @@ static int lh7a40x_queue(struct usb_ep *_ep, struct usb_request *_req,
 	_req->status = -EINPROGRESS;
 	_req->actual = 0;
 
-	/* kickstart this i/o queue? */
+	
 	DEBUG("Add to %d Q %d %d\n", ep_index(ep), list_empty(&ep->queue),
 	      ep->stopped);
 	if (list_empty(&ep->queue) && likely(!ep->stopped)) {
 		u32 csr;
 
 		if (unlikely(ep_index(ep) == 0)) {
-			/* EP0 */
+			
 			list_add_tail(&req->queue, &ep->queue);
 			lh7a40x_ep0_kick(dev, ep);
 			req = 0;
 		} else if (ep_is_in(ep)) {
-			/* EP1 & EP3 */
+			
 			usb_set_index(ep_index(ep));
 			csr = usb_read(ep->csr1);
 			pio_irq_enable(ep_index(ep));
@@ -1193,7 +1096,7 @@ static int lh7a40x_queue(struct usb_ep *_ep, struct usb_request *_req,
 					req = 0;
 			}
 		} else {
-			/* EP2 */
+			
 			usb_set_index(ep_index(ep));
 			csr = usb_read(ep->csr1);
 			pio_irq_enable(ep_index(ep));
@@ -1204,7 +1107,7 @@ static int lh7a40x_queue(struct usb_ep *_ep, struct usb_request *_req,
 		}
 	}
 
-	/* pio or dma irq handler advances the queue. */
+	
 	if (likely(req != 0))
 		list_add_tail(&req->queue, &ep->queue);
 
@@ -1213,7 +1116,7 @@ static int lh7a40x_queue(struct usb_ep *_ep, struct usb_request *_req,
 	return 0;
 }
 
-/* dequeue JUST ONE request */
+
 static int lh7a40x_dequeue(struct usb_ep *_ep, struct usb_request *_req)
 {
 	struct lh7a40x_ep *ep;
@@ -1228,7 +1131,7 @@ static int lh7a40x_dequeue(struct usb_ep *_ep, struct usb_request *_req)
 
 	spin_lock_irqsave(&ep->dev->lock, flags);
 
-	/* make sure it's actually queued on this endpoint */
+	
 	list_for_each_entry(req, &ep->queue, queue) {
 		if (&req->req == _req)
 			break;
@@ -1244,10 +1147,7 @@ static int lh7a40x_dequeue(struct usb_ep *_ep, struct usb_request *_req)
 	return 0;
 }
 
-/** Halt specific EP
- *  Return 0 if success
- *  NOTE: Sets INDEX register to EP !
- */
+
 static int lh7a40x_set_halt(struct usb_ep *_ep, int value)
 {
 	struct lh7a40x_ep *ep;
@@ -1266,17 +1166,13 @@ static int lh7a40x_set_halt(struct usb_ep *_ep, int value)
 	spin_lock_irqsave(&ep->dev->lock, flags);
 
 	if (ep_index(ep) == 0) {
-		/* EP0 */
+		
 		usb_set(EP0_SEND_STALL, ep->csr1);
 	} else if (ep_is_in(ep)) {
 		u32 csr = usb_read(ep->csr1);
 		if (value && ((csr & USB_IN_CSR1_FIFO_NOT_EMPTY)
 			      || !list_empty(&ep->queue))) {
-			/*
-			 * Attempts to halt IN endpoints will fail (returning -EAGAIN)
-			 * if any transfer requests are still queued, or if the controller
-			 * FIFO still holds bytes that the host hasn't collected.
-			 */
+			
 			spin_unlock_irqrestore(&ep->dev->lock, flags);
 			DEBUG
 			    ("Attempt to halt IN endpoint failed (returning -EAGAIN) %d %d\n",
@@ -1316,9 +1212,7 @@ static int lh7a40x_set_halt(struct usb_ep *_ep, int value)
 	return 0;
 }
 
-/** Return bytes in EP FIFO
- *  NOTE: Sets INDEX register to EP
- */
+
 static int lh7a40x_fifo_status(struct usb_ep *_ep)
 {
 	u32 csr;
@@ -1333,7 +1227,7 @@ static int lh7a40x_fifo_status(struct usb_ep *_ep)
 
 	DEBUG("%s, %d\n", __func__, ep_index(ep));
 
-	/* LPD can't report unclaimed bytes from IN fifos */
+	
 	if (ep_is_in(ep))
 		return -EOPNOTSUPP;
 
@@ -1348,9 +1242,7 @@ static int lh7a40x_fifo_status(struct usb_ep *_ep)
 	return count;
 }
 
-/** Flush EP FIFO
- *  NOTE: Sets INDEX register to EP
- */
+
 static void lh7a40x_fifo_flush(struct usb_ep *_ep)
 {
 	struct lh7a40x_ep *ep;
@@ -1365,11 +1257,11 @@ static void lh7a40x_fifo_flush(struct usb_ep *_ep)
 	flush(ep);
 }
 
-/****************************************************************/
-/* End Point 0 related functions                                */
-/****************************************************************/
 
-/* return:  0 = still running, 1 = completed, negative = errno */
+
+
+
+
 static int write_fifo_ep0(struct lh7a40x_ep *ep, struct lh7a40x_request *req)
 {
 	u32 max;
@@ -1382,7 +1274,7 @@ static int write_fifo_ep0(struct lh7a40x_ep *ep, struct lh7a40x_request *req)
 
 	count = write_packet(ep, req, max);
 
-	/* last packet is usually short (or a zlp) */
+	
 	if (unlikely(count != max))
 		is_last = 1;
 	else {
@@ -1396,7 +1288,7 @@ static int write_fifo_ep0(struct lh7a40x_ep *ep, struct lh7a40x_request *req)
 		  ep->ep.name, count,
 		  is_last ? "/L" : "", req->req.length - req->req.actual, req);
 
-	/* requests complete when all IN data is in the FIFO */
+	
 	if (is_last) {
 		done(ep, req, 0);
 		return 1;
@@ -1446,11 +1338,11 @@ static int read_fifo_ep0(struct lh7a40x_ep *ep, struct lh7a40x_request *req)
 	prefetchw(buf);
 	bufferspace = req->req.length - req->req.actual;
 
-	/* read all bytes from this packet */
+	
 	if (likely(csr & EP0_OUT_PKT_RDY)) {
 		count = usb_read(USB_OUT_FIFO_WC1);
 		req->req.actual += min(count, bufferspace);
-	} else			/* zlp */
+	} else			
 		count = 0;
 
 	is_short = (count < ep->ep.maxpacket);
@@ -1462,10 +1354,7 @@ static int read_fifo_ep0(struct lh7a40x_ep *ep, struct lh7a40x_request *req)
 		u8 byte = (u8) (*fifo & 0xff);
 
 		if (unlikely(bufferspace == 0)) {
-			/* this happens when the driver's buffer
-			 * is smaller than what the host sent.
-			 * discard the extra data.
-			 */
+			
 			if (req->req.status != -EOVERFLOW)
 				DEBUG_EP0("%s overflow %d\n", ep->ep.name,
 					  count);
@@ -1476,40 +1365,28 @@ static int read_fifo_ep0(struct lh7a40x_ep *ep, struct lh7a40x_request *req)
 		}
 	}
 
-	/* completion */
+	
 	if (is_short || req->req.actual == req->req.length) {
 		done(ep, req, 0);
 		return 1;
 	}
 
-	/* finished that packet.  the next one may be waiting... */
+	
 	return 0;
 }
 
-/**
- * udc_set_address - set the USB address for this device
- * @address:
- *
- * Called from control endpoint function after it decodes a set address setup packet.
- */
+
 static void udc_set_address(struct lh7a40x_udc *dev, unsigned char address)
 {
 	DEBUG_EP0("%s: %d\n", __func__, address);
-	/* c.f. 15.1.2.2 Table 15-4 address will be used after DATA_END is set */
+	
 	dev->usb_address = address;
 	usb_set((address & USB_FA_FUNCTION_ADDR), USB_FA);
 	usb_set(USB_FA_ADDR_UPDATE | (address & USB_FA_FUNCTION_ADDR), USB_FA);
-	/* usb_read(USB_FA); */
+	
 }
 
-/*
- * DATA_STATE_RECV (OUT_PKT_RDY)
- *      - if error
- *              set EP0_CLR_OUT | EP0_DATA_END | EP0_SEND_STALL bits
- *      - else
- *              set EP0_CLR_OUT bit
- 				if last set EP0_DATA_END bit
- */
+
 static void lh7a40x_ep0_out(struct lh7a40x_udc *dev, u32 csr)
 {
 	struct lh7a40x_request *req;
@@ -1533,14 +1410,14 @@ static void lh7a40x_ep0_out(struct lh7a40x_udc *dev, u32 csr)
 		}
 		ret = read_fifo_ep0(ep, req);
 		if (ret) {
-			/* Done! */
+			
 			DEBUG_EP0("%s: finished, waiting for status\n",
 				  __func__);
 
 			usb_set((EP0_CLR_OUT | EP0_DATA_END), USB_EP0_CSR);
 			dev->ep0state = WAIT_FOR_SETUP;
 		} else {
-			/* Not done yet.. */
+			
 			DEBUG_EP0("%s: not finished\n", __func__);
 			usb_set(EP0_CLR_OUT, USB_EP0_CSR);
 		}
@@ -1549,9 +1426,7 @@ static void lh7a40x_ep0_out(struct lh7a40x_udc *dev, u32 csr)
 	}
 }
 
-/*
- * DATA_STATE_XMIT
- */
+
 static int lh7a40x_ep0_in(struct lh7a40x_udc *dev, u32 csr)
 {
 	struct lh7a40x_request *req;
@@ -1578,15 +1453,15 @@ static int lh7a40x_ep0_in(struct lh7a40x_udc *dev, u32 csr)
 	}
 
 	if (req->req.length - req->req.actual == EP0_PACKETSIZE) {
-		/* Next write will end with the packet size, */
-		/* so we need Zero-length-packet */
+		
+		
 		need_zlp = 1;
 	}
 
 	ret = write_fifo_ep0(ep, req);
 
 	if (ret == 1 && !need_zlp) {
-		/* Last packet */
+		
 		DEBUG_EP0("%s: finished, waiting for status\n", __func__);
 
 		usb_set((EP0_IN_PKT_RDY | EP0_DATA_END), USB_EP0_CSR);
@@ -1614,15 +1489,12 @@ static int lh7a40x_handle_get_status(struct lh7a40x_udc *dev,
 	u16 val = 0;
 
 	if (reqtype == USB_RECIP_INTERFACE) {
-		/* This is not supported.
-		 * And according to the USB spec, this one does nothing..
-		 * Just return 0
-		 */
+		
 		DEBUG_SETUP("GET_STATUS: USB_RECIP_INTERFACE\n");
 	} else if (reqtype == USB_RECIP_DEVICE) {
 		DEBUG_SETUP("GET_STATUS: USB_RECIP_DEVICE\n");
-		val |= (1 << 0);	/* Self powered */
-		/*val |= (1<<1); *//* Remote wakeup */
+		val |= (1 << 0);	
+		
 	} else if (reqtype == USB_RECIP_ENDPOINT) {
 		int ep_num = (ctrl->wIndex & ~USB_DIR_IN);
 
@@ -1641,7 +1513,7 @@ static int lh7a40x_handle_get_status(struct lh7a40x_udc *dev,
 
 		usb_set_index(ep_index(qep));
 
-		/* Return status on next IN token */
+		
 		switch (qep->ep_type) {
 		case ep_control:
 			val =
@@ -1661,7 +1533,7 @@ static int lh7a40x_handle_get_status(struct lh7a40x_udc *dev,
 			break;
 		}
 
-		/* Back to EP0 index */
+		
 		usb_set_index(0);
 
 		DEBUG_SETUP("GET_STATUS, ep: %d (%x), val = %d\n", ep_num,
@@ -1671,25 +1543,17 @@ static int lh7a40x_handle_get_status(struct lh7a40x_udc *dev,
 		return -EOPNOTSUPP;
 	}
 
-	/* Clear "out packet ready" */
+	
 	usb_set((EP0_CLR_OUT), USB_EP0_CSR);
-	/* Put status to FIFO */
+	
 	lh7a40x_fifo_write(ep0, (u8 *) & val, sizeof(val));
-	/* Issue "In packet ready" */
+	
 	usb_set((EP0_IN_PKT_RDY | EP0_DATA_END), USB_EP0_CSR);
 
 	return 0;
 }
 
-/*
- * WAIT_FOR_SETUP (OUT_PKT_RDY)
- *      - read data packet from EP0 FIFO
- *      - decode command
- *      - if error
- *              set EP0_CLR_OUT | EP0_DATA_END | EP0_SEND_STALL bits
- *      - else
- *              set EP0_CLR_OUT | EP0_DATA_END bits
- */
+
 static void lh7a40x_ep0_setup(struct lh7a40x_udc *dev, u32 csr)
 {
 	struct lh7a40x_ep *ep = &dev->ep[0];
@@ -1698,10 +1562,10 @@ static void lh7a40x_ep0_setup(struct lh7a40x_udc *dev, u32 csr)
 
 	DEBUG_SETUP("%s: %x\n", __func__, csr);
 
-	/* Nuke all previous transfers */
+	
 	nuke(ep, -EPROTO);
 
-	/* read control req from fifo (8 bytes) */
+	
 	bytes = lh7a40x_fifo_read(ep, (unsigned char *)&ctrl, 8);
 
 	DEBUG_SETUP("Read CTRL REQ %d bytes\n", bytes);
@@ -1712,7 +1576,7 @@ static void lh7a40x_ep0_setup(struct lh7a40x_udc *dev, u32 csr)
 	DEBUG_SETUP("CTRL.wValue = %d (%d)\n", ctrl.wValue, ctrl.wValue >> 8);
 	DEBUG_SETUP("CTRL.wIndex = %d\n", ctrl.wIndex);
 
-	/* Set direction of EP0 */
+	
 	if (likely(ctrl.bRequestType & USB_DIR_IN)) {
 		ep->bEndpointAddress |= USB_DIR_IN;
 		is_in = 1;
@@ -1723,7 +1587,7 @@ static void lh7a40x_ep0_setup(struct lh7a40x_udc *dev, u32 csr)
 
 	dev->req_pending = 1;
 
-	/* Handle some SETUP packets ourselves */
+	
 	switch (ctrl.bRequest) {
 	case USB_REQ_SET_ADDRESS:
 		if (ctrl.bRequestType != (USB_TYPE_STANDARD | USB_RECIP_DEVICE))
@@ -1744,7 +1608,7 @@ static void lh7a40x_ep0_setup(struct lh7a40x_udc *dev, u32 csr)
 				struct lh7a40x_ep *qep;
 				int ep_num = (ctrl.wIndex & 0x0f);
 
-				/* Support only HALT feature */
+				
 				if (ctrl.wValue != 0 || ctrl.wLength != 0
 				    || ep_num > 3 || ep_num < 1)
 					break;
@@ -1763,7 +1627,7 @@ static void lh7a40x_ep0_setup(struct lh7a40x_udc *dev, u32 csr)
 				spin_lock(&dev->lock);
 				usb_set_index(0);
 
-				/* Reply with a ZLP on next IN token */
+				
 				usb_set((EP0_CLR_OUT | EP0_DATA_END),
 					USB_EP0_CSR);
 				return;
@@ -1776,13 +1640,13 @@ static void lh7a40x_ep0_setup(struct lh7a40x_udc *dev, u32 csr)
 	}
 
 	if (likely(dev->driver)) {
-		/* device-2-host (IN) or no data setup command, process immediately */
+		
 		spin_unlock(&dev->lock);
 		i = dev->driver->setup(&dev->gadget, &ctrl);
 		spin_lock(&dev->lock);
 
 		if (i < 0) {
-			/* setup processing failed, force stall */
+			
 			DEBUG_SETUP
 			    ("  --> ERROR: gadget setup FAILED (stalling), setup returned %d\n",
 			     i);
@@ -1790,49 +1654,37 @@ static void lh7a40x_ep0_setup(struct lh7a40x_udc *dev, u32 csr)
 			usb_set((EP0_CLR_OUT | EP0_DATA_END | EP0_SEND_STALL),
 				USB_EP0_CSR);
 
-			/* ep->stopped = 1; */
+			
 			dev->ep0state = WAIT_FOR_SETUP;
 		}
 	}
 }
 
-/*
- * DATA_STATE_NEED_ZLP
- */
+
 static void lh7a40x_ep0_in_zlp(struct lh7a40x_udc *dev, u32 csr)
 {
 	DEBUG_EP0("%s: %x\n", __func__, csr);
 
-	/* c.f. Table 15-14 */
+	
 	usb_set((EP0_IN_PKT_RDY | EP0_DATA_END), USB_EP0_CSR);
 	dev->ep0state = WAIT_FOR_SETUP;
 }
 
-/*
- * handle ep0 interrupt
- */
+
 static void lh7a40x_handle_ep0(struct lh7a40x_udc *dev, u32 intr)
 {
 	struct lh7a40x_ep *ep = &dev->ep[0];
 	u32 csr;
 
-	/* Set index 0 */
+	
 	usb_set_index(0);
  	csr = usb_read(USB_EP0_CSR);
 
 	DEBUG_EP0("%s: csr = %x\n", __func__, csr);
 
-	/*
-	 * For overview of what we should be doing see c.f. Chapter 18.1.2.4
-	 * We will follow that outline here modified by our own global state
-	 * indication which provides hints as to what we think should be
-	 * happening..
-	 */
+	
 
-	/*
-	 * if SENT_STALL is set
-	 *      - clear the SENT_STALL bit
-	 */
+	
 	if (csr & EP0_SENT_STALL) {
 		DEBUG_EP0("%s: EP0_SENT_STALL is set: %x\n", __func__, csr);
 		usb_clear((EP0_SENT_STALL | EP0_SEND_STALL), USB_EP0_CSR);
@@ -1841,14 +1693,7 @@ static void lh7a40x_handle_ep0(struct lh7a40x_udc *dev, u32 intr)
 		return;
 	}
 
-	/*
-	 * if a transfer is in progress && IN_PKT_RDY and OUT_PKT_RDY are clear
-	 *      - fill EP0 FIFO
-	 *      - if last packet
-	 *      -       set IN_PKT_RDY | DATA_END
-	 *      - else
-	 *              set IN_PKT_RDY
-	 */
+	
 	if (!(csr & (EP0_IN_PKT_RDY | EP0_OUT_PKT_RDY))) {
 		DEBUG_EP0("%s: IN_PKT_RDY and OUT_PKT_RDY are clear\n",
 			  __func__);
@@ -1863,21 +1708,17 @@ static void lh7a40x_handle_ep0(struct lh7a40x_udc *dev, u32 intr)
 			lh7a40x_ep0_in_zlp(dev, csr);
 			return;
 		default:
-			/* Stall? */
+			
 			DEBUG_EP0("Odd state!! state = %s\n",
 				  state_names[dev->ep0state]);
 			dev->ep0state = WAIT_FOR_SETUP;
-			/* nuke(ep, 0); */
-			/* usb_set(EP0_SEND_STALL, ep->csr1); */
+			
+			
 			break;
 		}
 	}
 
-	/*
-	 * if SETUP_END is set
-	 *      - abort the last transfer
-	 *      - set SERVICED_SETUP_END_BIT
-	 */
+	
 	if (csr & EP0_SETUP_END) {
 		DEBUG_EP0("%s: EP0_SETUP_END is set: %x\n", __func__, csr);
 
@@ -1887,15 +1728,7 @@ static void lh7a40x_handle_ep0(struct lh7a40x_udc *dev, u32 intr)
 		dev->ep0state = WAIT_FOR_SETUP;
 	}
 
-	/*
-	 * if EP0_OUT_PKT_RDY is set
-	 *      - read data packet from EP0 FIFO
-	 *      - decode command
-	 *      - if error
-	 *              set SERVICED_OUT_PKT_RDY | DATA_END bits | SEND_STALL
-	 *      - else
-	 *              set SERVICED_OUT_PKT_RDY | DATA_END bits
-	 */
+	
 	if (csr & EP0_OUT_PKT_RDY) {
 
 		DEBUG_EP0("%s: EP0_OUT_PKT_RDY is set: %x\n", __func__,
@@ -1913,7 +1746,7 @@ static void lh7a40x_handle_ep0(struct lh7a40x_udc *dev, u32 intr)
 			break;
 
 		default:
-			/* send stall? */
+			
 			DEBUG_EP0("strange state!! 2. send stall? state = %d\n",
 				  dev->ep0state);
 			break;
@@ -1930,7 +1763,7 @@ static void lh7a40x_ep0_kick(struct lh7a40x_udc *dev, struct lh7a40x_ep *ep)
 
 	DEBUG_EP0("%s: %x\n", __func__, csr);
 
-	/* Clear "out packet ready" */
+	
 	usb_set(EP0_CLR_OUT, USB_EP0_CSR);
 
 	if (ep_is_in(ep)) {
@@ -1942,32 +1775,27 @@ static void lh7a40x_ep0_kick(struct lh7a40x_udc *dev, struct lh7a40x_ep *ep)
 	}
 }
 
-/* ---------------------------------------------------------------------------
- * 	device-scoped parts of the api to the usb controller hardware
- * ---------------------------------------------------------------------------
- */
+
 
 static int lh7a40x_udc_get_frame(struct usb_gadget *_gadget)
 {
-	u32 frame1 = usb_read(USB_FRM_NUM1);	/* Least significant 8 bits */
-	u32 frame2 = usb_read(USB_FRM_NUM2);	/* Most significant 3 bits */
+	u32 frame1 = usb_read(USB_FRM_NUM1);	
+	u32 frame2 = usb_read(USB_FRM_NUM2);	
 	DEBUG("%s, %p\n", __func__, _gadget);
 	return ((frame2 & 0x07) << 8) | (frame1 & 0xff);
 }
 
 static int lh7a40x_udc_wakeup(struct usb_gadget *_gadget)
 {
-	/* host may not have enabled remote wakeup */
-	/*if ((UDCCS0 & UDCCS0_DRWF) == 0)
-	   return -EHOSTUNREACH;
-	   udc_set_mask_UDCCR(UDCCR_RSM); */
+	
+	
 	return -ENOTSUPP;
 }
 
 static const struct usb_gadget_ops lh7a40x_udc_ops = {
 	.get_frame = lh7a40x_udc_get_frame,
 	.wakeup = lh7a40x_udc_wakeup,
-	/* current versions must always be self-powered */
+	
 };
 
 static void nop_release(struct device *dev)
@@ -1988,7 +1816,7 @@ static struct lh7a40x_udc memory = {
 			   },
 		   },
 
-	/* control endpoint */
+	
 	.ep[0] = {
 		  .ep = {
 			 .name = ep0name,
@@ -2006,7 +1834,7 @@ static struct lh7a40x_udc memory = {
 		  .csr2 = USB_EP0_CSR,
 		  },
 
-	/* first group of endpoints */
+	
 	.ep[1] = {
 		  .ep = {
 			 .name = "ep1in-bulk",
@@ -2059,9 +1887,7 @@ static struct lh7a40x_udc memory = {
 		  },
 };
 
-/*
- * 	probe - binds to the platform device
- */
+
 static int lh7a40x_udc_probe(struct platform_device *pdev)
 {
 	struct lh7a40x_udc *dev = &memory;
@@ -2081,7 +1907,7 @@ static int lh7a40x_udc_probe(struct platform_device *pdev)
 	udc_disable(dev);
 	udc_reinit(dev);
 
-	/* irq setup after old hardware state is cleaned up */
+	
 	retval =
 	    request_irq(IRQ_USBINTR, lh7a40x_udc_irq, IRQF_DISABLED, driver_name,
 			dev);
@@ -2117,14 +1943,14 @@ static int lh7a40x_udc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 static struct platform_driver udc_driver = {
 	.probe = lh7a40x_udc_probe,
 	.remove = lh7a40x_udc_remove,
-	    /* FIXME power management support */
-	    /* .suspend = ... disable UDC */
-	    /* .resume = ... re-enable UDC */
+	    
+	    
+	    
 	.driver	= {
 		.name = (char *)driver_name,
 		.owner = THIS_MODULE,

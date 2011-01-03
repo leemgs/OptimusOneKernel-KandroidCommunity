@@ -1,14 +1,4 @@
-/*
- * PCMCIA driver for SL811HS (as found in REX-CFU1U)
- * Filename: sl811_cs.c
- * Author:   Yukio Yamamoto
- *
- *  Port to sl811-hcd and 2.6.x by
- *    Botond Botyanszki <boti@rocketmail.com>
- *    Simon Pickering
- *
- *  Last update: 2005-05-12
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -33,9 +23,9 @@ MODULE_DESCRIPTION("REX-CFU1U PCMCIA driver for 2.6");
 MODULE_LICENSE("GPL");
 
 
-/*====================================================================*/
-/* MACROS                                                             */
-/*====================================================================*/
+
+
+
 
 #if defined(DEBUG) || defined(PCMCIA_DEBUG)
 
@@ -46,7 +36,7 @@ module_param(pc_debug, int, 0644);
 
 #else
 #define DBG(n, args...) do{}while(0)
-#endif	/* no debugging */
+#endif	
 
 #define INFO(args...) printk(KERN_INFO "sl811_cs: " args)
 
@@ -59,9 +49,9 @@ module_param(pc_debug, int, 0644);
 			goto cs_failed; \
 	} while (0)
 
-/*====================================================================*/
-/* VARIABLES                                                          */
-/*====================================================================*/
+
+
+
 
 static const char driver_name[DEV_NAME_LEN]  = "sl811_cs";
 
@@ -72,7 +62,7 @@ typedef struct local_info_t {
 
 static void sl811_cs_release(struct pcmcia_device * link);
 
-/*====================================================================*/
+
 
 static void release_platform_dev(struct device * dev)
 {
@@ -82,8 +72,8 @@ static void release_platform_dev(struct device * dev)
 
 static struct sl811_platform_data platform_data = {
 	.potpg		= 100,
-	.power		= 50,		/* == 100mA */
-	// .reset	= ... FIXME:  invoke CF reset on the card
+	.power		= 50,		
+	
 };
 
 static struct resource resources[] = {
@@ -91,11 +81,11 @@ static struct resource resources[] = {
 		.flags	= IORESOURCE_IRQ,
 	},
 	[1] = {
-		// .name   = "address",
+		
 		.flags	= IORESOURCE_IO,
 	},
 	[2] = {
-		// .name   = "data",
+		
 		.flags	= IORESOURCE_IO,
 	},
 };
@@ -119,7 +109,7 @@ static int sl811_hc_init(struct device *parent, resource_size_t base_addr,
 		return -EBUSY;
 	platform_dev.dev.parent = parent;
 
-	/* finish seting up the platform device */
+	
 	resources[0].start = irq;
 
 	resources[1].start = base_addr;
@@ -128,15 +118,12 @@ static int sl811_hc_init(struct device *parent, resource_size_t base_addr,
 	resources[2].start = base_addr + 1;
 	resources[2].end   = base_addr + 1;
 
-	/* The driver core will probe for us.  We know sl811-hcd has been
-	 * initialized already because of the link order dependency created
-	 * by referencing "sl811h_driver".
-	 */
+	
 	platform_dev.name = sl811h_driver.driver.name;
 	return platform_device_register(&platform_dev);
 }
 
-/*====================================================================*/
+
 
 static void sl811_cs_detach(struct pcmcia_device *link)
 {
@@ -144,7 +131,7 @@ static void sl811_cs_detach(struct pcmcia_device *link)
 
 	sl811_cs_release(link);
 
-	/* This points to the parent local_info_t struct */
+	
 	kfree(link->priv);
 }
 
@@ -165,8 +152,8 @@ static int sl811_cs_config_check(struct pcmcia_device *p_dev,
 	if (cfg->index == 0)
 		return -ENODEV;
 
-	/* Use power settings for Vcc and Vpp if present */
-	/*  Note that the CIS values need to be rescaled */
+	
+	
 	if (cfg->vcc.present & (1<<CISTPL_POWER_VNOM)) {
 		if (cfg->vcc.param[CISTPL_POWER_VNOM]/10000 != vcc)
 			return -ENODEV;
@@ -182,11 +169,11 @@ static int sl811_cs_config_check(struct pcmcia_device *p_dev,
 		p_dev->conf.Vpp =
 			dflt->vpp1.param[CISTPL_POWER_VNOM]/10000;
 
-	/* we need an interrupt */
+	
 	if (cfg->irq.IRQInfo1 || dflt->irq.IRQInfo1)
 		p_dev->conf.Attributes |= CONF_ENABLE_IRQ;
 
-	/* IO window settings */
+	
 	p_dev->io.NumPorts1 = p_dev->io.NumPorts2 = 0;
 	if ((cfg->io.nwin > 0) || (dflt->io.nwin > 0)) {
 		cistpl_io_t *io = (cfg->io.nwin) ? &cfg->io : &dflt->io;
@@ -214,7 +201,7 @@ static int sl811_cs_config(struct pcmcia_device *link)
 	if (pcmcia_loop_config(link, sl811_cs_config_check, NULL))
 		goto failed;
 
-	/* require an IRQ and two registers */
+	
 	if (!link->io.NumPorts1 || link->io.NumPorts1 < 2)
 		goto failed;
 	if (link->conf.Attributes & CONF_ENABLE_IRQ)
@@ -261,7 +248,7 @@ static int sl811_cs_probe(struct pcmcia_device *link)
 	local->p_dev = link;
 	link->priv = local;
 
-	/* Initialize */
+	
 	link->irq.Attributes = IRQ_TYPE_EXCLUSIVE;
 	link->irq.IRQInfo1 = IRQ_INFO2_VALID|IRQ_LEVEL_ID;
 	link->irq.Handler = NULL;
@@ -273,7 +260,7 @@ static int sl811_cs_probe(struct pcmcia_device *link)
 }
 
 static struct pcmcia_device_id sl811_ids[] = {
-	PCMCIA_DEVICE_MANF_CARD(0xc015, 0x0001), /* RATOC USB HOST CF+ Card */
+	PCMCIA_DEVICE_MANF_CARD(0xc015, 0x0001), 
 	PCMCIA_DEVICE_NULL,
 };
 MODULE_DEVICE_TABLE(pcmcia, sl811_ids);
@@ -288,7 +275,7 @@ static struct pcmcia_driver sl811_cs_driver = {
 	.id_table	= sl811_ids,
 };
 
-/*====================================================================*/
+
 
 static int __init init_sl811_cs(void)
 {

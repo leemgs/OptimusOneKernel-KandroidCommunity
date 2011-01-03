@@ -1,21 +1,4 @@
-/*
- * Copyright (C) 2006
- *   Simon Schulz (ark3116_driver <at> auctionant.de)
- *
- * ark3116
- * - implements a driver for the arkmicro ark3116 chipset (vendor=0x6547,
- *   productid=0x0232) (used in a datacable called KQ-U8A)
- *
- * - based on code by krisfx -> thanks !!
- *   (see http://www.linuxquestions.org/questions/showthread.php?p=2184457#post2184457)
- *
- *  - based on logs created by usbsnoopy
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -31,7 +14,7 @@ static int debug;
 
 static struct usb_device_id id_table [] = {
 	{ USB_DEVICE(0x6547, 0x0232) },
-	{ USB_DEVICE(0x18ec, 0x3118) },		/* USB to IrDA adapter */
+	{ USB_DEVICE(0x18ec, 0x3118) },		
 	{ },
 };
 MODULE_DEVICE_TABLE(usb, id_table);
@@ -97,7 +80,7 @@ static int ark3116_attach(struct usb_serial *serial)
 	if (is_irda(serial))
 		dbg("IrDA mode");
 
-	/* 3 */
+	
 	ARK3116_SND(serial, 3, 0xFE, 0x40, 0x0008, 0x0002);
 	ARK3116_SND(serial, 4, 0xFE, 0x40, 0x0008, 0x0001);
 	ARK3116_SND(serial, 5, 0xFE, 0x40, 0x0000, 0x0008);
@@ -110,38 +93,38 @@ static int ark3116_attach(struct usb_serial *serial)
 		ARK3116_SND(serial, 1003, 0xFE, 0x40, 0x0001, 0x000A);
 	}
 
-	/* <-- seq7 */
+	
 	ARK3116_RCV(serial,  7, 0xFE, 0xC0, 0x0000, 0x0003, 0x00, buf);
 	ARK3116_SND(serial,  8, 0xFE, 0x40, 0x0080, 0x0003);
 	ARK3116_SND(serial,  9, 0xFE, 0x40, 0x001A, 0x0000);
 	ARK3116_SND(serial, 10, 0xFE, 0x40, 0x0000, 0x0001);
 	ARK3116_SND(serial, 11, 0xFE, 0x40, 0x0000, 0x0003);
 
-	/* <-- seq12 */
+	
 	ARK3116_RCV(serial, 12, 0xFE, 0xC0, 0x0000, 0x0004, 0x00, buf);
 	ARK3116_SND(serial, 13, 0xFE, 0x40, 0x0000, 0x0004);
 
-	/* 14 */
+	
 	ARK3116_RCV(serial, 14, 0xFE, 0xC0, 0x0000, 0x0004, 0x00, buf);
 	ARK3116_SND(serial, 15, 0xFE, 0x40, 0x0000, 0x0004);
 
-	/* 16 */
+	
 	ARK3116_RCV(serial, 16, 0xFE, 0xC0, 0x0000, 0x0004, 0x00, buf);
-	/* --> seq17 */
+	
 	ARK3116_SND(serial, 17, 0xFE, 0x40, 0x0001, 0x0004);
 
-	/* <-- seq18 */
+	
 	ARK3116_RCV(serial, 18, 0xFE, 0xC0, 0x0000, 0x0004, 0x01, buf);
 
-	/* --> seq19 */
+	
 	ARK3116_SND(serial, 19, 0xFE, 0x40, 0x0003, 0x0004);
 
-	/* <-- seq20 */
-	/* seems like serial port status info (RTS, CTS, ...) */
-	/* returns modem control line status?! */
+	
+	
+	
 	ARK3116_RCV(serial, 20, 0xFE, 0xC0, 0x0000, 0x0006, 0xFF, buf);
 
-	/* set 9600 baud & do some init?! */
+	
 	ARK3116_SND(serial, 147, 0xFE, 0x40, 0x0083, 0x0003);
 	ARK3116_SND(serial, 148, 0xFE, 0x40, 0x0038, 0x0000);
 	ARK3116_SND(serial, 149, 0xFE, 0x40, 0x0001, 0x0001);
@@ -194,7 +177,7 @@ static void ark3116_set_termios(struct tty_struct *tty,
 		return;
 	}
 
-	/* set data bit count (8/7/6/5) */
+	
 	if (cflag & CSIZE) {
 		switch (cflag & CSIZE) {
 		case CS5:
@@ -211,7 +194,7 @@ static void ark3116_set_termios(struct tty_struct *tty,
 			break;
 		default:
 			dbg("CSIZE was set but not CS5-CS8, using CS8!");
-			/* fall through */
+			
 		case CS8:
 			config |= 0x03;
 			dbg("setting CS8");
@@ -219,7 +202,7 @@ static void ark3116_set_termios(struct tty_struct *tty,
 		}
 	}
 
-	/* set parity (NONE/EVEN/ODD) */
+	
 	if (cflag & PARENB) {
 		if (cflag & PARODD) {
 			config |= 0x08;
@@ -232,7 +215,7 @@ static void ark3116_set_termios(struct tty_struct *tty,
 		dbg("setting parity to NONE");
 	}
 
-	/* set stop bit (1/2) */
+	
 	if (cflag & CSTOPB) {
 		config |= 0x04;
 		dbg("setting 2 stop bits");
@@ -240,7 +223,7 @@ static void ark3116_set_termios(struct tty_struct *tty,
 		dbg("setting 1 stop bit");
 	}
 
-	/* set baudrate */
+	
 	baud = tty_get_baud_rate(tty);
 
 	switch (baud) {
@@ -259,35 +242,31 @@ static void ark3116_set_termios(struct tty_struct *tty,
 	case 115200:
 	case 230400:
 	case 460800:
-		/* Report the resulting rate back to the caller */
+		
 		tty_encode_baud_rate(tty, baud, baud);
 		break;
-	/* set 9600 as default (if given baudrate is invalid for example) */
+	
 	default:
 		tty_encode_baud_rate(tty, 9600, 9600);
 	case 0:
 		baud = 9600;
 	}
 
-	/*
-	 * found by try'n'error, be careful, maybe there are other options
-	 * for multiplicator etc! (3.5 for example)
-	 */
+	
 	if (baud == 460800)
-		/* strange, for 460800 the formula is wrong
-		 * if using round() then 9600baud is wrong) */
+		
 		ark3116_baud = 7;
 	else
 		ark3116_baud = 3000000 / baud;
 
-	/* ? */
+	
 	ARK3116_RCV(serial, 0, 0xFE, 0xC0, 0x0000, 0x0003, 0x03, buf);
 
-	/* offset = buf[0]; */
-	/* offset = 0x03; */
-	/* dbg("using 0x%04X as target for 0x0003:", 0x0080 + offset); */
+	
+	
+	
 
-	/* set baudrate */
+	
 	dbg("setting baudrate to %d (->reg=%d)", baud, ark3116_baud);
 	ARK3116_SND(serial, 147, 0xFE, 0x40, 0x0083, 0x0003);
 	ARK3116_SND(serial, 148, 0xFE, 0x40,
@@ -296,11 +275,11 @@ static void ark3116_set_termios(struct tty_struct *tty,
 			    (ark3116_baud & 0xFF00) >> 8, 0x0001);
 	ARK3116_SND(serial, 150, 0xFE, 0x40, 0x0003, 0x0003);
 
-	/* ? */
+	
 	ARK3116_RCV(serial, 151, 0xFE, 0xC0, 0x0000, 0x0004, 0x03, buf);
 	ARK3116_SND(serial, 152, 0xFE, 0x40, 0x0000, 0x0003);
 
-	/* set data bit count, stop bit count & parity: */
+	
 	dbg("updating bit count, stop bit or parity (cfg=0x%02X)", config);
 	ARK3116_RCV(serial, 153, 0xFE, 0xC0, 0x0000, 0x0003, 0x00, buf);
 	ARK3116_SND(serial, 154, 0xFE, 0x40, config, 0x0003);
@@ -308,7 +287,7 @@ static void ark3116_set_termios(struct tty_struct *tty,
 	if (cflag & CRTSCTS)
 		dbg("CRTSCTS not supported by chipset?!");
 
-	/* TEST ARK3116_SND(154, 0xFE, 0x40, 0xFFFF, 0x0006); */
+	
 
 	kfree(buf);
 
@@ -334,7 +313,7 @@ static int ark3116_open(struct tty_struct *tty, struct usb_serial_port *port)
 	if (result)
 		goto err_out;
 
-	/* open */
+	
 	ARK3116_RCV(serial, 111, 0xFE, 0xC0, 0x0000, 0x0003, 0x02, buf);
 
 	ARK3116_SND(serial, 112, 0xFE, 0x40, 0x0082, 0x0003);
@@ -356,10 +335,10 @@ static int ark3116_open(struct tty_struct *tty, struct usb_serial_port *port)
 
 	ARK3116_SND(serial, 123, 0xFE, 0x40, 0x0003, 0x0004);
 
-	/* returns different values (control lines?!) */
+	
 	ARK3116_RCV(serial, 124, 0xFE, 0xC0, 0x0000, 0x0006, 0xFF, buf);
 
-	/* initialise termios */
+	
 	if (tty)
 		ark3116_set_termios(tty, port, &tmp_termios);
 
@@ -378,7 +357,7 @@ static int ark3116_ioctl(struct tty_struct *tty, struct file *file,
 
 	switch (cmd) {
 	case TIOCGSERIAL:
-		/* XXX: Some of these values are probably wrong. */
+		
 		memset(&serstruct, 0, sizeof(serstruct));
 		serstruct.type = PORT_16654;
 		serstruct.line = port->serial->minor;
@@ -409,11 +388,7 @@ static int ark3116_tiocmget(struct tty_struct *tty, struct file *file)
 	char *buf;
 	char temp;
 
-	/* seems like serial port status info (RTS, CTS, ...) is stored
-	 * in reg(?) 0x0006
-	 * pcb connection point 11 = GND -> sets bit4 of response
-	 * pcb connection point  7 = GND -> sets bit6 of response
-	 */
+	
 
 	buf = kmalloc(1, GFP_KERNEL);
 	if (!buf) {
@@ -421,14 +396,12 @@ static int ark3116_tiocmget(struct tty_struct *tty, struct file *file)
 		return -ENOMEM;
 	}
 
-	/* read register */
+	
 	ARK3116_RCV_QUIET(serial, 0xFE, 0xC0, 0x0000, 0x0006, buf);
 	temp = buf[0];
 	kfree(buf);
 
-	/* i do not really know if bit4=CTS and bit6=DSR... just a
-	 * quick guess!
-	 */
+	
 	return (temp & (1<<4) ? TIOCM_CTS : 0)
 	       | (temp & (1<<6) ? TIOCM_DSR : 0);
 }

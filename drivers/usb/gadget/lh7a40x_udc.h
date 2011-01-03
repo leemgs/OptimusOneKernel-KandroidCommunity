@@ -1,25 +1,4 @@
-/*
- * linux/drivers/usb/gadget/lh7a40x_udc.h
- * Sharp LH7A40x on-chip full speed USB device controllers
- *
- * Copyright (C) 2004 Mikko Lahteenmaki, Nordic ID
- * Copyright (C) 2004 Bo Henriksen, Nordic ID
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- */
+
 
 #ifndef __LH7A40X_H_
 #define __LH7A40X_H_
@@ -52,58 +31,50 @@
 #include <linux/usb/ch9.h>
 #include <linux/usb/gadget.h>
 
-/*
- * Memory map
- */
 
-#define USB_FA					0x80000200	// function address register
-#define USB_PM					0x80000204	// power management register
 
-#define USB_IN_INT				0x80000208	// IN interrupt register bank (EP0-EP3)
-#define USB_OUT_INT				0x80000210	// OUT interrupt register bank (EP2)
-#define USB_INT					0x80000218	// interrupt register bank
+#define USB_FA					0x80000200	
+#define USB_PM					0x80000204	
 
-#define USB_IN_INT_EN			0x8000021C	// IN interrupt enable register bank
-#define USB_OUT_INT_EN			0x80000224	// OUT interrupt enable register bank
-#define USB_INT_EN				0x8000022C	// USB interrupt enable register bank
+#define USB_IN_INT				0x80000208	
+#define USB_OUT_INT				0x80000210	
+#define USB_INT					0x80000218	
 
-#define USB_FRM_NUM1			0x80000230	// Frame number1 register
-#define USB_FRM_NUM2			0x80000234	// Frame number2 register
-#define USB_INDEX				0x80000238	// index register
+#define USB_IN_INT_EN			0x8000021C	
+#define USB_OUT_INT_EN			0x80000224	
+#define USB_INT_EN				0x8000022C	
 
-#define USB_IN_MAXP				0x80000240	// IN MAXP register
-#define USB_IN_CSR1				0x80000244	// IN CSR1 register/EP0 CSR register
-#define USB_EP0_CSR				0x80000244	// IN CSR1 register/EP0 CSR register
-#define USB_IN_CSR2				0x80000248	// IN CSR2 register
-#define USB_OUT_MAXP			0x8000024C	// OUT MAXP register
+#define USB_FRM_NUM1			0x80000230	
+#define USB_FRM_NUM2			0x80000234	
+#define USB_INDEX				0x80000238	
 
-#define USB_OUT_CSR1			0x80000250	// OUT CSR1 register
-#define USB_OUT_CSR2			0x80000254	// OUT CSR2 register
-#define USB_OUT_FIFO_WC1		0x80000258	// OUT FIFO write count1 register
-#define USB_OUT_FIFO_WC2		0x8000025C	// OUT FIFO write count2 register
+#define USB_IN_MAXP				0x80000240	
+#define USB_IN_CSR1				0x80000244	
+#define USB_EP0_CSR				0x80000244	
+#define USB_IN_CSR2				0x80000248	
+#define USB_OUT_MAXP			0x8000024C	
 
-#define USB_RESET				0x8000044C	// USB reset register
+#define USB_OUT_CSR1			0x80000250	
+#define USB_OUT_CSR2			0x80000254	
+#define USB_OUT_FIFO_WC1		0x80000258	
+#define USB_OUT_FIFO_WC2		0x8000025C	
+
+#define USB_RESET				0x8000044C	
 
 #define	USB_EP0_FIFO			0x80000280
 #define	USB_EP1_FIFO			0x80000284
 #define	USB_EP2_FIFO			0x80000288
 #define	USB_EP3_FIFO			0x8000028c
 
-/*
- * USB reset register
- */
-#define USB_RESET_APB			(1<<1)	//resets USB APB control side WRITE
-#define USB_RESET_IO			(1<<0)	//resets USB IO side WRITE
 
-/*
- * USB function address register
- */
+#define USB_RESET_APB			(1<<1)	
+#define USB_RESET_IO			(1<<0)	
+
+
 #define USB_FA_ADDR_UPDATE		(1<<7)
 #define USB_FA_FUNCTION_ADDR	(0x7F)
 
-/*
- * Power Management register
- */
+
 #define PM_USB_DCP				(1<<5)
 #define PM_USB_ENABLE			(1<<4)
 #define PM_USB_RESET			(1<<3)
@@ -111,35 +82,25 @@
 #define PM_SUSPEND_MODE			(1<<1)
 #define PM_ENABLE_SUSPEND		(1<<0)
 
-/*
- * IN interrupt register
- */
+
 #define USB_IN_INT_EP3				(1<<3)
 #define USB_IN_INT_EP1				(1<<1)
 #define USB_IN_INT_EP0				(1<<0)
 
-/*
- * OUT interrupt register
- */
+
 #define USB_OUT_INT_EP2				(1<<2)
 
-/*
- * USB interrupt register
- */
+
 #define USB_INT_RESET_INT			(1<<2)
 #define USB_INT_RESUME_INT			(1<<1)
 #define USB_INT_SUSPEND_INT			(1<<0)
 
-/*
- * USB interrupt enable register
- */
+
 #define USB_INT_EN_USB_RESET_INTER		(1<<2)
 #define USB_INT_EN_RESUME_INTER			(1<<1)
 #define USB_INT_EN_SUSPEND_INTER		(1<<0)
 
-/*
- * INCSR1 register
- */
+
 #define USB_IN_CSR1_CLR_DATA_TOGGLE		(1<<6)
 #define USB_IN_CSR1_SENT_STALL			(1<<5)
 #define USB_IN_CSR1_SEND_STALL			(1<<4)
@@ -147,15 +108,11 @@
 #define USB_IN_CSR1_FIFO_NOT_EMPTY		(1<<1)
 #define USB_IN_CSR1_IN_PKT_RDY			(1<<0)
 
-/*
- * INCSR2 register
- */
+
 #define USB_IN_CSR2_AUTO_SET			(1<<7)
 #define USB_IN_CSR2_USB_DMA_EN			(1<<4)
 
-/*
- * OUT CSR1 register
- */
+
 #define USB_OUT_CSR1_CLR_DATA_REG		(1<<7)
 #define USB_OUT_CSR1_SENT_STALL			(1<<6)
 #define USB_OUT_CSR1_SEND_STALL			(1<<5)
@@ -163,37 +120,31 @@
 #define USB_OUT_CSR1_FIFO_FULL			(1<<1)
 #define USB_OUT_CSR1_OUT_PKT_RDY		(1<<0)
 
-/*
- * OUT CSR2 register
- */
+
 #define USB_OUT_CSR2_AUTO_CLR			(1<<7)
 #define USB_OUT_CSR2_USB_DMA_EN			(1<<4)
 
-/*
- * EP0 CSR
- */
-#define EP0_CLR_SETUP_END		(1<<7)	/* Clear "Setup Ends" Bit (w) */
-#define EP0_CLR_OUT				(1<<6)	/* Clear "Out packet ready" Bit (w) */
-#define EP0_SEND_STALL			(1<<5)	/* Send STALL Handshake (rw) */
-#define EP0_SETUP_END			(1<<4)	/* Setup Ends (r) */
 
-#define EP0_DATA_END			(1<<3)	/* Data end (rw) */
-#define EP0_SENT_STALL			(1<<2)	/* Sent Stall Handshake (r) */
-#define EP0_IN_PKT_RDY			(1<<1)	/* In packet ready (rw) */
-#define EP0_OUT_PKT_RDY			(1<<0)	/* Out packet ready (r) */
+#define EP0_CLR_SETUP_END		(1<<7)	
+#define EP0_CLR_OUT				(1<<6)	
+#define EP0_SEND_STALL			(1<<5)	
+#define EP0_SETUP_END			(1<<4)	
 
-/* general CSR */
+#define EP0_DATA_END			(1<<3)	
+#define EP0_SENT_STALL			(1<<2)	
+#define EP0_IN_PKT_RDY			(1<<1)	
+#define EP0_OUT_PKT_RDY			(1<<0)	
+
+
 #define OUT_PKT_RDY		(1<<0)
 #define IN_PKT_RDY		(1<<0)
 
-/*
- * IN/OUT MAXP register
- */
+
 #define USB_OUT_MAXP_MAXP			(0xF)
 #define USB_IN_MAXP_MAXP			(0xF)
 
-// Max packet size
-//#define EP0_PACKETSIZE        0x10
+
+
 #define EP0_PACKETSIZE  	0x8
 #define EP0_MAXPACKETSIZE  	0x10
 
@@ -205,9 +156,8 @@
 #define WAIT_FOR_OUT_STATUS     3
 #define DATA_STATE_RECV         4
 
-/* ********************************************************************************************* */
-/* IO
- */
+
+
 
 typedef enum ep_type {
 	ep_control, ep_bulk_in, ep_bulk_out, ep_interrupt

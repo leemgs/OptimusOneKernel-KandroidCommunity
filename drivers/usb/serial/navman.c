@@ -1,16 +1,4 @@
-/*
- * Navman Serial USB driver
- *
- * Copyright (C) 2006 Greg Kroah-Hartman <gregkh@suse.de>
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License
- *	version 2 as published by the Free Software Foundation.
- *
- * TODO:
- *	Add termios method that uses copy_hw but also kills all echo
- *	flags as the navman is rx only so cannot echo.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -23,7 +11,7 @@
 static int debug;
 
 static struct usb_device_id id_table [] = {
-	{ USB_DEVICE(0x0a99, 0x0001) },	/* Talon Technology device */
+	{ USB_DEVICE(0x0a99, 0x0001) },	
 	{ },
 };
 MODULE_DEVICE_TABLE(usb, id_table);
@@ -46,12 +34,12 @@ static void navman_read_int_callback(struct urb *urb)
 
 	switch (status) {
 	case 0:
-		/* success */
+		
 		break;
 	case -ECONNRESET:
 	case -ENOENT:
 	case -ESHUTDOWN:
-		/* this urb is terminated, clean up */
+		
 		dbg("%s - urb shutting down with status: %d",
 		    __func__, status);
 		return;
@@ -109,9 +97,7 @@ static int navman_write(struct tty_struct *tty, struct usb_serial_port *port,
 {
 	dbg("%s - port %d", __func__, port->number);
 
-	/*
-	 * This device can't write any data, only read from the device
-	 */
+	
 	return -EOPNOTSUPP;
 }
 

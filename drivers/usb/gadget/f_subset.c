@@ -1,23 +1,4 @@
-/*
- * f_subset.c -- "CDC Subset" Ethernet link function driver
- *
- * Copyright (C) 2003-2005,2008 David Brownell
- * Copyright (C) 2008 Nokia Corporation
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/kernel.h>
 #include <linux/device.h>
@@ -26,35 +7,7 @@
 #include "u_ether.h"
 
 
-/*
- * This function packages a simple "CDC Subset" Ethernet port with no real
- * control mechanisms; just raw data transfer over two bulk endpoints.
- * The data transfer model is exactly that of CDC Ethernet, which is
- * why we call it the "CDC Subset".
- *
- * Because it's not standardized, this has some interoperability issues.
- * They mostly relate to driver binding, since the data transfer model is
- * so simple (CDC Ethernet).  The original versions of this protocol used
- * specific product/vendor IDs:  byteswapped IDs for Digital Equipment's
- * SA-1100 "Itsy" board, which could run Linux 2.4 kernels and supported
- * daughtercards with USB peripheral connectors.  (It was used more often
- * with other boards, using the Itsy identifiers.)  Linux hosts recognized
- * this with CONFIG_USB_ARMLINUX; these devices have only one configuration
- * and one interface.
- *
- * At some point, MCCI defined a (nonconformant) CDC MDLM variant called
- * "SAFE", which happens to have a mode which is identical to the "CDC
- * Subset" in terms of data transfer and lack of control model.  This was
- * adopted by later Sharp Zaurus models, and by some other software which
- * Linux hosts recognize with CONFIG_USB_NET_ZAURUS.
- *
- * Because Microsoft's RNDIS drivers are far from robust, we added a few
- * descriptors to the CDC Subset code, making this code look like a SAFE
- * implementation.  This lets you use MCCI's host side MS-Windows drivers
- * if you get fed up with RNDIS.  It also makes it easier for composite
- * drivers to work, since they can use class based binding instead of
- * caring about specific product and vendor IDs.
- */
+
 
 struct geth_descs {
 	struct usb_endpoint_descriptor	*in;
@@ -75,32 +28,23 @@ static inline struct f_gether *func_to_geth(struct usb_function *f)
 	return container_of(f, struct f_gether, port.func);
 }
 
-/*-------------------------------------------------------------------------*/
 
-/*
- * "Simple" CDC-subset option is a simple vendor-neutral model that most
- * full speed controllers can handle:  one interface, two bulk endpoints.
- * To assist host side drivers, we fancy it up a bit, and add descriptors so
- * some host side drivers will understand it as a "SAFE" variant.
- *
- * "SAFE" loosely follows CDC WMC MDLM, violating the spec in various ways.
- * Data endpoints live in the control interface, there's no data interface.
- * And it's not used to talk to a cell phone radio.
- */
 
-/* interface descriptor: */
+
+
+
 
 static struct usb_interface_descriptor subset_data_intf __initdata = {
 	.bLength =		sizeof subset_data_intf,
 	.bDescriptorType =	USB_DT_INTERFACE,
 
-	/* .bInterfaceNumber = DYNAMIC */
+	
 	.bAlternateSetting =	0,
 	.bNumEndpoints =	2,
 	.bInterfaceClass =      USB_CLASS_COMM,
 	.bInterfaceSubClass =	USB_CDC_SUBCLASS_MDLM,
 	.bInterfaceProtocol =	0,
-	/* .iInterface = DYNAMIC */
+	
 };
 
 static struct usb_cdc_header_desc mdlm_header_desc __initdata = {
@@ -123,18 +67,15 @@ static struct usb_cdc_mdlm_desc mdlm_desc __initdata = {
 	},
 };
 
-/* since "usb_cdc_mdlm_detail_desc" is a variable length structure, we
- * can't really use its struct.  All we do here is say that we're using
- * the submode of "SAFE" which directly matches the CDC Subset.
- */
+
 static u8 mdlm_detail_desc[] __initdata = {
 	6,
 	USB_DT_CS_INTERFACE,
 	USB_CDC_MDLM_DETAIL_TYPE,
 
-	0,	/* "SAFE" */
-	0,	/* network control capabilities (none) */
-	0,	/* network data capabilities ("raw" encapsulation) */
+	0,	
+	0,	
+	0,	
 };
 
 static struct usb_cdc_ether_desc ether_desc __initdata = {
@@ -142,15 +83,15 @@ static struct usb_cdc_ether_desc ether_desc __initdata = {
 	.bDescriptorType =	USB_DT_CS_INTERFACE,
 	.bDescriptorSubType =	USB_CDC_ETHERNET_TYPE,
 
-	/* this descriptor actually adds value, surprise! */
-	/* .iMACAddress = DYNAMIC */
-	.bmEthernetStatistics =	cpu_to_le32(0), /* no statistics */
+	
+	
+	.bmEthernetStatistics =	cpu_to_le32(0), 
 	.wMaxSegmentSize =	cpu_to_le16(ETH_FRAME_LEN),
 	.wNumberMCFilters =	cpu_to_le16(0),
 	.bNumberPowerFilters =	0,
 };
 
-/* full speed support: */
+
 
 static struct usb_endpoint_descriptor fs_subset_in_desc __initdata = {
 	.bLength =		USB_DT_ENDPOINT_SIZE,
@@ -179,7 +120,7 @@ static struct usb_descriptor_header *fs_eth_function[] __initdata = {
 	NULL,
 };
 
-/* high speed support: */
+
 
 static struct usb_endpoint_descriptor hs_subset_in_desc __initdata = {
 	.bLength =		USB_DT_ENDPOINT_SIZE,
@@ -208,16 +149,16 @@ static struct usb_descriptor_header *hs_eth_function[] __initdata = {
 	NULL,
 };
 
-/* string descriptors: */
+
 
 static struct usb_string geth_string_defs[] = {
 	[0].s = "CDC Ethernet Subset/SAFE",
-	[1].s = NULL /* DYNAMIC */,
-	{  } /* end of list */
+	[1].s = NULL ,
+	{  } 
 };
 
 static struct usb_gadget_strings geth_string_table = {
-	.language =		0x0409,	/* en-us */
+	.language =		0x0409,	
 	.strings =		geth_string_defs,
 };
 
@@ -226,7 +167,7 @@ static struct usb_gadget_strings *geth_strings[] = {
 	NULL,
 };
 
-/*-------------------------------------------------------------------------*/
+
 
 static int geth_set_alt(struct usb_function *f, unsigned intf, unsigned alt)
 {
@@ -234,7 +175,7 @@ static int geth_set_alt(struct usb_function *f, unsigned intf, unsigned alt)
 	struct usb_composite_dev *cdev = f->config->cdev;
 	struct net_device	*net;
 
-	/* we know alt == 0, so this is an activation or a reset */
+	
 
 	if (geth->port.in_ep->driver_data) {
 		DBG(cdev, "reset cdc subset\n");
@@ -260,9 +201,9 @@ static void geth_disable(struct usb_function *f)
 	gether_disconnect(&geth->port);
 }
 
-/*-------------------------------------------------------------------------*/
 
-/* serial function driver setup/binding */
+
+
 
 static int __init
 geth_bind(struct usb_configuration *c, struct usb_function *f)
@@ -272,7 +213,7 @@ geth_bind(struct usb_configuration *c, struct usb_function *f)
 	int			status;
 	struct usb_ep		*ep;
 
-	/* allocate instance-specific interface IDs */
+	
 	status = usb_interface_id(c, f);
 	if (status < 0)
 		goto fail;
@@ -280,20 +221,20 @@ geth_bind(struct usb_configuration *c, struct usb_function *f)
 
 	status = -ENODEV;
 
-	/* allocate instance-specific endpoints */
+	
 	ep = usb_ep_autoconfig(cdev->gadget, &fs_subset_in_desc);
 	if (!ep)
 		goto fail;
 	geth->port.in_ep = ep;
-	ep->driver_data = cdev;	/* claim */
+	ep->driver_data = cdev;	
 
 	ep = usb_ep_autoconfig(cdev->gadget, &fs_subset_out_desc);
 	if (!ep)
 		goto fail;
 	geth->port.out_ep = ep;
-	ep->driver_data = cdev;	/* claim */
+	ep->driver_data = cdev;	
 
-	/* copy descriptors, and track endpoint copies */
+	
 	f->descriptors = usb_copy_descriptors(fs_eth_function);
 
 	geth->fs.in = usb_find_endpoint(fs_eth_function,
@@ -302,17 +243,14 @@ geth_bind(struct usb_configuration *c, struct usb_function *f)
 			f->descriptors, &fs_subset_out_desc);
 
 
-	/* support all relevant hardware speeds... we expect that when
-	 * hardware is dual speed, all bulk-capable endpoints work at
-	 * both speeds
-	 */
+	
 	if (gadget_is_dualspeed(c->cdev->gadget)) {
 		hs_subset_in_desc.bEndpointAddress =
 				fs_subset_in_desc.bEndpointAddress;
 		hs_subset_out_desc.bEndpointAddress =
 				fs_subset_out_desc.bEndpointAddress;
 
-		/* copy descriptors, and track endpoint copies */
+		
 		f->hs_descriptors = usb_copy_descriptors(hs_eth_function);
 
 		geth->hs.in = usb_find_endpoint(hs_eth_function,
@@ -321,10 +259,7 @@ geth_bind(struct usb_configuration *c, struct usb_function *f)
 				f->hs_descriptors, &hs_subset_out_desc);
 	}
 
-	/* NOTE:  all that is done without knowing or caring about
-	 * the network link ... which is unavailable to this code
-	 * until we're activated via set_alt().
-	 */
+	
 
 	DBG(cdev, "CDC Subset: %s speed IN/%s OUT/%s\n",
 			gadget_is_dualspeed(c->cdev->gadget) ? "dual" : "full",
@@ -332,7 +267,7 @@ geth_bind(struct usb_configuration *c, struct usb_function *f)
 	return 0;
 
 fail:
-	/* we might as well release our claims on endpoints */
+	
 	if (geth->port.out)
 		geth->port.out_ep->driver_data = NULL;
 	if (geth->port.in)
@@ -353,18 +288,7 @@ geth_unbind(struct usb_configuration *c, struct usb_function *f)
 	kfree(func_to_geth(f));
 }
 
-/**
- * geth_bind_config - add CDC Subset network link to a configuration
- * @c: the configuration to support the network link
- * @ethaddr: a buffer in which the ethernet address of the host side
- *	side of the link was recorded
- * Context: single threaded during gadget setup
- *
- * Returns zero on success, else negative errno.
- *
- * Caller must have called @gether_setup().  Caller is also responsible
- * for calling @gether_cleanup() before module unload.
- */
+
 int __init geth_bind_config(struct usb_configuration *c, u8 ethaddr[ETH_ALEN])
 {
 	struct f_gether	*geth;
@@ -373,17 +297,17 @@ int __init geth_bind_config(struct usb_configuration *c, u8 ethaddr[ETH_ALEN])
 	if (!ethaddr)
 		return -EINVAL;
 
-	/* maybe allocate device-global string IDs */
+	
 	if (geth_string_defs[0].id == 0) {
 
-		/* interface label */
+		
 		status = usb_string_id(c->cdev);
 		if (status < 0)
 			return status;
 		geth_string_defs[0].id = status;
 		subset_data_intf.iInterface = status;
 
-		/* MAC address */
+		
 		status = usb_string_id(c->cdev);
 		if (status < 0)
 			return status;
@@ -391,12 +315,12 @@ int __init geth_bind_config(struct usb_configuration *c, u8 ethaddr[ETH_ALEN])
 		ether_desc.iMACAddress = status;
 	}
 
-	/* allocate and initialize one new instance */
+	
 	geth = kzalloc(sizeof *geth, GFP_KERNEL);
 	if (!geth)
 		return -ENOMEM;
 
-	/* export host's Ethernet address in CDC format */
+	
 	snprintf(geth->ethaddr, sizeof geth->ethaddr,
 		"%02X%02X%02X%02X%02X%02X",
 		ethaddr[0], ethaddr[1], ethaddr[2],

@@ -1,24 +1,4 @@
-/*
- * Driver for Option High Speed Mobile Devices.
- *
- *   (c) 2008 Dan Williams <dcbw@redhat.com>
- *
- * Inspiration taken from sierra_ms.c by Kevin Lloyd <klloyd@sierrawireless.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/usb.h>
 
@@ -63,14 +43,12 @@ static int option_rezero(struct us_data *us)
 		goto out;
 	}
 
-	/* Some of the devices need to be asked for a response, but we don't
-	 * care what that response is.
-	 */
+	
 	usb_stor_bulk_transfer_buf(us,
 			us->recv_bulk_pipe,
 			buffer, RESPONSE_LEN, NULL);
 
-	/* Read the CSW */
+	
 	usb_stor_bulk_transfer_buf(us,
 			us->recv_bulk_pipe,
 			buffer, 13, NULL);
@@ -121,7 +99,7 @@ static int option_inquiry(struct us_data *us)
 	if (result != 0)
 		result = memcmp(buffer+8, "ZCOPTION", 8);
 
-	/* Read the CSW */
+	
 	usb_stor_bulk_transfer_buf(us,
 			us->recv_bulk_pipe,
 			buffer, 13, NULL);
@@ -138,9 +116,7 @@ int option_ms_init(struct us_data *us)
 
 	US_DEBUGP("Option MS: option_ms_init called\n");
 
-	/* Additional test for vendor information via INQUIRY,
-	 * because some vendor/product IDs are ambiguous
-	 */
+	
 	result = option_inquiry(us);
 	if (result != 0) {
 		US_DEBUGP("Option MS: vendor is not Option or not determinable,"
@@ -150,7 +126,7 @@ int option_ms_init(struct us_data *us)
 		US_DEBUGP("Option MS: this is a genuine Option device,"
 			  " proceeding\n");
 
-	/* Force Modem mode */
+	
 	if (option_zero_cd == ZCD_FORCE_MODEM) {
 		US_DEBUGP("Option MS: %s", "Forcing Modem Mode\n");
 		result = option_rezero(us);
@@ -158,7 +134,7 @@ int option_ms_init(struct us_data *us)
 			US_DEBUGP("Option MS: Failed to switch to modem mode.\n");
 		return -EIO;
 	} else if (option_zero_cd == ZCD_ALLOW_MS) {
-		/* Allow Mass Storage mode (keep CD-Rom) */
+		
 		US_DEBUGP("Option MS: %s", "Allowing Mass Storage Mode if device"
 		          " requests it\n");
 	}

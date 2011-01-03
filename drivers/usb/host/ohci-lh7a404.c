@@ -1,20 +1,4 @@
-/*
- * OHCI HCD (Host Controller Driver) for USB.
- *
- * (C) Copyright 1999 Roman Weissgaerber <weissg@vienna.at>
- * (C) Copyright 2000-2002 David Brownell <dbrownell@users.sourceforge.net>
- * (C) Copyright 2002 Hewlett-Packard Company
- *
- * Bus Glue for Sharp LH7A404
- *
- * Written by Christopher Hoover <ch@hpl.hp.com>
- * Based on fragments of previous driver by Russell King et al.
- *
- * Modified for LH7A404 from ohci-sa1111.c
- *  by Durgesh Pattamatta <pattamattad@sharpsec.com>
- *
- * This file is licenced under the GPL.
- */
+
 
 #include <linux/platform_device.h>
 #include <linux/signal.h>
@@ -24,18 +8,15 @@
 
 extern int usb_disabled(void);
 
-/*-------------------------------------------------------------------------*/
+
 
 static void lh7a404_start_hc(struct platform_device *dev)
 {
 	printk(KERN_DEBUG __FILE__
 	       ": starting LH7A404 OHCI USB Controller\n");
 
-	/*
-	 * Now, carefully enable the USB clock, and take
-	 * the USB host controller out of reset.
-	 */
-	CSC_PWRCNT |= CSC_PWRCNT_USBH_EN; /* Enable clock */
+	
+	CSC_PWRCNT |= CSC_PWRCNT_USBH_EN; 
 	udelay(1000);
 	USBH_CMDSTATUS = OHCI_HCR;
 
@@ -48,25 +29,17 @@ static void lh7a404_stop_hc(struct platform_device *dev)
 	printk(KERN_DEBUG __FILE__
 	       ": stopping LH7A404 OHCI USB Controller\n");
 
-	CSC_PWRCNT &= ~CSC_PWRCNT_USBH_EN; /* Disable clock */
+	CSC_PWRCNT &= ~CSC_PWRCNT_USBH_EN; 
 }
 
 
-/*-------------------------------------------------------------------------*/
-
-/* configure so an HC device and id are always provided */
-/* always called with process context; sleeping is OK */
 
 
-/**
- * usb_hcd_lh7a404_probe - initialize LH7A404-based HCDs
- * Context: !in_interrupt()
- *
- * Allocates basic resources for this USB host controller, and
- * then invokes the start() method for the HCD associated with it
- * through the hotplug entry's driver_data.
- *
- */
+
+
+
+
+
 int usb_hcd_lh7a404_probe (const struct hc_driver *driver,
 			  struct platform_device *dev)
 {
@@ -114,19 +87,10 @@ int usb_hcd_lh7a404_probe (const struct hc_driver *driver,
 }
 
 
-/* may be called without controller electrically present */
-/* may be called with controller, bus, and devices active */
 
-/**
- * usb_hcd_lh7a404_remove - shutdown processing for LH7A404-based HCDs
- * @dev: USB Host Controller being removed
- * Context: !in_interrupt()
- *
- * Reverses the effect of usb_hcd_lh7a404_probe(), first invoking
- * the HCD's stop() method.  It is always called from a thread
- * context, normally "rmmod", "apmd", or something similar.
- *
- */
+
+
+
 void usb_hcd_lh7a404_remove (struct usb_hcd *hcd, struct platform_device *dev)
 {
 	usb_remove_hcd(hcd);
@@ -136,7 +100,7 @@ void usb_hcd_lh7a404_remove (struct usb_hcd *hcd, struct platform_device *dev)
 	usb_put_hcd(hcd);
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 static int __devinit
 ohci_lh7a404_start (struct usb_hcd *hcd)
@@ -156,41 +120,31 @@ ohci_lh7a404_start (struct usb_hcd *hcd)
 	return 0;
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 static const struct hc_driver ohci_lh7a404_hc_driver = {
 	.description =		hcd_name,
 	.product_desc =		"LH7A404 OHCI",
 	.hcd_priv_size =	sizeof(struct ohci_hcd),
 
-	/*
-	 * generic hardware linkage
-	 */
+	
 	.irq =			ohci_irq,
 	.flags =		HCD_USB11 | HCD_MEMORY,
 
-	/*
-	 * basic lifecycle operations
-	 */
+	
 	.start =		ohci_lh7a404_start,
 	.stop =			ohci_stop,
 	.shutdown =		ohci_shutdown,
 
-	/*
-	 * managing i/o requests and associated device resources
-	 */
+	
 	.urb_enqueue =		ohci_urb_enqueue,
 	.urb_dequeue =		ohci_urb_dequeue,
 	.endpoint_disable =	ohci_endpoint_disable,
 
-	/*
-	 * scheduling support
-	 */
+	
 	.get_frame_number =	ohci_get_frame,
 
-	/*
-	 * root hub support
-	 */
+	
 	.hub_status_data =	ohci_hub_status_data,
 	.hub_control =		ohci_hub_control,
 #ifdef	CONFIG_PM
@@ -200,7 +154,7 @@ static const struct hc_driver ohci_lh7a404_hc_driver = {
 	.start_port_reset =	ohci_start_port_reset,
 };
 
-/*-------------------------------------------------------------------------*/
+
 
 static int ohci_hcd_lh7a404_drv_probe(struct platform_device *pdev)
 {
@@ -222,28 +176,15 @@ static int ohci_hcd_lh7a404_drv_remove(struct platform_device *pdev)
 	usb_hcd_lh7a404_remove(hcd, pdev);
 	return 0;
 }
-	/*TBD*/
-/*static int ohci_hcd_lh7a404_drv_suspend(struct platform_device *dev)
-{
-	struct usb_hcd *hcd = platform_get_drvdata(dev);
+	
 
-	return 0;
-}
-static int ohci_hcd_lh7a404_drv_resume(struct platform_device *dev)
-{
-	struct usb_hcd *hcd = platform_get_drvdata(dev);
-
-
-	return 0;
-}
-*/
 
 static struct platform_driver ohci_hcd_lh7a404_driver = {
 	.probe		= ohci_hcd_lh7a404_drv_probe,
 	.remove		= ohci_hcd_lh7a404_drv_remove,
 	.shutdown	= usb_hcd_platform_shutdown,
-	/*.suspend	= ohci_hcd_lh7a404_drv_suspend, */
-	/*.resume	= ohci_hcd_lh7a404_drv_resume, */
+	
+	
 	.driver		= {
 		.name	= "lh7a404-ohci",
 		.owner	= THIS_MODULE,

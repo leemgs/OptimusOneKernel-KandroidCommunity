@@ -1,24 +1,4 @@
-/*
- * Apple Cinema Display driver
- *
- * Copyright (C) 2006  Michael Hanselmann (linux-kernel@hansmi.ch)
- *
- * Thanks to Caskey L. Dickson for his work with acdctl.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/errno.h>
@@ -56,24 +36,24 @@
 	.bInterfaceClass = USB_CLASS_HID,			\
 	.bInterfaceProtocol = 0x00
 
-/* table of devices that work with this driver */
+
 static struct usb_device_id appledisplay_table [] = {
 	{ APPLEDISPLAY_DEVICE(0x9218) },
 	{ APPLEDISPLAY_DEVICE(0x9219) },
 	{ APPLEDISPLAY_DEVICE(0x921d) },
 
-	/* Terminating entry */
+	
 	{ }
 };
 MODULE_DEVICE_TABLE(usb, appledisplay_table);
 
-/* Structure to hold all of our device specific stuff */
+
 struct appledisplay {
-	struct usb_device *udev;	/* usb device */
-	struct urb *urb;		/* usb request block */
-	struct backlight_device *bd;	/* backlight device */
-	u8 *urbdata;			/* interrupt URB data buffer */
-	u8 *msgdata;			/* control message data buffer */
+	struct usb_device *udev;	
+	struct urb *urb;		
+	struct backlight_device *bd;	
+	u8 *urbdata;			
+	u8 *msgdata;			
 
 	struct delayed_work work;
 	int button_pressed;
@@ -92,7 +72,7 @@ static void appledisplay_complete(struct urb *urb)
 
 	switch (status) {
 	case 0:
-		/* success */
+		
 		break;
 	case -EOVERFLOW:
 		printk(KERN_ERR "appletouch: OVERFLOW with data "
@@ -101,7 +81,7 @@ static void appledisplay_complete(struct urb *urb)
 	case -ECONNRESET:
 	case -ENOENT:
 	case -ESHUTDOWN:
-		/* This urb is terminated, clean up */
+		
 		dbg("%s - urb shuttingdown with status: %d",
 			__func__, status);
 		return;
@@ -193,7 +173,7 @@ static void appledisplay_work(struct work_struct *work)
 	if (retval >= 0)
 		pdata->bd->props.brightness = retval;
 
-	/* Poll again in about 125ms if there's still a button pressed */
+	
 	if (pdata->button_pressed)
 		schedule_delayed_work(&pdata->work, HZ / 8);
 }
@@ -209,13 +189,13 @@ static int appledisplay_probe(struct usb_interface *iface,
 	int i, retval = -ENOMEM, brightness;
 	char bl_name[20];
 
-	/* set up the endpoint information */
-	/* use only the first interrupt-in endpoint */
+	
+	
 	iface_desc = iface->cur_altsetting;
 	for (i = 0; i < iface_desc->desc.bNumEndpoints; i++) {
 		endpoint = &iface_desc->endpoint[i].desc;
 		if (!int_in_endpointAddr && usb_endpoint_is_int_in(endpoint)) {
-			/* we found an interrupt in endpoint */
+			
 			int_in_endpointAddr = endpoint->bEndpointAddress;
 			break;
 		}
@@ -225,7 +205,7 @@ static int appledisplay_probe(struct usb_interface *iface,
 		return -EIO;
 	}
 
-	/* allocate memory for our device state and initialize it */
+	
 	pdata = kzalloc(sizeof(struct appledisplay), GFP_KERNEL);
 	if (!pdata) {
 		retval = -ENOMEM;
@@ -238,7 +218,7 @@ static int appledisplay_probe(struct usb_interface *iface,
 	spin_lock_init(&pdata->lock);
 	INIT_DELAYED_WORK(&pdata->work, appledisplay_work);
 
-	/* Allocate buffer for control messages */
+	
 	pdata->msgdata = kmalloc(ACD_MSG_BUFFER_LEN, GFP_KERNEL);
 	if (!pdata->msgdata) {
 		retval = -ENOMEM;
@@ -247,7 +227,7 @@ static int appledisplay_probe(struct usb_interface *iface,
 		goto error;
 	}
 
-	/* Allocate interrupt URB */
+	
 	pdata->urb = usb_alloc_urb(0, GFP_KERNEL);
 	if (!pdata->urb) {
 		retval = -ENOMEM;
@@ -255,7 +235,7 @@ static int appledisplay_probe(struct usb_interface *iface,
 		goto error;
 	}
 
-	/* Allocate buffer for interrupt data */
+	
 	pdata->urbdata = usb_buffer_alloc(pdata->udev, ACD_URB_BUFFER_LEN,
 		GFP_KERNEL, &pdata->urb->transfer_dma);
 	if (!pdata->urbdata) {
@@ -264,7 +244,7 @@ static int appledisplay_probe(struct usb_interface *iface,
 		goto error;
 	}
 
-	/* Configure interrupt URB */
+	
 	usb_fill_int_urb(pdata->urb, udev,
 		usb_rcvintpipe(udev, int_in_endpointAddr),
 		pdata->urbdata, ACD_URB_BUFFER_LEN, appledisplay_complete,
@@ -275,7 +255,7 @@ static int appledisplay_probe(struct usb_interface *iface,
 		goto error;
 	}
 
-	/* Register backlight device */
+	
 	snprintf(bl_name, sizeof(bl_name), "appledisplay%d",
 		atomic_inc_return(&count_displays) - 1);
 	pdata->bd = backlight_device_register(bl_name, NULL, pdata,
@@ -287,7 +267,7 @@ static int appledisplay_probe(struct usb_interface *iface,
 
 	pdata->bd->props.max_brightness = 0xff;
 
-	/* Try to get brightness */
+	
 	brightness = appledisplay_bl_get_brightness(pdata->bd);
 
 	if (brightness < 0) {
@@ -297,10 +277,10 @@ static int appledisplay_probe(struct usb_interface *iface,
 		goto error;
 	}
 
-	/* Set brightness in backlight device */
+	
 	pdata->bd->props.brightness = brightness;
 
-	/* save our data pointer in the interface device */
+	
 	usb_set_intfdata(iface, pdata);
 
 	printk(KERN_INFO "appledisplay: Apple Cinema Display connected\n");

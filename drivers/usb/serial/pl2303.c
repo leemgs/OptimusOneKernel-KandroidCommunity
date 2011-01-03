@@ -1,19 +1,4 @@
-/*
- * Prolific PL2303 USB to serial adaptor driver
- *
- * Copyright (C) 2001-2007 Greg Kroah-Hartman (greg@kroah.com)
- * Copyright (C) 2003 IBM Corp.
- *
- * Original driver for 2.2.x by anonymous
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License version
- *	2 as published by the Free Software Foundation.
- *
- * See Documentation/usb/usb-serial.txt for more information on using this
- * driver
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/errno.h>
@@ -31,9 +16,7 @@
 #include <linux/usb/serial.h>
 #include "pl2303.h"
 
-/*
- * Version Information
- */
+
 #define DRIVER_DESC "Prolific PL2303 USB to serial adaptor driver"
 
 static int debug;
@@ -79,7 +62,7 @@ static struct usb_device_id id_table [] = {
 	{ USB_DEVICE(SIEMENS_VENDOR_ID, SIEMENS_PRODUCT_ID_X65) },
 	{ USB_DEVICE(SIEMENS_VENDOR_ID, SIEMENS_PRODUCT_ID_X75) },
 	{ USB_DEVICE(SIEMENS_VENDOR_ID, SIEMENS_PRODUCT_ID_EF81) },
-	{ USB_DEVICE(BENQ_VENDOR_ID, BENQ_PRODUCT_ID_S81) }, /* Benq/Siemens S81 */
+	{ USB_DEVICE(BENQ_VENDOR_ID, BENQ_PRODUCT_ID_S81) }, 
 	{ USB_DEVICE(SYNTECH_VENDOR_ID, SYNTECH_PRODUCT_ID) },
 	{ USB_DEVICE(NOKIA_CA42_VENDOR_ID, NOKIA_CA42_PRODUCT_ID) },
 	{ USB_DEVICE(CA_42_CA42_VENDOR_ID, CA_42_CA42_PRODUCT_ID) },
@@ -97,7 +80,7 @@ static struct usb_device_id id_table [] = {
 	{ USB_DEVICE(CRESSI_VENDOR_ID, CRESSI_EDY_PRODUCT_ID) },
 	{ USB_DEVICE(SONY_VENDOR_ID, SONY_QN3USB_PRODUCT_ID) },
 	{ USB_DEVICE(SANWA_VENDOR_ID, SANWA_PRODUCT_ID) },
-	{ }					/* Terminating entry */
+	{ }					
 };
 
 MODULE_DEVICE_TABLE(usb, id_table);
@@ -148,9 +131,9 @@ static struct usb_driver pl2303_driver = {
 
 
 enum pl2303_type {
-	type_0,		/* don't know the difference between type 0 and */
-	type_1,		/* type 1, until someone from prolific tells us... */
-	HX,		/* HX version of the pl2303 chip */
+	type_0,		
+	type_1,		
+	HX,		
 };
 
 struct pl2303_private {
@@ -163,11 +146,7 @@ struct pl2303_private {
 	enum pl2303_type type;
 };
 
-/*
- * pl2303_buf_alloc
- *
- * Allocate a circular buffer and all associated memory.
- */
+
 static struct pl2303_buf *pl2303_buf_alloc(unsigned int size)
 {
 	struct pl2303_buf *pb;
@@ -191,11 +170,7 @@ static struct pl2303_buf *pl2303_buf_alloc(unsigned int size)
 	return pb;
 }
 
-/*
- * pl2303_buf_free
- *
- * Free the buffer and all associated memory.
- */
+
 static void pl2303_buf_free(struct pl2303_buf *pb)
 {
 	if (pb) {
@@ -204,24 +179,15 @@ static void pl2303_buf_free(struct pl2303_buf *pb)
 	}
 }
 
-/*
- * pl2303_buf_clear
- *
- * Clear out all data in the circular buffer.
- */
+
 static void pl2303_buf_clear(struct pl2303_buf *pb)
 {
 	if (pb != NULL)
 		pb->buf_get = pb->buf_put;
-		/* equivalent to a get of all data available */
+		
 }
 
-/*
- * pl2303_buf_data_avail
- *
- * Return the number of bytes of data available in the circular
- * buffer.
- */
+
 static unsigned int pl2303_buf_data_avail(struct pl2303_buf *pb)
 {
 	if (pb == NULL)
@@ -230,12 +196,7 @@ static unsigned int pl2303_buf_data_avail(struct pl2303_buf *pb)
 	return (pb->buf_size + pb->buf_put - pb->buf_get) % pb->buf_size;
 }
 
-/*
- * pl2303_buf_space_avail
- *
- * Return the number of bytes of space available in the circular
- * buffer.
- */
+
 static unsigned int pl2303_buf_space_avail(struct pl2303_buf *pb)
 {
 	if (pb == NULL)
@@ -244,14 +205,7 @@ static unsigned int pl2303_buf_space_avail(struct pl2303_buf *pb)
 	return (pb->buf_size + pb->buf_get - pb->buf_put - 1) % pb->buf_size;
 }
 
-/*
- * pl2303_buf_put
- *
- * Copy data data from a user buffer and put it into the circular buffer.
- * Restrict to the amount of space available.
- *
- * Return the number of bytes copied.
- */
+
 static unsigned int pl2303_buf_put(struct pl2303_buf *pb, const char *buf,
 				   unsigned int count)
 {
@@ -276,21 +230,14 @@ static unsigned int pl2303_buf_put(struct pl2303_buf *pb, const char *buf,
 		memcpy(pb->buf_put, buf, count);
 		if (count < len)
 			pb->buf_put += count;
-		else /* count == len */
+		else 
 			pb->buf_put = pb->buf_buf;
 	}
 
 	return count;
 }
 
-/*
- * pl2303_buf_get
- *
- * Get data from the circular buffer and copy to the given buffer.
- * Restrict to the amount of data available.
- *
- * Return the number of bytes copied.
- */
+
 static unsigned int pl2303_buf_get(struct pl2303_buf *pb, char *buf,
 				   unsigned int count)
 {
@@ -315,7 +262,7 @@ static unsigned int pl2303_buf_get(struct pl2303_buf *pb, char *buf,
 		memcpy(buf, pb->buf_get, count);
 		if (count < len)
 			pb->buf_get += count;
-		else /* count == len */
+		else 
 			pb->buf_get = pb->buf_buf;
 	}
 
@@ -457,7 +404,7 @@ static void pl2303_send(struct usb_serial_port *port)
 		dev_err(&port->dev, "%s - failed submitting write urb,"
 			" error %d\n", __func__, result);
 		priv->write_urb_in_use = 0;
-		/* TODO: reschedule pl2303_send */
+		
 	}
 
 	usb_serial_port_softint(port);
@@ -537,9 +484,7 @@ static void pl2303_set_termios(struct tty_struct *tty,
 
 	dbg("%s -  port %d", __func__, port->number);
 
-	/* The PL2303 is reported to lose bytes if you change
-	   serial settings even to the same values as before. Thus
-	   we actually need to filter in this specific case */
+	
 
 	if (!tty_termios_hw_change(tty->termios, old_termios))
 		return;
@@ -549,7 +494,7 @@ static void pl2303_set_termios(struct tty_struct *tty,
 	buf = kzalloc(7, GFP_KERNEL);
 	if (!buf) {
 		dev_err(&port->dev, "%s - out of memory.\n", __func__);
-		/* Report back no change occurred */
+		
 		*tty->termios = *old_termios;
 		return;
 	}
@@ -579,15 +524,12 @@ static void pl2303_set_termios(struct tty_struct *tty,
 		dbg("%s - data bits = %d", __func__, buf[6]);
 	}
 
-	/* For reference buf[0]:buf[3] baud rate value */
-	/* NOTE: Only the values defined in baud_sup are supported !
-	 *       => if unsupported values are set, the PL2303 seems to use
-	 *          9600 baud (at least my PL2303X always does)
-	 */
+	
+	
 	baud = tty_get_baud_rate(tty);
 	dbg("%s - baud requested = %d", __func__, baud);
 	if (baud) {
-		/* Set baudrate to nearest supported value */
+		
 		for (k=0; k<ARRAY_SIZE(baud_sup); k++) {
 			if (baud_sup[k] / baud) {
 				baud_ceil = baud_sup[k];
@@ -605,7 +547,7 @@ static void pl2303_set_termios(struct tty_struct *tty,
 			}
 		}
 		if (baud > 1228800) {
-			/* type_0, type_1 only support up to 1228800 baud */
+			
 			if (priv->type != HX)
 				baud = 1228800;
 			else if (baud > 6000000)
@@ -618,13 +560,11 @@ static void pl2303_set_termios(struct tty_struct *tty,
 		buf[3] = (baud >> 24) & 0xff;
 	}
 
-	/* For reference buf[4]=0 is 1 stop bits */
-	/* For reference buf[4]=1 is 1.5 stop bits */
-	/* For reference buf[4]=2 is 2 stop bits */
+	
+	
+	
 	if (cflag & CSTOPB) {
-		/* NOTE: Comply with "real" UARTs / RS232:
-		 *       use 1.5 instead of 2 stop bits with 5 data bits
-		 */
+		
 		if ((cflag & CSIZE) == CS5) {
 			buf[4] = 1;
 			dbg("%s - stop bits = 1.5", __func__);
@@ -638,11 +578,11 @@ static void pl2303_set_termios(struct tty_struct *tty,
 	}
 
 	if (cflag & PARENB) {
-		/* For reference buf[5]=0 is none parity */
-		/* For reference buf[5]=1 is odd parity */
-		/* For reference buf[5]=2 is even parity */
-		/* For reference buf[5]=3 is mark parity */
-		/* For reference buf[5]=4 is space parity */
+		
+		
+		
+		
+		
 		if (cflag & PARODD) {
 			if (cflag & CMSPAR) {
 				buf[5] = 3;
@@ -670,7 +610,7 @@ static void pl2303_set_termios(struct tty_struct *tty,
 			    0, 0, buf, 7, 100);
 	dbg("0x21:0x20:0:0  %d", i);
 
-	/* change control lines if we are switching to or from B0 */
+	
 	spin_lock_irqsave(&priv->lock, flags);
 	control = priv->line_control;
 	if ((cflag & CBAUD) == B0)
@@ -702,7 +642,7 @@ static void pl2303_set_termios(struct tty_struct *tty,
 		pl2303_vendor_write(0x0, 0x0, serial);
 	}
 
-	/* Save resulting baud rate */
+	
 	if (baud)
 		tty_encode_baud_rate(tty, baud, baud);
 
@@ -716,7 +656,7 @@ static void pl2303_dtr_rts(struct usb_serial_port *port, int on)
 	u8 control;
 
 	spin_lock_irqsave(&priv->lock, flags);
-	/* Change DTR and RTS */
+	
 	if (on)
 		priv->line_control |= (CONTROL_DTR | CONTROL_RTS);
 	else
@@ -734,11 +674,11 @@ static void pl2303_close(struct usb_serial_port *port)
 	dbg("%s - port %d", __func__, port->number);
 
 	spin_lock_irqsave(&priv->lock, flags);
-	/* clear out any remaining data in the buffer */
+	
 	pl2303_buf_clear(priv->buf);
 	spin_unlock_irqrestore(&priv->lock, flags);
 
-	/* shutdown our urbs */
+	
 	dbg("%s - shutting down urbs", __func__);
 	usb_kill_urb(port->write_urb);
 	usb_kill_urb(port->read_urb);
@@ -759,12 +699,12 @@ static int pl2303_open(struct tty_struct *tty, struct usb_serial_port *port)
 		usb_clear_halt(serial->dev, port->write_urb->pipe);
 		usb_clear_halt(serial->dev, port->read_urb->pipe);
 	} else {
-		/* reset upstream data pipes */
+		
 		pl2303_vendor_write(8, 0, serial);
 		pl2303_vendor_write(9, 0, serial);
 	}
 
-	/* Setup termios */
+	
 	if (tty)
 		pl2303_set_termios(tty, port, &tmp_termios);
 
@@ -870,7 +810,7 @@ static int wait_modem_info(struct usb_serial_port *port, unsigned int arg)
 
 	while (1) {
 		interruptible_sleep_on(&priv->delta_msr_wait);
-		/* see if a signal did it */
+		
 		if (signal_pending(current))
 			return -ERESTARTSYS;
 
@@ -888,7 +828,7 @@ static int wait_modem_info(struct usb_serial_port *port, unsigned int arg)
 		}
 		prevstatus = status;
 	}
-	/* NOTREACHED */
+	
 	return 0;
 }
 
@@ -976,7 +916,7 @@ static void pl2303_update_line_status(struct usb_serial_port *port,
 	if (actual_length < length)
 		return;
 
-	/* Save off the uart status for others to look at */
+	
 	spin_lock_irqsave(&priv->lock, flags);
 	priv->line_status = data[status_idx];
 	spin_unlock_irqrestore(&priv->lock, flags);
@@ -997,12 +937,12 @@ static void pl2303_read_int_callback(struct urb *urb)
 
 	switch (status) {
 	case 0:
-		/* success */
+		
 		break;
 	case -ECONNRESET:
 	case -ENOENT:
 	case -ESHUTDOWN:
-		/* this urb is terminated, clean up */
+		
 		dbg("%s - urb shutting down with status: %d", __func__,
 		    status);
 		return;
@@ -1030,10 +970,10 @@ static void pl2303_push_data(struct tty_struct *tty,
 		u8 line_status)
 {
 	unsigned char *data = urb->transfer_buffer;
-	/* get tty_flag from status */
+	
 	char tty_flag = TTY_NORMAL;
-	/* break takes precedence over parity, */
-	/* which takes precedence over framing errors */
+	
+	
 	if (line_status & UART_BREAK_ERROR)
 		tty_flag = TTY_BREAK;
 	else if (line_status & UART_PARITY_ERROR)
@@ -1043,7 +983,7 @@ static void pl2303_push_data(struct tty_struct *tty,
 	dbg("%s - tty_flag = %d", __func__, tty_flag);
 
 	tty_buffer_request_room(tty, urb->actual_length + 1);
-	/* overrun is special, not associated with a char */
+	
 	if (line_status & UART_OVERRUN_ERROR)
 		tty_insert_flip_char(tty, 0, TTY_OVERRUN);
 
@@ -1077,8 +1017,7 @@ static void pl2303_read_bulk_callback(struct urb *urb)
 			return;
 		}
 		if (status == -EPROTO) {
-			/* PL2303 mysteriously fails with -EPROTO reschedule
-			 * the read */
+			
 			dbg("%s - caught -EPROTO, resubmitting the urb",
 			    __func__);
 			urb->dev = port->serial->dev;
@@ -1107,7 +1046,7 @@ static void pl2303_read_bulk_callback(struct urb *urb)
 		pl2303_push_data(tty, port, urb, line_status);
 	}
 	tty_kref_put(tty);
-	/* Schedule the next read _if_ we are still open */
+	
 	if (port->port.count) {
 		urb->dev = port->serial->dev;
 		result = usb_submit_urb(urb, GFP_ATOMIC);
@@ -1130,18 +1069,18 @@ static void pl2303_write_bulk_callback(struct urb *urb)
 
 	switch (status) {
 	case 0:
-		/* success */
+		
 		break;
 	case -ECONNRESET:
 	case -ENOENT:
 	case -ESHUTDOWN:
-		/* this urb is terminated, clean up */
+		
 		dbg("%s - urb shutting down with status: %d", __func__,
 		    status);
 		priv->write_urb_in_use = 0;
 		return;
 	default:
-		/* error in the urb, so we have to resubmit it */
+		
 		dbg("%s - Overflow in write", __func__);
 		dbg("%s - nonzero write bulk status received: %d", __func__,
 		    status);
@@ -1157,11 +1096,11 @@ static void pl2303_write_bulk_callback(struct urb *urb)
 
 	priv->write_urb_in_use = 0;
 
-	/* send any buffered data */
+	
 	pl2303_send(port);
 }
 
-/* All of the device info needed for the PL2303 SIO serial converter */
+
 static struct usb_serial_driver pl2303_device = {
 	.driver = {
 		.owner =	THIS_MODULE,

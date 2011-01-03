@@ -1,55 +1,6 @@
-/*
- * cdc-acm.c
- *
- * Copyright (c) 1999 Armin Fuerst	<fuerst@in.tum.de>
- * Copyright (c) 1999 Pavel Machek	<pavel@suse.cz>
- * Copyright (c) 1999 Johannes Erdfelt	<johannes@erdfelt.com>
- * Copyright (c) 2000 Vojtech Pavlik	<vojtech@suse.cz>
- * Copyright (c) 2004 Oliver Neukum	<oliver@neukum.name>
- * Copyright (c) 2005 David Kubicek	<dave@awk.cz>
- *
- * USB Abstract Control Model driver for USB modems and ISDN adapters
- *
- * Sponsored by SuSE
- *
- * ChangeLog:
- *	v0.9  - thorough cleaning, URBification, almost a rewrite
- *	v0.10 - some more cleanups
- *	v0.11 - fixed flow control, read error doesn't stop reads
- *	v0.12 - added TIOCM ioctls, added break handling, made struct acm
- *		kmalloced
- *	v0.13 - added termios, added hangup
- *	v0.14 - sized down struct acm
- *	v0.15 - fixed flow control again - characters could be lost
- *	v0.16 - added code for modems with swapped data and control interfaces
- *	v0.17 - added new style probing
- *	v0.18 - fixed new style probing for devices with more configurations
- *	v0.19 - fixed CLOCAL handling (thanks to Richard Shih-Ping Chan)
- *	v0.20 - switched to probing on interface (rather than device) class
- *	v0.21 - revert to probing on device for devices with multiple configs
- *	v0.22 - probe only the control interface. if usbcore doesn't choose the
- *		config we want, sysadmin changes bConfigurationValue in sysfs.
- *	v0.23 - use softirq for rx processing, as needed by tty layer
- *	v0.24 - change probe method to evaluate CDC union descriptor
- *	v0.25 - downstream tasks paralelized to maximize throughput
- *	v0.26 - multiple write urbs, writesize increased
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- */
+
+
 
 #undef DEBUG
 #undef VERBOSE_DEBUG
@@ -74,11 +25,9 @@
 #include "cdc-acm.h"
 
 
-#define ACM_CLOSE_TIMEOUT	15	/* seconds to let writes drain */
+#define ACM_CLOSE_TIMEOUT	15	
 
-/*
- * Version Information
- */
+
 #define DRIVER_VERSION "v0.26"
 #define DRIVER_AUTHOR "Armin Fuerst, Pavel Machek, Johannes Erdfelt, Vojtech Pavlik, David Kubicek"
 #define DRIVER_DESC "USB Abstract Control Model driver for USB modems and ISDN adapters"
@@ -100,9 +49,7 @@ static const struct tty_port_operations acm_port_ops = {
 #define verbose	0
 #endif
 
-/*
- * Functions for ACM control messages.
- */
+
 
 static int acm_ctrl_msg(struct acm *acm, int request, int value,
 							void *buf, int len)
@@ -116,9 +63,7 @@ static int acm_ctrl_msg(struct acm *acm, int request, int value,
 	return retval < 0 ? retval : 0;
 }
 
-/* devices aren't required to support these requests.
- * the cdc acm descriptor tells whether they do...
- */
+
 #define acm_set_control(acm, control) \
 	acm_ctrl_msg(acm, USB_CDC_REQ_SET_CONTROL_LINE_STATE, control, NULL, 0)
 #define acm_set_line(acm, line) \
@@ -126,10 +71,7 @@ static int acm_ctrl_msg(struct acm *acm, int request, int value,
 #define acm_send_break(acm, ms) \
 	acm_ctrl_msg(acm, USB_CDC_REQ_SEND_BREAK, ms, NULL, 0)
 
-/*
- * Write buffer management.
- * All of these assume proper locks taken by the caller.
- */
+
 
 static int acm_wb_alloc(struct acm *acm)
 {
@@ -163,20 +105,14 @@ static int acm_wb_is_avail(struct acm *acm)
 	return n;
 }
 
-/*
- * Finish write. Caller must hold acm->write_lock
- */
+
 static void acm_write_done(struct acm *acm, struct acm_wb *wb)
 {
 	wb->use = 0;
 	acm->transmitting--;
 }
 
-/*
- * Poke write.
- *
- * the caller is responsible for locking
- */
+
 
 static int acm_start_wb(struct acm *acm, struct acm_wb *wb)
 {
@@ -215,7 +151,7 @@ static int acm_write_start(struct acm *acm, int wbn)
 		acm->delayed_wb = wb;
 		schedule_work(&acm->waker);
 		spin_unlock_irqrestore(&acm->write_lock, flags);
-		return 0;	/* A white lie */
+		return 0;	
 	}
 	usb_mark_last_busy(acm->dev);
 
@@ -225,9 +161,7 @@ static int acm_write_start(struct acm *acm, int wbn)
 	return rc;
 
 }
-/*
- * attributes exported through sysfs
- */
+
 static ssize_t show_caps
 (struct device *dev, struct device_attribute *attr, char *buf)
 {
@@ -260,11 +194,9 @@ static ssize_t show_country_rel_date
 }
 
 static DEVICE_ATTR(iCountryCodeRelDate, S_IRUGO, show_country_rel_date, NULL);
-/*
- * Interrupt handlers for various ACM device responses
- */
 
-/* control interface reports status changes with "interrupt" transfers */
+
+
 static void acm_ctrl_irq(struct urb *urb)
 {
 	struct acm *acm = urb->context;
@@ -277,12 +209,12 @@ static void acm_ctrl_irq(struct urb *urb)
 
 	switch (status) {
 	case 0:
-		/* success */
+		
 		break;
 	case -ECONNRESET:
 	case -ENOENT:
 	case -ESHUTDOWN:
-		/* this urb is terminated, clean up */
+		
 		dbg("%s - urb shutting down with status: %d", __func__, status);
 		return;
 	default:
@@ -339,7 +271,7 @@ exit:
 			"result %d", __func__, retval);
 }
 
-/* data interface returns incoming bytes, or we got unthrottled */
+
 static void acm_read_bulk(struct urb *urb)
 {
 	struct acm_rb *buf;
@@ -368,13 +300,12 @@ static void acm_read_bulk(struct urb *urb)
 		list_add_tail(&buf->list, &acm->filled_read_bufs);
 		spin_unlock(&acm->read_lock);
 	} else {
-		/* we drop the buffer due to an error */
+		
 		spin_lock(&acm->read_lock);
 		list_add_tail(&rcv->list, &acm->spare_read_urbs);
 		list_add(&buf->list, &acm->spare_read_bufs);
 		spin_unlock(&acm->read_lock);
-		/* nevertheless the tasklet must be kicked unconditionally
-		so the queue cannot dry up */
+		
 	}
 	if (likely(!acm->susp_count))
 		tasklet_schedule(&acm->urb_task);
@@ -478,8 +409,7 @@ urbs:
 		rcv->urb->transfer_dma = buf->dma;
 		rcv->urb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
 
-		/* This shouldn't kill the driver as unsuccessful URBs are
-		   returned to the free-urbs-pool and resubmited ASAP */
+		
 		spin_lock_irqsave(&acm->read_lock, flags);
 		if (acm->susp_count ||
 				usb_submit_urb(rcv->urb, GFP_ATOMIC) < 0) {
@@ -498,7 +428,7 @@ urbs:
 	spin_unlock_irqrestore(&acm->read_lock, flags);
 }
 
-/* data interface wrote those outgoing bytes */
+
 static void acm_write_bulk(struct urb *urb)
 {
 	struct acm_wb *wb = urb->context;
@@ -551,9 +481,7 @@ static void acm_waker(struct work_struct *waker)
 	usb_autopm_put_interface(acm->control);
 }
 
-/*
- * TTY handlers
- */
+
 
 static int acm_tty_open(struct tty_struct *tty, struct file *filp)
 {
@@ -656,7 +584,7 @@ static void acm_port_down(struct acm *acm, int drain)
 	if (acm->dev) {
 		usb_autopm_get_interface(acm->control);
 		acm_set_control(acm, acm->ctrlout = 0);
-		/* try letting the last writes drain naturally */
+		
 		if (drain) {
 			wait_event_interruptible_timeout(acm->drain_wait,
 				(ACM_NW == acm_wb_is_avail(acm)) || !acm->dev,
@@ -684,8 +612,7 @@ static void acm_tty_close(struct tty_struct *tty, struct file *filp)
 {
 	struct acm *acm = tty->driver_data;
 
-	/* Perform the closing process and see if we need to do the hardware
-	   shutdown */
+	
 	if (!acm)
 		return;
 	if (tty_port_close_start(&acm->port, tty, filp) == 0) {
@@ -744,10 +671,7 @@ static int acm_tty_write_room(struct tty_struct *tty)
 	struct acm *acm = tty->driver_data;
 	if (!ACM_READY(acm))
 		return -EINVAL;
-	/*
-	 * Do not let the line discipline to know that we have a reserve,
-	 * or it might get too enthusiastic.
-	 */
+	
 	return acm_wb_is_avail(acm) ? acm->writesize : 0;
 }
 
@@ -756,9 +680,7 @@ static int acm_tty_chars_in_buffer(struct tty_struct *tty)
 	struct acm *acm = tty->driver_data;
 	if (!ACM_READY(acm))
 		return 0;
-	/*
-	 * This is inaccurate (overcounts), but it works.
-	 */
+	
 	return (ACM_NW - acm_wb_is_avail(acm)) * acm->writesize;
 }
 
@@ -872,7 +794,7 @@ static void acm_tty_set_termios(struct tty_struct *tty,
 				(termios->c_cflag & PARODD ? 1 : 2) +
 				(termios->c_cflag & CMSPAR ? 2 : 0) : 0;
 	newline.bDataBits = acm_tty_size[(termios->c_cflag & CSIZE) >> 4];
-	/* FIXME: Needs to clear unsupported bits in the termios */
+	
 	acm->clocal = ((termios->c_cflag & CLOCAL) != 0);
 
 	if (!newline.dwDTERate) {
@@ -893,11 +815,9 @@ static void acm_tty_set_termios(struct tty_struct *tty,
 	}
 }
 
-/*
- * USB probe and disconnect routines.
- */
 
-/* Little helpers: write/read buffers free */
+
+
 static void acm_write_buffers_free(struct acm *acm)
 {
 	int i;
@@ -918,7 +838,7 @@ static void acm_read_buffers_free(struct acm *acm)
 					acm->rb[i].base, acm->rb[i].dma);
 }
 
-/* Little helper: write buffers allocate */
+
 static int acm_write_buffers_alloc(struct acm *acm)
 {
 	int i;
@@ -966,18 +886,18 @@ static int acm_probe(struct usb_interface *intf,
 	int i;
 	int combined_interfaces = 0;
 
-	/* normal quirks */
+	
 	quirks = (unsigned long)id->driver_info;
 	num_rx_buf = (quirks == SINGLE_RX_URB) ? 1 : ACM_NR;
 
-	/* handle quirks deadly to normal probing*/
+	
 	if (quirks == NO_UNION_NORMAL) {
 		data_interface = usb_ifnum_to_if(usb_dev, 1);
 		control_interface = usb_ifnum_to_if(usb_dev, 0);
 		goto skip_normal_probe;
 	}
 
-	/* normal probing*/
+	
 	if (!buffer) {
 		dev_err(&intf->dev, "Weird descriptor references\n");
 		return -EINVAL;
@@ -1004,7 +924,7 @@ static int acm_probe(struct usb_interface *intf,
 		}
 
 		switch (buffer[2]) {
-		case USB_CDC_UNION_TYPE: /* we've found it */
+		case USB_CDC_UNION_TYPE: 
 			if (union_header) {
 				dev_err(&intf->dev, "More than one "
 					"union descriptor, skipping ...\n");
@@ -1012,11 +932,11 @@ static int acm_probe(struct usb_interface *intf,
 			}
 			union_header = (struct usb_cdc_union_desc *)buffer;
 			break;
-		case USB_CDC_COUNTRY_TYPE: /* export through sysfs*/
+		case USB_CDC_COUNTRY_TYPE: 
 			cfd = (struct usb_cdc_country_functional_desc *)buffer;
 			break;
-		case USB_CDC_HEADER_TYPE: /* maybe check version */
-			break; /* for now we ignore it */
+		case USB_CDC_HEADER_TYPE: 
+			break; 
 		case USB_CDC_ACM_TYPE:
 			ac_management_function = buffer[3];
 			break;
@@ -1027,9 +947,7 @@ static int acm_probe(struct usb_interface *intf,
 				dev_err(&intf->dev, "This device cannot do calls on its own. It is not a modem.\n");
 			break;
 		default:
-			/* there are LOTS more CDC descriptors that
-			 * could legitimately be found here.
-			 */
+			
 			dev_dbg(&intf->dev, "Ignoring descriptor: "
 					"type %02x, length %d\n",
 					buffer[2], buffer[0]);
@@ -1069,10 +987,10 @@ next_desc:
 		dev_dbg(&intf->dev, "Separate call control interface. That is not fully supported.\n");
 
 	if (control_interface == data_interface) {
-		/* some broken devices designed for windows work this way */
+		
 		dev_warn(&intf->dev,"Control and data interfaces are not separated!\n");
 		combined_interfaces = 1;
-		/* a popular other OS doesn't use it */
+		
 		quirks |= NO_CAP_LINE;
 		if (data_interface->cur_altsetting->desc.bNumEndpoints != 3) {
 			dev_err(&intf->dev, "This needs exactly 3 endpoints\n");
@@ -1100,7 +1018,7 @@ look_for_collapsed_interface:
 
 skip_normal_probe:
 
-	/*workaround for switched interfaces */
+	
 	if (data_interface->cur_altsetting->desc.bInterfaceClass
 						!= CDC_DATA_INTERFACE_TYPE) {
 		if (control_interface->cur_altsetting->desc.bInterfaceClass
@@ -1116,12 +1034,12 @@ skip_normal_probe:
 		}
 	}
 
-	/* Accept probe requests only for the control interface */
+	
 	if (!combined_interfaces && intf != control_interface)
 		return -ENODEV;
 
 	if (!combined_interfaces && usb_interface_claimed(data_interface)) {
-		/* valid in this context */
+		
 		dev_dbg(&intf->dev, "The data interface isn't available\n");
 		return -EBUSY;
 	}
@@ -1135,9 +1053,9 @@ skip_normal_probe:
 	epwrite = &data_interface->cur_altsetting->endpoint[1].desc;
 
 
-	/* workaround for switched endpoints */
+	
 	if (!usb_endpoint_dir_in(epread)) {
-		/* descriptors are swapped */
+		
 		struct usb_endpoint_descriptor *t;
 		dev_dbg(&intf->dev,
 			"The data interface has switched endpoints\n");
@@ -1260,7 +1178,7 @@ made_compressed_probe:
 	if (i < 0)
 		goto alloc_fail8;
 
-	if (cfd) { /* export the country data */
+	if (cfd) { 
 		acm->country_codes = kmalloc(cfd->bLength - 4, GFP_KERNEL);
 		if (!acm->country_codes)
 			goto skip_countries;
@@ -1287,7 +1205,7 @@ skip_countries:
 	usb_fill_int_urb(acm->ctrlurb, usb_dev,
 			 usb_rcvintpipe(usb_dev, epctrl->bEndpointAddress),
 			 acm->ctrl_buffer, ctrlsize, acm_ctrl_irq, acm,
-			 /* works around buggy devices */
+			 
 			 epctrl->bInterval ? epctrl->bInterval : 0xff);
 	acm->ctrlurb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
 	acm->ctrlurb->transfer_dma = acm->ctrl_dma;
@@ -1352,7 +1270,7 @@ static void acm_disconnect(struct usb_interface *intf)
 	struct usb_device *usb_dev = interface_to_usbdev(intf);
 	struct tty_struct *tty;
 
-	/* sibling interface is already cleaning up */
+	
 	if (!acm)
 		return;
 
@@ -1419,10 +1337,7 @@ static int acm_suspend(struct usb_interface *intf, pm_message_t message)
 
 	if (cnt)
 		return 0;
-	/*
-	we treat opened interfaces differently,
-	we must guard against open
-	*/
+	
 	mutex_lock(&acm->mutex);
 
 	if (acm->port.count)
@@ -1460,66 +1375,60 @@ err_out:
 	return rv;
 }
 
-#endif /* CONFIG_PM */
-/*
- * USB driver structure.
- */
+#endif 
+
 
 static struct usb_device_id acm_ids[] = {
-	/* quirky and broken devices */
-	{ USB_DEVICE(0x0870, 0x0001), /* Metricom GS Modem */
-	.driver_info = NO_UNION_NORMAL, /* has no union descriptor */
+	
+	{ USB_DEVICE(0x0870, 0x0001), 
+	.driver_info = NO_UNION_NORMAL, 
 	},
-	{ USB_DEVICE(0x0e8d, 0x0003), /* FIREFLY, MediaTek Inc; andrey.arapov@gmail.com */
-	.driver_info = NO_UNION_NORMAL, /* has no union descriptor */
+	{ USB_DEVICE(0x0e8d, 0x0003), 
+	.driver_info = NO_UNION_NORMAL, 
 	},
-	{ USB_DEVICE(0x0e8d, 0x3329), /* MediaTek Inc GPS */
-	.driver_info = NO_UNION_NORMAL, /* has no union descriptor */
+	{ USB_DEVICE(0x0e8d, 0x3329), 
+	.driver_info = NO_UNION_NORMAL, 
 	},
-	{ USB_DEVICE(0x0482, 0x0203), /* KYOCERA AH-K3001V */
-	.driver_info = NO_UNION_NORMAL, /* has no union descriptor */
+	{ USB_DEVICE(0x0482, 0x0203), 
+	.driver_info = NO_UNION_NORMAL, 
 	},
-	{ USB_DEVICE(0x079b, 0x000f), /* BT On-Air USB MODEM */
-	.driver_info = NO_UNION_NORMAL, /* has no union descriptor */
+	{ USB_DEVICE(0x079b, 0x000f), 
+	.driver_info = NO_UNION_NORMAL, 
 	},
-	{ USB_DEVICE(0x0ace, 0x1602), /* ZyDAS 56K USB MODEM */
+	{ USB_DEVICE(0x0ace, 0x1602), 
 	.driver_info = SINGLE_RX_URB,
 	},
-	{ USB_DEVICE(0x0ace, 0x1608), /* ZyDAS 56K USB MODEM */
-	.driver_info = SINGLE_RX_URB, /* firmware bug */
+	{ USB_DEVICE(0x0ace, 0x1608), 
+	.driver_info = SINGLE_RX_URB, 
 	},
-	{ USB_DEVICE(0x0ace, 0x1611), /* ZyDAS 56K USB MODEM - new version */
-	.driver_info = SINGLE_RX_URB, /* firmware bug */
+	{ USB_DEVICE(0x0ace, 0x1611), 
+	.driver_info = SINGLE_RX_URB, 
 	},
-	{ USB_DEVICE(0x22b8, 0x7000), /* Motorola Q Phone */
-	.driver_info = NO_UNION_NORMAL, /* has no union descriptor */
+	{ USB_DEVICE(0x22b8, 0x7000), 
+	.driver_info = NO_UNION_NORMAL, 
 	},
-	{ USB_DEVICE(0x0803, 0x3095), /* Zoom Telephonics Model 3095F USB MODEM */
-	.driver_info = NO_UNION_NORMAL, /* has no union descriptor */
+	{ USB_DEVICE(0x0803, 0x3095), 
+	.driver_info = NO_UNION_NORMAL, 
 	},
-	{ USB_DEVICE(0x0572, 0x1321), /* Conexant USB MODEM CX93010 */
-	.driver_info = NO_UNION_NORMAL, /* has no union descriptor */
+	{ USB_DEVICE(0x0572, 0x1321), 
+	.driver_info = NO_UNION_NORMAL, 
 	},
-	{ USB_DEVICE(0x0572, 0x1324), /* Conexant USB MODEM RD02-D400 */
-	.driver_info = NO_UNION_NORMAL, /* has no union descriptor */
+	{ USB_DEVICE(0x0572, 0x1324), 
+	.driver_info = NO_UNION_NORMAL, 
 	},
-	{ USB_DEVICE(0x0572, 0x1328), /* Shiro / Aztech USB MODEM UM-3100 */
-	.driver_info = NO_UNION_NORMAL, /* has no union descriptor */
+	{ USB_DEVICE(0x0572, 0x1328), 
+	.driver_info = NO_UNION_NORMAL, 
 	},
-	{ USB_DEVICE(0x22b8, 0x6425), /* Motorola MOTOMAGX phones */
+	{ USB_DEVICE(0x22b8, 0x6425), 
 	},
-	{ USB_DEVICE(0x0572, 0x1329), /* Hummingbird huc56s (Conexant) */
-	.driver_info = NO_UNION_NORMAL, /* union descriptor misplaced on
-					   data interface instead of
-					   communications interface.
-					   Maybe we should define a new
-					   quirk for this. */
+	{ USB_DEVICE(0x0572, 0x1329), 
+	.driver_info = NO_UNION_NORMAL, 
 	},
-	{ USB_DEVICE(0x1bbb, 0x0003), /* Alcatel OT-I650 */
-	.driver_info = NO_UNION_NORMAL, /* reports zero length descriptor */
+	{ USB_DEVICE(0x1bbb, 0x0003), 
+	.driver_info = NO_UNION_NORMAL, 
 	},
 
-	/* control interfaces with various AT-command sets */
+	
 	{ USB_INTERFACE_INFO(USB_CLASS_COMM, USB_CDC_SUBCLASS_ACM,
 		USB_CDC_ACM_PROTO_AT_V25TER) },
 	{ USB_INTERFACE_INFO(USB_CLASS_COMM, USB_CDC_SUBCLASS_ACM,
@@ -1533,7 +1442,7 @@ static struct usb_device_id acm_ids[] = {
 	{ USB_INTERFACE_INFO(USB_CLASS_COMM, USB_CDC_SUBCLASS_ACM,
 		USB_CDC_ACM_PROTO_AT_CDMA) },
 
-	/* NOTE:  COMM/ACM/0xff is likely MSFT RNDIS ... NOT a modem!! */
+	
 	{ }
 };
 
@@ -1553,9 +1462,7 @@ static struct usb_driver acm_driver = {
 #endif
 };
 
-/*
- * TTY driver structures.
- */
+
 
 static const struct tty_operations acm_ops = {
 	.open =			acm_tty_open,
@@ -1573,9 +1480,7 @@ static const struct tty_operations acm_ops = {
 	.tiocmset =		acm_tty_tiocmset,
 };
 
-/*
- * Init / exit.
- */
+
 
 static int __init acm_init(void)
 {

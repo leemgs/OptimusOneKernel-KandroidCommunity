@@ -1,58 +1,4 @@
-/*
- * Host Wire Adapter:
- * Driver glue, HWA-specific functions, bridges to WAHC and WUSBHC
- *
- * Copyright (C) 2005-2006 Intel Corporation
- * Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version
- * 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
- *
- *
- * The HWA driver is a simple layer that forwards requests to the WAHC
- * (Wire Adater Host Controller) or WUSBHC (Wireless USB Host
- * Controller) layers.
- *
- * Host Wire Adapter is the 'WUSB 1.0 standard' name for Wireless-USB
- * Host Controller that is connected to your system via USB (a USB
- * dongle that implements a USB host...). There is also a Device Wired
- * Adaptor, DWA (Wireless USB hub) that uses the same mechanism for
- * transferring data (it is after all a USB host connected via
- * Wireless USB), we have a common layer called Wire Adapter Host
- * Controller that does all the hard work. The WUSBHC (Wireless USB
- * Host Controller) is the part common to WUSB Host Controllers, the
- * HWA and the PCI-based one, that is implemented following the WHCI
- * spec. All these layers are implemented in ../wusbcore.
- *
- * The main functions are hwahc_op_urb_{en,de}queue(), that pass the
- * job of converting a URB to a Wire Adapter
- *
- * Entry points:
- *
- *   hwahc_driver_*()   Driver initialization, registration and
- *                      teardown.
- *
- *   hwahc_probe()	New device came up, create an instance for
- *                      it [from device enumeration].
- *
- *   hwahc_disconnect()	Remove device instance [from device
- *                      enumeration].
- *
- *   [__]hwahc_op_*()   Host-Wire-Adaptor specific functions for
- *                      starting/stopping/etc (some might be made also
- *                      DWA).
- */
+
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/module.h>
@@ -63,16 +9,11 @@
 #include "../wusbcore/wusbhc.h"
 
 struct hwahc {
-	struct wusbhc wusbhc;	/* has to be 1st */
+	struct wusbhc wusbhc;	
 	struct wahc wa;
 };
 
-/*
- * FIXME should be wusbhc
- *
- * NOTE: we need to cache the Cluster ID because later...there is no
- *       way to get it :)
- */
+
 static int __hwahc_set_cluster_id(struct hwahc *hwahc, u8 cluster_id)
 {
 	int result;
@@ -85,7 +26,7 @@ static int __hwahc_set_cluster_id(struct hwahc *hwahc, u8 cluster_id)
 			USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_INTERFACE,
 			cluster_id,
 			wa->usb_iface->cur_altsetting->desc.bInterfaceNumber,
-			NULL, 0, 1000 /* FIXME: arbitrary */);
+			NULL, 0, 1000 );
 	if (result < 0)
 		dev_err(dev, "Cannot set WUSB Cluster ID to 0x%02x: %d\n",
 			cluster_id, result);
@@ -105,15 +46,10 @@ static int __hwahc_op_set_num_dnts(struct wusbhc *wusbhc, u8 interval, u8 slots)
 			USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_INTERFACE,
 			interval << 8 | slots,
 			wa->usb_iface->cur_altsetting->desc.bInterfaceNumber,
-			NULL, 0, 1000 /* FIXME: arbitrary */);
+			NULL, 0, 1000 );
 }
 
-/*
- * Reset a WUSB host controller and wait for it to complete doing it.
- *
- * @usb_hcd:	Pointer to WUSB Host Controller instance.
- *
- */
+
 static int hwahc_op_reset(struct usb_hcd *usb_hcd)
 {
 	int result;
@@ -138,9 +74,7 @@ error_unlock:
 	return result;
 }
 
-/*
- * FIXME: break this function up
- */
+
 static int hwahc_op_start(struct usb_hcd *usb_hcd)
 {
 	u8 addr;
@@ -172,12 +106,7 @@ error_cluster_id_get:
 
 }
 
-/*
- * No need to abort pipes, as when this is called, all the children
- * has been disconnected and that has done it [through
- * usb_disable_interface() -> usb_disable_endpoint() ->
- * hwahc_op_ep_disable() - >rpipe_ep_disable()].
- */
+
 static void hwahc_op_stop(struct usb_hcd *usb_hcd)
 {
 	struct wusbhc *wusbhc = usb_hcd_to_wusbhc(usb_hcd);
@@ -215,11 +144,7 @@ static int hwahc_op_urb_dequeue(struct usb_hcd *usb_hcd, struct urb *urb,
 	return wa_urb_dequeue(&hwahc->wa, urb);
 }
 
-/*
- * Release resources allocated for an endpoint
- *
- * If there is an associated rpipe to this endpoint, go ahead and put it.
- */
+
 static void hwahc_op_endpoint_disable(struct usb_hcd *usb_hcd,
 				      struct usb_host_endpoint *ep)
 {
@@ -269,7 +194,7 @@ static void __hwahc_op_wusbhc_stop(struct wusbhc *wusbhc, int delay)
 			      USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_INTERFACE,
 			      delay * 1000,
 			      iface_no,
-			      NULL, 0, 1000 /* FIXME: arbitrary */);
+			      NULL, 0, 1000 );
 	if (ret == 0)
 		msleep(delay);
 
@@ -277,12 +202,7 @@ static void __hwahc_op_wusbhc_stop(struct wusbhc *wusbhc, int delay)
 	__wa_stop(&hwahc->wa);
 }
 
-/*
- * Set the UWB MAS allocation for the WUSB cluster
- *
- * @stream_index: stream to use (-1 for cancelling the allocation)
- * @mas: mas bitmap to use
- */
+
 static int __hwahc_op_bwa_set(struct wusbhc *wusbhc, s8 stream_index,
 			      const struct uwb_mas_bm *mas)
 {
@@ -292,44 +212,31 @@ static int __hwahc_op_bwa_set(struct wusbhc *wusbhc, s8 stream_index,
 	struct device *dev = &wa->usb_iface->dev;
 	u8 mas_le[UWB_NUM_MAS/8];
 
-	/* Set the stream index */
+	
 	result = usb_control_msg(wa->usb_dev, usb_sndctrlpipe(wa->usb_dev, 0),
 			WUSB_REQ_SET_STREAM_IDX,
 			USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_INTERFACE,
 			stream_index,
 			wa->usb_iface->cur_altsetting->desc.bInterfaceNumber,
-			NULL, 0, 1000 /* FIXME: arbitrary */);
+			NULL, 0, 1000 );
 	if (result < 0) {
 		dev_err(dev, "Cannot set WUSB stream index: %d\n", result);
 		goto out;
 	}
 	uwb_mas_bm_copy_le(mas_le, mas);
-	/* Set the MAS allocation */
+	
 	result = usb_control_msg(wa->usb_dev, usb_sndctrlpipe(wa->usb_dev, 0),
 			WUSB_REQ_SET_WUSB_MAS,
 			USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_INTERFACE,
 			0, wa->usb_iface->cur_altsetting->desc.bInterfaceNumber,
-			mas_le, 32, 1000 /* FIXME: arbitrary */);
+			mas_le, 32, 1000 );
 	if (result < 0)
 		dev_err(dev, "Cannot set WUSB MAS allocation: %d\n", result);
 out:
 	return result;
 }
 
-/*
- * Add an IE to the host's MMC
- *
- * @interval:    See WUSB1.0[8.5.3.1]
- * @repeat_cnt:  See WUSB1.0[8.5.3.1]
- * @handle:      See WUSB1.0[8.5.3.1]
- * @wuie:        Pointer to the header of the WUSB IE data to add.
- *               MUST BE allocated in a kmalloc buffer (no stack or
- *               vmalloc).
- *
- * NOTE: the format of the WUSB IEs for MMCs are different to the
- *       normal MBOA MAC IEs (IE Id + Length in MBOA MAC vs. Length +
- *       Id in WUSB IEs). Standards...you gotta love'em.
- */
+
 static int __hwahc_op_mmcie_add(struct wusbhc *wusbhc, u8 interval,
 				u8 repeat_cnt, u8 handle,
 				struct wuie_hdr *wuie)
@@ -343,14 +250,10 @@ static int __hwahc_op_mmcie_add(struct wusbhc *wusbhc, u8 interval,
 			USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_INTERFACE,
 			interval << 8 | repeat_cnt,
 			handle << 8 | iface_no,
-			wuie, wuie->bLength, 1000 /* FIXME: arbitrary */);
+			wuie, wuie->bLength, 1000 );
 }
 
-/*
- * Remove an IE to the host's MMC
- *
- * @handle:      See WUSB1.0[8.5.3.1]
- */
+
 static int __hwahc_op_mmcie_rm(struct wusbhc *wusbhc, u8 handle)
 {
 	struct hwahc *hwahc = container_of(wusbhc, struct hwahc, wusbhc);
@@ -360,15 +263,10 @@ static int __hwahc_op_mmcie_rm(struct wusbhc *wusbhc, u8 handle)
 			WUSB_REQ_REMOVE_MMC_IE,
 			USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_INTERFACE,
 			0, handle << 8 | iface_no,
-			NULL, 0, 1000 /* FIXME: arbitrary */);
+			NULL, 0, 1000 );
 }
 
-/*
- * Update device information for a given fake port
- *
- * @port_idx: Fake port to which device is connected (wusbhc index, not
- *            USB port number).
- */
+
 static int __hwahc_op_dev_info_set(struct wusbhc *wusbhc,
 				   struct wusb_dev *wusb_dev)
 {
@@ -378,7 +276,7 @@ static int __hwahc_op_dev_info_set(struct wusbhc *wusbhc,
 	struct hwa_dev_info *dev_info;
 	int ret;
 
-	/* fill out the Device Info buffer and send it */
+	
 	dev_info = kzalloc(sizeof(struct hwa_dev_info), GFP_KERNEL);
 	if (!dev_info)
 		return -ENOMEM;
@@ -386,13 +284,7 @@ static int __hwahc_op_dev_info_set(struct wusbhc *wusbhc,
 			   &wusb_dev->availability);
 	dev_info->bDeviceAddress = wusb_dev->addr;
 
-	/*
-	 * If the descriptors haven't been read yet, use a default PHY
-	 * rate of 53.3 Mbit/s only.  The correct value will be used
-	 * when this will be called again as part of the
-	 * authentication process (which occurs after the descriptors
-	 * have been read).
-	 */
+	
 	if (wusb_dev->wusb_cap_descr)
 		dev_info->wPHYRates = wusb_dev->wusb_cap_descr->wPHYRates;
 	else
@@ -403,18 +295,12 @@ static int __hwahc_op_dev_info_set(struct wusbhc *wusbhc,
 			USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_INTERFACE,
 			0, wusb_dev->port_idx << 8 | iface_no,
 			dev_info, sizeof(struct hwa_dev_info),
-			1000 /* FIXME: arbitrary */);
+			1000 );
 	kfree(dev_info);
 	return ret;
 }
 
-/*
- * Set host's idea of which encryption (and key) method to use when
- * talking to ad evice on a given port.
- *
- * If key is NULL, it means disable encryption for that "virtual port"
- * (used when we disconnect).
- */
+
 static int __hwahc_dev_set_key(struct wusbhc *wusbhc, u8 port_idx, u32 tkid,
 			       const void *key, size_t key_size,
 			       u8 key_idx)
@@ -443,19 +329,13 @@ static int __hwahc_dev_set_key(struct wusbhc *wusbhc, u8 port_idx, u32 tkid,
 			USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_INTERFACE,
 			USB_DT_KEY << 8 | key_idx,
 			port_idx << 8 | iface_no,
-			keyd, keyd_len, 1000 /* FIXME: arbitrary */);
+			keyd, keyd_len, 1000 );
 
-	kzfree(keyd); /* clear keys etc. */
+	kzfree(keyd); 
 	return result;
 }
 
-/*
- * Set host's idea of which encryption (and key) method to use when
- * talking to ad evice on a given port.
- *
- * If key is NULL, it means disable encryption for that "virtual port"
- * (used when we disconnect).
- */
+
 static int __hwahc_op_set_ptk(struct wusbhc *wusbhc, u8 port_idx, u32 tkid,
 			      const void *key, size_t key_size)
 {
@@ -465,7 +345,7 @@ static int __hwahc_op_set_ptk(struct wusbhc *wusbhc, u8 port_idx, u32 tkid,
 	u8 iface_no = wa->usb_iface->cur_altsetting->desc.bInterfaceNumber;
 	u8 encryption_value;
 
-	/* Tell the host which key to use to talk to the device */
+	
 	if (key) {
 		u8 key_idx = wusb_key_index(0, WUSB_KEY_INDEX_TYPE_PTK,
 					    WUSB_KEY_INDEX_ORIGINATOR_HOST);
@@ -476,16 +356,16 @@ static int __hwahc_op_set_ptk(struct wusbhc *wusbhc, u8 port_idx, u32 tkid,
 			goto error_set_key;
 		encryption_value = wusbhc->ccm1_etd->bEncryptionValue;
 	} else {
-		/* FIXME: this should come from wusbhc->etd[UNSECURE].value */
+		
 		encryption_value = 0;
 	}
 
-	/* Set the encryption type for commmunicating with the device */
+	
 	result = usb_control_msg(wa->usb_dev, usb_sndctrlpipe(wa->usb_dev, 0),
 			USB_REQ_SET_ENCRYPTION,
 			USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_INTERFACE,
 			encryption_value, port_idx << 8 | iface_no,
-			NULL, 0, 1000 /* FIXME: arbitrary */);
+			NULL, 0, 1000 );
 	if (result < 0)
 		dev_err(wusbhc->dev, "Can't set host's WUSB encryption for "
 			"port index %u to %s (value %d): %d\n", port_idx,
@@ -495,9 +375,7 @@ error_set_key:
 	return result;
 }
 
-/*
- * Set host's GTK key
- */
+
 static int __hwahc_op_set_gtk(struct wusbhc *wusbhc, u32 tkid,
 			      const void *key, size_t key_size)
 {
@@ -507,15 +385,7 @@ static int __hwahc_op_set_gtk(struct wusbhc *wusbhc, u32 tkid,
 	return __hwahc_dev_set_key(wusbhc, 0, tkid, key, key_size, key_idx);
 }
 
-/*
- * Get the Wire Adapter class-specific descriptor
- *
- * NOTE: this descriptor comes with the big bundled configuration
- *       descriptor that includes the interfaces' and endpoints', so
- *       we just look for it in the cached copy kept by the USB stack.
- *
- * NOTE2: We convert LE fields to CPU order.
- */
+
 static int wa_fill_descr(struct wahc *wa)
 {
 	int result;
@@ -547,7 +417,7 @@ static int wa_fill_descr(struct wahc *wa)
 
 found:
 	result = -EINVAL;
-	if (hdr->bLength > itr_size) {	/* is it available? */
+	if (hdr->bLength > itr_size) {	
 		dev_err(dev, "incomplete Wire Adapter Class descriptor "
 			"(%zu bytes left, %u needed)\n",
 			itr_size, hdr->bLength);
@@ -558,7 +428,7 @@ found:
 		goto error;
 	}
 	wa->wa_descr = wa_descr = (struct usb_wa_descriptor *) hdr;
-	/* Make LE fields CPU order */
+	
 	wa_descr->bcdWAVersion = le16_to_cpu(wa_descr->bcdWAVersion);
 	wa_descr->wNumRPipes = le16_to_cpu(wa_descr->wNumRPipes);
 	wa_descr->wRPipeMaxBlock = le16_to_cpu(wa_descr->wRPipeMaxBlock);
@@ -575,8 +445,8 @@ static struct hc_driver hwahc_hc_driver = {
 	.description = "hwa-hcd",
 	.product_desc = "Wireless USB HWA host controller",
 	.hcd_priv_size = sizeof(struct hwahc) - sizeof(struct usb_hcd),
-	.irq = NULL,			/* FIXME */
-	.flags = HCD_USB2,		/* FIXME */
+	.irq = NULL,			
+	.flags = HCD_USB2,		
 	.reset = hwahc_op_reset,
 	.start = hwahc_op_start,
 	.stop = hwahc_op_stop,
@@ -605,7 +475,7 @@ static int hwahc_security_create(struct hwahc *hwahc)
 	u8 index;
 	char buf[64];
 
-	/* Find the host's security descriptors in the config descr bundle */
+	
 	index = (usb_dev->actconfig - usb_dev->config) /
 		sizeof(usb_dev->config[0]);
 	itr = usb_dev->rawdescriptors[index];
@@ -632,7 +502,7 @@ static int hwahc_security_create(struct hwahc *hwahc)
 			top - (void *) secd, needed);
 		return 0;
 	}
-	/* Walk over the sec descriptors and store CCM1's on wusbhc */
+	
 	itr = (void *) secd + sizeof(*secd);
 	top = (void *) secd + le16_to_cpu(secd->wTotalLength);
 	index = 0;
@@ -664,13 +534,13 @@ static int hwahc_security_create(struct hwahc *hwahc)
 		dev_err(dev, "E: host doesn't support CCM-1 crypto\n");
 		return 0;
 	}
-	/* Pretty print what we support */
+	
 	return 0;
 }
 
 static void hwahc_security_release(struct hwahc *hwahc)
 {
-	/* nothing to do here so far... */
+	
 }
 
 static int hwahc_create(struct hwahc *hwahc, struct usb_interface *iface)
@@ -681,7 +551,7 @@ static int hwahc_create(struct hwahc *hwahc, struct usb_interface *iface)
 	struct wahc *wa = &hwahc->wa;
 	struct usb_device *usb_dev = interface_to_usbdev(iface);
 
-	wa->usb_dev = usb_get_dev(usb_dev);	/* bind the USB device */
+	wa->usb_dev = usb_get_dev(usb_dev);	
 	wa->usb_iface = usb_get_intf(iface);
 	wusbhc->dev = dev;
 	wusbhc->uwb_rc = uwb_rc_get_by_grandpa(iface->dev.parent);
@@ -690,7 +560,7 @@ static int hwahc_create(struct hwahc *hwahc, struct usb_interface *iface)
 		dev_err(dev, "Cannot get associated UWB Host Controller\n");
 		goto error_rc_get;
 	}
-	result = wa_fill_descr(wa);	/* Get the device descriptor */
+	result = wa_fill_descr(wa);	
 	if (result < 0)
 		goto error_fill_descriptor;
 	if (wa->wa_descr->bNumPorts > USB_MAXCHILDREN) {
@@ -715,7 +585,7 @@ static int hwahc_create(struct hwahc *hwahc, struct usb_interface *iface)
 		dev_err(dev, "Can't initialize security: %d\n", result);
 		goto error_security_create;
 	}
-	wa->wusb = wusbhc;	/* FIXME: ugly, need to fix */
+	wa->wusb = wusbhc;	
 	result = wusbhc_create(&hwahc->wusbhc);
 	if (result < 0) {
 		dev_err(dev, "Can't create WUSB HC structures: %d\n", result);
@@ -729,7 +599,7 @@ static int hwahc_create(struct hwahc *hwahc, struct usb_interface *iface)
 error_wa_create:
 	wusbhc_destroy(&hwahc->wusbhc);
 error_wusbhc_create:
-	/* WA Descr fill allocs no resources */
+	
 error_security_create:
 error_fill_descriptor:
 	uwb_rc_put(wusbhc->uwb_rc);
@@ -823,7 +693,7 @@ static void hwahc_disconnect(struct usb_interface *usb_iface)
 }
 
 static struct usb_device_id hwahc_id_table[] = {
-	/* FIXME: use class labels for this */
+	
 	{ USB_INTERFACE_INFO(0xe0, 0x02, 0x01), },
 	{},
 };

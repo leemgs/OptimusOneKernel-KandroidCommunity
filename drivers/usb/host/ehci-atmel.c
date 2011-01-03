@@ -1,24 +1,13 @@
-/*
- * Driver for EHCI UHP on Atmel chips
- *
- *  Copyright (C) 2009 Atmel Corporation,
- *                     Nicolas Ferre <nicolas.ferre@atmel.com>
- *
- *  Based on various ehci-*.c drivers
- *
- * This file is subject to the terms and conditions of the GNU General Public
- * License.  See the file COPYING in the main directory of this archive for
- * more details.
- */
+
 
 #include <linux/clk.h>
 #include <linux/platform_device.h>
 
-/* interface and function clocks */
+
 static struct clk *iclk, *fclk;
 static int clocked;
 
-/*-------------------------------------------------------------------------*/
+
 
 static void atmel_start_clock(void)
 {
@@ -46,28 +35,28 @@ static void atmel_stop_ehci(struct platform_device *pdev)
 	atmel_stop_clock();
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 static int ehci_atmel_setup(struct usb_hcd *hcd)
 {
 	struct ehci_hcd *ehci = hcd_to_ehci(hcd);
 	int retval = 0;
 
-	/* registers start at offset 0x0 */
+	
 	ehci->caps = hcd->regs;
 	ehci->regs = hcd->regs +
 		HC_LENGTH(ehci_readl(ehci, &ehci->caps->hc_capbase));
 	dbg_hcs_params(ehci, "reset");
 	dbg_hcc_params(ehci, "reset");
 
-	/* cache this readonly data; minimize chip reads */
+	
 	ehci->hcs_params = ehci_readl(ehci, &ehci->caps->hcs_params);
 
 	retval = ehci_halt(ehci);
 	if (retval)
 		return retval;
 
-	/* data structure init */
+	
 	retval = ehci_init(hcd);
 	if (retval)
 		return retval;
@@ -85,25 +74,25 @@ static const struct hc_driver ehci_atmel_hc_driver = {
 	.product_desc		= "Atmel EHCI UHP HS",
 	.hcd_priv_size		= sizeof(struct ehci_hcd),
 
-	/* generic hardware linkage */
+	
 	.irq			= ehci_irq,
 	.flags			= HCD_MEMORY | HCD_USB2,
 
-	/* basic lifecycle operations */
+	
 	.reset			= ehci_atmel_setup,
 	.start			= ehci_run,
 	.stop			= ehci_stop,
 	.shutdown		= ehci_shutdown,
 
-	/* managing i/o requests and associated device resources */
+	
 	.urb_enqueue		= ehci_urb_enqueue,
 	.urb_dequeue		= ehci_urb_dequeue,
 	.endpoint_disable	= ehci_endpoint_disable,
 
-	/* scheduling support */
+	
 	.get_frame_number	= ehci_get_frame,
 
-	/* root hub support */
+	
 	.hub_status_data	= ehci_hub_status_data,
 	.hub_control		= ehci_hub_control,
 	.bus_suspend		= ehci_bus_suspend,

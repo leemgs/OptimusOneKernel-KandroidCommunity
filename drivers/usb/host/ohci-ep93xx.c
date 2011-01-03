@@ -1,27 +1,4 @@
-/*
- * OHCI HCD (Host Controller Driver) for USB.
- *
- * (C) Copyright 1999 Roman Weissgaerber <weissg@vienna.at>
- * (C) Copyright 2000-2002 David Brownell <dbrownell@users.sourceforge.net>
- * (C) Copyright 2002 Hewlett-Packard Company
- *
- * Bus Glue for ep93xx.
- *
- * Written by Christopher Hoover <ch@hpl.hp.com>
- * Based on fragments of previous driver by Russell King et al.
- *
- * Modified for LH7A404 from ohci-sa1111.c
- *  by Durgesh Pattamatta <pattamattad@sharpsec.com>
- *
- * Modified for pxa27x from ohci-lh7a404.c
- *  by Nick Bane <nick@cecomputing.co.uk> 26-8-2004
- *
- * Modified for ep93xx from ohci-pxa27x.c
- *  by Lennert Buytenhek <buytenh@wantstofly.org> 28-2-2006
- *  Based on an earlier driver by Ray Lehtiniemi
- *
- * This file is licenced under the GPL.
- */
+
 
 #include <linux/clk.h>
 #include <linux/device.h>

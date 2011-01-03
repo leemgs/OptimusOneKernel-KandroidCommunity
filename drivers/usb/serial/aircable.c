@@ -1,46 +1,4 @@
-/*
- * AIRcable USB Bluetooth Dongle Driver.
- *
- * Copyright (C) 2006 Manuel Francisco Naranjo (naranjo.manuel@gmail.com)
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License version 2 as published by the
- * Free Software Foundation.
- *
- * The device works as an standard CDC device, it has 2 interfaces, the first
- * one is for firmware access and the second is the serial one.
- * The protocol is very simply, there are two posibilities reading or writing.
- * When writing the first urb must have a Header that starts with 0x20 0x29 the
- * next two bytes must say how much data will be sended.
- * When reading the process is almost equal except that the header starts with
- * 0x00 0x20.
- *
- * The device simply need some stuff to understand data comming from the usb
- * buffer: The First and Second byte is used for a Header, the Third and Fourth
- * tells the  device the amount of information the package holds.
- * Packages are 60 bytes long Header Stuff.
- * When writing to the device the first two bytes of the header are 0x20 0x29
- * When reading the bytes are 0x00 0x20, or 0x00 0x10, there is an strange
- * situation, when too much data arrives to the device because it sends the data
- * but with out the header. I will use a simply hack to override this situation,
- * if there is data coming that does not contain any header, then that is data
- * that must go directly to the tty, as there is no documentation about if there
- * is any other control code, I will simply check for the first
- * one.
- *
- * The driver registers himself with the USB-serial core and the USB Core. I had
- * to implement a probe function agains USB-serial, because other way, the
- * driver was attaching himself to both interfaces. I have tryed with different
- * configurations of usb_serial_driver with out exit, only the probe function
- * could handle this correctly.
- *
- * I have taken some info from a Greg Kroah-Hartman article:
- * http://www.linuxjournal.com/article/6573
- * And from Linux Device Driver Kit CD, which is a great work, the authors taken
- * the work to recompile lots of information an knowladge in drivers development
- * and made it all avaible inside a cd.
- * URL: http://kernel.org/pub/linux/kernel/people/gregkh/ddk/
- *
- */
+
 
 #include <linux/tty.h>
 #include <linux/tty_flip.h>
@@ -50,14 +8,14 @@
 
 static int debug;
 
-/* Vendor and Product ID */
+
 #define AIRCABLE_VID		0x16CA
 #define AIRCABLE_USB_PID	0x1502
 
-/* write buffer size defines */
+
 #define AIRCABLE_BUF_SIZE	2048
 
-/* Protocol Stuff */
+
 #define HCI_HEADER_LENGTH	0x4
 #define TX_HEADER_0		0x20
 #define TX_HEADER_1		0x29
@@ -66,18 +24,16 @@ static int debug;
 #define MAX_HCI_FRAMESIZE	60
 #define HCI_COMPLETE_FRAME	64
 
-/* rx_flags */
+
 #define THROTTLED		0x01
 #define ACTUALLY_THROTTLED	0x02
 
-/*
- * Version Information
- */
+
 #define DRIVER_VERSION "v1.0b2"
 #define DRIVER_AUTHOR "Naranjo, Manuel Francisco <naranjo.manuel@gmail.com>"
 #define DRIVER_DESC "AIRcable USB Driver"
 
-/* ID table that will be registered with USB core */
+
 static struct usb_device_id id_table [] = {
 	{ USB_DEVICE(AIRCABLE_VID, AIRCABLE_USB_PID) },
 	{ },
@@ -85,34 +41,26 @@ static struct usb_device_id id_table [] = {
 MODULE_DEVICE_TABLE(usb, id_table);
 
 
-/* Internal Structure */
+
 struct aircable_private {
-	spinlock_t rx_lock;		/* spinlock for the receive lines */
-	struct circ_buf *tx_buf;	/* write buffer */
-	struct circ_buf *rx_buf;	/* read buffer */
-	int rx_flags;			/* for throttilng */
-	struct work_struct rx_work;	/* work cue for the receiving line */
-	struct usb_serial_port *port;	/* USB port with which associated */
+	spinlock_t rx_lock;		
+	struct circ_buf *tx_buf;	
+	struct circ_buf *rx_buf;	
+	int rx_flags;			
+	struct work_struct rx_work;	
+	struct usb_serial_port *port;	
 };
 
-/* Private methods */
 
-/* Circular Buffer Methods, code from ti_usb_3410_5052 used */
-/*
- * serial_buf_clear
- *
- * Clear out all data in the circular buffer.
- */
+
+
+
 static void serial_buf_clear(struct circ_buf *cb)
 {
 	cb->head = cb->tail = 0;
 }
 
-/*
- * serial_buf_alloc
- *
- * Allocate a circular buffer and all associated memory.
- */
+
 static struct circ_buf *serial_buf_alloc(void)
 {
 	struct circ_buf *cb;
@@ -128,36 +76,20 @@ static struct circ_buf *serial_buf_alloc(void)
 	return cb;
 }
 
-/*
- * serial_buf_free
- *
- * Free the buffer and all associated memory.
- */
+
 static void serial_buf_free(struct circ_buf *cb)
 {
 	kfree(cb->buf);
 	kfree(cb);
 }
 
-/*
- * serial_buf_data_avail
- *
- * Return the number of bytes of data available in the circular
- * buffer.
- */
+
 static int serial_buf_data_avail(struct circ_buf *cb)
 {
 	return CIRC_CNT(cb->head, cb->tail, AIRCABLE_BUF_SIZE);
 }
 
-/*
- * serial_buf_put
- *
- * Copy data data from a user buffer and put it into the circular buffer.
- * Restrict to the amount of space available.
- *
- * Return the number of bytes copied.
- */
+
 static int serial_buf_put(struct circ_buf *cb, const char *buf, int count)
 {
 	int c, ret = 0;
@@ -176,14 +108,7 @@ static int serial_buf_put(struct circ_buf *cb, const char *buf, int count)
 	return ret;
 }
 
-/*
- * serial_buf_get
- *
- * Get data from the circular buffer and copy to the given buffer.
- * Restrict to the amount of data available.
- *
- * Return the number of bytes copied.
- */
+
 static int serial_buf_get(struct circ_buf *cb, char *buf, int count)
 {
 	int c, ret = 0;
@@ -202,7 +127,7 @@ static int serial_buf_get(struct circ_buf *cb, char *buf, int count)
 	return ret;
 }
 
-/* End of circula buffer methods */
+
 
 static void aircable_send(struct usb_serial_port *port)
 {
@@ -268,10 +193,7 @@ static void aircable_read(struct work_struct *work)
 		return;
 	}
 
-	/* By now I will flush data to the tty in packages of no more than
-	 * 64 bytes, to ensure I do not get throttled.
-	 * Ask USB mailing list for better aproach.
-	 */
+	
 	tty = tty_port_tty_get(&port->port);
 
 	if (!tty) {
@@ -283,7 +205,7 @@ static void aircable_read(struct work_struct *work)
 	count = min(64, serial_buf_data_avail(priv->rx_buf));
 
 	if (count <= 0)
-		goto out; /* We have finished sending everything. */
+		goto out; 
 
 	tty_prepare_flip_string(tty, &data, count);
 	if (!data) {
@@ -302,7 +224,7 @@ out:
 	tty_kref_put(tty);
 	return;
 }
-/* End of private methods */
+
 
 static int aircable_probe(struct usb_serial *serial,
 			  const struct usb_device_id *id)
@@ -341,7 +263,7 @@ static int aircable_attach(struct usb_serial *serial)
 		return -ENOMEM;
 	}
 
-	/* Allocation of Circular Buffers */
+	
 	priv->tx_buf = serial_buf_alloc();
 	if (priv->tx_buf == NULL) {
 		kfree(priv);
@@ -420,21 +342,21 @@ static void aircable_write_bulk_callback(struct urb *urb)
 
 	dbg("%s - urb status: %d", __func__ , status);
 
-	/* This has been taken from cypress_m8.c cypress_write_int_callback */
+	
 	switch (status) {
 	case 0:
-		/* success */
+		
 		break;
 	case -ECONNRESET:
 	case -ENOENT:
 	case -ESHUTDOWN:
-		/* this urb is terminated, clean up */
+		
 		dbg("%s - urb shutting down with status: %d",
 		    __func__, status);
 		port->write_urb_busy = 0;
 		return;
 	default:
-		/* error in the urb, so we have to resubmit it */
+		
 		dbg("%s - Overflow in write", __func__);
 		dbg("%s - nonzero write bulk status received: %d",
 		    __func__, status);
@@ -499,7 +421,7 @@ static void aircable_read_bulk_callback(struct urb *urb)
 	tty = tty_port_tty_get(&port->port);
 	if (tty && urb->actual_length) {
 		if (urb->actual_length <= 2) {
-			/* This is an incomplete package */
+			
 			serial_buf_put(priv->rx_buf, urb->transfer_buffer,
 				       urb->actual_length);
 		} else {
@@ -530,7 +452,7 @@ static void aircable_read_bulk_callback(struct urb *urb)
 	}
 	tty_kref_put(tty);
 
-	/* Schedule the next read _if_ we are still open */
+	
 	if (port->port.count) {
 		usb_fill_bulk_urb(port->read_urb, port->serial->dev,
 				  usb_rcvbulkpipe(port->serial->dev,
@@ -549,7 +471,7 @@ static void aircable_read_bulk_callback(struct urb *urb)
 	return;
 }
 
-/* Based on ftdi_sio.c throttle */
+
 static void aircable_throttle(struct tty_struct *tty)
 {
 	struct usb_serial_port *port = tty->driver_data;
@@ -562,7 +484,7 @@ static void aircable_throttle(struct tty_struct *tty)
 	spin_unlock_irq(&priv->rx_lock);
 }
 
-/* Based on ftdi_sio.c unthrottle */
+
 static void aircable_unthrottle(struct tty_struct *tty)
 {
 	struct usb_serial_port *port = tty->driver_data;

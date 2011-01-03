@@ -1,27 +1,11 @@
-/*
- * Sonics Silicon Backplane
- * Broadcom USB-core OHCI driver
- *
- * Copyright 2007 Michael Buesch <mb@bu3sch.de>
- *
- * Derived from the OHCI-PCI driver
- * Copyright 1999 Roman Weissgaerber
- * Copyright 2000-2002 David Brownell
- * Copyright 1999 Linus Torvalds
- * Copyright 1999 Gregory P. Smith
- *
- * Derived from the USBcore related parts of Broadcom-SB
- * Copyright 2005 Broadcom Corporation
- *
- * Licensed under the GNU/GPL. See COPYING for details.
- */
+
 #include <linux/ssb/ssb.h>
 
 
 #define SSB_OHCI_TMSLOW_HOSTMODE	(1 << 29)
 
 struct ssb_ohci_device {
-	struct ohci_hcd ohci; /* _must_ be at the beginning. */
+	struct ohci_hcd ohci; 
 
 	u32 enable_flags;
 };
@@ -147,20 +131,17 @@ static int ssb_ohci_probe(struct ssb_device *dev,
 	int err;
 	u16 chipid_top;
 
-	/* USBcores are only connected on embedded devices. */
+	
 	chipid_top = (dev->bus->chip_id & 0xFF00);
 	if (chipid_top != 0x4700 && chipid_top != 0x5300)
 		return -ENODEV;
 
-	/* TODO: Probably need checks here; is the core connected? */
+	
 
 	if (usb_disabled())
 		return -ENODEV;
 
-	/* We currently always attach SSB_DEV_USB11_HOSTDEV
-	 * as HOST OHCI. If we want to attach it as Client device,
-	 * we must branch here and call into the (yet to
-	 * be written) Client mode driver. Same for remove(). */
+	
 
 	err = ssb_ohci_attach(dev);
 
@@ -192,10 +173,10 @@ static int ssb_ohci_resume(struct ssb_device *dev)
 	return 0;
 }
 
-#else /* !CONFIG_PM */
+#else 
 #define ssb_ohci_suspend	NULL
 #define ssb_ohci_resume	NULL
-#endif /* CONFIG_PM */
+#endif 
 
 static const struct ssb_device_id ssb_ohci_table[] = {
 	SSB_DEVICE(SSB_VENDOR_BROADCOM, SSB_DEV_USB11_HOSTDEV, SSB_ANY_REV),

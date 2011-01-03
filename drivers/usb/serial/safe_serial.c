@@ -1,65 +1,6 @@
-/*
- * Safe Encapsulated USB Serial Driver
- *
- *      Copyright (C) 2001 Lineo
- *      Copyright (C) 2001 Hewlett-Packard
- *
- *	This program is free software; you can redistribute it and/or modify
- *	it under the terms of the GNU General Public License as published by
- *	the Free Software Foundation; either version 2 of the License, or
- *	(at your option) any later version.
- *
- * By:
- *      Stuart Lynne <sl@lineo.com>, Tom Rushworth <tbr@lineo.com>
- */
 
-/*
- * The encapsultaion is designed to overcome difficulties with some USB
- * hardware.
- *
- * While the USB protocol has a CRC over the data while in transit, i.e. while
- * being carried over the bus, there is no end to end protection. If the
- * hardware has any problems getting the data into or out of the USB transmit
- * and receive FIFO's then data can be lost.
- *
- * This protocol adds a two byte trailer to each USB packet to specify the
- * number of bytes of valid data and a 10 bit CRC that will allow the receiver
- * to verify that the entire USB packet was received without error.
- *
- * Because in this case the sender and receiver are the class and function
- * drivers there is now end to end protection.
- *
- * There is an additional option that can be used to force all transmitted
- * packets to be padded to the maximum packet size. This provides a work
- * around for some devices which have problems with small USB packets.
- *
- * Assuming a packetsize of N:
- *
- *      0..N-2  data and optional padding
- *
- *      N-2     bits 7-2 - number of bytes of valid data
- *              bits 1-0 top two bits of 10 bit CRC
- *      N-1     bottom 8 bits of 10 bit CRC
- *
- *
- *      | Data Length       | 10 bit CRC                                |
- *      + 7 . 6 . 5 . 4 . 3 . 2 . 1 . 0 | 7 . 6 . 5 . 4 . 3 . 2 . 1 . 0 +
- *
- * The 10 bit CRC is computed across the sent data, followed by the trailer
- * with the length set and the CRC set to zero. The CRC is then OR'd into
- * the trailer.
- *
- * When received a 10 bit CRC is computed over the entire frame including
- * the trailer and should be equal to zero.
- *
- * Two module parameters are used to control the encapsulation, if both are
- * turned of the module works as a simple serial device with NO
- * encapsulation.
- *
- * See linux/drivers/usbd/serial_fd for a device function driver
- * implementation of this.
- *
- */
+
+
 
 
 #include <linux/kernel.h>
@@ -92,8 +33,8 @@ MODULE_AUTHOR(DRIVER_AUTHOR);
 MODULE_DESCRIPTION(DRIVER_DESC);
 MODULE_LICENSE("GPL");
 
-static __u16 vendor;		/* no default */
-static __u16 product;		/* no default */
+static __u16 vendor;		
+static __u16 product;		
 module_param(vendor, ushort, 0);
 MODULE_PARM_DESC(vendor, "User specified USB idVendor (required)");
 module_param(product, ushort, 0);
@@ -136,16 +77,16 @@ MODULE_PARM_DESC(padded, "Pad to full wMaxPacketSize On/Off");
 	.bInterfaceSubClass = (isc),
 
 static struct usb_device_id id_table[] = {
-	{MY_USB_DEVICE(0x49f, 0xffff, CDC_DEVICE_CLASS, LINEO_INTERFACE_CLASS, LINEO_INTERFACE_SUBCLASS_SAFESERIAL)},	/* Itsy */
-	{MY_USB_DEVICE(0x3f0, 0x2101, CDC_DEVICE_CLASS, LINEO_INTERFACE_CLASS, LINEO_INTERFACE_SUBCLASS_SAFESERIAL)},	/* Calypso */
-	{MY_USB_DEVICE(0x4dd, 0x8001, CDC_DEVICE_CLASS, LINEO_INTERFACE_CLASS, LINEO_INTERFACE_SUBCLASS_SAFESERIAL)},	/* Iris */
-	{MY_USB_DEVICE(0x4dd, 0x8002, CDC_DEVICE_CLASS, LINEO_INTERFACE_CLASS, LINEO_INTERFACE_SUBCLASS_SAFESERIAL)},	/* Collie */
-	{MY_USB_DEVICE(0x4dd, 0x8003, CDC_DEVICE_CLASS, LINEO_INTERFACE_CLASS, LINEO_INTERFACE_SUBCLASS_SAFESERIAL)},	/* Collie */
-	{MY_USB_DEVICE(0x4dd, 0x8004, CDC_DEVICE_CLASS, LINEO_INTERFACE_CLASS, LINEO_INTERFACE_SUBCLASS_SAFESERIAL)},	/* Collie */
-	{MY_USB_DEVICE(0x5f9, 0xffff, CDC_DEVICE_CLASS, LINEO_INTERFACE_CLASS, LINEO_INTERFACE_SUBCLASS_SAFESERIAL)},	/* Sharp tmp */
-	/* extra null entry for module vendor/produc parameters */
+	{MY_USB_DEVICE(0x49f, 0xffff, CDC_DEVICE_CLASS, LINEO_INTERFACE_CLASS, LINEO_INTERFACE_SUBCLASS_SAFESERIAL)},	
+	{MY_USB_DEVICE(0x3f0, 0x2101, CDC_DEVICE_CLASS, LINEO_INTERFACE_CLASS, LINEO_INTERFACE_SUBCLASS_SAFESERIAL)},	
+	{MY_USB_DEVICE(0x4dd, 0x8001, CDC_DEVICE_CLASS, LINEO_INTERFACE_CLASS, LINEO_INTERFACE_SUBCLASS_SAFESERIAL)},	
+	{MY_USB_DEVICE(0x4dd, 0x8002, CDC_DEVICE_CLASS, LINEO_INTERFACE_CLASS, LINEO_INTERFACE_SUBCLASS_SAFESERIAL)},	
+	{MY_USB_DEVICE(0x4dd, 0x8003, CDC_DEVICE_CLASS, LINEO_INTERFACE_CLASS, LINEO_INTERFACE_SUBCLASS_SAFESERIAL)},	
+	{MY_USB_DEVICE(0x4dd, 0x8004, CDC_DEVICE_CLASS, LINEO_INTERFACE_CLASS, LINEO_INTERFACE_SUBCLASS_SAFESERIAL)},	
+	{MY_USB_DEVICE(0x5f9, 0xffff, CDC_DEVICE_CLASS, LINEO_INTERFACE_CLASS, LINEO_INTERFACE_SUBCLASS_SAFESERIAL)},	
+	
 	{MY_USB_DEVICE(0, 0, CDC_DEVICE_CLASS, LINEO_INTERFACE_CLASS, LINEO_INTERFACE_SUBCLASS_SAFESERIAL)},
-	{}			/* terminating entry  */
+	{}			
 };
 
 MODULE_DEVICE_TABLE(usb, id_table);
@@ -193,19 +134,11 @@ static const __u16 crc10_table[256] = {
 	0x21e, 0x02d, 0x04b, 0x278, 0x087, 0x2b4, 0x2d2, 0x0e1,
 };
 
-#define CRC10_INITFCS     0x000	/* Initial FCS value */
-#define CRC10_GOODFCS     0x000	/* Good final FCS value */
+#define CRC10_INITFCS     0x000	
+#define CRC10_GOODFCS     0x000	
 #define CRC10_FCS(fcs, c) ((((fcs) << 8) & 0x3ff) ^ crc10_table[((fcs) >> 2) & 0xff] ^ (c))
 
-/**
- * fcs_compute10 - memcpy and calculate 10 bit CRC across buffer
- * @sp: pointer to buffer
- * @len: number of bytes
- * @fcs: starting FCS
- *
- * Perform a memcpy and calculate fcs using ppp 10bit CRC algorithm. Return
- * new 10 bit FCS.
- */
+
 static __u16 __inline__ fcs_compute10(unsigned char *sp, int len, __u16 fcs)
 {
 	for (; len-- > 0; fcs = CRC10_FCS(fcs, *sp++));
@@ -269,7 +202,7 @@ static void safe_read_bulk_callback(struct urb *urb)
 	}
 	tty_kref_put(tty);
 
-	/* Continue trying to always read  */
+	
 	usb_fill_bulk_urb(urb, port->serial->dev,
 			usb_rcvbulkpipe(port->serial->dev,
 					port->bulk_in_endpointAddress),
@@ -281,7 +214,7 @@ static void safe_read_bulk_callback(struct urb *urb)
 		dev_err(&port->dev,
 			"%s - failed resubmitting read urb, error %d\n",
 			__func__, result);
-		/* FIXME: Need a mechanism to retry later if this happens */
+		
 }
 
 static int safe_write(struct tty_struct *tty, struct usb_serial_port *port,
@@ -320,13 +253,13 @@ static int safe_write(struct tty_struct *tty, struct usb_serial_port *port,
 	port->write_urb_busy = 1;
 	spin_unlock_bh(&port->lock);
 
-	packet_length = port->bulk_out_size;	/* get max packetsize */
+	packet_length = port->bulk_out_size;	
 
-	i = packet_length - (safe ? 2 : 0);	/* get bytes to send */
+	i = packet_length - (safe ? 2 : 0);	
 	count = (count > i) ? i : count;
 
 
-	/* get the data into the transfer buffer */
+	
 	data = port->write_urb->transfer_buffer;
 	memset(data, '0', packet_length);
 
@@ -335,19 +268,19 @@ static int safe_write(struct tty_struct *tty, struct usb_serial_port *port,
 	if (safe) {
 		__u16 fcs;
 
-		/* pad if necessary */
+		
 		if (!padded)
 			packet_length = count + 2;
-		/* set count */
+		
 		data[packet_length - 2] = count << 2;
 		data[packet_length - 1] = 0;
 
-		/* compute fcs and insert into trailer */
+		
 		fcs = fcs_compute10(data, packet_length, CRC10_INITFCS);
 		data[packet_length - 2] |= fcs >> 8;
 		data[packet_length - 1] |= fcs & 0xff;
 
-		/* set length to send */
+		
 		port->write_urb->transfer_buffer_length = packet_length;
 	} else {
 		port->write_urb->transfer_buffer_length = count;
@@ -384,7 +317,7 @@ static int safe_write(struct tty_struct *tty, struct usb_serial_port *port,
 static int safe_write_room(struct tty_struct *tty)
 {
 	struct usb_serial_port *port = tty->driver_data;
-	int room = 0;		/* Default: no room */
+	int room = 0;		
 	unsigned long flags;
 
 	dbg("%s", __func__);
@@ -434,7 +367,7 @@ static int __init safe_init(void)
 	printk(KERN_INFO KBUILD_MODNAME ": " DRIVER_VERSION ":"
 	       DRIVER_DESC "\n");
 
-	/* if we have vendor / product parameters patch them into id list */
+	
 	if (vendor || product) {
 		printk(KERN_INFO KBUILD_MODNAME ": vendor: %x product: %x\n",
 		       vendor, product);

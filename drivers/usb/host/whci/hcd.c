@@ -1,20 +1,4 @@
-/*
- * Wireless Host Controller (WHC) driver.
- *
- * Copyright (C) 2007 Cambridge Silicon Radio Ltd.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version
- * 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/uwb/umc.h>
@@ -23,23 +7,13 @@
 
 #include "whcd.h"
 
-/*
- * One time initialization.
- *
- * Nothing to do here.
- */
+
 static int whc_reset(struct usb_hcd *usb_hcd)
 {
 	return 0;
 }
 
-/*
- * Start the wireless host controller.
- *
- * Start device notification.
- *
- * Put hc into run state, set DNTS parameters.
- */
+
 static int whc_start(struct usb_hcd *usb_hcd)
 {
 	struct wusbhc *wusbhc = usb_hcd_to_wusbhc(usb_hcd);
@@ -57,14 +31,14 @@ static int whc_start(struct usb_hcd *usb_hcd)
 		  | WUSBINTR_INT,
 		  whc->base + WUSBINTR);
 
-	/* set cluster ID */
+	
 	bcid = wusb_cluster_id_get();
 	ret = whc_set_cluster_id(whc, bcid);
 	if (ret < 0)
 		goto out;
 	wusbhc->cluster_id = bcid;
 
-	/* start HC */
+	
 	whc_write_wusbcmd(whc, WUSBCMD_RUN, WUSBCMD_RUN);
 
 	usb_hcd->uses_new_polling = 1;
@@ -77,13 +51,7 @@ out:
 }
 
 
-/*
- * Stop the wireless host controller.
- *
- * Stop device notification.
- *
- * Wait for pending transfer to stop? Put hc into stop state?
- */
+
 static void whc_stop(struct usb_hcd *usb_hcd)
 {
 	struct wusbhc *wusbhc = usb_hcd_to_wusbhc(usb_hcd);
@@ -91,7 +59,7 @@ static void whc_stop(struct usb_hcd *usb_hcd)
 
 	mutex_lock(&wusbhc->mutex);
 
-	/* stop HC */
+	
 	le_writel(0, whc->base + WUSBINTR);
 	whc_write_wusbcmd(whc, WUSBCMD_RUN, 0);
 	whci_wait_for(&whc->umc->dev, whc->base + WUSBSTS,
@@ -105,14 +73,12 @@ static void whc_stop(struct usb_hcd *usb_hcd)
 
 static int whc_get_frame_number(struct usb_hcd *usb_hcd)
 {
-	/* Frame numbers are not applicable to WUSB. */
+	
 	return -ENOSYS;
 }
 
 
-/*
- * Queue an URB to the ASL or PZL
- */
+
 static int whc_urb_enqueue(struct usb_hcd *usb_hcd, struct urb *urb,
 			   gfp_t mem_flags)
 {
@@ -138,9 +104,7 @@ static int whc_urb_enqueue(struct usb_hcd *usb_hcd, struct urb *urb,
 	return ret;
 }
 
-/*
- * Remove a queued URB from the ASL or PZL.
- */
+
 static int whc_urb_dequeue(struct usb_hcd *usb_hcd, struct urb *urb, int status)
 {
 	struct wusbhc *wusbhc = usb_hcd_to_wusbhc(usb_hcd);
@@ -164,10 +128,7 @@ static int whc_urb_dequeue(struct usb_hcd *usb_hcd, struct urb *urb, int status)
 	return ret;
 }
 
-/*
- * Wait for all URBs to the endpoint to be completed, then delete the
- * qset.
- */
+
 static void whc_endpoint_disable(struct usb_hcd *usb_hcd,
 				 struct usb_host_endpoint *ep)
 {
@@ -354,10 +315,10 @@ static void __exit whci_hc_driver_exit(void)
 }
 module_exit(whci_hc_driver_exit);
 
-/* PCI device ID's that we handle (so it gets loaded) */
+
 static struct pci_device_id whci_hcd_id_table[] = {
 	{ PCI_DEVICE_CLASS(PCI_CLASS_WIRELESS_WHCI, ~0) },
-	{ /* empty last entry */ }
+	{  }
 };
 MODULE_DEVICE_TABLE(pci, whci_hcd_id_table);
 

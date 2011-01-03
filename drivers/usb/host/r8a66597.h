@@ -1,27 +1,4 @@
-/*
- * R8A66597 HCD (Host Controller Driver)
- *
- * Copyright (C) 2006-2007 Renesas Solutions Corp.
- * Portions Copyright (C) 2004 Psion Teklogix (for NetBook PRO)
- * Portions Copyright (C) 2004-2005 David Brownell
- * Portions Copyright (C) 1999 Roman Weissgaerber
- *
- * Author : Yoshihiro Shimoda <shimoda.yoshihiro@renesas.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; version 2 of the License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- */
+
 
 #ifndef __R8A66597_H__
 #define __R8A66597_H__
@@ -47,7 +24,7 @@
 struct r8a66597_pipe_info {
 	unsigned long timer_interval;
 	u16 pipenum;
-	u16 address;	/* R8A66597 HCD usb address */
+	u16 address;	
 	u16 epnum;
 	u16 maxpacket;
 	u16 type;
@@ -77,7 +54,7 @@ struct r8a66597_td {
 	u16 pipenum;
 	int iso_cnt;
 
-	u16 address;		/* R8A66597's USB address */
+	u16 address;		
 	u16 maxpacket;
 
 	unsigned zero_packet:1;
@@ -86,7 +63,7 @@ struct r8a66597_td {
 };
 
 struct r8a66597_device {
-	u16	address;	/* R8A66597's USB address */
+	u16	address;	
 	u16	hub_port;
 	u16	root_port;
 
@@ -342,5 +319,5 @@ static inline u16 get_xtal_from_pdata(struct r8a66597_platdata *pdata)
 #define disable_irq_nrdy(r8a66597, pipenum)	\
 	disable_pipe_irq(r8a66597, pipenum, NRDYENB)
 
-#endif	/* __R8A66597_H__ */
+#endif	
 

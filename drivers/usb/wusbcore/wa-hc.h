@@ -1,81 +1,4 @@
-/*
- * HWA Host Controller Driver
- * Wire Adapter Control/Data Streaming Iface (WUSB1.0[8])
- *
- * Copyright (C) 2005-2006 Intel Corporation
- * Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version
- * 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
- *
- *
- * This driver implements a USB Host Controller (struct usb_hcd) for a
- * Wireless USB Host Controller based on the Wireless USB 1.0
- * Host-Wire-Adapter specification (in layman terms, a USB-dongle that
- * implements a Wireless USB host).
- *
- * Check out the Design-overview.txt file in the source documentation
- * for other details on the implementation.
- *
- * Main blocks:
- *
- *  driver     glue with the driver API, workqueue daemon
- *
- *  lc         RC instance life cycle management (create, destroy...)
- *
- *  hcd        glue with the USB API Host Controller Interface API.
- *
- *  nep        Notification EndPoint managent: collect notifications
- *             and queue them with the workqueue daemon.
- *
- *             Handle notifications as coming from the NEP. Sends them
- *             off others to their respective modules (eg: connect,
- *             disconnect and reset go to devconnect).
- *
- *  rpipe      Remote Pipe management; rpipe is what we use to write
- *             to an endpoint on a WUSB device that is connected to a
- *             HWA RC.
- *
- *  xfer       Transfer management -- this is all the code that gets a
- *             buffer and pushes it to a device (or viceversa). *
- *
- * Some day a lot of this code will be shared between this driver and
- * the drivers for DWA (xfer, rpipe).
- *
- * All starts at driver.c:hwahc_probe(), when one of this guys is
- * connected. hwahc_disconnect() stops it.
- *
- * During operation, the main driver is devices connecting or
- * disconnecting. They cause the HWA RC to send notifications into
- * nep.c:hwahc_nep_cb() that will dispatch them to
- * notif.c:wa_notif_dispatch(). From there they will fan to cause
- * device connects, disconnects, etc.
- *
- * Note much of the activity is difficult to follow. For example a
- * device connect goes to devconnect, which will cause the "fake" root
- * hub port to show a connect and stop there. Then khubd will notice
- * and call into the rh.c:hwahc_rc_port_reset() code to authenticate
- * the device (and this might require user intervention) and enable
- * the port.
- *
- * We also have a timer workqueue going from devconnect.c that
- * schedules in hwahc_devconnect_create().
- *
- * The rest of the traffic is in the usual entry points of a USB HCD,
- * which are hooked up in driver.c:hwahc_rc_driver, and defined in
- * hcd.c.
- */
+
 
 #ifndef __HWAHC_INTERNAL_H__
 #define __HWAHC_INTERNAL_H__
@@ -92,23 +15,7 @@ struct wusbhc;
 struct wahc;
 extern void wa_urb_enqueue_run(struct work_struct *ws);
 
-/**
- * RPipe instance
- *
- * @descr's fields are kept in LE, as we need to send it back and
- * forth.
- *
- * @wa is referenced when set
- *
- * @segs_available is the number of requests segments that still can
- *                 be submitted to the controller without overloading
- *                 it. It is initialized to descr->wRequests when
- *                 aiming.
- *
- * A rpipe supports a max of descr->wRequests at the same time; before
- * submitting seg_lock has to be taken. If segs_avail > 0, then we can
- * submit; if not, we have to queue them.
- */
+
 struct wa_rpipe {
 	struct kref refcnt;
 	struct usb_rpipe_descriptor descr;
@@ -117,49 +24,16 @@ struct wa_rpipe {
 	spinlock_t seg_lock;
 	struct list_head seg_list;
 	atomic_t segs_available;
-	u8 buffer[1];	/* For reads/writes on USB */
+	u8 buffer[1];	
 };
 
 
-/**
- * Instance of a HWA Host Controller
- *
- * Except where a more specific lock/mutex applies or atomic, all
- * fields protected by @mutex.
- *
- * @wa_descr  Can be accessed without locking because it is in
- *            the same area where the device descriptors were
- *            read, so it is guaranteed to exist umodified while
- *            the device exists.
- *
- *            Endianess has been converted to CPU's.
- *
- * @nep_* can be accessed without locking as its processing is
- *        serialized; we submit a NEP URB and it comes to
- *        hwahc_nep_cb(), which won't issue another URB until it is
- *        done processing it.
- *
- * @xfer_list:
- *
- *   List of active transfers to verify existence from a xfer id
- *   gotten from the xfer result message. Can't use urb->list because
- *   it goes by endpoint, and we don't know the endpoint at the time
- *   when we get the xfer result message. We can't really rely on the
- *   pointer (will have to change for 64 bits) as the xfer id is 32 bits.
- *
- * @xfer_delayed_list:   List of transfers that need to be started
- *                       (with a workqueue, because they were
- *                       submitted from an atomic context).
- *
- * FIXME: this needs to be layered up: a wusbhc layer (for sharing
- *        comonalities with WHCI), a wa layer (for sharing
- *        comonalities with DWA-RC).
- */
+
 struct wahc {
 	struct usb_device *usb_dev;
 	struct usb_interface *usb_iface;
 
-	/* HC to deliver notifications */
+	
 	union {
 		struct wusbhc *wusb;
 		struct dwahc *dwa;
@@ -168,7 +42,7 @@ struct wahc {
 	const struct usb_endpoint_descriptor *dto_epd, *dti_epd;
 	const struct usb_wa_descriptor *wa_descr;
 
-	struct urb *nep_urb;		/* Notification EndPoint [lockless] */
+	struct urb *nep_urb;		
 	struct edc nep_edc;
 	void *nep_buffer;
 	size_t nep_buffer_size;
@@ -176,17 +50,17 @@ struct wahc {
 	atomic_t notifs_queued;
 
 	u16 rpipes;
-	unsigned long *rpipe_bm;	/* rpipe usage bitmap */
-	spinlock_t rpipe_bm_lock;	/* protect rpipe_bm */
-	struct mutex rpipe_mutex;	/* assigning resources to endpoints */
+	unsigned long *rpipe_bm;	
+	spinlock_t rpipe_bm_lock;	
+	struct mutex rpipe_mutex;	
 
-	struct urb *dti_urb;		/* URB for reading xfer results */
-	struct urb *buf_in_urb;		/* URB for reading data in */
-	struct edc dti_edc;		/* DTI error density counter */
-	struct wa_xfer_result *xfer_result; /* real size = dti_ep maxpktsize */
+	struct urb *dti_urb;		
+	struct urb *buf_in_urb;		
+	struct edc dti_edc;		
+	struct wa_xfer_result *xfer_result; 
 	size_t xfer_result_size;
 
-	s32 status;			/* For reading status */
+	s32 status;			
 
 	struct list_head xfer_list;
 	struct list_head xfer_delayed_list;
@@ -201,17 +75,16 @@ extern void __wa_destroy(struct wahc *wa);
 void wa_reset_all(struct wahc *wa);
 
 
-/* Miscellaneous constants */
+
 enum {
-	/** Max number of EPROTO errors we tolerate on the NEP in a
-	 * period of time */
+	
 	HWAHC_EPROTO_MAX = 16,
-	/** Period of time for EPROTO errors (in jiffies) */
+	
 	HWAHC_EPROTO_PERIOD = 4 * HZ,
 };
 
 
-/* Notification endpoint handling */
+
 extern int wa_nep_create(struct wahc *, struct usb_interface *);
 extern void wa_nep_destroy(struct wahc *);
 
@@ -229,7 +102,7 @@ static inline void wa_nep_disarm(struct wahc *wa)
 }
 
 
-/* RPipes */
+
 static inline void wa_rpipe_init(struct wahc *wa)
 {
 	spin_lock_init(&wa->rpipe_bm_lock);
@@ -249,11 +122,7 @@ static inline void wa_init(struct wahc *wa)
 	atomic_set(&wa->xfer_id_count, 1);
 }
 
-/**
- * Destroy a pipe (when refcount drops to zero)
- *
- * Assumes it has been moved to the "QUIESCING" state.
- */
+
 struct wa_xfer;
 extern void rpipe_destroy(struct kref *_rpipe);
 static inline
@@ -276,9 +145,7 @@ static inline void rpipe_avail_dec(struct wa_rpipe *rpipe)
 	atomic_dec(&rpipe->segs_available);
 }
 
-/**
- * Returns true if the rpipe is ready to submit more segments.
- */
+
 static inline int rpipe_avail_inc(struct wa_rpipe *rpipe)
 {
 	return atomic_inc_return(&rpipe->segs_available) > 0
@@ -286,24 +153,14 @@ static inline int rpipe_avail_inc(struct wa_rpipe *rpipe)
 }
 
 
-/* Transferring data */
+
 extern int wa_urb_enqueue(struct wahc *, struct usb_host_endpoint *,
 			  struct urb *, gfp_t);
 extern int wa_urb_dequeue(struct wahc *, struct urb *);
 extern void wa_handle_notif_xfer(struct wahc *, struct wa_notif_hdr *);
 
 
-/* Misc
- *
- * FIXME: Refcounting for the actual @hwahc object is not correct; I
- *        mean, this should be refcounting on the HCD underneath, but
- *        it is not. In any case, the semantics for HCD refcounting
- *        are *weird*...on refcount reaching zero it just frees
- *        it...no RC specific function is called...unless I miss
- *        something.
- *
- * FIXME: has to go away in favour of an 'struct' hcd based sollution
- */
+
 static inline struct wahc *wa_get(struct wahc *wa)
 {
 	usb_get_intf(wa->usb_iface);
@@ -323,7 +180,7 @@ static inline int __wa_feature(struct wahc *wa, unsigned op, u16 feature)
 			USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_INTERFACE,
 			feature,
 			wa->usb_iface->cur_altsetting->desc.bInterfaceNumber,
-			NULL, 0, 1000 /* FIXME: arbitrary */);
+			NULL, 0, 1000 );
 }
 
 
@@ -339,15 +196,7 @@ static inline int __wa_clear_feature(struct wahc *wa, u16 feature)
 }
 
 
-/**
- * Return the status of a Wire Adapter
- *
- * @wa:		Wire Adapter instance
- * @returns     < 0 errno code on error, or status bitmap as described
- *              in WUSB1.0[8.3.1.6].
- *
- * NOTE: need malloc, some arches don't take USB from the stack
- */
+
 static inline
 s32 __wa_get_status(struct wahc *wa)
 {
@@ -358,25 +207,14 @@ s32 __wa_get_status(struct wahc *wa)
 		USB_DIR_IN | USB_TYPE_CLASS | USB_RECIP_INTERFACE,
 		0, wa->usb_iface->cur_altsetting->desc.bInterfaceNumber,
 		&wa->status, sizeof(wa->status),
-		1000 /* FIXME: arbitrary */);
+		1000 );
 	if (result >= 0)
 		result = wa->status;
 	return result;
 }
 
 
-/**
- * Waits until the Wire Adapter's status matches @mask/@value
- *
- * @wa:		Wire Adapter instance.
- * @returns     < 0 errno code on error, otherwise status.
- *
- * Loop until the WAs status matches the mask and value (status & mask
- * == value). Timeout if it doesn't happen.
- *
- * FIXME: is there an official specification on how long status
- *        changes can take?
- */
+
 static inline s32 __wa_wait_status(struct wahc *wa, u32 mask, u32 value)
 {
 	s32 result;
@@ -395,7 +233,7 @@ static inline s32 __wa_wait_status(struct wahc *wa, u32 mask, u32 value)
 }
 
 
-/** Command @hwahc to stop, @returns 0 if ok, < 0 errno code on error */
+
 static inline int __wa_stop(struct wahc *wa)
 {
 	int result;
@@ -414,4 +252,4 @@ out:
 }
 
 
-#endif /* #ifndef __HWAHC_INTERNAL_H__ */
+#endif 

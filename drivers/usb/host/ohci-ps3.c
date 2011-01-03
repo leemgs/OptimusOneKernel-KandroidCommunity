@@ -1,22 +1,4 @@
-/*
- *  PS3 OHCI Host Controller driver
- *
- *  Copyright (C) 2006 Sony Computer Entertainment Inc.
- *  Copyright 2006 Sony Corp.
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; version 2 of the License.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <asm/firmware.h>
 #include <asm/ps3.h>
@@ -35,8 +17,8 @@ static int __devinit ps3_ohci_hc_start(struct usb_hcd *hcd)
 	int result;
 	struct ohci_hcd *ohci = hcd_to_ohci(hcd);
 
-	/* Handle root hub init quirk in spider south bridge. */
-	/* Also set PwrOn2PwrGood to 0x7f (254ms). */
+	
+	
 
 	ohci_writel(ohci, 0x7f000000 | RH_A_PSM | RH_A_OCPM,
 		&ohci->regs->roothub.a);
@@ -126,7 +108,7 @@ static int __devinit ps3_ohci_probe(struct ps3_system_bus_device *dev)
 		goto fail_irq;
 	}
 
-	dev->core.dma_mask = &dummy_mask; /* FIXME: for improper usb code */
+	dev->core.dma_mask = &dummy_mask; 
 
 	hcd = usb_create_hcd(&ps3_ohci_hc_driver, &dev->core, dev_name(&dev->core));
 

@@ -1,12 +1,4 @@
-/*
- * EZ-USB specific functions used by some of the USB to Serial drivers.
- *
- * Copyright (C) 1999 - 2002 Greg Kroah-Hartman (greg@kroah.com)
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License version
- *	2 as published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/errno.h>
@@ -17,7 +9,7 @@
 #include <linux/usb.h>
 #include <linux/usb/serial.h>
 
-/* EZ-USB Control and Status Register.  Bit 0 controls 8051 reset */
+
 #define CPUCS_REG    0x7F92
 
 int ezusb_writememory(struct usb_serial *serial, int address,
@@ -26,7 +18,7 @@ int ezusb_writememory(struct usb_serial *serial, int address,
 	int result;
 	unsigned char *transfer_buffer;
 
-	/* dbg("ezusb_writememory %x, %d", address, length); */
+	
 	if (!serial->dev) {
 		printk(KERN_ERR "ezusb: %s - no physical device present, "
 		       "failing.\n", __func__);
@@ -50,7 +42,7 @@ int ezusb_set_reset(struct usb_serial *serial, unsigned char reset_bit)
 {
 	int response;
 
-	/* dbg("%s - %d", __func__, reset_bit); */
+	
 	response = ezusb_writememory(serial, CPUCS_REG, &reset_bit, 1, 0xa0);
 	if (response < 0)
 		dev_err(&serial->dev->dev, "%s- %d failed\n",

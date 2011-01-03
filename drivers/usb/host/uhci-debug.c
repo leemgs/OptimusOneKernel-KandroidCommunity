@@ -1,13 +1,4 @@
-/*
- * UHCI-specific debugging code. Invaluable when something
- * goes wrong, but don't get in my face.
- *
- * Kernel visible pointers are surrounded in []s and bus
- * visible pointers are surrounded in ()s
- *
- * (C) Copyright 1999 Linus Torvalds
- * (C) Copyright 1999-2001 Johannes Erdfelt
- */
+
 
 #include <linux/kernel.h>
 #include <linux/debugfs.h>
@@ -21,12 +12,12 @@ static struct dentry *uhci_debugfs_root;
 
 #ifdef DEBUG
 
-/* Handle REALLY large printks so we don't overflow buffers */
+
 static void lprintk(char *buf)
 {
 	char *p;
 
-	/* Just write one line at a time */
+	
 	while (buf) {
 		p = strchr(buf, '\n');
 		if (p)
@@ -44,7 +35,7 @@ static int uhci_show_td(struct uhci_td *td, char *buf, int len, int space)
 	char *spid;
 	u32 status, token;
 
-	/* Try to make sure there's enough memory */
+	
 	if (len < 160)
 		return 0;
 
@@ -155,7 +146,7 @@ static int uhci_show_qh(struct uhci_hcd *uhci,
 	__le32 element = qh_element(qh);
 	char *qtype;
 
-	/* Try to make sure there's enough memory */
+	
 	if (len < 80 * 7)
 		return 0;
 
@@ -230,7 +221,7 @@ static int uhci_show_sc(int port, unsigned short status, char *buf, int len)
 {
 	char *out = buf;
 
-	/* Try to make sure there's enough memory */
+	
 	if (len < 160)
 		return 0;
 
@@ -256,7 +247,7 @@ static int uhci_show_root_hub_state(struct uhci_hcd *uhci, char *buf, int len)
 	char *out = buf;
 	char *rh_state;
 
-	/* Try to make sure there's enough memory */
+	
 	if (len < 60)
 		return 0;
 
@@ -292,7 +283,7 @@ static int uhci_show_status(struct uhci_hcd *uhci, char *buf, int len)
 	unsigned char sof;
 	unsigned short portsc1, portsc2;
 
-	/* Try to make sure there's enough memory */
+	
 	if (len < 80 * 9)
 		return 0;
 
@@ -439,7 +430,7 @@ check_link:
 		out += sprintf(out, "- skel_%s_qh\n", qh_names[i]); \
 		out += uhci_show_qh(uhci, qh, out, len - (out - buf), 4);
 
-		/* Last QH is the Terminating QH, it's different */
+		
 		if (i == SKEL_TERM) {
 			if (qh_element(qh) != LINK_TO_TD(uhci->term_td))
 				out += sprintf(out, "    skel_term_qh element is not set to term_td!\n");
@@ -572,9 +563,9 @@ static const struct file_operations uhci_debug_operations = {
 	.release =	uhci_debug_release,
 };
 
-#endif	/* CONFIG_DEBUG_FS */
+#endif	
 
-#else	/* DEBUG */
+#else	
 
 static inline void lprintk(char *buf)
 {}

@@ -1,22 +1,4 @@
-/*
- * OHCI HCD (Host Controller Driver) for USB.
- *
- * (C) Copyright 1999 Roman Weissgaerber <weissg@vienna.at>
- * (C) Copyright 2000-2002 David Brownell <dbrownell@users.sourceforge.net>
- * (C) Copyright 2002 Hewlett-Packard Company
- *
- * Bus Glue for AMD Alchemy Au1xxx
- *
- * Written by Christopher Hoover <ch@hpl.hp.com>
- * Based on fragments of previous driver by Russell King et al.
- *
- * Modified for LH7A404 from ohci-sa1111.c
- *  by Durgesh Pattamatta <pattamattad@sharpsec.com>
- * Modified for AMD Alchemy Au1xxx
- *  by Matt Porter <mporter@kernel.crashing.org>
- *
- * This file is licenced under the GPL.
- */
+
 
 #include <linux/platform_device.h>
 #include <linux/signal.h>
@@ -40,7 +22,7 @@
 #error not byte order defined
 #endif
 
-#else   /* Au1200 */
+#else   
 
 #define USB_HOST_CONFIG    (USB_MSR_BASE + USB_MSR_MCFG)
 #define USB_MCFG_PFEN     (1<<31)
@@ -64,13 +46,13 @@
 
 #define USBH_DISABLE      (USB_MCFG_OBMEN | USB_MCFG_OMEMEN)
 
-#endif  /* Au1200 */
+#endif  
 
 extern int usb_disabled(void);
 
 static void au1xxx_start_ohc(void)
 {
-	/* enable host controller */
+	
 #ifndef CONFIG_SOC_AU1200
 	au_writel(USBH_ENABLE_CE, USB_HOST_CONFIG);
 	au_sync();
@@ -80,12 +62,12 @@ static void au1xxx_start_ohc(void)
 	au_sync();
 	udelay(1000);
 
-	/* wait for reset complete (read register twice; see au1500 errata) */
+	
 	while (au_readl(USB_HOST_CONFIG),
 		!(au_readl(USB_HOST_CONFIG) & USBH_ENABLE_RD))
 		udelay(1000);
 
-#else   /* Au1200 */
+#else   
 	au_writel(au_readl(USB_HOST_CONFIG) | USBH_ENABLE_CE, USB_HOST_CONFIG);
 	au_sync();
 	udelay(1000);
@@ -93,18 +75,18 @@ static void au1xxx_start_ohc(void)
 	au_writel(au_readl(USB_HOST_CONFIG) | USBH_ENABLE_INIT, USB_HOST_CONFIG);
 	au_sync();
 	udelay(2000);
-#endif  /* Au1200 */
+#endif  
 }
 
 static void au1xxx_stop_ohc(void)
 {
 #ifdef CONFIG_SOC_AU1200
-	/* Disable mem */
+	
 	au_writel(au_readl(USB_HOST_CONFIG) & ~USBH_DISABLE, USB_HOST_CONFIG);
 	au_sync();
 	udelay(1000);
 #endif
-	/* Disable clock */
+	
 	au_writel(au_readl(USB_HOST_CONFIG) & ~USBH_ENABLE_CE, USB_HOST_CONFIG);
 	au_sync();
 }
@@ -133,34 +115,24 @@ static const struct hc_driver ohci_au1xxx_hc_driver = {
 	.product_desc =		"Au1xxx OHCI",
 	.hcd_priv_size =	sizeof(struct ohci_hcd),
 
-	/*
-	 * generic hardware linkage
-	 */
+	
 	.irq =			ohci_irq,
 	.flags =		HCD_USB11 | HCD_MEMORY,
 
-	/*
-	 * basic lifecycle operations
-	 */
+	
 	.start =		ohci_au1xxx_start,
 	.stop =			ohci_stop,
 	.shutdown =		ohci_shutdown,
 
-	/*
-	 * managing i/o requests and associated device resources
-	 */
+	
 	.urb_enqueue =		ohci_urb_enqueue,
 	.urb_dequeue =		ohci_urb_dequeue,
 	.endpoint_disable =	ohci_endpoint_disable,
 
-	/*
-	 * scheduling support
-	 */
+	
 	.get_frame_number =	ohci_get_frame,
 
-	/*
-	 * root hub support
-	 */
+	
 	.hub_status_data =	ohci_hub_status_data,
 	.hub_control =		ohci_hub_control,
 #ifdef	CONFIG_PM
@@ -179,7 +151,7 @@ static int ohci_hcd_au1xxx_drv_probe(struct platform_device *pdev)
 		return -ENODEV;
 
 #if defined(CONFIG_SOC_AU1200) && defined(CONFIG_DMA_COHERENT)
-	/* Au1200 AB USB does not support coherent memory */
+	
 	if (!(read_c0_prid() & 0xff)) {
 		printk(KERN_INFO "%s: this is chip revision AB !!\n",
 			pdev->name);
@@ -257,14 +229,7 @@ static int ohci_hcd_au1xxx_drv_suspend(struct device *dev)
 
 	rc = 0;
 
-	/* Root hub was already suspended. Disable irq emission and
-	 * mark HW unaccessible, bail out if RH has been resumed. Use
-	 * the spinlock to properly synchronize with possible pending
-	 * RH suspend or resume activity.
-	 *
-	 * This is still racy as hcd->state is manipulated outside of
-	 * any locks =P But that will be a different fix.
-	 */
+	
 	spin_lock_irqsave(&ohci->lock, flags);
 	if (hcd->state != HC_STATE_SUSPENDED) {
 		rc = -EINVAL;

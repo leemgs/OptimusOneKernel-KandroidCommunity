@@ -1,12 +1,4 @@
-/*
- * This file contains code to reset and initialize USB host controllers.
- * Some of it includes work-arounds for PCI hardware and BIOS quirks.
- * It may need to run early during booting -- before USB would normally
- * initialize -- to ensure that Linux doesn't use any legacy modes.
- *
- *  Copyright (c) 1999 Martin Mares <mj@ucw.cz>
- *  (and others)
- */
+
 
 #include <linux/types.h>
 #include <linux/kernel.h>
@@ -18,92 +10,67 @@
 #include "xhci-ext-caps.h"
 
 
-#define UHCI_USBLEGSUP		0xc0		/* legacy support */
-#define UHCI_USBCMD		0		/* command register */
-#define UHCI_USBINTR		4		/* interrupt register */
-#define UHCI_USBLEGSUP_RWC	0x8f00		/* the R/WC bits */
-#define UHCI_USBLEGSUP_RO	0x5040		/* R/O and reserved bits */
-#define UHCI_USBCMD_RUN		0x0001		/* RUN/STOP bit */
-#define UHCI_USBCMD_HCRESET	0x0002		/* Host Controller reset */
-#define UHCI_USBCMD_EGSM	0x0008		/* Global Suspend Mode */
-#define UHCI_USBCMD_CONFIGURE	0x0040		/* Config Flag */
-#define UHCI_USBINTR_RESUME	0x0002		/* Resume interrupt enable */
+#define UHCI_USBLEGSUP		0xc0		
+#define UHCI_USBCMD		0		
+#define UHCI_USBINTR		4		
+#define UHCI_USBLEGSUP_RWC	0x8f00		
+#define UHCI_USBLEGSUP_RO	0x5040		
+#define UHCI_USBCMD_RUN		0x0001		
+#define UHCI_USBCMD_HCRESET	0x0002		
+#define UHCI_USBCMD_EGSM	0x0008		
+#define UHCI_USBCMD_CONFIGURE	0x0040		
+#define UHCI_USBINTR_RESUME	0x0002		
 
 #define OHCI_CONTROL		0x04
 #define OHCI_CMDSTATUS		0x08
 #define OHCI_INTRSTATUS		0x0c
 #define OHCI_INTRENABLE		0x10
 #define OHCI_INTRDISABLE	0x14
-#define OHCI_OCR		(1 << 3)	/* ownership change request */
-#define OHCI_CTRL_RWC		(1 << 9)	/* remote wakeup connected */
-#define OHCI_CTRL_IR		(1 << 8)	/* interrupt routing */
-#define OHCI_INTR_OC		(1 << 30)	/* ownership change */
+#define OHCI_OCR		(1 << 3)	
+#define OHCI_CTRL_RWC		(1 << 9)	
+#define OHCI_CTRL_IR		(1 << 8)	
+#define OHCI_INTR_OC		(1 << 30)	
 
-#define EHCI_HCC_PARAMS		0x08		/* extended capabilities */
-#define EHCI_USBCMD		0		/* command register */
-#define EHCI_USBCMD_RUN		(1 << 0)	/* RUN/STOP bit */
-#define EHCI_USBSTS		4		/* status register */
-#define EHCI_USBSTS_HALTED	(1 << 12)	/* HCHalted bit */
-#define EHCI_USBINTR		8		/* interrupt register */
-#define EHCI_CONFIGFLAG		0x40		/* configured flag register */
-#define EHCI_USBLEGSUP		0		/* legacy support register */
-#define EHCI_USBLEGSUP_BIOS	(1 << 16)	/* BIOS semaphore */
-#define EHCI_USBLEGSUP_OS	(1 << 24)	/* OS semaphore */
-#define EHCI_USBLEGCTLSTS	4		/* legacy control/status */
-#define EHCI_USBLEGCTLSTS_SOOE	(1 << 13)	/* SMI on ownership change */
+#define EHCI_HCC_PARAMS		0x08		
+#define EHCI_USBCMD		0		
+#define EHCI_USBCMD_RUN		(1 << 0)	
+#define EHCI_USBSTS		4		
+#define EHCI_USBSTS_HALTED	(1 << 12)	
+#define EHCI_USBINTR		8		
+#define EHCI_CONFIGFLAG		0x40		
+#define EHCI_USBLEGSUP		0		
+#define EHCI_USBLEGSUP_BIOS	(1 << 16)	
+#define EHCI_USBLEGSUP_OS	(1 << 24)	
+#define EHCI_USBLEGCTLSTS	4		
+#define EHCI_USBLEGCTLSTS_SOOE	(1 << 13)	
 
 
-/*
- * Make sure the controller is completely inactive, unable to
- * generate interrupts or do DMA.
- */
+
 void uhci_reset_hc(struct pci_dev *pdev, unsigned long base)
 {
-	/* Turn off PIRQ enable and SMI enable.  (This also turns off the
-	 * BIOS's USB Legacy Support.)  Turn off all the R/WC bits too.
-	 */
+	
 	pci_write_config_word(pdev, UHCI_USBLEGSUP, UHCI_USBLEGSUP_RWC);
 
-	/* Reset the HC - this will force us to get a
-	 * new notification of any already connected
-	 * ports due to the virtual disconnect that it
-	 * implies.
-	 */
+	
 	outw(UHCI_USBCMD_HCRESET, base + UHCI_USBCMD);
 	mb();
 	udelay(5);
 	if (inw(base + UHCI_USBCMD) & UHCI_USBCMD_HCRESET)
 		dev_warn(&pdev->dev, "HCRESET not completed yet!\n");
 
-	/* Just to be safe, disable interrupt requests and
-	 * make sure the controller is stopped.
-	 */
+	
 	outw(0, base + UHCI_USBINTR);
 	outw(0, base + UHCI_USBCMD);
 }
 EXPORT_SYMBOL_GPL(uhci_reset_hc);
 
-/*
- * Initialize a controller that was newly discovered or has just been
- * resumed.  In either case we can't be sure of its previous state.
- *
- * Returns: 1 if the controller was reset, 0 otherwise.
- */
+
 int uhci_check_and_reset_hc(struct pci_dev *pdev, unsigned long base)
 {
 	u16 legsup;
 	unsigned int cmd, intr;
 
-	/*
-	 * When restarting a suspended controller, we expect all the
-	 * settings to be the same as we left them:
-	 *
-	 *	PIRQ and SMI disabled, no R/W bits set in USBLEGSUP;
-	 *	Controller is stopped and configured with EGSM set;
-	 *	No interrupts enabled except possibly Resume Detect.
-	 *
-	 * If any of these conditions are violated we do a complete reset.
-	 */
+	
 	pci_read_config_word(pdev, UHCI_USBLEGSUP, &legsup);
 	if (legsup & ~(UHCI_USBLEGSUP_RO | UHCI_USBLEGSUP_RWC)) {
 		dev_dbg(&pdev->dev, "%s: legsup = 0x%04x\n",
@@ -177,12 +144,12 @@ static void __devinit quirk_usb_handoff_ohci(struct pci_dev *pdev)
 	if (base == NULL)
 		return;
 
-/* On PA-RISC, PDC can leave IR set incorrectly; ignore it there. */
+
 #ifndef __hppa__
 {
 	u32 control = readl(base + OHCI_CONTROL);
 	if (control & OHCI_CTRL_IR) {
-		int wait_time = 500; /* arbitrary; 5 seconds */
+		int wait_time = 500; 
 		writel(OHCI_INTR_OC, base + OHCI_INTRENABLE);
 		writel(OHCI_OCR, base + OHCI_CMDSTATUS);
 		while (wait_time > 0 &&
@@ -195,15 +162,13 @@ static void __devinit quirk_usb_handoff_ohci(struct pci_dev *pdev)
 					" (BIOS bug?) %08x\n",
 					readl(base + OHCI_CONTROL));
 
-		/* reset controller, preserving RWC */
+		
 		writel(control & OHCI_CTRL_RWC, base + OHCI_CONTROL);
 	}
 }
 #endif
 
-	/*
-	 * disable interrupts
-	 */
+	
 	writel(~(u32)0, base + OHCI_INTRDISABLE);
 	writel(~(u32)0, base + OHCI_INTRSTATUS);
 
@@ -229,10 +194,7 @@ static void __devinit quirk_usb_disable_ehci(struct pci_dev *pdev)
 	cap_length = readb(base);
 	op_reg_base = base + cap_length;
 
-	/* EHCI 0.96 and later may have "extended capabilities"
-	 * spec section 5.1 explains the bios handoff, e.g. for
-	 * booting from USB disk or using a usb keyboard
-	 */
+	
 	hcc_params = readl(base + EHCI_HCC_PARAMS);
 	offset = (hcc_params >> 8) & 0xff;
 	while (offset && --count) {
@@ -241,19 +203,13 @@ static void __devinit quirk_usb_disable_ehci(struct pci_dev *pdev)
 
 		pci_read_config_dword(pdev, offset, &cap);
 		switch (cap & 0xff) {
-		case 1:			/* BIOS/SMM/... handoff support */
+		case 1:			
 			if ((cap & EHCI_USBLEGSUP_BIOS)) {
 				dev_dbg(&pdev->dev, "EHCI: BIOS handoff\n");
 
 #if 0
-/* aleksey_gorelov@phoenix.com reports that some systems need SMI forced on,
- * but that seems dubious in general (the BIOS left it off intentionally)
- * and is known to prevent some systems from booting.  so we won't do this
- * unless maybe we can determine when we're on a system that needs SMI forced.
- */
-				/* BIOS workaround (?): be sure the
-				 * pre-Linux code receives the SMI
-				 */
+
+				
 				pci_read_config_dword(pdev,
 						offset + EHCI_USBLEGCTLSTS,
 						&val);
@@ -262,16 +218,11 @@ static void __devinit quirk_usb_disable_ehci(struct pci_dev *pdev)
 						val | EHCI_USBLEGCTLSTS_SOOE);
 #endif
 
-				/* some systems get upset if this semaphore is
-				 * set for any other reason than forcing a BIOS
-				 * handoff..
-				 */
+				
 				pci_write_config_byte(pdev, offset + 3, 1);
 			}
 
-			/* if boot firmware now owns EHCI, spin till
-			 * it hands it over.
-			 */
+			
 			msec = 1000;
 			while ((cap & EHCI_USBLEGSUP_BIOS) && (msec > 0)) {
 				tried_handoff = 1;
@@ -281,28 +232,24 @@ static void __devinit quirk_usb_disable_ehci(struct pci_dev *pdev)
 			}
 
 			if (cap & EHCI_USBLEGSUP_BIOS) {
-				/* well, possibly buggy BIOS... try to shut
-				 * it down, and hope nothing goes too wrong
-				 */
+				
 				dev_warn(&pdev->dev, "EHCI: BIOS handoff failed"
 						" (BIOS bug?) %08x\n", cap);
 				pci_write_config_byte(pdev, offset + 2, 0);
 			}
 
-			/* just in case, always disable EHCI SMIs */
+			
 			pci_write_config_dword(pdev,
 					offset + EHCI_USBLEGCTLSTS,
 					0);
 
-			/* If the BIOS ever owned the controller then we
-			 * can't expect any power sessions to remain intact.
-			 */
+			
 			if (tried_handoff)
 				writel(0, op_reg_base + EHCI_CONFIGFLAG);
 			break;
-		case 0:			/* illegal reserved capability */
+		case 0:			
 			cap = 0;
-			/* FALLTHROUGH */
+			
 		default:
 			dev_warn(&pdev->dev, "EHCI: unrecognized capability "
 					"%02x\n", cap & 0xff);
@@ -313,9 +260,7 @@ static void __devinit quirk_usb_disable_ehci(struct pci_dev *pdev)
 	if (!count)
 		dev_printk(KERN_DEBUG, &pdev->dev, "EHCI: capability loop?\n");
 
-	/*
-	 * halt EHCI & disable its interrupts in any case
-	 */
+	
 	val = readl(op_reg_base + EHCI_USBSTS);
 	if ((val & EHCI_USBSTS_HALTED) == 0) {
 		val = readl(op_reg_base + EHCI_USBCMD);
@@ -342,19 +287,7 @@ static void __devinit quirk_usb_disable_ehci(struct pci_dev *pdev)
 	return;
 }
 
-/*
- * handshake - spin reading a register until handshake completes
- * @ptr: address of hc register to be read
- * @mask: bits to look at in result of read
- * @done: value of those bits when handshake succeeds
- * @wait_usec: timeout in microseconds
- * @delay_usec: delay in microseconds to wait between polling
- *
- * Polls a register every delay_usec microseconds.
- * Returns 0 when the mask bits have the value done.
- * Returns -ETIMEDOUT if this condition is not true after
- * wait_usec microseconds have passed.
- */
+
 static int handshake(void __iomem *ptr, u32 mask, u32 done,
 		int wait_usec, int delay_usec)
 {
@@ -371,14 +304,7 @@ static int handshake(void __iomem *ptr, u32 mask, u32 done,
 	return -ETIMEDOUT;
 }
 
-/**
- * PCI Quirks for xHCI.
- *
- * Takes care of the handoff between the Pre-OS (i.e. BIOS) and the OS.
- * It signals to the BIOS that the OS wants control of the host controller,
- * and then waits 5 seconds for the BIOS to hand over control.
- * If we timeout, assume the BIOS is broken and take control anyway.
- */
+
 static void __devinit quirk_usb_handoff_xhci(struct pci_dev *pdev)
 {
 	void __iomem *base;
@@ -395,14 +321,11 @@ static void __devinit quirk_usb_handoff_xhci(struct pci_dev *pdev)
 	if (base == NULL)
 		return;
 
-	/*
-	 * Find the Legacy Support Capability register -
-	 * this is optional for xHCI host controllers.
-	 */
+	
 	ext_cap_offset = xhci_find_next_cap_offset(base, XHCI_HCC_PARAMS_OFFSET);
 	do {
 		if (!ext_cap_offset)
-			/* We've reached the end of the extended capabilities */
+			
 			goto hc_init;
 		val = readl(base + ext_cap_offset);
 		if (XHCI_EXT_CAPS_ID(val) == XHCI_EXT_CAPS_LEGACY)
@@ -410,15 +333,15 @@ static void __devinit quirk_usb_handoff_xhci(struct pci_dev *pdev)
 		ext_cap_offset = xhci_find_next_cap_offset(base, ext_cap_offset);
 	} while (1);
 
-	/* If the BIOS owns the HC, signal that the OS wants it, and wait */
+	
 	if (val & XHCI_HC_BIOS_OWNED) {
 		writel(val & XHCI_HC_OS_OWNED, base + ext_cap_offset);
 
-		/* Wait for 5 seconds with 10 microsecond polling interval */
+		
 		timeout = handshake(base + ext_cap_offset, XHCI_HC_BIOS_OWNED,
 				0, 5000, 10);
 
-		/* Assume a buggy BIOS and take HC ownership anyway */
+		
 		if (timeout) {
 			dev_warn(&pdev->dev, "xHCI BIOS handoff failed"
 					" (BIOS bug ?) %08x\n", val);
@@ -426,19 +349,17 @@ static void __devinit quirk_usb_handoff_xhci(struct pci_dev *pdev)
 		}
 	}
 
-	/* Disable any BIOS SMIs */
+	
 	writel(XHCI_LEGACY_DISABLE_SMI,
 			base + ext_cap_offset + XHCI_LEGACY_CONTROL_OFFSET);
 
 hc_init:
 	op_reg_base = base + XHCI_HC_LENGTH(readl(base));
 
-	/* Wait for the host controller to be ready before writing any
-	 * operational or runtime registers.  Wait 5 seconds and no more.
-	 */
+	
 	timeout = handshake(op_reg_base + XHCI_STS_OFFSET, XHCI_STS_CNR, 0,
 			5000, 10);
-	/* Assume a buggy HC and start HC initialization anyway */
+	
 	if (timeout) {
 		val = readl(op_reg_base + XHCI_STS_OFFSET);
 		dev_warn(&pdev->dev,
@@ -446,12 +367,12 @@ hc_init:
 				"status = 0x%x\n", val);
 	}
 
-	/* Send the halt and disable interrupts command */
+	
 	val = readl(op_reg_base + XHCI_CMD_OFFSET);
 	val &= ~(XHCI_CMD_RUN | XHCI_IRQS);
 	writel(val, op_reg_base + XHCI_CMD_OFFSET);
 
-	/* Wait for the HC to halt - poll every 125 usec (one microframe). */
+	
 	timeout = handshake(op_reg_base + XHCI_STS_OFFSET, XHCI_STS_HALT, 1,
 			XHCI_MAX_HALT_USEC, 125);
 	if (timeout) {

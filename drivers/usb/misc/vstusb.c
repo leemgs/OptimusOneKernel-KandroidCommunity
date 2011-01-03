@@ -1,26 +1,4 @@
-/*****************************************************************************
- *  File: drivers/usb/misc/vstusb.c
- *
- *  Purpose: Support for the bulk USB Vernier Spectrophotometers
- *
- *  Author:     Johnnie Peters
- *              Axian Consulting
- *              Beaverton, OR, USA 97005
- *
- *  Modified by:     EQware Engineering, Inc.
- *                   Oregon City, OR, USA 97045
- *
- *  Copyright:  2007, 2008
- *              Vernier Software & Technology
- *              Beaverton, OR, USA 97005
- *
- *  Web:        www.vernier.com
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- *
- *****************************************************************************/
+
 #include <linux/kernel.h>
 #include <linux/errno.h>
 #include <linux/init.h>
@@ -42,19 +20,19 @@
 #endif
 
 #define USB_VENDOR_OCEANOPTICS	0x2457
-#define USB_VENDOR_VERNIER	0x08F7	/* Vernier Software & Technology */
+#define USB_VENDOR_VERNIER	0x08F7	
 
 #define USB_PRODUCT_USB2000	0x1002
-#define USB_PRODUCT_ADC1000_FW	0x1003	/* firmware download (renumerates) */
+#define USB_PRODUCT_ADC1000_FW	0x1003	
 #define USB_PRODUCT_ADC1000	0x1004
-#define USB_PRODUCT_HR2000_FW	0x1009	/* firmware download (renumerates) */
+#define USB_PRODUCT_HR2000_FW	0x1009	
 #define USB_PRODUCT_HR2000	0x100A
-#define USB_PRODUCT_HR4000_FW	0x1011	/* firmware download (renumerates) */
+#define USB_PRODUCT_HR4000_FW	0x1011	
 #define USB_PRODUCT_HR4000	0x1012
-#define USB_PRODUCT_USB650	0x1014	/* "Red Tide" */
+#define USB_PRODUCT_USB650	0x1014	
 #define USB_PRODUCT_QE65000	0x1018
 #define USB_PRODUCT_USB4000	0x1022
-#define USB_PRODUCT_USB325	0x1024	/* "Vernier Spectrometer" */
+#define USB_PRODUCT_USB325	0x1024	
 
 #define USB_PRODUCT_LABPRO	0x0001
 #define USB_PRODUCT_LABQUEST	0x0005
@@ -117,21 +95,21 @@ static int vstusb_open(struct inode *inode, struct file *file)
 	if (!vstdev)
 		return -ENODEV;
 
-	/* lock this device */
+	
 	mutex_lock(&vstdev->lock);
 
-	/* can only open one time */
+	
 	if ((!vstdev->present) || (vstdev->isopen)) {
 		mutex_unlock(&vstdev->lock);
 		return -EBUSY;
 	}
 
-	/* increment our usage count */
+	
 	kref_get(&vstdev->kref);
 
 	vstdev->isopen = 1;
 
-	/* save device in the file's private structure */
+	
 	file->private_data = vstdev;
 
 	dev_dbg(&vstdev->usb_dev->dev, "%s: opened\n", __func__);
@@ -229,7 +207,7 @@ static int vstusb_complete_urb(struct urb *urb, struct completion *done,
 
 	} else {
 		if (signal_pending(current)) {
-			/* if really an error */
+			
 			if (urb->status && !((urb->status == -ENOENT)     ||
 					     (urb->status == -ECONNRESET) ||
 					     (urb->status == -ESHUTDOWN))) {
@@ -280,15 +258,15 @@ static ssize_t vstusb_read(struct file *file, char __user *buffer,
 	if (vstdev == NULL)
 		return -ENODEV;
 
-	/* verify that we actually want to read some data */
+	
 	if ((count == 0) || (count > VST_MAXBUFFER))
 		return -EINVAL;
 
-	/* lock this object */
+	
 	if (mutex_lock_interruptible(&vstdev->lock))
 		return -ERESTARTSYS;
 
-	/* anyone home */
+	
 	if (!vstdev->present) {
 		mutex_unlock(&vstdev->lock);
 		printk(KERN_ERR KBUILD_MODNAME
@@ -296,7 +274,7 @@ static ssize_t vstusb_read(struct file *file, char __user *buffer,
 		return -ENODEV;
 	}
 
-	/* pull out the necessary data */
+	
 	dev =     vstdev->usb_dev;
 	pipe =    usb_rcvbulkpipe(dev, vstdev->rd_pipe);
 	timeout = vstdev->rd_timeout_ms;
@@ -366,15 +344,15 @@ static ssize_t vstusb_write(struct file *file, const char __user *buffer,
 	if (vstdev == NULL)
 		return -ENODEV;
 
-	/* verify that we actually have some data to write */
+	
 	if ((count == 0) || (count > VST_MAXBUFFER))
 		return retval;
 
-	/* lock this object */
+	
 	if (mutex_lock_interruptible(&vstdev->lock))
 		return -ERESTARTSYS;
 
-	/* anyone home */
+	
 	if (!vstdev->present) {
 		mutex_unlock(&vstdev->lock);
 		printk(KERN_ERR KBUILD_MODNAME
@@ -382,7 +360,7 @@ static ssize_t vstusb_write(struct file *file, const char __user *buffer,
 		return -ENODEV;
 	}
 
-	/* pull out the necessary data */
+	
 	dev =     vstdev->usb_dev;
 	pipe =    usb_sndbulkpipe(dev, vstdev->wr_pipe);
 	timeout = vstdev->wr_timeout_ms;
@@ -442,13 +420,9 @@ static long vstusb_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	struct vstusb_args usb_data;
 
 	struct vstusb_device *vstdev;
-	void *buffer = NULL; /* must be initialized. buffer is
-			      *	referenced on exit but not all
-			      * ioctls allocate it */
+	void *buffer = NULL; 
 
-	struct urb              *urb = NULL; /* must be initialized. urb is
-					      *	referenced on exit but not all
-					      * ioctls allocate it */
+	struct urb              *urb = NULL; 
 	struct usb_device       *dev;
 	unsigned int            pipe;
 	int                     timeout;
@@ -474,13 +448,13 @@ static long vstusb_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		return -EFAULT;
 	}
 
-	/* lock this object */
+	
 	if (mutex_lock_interruptible(&vstdev->lock)) {
 		retval = -ERESTARTSYS;
 		goto exit;
 	}
 
-	/* anyone home */
+	
 	if (!vstdev->present) {
 		mutex_unlock(&vstdev->lock);
 		dev_err(&vstdev->usb_dev->dev, "%s: device not present\n",
@@ -489,7 +463,7 @@ static long vstusb_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		goto exit;
 	}
 
-	/* pull out the necessary data */
+	
 	dev = vstdev->usb_dev;
 
 	switch (cmd) {
@@ -664,14 +638,13 @@ static int vstusb_probe(struct usb_interface *intf,
 	int i;
 	int retval = 0;
 
-	/* allocate memory for our device state and intialize it */
+	
 
 	vstdev = kzalloc(sizeof(*vstdev), GFP_KERNEL);
 	if (vstdev == NULL)
 		return -ENOMEM;
 
-	/* must do usb_get_dev() prior to kref_init() since the kref_put()
-	 * release function will do a usb_put_dev() */
+	
 	usb_get_dev(dev);
 	kref_init(&vstdev->kref);
 	mutex_init(&vstdev->lock);
@@ -698,7 +671,7 @@ static int vstusb_probe(struct usb_interface *intf,
 		return retval;
 	}
 
-	/* let the user know what node this device is now attached to */
+	
 	dev_info(&intf->dev,
 		 "VST USB Device #%d now attached to major %d minor %d\n",
 		 (intf->minor - VSTUSB_MINOR_BASE), USB_MAJOR, intf->minor);

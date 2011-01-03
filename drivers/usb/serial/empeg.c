@@ -1,57 +1,4 @@
-/*
- * USB Empeg empeg-car player driver
- *
- *	Copyright (C) 2000, 2001
- *	    Gary Brubaker (xavyer@ix.netcom.com)
- *
- *	Copyright (C) 1999 - 2001
- *	    Greg Kroah-Hartman (greg@kroah.com)
- *
- *	This program is free software; you can redistribute it and/or modify
- *	it under the terms of the GNU General Public License, as published by
- *	the Free Software Foundation, version 2.
- *
- * See Documentation/usb/usb-serial.txt for more information on using this
- * driver
- *
- * (07/16/2001) gb
- *	remove unused code in empeg_close() (thanks to Oliver Neukum for
- *	pointing this out) and rewrote empeg_set_termios().
- *
- * (05/30/2001) gkh
- *	switched from using spinlock to a semaphore, which fixes lots of
- * problems.
- *
- * (04/08/2001) gb
- *      Identify version on module load.
- *
- * (01/22/2001) gb
- *	Added write_room() and chars_in_buffer() support.
- *
- * (12/21/2000) gb
- *	Moved termio stuff inside the port->active check.
- *	Moved MOD_DEC_USE_COUNT to end of empeg_close().
- *
- * (12/03/2000) gb
- *	Added tty->ldisc.set_termios(port, tty, NULL) to empeg_open().
- *	This notifies the tty driver that the termios have changed.
- *
- * (11/13/2000) gb
- *	Moved tty->low_latency = 1 from empeg_read_bulk_callback() to
- *	empeg_open() (It only needs to be set once - Doh!)
- *
- * (11/11/2000) gb
- *	Updated to work with id_table structure.
- *
- * (11/04/2000) gb
- *	Forked this from visor.c, and hacked it up to work with an
- *	Empeg ltd. empeg-car player.  Constructive criticism welcomed.
- *	I would like to say, 'Thank You' to Greg Kroah-Hartman for the
- *	use of his code, and for his guidance, advice and patience. :)
- *	A 'Thank You' is in order for John Ripley of Empeg ltd for his
- *	advice, and patience too.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/errno.h>
@@ -68,9 +15,7 @@
 
 static int debug;
 
-/*
- * Version Information
- */
+
 #define DRIVER_VERSION "v1.2"
 #define DRIVER_AUTHOR "Greg Kroah-Hartman <greg@kroah.com>, Gary Brubaker <xavyer@ix.netcom.com>"
 #define DRIVER_DESC "USB Empeg Mark I/II Driver"
@@ -78,7 +23,7 @@ static int debug;
 #define EMPEG_VENDOR_ID			0x084f
 #define EMPEG_PRODUCT_ID		0x0001
 
-/* function prototypes for an empeg-car player */
+
 static int  empeg_open(struct tty_struct *tty, struct usb_serial_port *port);
 static void empeg_close(struct usb_serial_port *port);
 static int  empeg_write(struct tty_struct *tty, struct usb_serial_port *port,
@@ -95,7 +40,7 @@ static void empeg_read_bulk_callback(struct urb *urb);
 
 static struct usb_device_id id_table [] = {
 	{ USB_DEVICE(EMPEG_VENDOR_ID, EMPEG_PRODUCT_ID) },
-	{ }					/* Terminating entry */
+	{ }					
 };
 
 MODULE_DEVICE_TABLE(usb, id_table);
@@ -137,9 +82,7 @@ static spinlock_t	write_urb_pool_lock;
 static int		bytes_in;
 static int		bytes_out;
 
-/******************************************************************************
- * Empeg specific driver functions
- ******************************************************************************/
+
 static int empeg_open(struct tty_struct *tty,struct usb_serial_port *port)
 {
 	struct usb_serial *serial = port->serial;
@@ -150,7 +93,7 @@ static int empeg_open(struct tty_struct *tty,struct usb_serial_port *port)
 	bytes_in = 0;
 	bytes_out = 0;
 
-	/* Start reading from the device */
+	
 	usb_fill_bulk_urb(
 		port->read_urb,
 		serial->dev,
@@ -176,10 +119,10 @@ static void empeg_close(struct usb_serial_port *port)
 {
 	dbg("%s - port %d", __func__, port->number);
 
-	/* shutdown our bulk read */
+	
 	usb_kill_urb(port->read_urb);
-	/* Uncomment the following line if you want to see some statistics in your syslog */
-	/* dev_info (&port->dev, "Bytes In = %d  Bytes Out = %d\n", bytes_in, bytes_out); */
+	
+	
 }
 
 
@@ -198,7 +141,7 @@ static int empeg_write(struct tty_struct *tty, struct usb_serial_port *port,
 	dbg("%s - port %d", __func__, port->number);
 
 	while (count > 0) {
-		/* try to find a free urb in our list of them */
+		
 		urb = NULL;
 
 		spin_lock_irqsave(&write_urb_pool_lock, flags);
@@ -233,7 +176,7 @@ static int empeg_write(struct tty_struct *tty, struct usb_serial_port *port,
 
 		usb_serial_debug_data(debug, &port->dev, __func__, transfer_size, urb->transfer_buffer);
 
-		/* build up our urb */
+		
 		usb_fill_bulk_urb(
 			urb,
 			serial->dev,
@@ -244,7 +187,7 @@ static int empeg_write(struct tty_struct *tty, struct usb_serial_port *port,
 			empeg_write_bulk_callback,
 			port);
 
-		/* send it down the pipe */
+		
 		status = usb_submit_urb(urb, GFP_ATOMIC);
 		if (status) {
 			dev_err(&port->dev, "%s - usb_submit_urb(write bulk) failed with status = %d\n", __func__, status);
@@ -273,7 +216,7 @@ static int empeg_write_room(struct tty_struct *tty)
 	dbg("%s - port %d", __func__, port->number);
 
 	spin_lock_irqsave(&write_urb_pool_lock, flags);
-	/* tally up the number of bytes available */
+	
 	for (i = 0; i < NUM_URBS; ++i) {
 		if (write_urb_pool[i]->status != -EINPROGRESS)
 			room += URB_TRANSFER_BUFFER_SIZE;
@@ -296,7 +239,7 @@ static int empeg_chars_in_buffer(struct tty_struct *tty)
 
 	spin_lock_irqsave(&write_urb_pool_lock, flags);
 
-	/* tally up the number of bytes waiting */
+	
 	for (i = 0; i < NUM_URBS; ++i) {
 		if (write_urb_pool[i]->status == -EINPROGRESS)
 			chars += URB_TRANSFER_BUFFER_SIZE;
@@ -353,7 +296,7 @@ static void empeg_read_bulk_callback(struct urb *urb)
 	}
 	tty_kref_put(tty);
 
-	/* Continue trying to always read  */
+	
 	usb_fill_bulk_urb(
 		port->read_urb,
 		port->serial->dev,
@@ -413,7 +356,7 @@ static int  empeg_startup(struct usb_serial *serial)
 	dbg("%s - reset config", __func__);
 	r = usb_reset_configuration(serial->dev);
 
-	/* continue on with initialization */
+	
 	return r;
 
 }
@@ -423,42 +366,34 @@ static void empeg_init_termios(struct tty_struct *tty)
 {
 	struct ktermios *termios = tty->termios;
 
-	/*
-	 * The empeg-car player wants these particular tty settings.
-	 * You could, for example, change the baud rate, however the
-	 * player only supports 115200 (currently), so there is really
-	 * no point in support for changes to the tty settings.
-	 * (at least for now)
-	 *
-	 * The default requirements for this device are:
-	 */
+	
 	termios->c_iflag
-		&= ~(IGNBRK	/* disable ignore break */
-		| BRKINT	/* disable break causes interrupt */
-		| PARMRK	/* disable mark parity errors */
-		| ISTRIP	/* disable clear high bit of input characters */
-		| INLCR		/* disable translate NL to CR */
-		| IGNCR		/* disable ignore CR */
-		| ICRNL		/* disable translate CR to NL */
-		| IXON);	/* disable enable XON/XOFF flow control */
+		&= ~(IGNBRK	
+		| BRKINT	
+		| PARMRK	
+		| ISTRIP	
+		| INLCR		
+		| IGNCR		
+		| ICRNL		
+		| IXON);	
 
 	termios->c_oflag
-		&= ~OPOST;	/* disable postprocess output characters */
+		&= ~OPOST;	
 
 	termios->c_lflag
-		&= ~(ECHO	/* disable echo input characters */
-		| ECHONL	/* disable echo new line */
-		| ICANON	/* disable erase, kill, werase, and rprnt special characters */
-		| ISIG		/* disable interrupt, quit, and suspend special characters */
-		| IEXTEN);	/* disable non-POSIX special characters */
+		&= ~(ECHO	
+		| ECHONL	
+		| ICANON	
+		| ISIG		
+		| IEXTEN);	
 
 	termios->c_cflag
-		&= ~(CSIZE	/* no size */
-		| PARENB	/* disable parity bit */
-		| CBAUD);	/* clear current baud rate */
+		&= ~(CSIZE	
+		| PARENB	
+		| CBAUD);	
 
 	termios->c_cflag
-		|= CS8;		/* character size 8 bits */
+		|= CS8;		
 
 	tty_encode_baud_rate(tty, 115200, 115200);
 }
@@ -469,7 +404,7 @@ static int __init empeg_init(void)
 	struct urb *urb;
 	int i, retval;
 
-	/* create our write urb pool and transfer buffers */
+	
 	spin_lock_init(&write_urb_pool_lock);
 	for (i = 0; i < NUM_URBS; ++i) {
 		urb = usb_alloc_urb(0, GFP_KERNEL);
@@ -524,11 +459,8 @@ static void __exit empeg_exit(void)
 
 	for (i = 0; i < NUM_URBS; ++i) {
 		if (write_urb_pool[i]) {
-			/* FIXME - uncomment the following usb_kill_urb call
-			 * when the host controllers get fixed to set urb->dev
-			 * = NULL after the urb is finished.  Otherwise this
-			 * call oopses. */
-			/* usb_kill_urb(write_urb_pool[i]); */
+			
+			
 			kfree(write_urb_pool[i]->transfer_buffer);
 			usb_free_urb(write_urb_pool[i]);
 		}

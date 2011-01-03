@@ -1,13 +1,4 @@
-/*
- * drivers/usb/core/endpoint.c
- *
- * (C) Copyright 2002,2004,2006 Greg Kroah-Hartman
- * (C) Copyright 2002,2004 IBM Corp.
- * (C) Copyright 2006 Novell Inc.
- *
- * Endpoint sysfs stuff
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/spinlock.h>
@@ -95,14 +86,14 @@ static ssize_t show_ep_interval(struct device *dev,
 
 	switch (usb_endpoint_type(ep->desc)) {
 	case USB_ENDPOINT_XFER_CONTROL:
-		if (ep->udev->speed == USB_SPEED_HIGH) 	/* uframes per NAK */
+		if (ep->udev->speed == USB_SPEED_HIGH) 	
 			interval = ep->desc->bInterval;
 		break;
 	case USB_ENDPOINT_XFER_ISOC:
 		interval = 1 << (ep->desc->bInterval - 1);
 		break;
 	case USB_ENDPOINT_XFER_BULK:
-		if (ep->udev->speed == USB_SPEED_HIGH && !in) /* uframes per NAK */
+		if (ep->udev->speed == USB_SPEED_HIGH && !in) 
 			interval = ep->desc->bInterval;
 		break;
 	case USB_ENDPOINT_XFER_INT:

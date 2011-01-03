@@ -1,32 +1,6 @@
-/*
- * Support for the Maxtor OneTouch USB hard drive's button
- *
- * Current development and maintenance by:
- *	Copyright (c) 2005 Nick Sillik <n.sillik@temple.edu>
- *
- * Initial work by:
- *	Copyright (c) 2003 Erik Thyren <erth7411@student.uu.se>
- *
- * Based on usbmouse.c (Vojtech Pavlik) and xpad.c (Marko Friedemann)
- *
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- *
- */
+
+
 
 #include <linux/kernel.h>
 #include <linux/input.h>
@@ -50,19 +24,17 @@ static void onetouch_release_input(void *onetouch_);
 struct usb_onetouch {
 	char name[128];
 	char phys[64];
-	struct input_dev *dev;	/* input device interface */
-	struct usb_device *udev;	/* usb device */
+	struct input_dev *dev;	
+	struct usb_device *udev;	
 
-	struct urb *irq;	/* urb for interrupt in report */
-	unsigned char *data;	/* input data */
+	struct urb *irq;	
+	unsigned char *data;	
 	dma_addr_t data_dma;
 	unsigned int is_open:1;
 };
 
 
-/*
- * The table of devices
- */
+
 #define UNUSUAL_DEV(id_vendor, id_product, bcdDeviceMin, bcdDeviceMax, \
 		    vendorName, productName, useProtocol, useTransport, \
 		    initFunction, flags) \
@@ -71,15 +43,13 @@ struct usb_onetouch {
 
 struct usb_device_id onetouch_usb_ids[] = {
 #	include "unusual_onetouch.h"
-	{ }		/* Terminating entry */
+	{ }		
 };
 MODULE_DEVICE_TABLE(usb, onetouch_usb_ids);
 
 #undef UNUSUAL_DEV
 
-/*
- * The flags table
- */
+
 #define UNUSUAL_DEV(idVendor, idProduct, bcdDeviceMin, bcdDeviceMax, \
 		    vendor_name, product_name, use_protocol, use_transport, \
 		    init_function, Flags) \
@@ -93,7 +63,7 @@ MODULE_DEVICE_TABLE(usb, onetouch_usb_ids);
 
 static struct us_unusual_dev onetouch_unusual_dev_list[] = {
 #	include "unusual_onetouch.h"
-	{ }		/* Terminating entry */
+	{ }		
 };
 
 #undef UNUSUAL_DEV
@@ -108,14 +78,14 @@ static void usb_onetouch_irq(struct urb *urb)
 	int retval;
 
 	switch (status) {
-	case 0:			/* success */
+	case 0:			
 		break;
-	case -ECONNRESET:	/* unlink */
+	case -ECONNRESET:	
 	case -ENOENT:
 	case -ESHUTDOWN:
 		return;
-	/* -EPIPE:  should clear the halt */
-	default:		/* error */
+	
+	default:		
 		goto resubmit;
 	}
 
@@ -172,7 +142,7 @@ static void usb_onetouch_pm_hook(struct us_data *us, int action)
 		}
 	}
 }
-#endif /* CONFIG_PM */
+#endif 
 
 static int onetouch_connect_input(struct us_data *ss)
 {
@@ -295,7 +265,7 @@ static int onetouch_probe(struct usb_interface *intf,
 	if (result)
 		return result;
 
-	/* Use default transport and protocol */
+	
 
 	result = usb_stor_probe2(us);
 	return result;

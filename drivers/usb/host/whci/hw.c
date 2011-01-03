@@ -1,20 +1,4 @@
-/*
- * Wireless Host Controller (WHC) hardware access helpers.
- *
- * Copyright (C) 2007 Cambridge Silicon Radio Ltd.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version
- * 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+
 #include <linux/kernel.h>
 #include <linux/dma-mapping.h>
 #include <linux/uwb/umc.h>
@@ -37,14 +21,7 @@ void whc_write_wusbcmd(struct whc *whc, u32 mask, u32 val)
 	spin_unlock_irqrestore(&whc->lock, flags);
 }
 
-/**
- * whc_do_gencmd - start a generic command via the WUSBGENCMDSTS register
- * @whc:    the WHCI HC
- * @cmd:    command to start.
- * @params: parameters for the command (the WUSBGENCMDPARAMS register value).
- * @addr:   pointer to any data for the command (may be NULL).
- * @len:    length of the data (if any).
- */
+
 int whc_do_gencmd(struct whc *whc, u32 cmd, u32 params, void *addr, size_t len)
 {
 	unsigned long flags;
@@ -54,7 +31,7 @@ int whc_do_gencmd(struct whc *whc, u32 cmd, u32 params, void *addr, size_t len)
 
 	mutex_lock(&whc->mutex);
 
-	/* Wait for previous command to complete. */
+	
 	t = wait_event_timeout(whc->cmd_wq,
 			       (le_readl(whc->base + WUSBGENCMDSTS) & WUSBGENCMDSTS_ACTIVE) == 0,
 			       WHC_GENCMD_TIMEOUT_MS);
@@ -72,7 +49,7 @@ int whc_do_gencmd(struct whc *whc, u32 cmd, u32 params, void *addr, size_t len)
 	} else
 		dma_addr = 0;
 
-	/* Poke registers to start cmd. */
+	
 	spin_lock_irqsave(&whc->lock, flags);
 
 	le_writel(params, whc->base + WUSBGENCMDPARAMS);
@@ -88,13 +65,7 @@ out:
 	return ret;
 }
 
-/**
- * whc_hw_error - recover from a hardware error
- * @whc:    the WHCI HC that broke.
- * @reason: a description of the failure.
- *
- * Recover from broken hardware with a full reset.
- */
+
 void whc_hw_error(struct whc *whc, const char *reason)
 {
 	struct wusbhc *wusbhc = &whc->wusbhc;

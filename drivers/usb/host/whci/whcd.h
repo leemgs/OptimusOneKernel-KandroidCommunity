@@ -1,22 +1,4 @@
-/*
- * Wireless Host Controller (WHC) private header.
- *
- * Copyright (C) 2007 Cambridge Silicon Radio Ltd.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version
- * 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
- */
+
 #ifndef __WHCD_H
 #define __WHCD_H
 
@@ -26,7 +8,7 @@
 
 #include "whci-hc.h"
 
-/* Generic command timeout. */
+
 #define WHC_GENCMD_TIMEOUT_MS 100
 
 struct whc_dbg;
@@ -77,16 +59,7 @@ struct whc {
 
 #define wusbhc_to_whc(w) (container_of((w), struct whc, wusbhc))
 
-/**
- * struct whc_std - a software TD.
- * @urb: the URB this sTD is for.
- * @offset: start of the URB's data for this TD.
- * @len: the length of data in the associated TD.
- * @ntds_remaining: number of TDs (starting from this one) in this transfer.
- *
- * Queued URBs may require more TDs than are available in a qset so we
- * use a list of these "software TDs" (sTDs) to hold per-TD data.
- */
+
 struct whc_std {
 	struct urb *urb;
 	size_t len;
@@ -99,14 +72,7 @@ struct whc_std {
 	struct whc_page_list_entry *pl_virt;
 };
 
-/**
- * struct whc_urb - per URB host controller structure.
- * @urb: the URB this struct is for.
- * @qset: the qset associated to the URB.
- * @dequeue_work: the work to remove the URB when dequeued.
- * @is_async: the URB belongs to async sheduler or not.
- * @status: the status to be returned when calling wusbhc_giveback_urb.
- */
+
 struct whc_urb {
 	struct urb *urb;
 	struct whc_qset *qset;
@@ -115,10 +81,7 @@ struct whc_urb {
 	int status;
 };
 
-/**
- * whc_std_last - is this sTD the URB's last?
- * @std: the sTD to check.
- */
+
 static inline bool whc_std_last(struct whc_std *std)
 {
 	return std->ntds_remaining <= 1;
@@ -130,16 +93,16 @@ enum whc_update {
 	WHC_UPDATE_UPDATED = 0x04,
 };
 
-/* init.c */
+
 int whc_init(struct whc *whc);
 void whc_clean_up(struct whc *whc);
 
-/* hw.c */
+
 void whc_write_wusbcmd(struct whc *whc, u32 mask, u32 val);
 int whc_do_gencmd(struct whc *whc, u32 cmd, u32 params, void *addr, size_t len);
 void whc_hw_error(struct whc *whc, const char *reason);
 
-/* wusb.c */
+
 int whc_wusbhc_start(struct wusbhc *wusbhc);
 void whc_wusbhc_stop(struct wusbhc *wusbhc, int delay);
 int whc_mmcie_add(struct wusbhc *wusbhc, u8 interval, u8 repeat_cnt,
@@ -154,11 +117,11 @@ int whc_set_gtk(struct wusbhc *wusbhc, u32 tkid,
 		const void *gtk, size_t key_size);
 int whc_set_cluster_id(struct whc *whc, u8 bcid);
 
-/* int.c */
+
 irqreturn_t whc_int_handler(struct usb_hcd *hcd);
 void whc_dn_work(struct work_struct *work);
 
-/* asl.c */
+
 void asl_start(struct whc *whc);
 void asl_stop(struct whc *whc);
 int  asl_init(struct whc *whc);
@@ -168,7 +131,7 @@ int  asl_urb_dequeue(struct whc *whc, struct urb *urb, int status);
 void asl_qset_delete(struct whc *whc, struct whc_qset *qset);
 void scan_async_work(struct work_struct *work);
 
-/* pzl.c */
+
 int  pzl_init(struct whc *whc);
 void pzl_clean_up(struct whc *whc);
 void pzl_start(struct whc *whc);
@@ -178,7 +141,7 @@ int  pzl_urb_dequeue(struct whc *whc, struct urb *urb, int status);
 void pzl_qset_delete(struct whc *whc, struct whc_qset *qset);
 void scan_periodic_work(struct work_struct *work);
 
-/* qset.c */
+
 struct whc_qset *qset_alloc(struct whc *whc, gfp_t mem_flags);
 void qset_free(struct whc *whc, struct whc_qset *qset);
 struct whc_qset *get_qset(struct whc *whc, struct urb *urb, gfp_t mem_flags);
@@ -199,8 +162,8 @@ void qset_remove_complete(struct whc *whc, struct whc_qset *qset);
 void pzl_update(struct whc *whc, uint32_t wusbcmd);
 void asl_update(struct whc *whc, uint32_t wusbcmd);
 
-/* debug.c */
+
 void whc_dbg_init(struct whc *whc);
 void whc_dbg_clean_up(struct whc *whc);
 
-#endif /* #ifndef __WHCD_H */
+#endif 

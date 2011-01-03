@@ -1,22 +1,4 @@
-/*
- * drivers/usb/host/ohci-pnx4008.c
- *
- * driver for Philips PNX4008 USB Host
- *
- * Authors: Dmitry Chigirev <source@mvista.com>
- *	    Vitaly Wool <vitalywool@gmail.com>
- *
- * register initialization is based on code examples provided by Philips
- * Copyright (c) 2005 Koninklijke Philips Electronics N.V.
- *
- * NOTE: This driver does not have suspend/resume functionality
- * This driver is intended for engineering development purposes only
- *
- * 2005-2006 (c) MontaVista Software, Inc. This file is licensed under
- * the terms of the GNU General Public License version 2. This program
- * is licensed "as is" without any warranty of any kind, whether express
- * or implied.
- */
+
 #include <linux/clk.h>
 #include <linux/platform_device.h>
 #include <linux/i2c.h>
@@ -30,14 +12,14 @@
 
 #define USB_CTRL	IO_ADDRESS(PNX4008_PWRMAN_BASE + 0x64)
 
-/* USB_CTRL bit defines */
+
 #define USB_SLAVE_HCLK_EN	(1 << 24)
 #define USB_HOST_NEED_CLK_EN	(1 << 21)
 
 #define USB_OTG_CLK_CTRL	IO_ADDRESS(PNX4008_USB_CONFIG_BASE + 0xFF4)
 #define USB_OTG_CLK_STAT	IO_ADDRESS(PNX4008_USB_CONFIG_BASE + 0xFF8)
 
-/* USB_OTG_CLK_CTRL bit defines */
+
 #define AHB_M_CLOCK_ON		(1 << 4)
 #define OTG_CLOCK_ON		(1 << 3)
 #define I2C_CLOCK_ON		(1 << 2)
@@ -46,12 +28,12 @@
 
 #define USB_OTG_STAT_CONTROL	IO_ADDRESS(PNX4008_USB_CONFIG_BASE + 0x110)
 
-/* USB_OTG_STAT_CONTROL bit defines */
+
 #define TRANSPARENT_I2C_EN	(1 << 7)
 #define HOST_EN			(1 << 0)
 
-/* ISP1301 USB transceiver I2C registers */
-#define	ISP1301_MODE_CONTROL_1		0x04	/* u8 read, set, +1 clear */
+
+#define	ISP1301_MODE_CONTROL_1		0x04	
 
 #define	MC1_SPEED_REG		(1 << 0)
 #define	MC1_SUSPEND_REG		(1 << 1)
@@ -62,7 +44,7 @@
 #define	MC1_UART_EN		(1 << 6)
 #define	MC1_MASK		0x7f
 
-#define	ISP1301_MODE_CONTROL_2		0x12	/* u8 read, set, +1 clear */
+#define	ISP1301_MODE_CONTROL_2		0x12	
 
 #define	MC2_GLOBAL_PWR_DN	(1 << 0)
 #define	MC2_SPD_SUSP_CTRL	(1 << 1)
@@ -73,7 +55,7 @@
 #define	MC2_PSW_EN		(1 << 6)
 #define	MC2_EN2V7		(1 << 7)
 
-#define	ISP1301_OTG_CONTROL_1		0x06	/* u8 read, set, +1 clear */
+#define	ISP1301_OTG_CONTROL_1		0x06	
 #	define	OTG1_DP_PULLUP		(1 << 0)
 #	define	OTG1_DM_PULLUP		(1 << 1)
 #	define	OTG1_DP_PULLDOWN	(1 << 2)
@@ -82,7 +64,7 @@
 #	define	OTG1_VBUS_DRV		(1 << 5)
 #	define	OTG1_VBUS_DISCHRG	(1 << 6)
 #	define	OTG1_VBUS_CHRG		(1 << 7)
-#define	ISP1301_OTG_STATUS		0x10	/* u8 readonly */
+#define	ISP1301_OTG_STATUS		0x10	
 #	define	OTG_B_SESS_END		(1 << 6)
 #	define	OTG_B_SESS_VLD		(1 << 7)
 
@@ -138,16 +120,16 @@ static void i2c_write(u8 buf, u8 subaddr)
 {
 	char tmpbuf[2];
 
-	tmpbuf[0] = subaddr;	/*register number */
-	tmpbuf[1] = buf;	/*register data */
+	tmpbuf[0] = subaddr;	
+	tmpbuf[1] = buf;	
 	i2c_master_send(isp1301_i2c_client, &tmpbuf[0], 2);
 }
 
 static void isp1301_configure(void)
 {
-	/* PNX4008 only supports DAT_SE0 USB mode */
-	/* PNX4008 R2A requires setting the MAX603 to output 3.6V */
-	/* Power up externel charge-pump */
+	
+	
+	
 
 	i2c_write(MC1_DAT_SE0 | MC1_SPEED_REG, ISP1301_I2C_MODE_CONTROL_1);
 	i2c_write(~(MC1_DAT_SE0 | MC1_SPEED_REG),
@@ -215,35 +197,25 @@ static const struct hc_driver ohci_pnx4008_hc_driver = {
 	.description = hcd_name,
 	.product_desc =		"pnx4008 OHCI",
 
-	/*
-	 * generic hardware linkage
-	 */
+	
 	.irq = ohci_irq,
 	.flags = HCD_USB11 | HCD_MEMORY,
 
 	.hcd_priv_size =	sizeof(struct ohci_hcd),
-	/*
-	 * basic lifecycle operations
-	 */
+	
 	.start = ohci_pnx4008_start,
 	.stop = ohci_stop,
 	.shutdown = ohci_shutdown,
 
-	/*
-	 * managing i/o requests and associated device resources
-	 */
+	
 	.urb_enqueue = ohci_urb_enqueue,
 	.urb_dequeue = ohci_urb_dequeue,
 	.endpoint_disable = ohci_endpoint_disable,
 
-	/*
-	 * scheduling support
-	 */
+	
 	.get_frame_number = ohci_get_frame,
 
-	/*
-	 * root hub support
-	 */
+	
 	.hub_status_data = ohci_hub_status_data,
 	.hub_control = ohci_hub_control,
 #ifdef	CONFIG_PM
@@ -317,7 +289,7 @@ static int __devinit usb_hcd_pnx4008_probe(struct platform_device *pdev)
 		goto out;
 	}
 
-	/* Enable AHB slave USB clock, needed for further USB clock control */
+	
 	__raw_writel(USB_SLAVE_HCLK_EN | (1 << 19), USB_CTRL);
 
 	ret = i2c_add_driver(&isp1301_driver);
@@ -339,7 +311,7 @@ static int __devinit usb_hcd_pnx4008_probe(struct platform_device *pdev)
 
 	isp1301_configure();
 
-	/* Enable USB PLL */
+	
 	usb_clk = clk_get(&pdev->dev, "ck_pll5");
 	if (IS_ERR(usb_clk)) {
 		err("failed to acquire USB PLL");
@@ -361,7 +333,7 @@ static int __devinit usb_hcd_pnx4008_probe(struct platform_device *pdev)
 
 	__raw_writel(__raw_readl(USB_CTRL) | USB_HOST_NEED_CLK_EN, USB_CTRL);
 
-	/* Set to enable all needed USB clocks */
+	
 	__raw_writel(USB_CLOCK_MASK, USB_OTG_CLK_CTRL);
 
 	while ((__raw_readl(USB_OTG_CLK_STAT) & USB_CLOCK_MASK) !=
@@ -374,7 +346,7 @@ static int __devinit usb_hcd_pnx4008_probe(struct platform_device *pdev)
 		goto out3;
 	}
 
-	/* Set all USB bits in the Start Enable register */
+	
 	pnx4008_set_usb_bits();
 
 	hcd->rsrc_start = pdev->resource[0].start;
@@ -439,7 +411,7 @@ static int usb_hcd_pnx4008_remove(struct platform_device *pdev)
 	return 0;
 }
 
-/* work with hotplug and coldplug */
+
 MODULE_ALIAS("platform:usb-ohci");
 
 static struct platform_driver usb_hcd_pnx4008_driver = {

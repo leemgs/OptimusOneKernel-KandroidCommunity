@@ -1,15 +1,6 @@
-/*
- * audio.c -- Audio gadget driver
- *
- * Copyright (C) 2008 Bryan Wu <cooloney@kernel.org>
- * Copyright (C) 2008 Analog Devices, Inc
- *
- * Enter bugs at http://blackfin.uclinux.org/
- *
- * Licensed under the GPL-2 or later.
- */
 
-/* #define VERBOSE_DEBUG */
+
+
 
 #include <linux/kernel.h>
 #include <linux/utsname.h>
@@ -19,15 +10,9 @@
 #define DRIVER_DESC		"Linux USB Audio Gadget"
 #define DRIVER_VERSION		"Dec 18, 2008"
 
-/*-------------------------------------------------------------------------*/
 
-/*
- * Kbuild is not very cooperative with respect to linking separately
- * compiled library objects into one module.  So for now we won't use
- * separate compilation ... ensuring init/exit sections work to shrink
- * the runtime footprint, and giving us at least some parts of what
- * a "gcc --combine ... part1.c part2.c part3.c ... " build would.
- */
+
+
 #include "composite.c"
 #include "usbstring.c"
 #include "config.c"
@@ -36,17 +21,15 @@
 #include "u_audio.c"
 #include "f_audio.c"
 
-/*-------------------------------------------------------------------------*/
 
-/* DO NOT REUSE THESE IDs with a protocol-incompatible driver!!  Ever!!
- * Instead:  allocate your own, using normal USB-IF procedures.
- */
 
-/* Thanks to Linux Foundation for donating this product ID. */
-#define AUDIO_VENDOR_NUM		0x1d6b	/* Linux Foundation */
-#define AUDIO_PRODUCT_NUM		0x0101	/* Linux-USB Audio Gadget */
 
-/*-------------------------------------------------------------------------*/
+
+
+#define AUDIO_VENDOR_NUM		0x1d6b	
+#define AUDIO_PRODUCT_NUM		0x0101	
+
+
 
 static struct usb_device_descriptor device_desc = {
 	.bLength =		sizeof device_desc,
@@ -57,18 +40,15 @@ static struct usb_device_descriptor device_desc = {
 	.bDeviceClass =		USB_CLASS_PER_INTERFACE,
 	.bDeviceSubClass =	0,
 	.bDeviceProtocol =	0,
-	/* .bMaxPacketSize0 = f(hardware) */
+	
 
-	/* Vendor and product id defaults change according to what configs
-	 * we support.  (As does bNumConfigurations.)  These values can
-	 * also be overridden by module parameters.
-	 */
+	
 	.idVendor =		__constant_cpu_to_le16(AUDIO_VENDOR_NUM),
 	.idProduct =		__constant_cpu_to_le16(AUDIO_PRODUCT_NUM),
-	/* .bcdDevice = f(hardware) */
-	/* .iManufacturer = DYNAMIC */
-	/* .iProduct = DYNAMIC */
-	/* NO SERIAL NUMBER */
+	
+	
+	
+	
 	.bNumConfigurations =	1,
 };
 
@@ -76,9 +56,7 @@ static struct usb_otg_descriptor otg_descriptor = {
 	.bLength =		sizeof otg_descriptor,
 	.bDescriptorType =	USB_DT_OTG,
 
-	/* REVISIT SRP-only hardware is possible, although
-	 * it would not be called "OTG" ...
-	 */
+	
 	.bmAttributes =		USB_OTG_SRP | USB_OTG_HNP,
 };
 
@@ -87,11 +65,9 @@ static const struct usb_descriptor_header *otg_desc[] = {
 	NULL,
 };
 
-/*-------------------------------------------------------------------------*/
 
-/**
- * Handle USB audio endpoint set/get command in setup class request
- */
+
+
 
 static int audio_set_endpoint_req(struct usb_configuration *c,
 		const struct usb_ctrlrequest *ctrl)
@@ -167,9 +143,7 @@ audio_setup(struct usb_configuration *c, const struct usb_ctrlrequest *ctrl)
 	u16 w_value = le16_to_cpu(ctrl->wValue);
 	u16 w_length = le16_to_cpu(ctrl->wLength);
 
-	/* composite driver infrastructure handles everything except
-	 * Audio class messages; interface activation uses set_alt().
-	 */
+	
 	switch (ctrl->bRequestType) {
 	case USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_ENDPOINT:
 		value = audio_set_endpoint_req(c, ctrl);
@@ -185,7 +159,7 @@ audio_setup(struct usb_configuration *c, const struct usb_ctrlrequest *ctrl)
 			w_value, w_index, w_length);
 	}
 
-	/* respond with data transfer or status phase? */
+	
 	if (value >= 0) {
 		DBG(cdev, "Audio req%02x.%02x v%04x i%04x l%d\n",
 			ctrl->bRequestType, ctrl->bRequest,
@@ -197,15 +171,15 @@ audio_setup(struct usb_configuration *c, const struct usb_ctrlrequest *ctrl)
 			ERROR(cdev, "Audio response on err %d\n", value);
 	}
 
-	/* device either stalls (value < 0) or reports success */
+	
 	return value;
 }
 
-/*-------------------------------------------------------------------------*/
+
 
 static int __init audio_do_config(struct usb_configuration *c)
 {
-	/* FIXME alloc iConfiguration string, set it in c->strings */
+	
 
 	if (gadget_is_otg(c->cdev->gadget)) {
 		c->descriptors = otg_desc;
@@ -222,11 +196,11 @@ static struct usb_configuration audio_config_driver = {
 	.bind			= audio_do_config,
 	.setup			= audio_setup,
 	.bConfigurationValue	= 1,
-	/* .iConfiguration = DYNAMIC */
+	
 	.bmAttributes		= USB_CONFIG_ATT_SELFPOWER,
 };
 
-/*-------------------------------------------------------------------------*/
+
 
 static int __init audio_bind(struct usb_composite_dev *cdev)
 {
@@ -244,7 +218,7 @@ static int __init audio_bind(struct usb_composite_dev *cdev)
 			__constant_cpu_to_le16(0x0300 | 0x0099);
 	}
 
-	/* device descriptor strings: manufacturer, product */
+	
 	snprintf(manufacturer, sizeof manufacturer, "%s %s with %s",
 		init_utsname()->sysname, init_utsname()->release,
 		cdev->gadget->name);

@@ -1,20 +1,4 @@
-/*
- * Wireless Host Controller (WHC) interrupt handling.
- *
- * Copyright (C) 2007 Cambridge Silicon Radio Ltd.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version
- * 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/uwb/umc.h>
@@ -55,10 +39,7 @@ irqreturn_t whc_int_handler(struct usb_hcd *hcd)
 	if (sts & WUSBSTS_DNTS_INT)
 		queue_work(whc->workqueue, &whc->dn_work);
 
-	/*
-	 * A transfer completed (see [WHCI] section 4.7.1.2 for when
-	 * this occurs).
-	 */
+	
 	if (sts & (WUSBSTS_INT | WUSBSTS_ERR_INT))
 		transfer_done(whc);
 

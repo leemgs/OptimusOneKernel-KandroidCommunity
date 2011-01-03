@@ -1,19 +1,8 @@
-/*
- * linux/driver/usb/host/ehci-w90x900.c
- *
- * Copyright (c) 2008 Nuvoton technology corporation.
- *
- * Wan ZongShun <mcuos.com@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation;version 2 of the License.
- *
- */
+
 
 #include <linux/platform_device.h>
 
-/*ebable phy0 and phy1 for w90p910*/
+
 #define	ENPHY		(0x01<<8)
 #define PHY0_CTR	(0xA4)
 #define PHY1_CTR	(0xA8)
@@ -59,10 +48,7 @@ static int __devinit usb_w90x900_probe(const struct hc_driver *driver,
 	ehci->regs = hcd->regs +
 		 HC_LENGTH(ehci_readl(ehci, &ehci->caps->hc_capbase));
 
-	/* enable PHY 0,1,the regs only apply to w90p910
-	*  0xA4,0xA8 were offsets of PHY0 and PHY1 controller of
-	*  w90p910 IC relative to ehci->regs.
-	*/
+	
 	val = __raw_readl(ehci->regs+PHY0_CTR);
 	val |= ENPHY;
 	__raw_writel(val, ehci->regs+PHY0_CTR);
@@ -109,36 +95,26 @@ static const struct hc_driver ehci_w90x900_hc_driver = {
 	.product_desc = "Nuvoton w90x900 EHCI Host Controller",
 	.hcd_priv_size = sizeof(struct ehci_hcd),
 
-	/*
-	 * generic hardware linkage
-	 */
+	
 	.irq = ehci_irq,
 	.flags = HCD_USB2|HCD_MEMORY,
 
-	/*
-	 * basic lifecycle operations
-	 */
+	
 	.reset = ehci_init,
 	.start = ehci_run,
 
 	.stop = ehci_stop,
 	.shutdown = ehci_shutdown,
 
-	/*
-	 * managing i/o requests and associated device resources
-	 */
+	
 	.urb_enqueue = ehci_urb_enqueue,
 	.urb_dequeue = ehci_urb_dequeue,
 	.endpoint_disable = ehci_endpoint_disable,
 
-	/*
-	 * scheduling support
-	 */
+	
 	.get_frame_number = ehci_get_frame,
 
-	/*
-	 * root hub support
-	 */
+	
 	.hub_status_data = ehci_hub_status_data,
 	.hub_control = ehci_hub_control,
 #ifdef	CONFIG_PM

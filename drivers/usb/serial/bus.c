@@ -1,12 +1,4 @@
-/*
- * USB Serial Converter Bus specific functions
- *
- * Copyright (C) 2002 Greg Kroah-Hartman (greg@kroah.com)
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License version
- *	2 as published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/errno.h>
@@ -21,10 +13,7 @@ static int usb_serial_device_match(struct device *dev,
 	struct usb_serial_driver *driver;
 	const struct usb_serial_port *port;
 
-	/*
-	 * drivers are already assigned to ports in serial_probe so it's
-	 * a simple check here.
-	 */
+	
 	port = to_usb_serial_port(dev);
 	if (!port)
 		return 0;

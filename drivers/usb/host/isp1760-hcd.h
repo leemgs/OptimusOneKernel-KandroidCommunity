@@ -1,7 +1,7 @@
 #ifndef _ISP1760_HCD_H_
 #define _ISP1760_HCD_H_
 
-/* exports for if */
+
 struct usb_hcd *isp1760_register(phys_addr_t res_start, resource_size_t res_len,
 				 int irq, unsigned long irqflags,
 				 struct device *dev, const char *busname,
@@ -9,12 +9,12 @@ struct usb_hcd *isp1760_register(phys_addr_t res_start, resource_size_t res_len,
 int init_kmem_once(void);
 void deinit_kmem_cache(void);
 
-/* EHCI capability registers */
+
 #define HC_CAPLENGTH		0x00
 #define HC_HCSPARAMS		0x04
 #define HC_HCCPARAMS		0x08
 
-/* EHCI operational registers */
+
 #define HC_USBCMD		0x20
 #define HC_USBSTS		0x24
 #define HC_FRINDEX		0x2c
@@ -30,7 +30,7 @@ void deinit_kmem_cache(void);
 #define HC_ATL_PTD_SKIPMAP_REG	0x154
 #define HC_ATL_PTD_LASTPTD_REG	0x158
 
-/* Configuration Register */
+
 #define HC_HW_MODE_CTRL		0x300
 #define ALL_ATX_RESET		(1 << 31)
 #define HW_ANA_DIGI_OC		(1 << 15)
@@ -64,7 +64,7 @@ void deinit_kmem_cache(void);
 #define HW_OTG_CTRL_SET		0x374
 #define HW_OTG_CTRL_CLR		0x376
 
-/* Interrupt Register */
+
 #define HC_INTERRUPT_REG	0x310
 
 #define HC_INTERRUPT_ENABLE	0x314
@@ -83,20 +83,20 @@ void deinit_kmem_cache(void);
 #define HC_INT_IRQ_MASK_AND_REG	0x328
 #define HC_ATL_IRQ_MASK_AND_REG	0x32C
 
-/* Register sets */
+
 #define HC_BEGIN_OF_ATL		0x0c00
 #define HC_BEGIN_OF_INT		0x0800
 #define HC_BEGIN_OF_ISO		0x0400
 #define HC_BEGIN_OF_PAYLOAD	0x1000
 
-/* urb state*/
+
 #define DELETE_URB		(0x0008)
 #define NO_TRANSFER_ACTIVE	(0xffffffff)
 
 #define ATL_REGS_OFFSET		(0xc00)
 #define INT_REGS_OFFSET		(0x800)
 
-/* Philips Transfer Descriptor (PTD) */
+
 struct ptd {
 	__le32 dw0;
 	__le32 dw1;
@@ -131,33 +131,24 @@ typedef void (packet_enqueue)(struct usb_hcd *hcd, struct isp1760_qh *qh,
 #define isp1760_err(priv, fmt, args...) \
 	dev_err(priv_to_hcd(priv)->self.controller, fmt, ##args)
 
-/*
- * Device flags that can vary from board to board.  All of these
- * indicate the most "atypical" case, so that a devflags of 0 is
- * a sane default configuration.
- */
-#define ISP1760_FLAG_BUS_WIDTH_16	0x00000002 /* 16-bit data bus width */
-#define ISP1760_FLAG_OTG_EN		0x00000004 /* Port 1 supports OTG */
-#define ISP1760_FLAG_ANALOG_OC		0x00000008 /* Analog overcurrent */
-#define ISP1760_FLAG_DACK_POL_HIGH	0x00000010 /* DACK active high */
-#define ISP1760_FLAG_DREQ_POL_HIGH	0x00000020 /* DREQ active high */
-#define ISP1760_FLAG_ISP1761		0x00000040 /* Chip is ISP1761 */
-#define ISP1760_FLAG_INTR_POL_HIGH	0x00000080 /* Interrupt polarity active high */
-#define ISP1760_FLAG_INTR_EDGE_TRIG	0x00000100 /* Interrupt edge triggered */
 
-/* chip memory management */
+#define ISP1760_FLAG_BUS_WIDTH_16	0x00000002 
+#define ISP1760_FLAG_OTG_EN		0x00000004 
+#define ISP1760_FLAG_ANALOG_OC		0x00000008 
+#define ISP1760_FLAG_DACK_POL_HIGH	0x00000010 
+#define ISP1760_FLAG_DREQ_POL_HIGH	0x00000020 
+#define ISP1760_FLAG_ISP1761		0x00000040 
+#define ISP1760_FLAG_INTR_POL_HIGH	0x00000080 
+#define ISP1760_FLAG_INTR_EDGE_TRIG	0x00000100 
+
+
 struct memory_chunk {
 	unsigned int start;
 	unsigned int size;
 	unsigned int free;
 };
 
-/*
- * 60kb divided in:
- * - 32 blocks @ 256  bytes
- * - 20 blocks @ 1024 bytes
- * -  4 blocks @ 8192 bytes
- */
+
 
 #define BLOCK_1_NUM 32
 #define BLOCK_2_NUM 20
@@ -169,17 +160,17 @@ struct memory_chunk {
 #define BLOCKS (BLOCK_1_NUM + BLOCK_2_NUM + BLOCK_3_NUM)
 #define PAYLOAD_SIZE 0xf000
 
-/* I saw if some reloads if the pointer was negative */
+
 #define ISP1760_NULL_POINTER	(0x400)
 
-/* ATL */
-/* DW0 */
+
+
 #define PTD_VALID			1
 #define PTD_LENGTH(x)			(((u32) x) << 3)
 #define PTD_MAXPACKET(x)		(((u32) x) << 18)
 #define PTD_MULTI(x)			(((u32) x) << 29)
 #define PTD_ENDPOINT(x)			(((u32)	x) << 31)
-/* DW1 */
+
 #define PTD_DEVICE_ADDR(x)		(((u32) x) << 3)
 #define PTD_PID_TOKEN(x)		(((u32) x) << 10)
 #define PTD_TRANS_BULK			((u32) 2 << 12)
@@ -189,11 +180,11 @@ struct memory_chunk {
 #define PTD_PORT_NUM(x)			(((u32) x) << 18)
 #define PTD_HUB_NUM(x)			(((u32) x) << 25)
 #define PTD_PING(x)			(((u32) x) << 26)
-/* DW2 */
+
 #define PTD_RL_CNT(x)			(((u32) x) << 25)
 #define PTD_DATA_START_ADDR(x)		(((u32) x) << 8)
 #define BASE_ADDR			0x1000
-/* DW3 */
+
 #define PTD_CERR(x)			(((u32) x) << 23)
 #define PTD_NAC_CNT(x)			(((u32) x) << 19)
 #define PTD_ACTIVE			((u32) 1 << 31)
@@ -219,7 +210,7 @@ struct memory_chunk {
 #define DATA_TOGGLE		(1 << 31)
 #define GET_DATA_TOGGLE(x)	((x) >> 31)
 
-/* Errata 1 */
+
 #define RL_COUNTER	(0)
 #define NAK_COUNTER	(0)
 #define ERR_COUNTER	(2)

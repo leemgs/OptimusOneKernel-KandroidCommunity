@@ -1,15 +1,4 @@
-/*
- * IO Edgeport Driver tables
- *
- *	Copyright (C) 2001
- *	    Greg Kroah-Hartman (greg@kroah.com)
- *
- *	This program is free software; you can redistribute it and/or modify
- *	it under the terms of the GNU General Public License as published by
- *	the Free Software Foundation; either version 2 of the License, or
- *	(at your option) any later version.
- *
- */
+
 
 #ifndef IO_TABLES_H
 #define IO_TABLES_H
@@ -59,7 +48,7 @@ static struct usb_device_id Epic_port_id_table [] = {
 	{ }
 };
 
-/* Devices that this driver supports */
+
 static struct usb_device_id id_table_combined [] = {
 	{ USB_DEVICE(USB_VENDOR_ID_ION,	ION_DEVICE_ID_EDGEPORT_4) },
 	{ USB_DEVICE(USB_VENDOR_ID_ION,	ION_DEVICE_ID_RAPIDPORT_4) },
@@ -90,7 +79,7 @@ static struct usb_device_id id_table_combined [] = {
 	{ USB_DEVICE(USB_VENDOR_ID_AXIOHM, AXIOHM_DEVICE_ID_EPIC_A758) },
 	{ USB_DEVICE(USB_VENDOR_ID_AXIOHM, AXIOHM_DEVICE_ID_EPIC_A794) },
 	{ USB_DEVICE(USB_VENDOR_ID_AXIOHM, AXIOHM_DEVICE_ID_EPIC_A225) },
-	{ } /* Terminating entry */
+	{ } 
 };
 
 MODULE_DEVICE_TABLE(usb, id_table_combined);

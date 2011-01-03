@@ -1,13 +1,4 @@
-/*
- * USB LED driver - 1.1
- *
- * Copyright (C) 2004 Greg Kroah-Hartman (greg@kroah.com)
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License as
- *	published by the Free Software Foundation, version 2.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/errno.h>
@@ -23,7 +14,7 @@
 #define VENDOR_ID	0x0fc5
 #define PRODUCT_ID	0x1223
 
-/* table of devices that work with this driver */
+
 static struct usb_device_id id_table [] = {
 	{ USB_DEVICE(VENDOR_ID, PRODUCT_ID) },
 	{ },
@@ -149,7 +140,7 @@ static void led_disconnect(struct usb_interface *interface)
 	device_remove_file(&interface->dev, &dev_attr_red);
 	device_remove_file(&interface->dev, &dev_attr_green);
 
-	/* first remove the files, then set the pointer to NULL */
+	
 	usb_set_intfdata (interface, NULL);
 
 	usb_put_dev(dev->udev);

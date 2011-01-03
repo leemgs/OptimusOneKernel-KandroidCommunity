@@ -1,31 +1,8 @@
-/*****************************************************************************/
 
-/*
- *	inode.c  --  Inode/Dentry functions for the USB device file system.
- *
- *	Copyright (C) 2000 Thomas Sailer (sailer@ife.ee.ethz.ch)
- *	Copyright (C) 2001,2002,2004 Greg Kroah-Hartman (greg@kroah.com)
- *
- *	This program is free software; you can redistribute it and/or modify
- *	it under the terms of the GNU General Public License as published by
- *	the Free Software Foundation; either version 2 of the License, or
- *	(at your option) any later version.
- *
- *	This program is distributed in the hope that it will be useful,
- *	but WITHOUT ANY WARRANTY; without even the implied warranty of
- *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *	GNU General Public License for more details.
- *
- *	You should have received a copy of the GNU General Public License
- *	along with this program; if not, write to the Free Software
- *	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- *  History:
- *   0.1  04.01.2000  Created
- *   0.2  10.12.2001  converted to use the vfs layer better
- */
 
-/*****************************************************************************/
+
+
+
 
 #include <linux/module.h>
 #include <linux/fs.h>
@@ -50,18 +27,18 @@
 
 static const struct file_operations default_file_operations;
 static struct vfsmount *usbfs_mount;
-static int usbfs_mount_count;	/* = 0 */
+static int usbfs_mount_count;	
 static int ignore_mount = 0;
 
 static struct dentry *devices_usbfs_dentry;
-static int num_buses;	/* = 0 */
+static int num_buses;	
 
-static uid_t devuid;	/* = 0 */
-static uid_t busuid;	/* = 0 */
-static uid_t listuid;	/* = 0 */
-static gid_t devgid;	/* = 0 */
-static gid_t busgid;	/* = 0 */
-static gid_t listgid;	/* = 0 */
+static uid_t devuid;	
+static uid_t busuid;	
+static uid_t listuid;	
+static gid_t devgid;	
+static gid_t busgid;	
+static gid_t listgid;	
 static umode_t devmode = USBFS_DEFAULT_DEVMODE;
 static umode_t busmode = USBFS_DEFAULT_BUSMODE;
 static umode_t listmode = USBFS_DEFAULT_LISTMODE;
@@ -115,7 +92,7 @@ static int parse_options(struct super_block *s, char *data)
 	char *p;
 	int option;
 
-	/* (re)set to defaults. */
+	
 	devuid = 0;
 	busuid = 0;
 	listuid = 0;
@@ -253,10 +230,7 @@ static void update_sb(struct super_block *sb)
 
 static int remount(struct super_block *sb, int *flags, char *data)
 {
-	/* If this is not a real mount,
-	 * i.e. it's a simple_pin_fs from create_special_files,
-	 * then ignore it.
-	 */
+	
 	if (ignore_mount)
 		return 0;
 
@@ -295,7 +269,7 @@ static struct inode *usbfs_get_inode (struct super_block *sb, int mode, dev_t de
 			inode->i_op = &simple_dir_inode_operations;
 			inode->i_fop = &simple_dir_operations;
 
-			/* directory inodes start off with i_nlink == 2 (for "." entry) */
+			
 			inc_nlink(inode);
 			break;
 		}
@@ -303,7 +277,7 @@ static struct inode *usbfs_get_inode (struct super_block *sb, int mode, dev_t de
 	return inode; 
 }
 
-/* SMP-safe */
+
 static int usbfs_mknod (struct inode *dir, struct dentry *dentry, int mode,
 			dev_t dev)
 {
@@ -395,7 +369,7 @@ static int usbfs_rmdir(struct inode *dir, struct dentry *dentry)
 }
 
 
-/* default file operations */
+
 static ssize_t default_read_file (struct file *file, char __user *buf,
 				  size_t count, loff_t *ppos)
 {
@@ -482,25 +456,13 @@ static int usbfs_fill_super(struct super_block *sb, void *data, int silent)
 	return 0;
 }
 
-/*
- * fs_create_by_name - create a file, given a name
- * @name:	name of file
- * @mode:	type of file
- * @parent:	dentry of directory to create it in
- * @dentry:	resulting dentry of file
- *
- * This function handles both regular files and directories.
- */
+
 static int fs_create_by_name (const char *name, mode_t mode,
 			      struct dentry *parent, struct dentry **dentry)
 {
 	int error = 0;
 
-	/* If the parent is not specified, we create it in the root.
-	 * We need the root dentry to do this, which is in the super 
-	 * block. A pointer to that is in the struct vfsmount that we
-	 * have around.
-	 */
+	
 	if (!parent ) {
 		if (usbfs_mount && usbfs_mount->mnt_sb) {
 			parent = usbfs_mount->mnt_sb->s_root;
@@ -574,7 +536,7 @@ static void fs_remove_file (struct dentry *dentry)
 	mutex_unlock(&parent->d_inode->i_mutex);
 }
 
-/* --------------------------------------------------------------------- */
+
 
 static int usb_get_sb(struct file_system_type *fs_type,
 	int flags, const char *dev_name, void *data, struct vfsmount *mnt)
@@ -589,19 +551,17 @@ static struct file_system_type usb_fs_type = {
 	.kill_sb =	kill_litter_super,
 };
 
-/* --------------------------------------------------------------------- */
+
 
 static int create_special_files (void)
 {
 	struct dentry *parent;
 	int retval;
 
-	/* the simple_pin_fs calls will call remount with no options
-	 * without this flag that would overwrite the real mount options (if any)
-	 */
+	
 	ignore_mount = 1;
 
-	/* create the devices special file */
+	
 	retval = simple_pin_fs(&usb_fs_type, &usbfs_mount, &usbfs_mount_count);
 	if (retval) {
 		printk(KERN_ERR "Unable to get usbfs mount\n");
@@ -654,7 +614,7 @@ static void usbfs_add_bus(struct usb_bus *bus)
 	char name[8];
 	int retval;
 
-	/* create the special files if this is the first bus added */
+	
 	if (num_buses == 0) {
 		retval = create_special_files();
 		if (retval)
@@ -703,8 +663,7 @@ static void usbfs_add_device(struct usb_device *dev)
 		return;
 	}
 
-	/* Set the size of the device's file to be
-	 * equal to the size of the device descriptors. */
+	
 	i_size = sizeof (struct usb_device_descriptor);
 	for (i = 0; i < dev->descriptor.bNumConfigurations; ++i) {
 		struct usb_config_descriptor *config =
@@ -748,7 +707,7 @@ static struct notifier_block usbfs_nb = {
 	.notifier_call = 	usbfs_notify,
 };
 
-/* --------------------------------------------------------------------- */
+
 
 static struct proc_dir_entry *usbdir = NULL;
 
@@ -762,7 +721,7 @@ int __init usbfs_init(void)
 
 	usb_register_notify(&usbfs_nb);
 
-	/* create mount point for usbfs */
+	
 	usbdir = proc_mkdir("bus/usb", NULL);
 
 	return 0;
