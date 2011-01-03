@@ -1,10 +1,7 @@
 #ifndef _ASM_X86_DMA_MAPPING_H
 #define _ASM_X86_DMA_MAPPING_H
 
-/*
- * IOMMU interface. See Documentation/PCI/PCI-DMA-mapping.txt and
- * Documentation/DMA-API.txt for documentation.
- */
+
 
 #include <linux/kmemcheck.h>
 #include <linux/scatterlist.h>
@@ -41,7 +38,7 @@ static inline struct dma_map_ops *get_dma_ops(struct device *dev)
 
 #include <asm-generic/dma-mapping-common.h>
 
-/* Make sure we keep the same behaviour */
+
 static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
 {
 	struct dma_map_ops *ops = get_dma_ops(dev);
@@ -88,8 +85,7 @@ dma_cache_sync(struct device *dev, void *vaddr, size_t size,
 
 static inline int dma_get_cache_alignment(void)
 {
-	/* no easy way to get cache size on all x86, so return the
-	 * maximum possible, to be safe */
+	
 	return boot_cpu_data.x86_clflush_size;
 }
 
@@ -151,7 +147,7 @@ static inline void dma_free_coherent(struct device *dev, size_t size,
 {
 	struct dma_map_ops *ops = get_dma_ops(dev);
 
-	WARN_ON(irqs_disabled());       /* for portability */
+	WARN_ON(irqs_disabled());       
 
 	if (dma_release_from_coherent(dev, get_order(size), vaddr))
 		return;

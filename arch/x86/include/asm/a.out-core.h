@@ -1,13 +1,4 @@
-/* a.out coredump register dumper
- *
- * Copyright (C) 2007 Red Hat, Inc. All Rights Reserved.
- * Written by David Howells (dhowells@redhat.com)
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public Licence
- * as published by the Free Software Foundation; either version
- * 2 of the Licence, or (at your option) any later version.
- */
+
 
 #ifndef _ASM_X86_A_OUT_CORE_H
 #define _ASM_X86_A_OUT_CORE_H
@@ -18,12 +9,10 @@
 #include <linux/user.h>
 #include <linux/elfcore.h>
 
-/*
- * fill in the user structure for an a.out core dump
- */
+
 static inline void aout_dump_thread(struct pt_regs *regs, struct user *dump)
 {
-/* changed the size calculations - should hopefully work better. lbt */
+
 	dump->magic = CMAGIC;
 	dump->start_code = 0;
 	dump->start_stack = regs->sp & ~(PAGE_SIZE - 1);
@@ -66,6 +55,6 @@ static inline void aout_dump_thread(struct pt_regs *regs, struct user *dump)
 	dump->u_fpvalid = dump_fpu(regs, &dump->i387);
 }
 
-#endif /* CONFIG_X86_32 */
-#endif /* __KERNEL__ */
-#endif /* _ASM_X86_A_OUT_CORE_H */
+#endif 
+#endif 
+#endif 

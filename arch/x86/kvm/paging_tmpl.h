@@ -1,26 +1,6 @@
-/*
- * Kernel-based Virtual Machine driver for Linux
- *
- * This module enables machines with Intel VT-x extensions to run virtual
- * machines without emulation or binary translation.
- *
- * MMU support
- *
- * Copyright (C) 2006 Qumranet, Inc.
- *
- * Authors:
- *   Yaniv Kamay  <yaniv@qumranet.com>
- *   Avi Kivity   <avi@qumranet.com>
- *
- * This work is licensed under the terms of the GNU GPL, version 2.  See
- * the COPYING file in the top-level directory.
- *
- */
 
-/*
- * We need the mmu code to access both 32-bit and 64-bit guest ptes,
- * so the code in this file is compiled twice, once per pte size.
- */
+
+
 
 #if PTTYPE == 64
 	#define pt_element_t u64
@@ -58,10 +38,7 @@
 #define gpte_to_gfn_lvl FNAME(gpte_to_gfn_lvl)
 #define gpte_to_gfn(pte) gpte_to_gfn_lvl((pte), PT_PAGE_TABLE_LEVEL)
 
-/*
- * The guest_walker structure emulates the behavior of the hardware page
- * table walker.
- */
+
 struct guest_walker {
 	int level;
 	gfn_t table_gfn[PT_MAX_FULL_LEVELS];
@@ -109,9 +86,7 @@ static unsigned FNAME(gpte_access)(struct kvm_vcpu *vcpu, pt_element_t gpte)
 	return access;
 }
 
-/*
- * Fetch a guest pte for a guest virtual address
- */
+
 static int FNAME(walk_addr)(struct guest_walker *walker,
 			    struct kvm_vcpu *vcpu, gva_t addr,
 			    int write_fault, int user_fault, int fetch_fault)
@@ -275,18 +250,13 @@ static void FNAME(update_pte)(struct kvm_vcpu *vcpu, struct kvm_mmu_page *page,
 	if (mmu_notifier_retry(vcpu, vcpu->arch.update_pte.mmu_seq))
 		return;
 	kvm_get_pfn(pfn);
-	/*
-	 * we call mmu_set_spte() with reset_host_protection = true beacuse that
-	 * vcpu->arch.update_pte.pfn was fetched from get_user_pages(write = 1).
-	 */
+	
 	mmu_set_spte(vcpu, spte, page->role.access, pte_access, 0, 0,
 		     gpte & PT_DIRTY_MASK, NULL, PT_PAGE_TABLE_LEVEL,
 		     gpte_to_gfn(gpte), pfn, true, true);
 }
 
-/*
- * Fetch a shadow pte for a specific level in the paging hierarchy.
- */
+
 static u64 *FNAME(fetch)(struct kvm_vcpu *vcpu, gva_t addr,
 			 struct guest_walker *gw,
 			 int user_fault, int write_fault, int hlevel,
@@ -333,7 +303,7 @@ static u64 *FNAME(fetch)(struct kvm_vcpu *vcpu, gva_t addr,
 			if (!is_dirty_gpte(gw->ptes[level - delta]))
 				access &= ~ACC_WRITE_MASK;
 			table_gfn = gpte_to_gfn(gw->ptes[level - delta]);
-			/* advance table_gfn when emulating 1gb pages with 4k */
+			
 			if (delta == 0)
 				table_gfn += PT_INDEX(addr, level);
 		} else {
@@ -363,20 +333,7 @@ static u64 *FNAME(fetch)(struct kvm_vcpu *vcpu, gva_t addr,
 	return sptep;
 }
 
-/*
- * Page fault handler.  There are several causes for a page fault:
- *   - there is no shadow pte for the guest pte
- *   - write access through a shadow pte marked read only so that we can set
- *     the dirty bit
- *   - write access to a shadow pte marked read only so we can update the page
- *     dirty bitmap, when userspace requests it
- *   - mmio access; in this case we will never install a present shadow pte
- *   - normal guest page fault due to the guest pte marked not present, not
- *     writable, or not executable
- *
- *  Returns: 1 if we need to emulate the instruction, 0 otherwise, or
- *           a negative value on error.
- */
+
 static int FNAME(page_fault)(struct kvm_vcpu *vcpu, gva_t addr,
 			       u32 error_code)
 {
@@ -398,19 +355,15 @@ static int FNAME(page_fault)(struct kvm_vcpu *vcpu, gva_t addr,
 	if (r)
 		return r;
 
-	/*
-	 * Look up the guest pte for the faulting address.
-	 */
+	
 	r = FNAME(walk_addr)(&walker, vcpu, addr, write_fault, user_fault,
 			     fetch_fault);
 
-	/*
-	 * The page is not mapped by the guest.  Let the guest handle it.
-	 */
+	
 	if (!r) {
 		pgprintk("%s: guest page fault\n", __func__);
 		inject_page_fault(vcpu, addr, walker.error_code);
-		vcpu->arch.last_pt_write_count = 0; /* reset fork detector */
+		vcpu->arch.last_pt_write_count = 0; 
 		return 0;
 	}
 
@@ -423,7 +376,7 @@ static int FNAME(page_fault)(struct kvm_vcpu *vcpu, gva_t addr,
 	smp_rmb();
 	pfn = gfn_to_pfn(vcpu->kvm, walker.gfn);
 
-	/* mmio */
+	
 	if (is_error_pfn(pfn)) {
 		pgprintk("gfn %lx is mmio\n", walker.gfn);
 		kvm_release_pfn_clean(pfn);
@@ -440,7 +393,7 @@ static int FNAME(page_fault)(struct kvm_vcpu *vcpu, gva_t addr,
 		 sptep, *sptep, write_pt);
 
 	if (!write_pt)
-		vcpu->arch.last_pt_write_count = 0; /* reset fork detector */
+		vcpu->arch.last_pt_write_count = 0; 
 
 	++vcpu->stat.pf_fixed;
 	kvm_mmu_audit(vcpu, "post page fault (fixed)");
@@ -467,7 +420,7 @@ static void FNAME(invlpg)(struct kvm_vcpu *vcpu, gva_t gva)
 		level = iterator.level;
 		sptep = iterator.sptep;
 
-		/* FIXME: properly handle invlpg on large guest pages */
+		
 		if (level == PT_PAGE_TABLE_LEVEL  ||
 		    ((level == PT_DIRECTORY_LEVEL && is_large_pte(*sptep))) ||
 		    ((level == PT_PDPE_LEVEL && is_large_pte(*sptep)))) {
@@ -537,12 +490,7 @@ static void FNAME(prefetch_page)(struct kvm_vcpu *vcpu,
 	}
 }
 
-/*
- * Using the cached information from sp->gfns is safe because:
- * - The spte has a reference to the struct page, so the pfn for a given gfn
- *   can't change unless all sptes pointing to it are nuked first.
- * - Alias changes zap the entire shadow cache.
- */
+
 static int FNAME(sync_page)(struct kvm_vcpu *vcpu, struct kvm_mmu_page *sp)
 {
 	int i, offset, nr_present;

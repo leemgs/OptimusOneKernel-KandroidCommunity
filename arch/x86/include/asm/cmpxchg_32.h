@@ -1,12 +1,9 @@
 #ifndef _ASM_X86_CMPXCHG_32_H
 #define _ASM_X86_CMPXCHG_32_H
 
-#include <linux/bitops.h> /* for LOCK_PREFIX */
+#include <linux/bitops.h> 
 
-/*
- * Note: if you use set64_bit(), __cmpxchg64(), or their variants, you
- *       you need to test for the feature in boot_cpu_data.
- */
+
 
 #define xchg(ptr, v)							\
 	((__typeof__(*(ptr)))__xchg((unsigned long)(v), (ptr), sizeof(*(ptr))))
@@ -16,20 +13,7 @@ struct __xchg_dummy {
 };
 #define __xg(x) ((struct __xchg_dummy *)(x))
 
-/*
- * The semantics of XCHGCMP8B are a bit strange, this is why
- * there is a loop and the loading of %%eax and %%edx has to
- * be inside. This inlines well in most cases, the cached
- * cost is around ~38 cycles. (in the future we might want
- * to do an SIMD/3DNOW!/MMX/FPU 64-bit store here, but that
- * might have an implicit FPU-save as a cost, so it's not
- * clear which path to go.)
- *
- * cmpxchg8b must be used with the lock prefix here to allow
- * the instruction to be executed atomically, see page 3-102
- * of the instruction set reference 24319102.pdf. We need
- * the reader side to see the coherent 64bit value.
- */
+
 static inline void __set_64bit(unsigned long long *ptr,
 			       unsigned int low, unsigned int high)
 {
@@ -38,7 +22,7 @@ static inline void __set_64bit(unsigned long long *ptr,
 		     "movl 4(%0), %%edx\n\t"
 		     LOCK_PREFIX "cmpxchg8b (%0)\n\t"
 		     "jnz 1b"
-		     : /* no outputs */
+		     : 
 		     : "D"(ptr),
 		       "b"(low),
 		       "c"(high)
@@ -71,11 +55,7 @@ static inline void __set_64bit_var(unsigned long long *ptr,
 		       (unsigned int)((value) >> 32))			\
 	 : __set_64bit(ptr, ll_low((value)), ll_high((value))))
 
-/*
- * Note: no "lock" prefix even on SMP: xchg always implies lock anyway
- * Note 2: xchg has side effect, so that attribute volatile is necessary,
- *	  but generally the primitive is invalid, *ptr is output argument. --ANK
- */
+
 static inline unsigned long __xchg(unsigned long x, volatile void *ptr,
 				   int size)
 {
@@ -102,11 +82,7 @@ static inline unsigned long __xchg(unsigned long x, volatile void *ptr,
 	return x;
 }
 
-/*
- * Atomic compare and exchange.  Compare OLD with MEM, if identical,
- * store NEW in MEM.  Return the initial value in MEM.  Success is
- * indicated by comparing RETURN with OLD.
- */
+
 
 #ifdef CONFIG_X86_CMPXCHG
 #define __HAVE_ARCH_CMPXCHG 1
@@ -160,11 +136,7 @@ static inline unsigned long __cmpxchg(volatile void *ptr, unsigned long old,
 	return old;
 }
 
-/*
- * Always use locked operations when touching memory shared with a
- * hypervisor, since the system may be SMP even if the guest kernel
- * isn't.
- */
+
 static inline unsigned long __sync_cmpxchg(volatile void *ptr,
 					   unsigned long old,
 					   unsigned long new, int size)
@@ -252,11 +224,7 @@ static inline unsigned long long __cmpxchg64_local(volatile void *ptr,
 }
 
 #ifndef CONFIG_X86_CMPXCHG
-/*
- * Building a kernel capable running on 80386. It may be necessary to
- * simulate the cmpxchg on the 80386 CPU. For that purpose we define
- * a function for each of the sizes we support.
- */
+
 
 extern unsigned long cmpxchg_386_u8(volatile void *, u8, u8);
 extern unsigned long cmpxchg_386_u16(volatile void *, u16, u16);
@@ -305,10 +273,7 @@ static inline unsigned long cmpxchg_386(volatile void *ptr, unsigned long old,
 #endif
 
 #ifndef CONFIG_X86_CMPXCHG64
-/*
- * Building a kernel capable running on 80386 and 80486. It may be necessary
- * to simulate the cmpxchg8b on the 80386 and 80486 CPU.
- */
+
 
 extern unsigned long long cmpxchg_486_u64(volatile void *, u64, u64);
 
@@ -345,4 +310,4 @@ extern unsigned long long cmpxchg_486_u64(volatile void *, u64, u64);
 
 #endif
 
-#endif /* _ASM_X86_CMPXCHG_32_H */
+#endif 

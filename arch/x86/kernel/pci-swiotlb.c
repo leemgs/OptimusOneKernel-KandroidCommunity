@@ -1,4 +1,4 @@
-/* Glue code to lib/swiotlb.c */
+
 
 #include <linux/pci.h>
 #include <linux/cache.h>
@@ -44,7 +44,7 @@ static struct dma_map_ops swiotlb_dma_ops = {
 
 void __init pci_swiotlb_init(void)
 {
-	/* don't initialize swiotlb if iommu=off (no_iommu=1) */
+	
 #ifdef CONFIG_X86_64
 	if ((!iommu_detected && !no_iommu && max_pfn > MAX_DMA32_PFN))
 		swiotlb = 1;

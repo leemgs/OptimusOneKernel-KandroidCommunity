@@ -2,38 +2,11 @@
 #define _ASM_X86_IO_64_H
 
 
-/*
- * This file contains the definitions for the x86 IO instructions
- * inb/inw/inl/outb/outw/outl and the "string versions" of the same
- * (insb/insw/insl/outsb/outsw/outsl). You can also use "pausing"
- * versions of the single-IO instructions (inb_p/inw_p/..).
- *
- * This file is not meant to be obfuscating: it's just complicated
- * to (a) handle it all in a way that makes gcc able to optimize it
- * as well as possible and (b) trying to avoid writing the same thing
- * over and over again with slight variations and possibly making a
- * mistake somewhere.
- */
 
-/*
- * Thanks to James van Artsdalen for a better timing-fix than
- * the two short jumps: using outb's to a nonexistent port seems
- * to guarantee better timings even on fast machines.
- *
- * On the other hand, I'd like to be sure of a non-existent port:
- * I feel a bit unsafe about using 0x80 (should be safe, though)
- *
- *		Linus
- */
 
- /*
-  *  Bit simplified and optimized by Jan Hubicka
-  *  Support of BIGMEM added by Gerhard Wichert, Siemens AG, July 1999.
-  *
-  *  isa_memset_io, isa_memcpy_fromio, isa_memcpy_toio added,
-  *  isa_read[wl] and isa_write[wl] fixed
-  *  - Arnaldo Carvalho de Melo <acme@conectiva.com.br>
-  */
+
+
+ 
 
 extern void native_io_delay(void);
 
@@ -55,9 +28,7 @@ static inline void slow_down_io(void)
 }
 #endif
 
-/*
- * Talk about misusing macros..
- */
+
 #define __OUT1(s, x)							\
 static inline void out##s(unsigned x value, unsigned short port) {
 
@@ -159,23 +130,14 @@ static inline void memcpy_toio(volatile void __iomem *to, const void *from,
 
 void memset_io(volatile void __iomem *a, int b, size_t c);
 
-/*
- * ISA space is 'always mapped' on a typical x86 system, no need to
- * explicitly ioremap() it. The fact that the ISA IO space is mapped
- * to PAGE_OFFSET is pure coincidence - it does not mean ISA values
- * are physical addresses. The following constant pointer can be
- * used as the IO-area pointer (it can be iounmapped as well, so the
- * analogy with PCI is quite large):
- */
+
 #define __ISA_IO_base ((char __iomem *)(PAGE_OFFSET))
 
 #define flush_write_buffers()
 
-/*
- * Convert a virtual cached pointer to an uncached pointer
- */
+
 #define xlate_dev_kmem_ptr(p)	p
 
-#endif /* __KERNEL__ */
+#endif 
 
-#endif /* _ASM_X86_IO_64_H */
+#endif 

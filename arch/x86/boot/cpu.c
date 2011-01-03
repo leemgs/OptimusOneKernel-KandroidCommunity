@@ -1,19 +1,6 @@
-/* -*- linux-c -*- ------------------------------------------------------- *
- *
- *   Copyright (C) 1991, 1992 Linus Torvalds
- *   Copyright 2007-2008 rPath, Inc. - All Rights Reserved
- *
- *   This file is part of the Linux kernel, and is made available under
- *   the terms of the GNU General Public License version 2.
- *
- * ----------------------------------------------------------------------- */
 
-/*
- * arch/x86/boot/cpu.c
- *
- * Check for obligatory CPU features and abort if the features are not
- * present.
- */
+
+
 
 #include "boot.h"
 #include "cpustr.h"
@@ -61,7 +48,7 @@ int validate_cpu(void)
 			for (j = 0; j < 32; j++) {
 				if (msg_strs[0] < i ||
 				    (msg_strs[0] == i && msg_strs[1] < j)) {
-					/* Skip to the next string */
+					
 					msg_strs += 2;
 					while (*msg_strs++)
 						;

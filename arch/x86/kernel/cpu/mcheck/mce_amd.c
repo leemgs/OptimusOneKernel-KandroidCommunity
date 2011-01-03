@@ -1,18 +1,4 @@
-/*
- *  (c) 2005, 2006 Advanced Micro Devices, Inc.
- *  Your use of this code is subject to the terms and conditions of the
- *  GNU general public license version 2. See "COPYING" or
- *  http://www.gnu.org/licenses/gpl.html
- *
- *  Written by Jacob Shin - AMD, Inc.
- *
- *  Support : jacob.shin@amd.com
- *
- *  April 2006
- *     - added support for AMD Family 0x10 processors
- *
- *  All MC4_MISCi registers are shared between multi-cores
- */
+
 #include <linux/interrupt.h>
 #include <linux/notifier.h>
 #include <linux/kobject.h>
@@ -58,7 +44,7 @@ struct threshold_block {
 	struct list_head	miscj;
 };
 
-/* defaults used early on boot */
+
 static struct threshold_block threshold_defaults = {
 	.interrupt_enable	= 0,
 	.threshold_limit	= THRESHOLD_MAX,
@@ -77,13 +63,11 @@ static unsigned char shared_bank[NR_BANKS] = {
 };
 #endif
 
-static DEFINE_PER_CPU(unsigned char, bank_map);	/* see which banks are on */
+static DEFINE_PER_CPU(unsigned char, bank_map);	
 
 static void amd_threshold_interrupt(void);
 
-/*
- * CPU Initialization
- */
+
 
 struct thresh_restart {
 	struct threshold_block	*b;
@@ -91,8 +75,8 @@ struct thresh_restart {
 	u16			old_limit;
 };
 
-/* must be called with correct cpu affinity */
-/* Called via smp_call_function_single() */
+
+
 static void threshold_restart_bank(void *_tr)
 {
 	struct thresh_restart *tr = _tr;
@@ -101,13 +85,13 @@ static void threshold_restart_bank(void *_tr)
 	rdmsr(tr->b->address, mci_misc_lo, mci_misc_hi);
 
 	if (tr->b->threshold_limit < (mci_misc_hi & THRESHOLD_MAX))
-		tr->reset = 1;	/* limit cannot be lower than err count */
+		tr->reset = 1;	
 
-	if (tr->reset) {		/* reset err count and overflow bit */
+	if (tr->reset) {		
 		mci_misc_hi =
 		    (mci_misc_hi & ~(MASK_ERR_COUNT_HI | MASK_OVERFLOW_HI)) |
 		    (THRESHOLD_MAX - tr->b->threshold_limit);
-	} else if (tr->old_limit) {	/* change limit w/o reset */
+	} else if (tr->old_limit) {	
 		int new_count = (mci_misc_hi & THRESHOLD_MAX) +
 		    (tr->old_limit - tr->b->threshold_limit);
 
@@ -123,7 +107,7 @@ static void threshold_restart_bank(void *_tr)
 	wrmsr(tr->b->address, mci_misc_lo, mci_misc_hi);
 }
 
-/* cpu init entry point, called from mce.c with preempt off */
+
 void mce_amd_feature_init(struct cpuinfo_x86 *c)
 {
 	unsigned int cpu = smp_processor_id();
@@ -182,15 +166,9 @@ void mce_amd_feature_init(struct cpuinfo_x86 *c)
 	}
 }
 
-/*
- * APIC Interrupt Handler
- */
 
-/*
- * threshold interrupt handler will service THRESHOLD_APIC_VECTOR.
- * the interrupt goes off when error_count reaches threshold_limit.
- * the handler will simply log mcelog w/ software defined bank number.
- */
+
+
 static void amd_threshold_interrupt(void)
 {
 	u32 low = 0, high = 0, address = 0;
@@ -199,7 +177,7 @@ static void amd_threshold_interrupt(void)
 
 	mce_setup(&m);
 
-	/* assume first bank caused it */
+	
 	for (bank = 0; bank < NR_BANKS; ++bank) {
 		if (!(per_cpu(bank_map, m.cpu) & (1 << bank)))
 			continue;
@@ -229,10 +207,7 @@ static void amd_threshold_interrupt(void)
 			     (high & MASK_LOCKED_HI))
 				continue;
 
-			/*
-			 * Log the machine check that caused the threshold
-			 * event.
-			 */
+			
 			machine_check_poll(MCP_TIMESTAMP,
 					&__get_cpu_var(mce_poll_banks));
 
@@ -250,9 +225,7 @@ static void amd_threshold_interrupt(void)
 	}
 }
 
-/*
- * Sysfs Interface
- */
+
 
 struct threshold_attr {
 	struct attribute attr;
@@ -483,7 +456,7 @@ local_allocate_threshold_blocks(int cpu, unsigned int bank)
 					 MSR_IA32_MC0_MISC + bank * 4);
 }
 
-/* symlinks sibling shared banks to first core.  first core owns dir/files. */
+
 static __cpuinit int threshold_create_bank(unsigned int cpu, unsigned int bank)
 {
 	int i, err = 0;
@@ -496,14 +469,14 @@ static __cpuinit int threshold_create_bank(unsigned int cpu, unsigned int bank)
 	sprintf(name, "threshold_bank%i", bank);
 
 #ifdef CONFIG_SMP
-	if (cpu_data(cpu).cpu_core_id && shared_bank[bank]) {	/* symlink */
+	if (cpu_data(cpu).cpu_core_id && shared_bank[bank]) {	
 		i = cpumask_first(c->llc_shared_map);
 
-		/* first core not up yet */
+		
 		if (cpu_data(i).cpu_core_id)
 			goto out;
 
-		/* already linked */
+		
 		if (per_cpu(threshold_banks, cpu)[bank])
 			goto out;
 
@@ -573,7 +546,7 @@ out:
 	return err;
 }
 
-/* create dir/files for all valid threshold banks */
+
 static __cpuinit int threshold_create_device(unsigned int cpu)
 {
 	unsigned int bank;
@@ -590,11 +563,7 @@ out:
 	return err;
 }
 
-/*
- * let's be hotplug friendly.
- * in case of multiple core processors, the first core always takes ownership
- *   of shared sysfs dir/files, and rest of the cores will be symlinked to it.
- */
+
 
 static void deallocate_threshold_block(unsigned int cpu,
 						 unsigned int bank)
@@ -631,7 +600,7 @@ static void threshold_remove_bank(unsigned int cpu, int bank)
 	sprintf(name, "threshold_bank%i", bank);
 
 #ifdef CONFIG_SMP
-	/* sibling symlink */
+	
 	if (shared_bank[bank] && b->blocks->cpu != cpu) {
 		sysfs_remove_link(&per_cpu(mce_dev, cpu).kobj, name);
 		per_cpu(threshold_banks, cpu)[bank] = NULL;
@@ -640,7 +609,7 @@ static void threshold_remove_bank(unsigned int cpu, int bank)
 	}
 #endif
 
-	/* remove all sibling symlinks before unregistering */
+	
 	for_each_cpu(i, b->cpus) {
 		if (i == cpu)
 			continue;
@@ -670,7 +639,7 @@ static void threshold_remove_device(unsigned int cpu)
 	}
 }
 
-/* get notified when a cpu comes on/off */
+
 static void __cpuinit
 amd_64_threshold_cpu_callback(unsigned long action, unsigned int cpu)
 {
@@ -692,7 +661,7 @@ static __init int threshold_init_device(void)
 {
 	unsigned lcpu = 0;
 
-	/* to hit CPUs online before the notifier is up */
+	
 	for_each_online_cpu(lcpu) {
 		int err = threshold_create_device(lcpu);
 

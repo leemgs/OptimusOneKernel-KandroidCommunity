@@ -1,24 +1,4 @@
-/*
- * KVM paravirt_ops implementation
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * Copyright (C) 2007, Red Hat, Inc., Ingo Molnar <mingo@redhat.com>
- * Copyright IBM Corporation, 2007
- *   Authors: Anthony Liguori <aliguori@us.ibm.com>
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -43,9 +23,7 @@ static struct kvm_para_state *kvm_para_state(void)
 	return &per_cpu(para_state, raw_smp_processor_id());
 }
 
-/*
- * No need for any "IO delay" on KVM
- */
+
 static void kvm_io_delay(void)
 {
 }
@@ -57,7 +35,7 @@ static void kvm_mmu_op(void *buffer, unsigned len)
 
 	do {
 		a1 = __pa(buffer);
-		a2 = 0;   /* on i386 __pa() always returns <4G */
+		a2 = 0;   
 		r = kvm_hypercall3(KVM_HC_MMU_OP, len, a1, a2);
 		buffer += r;
 		len -= r;
@@ -109,12 +87,7 @@ static void kvm_mmu_write(void *dest, u64 val)
 	kvm_deferred_mmu_op(&wpte, sizeof wpte);
 }
 
-/*
- * We only need to hook operations that are MMU writes.  We hook these so that
- * we can use lazy MMU mode to batch these operations.  We could probably
- * improve the performance of the host code if we used some of the information
- * here to simplify processing of batched writes.
- */
+
 static void kvm_set_pte(pte_t *ptep, pte_t pte)
 {
 	kvm_mmu_write(ptep, pte_val(pte));
@@ -161,7 +134,7 @@ static void kvm_set_pgd(pgd_t *pgdp, pgd_t pgd)
 	kvm_mmu_write(pgdp, pgd_val(pgd));
 }
 #endif
-#endif /* PAGETABLE_LEVELS >= 3 */
+#endif 
 
 static void kvm_flush_tlb(void)
 {

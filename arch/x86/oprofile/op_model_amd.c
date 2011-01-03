@@ -1,18 +1,4 @@
-/*
- * @file op_model_amd.c
- * athlon / K7 / K8 / Family 10h model-specific MSR operations
- *
- * @remark Copyright 2002-2009 OProfile authors
- * @remark Read the file COPYING
- *
- * @author John Levon
- * @author Philippe Elie
- * @author Graydon Hoare
- * @author Robert Richter <robert.richter@amd.com>
- * @author Barry Kasindorf <barry.kasindorf@amd.com>
- * @author Jason Yeh <jason.yeh@amd.com>
- * @author Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
- */
+
 
 #include <linux/oprofile.h>
 #include <linux/device.h>
@@ -45,13 +31,13 @@ static unsigned long reset_value[NUM_VIRT_COUNTERS];
 
 #ifdef CONFIG_OPROFILE_IBS
 
-/* IbsFetchCtl bits/masks */
+
 #define IBS_FETCH_RAND_EN		(1ULL<<57)
 #define IBS_FETCH_VAL			(1ULL<<49)
 #define IBS_FETCH_ENABLE		(1ULL<<48)
 #define IBS_FETCH_CNT_MASK		0xFFFF0000ULL
 
-/*IbsOpCtl bits */
+
 #define IBS_OP_CNT_CTL			(1ULL<<19)
 #define IBS_OP_VAL			(1ULL<<18)
 #define IBS_OP_ENABLE			(1ULL<<17)
@@ -59,7 +45,7 @@ static unsigned long reset_value[NUM_VIRT_COUNTERS];
 #define IBS_FETCH_SIZE			6
 #define IBS_OP_SIZE			12
 
-static int has_ibs;	/* AMD Family10h and later */
+static int has_ibs;	
 
 struct op_ibs_config {
 	unsigned long op_enabled;
@@ -95,7 +81,7 @@ static void op_mux_switch_ctrl(struct op_x86_model_spec const *model,
 	u64 val;
 	int i;
 
-	/* enable active counters */
+	
 	for (i = 0; i < NUM_COUNTERS; ++i) {
 		int virt = op_x86_phys_to_virt(i);
 		if (!counter_config[virt].enabled)
@@ -113,7 +99,7 @@ static inline void op_mux_fill_in_addresses(struct op_msrs * const msrs) { }
 
 #endif
 
-/* functions for op_amd_spec */
+
 
 static void op_amd_fill_in_addresses(struct op_msrs * const msrs)
 {
@@ -142,7 +128,7 @@ static void op_amd_setup_ctrs(struct op_x86_model_spec const *model,
 	u64 val;
 	int i;
 
-	/* setup reset_value */
+	
 	for (i = 0; i < NUM_VIRT_COUNTERS; ++i) {
 		if (counter_config[i].enabled)
 			reset_value[i] = counter_config[i].count;
@@ -150,7 +136,7 @@ static void op_amd_setup_ctrs(struct op_x86_model_spec const *model,
 			reset_value[i] = 0;
 	}
 
-	/* clear all counters */
+	
 	for (i = 0; i < NUM_CONTROLS; ++i) {
 		if (unlikely(!msrs->controls[i].addr))
 			continue;
@@ -159,14 +145,14 @@ static void op_amd_setup_ctrs(struct op_x86_model_spec const *model,
 		wrmsrl(msrs->controls[i].addr, val);
 	}
 
-	/* avoid a false detection of ctr overflows in NMI handler */
+	
 	for (i = 0; i < NUM_COUNTERS; ++i) {
 		if (unlikely(!msrs->counters[i].addr))
 			continue;
 		wrmsrl(msrs->counters[i].addr, -1LL);
 	}
 
-	/* enable active counters */
+	
 	for (i = 0; i < NUM_COUNTERS; ++i) {
 		int virt = op_x86_phys_to_virt(i);
 		if (!counter_config[virt].enabled)
@@ -174,10 +160,10 @@ static void op_amd_setup_ctrs(struct op_x86_model_spec const *model,
 		if (!msrs->counters[i].addr)
 			continue;
 
-		/* setup counter registers */
+		
 		wrmsrl(msrs->counters[i].addr, -(u64)reset_value[virt]);
 
-		/* setup control registers */
+		
 		rdmsrl(msrs->controls[i].addr, val);
 		val &= model->reserved;
 		val |= op_x86_get_ctrl(model, &counter_config[virt]);
@@ -209,7 +195,7 @@ op_amd_handle_ibs(struct pt_regs * const regs,
 			oprofile_add_data64(&entry, val);
 			oprofile_write_commit(&entry);
 
-			/* reenable the IRQ */
+			
 			ctl &= ~(IBS_FETCH_VAL | IBS_FETCH_CNT_MASK);
 			ctl |= IBS_FETCH_ENABLE;
 			wrmsrl(MSR_AMD64_IBSFETCHCTL, ctl);
@@ -235,7 +221,7 @@ op_amd_handle_ibs(struct pt_regs * const regs,
 			oprofile_add_data64(&entry, val);
 			oprofile_write_commit(&entry);
 
-			/* reenable the IRQ */
+			
 			ctl &= ~IBS_OP_VAL & 0xFFFFFFFF;
 			ctl |= IBS_OP_ENABLE;
 			wrmsrl(MSR_AMD64_IBSOPCTL, ctl);
@@ -264,11 +250,11 @@ static inline void op_amd_start_ibs(void)
 static void op_amd_stop_ibs(void)
 {
 	if (has_ibs && ibs_config.fetch_enabled)
-		/* clear max count and enable */
+		
 		wrmsrl(MSR_AMD64_IBSFETCHCTL, 0);
 
 	if (has_ibs && ibs_config.op_enabled)
-		/* clear max count and enable */
+		
 		wrmsrl(MSR_AMD64_IBSOPCTL, 0);
 }
 
@@ -292,7 +278,7 @@ static int op_amd_check_ctrs(struct pt_regs * const regs,
 		if (!reset_value[virt])
 			continue;
 		rdmsrl(msrs->counters[i].addr, val);
-		/* bit is clear if overflowed: */
+		
 		if (val & OP_CTR_OVERFLOW)
 			continue;
 		oprofile_add_sample(regs, virt);
@@ -301,7 +287,7 @@ static int op_amd_check_ctrs(struct pt_regs * const regs,
 
 	op_amd_handle_ibs(regs, msrs);
 
-	/* See op_model_ppro.c */
+	
 	return 1;
 }
 
@@ -326,10 +312,7 @@ static void op_amd_stop(struct op_msrs const * const msrs)
 	u64 val;
 	int i;
 
-	/*
-	 * Subtle: stop on all counters to avoid race with setting our
-	 * pm callback
-	 */
+	
 	for (i = 0; i < NUM_COUNTERS; ++i) {
 		if (!reset_value[op_x86_phys_to_virt(i)])
 			continue;
@@ -377,7 +360,7 @@ static int init_ibs_nmi(void)
 	int nodes;
 	u32 value = 0;
 
-	/* per CPU setup */
+	
 	on_each_cpu(apic_init_ibs_nmi_per_cpu, NULL, 1);
 
 	nodes = 0;
@@ -406,8 +389,8 @@ static int init_ibs_nmi(void)
 	}
 
 #ifdef CONFIG_NUMA
-	/* Sanity check */
-	/* Works only for 64bit with proper numa implementation. */
+	
+	
 	if (nodes != num_possible_nodes()) {
 		printk(KERN_DEBUG "Failed to setup CPU node(s) for IBS, "
 			"found: %d, expected %d",
@@ -418,14 +401,14 @@ static int init_ibs_nmi(void)
 	return 0;
 }
 
-/* uninitialize the APIC for the IBS interrupts if needed */
+
 static void clear_ibs_nmi(void)
 {
 	if (has_ibs)
 		on_each_cpu(apic_clear_ibs_nmi_per_cpu, NULL, 1);
 }
 
-/* initialize the APIC for the IBS interrupts if available */
+
 static void ibs_init(void)
 {
 	has_ibs = boot_cpu_has(X86_FEATURE_IBS);
@@ -456,7 +439,7 @@ static int setup_ibs_files(struct super_block *sb, struct dentry *root)
 	struct dentry *dir;
 	int ret = 0;
 
-	/* architecture specific files */
+	
 	if (create_arch_files)
 		ret = create_arch_files(sb, root);
 
@@ -466,9 +449,9 @@ static int setup_ibs_files(struct super_block *sb, struct dentry *root)
 	if (!has_ibs)
 		return ret;
 
-	/* model specific files */
+	
 
-	/* setup some reasonable defaults */
+	
 	ibs_config.max_cnt_fetch = 250000;
 	ibs_config.fetch_enabled = 0;
 	ibs_config.max_cnt_op = 250000;
@@ -509,7 +492,7 @@ static void op_amd_exit(void)
 
 #else
 
-/* no IBS support */
+
 
 static int op_amd_init(struct oprofile_operations *ops)
 {
@@ -518,7 +501,7 @@ static int op_amd_init(struct oprofile_operations *ops)
 
 static void op_amd_exit(void) {}
 
-#endif /* CONFIG_OPROFILE_IBS */
+#endif 
 
 struct op_x86_model_spec op_amd_spec = {
 	.num_counters		= NUM_COUNTERS,

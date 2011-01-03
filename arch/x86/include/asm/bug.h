@@ -33,7 +33,7 @@ do {								\
 } while (0)
 #endif
 
-#endif /* !CONFIG_BUG */
+#endif 
 
 #include <asm-generic/bug.h>
-#endif /* _ASM_X86_BUG_H */
+#endif 

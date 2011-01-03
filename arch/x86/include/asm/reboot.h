@@ -23,4 +23,4 @@ void machine_real_restart(const unsigned char *code, int length);
 typedef void (*nmi_shootdown_cb)(int, struct die_args*);
 void nmi_shootdown_cpus(nmi_shootdown_cb callback);
 
-#endif /* _ASM_X86_REBOOT_H */
+#endif 

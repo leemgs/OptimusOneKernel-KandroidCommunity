@@ -5,18 +5,13 @@
 #include <asm/e820.h>
 #include <asm/proto.h>
 
-/*
- * Some BIOSes seem to corrupt the low 64k of memory during events
- * like suspend/resume and unplugging an HDMI cable.  Reserve all
- * remaining free memory in that area and fill it with a distinct
- * pattern.
- */
+
 #define MAX_SCAN_AREAS	8
 
 static int __read_mostly memory_corruption_check = -1;
 
 static unsigned __read_mostly corruption_check_size = 64*1024;
-static unsigned __read_mostly corruption_check_period = 60; /* seconds */
+static unsigned __read_mostly corruption_check_period = 60; 
 
 static struct e820entry scan_areas[MAX_SCAN_AREAS];
 static int num_scan_areas;
@@ -59,7 +54,7 @@ early_param("memory_corruption_check_size", set_corruption_check_size);
 
 void __init setup_bios_corruption_check(void)
 {
-	u64 addr = PAGE_SIZE;	/* assume first page is reserved anyway */
+	u64 addr = PAGE_SIZE;	
 
 	if (memory_corruption_check == -1) {
 		memory_corruption_check =
@@ -97,7 +92,7 @@ void __init setup_bios_corruption_check(void)
 		scan_areas[num_scan_areas].size = size;
 		num_scan_areas++;
 
-		/* Assume we've already mapped this early memory */
+		
 		memset(__va(addr), 0, size);
 
 		addr += size;
@@ -152,7 +147,7 @@ static int start_periodic_check_for_corruption(void)
 	printk(KERN_INFO "Scanning for low memory corruption every %d seconds\n",
 	       corruption_check_period);
 
-	/* First time we run the checks right away */
+	
 	schedule_delayed_work(&bios_check_work, 0);
 	return 0;
 }

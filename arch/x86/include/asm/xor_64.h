@@ -1,45 +1,20 @@
 #ifndef _ASM_X86_XOR_64_H
 #define _ASM_X86_XOR_64_H
 
-/*
- * Optimized RAID-5 checksumming functions for MMX and SSE.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * You should have received a copy of the GNU General Public License
- * (for example /usr/src/linux/COPYING); if not, write to the Free
- * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
 
 
-/*
- * Cache avoiding checksumming functions utilizing KNI instructions
- * Copyright (C) 1999 Zach Brown (with obvious credit due Ingo)
- */
 
-/*
- * Based on
- * High-speed RAID5 checksumming functions utilizing SSE instructions.
- * Copyright (C) 1998 Ingo Molnar.
- */
 
-/*
- * x86-64 changes / gcc fixes from Andi Kleen.
- * Copyright 2002 Andi Kleen, SuSE Labs.
- *
- * This hasn't been optimized for the hammer yet, but there are likely
- * no advantages to be gotten from x86-64 here anyways.
- */
+
+
+
+
 
 typedef struct {
 	unsigned long a, b;
 } __attribute__((aligned(16))) xmm_store_t;
 
-/* Doesn't use gcc to save the XMM registers, because there is no easy way to
-   tell it to do a clts before the register saving. */
+
 #define XMMS_SAVE				\
 do {						\
 	preempt_disable();			\
@@ -353,9 +328,7 @@ do {						\
 	xor_speed(&xor_block_sse);		\
 } while (0)
 
-/* We force the use of the SSE xor block because it can write around L2.
-   We may also be able to load into the L1 only depending on how the cpu
-   deals with a load to a line that is being prefetched.  */
+
 #define XOR_SELECT_TEMPLATE(FASTEST) (&xor_block_sse)
 
-#endif /* _ASM_X86_XOR_64_H */
+#endif 

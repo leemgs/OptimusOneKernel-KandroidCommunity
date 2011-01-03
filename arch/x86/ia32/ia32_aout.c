@@ -1,9 +1,4 @@
-/*
- *  a.out loader for x86-64
- *
- *  Copyright (C) 1991, 1992, 1996  Linus Torvalds
- *  Hacked together by Andi Kleen
- */
+
 
 #include <linux/module.h>
 
@@ -35,7 +30,7 @@
 #include <asm/ia32.h>
 
 #undef WARN_OLD
-#undef CORE_DUMP /* probably broken */
+#undef CORE_DUMP 
 
 static int load_aout_binary(struct linux_binprm *, struct pt_regs *regs);
 static int load_aout_library(struct file *);
@@ -44,14 +39,12 @@ static int load_aout_library(struct file *);
 static int aout_core_dump(long signr, struct pt_regs *regs, struct file *file,
 			  unsigned long limit);
 
-/*
- * fill in the user structure for a core dump..
- */
+
 static void dump_thread32(struct pt_regs *regs, struct user32 *dump)
 {
 	u32 fs, gs;
 
-/* changed the size calculations - should hopefully work better. lbt */
+
 	dump->magic = CMAGIC;
 	dump->start_code = 0;
 	dump->start_stack = regs->sp & ~(PAGE_SIZE - 1);
@@ -96,7 +89,7 @@ static void dump_thread32(struct pt_regs *regs, struct user32 *dump)
 	dump->regs.sp = regs->sp;
 	dump->regs.ss = regs->ss;
 
-#if 1 /* FIXME */
+#if 1 
 	dump->u_fpvalid = 0;
 #else
 	dump->u_fpvalid = dump_fpu(regs, &dump->i387);
@@ -127,10 +120,7 @@ static void set_brk(unsigned long start, unsigned long end)
 }
 
 #ifdef CORE_DUMP
-/*
- * These are the only things you should do on a core-file: use only these
- * macros to write out all the necessary info.
- */
+
 
 static int dump_write(struct file *file, const void *addr, int nr)
 {
@@ -151,15 +141,7 @@ static int dump_write(struct file *file, const void *addr, int nr)
 #define START_DATA()	(u.u_tsize << PAGE_SHIFT)
 #define START_STACK(u)	(u.start_stack)
 
-/*
- * Routine writes a core dump image in the current directory.
- * Currently only a stub-function.
- *
- * Note that setuid/setgid files won't make a core-dump if the uid/gid
- * changed due to the set[u|g]id. It's enforced by the "current->mm->dumpable"
- * field, which also makes sure the core-dumps won't be recursive if the
- * dumping of the process results in another error..
- */
+
 
 static int aout_core_dump(long signr, struct pt_regs *regs, struct file *file,
 			  unsigned long limit)
@@ -178,19 +160,15 @@ static int aout_core_dump(long signr, struct pt_regs *regs, struct file *file,
 	dump.signal = signr;
 	dump_thread32(regs, &dump);
 
-	/*
-	 * If the size of the dump file exceeds the rlimit, then see
-	 * what would happen if we wrote the stack, but not the data
-	 * area.
-	 */
+	
 	if ((dump.u_dsize + dump.u_ssize + 1) * PAGE_SIZE > limit)
 		dump.u_dsize = 0;
 
-	/* Make sure we have enough room to write the stack and data areas. */
+	
 	if ((dump.u_ssize + 1) * PAGE_SIZE > limit)
 		dump.u_ssize = 0;
 
-	/* make sure we actually have a data and stack area to dump */
+	
 	set_fs(USER_DS);
 	if (!access_ok(VERIFY_READ, (void *) (unsigned long)START_DATA(dump),
 		       dump.u_dsize << PAGE_SHIFT))
@@ -200,28 +178,25 @@ static int aout_core_dump(long signr, struct pt_regs *regs, struct file *file,
 		dump.u_ssize = 0;
 
 	set_fs(KERNEL_DS);
-	/* struct user */
+	
 	DUMP_WRITE(&dump, sizeof(dump));
-	/* Now dump all of the user data.  Include malloced stuff as well */
+	
 	DUMP_SEEK(PAGE_SIZE);
-	/* now we start writing out the user space info */
+	
 	set_fs(USER_DS);
-	/* Dump the data area */
+	
 	if (dump.u_dsize != 0) {
 		dump_start = START_DATA(dump);
 		dump_size = dump.u_dsize << PAGE_SHIFT;
 		DUMP_WRITE(dump_start, dump_size);
 	}
-	/* Now prepare to dump the stack area */
+	
 	if (dump.u_ssize != 0) {
 		dump_start = START_STACK(dump);
 		dump_size = dump.u_ssize << PAGE_SHIFT;
 		DUMP_WRITE(dump_start, dump_size);
 	}
-	/*
-	 * Finally dump the task struct.  Not be used by gdb, but
-	 * could be useful
-	 */
+	
 	set_fs(KERNEL_DS);
 	DUMP_WRITE(current, sizeof(*current));
 end_coredump:
@@ -230,11 +205,7 @@ end_coredump:
 }
 #endif
 
-/*
- * create_aout_tables() parses the env- and arg-strings in new user
- * memory and creates the pointer tables from them, and puts their
- * addresses on the "stack", returning the new stack pointer value.
- */
+
 static u32 __user *create_aout_tables(char __user *p, struct linux_binprm *bprm)
 {
 	u32 __user *argv, *envp, *sp;
@@ -272,17 +243,14 @@ static u32 __user *create_aout_tables(char __user *p, struct linux_binprm *bprm)
 	return sp;
 }
 
-/*
- * These are the functions used to load a.out style executables and shared
- * libraries.  There is no binary dependent code anywhere else.
- */
+
 static int load_aout_binary(struct linux_binprm *bprm, struct pt_regs *regs)
 {
 	unsigned long error, fd_offset, rlim;
 	struct exec ex;
 	int retval;
 
-	ex = *((struct exec *) bprm->buf);		/* exec-header */
+	ex = *((struct exec *) bprm->buf);		
 	if ((N_MAGIC(ex) != ZMAGIC && N_MAGIC(ex) != OMAGIC &&
 	     N_MAGIC(ex) != QMAGIC && N_MAGIC(ex) != NMAGIC) ||
 	    N_TRSIZE(ex) || N_DRSIZE(ex) ||
@@ -293,22 +261,19 @@ static int load_aout_binary(struct linux_binprm *bprm, struct pt_regs *regs)
 
 	fd_offset = N_TXTOFF(ex);
 
-	/* Check initial limits. This avoids letting people circumvent
-	 * size limits imposed on them by creating programs with large
-	 * arrays in the data or bss.
-	 */
+	
 	rlim = current->signal->rlim[RLIMIT_DATA].rlim_cur;
 	if (rlim >= RLIM_INFINITY)
 		rlim = ~0;
 	if (ex.a_data + ex.a_bss > rlim)
 		return -ENOMEM;
 
-	/* Flush all traces of the currently running executable */
+	
 	retval = flush_old_exec(bprm);
 	if (retval)
 		return retval;
 
-	/* OK, This is the point of no return */
+	
 	set_personality(PER_LINUX);
 	set_thread_flag(TIF_IA32);
 
@@ -425,14 +390,14 @@ beyond_if:
 
 	retval = setup_arg_pages(bprm, IA32_STACK_TOP, EXSTACK_DEFAULT);
 	if (retval < 0) {
-		/* Someone check-me: is this error path enough? */
+		
 		send_sig(SIGKILL, current, 0);
 		return retval;
 	}
 
 	current->mm->start_stack =
 		(unsigned long)create_aout_tables((char __user *)bprm->p, bprm);
-	/* start thread */
+	
 	loadsegment(fs, 0);
 	loadsegment(ds, __USER32_DS);
 	loadsegment(es, __USER32_DS);
@@ -462,7 +427,7 @@ static int load_aout_library(struct file *file)
 	if (error != sizeof(ex))
 		goto out;
 
-	/* We come in here for the regular a.out style of shared libraries */
+	
 	if ((N_MAGIC(ex) != ZMAGIC && N_MAGIC(ex) != QMAGIC) || N_TRSIZE(ex) ||
 	    N_DRSIZE(ex) || ((ex.a_entry & 0xfff) && N_MAGIC(ex) == ZMAGIC) ||
 	    i_size_read(inode) <
@@ -473,8 +438,7 @@ static int load_aout_library(struct file *file)
 	if (N_FLAGS(ex))
 		goto out;
 
-	/* For  QMAGIC, the starting address is 0x20 into the page.  We mask
-	   this off to get the starting address for the page */
+	
 
 	start_addr =  ex.a_entry & 0xfffff000;
 
@@ -504,7 +468,7 @@ static int load_aout_library(struct file *file)
 		retval = 0;
 		goto out;
 	}
-	/* Now use mmap to map the library into memory. */
+	
 	down_write(&current->mm->mmap_sem);
 	error = do_mmap(file, start_addr, ex.a_text + ex.a_data,
 			PROT_READ | PROT_WRITE | PROT_EXEC,

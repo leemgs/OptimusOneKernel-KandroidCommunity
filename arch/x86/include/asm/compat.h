@@ -1,9 +1,7 @@
 #ifndef _ASM_X86_COMPAT_H
 #define _ASM_X86_COMPAT_H
 
-/*
- * Architecture specific compatibility types
- */
+
 #include <linux/types.h>
 #include <linux/sched.h>
 #include <asm/user32.h>
@@ -80,14 +78,11 @@ struct compat_flock {
 	compat_pid_t	l_pid;
 };
 
-#define F_GETLK64	12	/*  using 'struct flock64' */
+#define F_GETLK64	12	
 #define F_SETLK64	13
 #define F_SETLKW64	14
 
-/*
- * IA32 uses 4 byte alignment for 64 bit quantities,
- * so we need to pack this structure.
- */
+
 struct compat_flock64 {
 	short		l_type;
 	short		l_whence;
@@ -105,7 +100,7 @@ struct compat_statfs {
 	int		f_files;
 	int		f_ffree;
 	compat_fsid_t	f_fsid;
-	int		f_namelen;	/* SunOS ignores this field. */
+	int		f_namelen;	
 	int		f_frsize;
 	int		f_spare[5];
 };
@@ -113,7 +108,7 @@ struct compat_statfs {
 #define COMPAT_RLIM_OLD_INFINITY	0x7fffffff
 #define COMPAT_RLIM_INFINITY		0xffffffff
 
-typedef u32		compat_old_sigset_t;	/* at least 32 bits */
+typedef u32		compat_old_sigset_t;	
 
 #define _COMPAT_NSIG		64
 #define _COMPAT_NSIG_BPW	32
@@ -181,17 +176,10 @@ struct compat_shmid64_ds {
 	compat_ulong_t __unused5;
 };
 
-/*
- * The type of struct elf_prstatus.pr_reg in compatible core dumps.
- */
+
 typedef struct user_regs_struct32 compat_elf_gregset_t;
 
-/*
- * A pointer passed in from user mode. This should not
- * be used for syscall parameters, just declare them
- * as pointers because the syscall entry code will have
- * appropriately converted them already.
- */
+
 typedef	u32		compat_uptr_t;
 
 static inline void __user *compat_ptr(compat_uptr_t uptr)
@@ -215,4 +203,4 @@ static inline int is_compat_task(void)
 	return current_thread_info()->status & TS_COMPAT;
 }
 
-#endif /* _ASM_X86_COMPAT_H */
+#endif 

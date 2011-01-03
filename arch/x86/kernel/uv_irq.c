@@ -1,12 +1,4 @@
-/*
- * This file is subject to the terms and conditions of the GNU General Public
- * License.  See the file "COPYING" in the main directory of this archive
- * for more details.
- *
- * SGI UV IRQ functions
- *
- * Copyright (C) 2008 Silicon Graphics, Inc. All rights reserved.
- */
+
 
 #include <linux/module.h>
 #include <linux/irq.h>
@@ -41,11 +33,7 @@ struct irq_chip uv_irq_chip = {
 	.end		= uv_noop,
 };
 
-/*
- * Set up a mapping of an available irq and vector, and enable the specified
- * MMR that defines the MSI that is to be sent to the specified CPU when an
- * interrupt is raised.
- */
+
 int uv_setup_irq(char *irq_name, int cpu, int mmr_blade,
 		 unsigned long mmr_offset)
 {
@@ -64,13 +52,7 @@ int uv_setup_irq(char *irq_name, int cpu, int mmr_blade,
 }
 EXPORT_SYMBOL_GPL(uv_setup_irq);
 
-/*
- * Tear down a mapping of an irq and vector, and disable the specified MMR that
- * defined the MSI that was to be sent to the specified CPU when an interrupt
- * was raised.
- *
- * Set mmr_blade and mmr_offset to what was passed in on uv_setup_irq().
- */
+
 void uv_teardown_irq(unsigned int irq, int mmr_blade, unsigned long mmr_offset)
 {
 	arch_disable_uv_irq(mmr_blade, mmr_offset);

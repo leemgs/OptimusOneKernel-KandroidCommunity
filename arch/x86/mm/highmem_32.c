@@ -1,6 +1,6 @@
 #include <linux/highmem.h>
 #include <linux/module.h>
-#include <linux/swap.h> /* for totalram_pages */
+#include <linux/swap.h> 
 
 void *kmap(struct page *page)
 {
@@ -19,20 +19,13 @@ void kunmap(struct page *page)
 	kunmap_high(page);
 }
 
-/*
- * kmap_atomic/kunmap_atomic is significantly faster than kmap/kunmap because
- * no global lock is needed and because the kmap code must perform a global TLB
- * invalidation when the kmap pool wraps.
- *
- * However when holding an atomic kmap it is not legal to sleep, so atomic
- * kmaps are appropriate for short, tight code paths only.
- */
+
 void *kmap_atomic_prot(struct page *page, enum km_type type, pgprot_t prot)
 {
 	enum fixed_addresses idx;
 	unsigned long vaddr;
 
-	/* even !CONFIG_PREEMPT needs this, for in_atomic in do_page_fault */
+	
 	pagefault_disable();
 
 	if (!PageHighMem(page))
@@ -58,12 +51,7 @@ void kunmap_atomic(void *kvaddr, enum km_type type)
 	unsigned long vaddr = (unsigned long) kvaddr & PAGE_MASK;
 	enum fixed_addresses idx = type + KM_TYPE_NR*smp_processor_id();
 
-	/*
-	 * Force other mappings to Oops if they'll try to access this pte
-	 * without first remap it.  Keeping stale mappings around is a bad idea
-	 * also, in case the page changes cacheability attributes or becomes
-	 * a protected page in a hypervisor.
-	 */
+	
 	if (vaddr == __fix_to_virt(FIX_KMAP_BEGIN+idx))
 		kpte_clear_flush(kmap_pte-idx, vaddr);
 	else {
@@ -76,15 +64,12 @@ void kunmap_atomic(void *kvaddr, enum km_type type)
 	pagefault_enable();
 }
 
-/*
- * This is the same as kmap_atomic() but can map memory that doesn't
- * have a struct page associated with it.
- */
+
 void *kmap_atomic_pfn(unsigned long pfn, enum km_type type)
 {
 	return kmap_atomic_prot_pfn(pfn, type, kmap_prot);
 }
-EXPORT_SYMBOL_GPL(kmap_atomic_pfn); /* temporarily in use by i915 GEM until vmap */
+EXPORT_SYMBOL_GPL(kmap_atomic_pfn); 
 
 struct page *kmap_atomic_to_page(void *ptr)
 {

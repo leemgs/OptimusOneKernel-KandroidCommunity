@@ -1,27 +1,4 @@
-/*
- * Written by: Matthew Dobson, IBM Corporation
- *
- * Copyright (C) 2002, IBM Corp.
- *
- * All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, GOOD TITLE or
- * NON INFRINGEMENT.  See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * Send feedback to <colpatch@us.ibm.com>
- */
+
 #ifndef _ASM_X86_TOPOLOGY_H
 #define _ASM_X86_TOPOLOGY_H
 
@@ -35,7 +12,7 @@
 # endif
 #endif
 
-/* Node not present */
+
 #define NUMA_NO_NODE	(-1)
 
 #ifdef CONFIG_NUMA
@@ -44,22 +21,22 @@
 
 #ifdef CONFIG_X86_32
 
-/* Mappings between logical cpu number and node number */
+
 extern int cpu_to_node_map[];
 
-/* Returns the number of the node containing CPU 'cpu' */
+
 static inline int cpu_to_node(int cpu)
 {
 	return cpu_to_node_map[cpu];
 }
 #define early_cpu_to_node(cpu)	cpu_to_node(cpu)
 
-#else /* CONFIG_X86_64 */
+#else 
 
-/* Mappings between logical cpu number and node number */
+
 DECLARE_EARLY_PER_CPU(int, x86_cpu_to_node_map);
 
-/* Returns the number of the current Node. */
+
 DECLARE_PER_CPU(int, node_number);
 #define numa_node_id()		percpu_read(node_number)
 
@@ -67,31 +44,31 @@ DECLARE_PER_CPU(int, node_number);
 extern int cpu_to_node(int cpu);
 extern int early_cpu_to_node(int cpu);
 
-#else	/* !CONFIG_DEBUG_PER_CPU_MAPS */
+#else	
 
-/* Returns the number of the node containing CPU 'cpu' */
+
 static inline int cpu_to_node(int cpu)
 {
 	return per_cpu(x86_cpu_to_node_map, cpu);
 }
 
-/* Same function but used if called before per_cpu areas are setup */
+
 static inline int early_cpu_to_node(int cpu)
 {
 	return early_per_cpu(x86_cpu_to_node_map, cpu);
 }
 
-#endif /* !CONFIG_DEBUG_PER_CPU_MAPS */
+#endif 
 
-#endif /* CONFIG_X86_64 */
+#endif 
 
-/* Mappings between node number and cpus on that node. */
+
 extern cpumask_var_t node_to_cpumask_map[MAX_NUMNODES];
 
 #ifdef CONFIG_DEBUG_PER_CPU_MAPS
 extern const struct cpumask *cpumask_of_node(int node);
 #else
-/* Returns a pointer to the cpumask of CPUs on Node 'node'. */
+
 static inline const struct cpumask *cpumask_of_node(int node)
 {
 	return node_to_cpumask_map[node];
@@ -100,10 +77,7 @@ static inline const struct cpumask *cpumask_of_node(int node)
 
 extern void setup_node_to_cpumask_map(void);
 
-/*
- * Returns the number of the node containing Node 'node'. This
- * architecture is flat, so it is a pretty simple function!
- */
+
 #define parent_node(node) (node)
 
 #define pcibus_to_node(bus) __pcibus_to_node(bus)
@@ -124,7 +98,7 @@ extern unsigned long node_remap_size[];
 
 #endif
 
-/* sched_domains SD_NODE_INIT for NUMA machines */
+
 #define SD_NODE_INIT (struct sched_domain) {				\
 	.min_interval		= 8,					\
 	.max_interval		= 32,					\
@@ -159,7 +133,7 @@ extern int __node_distance(int, int);
 #define node_distance(a, b) __node_distance(a, b)
 #endif
 
-#else /* !CONFIG_NUMA */
+#else 
 
 static inline int numa_node_id(void)
 {
@@ -185,7 +159,7 @@ extern const struct cpumask *cpu_coregroup_mask(int cpu);
 #define topology_core_cpumask(cpu)		(per_cpu(cpu_core_map, cpu))
 #define topology_thread_cpumask(cpu)		(per_cpu(cpu_sibling_map, cpu))
 
-/* indicates that pointers to the topology cpumask_t maps are valid */
+
 #define arch_provides_topology_pointers		yes
 #endif
 
@@ -215,4 +189,4 @@ static inline void set_mp_bus_to_node(int busnum, int node)
 }
 #endif
 
-#endif /* _ASM_X86_TOPOLOGY_H */
+#endif 

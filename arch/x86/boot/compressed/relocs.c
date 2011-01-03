@@ -24,12 +24,7 @@ struct section {
 };
 static struct section *secs;
 
-/*
- * Following symbols have been audited. There values are constant and do
- * not change if bzImage is loaded at a different physical address than
- * the address for which it has been compiled. Don't warn user about
- * absolute relocations present w.r.t these symbols.
- */
+
 static const char* safe_abs_relocs[] = {
 		"xen_irq_disable_direct_reloc",
 		"xen_save_fl_direct_reloc",
@@ -41,7 +36,7 @@ static int is_safe_abs_reloc(const char* sym_name)
 
 	for (i = 0; i < ARRAY_SIZE(safe_abs_relocs); i++) {
 		if (!strcmp(sym_name, safe_abs_relocs[i]))
-			/* Match found */
+			
 			return 1;
 	}
 	if (strncmp(sym_name, "VDSO", 4) == 0)
@@ -207,7 +202,7 @@ static void read_ehdr(FILE *fp)
 	if (ehdr.e_ident[EI_VERSION] != EV_CURRENT) {
 		die("Unknown ELF version\n");
 	}
-	/* Convert the fields to native endian */
+	
 	ehdr.e_type      = elf16_to_cpu(ehdr.e_type);
 	ehdr.e_machine   = elf16_to_cpu(ehdr.e_machine);
 	ehdr.e_version   = elf32_to_cpu(ehdr.e_version);
@@ -435,19 +430,7 @@ static void print_absolute_relocs(void)
 				continue;
 			}
 
-			/* Absolute symbols are not relocated if bzImage is
-			 * loaded at a non-compiled address. Display a warning
-			 * to user at compile time about the absolute
-			 * relocations present.
-			 *
-			 * User need to audit the code to make sure
-			 * some symbols which should have been section
-			 * relative have not become absolute because of some
-			 * linker optimization or wrong programming usage.
-			 *
-			 * Before warning check if this absolute symbol
-			 * relocation is harmless.
-			 */
+			
 			if (is_safe_abs_reloc(name))
 				continue;
 
@@ -475,7 +458,7 @@ static void print_absolute_relocs(void)
 static void walk_relocs(void (*visit)(Elf32_Rel *rel, Elf32_Sym *sym))
 {
 	int i;
-	/* Walk through the relocations */
+	
 	for (i = 0; i < ehdr.e_shnum; i++) {
 		char *sym_strtab;
 		Elf32_Sym *sh_symtab;
@@ -500,18 +483,15 @@ static void walk_relocs(void (*visit)(Elf32_Rel *rel, Elf32_Sym *sym))
 			rel = &sec->reltab[j];
 			sym = &sh_symtab[ELF32_R_SYM(rel->r_info)];
 			r_type = ELF32_R_TYPE(rel->r_info);
-			/* Don't visit relocations to absolute symbols */
+			
 			if (sym->st_shndx == SHN_ABS) {
 				continue;
 			}
 			if (r_type == R_386_NONE || r_type == R_386_PC32) {
-				/*
-				 * NONE can be ignored and and PC relative
-				 * relocations don't need to be adjusted.
-				 */
+				
 			}
 			else if (r_type == R_386_32) {
-				/* Visit relocations that need to be adjusted */
+				
 				visit(rel, sym);
 			}
 			else {
@@ -528,7 +508,7 @@ static void count_reloc(Elf32_Rel *rel, Elf32_Sym *sym)
 
 static void collect_reloc(Elf32_Rel *rel, Elf32_Sym *sym)
 {
-	/* Remember the address that needs to be adjusted. */
+	
 	relocs[reloc_idx++] = rel->r_offset;
 }
 
@@ -542,7 +522,7 @@ static int cmp_relocs(const void *va, const void *vb)
 static void emit_relocs(int as_text)
 {
 	int i;
-	/* Count how many relocations I have and allocate space for them. */
+	
 	reloc_count = 0;
 	walk_relocs(count_reloc);
 	relocs = malloc(reloc_count * sizeof(relocs[0]));
@@ -550,18 +530,16 @@ static void emit_relocs(int as_text)
 		die("malloc of %d entries for relocs failed\n",
 			reloc_count);
 	}
-	/* Collect up the relocations */
+	
 	reloc_idx = 0;
 	walk_relocs(collect_reloc);
 
-	/* Order the relocations for more efficient processing */
+	
 	qsort(relocs, reloc_count, sizeof(relocs[0]), cmp_relocs);
 
-	/* Print the relocations */
+	
 	if (as_text) {
-		/* Print the relocations in a form suitable that
-		 * gas will like.
-		 */
+		
 		printf(".section \".data.reloc\",\"a\"\n");
 		printf(".balign 4\n");
 		for (i = 0; i < reloc_count; i++) {
@@ -572,9 +550,9 @@ static void emit_relocs(int as_text)
 	else {
 		unsigned char buf[4];
 		buf[0] = buf[1] = buf[2] = buf[3] = 0;
-		/* Print a stop */
+		
 		printf("%c%c%c%c", buf[0], buf[1], buf[2], buf[3]);
-		/* Now print each relocation */
+		
 		for (i = 0; i < reloc_count; i++) {
 			buf[0] = (relocs[i] >>  0) & 0xff;
 			buf[1] = (relocs[i] >>  8) & 0xff;

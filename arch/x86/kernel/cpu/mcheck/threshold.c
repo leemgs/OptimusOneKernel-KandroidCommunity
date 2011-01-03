@@ -1,6 +1,4 @@
-/*
- * Common corrected MCE threshold handler code:
- */
+
 #include <linux/interrupt.h>
 #include <linux/kernel.h>
 
@@ -24,6 +22,6 @@ asmlinkage void smp_threshold_interrupt(void)
 	inc_irq_stat(irq_threshold_count);
 	mce_threshold_vector();
 	irq_exit();
-	/* Ack only at the end to avoid potential reentry */
+	
 	ack_APIC_irq();
 }

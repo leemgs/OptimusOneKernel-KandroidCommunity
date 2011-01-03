@@ -66,9 +66,7 @@ __setup("noreplace-paravirt", setup_noreplace_paravirt);
 	printk(KERN_DEBUG fmt, args)
 
 #if defined(GENERIC_NOP1) && !defined(CONFIG_X86_64)
-/* Use inline assembly to define this because the nops are defined
-   as inline assembly strings in the include files and we cannot
-   get them easily into strings. */
+
 asm("\t" __stringify(__INITRODATA_OR_MODULE) "\nintelnops: "
 	GENERIC_NOP1 GENERIC_NOP2 GENERIC_NOP3 GENERIC_NOP4 GENERIC_NOP5 GENERIC_NOP6
 	GENERIC_NOP7 GENERIC_NOP8
@@ -160,7 +158,7 @@ static const unsigned char *const *__init_or_module find_nop_table(void)
 		return k8_nops;
 }
 
-#else /* CONFIG_X86_64 */
+#else 
 
 static const unsigned char *const *__init_or_module find_nop_table(void)
 {
@@ -174,9 +172,9 @@ static const unsigned char *const *__init_or_module find_nop_table(void)
 		return intel_nops;
 }
 
-#endif /* CONFIG_X86_64 */
+#endif 
 
-/* Use this to add nops to a buffer, then text_poke the whole buffer. */
+
 static void __init_or_module add_nops(void *insns, unsigned int len)
 {
 	const unsigned char *const *noptable = find_nop_table();
@@ -195,11 +193,7 @@ extern struct alt_instr __alt_instructions[], __alt_instructions_end[];
 extern u8 *__smp_locks[], *__smp_locks_end[];
 static void *text_poke_early(void *addr, const void *opcode, size_t len);
 
-/* Replace instructions with better alternatives for this CPU type.
-   This runs before SMP is initialized to avoid SMP problems with
-   self modifying code. This implies that assymetric systems where
-   APs have less capabilities than the boot processor are not handled.
-   Tough. Make sure you disable such features by hand. */
+
 
 void __init_or_module apply_alternatives(struct alt_instr *start,
 					 struct alt_instr *end)
@@ -215,7 +209,7 @@ void __init_or_module apply_alternatives(struct alt_instr *start,
 		if (!boot_cpu_has(a->cpuid))
 			continue;
 #ifdef CONFIG_X86_64
-		/* vsyscall code is not mapped yet. resolve it manually. */
+		
 		if (instr >= (u8 *)VSYSCALL_START && instr < (u8*)VSYSCALL_END) {
 			instr = __va(instr - (u8*)VSYSCALL_START + (u8*)__pa_symbol(&__vsyscall_0));
 			DPRINTK("%s: vsyscall fixup: %p => %p\n",
@@ -241,7 +235,7 @@ static void alternatives_smp_lock(u8 **start, u8 **end, u8 *text, u8 *text_end)
 			continue;
 		if (*ptr > text_end)
 			continue;
-		/* turn DS segment override prefix into lock prefix */
+		
 		text_poke(*ptr, ((unsigned char []){0xf0}), 1);
 	};
 	mutex_unlock(&text_mutex);
@@ -260,22 +254,22 @@ static void alternatives_smp_unlock(u8 **start, u8 **end, u8 *text, u8 *text_end
 			continue;
 		if (*ptr > text_end)
 			continue;
-		/* turn lock prefix into DS segment override prefix */
+		
 		text_poke(*ptr, ((unsigned char []){0x3E}), 1);
 	};
 	mutex_unlock(&text_mutex);
 }
 
 struct smp_alt_module {
-	/* what is this ??? */
+	
 	struct module	*mod;
 	char		*name;
 
-	/* ptrs to lock prefixes */
+	
 	u8		**locks;
 	u8		**locks_end;
 
-	/* .text segment, needed to avoid patching init code ;) */
+	
 	u8		*text;
 	u8		*text_end;
 
@@ -283,7 +277,7 @@ struct smp_alt_module {
 };
 static LIST_HEAD(smp_alt_modules);
 static DEFINE_MUTEX(smp_alt);
-static int smp_mode = 1;	/* protected by smp_alt */
+static int smp_mode = 1;	
 
 void __init_or_module alternatives_smp_module_add(struct module *mod,
 						  char *name,
@@ -304,7 +298,7 @@ void __init_or_module alternatives_smp_module_add(struct module *mod,
 
 	smp = kzalloc(sizeof(*smp), GFP_KERNEL);
 	if (NULL == smp)
-		return; /* we'll run the (safe but slow) SMP code then ... */
+		return; 
 
 	smp->mod	= mod;
 	smp->name	= name;
@@ -349,13 +343,7 @@ void alternatives_smp_switch(int smp)
 	struct smp_alt_module *mod;
 
 #ifdef CONFIG_LOCKDEP
-	/*
-	 * Older binutils section handling bug prevented
-	 * alternatives-replacement from working reliably.
-	 *
-	 * If this still occurs then you should see a hang
-	 * or crash shortly after this line:
-	 */
+	
 	printk("lockdep: fixing up alternatives.\n");
 #endif
 
@@ -365,12 +353,9 @@ void alternatives_smp_switch(int smp)
 
 	mutex_lock(&smp_alt);
 
-	/*
-	 * Avoid unnecessary switches because it forces JIT based VMs to
-	 * throw away all cached translations, which can be quite costly.
-	 */
+	
 	if (smp == smp_mode) {
-		/* nothing */
+		
 	} else if (smp) {
 		printk(KERN_INFO "SMP alternatives: switching to SMP code\n");
 		clear_cpu_cap(&boot_cpu_data, X86_FEATURE_UP);
@@ -406,45 +391,32 @@ void __init_or_module apply_paravirt(struct paravirt_patch_site *start,
 		unsigned int used;
 
 		BUG_ON(p->len > MAX_PATCH_LEN);
-		/* prep the buffer with the original instructions */
+		
 		memcpy(insnbuf, p->instr, p->len);
 		used = pv_init_ops.patch(p->instrtype, p->clobbers, insnbuf,
 					 (unsigned long)p->instr, p->len);
 
 		BUG_ON(used > p->len);
 
-		/* Pad the rest with nops */
+		
 		add_nops(insnbuf + used, p->len - used);
 		text_poke_early(p->instr, insnbuf, p->len);
 	}
 }
 extern struct paravirt_patch_site __start_parainstructions[],
 	__stop_parainstructions[];
-#endif	/* CONFIG_PARAVIRT */
+#endif	
 
 void __init alternative_instructions(void)
 {
-	/* The patching is not fully atomic, so try to avoid local interruptions
-	   that might execute the to be patched code.
-	   Other CPUs are not running. */
+	
 	stop_nmi();
 
-	/*
-	 * Don't stop machine check exceptions while patching.
-	 * MCEs only happen when something got corrupted and in this
-	 * case we must do something about the corruption.
-	 * Ignoring it is worse than a unlikely patching race.
-	 * Also machine checks tend to be broadcast and if one CPU
-	 * goes into machine check the others follow quickly, so we don't
-	 * expect a machine check to cause undue problems during to code
-	 * patching.
-	 */
+	
 
 	apply_alternatives(__alt_instructions, __alt_instructions_end);
 
-	/* switch to patch-once-at-boottime-only mode and free the
-	 * tables in case we know the number of CPUs will never ever
-	 * change */
+	
 #ifdef CONFIG_HOTPLUG_CPU
 	if (num_possible_cpus() < 2)
 		smp_alt_once = 1;
@@ -465,7 +437,7 @@ void __init alternative_instructions(void)
 					    __smp_locks, __smp_locks_end,
 					    _text, _etext);
 
-		/* Only switch to UP mode if we don't immediately boot others */
+		
 		if (num_present_cpus() == 1 || setup_max_cpus <= 1)
 			alternatives_smp_switch(0);
 	}
@@ -480,18 +452,7 @@ void __init alternative_instructions(void)
 	restart_nmi();
 }
 
-/**
- * text_poke_early - Update instructions on a live kernel at boot time
- * @addr: address to modify
- * @opcode: source of the copy
- * @len: length to copy
- *
- * When you use this code to patch more than one byte of an instruction
- * you need to make sure that other CPUs cannot execute this code in parallel.
- * Also no thread must be currently preempted in the middle of these
- * instructions. And on the local CPU you need to be protected again NMI or MCE
- * handlers seeing an inconsistent instruction while you patch.
- */
+
 static void *__init_or_module text_poke_early(void *addr, const void *opcode,
 					      size_t len)
 {
@@ -500,24 +461,11 @@ static void *__init_or_module text_poke_early(void *addr, const void *opcode,
 	memcpy(addr, opcode, len);
 	sync_core();
 	local_irq_restore(flags);
-	/* Could also do a CLFLUSH here to speed up CPU recovery; but
-	   that causes hangs on some VIA CPUs. */
+	
 	return addr;
 }
 
-/**
- * text_poke - Update instructions on a live kernel
- * @addr: address to modify
- * @opcode: source of the copy
- * @len: length to copy
- *
- * Only atomic text poke/set should be allowed when not doing early patching.
- * It means the size must be writable atomically and the address must be aligned
- * in a way that permits an atomic write. It also makes sure we fit on a single
- * page.
- *
- * Note: Must be called under text_mutex.
- */
+
 void *__kprobes text_poke(void *addr, const void *opcode, size_t len)
 {
 	unsigned long flags;
@@ -545,8 +493,7 @@ void *__kprobes text_poke(void *addr, const void *opcode, size_t len)
 		clear_fixmap(FIX_TEXT_POKE1);
 	local_flush_tlb();
 	sync_core();
-	/* Could also do a CLFLUSH here to speed up CPU recovery; but
-	   that causes hangs on some VIA CPUs. */
+	
 	for (i = 0; i < len; i++)
 		BUG_ON(((char *)addr)[i] != ((char *)opcode)[i]);
 	local_irq_restore(flags);

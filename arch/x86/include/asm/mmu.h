@@ -4,10 +4,7 @@
 #include <linux/spinlock.h>
 #include <linux/mutex.h>
 
-/*
- * The x86 doesn't have a mmu context, but
- * we put the segment information here.
- */
+
 typedef struct {
 	void *ldt;
 	int size;
@@ -23,4 +20,4 @@ static inline void leave_mm(int cpu)
 }
 #endif
 
-#endif /* _ASM_X86_MMU_H */
+#endif 

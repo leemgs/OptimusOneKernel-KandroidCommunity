@@ -1,32 +1,17 @@
-/* -*- linux-c -*- ------------------------------------------------------- *
- *
- *   Copyright (C) 1991, 1992 Linus Torvalds
- *   Copyright 2007 rPath, Inc. - All Rights Reserved
- *   Copyright 2009 Intel Corporation; author H. Peter Anvin
- *
- *   This file is part of the Linux kernel, and is made available under
- *   the terms of the GNU General Public License version 2.
- *
- * ----------------------------------------------------------------------- */
 
-/*
- * Very simple screen I/O
- * XXX: Probably should add very simple serial I/O?
- */
+
+
 
 #include "boot.h"
 
-/*
- * These functions are in .inittext so they can be used to signal
- * error during initialization.
- */
+
 
 void __attribute__((section(".inittext"))) putchar(int ch)
 {
 	struct biosregs ireg;
 
 	if (ch == '\n')
-		putchar('\r');	/* \n -> \r\n */
+		putchar('\r');	
 
 	initregs(&ireg);
 	ireg.bx = 0x0007;
@@ -42,10 +27,7 @@ void __attribute__((section(".inittext"))) puts(const char *str)
 		putchar(*str++);
 }
 
-/*
- * Read the CMOS clock through the BIOS, and return the
- * seconds in BCD.
- */
+
 
 static u8 gettime(void)
 {
@@ -58,15 +40,13 @@ static u8 gettime(void)
 	return oreg.dh;
 }
 
-/*
- * Read from the keyboard
- */
+
 int getchar(void)
 {
 	struct biosregs ireg, oreg;
 
 	initregs(&ireg);
-	/* ireg.ah = 0x00; */
+	
 	intcall(0x16, &ireg, &oreg);
 
 	return oreg.al;
@@ -110,5 +90,5 @@ int getchar_timeout(void)
 		}
 	}
 
-	return 0;		/* Timeout! */
+	return 0;		
 }

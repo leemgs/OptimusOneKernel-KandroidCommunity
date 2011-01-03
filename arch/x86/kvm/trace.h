@@ -8,9 +8,7 @@
 #define TRACE_INCLUDE_PATH arch/x86/kvm
 #define TRACE_INCLUDE_FILE trace
 
-/*
- * Tracepoint for guest mode entry.
- */
+
 TRACE_EVENT(kvm_entry,
 	TP_PROTO(unsigned int vcpu_id),
 	TP_ARGS(vcpu_id),
@@ -26,9 +24,7 @@ TRACE_EVENT(kvm_entry,
 	TP_printk("vcpu %u", __entry->vcpu_id)
 );
 
-/*
- * Tracepoint for hypercall.
- */
+
 TRACE_EVENT(kvm_hypercall,
 	TP_PROTO(unsigned long nr, unsigned long a0, unsigned long a1,
 		 unsigned long a2, unsigned long a3),
@@ -55,9 +51,7 @@ TRACE_EVENT(kvm_hypercall,
 		 __entry->a3)
 );
 
-/*
- * Tracepoint for PIO.
- */
+
 TRACE_EVENT(kvm_pio,
 	TP_PROTO(unsigned int rw, unsigned int port, unsigned int size,
 		 unsigned int count),
@@ -82,9 +76,7 @@ TRACE_EVENT(kvm_pio,
 		  __entry->port, __entry->size, __entry->count)
 );
 
-/*
- * Tracepoint for cpuid.
- */
+
 TRACE_EVENT(kvm_cpuid,
 	TP_PROTO(unsigned int function, unsigned long rax, unsigned long rbx,
 		 unsigned long rcx, unsigned long rdx),
@@ -120,9 +112,7 @@ TRACE_EVENT(kvm_cpuid,
 	AREG(LVTTHMR), AREG(LVTPC), AREG(LVT0), AREG(LVT1), AREG(LVTERR),   \
 	AREG(TMICT), AREG(TMCCT), AREG(TDCR), AREG(SELF_IPI), AREG(EFEAT),  \
 	AREG(ECTRL)
-/*
- * Tracepoint for apic access.
- */
+
 TRACE_EVENT(kvm_apic,
 	TP_PROTO(unsigned int rw, unsigned int reg, unsigned int val),
 	TP_ARGS(rw, reg, val),
@@ -148,9 +138,7 @@ TRACE_EVENT(kvm_apic,
 #define trace_kvm_apic_read(reg, val)		trace_kvm_apic(0, reg, val)
 #define trace_kvm_apic_write(reg, val)		trace_kvm_apic(1, reg, val)
 
-/*
- * Tracepoint for kvm guest exit:
- */
+
 TRACE_EVENT(kvm_exit,
 	TP_PROTO(unsigned int exit_reason, unsigned long guest_rip),
 	TP_ARGS(exit_reason, guest_rip),
@@ -171,9 +159,7 @@ TRACE_EVENT(kvm_exit,
 		 __entry->guest_rip)
 );
 
-/*
- * Tracepoint for kvm interrupt injection:
- */
+
 TRACE_EVENT(kvm_inj_virq,
 	TP_PROTO(unsigned int irq),
 	TP_ARGS(irq),
@@ -189,9 +175,7 @@ TRACE_EVENT(kvm_inj_virq,
 	TP_printk("irq %u", __entry->irq)
 );
 
-/*
- * Tracepoint for page fault.
- */
+
 TRACE_EVENT(kvm_page_fault,
 	TP_PROTO(unsigned long fault_address, unsigned int error_code),
 	TP_ARGS(fault_address, error_code),
@@ -210,9 +194,7 @@ TRACE_EVENT(kvm_page_fault,
 		  __entry->fault_address, __entry->error_code)
 );
 
-/*
- * Tracepoint for guest MSR access.
- */
+
 TRACE_EVENT(kvm_msr,
 	TP_PROTO(unsigned int rw, unsigned int ecx, unsigned long data),
 	TP_ARGS(rw, ecx, data),
@@ -237,9 +219,7 @@ TRACE_EVENT(kvm_msr,
 #define trace_kvm_msr_read(ecx, data)		trace_kvm_msr(0, ecx, data)
 #define trace_kvm_msr_write(ecx, data)		trace_kvm_msr(1, ecx, data)
 
-/*
- * Tracepoint for guest CR access.
- */
+
 TRACE_EVENT(kvm_cr,
 	TP_PROTO(unsigned int rw, unsigned int cr, unsigned long val),
 	TP_ARGS(rw, cr, val),
@@ -349,7 +329,7 @@ TRACE_EVENT(kvm_apic_accept_irq,
 		  __entry->coalesced ? " (coalesced)" : "")
 );
 
-#endif /* _TRACE_KVM_H */
+#endif 
 
-/* This part must be outside protection */
+
 #include <trace/define_trace.h>

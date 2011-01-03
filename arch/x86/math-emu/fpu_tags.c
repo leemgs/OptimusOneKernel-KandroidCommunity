@@ -1,14 +1,4 @@
-/*---------------------------------------------------------------------------+
- |  fpu_tags.c                                                               |
- |                                                                           |
- |  Set FPU register tags.                                                   |
- |                                                                           |
- | Copyright (C) 1997                                                        |
- |                  W. Metzenthen, 22 Parker St, Ormond, Vic 3163, Australia |
- |                  E-mail   billm@jacobi.maths.monash.edu.au                |
- |                                                                           |
- |                                                                           |
- +---------------------------------------------------------------------------*/
+
 
 #include "fpu_emu.h"
 #include "fpu_system.h"

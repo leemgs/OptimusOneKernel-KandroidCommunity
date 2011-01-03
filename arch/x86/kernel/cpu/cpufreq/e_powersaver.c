@@ -1,10 +1,4 @@
-/*
- *  Based on documentation provided by Dave Jones. Thanks!
- *
- *  Licensed under the terms of the GNU GPL License version 2.
- *
- *  BIG FAT DISCLAIMER: Work in progress code. Possibly *dangerous*
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -44,7 +38,7 @@ static unsigned int eps_get(unsigned int cpu)
 	if (centaur == NULL)
 		return 0;
 
-	/* Return current frequency */
+	
 	rdmsr(MSR_IA32_PERF_STATUS, lo, hi);
 	return centaur->fsb * ((lo >> 8) & 0xff);
 }
@@ -63,7 +57,7 @@ static int eps_set_state(struct eps_cpu_data *centaur,
 	freqs.cpu = cpu;
 	cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
 
-	/* Wait while CPU is busy */
+	
 	rdmsr(MSR_IA32_PERF_STATUS, lo, hi);
 	i = 0;
 	while (lo & ((1 << 16) | (1 << 17))) {
@@ -75,9 +69,9 @@ static int eps_set_state(struct eps_cpu_data *centaur,
 			goto postchange;
 		}
 	}
-	/* Set new multiplier and voltage */
+	
 	wrmsr(MSR_IA32_PERF_CTL, dest_state & 0xffff, 0);
-	/* Wait until transition end */
+	
 	i = 0;
 	do {
 		udelay(16);
@@ -89,7 +83,7 @@ static int eps_set_state(struct eps_cpu_data *centaur,
 		}
 	} while (lo & ((1 << 16) | (1 << 17)));
 
-	/* Return current frequency */
+	
 postchange:
 	rdmsr(MSR_IA32_PERF_STATUS, lo, hi);
 	freqs.new = centaur->fsb * ((lo >> 8) & 0xff);
@@ -98,7 +92,7 @@ postchange:
 	{
 	u8 current_multiplier, current_voltage;
 
-	/* Print voltage and multiplier */
+	
 	rdmsr(MSR_IA32_PERF_STATUS, lo, hi);
 	current_voltage = lo & 0xff;
 	printk(KERN_INFO "eps: Current voltage = %dmV\n",
@@ -134,7 +128,7 @@ static int eps_target(struct cpufreq_policy *policy,
 		return -EINVAL;
 	}
 
-	/* Make frequency transition */
+	
 	dest_state = centaur->freq_table[newstate].index & 0xffff;
 	ret = eps_set_state(centaur, cpu, dest_state);
 	if (ret)
@@ -168,7 +162,7 @@ static int eps_cpu_init(struct cpufreq_policy *policy)
 	if (policy->cpu != 0)
 		return -ENODEV;
 
-	/* Check brand */
+	
 	printk(KERN_INFO "eps: Detected VIA ");
 
 	switch (c->x86_model) {
@@ -202,12 +196,12 @@ static int eps_cpu_init(struct cpufreq_policy *policy)
 		return -ENODEV;
 		break;
 	}
-	/* Enable Enhanced PowerSaver */
+	
 	rdmsrl(MSR_IA32_MISC_ENABLE, val);
 	if (!(val & MSR_IA32_MISC_ENABLE_ENHANCED_SPEEDSTEP)) {
 		val |= MSR_IA32_MISC_ENABLE_ENHANCED_SPEEDSTEP;
 		wrmsrl(MSR_IA32_MISC_ENABLE, val);
-		/* Can be locked at 0 */
+		
 		rdmsrl(MSR_IA32_MISC_ENABLE, val);
 		if (!(val & MSR_IA32_MISC_ENABLE_ENHANCED_SPEEDSTEP)) {
 			printk(KERN_INFO "eps: Can't enable Enhanced PowerSaver\n");
@@ -215,7 +209,7 @@ static int eps_cpu_init(struct cpufreq_policy *policy)
 		}
 	}
 
-	/* Print voltage and multiplier */
+	
 	rdmsr(MSR_IA32_PERF_STATUS, lo, hi);
 	current_voltage = lo & 0xff;
 	printk(KERN_INFO "eps: Current voltage = %dmV\n",
@@ -223,7 +217,7 @@ static int eps_cpu_init(struct cpufreq_policy *policy)
 	current_multiplier = (lo >> 8) & 0xff;
 	printk(KERN_INFO "eps: Current multiplier = %d\n", current_multiplier);
 
-	/* Print limits */
+	
 	max_voltage = hi & 0xff;
 	printk(KERN_INFO "eps: Highest voltage = %dmV\n",
 			max_voltage * 16 + 700);
@@ -235,7 +229,7 @@ static int eps_cpu_init(struct cpufreq_policy *policy)
 	min_multiplier = (hi >> 24) & 0xff;
 	printk(KERN_INFO "eps: Lowest multiplier = %d\n", min_multiplier);
 
-	/* Sanity checks */
+	
 	if (current_multiplier == 0 || max_multiplier == 0
 	    || min_multiplier == 0)
 		return -EINVAL;
@@ -247,15 +241,15 @@ static int eps_cpu_init(struct cpufreq_policy *policy)
 	if (max_voltage < min_voltage)
 		return -EINVAL;
 
-	/* Calc FSB speed */
+	
 	fsb = cpu_khz / current_multiplier;
-	/* Calc number of p-states supported */
+	
 	if (brand == EPS_BRAND_C7M)
 		states = max_multiplier - min_multiplier + 1;
 	else
 		states = 2;
 
-	/* Allocate private data and frequency table for current cpu */
+	
 	centaur = kzalloc(sizeof(struct eps_cpu_data)
 		    + (states + 1) * sizeof(struct cpufreq_frequency_table),
 		    GFP_KERNEL);
@@ -263,10 +257,10 @@ static int eps_cpu_init(struct cpufreq_policy *policy)
 		return -ENOMEM;
 	eps_cpu[0] = centaur;
 
-	/* Copy basic values */
+	
 	centaur->fsb = fsb;
 
-	/* Fill frequency and MSR value table */
+	
 	f_table = &centaur->freq_table[0];
 	if (brand != EPS_BRAND_C7M) {
 		f_table[0].frequency = fsb * min_multiplier;
@@ -287,7 +281,7 @@ static int eps_cpu_init(struct cpufreq_policy *policy)
 		f_table[k].frequency = CPUFREQ_TABLE_END;
 	}
 
-	policy->cpuinfo.transition_latency = 140000; /* 844mV -> 700mV in ns */
+	policy->cpuinfo.transition_latency = 140000; 
 	policy->cur = fsb * current_multiplier;
 
 	ret = cpufreq_frequency_table_cpuinfo(policy, &centaur->freq_table[0]);
@@ -310,11 +304,11 @@ static int eps_cpu_exit(struct cpufreq_policy *policy)
 		return -ENODEV;
 	centaur = eps_cpu[cpu];
 
-	/* Get max frequency */
+	
 	rdmsr(MSR_IA32_PERF_STATUS, lo, hi);
-	/* Set max frequency */
+	
 	eps_set_state(centaur, cpu, hi & 0xffff);
-	/* Bye */
+	
 	cpufreq_frequency_table_put_attr(policy->cpu);
 	kfree(eps_cpu[cpu]);
 	eps_cpu[cpu] = NULL;
@@ -341,8 +335,7 @@ static int __init eps_init(void)
 {
 	struct cpuinfo_x86 *c = &cpu_data(0);
 
-	/* This driver will work only on Centaur C7 processors with
-	 * Enhanced SpeedStep/PowerSaver registers */
+	
 	if (c->x86_vendor != X86_VENDOR_CENTAUR
 	    || c->x86 != 6 || c->x86_model < 10)
 		return -ENODEV;

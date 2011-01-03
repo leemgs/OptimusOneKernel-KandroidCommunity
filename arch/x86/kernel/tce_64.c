@@ -1,27 +1,4 @@
-/*
- * This file manages the translation entries for the IBM Calgary IOMMU.
- *
- * Derived from arch/powerpc/platforms/pseries/iommu.c
- *
- * Copyright (C) IBM Corporation, 2006
- *
- * Author: Jon Mason <jdmason@us.ibm.com>
- * Author: Muli Ben-Yehuda <muli@il.ibm.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- */
+
 
 #include <linux/types.h>
 #include <linux/slab.h>
@@ -35,10 +12,10 @@
 #include <asm/calgary.h>
 #include <asm/proto.h>
 
-/* flush a tce at 'tceaddr' to main memory */
+
 static inline void flush_tce(void* tceaddr)
 {
-	/* a single tce can't cross a cache line */
+	
 	if (cpu_has_clflush)
 		clflush(tceaddr);
 	else
@@ -86,11 +63,7 @@ void tce_free(struct iommu_table *tbl, long index, unsigned int npages)
 
 static inline unsigned int table_size_to_number_of_entries(unsigned char size)
 {
-	/*
-	 * size is the order of the table, 0-7
-	 * smallest table is 8K entries, so shift result by 13 to
-	 * multiply by 8K
-	 */
+	
 	return (1 << size) << 13;
 }
 
@@ -102,13 +75,10 @@ static int tce_table_setparms(struct pci_dev *dev, struct iommu_table *tbl)
 
 	tbl->it_busno = dev->bus->number;
 
-	/* set the tce table size - measured in entries */
+	
 	tbl->it_size = table_size_to_number_of_entries(specified_table_size);
 
-	/*
-	 * number of bytes needed for the bitmap size in number of
-	 * entries; we need one bit per entry
-	 */
+	
 	bitmapsz = tbl->it_size / BITS_PER_BYTE;
 	bmppages = __get_free_pages(GFP_KERNEL, get_order(bitmapsz));
 	if (!bmppages) {

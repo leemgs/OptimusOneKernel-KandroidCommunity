@@ -1,29 +1,6 @@
-/* ----------------------------------------------------------------------- *
- *
- *   Copyright 2000-2008 H. Peter Anvin - All Rights Reserved
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation, Inc., 675 Mass Ave, Cambridge MA 02139,
- *   USA; either version 2 of the License, or (at your option) any later
- *   version; incorporated herein by reference.
- *
- * ----------------------------------------------------------------------- */
 
-/*
- * x86 CPUID access device
- *
- * This device is accessed by lseek() to the appropriate CPUID level
- * and then read in chunks of 16 bytes.  A larger size means multiple
- * reads of consecutive levels.
- *
- * The lower 32 bits of the file position is used as the incoming %eax,
- * and the upper 32 bits of the file position as the incoming %ecx,
- * the latter intended for "counting" eax levels like eax=4.
- *
- * This driver uses /dev/cpu/%d/cpuid where %d is the minor number, and on
- * an SMP box will direct the access to CPU %d.
- */
+
+
 
 #include <linux/module.h>
 
@@ -92,7 +69,7 @@ static ssize_t cpuid_read(struct file *file, char __user *buf,
 	int err = 0;
 
 	if (count % 16)
-		return -EINVAL;	/* Invalid chunk size */
+		return -EINVAL;	
 
 	for (; count; count -= 16) {
 		cmd.eax = pos;
@@ -122,20 +99,18 @@ static int cpuid_open(struct inode *inode, struct file *file)
 
 	cpu = iminor(file->f_path.dentry->d_inode);
 	if (cpu >= nr_cpu_ids || !cpu_online(cpu)) {
-		ret = -ENXIO;	/* No such CPU */
+		ret = -ENXIO;	
 		goto out;
 	}
 	c = &cpu_data(cpu);
 	if (c->cpuid_level < 0)
-		ret = -EIO;	/* CPUID not supported */
+		ret = -EIO;	
 out:
 	unlock_kernel();
 	return ret;
 }
 
-/*
- * File operations we support
- */
+
 static const struct file_operations cpuid_fops = {
 	.owner = THIS_MODULE,
 	.llseek = cpuid_seek,

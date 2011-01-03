@@ -1,25 +1,4 @@
-/*
- * VMware Detection code.
- *
- * Copyright (C) 2008, VMware, Inc.
- * Author : Alok N Kataria <akataria@vmware.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, GOOD TITLE or
- * NON INFRINGEMENT.  See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- */
+
 
 #include <linux/dmi.h>
 #include <asm/div64.h>
@@ -77,11 +56,7 @@ void __init vmware_platform_setup(void)
 		       "Failed to get TSC freq from the hypervisor\n");
 }
 
-/*
- * While checking the dmi string infomation, just checking the product
- * serial key should be enough, as this will always have a VMware
- * specific string when running under VMware hypervisor.
- */
+
 int vmware_platform(void)
 {
 	if (cpu_has_hypervisor) {
@@ -102,18 +77,7 @@ int vmware_platform(void)
 	return 0;
 }
 
-/*
- * VMware hypervisor takes care of exporting a reliable TSC to the guest.
- * Still, due to timing difference when running on virtual cpus, the TSC can
- * be marked as unstable in some cases. For example, the TSC sync check at
- * bootup can fail due to a marginal offset between vcpus' TSCs (though the
- * TSCs do not drift from each other).  Also, the ACPI PM timer clocksource
- * is not suitable as a watchdog when running on a hypervisor because the
- * kernel may miss a wrap of the counter if the vcpu is descheduled for a
- * long time. To skip these checks at runtime we set these capability bits,
- * so that the kernel could just trust the hypervisor with providing a
- * reliable virtual TSC that is suitable for timekeeping.
- */
+
 void __cpuinit vmware_set_feature_bits(struct cpuinfo_x86 *c)
 {
 	set_cpu_cap(c, X86_FEATURE_CONSTANT_TSC);

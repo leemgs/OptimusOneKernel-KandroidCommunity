@@ -1,17 +1,4 @@
-/*
- * @file op_model_ppro.h
- * Family 6 perfmon and architectural perfmon MSR operations
- *
- * @remark Copyright 2002 OProfile authors
- * @remark Copyright 2008 Intel Corporation
- * @remark Read the file COPYING
- *
- * @author John Levon
- * @author Philippe Elie
- * @author Graydon Hoare
- * @author Andi Kleen
- * @author Robert Richter <robert.richter@amd.com>
- */
+
 
 #include <linux/oprofile.h>
 #include <linux/slab.h>
@@ -67,10 +54,7 @@ static void ppro_setup_ctrs(struct op_x86_model_spec const *model,
 		union cpuid10_eax eax;
 		eax.full = cpuid_eax(0xa);
 
-		/*
-		 * For Core2 (family 6, model 15), don't reset the
-		 * counter width:
-		 */
+		
 		if (!(eax.split.version_id == 0 &&
 			current_cpu_data.x86 == 6 &&
 				current_cpu_data.x86_model == 15)) {
@@ -80,7 +64,7 @@ static void ppro_setup_ctrs(struct op_x86_model_spec const *model,
 		}
 	}
 
-	/* clear all counters */
+	
 	for (i = 0; i < num_counters; ++i) {
 		if (unlikely(!msrs->controls[i].addr))
 			continue;
@@ -89,14 +73,14 @@ static void ppro_setup_ctrs(struct op_x86_model_spec const *model,
 		wrmsrl(msrs->controls[i].addr, val);
 	}
 
-	/* avoid a false detection of ctr overflows in NMI handler */
+	
 	for (i = 0; i < num_counters; ++i) {
 		if (unlikely(!msrs->counters[i].addr))
 			continue;
 		wrmsrl(msrs->counters[i].addr, -1LL);
 	}
 
-	/* enable active counters */
+	
 	for (i = 0; i < num_counters; ++i) {
 		if (counter_config[i].enabled && msrs->counters[i].addr) {
 			reset_value[i] = counter_config[i].count;
@@ -118,10 +102,7 @@ static int ppro_check_ctrs(struct pt_regs * const regs,
 	u64 val;
 	int i;
 
-	/*
-	 * This can happen if perf counters are in use when
-	 * we steal the die notifier NMI.
-	 */
+	
 	if (unlikely(!reset_value))
 		goto out;
 
@@ -136,17 +117,10 @@ static int ppro_check_ctrs(struct pt_regs * const regs,
 	}
 
 out:
-	/* Only P6 based Pentium M need to re-unmask the apic vector but it
-	 * doesn't hurt other P6 variant */
+	
 	apic_write(APIC_LVTPC, apic_read(APIC_LVTPC) & ~APIC_LVT_MASKED);
 
-	/* We can't work out if we really handled an interrupt. We
-	 * might have caught a *second* counter just after overflowing
-	 * the interrupt for this counter then arrives
-	 * and we don't find a counter that's overflowed, so we
-	 * would return 0 and get dazed + confused. Instead we always
-	 * assume we found an overflow. This sucks.
-	 */
+	
 	return 1;
 }
 
@@ -215,14 +189,7 @@ struct op_x86_model_spec op_ppro_spec = {
 	.shutdown		= &ppro_shutdown
 };
 
-/*
- * Architectural performance monitoring.
- *
- * Newer Intel CPUs (Core1+) have support for architectural
- * events described in CPUID 0xA. See the IA32 SDM Vol3b.18 for details.
- * The advantage of this is that it can be done without knowing about
- * the specific CPU.
- */
+
 
 static void arch_perfmon_setup_counters(void)
 {
@@ -230,7 +197,7 @@ static void arch_perfmon_setup_counters(void)
 
 	eax.full = cpuid_eax(0xa);
 
-	/* Workaround for BIOS bugs in 6/15. Taken from perfmon2 */
+	
 	if (eax.split.version_id == 0 && current_cpu_data.x86 == 6 &&
 		current_cpu_data.x86_model == 15) {
 		eax.split.version_id = 2;
@@ -253,9 +220,9 @@ static int arch_perfmon_init(struct oprofile_operations *ignore)
 struct op_x86_model_spec op_arch_perfmon_spec = {
 	.reserved		= MSR_PPRO_EVENTSEL_RESERVED,
 	.init			= &arch_perfmon_init,
-	/* num_counters/num_controls filled in at runtime */
+	
 	.fill_in_addresses	= &ppro_fill_in_addresses,
-	/* user space does the cpuid check for available events */
+	
 	.setup_ctrs		= &ppro_setup_ctrs,
 	.check_ctrs		= &ppro_check_ctrs,
 	.start			= &ppro_start,

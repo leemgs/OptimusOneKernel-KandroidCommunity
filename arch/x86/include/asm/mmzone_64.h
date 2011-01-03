@@ -1,6 +1,6 @@
-/* K8 NUMA support */
-/* Copyright 2002,2003 by Andi Kleen, SuSE Labs */
-/* 2.5 Version loosely based on the NUMAQ Code by Pat Gaughen. */
+
+
+
 #ifndef _ASM_X86_MMZONE_64_H
 #define _ASM_X86_MMZONE_64_H
 
@@ -11,13 +11,13 @@
 
 #include <asm/smp.h>
 
-/* Simple perfect hash to map physical addresses to node numbers */
+
 struct memnode {
 	int shift;
 	unsigned int mapsize;
 	s16 *map;
 	s16 embedded_map[64 - 8];
-} ____cacheline_aligned; /* total size = 128 bytes */
+} ____cacheline_aligned; 
 extern struct memnode memnode;
 #define memnode_shift memnode.shift
 #define memnodemap memnode.map
@@ -46,4 +46,4 @@ static inline __attribute__((pure)) int phys_to_nid(unsigned long addr)
 #endif
 
 #endif
-#endif /* _ASM_X86_MMZONE_64_H */
+#endif 

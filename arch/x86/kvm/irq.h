@@ -1,23 +1,4 @@
-/*
- * irq.h: in kernel interrupt controller related definitions
- * Copyright (c) 2007, Intel Corporation.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
- *
- * This program is distributed in the hope it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
- * Place - Suite 330, Boston, MA 02111-1307 USA.
- * Authors:
- *   Yaozu (Eddie) Dong <Eddie.dong@intel.com>
- *
- */
+
 
 #ifndef __IRQ_H
 #define __IRQ_H
@@ -41,12 +22,12 @@ struct kvm_vcpu;
 typedef void irq_request_func(void *opaque, int level);
 
 struct kvm_kpic_state {
-	u8 last_irr;	/* edge detection */
-	u8 irr;		/* interrupt request register */
-	u8 imr;		/* interrupt mask register */
-	u8 isr;		/* interrupt service register */
-	u8 isr_ack;	/* interrupt ack detection */
-	u8 priority_add;	/* highest irq priority */
+	u8 last_irr;	
+	u8 irr;		
+	u8 imr;		
+	u8 isr;		
+	u8 isr_ack;	
+	u8 priority_add;	
 	u8 irq_base;
 	u8 read_reg_select;
 	u8 poll;
@@ -55,8 +36,8 @@ struct kvm_kpic_state {
 	u8 auto_eoi;
 	u8 rotate_on_auto_eoi;
 	u8 special_fully_nested_mode;
-	u8 init4;		/* true if 4 byte init */
-	u8 elcr;		/* PIIX edge/trigger selection */
+	u8 init4;		
+	u8 elcr;		
 	u8 elcr_mask;
 	struct kvm_pic *pics_state;
 };
@@ -65,10 +46,10 @@ struct kvm_pic {
 	spinlock_t lock;
 	unsigned pending_acks;
 	struct kvm *kvm;
-	struct kvm_kpic_state pics[2]; /* 0 is master pic, 1 is slave pic */
+	struct kvm_kpic_state pics[2]; 
 	irq_request_func *irq_request;
 	void *irq_request_opaque;
-	int output;		/* intr from master PIC */
+	int output;		
 	struct kvm_io_device dev;
 	void (*ack_notifier)(void *opaque, int irq);
 };

@@ -17,18 +17,13 @@ static int x2apic_acpi_madt_oem_check(char *oem_id, char *oem_table_id)
 	return x2apic_enabled();
 }
 
-/*
- * need to use more than cpu 0, because we need more vectors when
- * MSI-X are used.
- */
+
 static const struct cpumask *x2apic_target_cpus(void)
 {
 	return cpu_online_mask;
 }
 
-/*
- * for now each logical cpu is in its own vector allocation domain.
- */
+
 static void x2apic_vector_allocation_domain(int cpu, struct cpumask *retmask)
 {
 	cpumask_clear(retmask);
@@ -42,18 +37,11 @@ static void
 
 	cfg = __prepare_ICR(0, vector, dest);
 
-	/*
-	 * send the IPI.
-	 */
+	
 	native_x2apic_icr_write(cfg, apicid);
 }
 
-/*
- * for now, we send the IPI's one by one in the cpumask.
- * TBD: Based on the cpu mask, we can send the IPI's to the cluster group
- * at once. We have 16 cpu's in a cluster. This will minimize IPI register
- * writes.
- */
+
 static void x2apic_send_IPI_mask(const struct cpumask *mask, int vector)
 {
 	unsigned long query_cpu;
@@ -121,10 +109,7 @@ static int x2apic_apic_id_registered(void)
 
 static unsigned int x2apic_cpu_mask_to_apicid(const struct cpumask *cpumask)
 {
-	/*
-	 * We're using fixed IRQ delivery, can only return one logical APIC ID.
-	 * May as well be the first.
-	 */
+	
 	int cpu = cpumask_first(cpumask);
 
 	if ((unsigned)cpu < nr_cpu_ids)
@@ -139,10 +124,7 @@ x2apic_cpu_mask_to_apicid_and(const struct cpumask *cpumask,
 {
 	int cpu;
 
-	/*
-	 * We're using fixed IRQ delivery, can only return one logical APIC ID.
-	 * May as well be the first.
-	 */
+	
 	for_each_cpu_and(cpu, cpumask, andmask) {
 		if (cpumask_test_cpu(cpu, cpu_online_mask))
 			break;
@@ -195,7 +177,7 @@ struct apic apic_x2apic_cluster = {
 	.apic_id_registered		= x2apic_apic_id_registered,
 
 	.irq_delivery_mode		= dest_LowestPrio,
-	.irq_dest_mode			= 1, /* logical */
+	.irq_dest_mode			= 1, 
 
 	.target_cpus			= x2apic_target_cpus,
 	.disable_esr			= 0,

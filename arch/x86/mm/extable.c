@@ -23,7 +23,7 @@ int fixup_exception(struct pt_regs *regs)
 
 	fixup = search_exception_tables(regs->ip);
 	if (fixup) {
-		/* If fixup is less than 16, it means uaccess error */
+		
 		if (fixup->fixup < 16) {
 			current_thread_info()->uaccess_err = -EFAULT;
 			regs->ip += fixup->fixup;
@@ -37,16 +37,13 @@ int fixup_exception(struct pt_regs *regs)
 }
 
 #ifdef CONFIG_X86_64
-/*
- * Need to defined our own search_extable on X86_64 to work around
- * a B stepping K8 bug.
- */
+
 const struct exception_table_entry *
 search_extable(const struct exception_table_entry *first,
 	       const struct exception_table_entry *last,
 	       unsigned long value)
 {
-	/* B stepping K8 bug */
+	
 	if ((value >> 32) == 0)
 		value |= 0xffffffffUL << 32;
 

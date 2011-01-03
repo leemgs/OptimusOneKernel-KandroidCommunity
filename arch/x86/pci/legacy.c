@@ -1,14 +1,9 @@
-/*
- * legacy.c - traditional, old school PCI bus probing
- */
+
 #include <linux/init.h>
 #include <linux/pci.h>
 #include <asm/pci_x86.h>
 
-/*
- * Discover remaining PCI buses in case there are peer host bridges.
- * We use the number of last PCI bus provided by the PCI BIOS.
- */
+
 static void __devinit pcibios_fixup_peer_bridges(void)
 {
 	int n, devfn;

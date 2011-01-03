@@ -1,11 +1,4 @@
-/*
- *	SGI UltraViolet TLB flush routines.
- *
- *	(c) 2008 Cliff Wickman <cpw@sgi.com>, SGI.
- *
- *	This code is released under the GNU General Public License version 2 or
- *	later.
- */
+
 #include <linux/seq_file.h>
 #include <linux/proc_fs.h>
 #include <linux/kernel.h>
@@ -23,7 +16,7 @@
 static struct bau_control	**uv_bau_table_bases __read_mostly;
 static int			uv_bau_retry_limit __read_mostly;
 
-/* base pnode in this partition */
+
 static int			uv_partition_base_pnode __read_mostly;
 
 static unsigned long		uv_mmask __read_mostly;
@@ -31,9 +24,7 @@ static unsigned long		uv_mmask __read_mostly;
 static DEFINE_PER_CPU(struct ptc_stats, ptcstats);
 static DEFINE_PER_CPU(struct bau_control, bau_control);
 
-/*
- * Determine the first node on a blade.
- */
+
 static int __init blade_to_first_node(int blade)
 {
 	int node, b;
@@ -43,12 +34,10 @@ static int __init blade_to_first_node(int blade)
 		if (blade == b)
 			return node;
 	}
-	return -1; /* shouldn't happen */
+	return -1; 
 }
 
-/*
- * Determine the apicid of the first cpu on a blade.
- */
+
 static int __init blade_to_first_apicid(int blade)
 {
 	int cpu;
@@ -59,14 +48,7 @@ static int __init blade_to_first_apicid(int blade)
 	return -1;
 }
 
-/*
- * Free a software acknowledge hardware resource by clearing its Pending
- * bit. This will return a reply to the sender.
- * If the message has timed out, a reply has already been sent by the
- * hardware but the resource has not been released. In that case our
- * clear of the Timeout bit (as well) will free the resource. No reply will
- * be sent (the hardware will only do one reply per message).
- */
+
 static void uv_reply_to_message(int resource,
 				struct bau_payload_queue_entry *msg,
 				struct bau_msg_status *msp)
@@ -81,10 +63,7 @@ static void uv_reply_to_message(int resource,
 	uv_write_local_mmr(UVH_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE_ALIAS, dw);
 }
 
-/*
- * Do all the things a cpu should do for a TLB shootdown message.
- * Other cpu's may come here at the same time for this message.
- */
+
 static void uv_bau_process_message(struct bau_payload_queue_entry *msg,
 				   int msg_slot, int sw_ack_slot)
 {
@@ -119,12 +98,7 @@ static void uv_bau_process_message(struct bau_payload_queue_entry *msg,
 		uv_reply_to_message(sw_ack_slot, msg, msp);
 }
 
-/*
- * Examine the payload queue on one distribution node to see
- * which messages have not been seen, and which cpu(s) have not seen them.
- *
- * Returns the number of cpu's that have not responded.
- */
+
 static int uv_examine_destination(struct bau_control *bau_tablesp, int sender)
 {
 	struct bau_payload_queue_entry *msg;
@@ -153,12 +127,7 @@ static int uv_examine_destination(struct bau_control *bau_tablesp, int sender)
 	return count;
 }
 
-/*
- * Examine the payload queue on all the distribution nodes to see
- * which messages have not been seen, and which cpu(s) have not seen them.
- *
- * Returns the number of cpu's that have not responded.
- */
+
 static int uv_examine_destinations(struct bau_target_nodemask *distribution)
 {
 	int sender;
@@ -174,11 +143,7 @@ static int uv_examine_destinations(struct bau_target_nodemask *distribution)
 	return count;
 }
 
-/*
- * wait for completion of a broadcast message
- *
- * return COMPLETE, RETRY or GIVEUP
- */
+
 static int uv_wait_completion(struct bau_desc *bau_desc,
 			      unsigned long mmr_offset, int right_shift)
 {
@@ -198,15 +163,11 @@ static int uv_wait_completion(struct bau_desc *bau_desc,
 			__get_cpu_var(ptcstats).s_retry++;
 			return FLUSH_RETRY;
 		}
-		/*
-		 * spin here looking for progress at the destinations
-		 */
+		
 		if (descriptor_status == DESC_STATUS_DESTINATION_TIMEOUT) {
 			destination_timeouts++;
 			if (destination_timeouts > DESTINATION_TIMEOUT_LIMIT) {
-				/*
-				 * returns number of cpus not responding
-				 */
+				
 				if (uv_examine_destinations
 				    (&bau_desc->distribution) == 0) {
 					__get_cpu_var(ptcstats).d_retry++;
@@ -220,10 +181,7 @@ static int uv_wait_completion(struct bau_desc *bau_desc,
 					       smp_processor_id());
 					return FLUSH_GIVEUP;
 				}
-				/*
-				 * delays can hang the simulator
-				   udelay(1000);
-				 */
+				
 				destination_timeouts = 0;
 			}
 		}
@@ -232,17 +190,7 @@ static int uv_wait_completion(struct bau_desc *bau_desc,
 	return FLUSH_COMPLETE;
 }
 
-/**
- * uv_flush_send_and_wait
- *
- * Send a broadcast and wait for a broadcast message to complete.
- *
- * The flush_mask contains the cpus the broadcast was sent to.
- *
- * Returns NULL if all remote flushing was done. The mask is zeroed.
- * Returns @flush_mask if some remote flushing remains to be done. The
- * mask will have some bits still set.
- */
+
 const struct cpumask *uv_flush_send_and_wait(int cpu, int this_pnode,
 					     struct bau_desc *bau_desc,
 					     struct cpumask *flush_mask)
@@ -280,18 +228,12 @@ const struct cpumask *uv_flush_send_and_wait(int cpu, int this_pnode,
 		__get_cpu_var(ptcstats).retriesok++;
 
 	if (completion_status == FLUSH_GIVEUP) {
-		/*
-		 * Cause the caller to do an IPI-style TLB shootdown on
-		 * the cpu's, all of which are still in the mask.
-		 */
+		
 		__get_cpu_var(ptcstats).ptc_i++;
 		return flush_mask;
 	}
 
-	/*
-	 * Success, so clear the remote cpu's from the mask so we don't
-	 * use the IPI method of shootdown on them.
-	 */
+	
 	for_each_cpu(bit, flush_mask) {
 		pnode = uv_cpu_to_pnode(bit);
 		if (pnode == this_pnode)
@@ -305,31 +247,7 @@ const struct cpumask *uv_flush_send_and_wait(int cpu, int this_pnode,
 
 static DEFINE_PER_CPU(cpumask_var_t, uv_flush_tlb_mask);
 
-/**
- * uv_flush_tlb_others - globally purge translation cache of a virtual
- * address or all TLB's
- * @cpumask: mask of all cpu's in which the address is to be removed
- * @mm: mm_struct containing virtual address range
- * @va: virtual address to be removed (or TLB_FLUSH_ALL for all TLB's on cpu)
- * @cpu: the current cpu
- *
- * This is the entry point for initiating any UV global TLB shootdown.
- *
- * Purges the translation caches of all specified processors of the given
- * virtual address, or purges all TLB's on specified processors.
- *
- * The caller has derived the cpumask from the mm_struct.  This function
- * is called only if there are bits set in the mask. (e.g. flush_tlb_page())
- *
- * The cpumask is converted into a nodemask of the nodes containing
- * the cpus.
- *
- * Note that this function should be called with preemption disabled.
- *
- * Returns NULL if all remote flushing was done.
- * Returns pointer to cpumask if some remote flushing remains to be
- * done.  The returned pointer is valid till preemption is re-enabled.
- */
+
 const struct cpumask *uv_flush_tlb_others(const struct cpumask *cpumask,
 					  struct mm_struct *mm,
 					  unsigned long va, unsigned int cpu)
@@ -365,9 +283,7 @@ const struct cpumask *uv_flush_tlb_others(const struct cpumask *cpumask,
 		i++;
 	}
 	if (i == 0) {
-		/*
-		 * no off_node flushing; return status for local node
-		 */
+		
 		if (locals)
 			return flush_mask;
 		else
@@ -382,20 +298,7 @@ const struct cpumask *uv_flush_tlb_others(const struct cpumask *cpumask,
 	return uv_flush_send_and_wait(uv_cpu, this_pnode, bau_desc, flush_mask);
 }
 
-/*
- * The BAU message interrupt comes here. (registered by set_intr_gate)
- * See entry_64.S
- *
- * We received a broadcast assist message.
- *
- * Interrupts may have been disabled; this interrupt could represent
- * the receipt of several messages.
- *
- * All cores/threads on this node get this interrupt.
- * The last one to see it does the s/w ack.
- * (the resource will not be freed until noninterruptable cpus see this
- *  interrupt; hardware will timeout the s/w ack and reply ERROR)
- */
+
 void uv_bau_message_interrupt(struct pt_regs *regs)
 {
 	struct bau_payload_queue_entry *va_queue_first;
@@ -447,14 +350,7 @@ void uv_bau_message_interrupt(struct pt_regs *regs)
 	set_irq_regs(old_regs);
 }
 
-/*
- * uv_enable_timeouts
- *
- * Each target blade (i.e. blades that have cpu's) needs to have
- * shootdown message timeouts enabled.  The timeout does not cause
- * an interrupt, but causes an error message to be returned to
- * the sender.
- */
+
 static void uv_enable_timeouts(void)
 {
 	int blade;
@@ -471,30 +367,19 @@ static void uv_enable_timeouts(void)
 		pnode = uv_blade_to_pnode(blade);
 		mmr_image =
 		    uv_read_global_mmr64(pnode, UVH_LB_BAU_MISC_CONTROL);
-		/*
-		 * Set the timeout period and then lock it in, in three
-		 * steps; captures and locks in the period.
-		 *
-		 * To program the period, the SOFT_ACK_MODE must be off.
-		 */
+		
 		mmr_image &= ~((unsigned long)1 <<
 			       UV_ENABLE_INTD_SOFT_ACK_MODE_SHIFT);
 		uv_write_global_mmr64
 		    (pnode, UVH_LB_BAU_MISC_CONTROL, mmr_image);
-		/*
-		 * Set the 4-bit period.
-		 */
+		
 		mmr_image &= ~((unsigned long)0xf <<
 			UV_INTD_SOFT_ACK_TIMEOUT_PERIOD_SHIFT);
 		mmr_image |= (UV_INTD_SOFT_ACK_TIMEOUT_PERIOD <<
 			     UV_INTD_SOFT_ACK_TIMEOUT_PERIOD_SHIFT);
 		uv_write_global_mmr64
 		    (pnode, UVH_LB_BAU_MISC_CONTROL, mmr_image);
-		/*
-		 * Subsequent reversals of the timebase bit (3) cause an
-		 * immediate timeout of one or all INTD resources as
-		 * indicated in bits 2:0 (7 causes all of them to timeout).
-		 */
+		
 		mmr_image |= ((unsigned long)1 <<
 			      UV_ENABLE_INTD_SOFT_ACK_MODE_SHIFT);
 		uv_write_global_mmr64
@@ -521,10 +406,7 @@ static void uv_ptc_seq_stop(struct seq_file *file, void *data)
 {
 }
 
-/*
- * Display the statistics thru /proc
- * data points to the cpu number
- */
+
 static int uv_ptc_seq_show(struct seq_file *file, void *data)
 {
 	struct ptc_stats *stat;
@@ -555,10 +437,7 @@ static int uv_ptc_seq_show(struct seq_file *file, void *data)
 	return 0;
 }
 
-/*
- *  0: display meaning of the statistics
- * >0: retry limit
- */
+
 static ssize_t uv_ptc_proc_write(struct file *file, const char __user *user,
 				 size_t count, loff_t *data)
 {
@@ -648,9 +527,7 @@ static int __init uv_ptc_init(void)
 	return 0;
 }
 
-/*
- * begin the initialization of the per-blade control structures
- */
+
 static struct bau_control * __init uv_table_bases_init(int blade, int node)
 {
 	int i;
@@ -675,9 +552,7 @@ static struct bau_control * __init uv_table_bases_init(int blade, int node)
 	return bau_tabp;
 }
 
-/*
- * finish the initialization of the per-blade control structures
- */
+
 static void __init
 uv_table_bases_finish(int blade,
 		      struct bau_control *bau_tablesp,
@@ -699,9 +574,7 @@ uv_table_bases_finish(int blade,
 	}
 }
 
-/*
- * initialize the sending side's sending buffers
- */
+
 static struct bau_desc * __init
 uv_activation_descriptor_init(int node, int pnode)
 {
@@ -712,50 +585,34 @@ uv_activation_descriptor_init(int node, int pnode)
 	struct bau_desc *adp;
 	struct bau_desc *ad2;
 
-	/*
-	 * each bau_desc is 64 bytes; there are 8 (UV_ITEMS_PER_DESCRIPTOR)
-	 * per cpu; and up to 32 (UV_ADP_SIZE) cpu's per blade
-	 */
+	
 	adp = (struct bau_desc *)kmalloc_node(sizeof(struct bau_desc)*
 		UV_ADP_SIZE*UV_ITEMS_PER_DESCRIPTOR, GFP_KERNEL, node);
 	BUG_ON(!adp);
 
-	pa = uv_gpa(adp); /* need the real nasid*/
+	pa = uv_gpa(adp); 
 	n = uv_gpa_to_pnode(pa);
 	m = pa & uv_mmask;
 
 	uv_write_global_mmr64(pnode, UVH_LB_BAU_SB_DESCRIPTOR_BASE,
 			      (n << UV_DESC_BASE_PNODE_SHIFT | m));
 
-	/*
-	 * initializing all 8 (UV_ITEMS_PER_DESCRIPTOR) descriptors for each
-	 * cpu even though we only use the first one; one descriptor can
-	 * describe a broadcast to 256 nodes.
-	 */
+	
 	for (i = 0, ad2 = adp; i < (UV_ADP_SIZE*UV_ITEMS_PER_DESCRIPTOR);
 		i++, ad2++) {
 		memset(ad2, 0, sizeof(struct bau_desc));
 		ad2->header.sw_ack_flag = 1;
-		/*
-		 * base_dest_nodeid is the first node in the partition, so
-		 * the bit map will indicate partition-relative node numbers.
-		 * note that base_dest_nodeid is actually a nasid.
-		 */
+		
 		ad2->header.base_dest_nodeid = uv_partition_base_pnode << 1;
-		ad2->header.dest_subnodeid = 0x10; /* the LB */
+		ad2->header.dest_subnodeid = 0x10; 
 		ad2->header.command = UV_NET_ENDPOINT_INTD;
 		ad2->header.int_both = 1;
-		/*
-		 * all others need to be set to zero:
-		 *   fairness chaining multilevel count replied_to
-		 */
+		
 	}
 	return adp;
 }
 
-/*
- * initialize the destination side's receiving buffers
- */
+
 static struct bau_payload_queue_entry * __init
 uv_payload_queue_init(int node, int pnode, struct bau_control *bau_tablesp)
 {
@@ -772,9 +629,7 @@ uv_payload_queue_init(int node, int pnode, struct bau_control *bau_tablesp)
 	cp = (char *)pqp + 31;
 	pqp = (struct bau_payload_queue_entry *)(((unsigned long)cp >> 5) << 5);
 	bau_tablesp->va_queue_first = pqp;
-	/*
-	 * need the pnode of where the memory was really allocated
-	 */
+	
 	pa = uv_gpa(pqp);
 	pn = uv_gpa_to_pnode(pa);
 	uv_write_global_mmr64(pnode,
@@ -792,9 +647,7 @@ uv_payload_queue_init(int node, int pnode, struct bau_control *bau_tablesp)
 	return pqp;
 }
 
-/*
- * Initialization of each UV blade's structures
- */
+
 static int __init uv_init_blade(int blade)
 {
 	int node;
@@ -811,10 +664,7 @@ static int __init uv_init_blade(int blade)
 	adp = uv_activation_descriptor_init(node, pnode);
 	pqp = uv_payload_queue_init(node, pnode, bau_tablesp);
 	uv_table_bases_finish(blade, bau_tablesp, adp);
-	/*
-	 * the below initialization can't be in firmware because the
-	 * messaging IRQ will be determined by the OS
-	 */
+	
 	apicid = blade_to_first_apicid(blade);
 	pa = uv_read_global_mmr64(pnode, UVH_BAU_DATA_CONFIG);
 	uv_write_global_mmr64(pnode, UVH_BAU_DATA_CONFIG,
@@ -822,9 +672,7 @@ static int __init uv_init_blade(int blade)
 	return 0;
 }
 
-/*
- * Initialization of BAU-related structures
- */
+
 static int __init uv_bau_init(void)
 {
 	int blade;

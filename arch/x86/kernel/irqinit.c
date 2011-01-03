@@ -27,34 +27,12 @@
 #include <asm/i8259.h>
 #include <asm/traps.h>
 
-/*
- * ISA PIC or low IO-APIC triggered (INTA-cycle or APIC) interrupts:
- * (these are usually mapped to vectors 0x30-0x3f)
- */
 
-/*
- * The IO-APIC gives us many more interrupt sources. Most of these
- * are unused but an SMP system is supposed to have enough memory ...
- * sometimes (mostly wrt. hw bugs) we get corrupted vectors all
- * across the spectrum, so we really want to be prepared to get all
- * of these. Plus, more powerful systems might have more than 64
- * IO-APIC registers.
- *
- * (these are usually mapped into the 0x30-0xff vector range)
- */
+
+
 
 #ifdef CONFIG_X86_32
-/*
- * Note that on a 486, we don't want to do a SIGFPE on an irq13
- * as the irq is unreliable, and exception 16 works correctly
- * (ie as explained in the intel literature). On a 386, you
- * can't use exception 16 due to bad IBM design, so we have to
- * rely on the less exact irq13.
- *
- * Careful.. Not only is IRQ13 unreliable, but it is also
- * leads to races. IBM designers who came up with it should
- * be shot.
- */
+
 
 static irqreturn_t math_error_irq(int cpl, void *dev_id)
 {
@@ -65,19 +43,14 @@ static irqreturn_t math_error_irq(int cpl, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-/*
- * New motherboards sometimes make IRQ 13 be a PCI interrupt,
- * so allow interrupt sharing.
- */
+
 static struct irqaction fpu_irq = {
 	.handler = math_error_irq,
 	.name = "fpu",
 };
 #endif
 
-/*
- * IRQ2 is cascade interrupt to second interrupt controller
- */
+
 static struct irqaction irq2 = {
 	.handler = no_action,
 	.name = "cascade",
@@ -125,9 +98,7 @@ void __init init_ISA_irqs(void)
 #endif
 	init_8259A(0);
 
-	/*
-	 * 16 old-style INTA-cycle interrupts:
-	 */
+	
 	for (i = 0; i < NR_IRQS_LEGACY; i++) {
 		struct irq_desc *desc = irq_to_desc(i);
 
@@ -149,13 +120,10 @@ static void __init smp_intr_init(void)
 {
 #ifdef CONFIG_SMP
 #if defined(CONFIG_X86_64) || defined(CONFIG_X86_LOCAL_APIC)
-	/*
-	 * The reschedule interrupt is a CPU-to-CPU reschedule-helper
-	 * IPI, driven by wakeup.
-	 */
+	
 	alloc_intr_gate(RESCHEDULE_VECTOR, reschedule_interrupt);
 
-	/* IPIs for invalidation */
+	
 	alloc_intr_gate(INVALIDATE_TLB_VECTOR_START+0, invalidate_interrupt0);
 	alloc_intr_gate(INVALIDATE_TLB_VECTOR_START+1, invalidate_interrupt1);
 	alloc_intr_gate(INVALIDATE_TLB_VECTOR_START+2, invalidate_interrupt2);
@@ -165,21 +133,21 @@ static void __init smp_intr_init(void)
 	alloc_intr_gate(INVALIDATE_TLB_VECTOR_START+6, invalidate_interrupt6);
 	alloc_intr_gate(INVALIDATE_TLB_VECTOR_START+7, invalidate_interrupt7);
 
-	/* IPI for generic function call */
+	
 	alloc_intr_gate(CALL_FUNCTION_VECTOR, call_function_interrupt);
 
-	/* IPI for generic single function call */
+	
 	alloc_intr_gate(CALL_FUNCTION_SINGLE_VECTOR,
 			call_function_single_interrupt);
 
-	/* Low priority IPI to cleanup after moving an irq */
+	
 	set_intr_gate(IRQ_MOVE_CLEANUP_VECTOR, irq_move_cleanup_interrupt);
 	set_bit(IRQ_MOVE_CLEANUP_VECTOR, used_vectors);
 
-	/* IPI used for rebooting/stopping */
+	
 	alloc_intr_gate(REBOOT_VECTOR, reboot_interrupt);
 #endif
-#endif /* CONFIG_SMP */
+#endif 
 }
 
 static void __init apic_intr_init(void)
@@ -197,17 +165,17 @@ static void __init apic_intr_init(void)
 #endif
 
 #if defined(CONFIG_X86_64) || defined(CONFIG_X86_LOCAL_APIC)
-	/* self generated IPI for local APIC timer */
+	
 	alloc_intr_gate(LOCAL_TIMER_VECTOR, apic_timer_interrupt);
 
-	/* generic IPI for platform specific use */
+	
 	alloc_intr_gate(GENERIC_INTERRUPT_VECTOR, generic_interrupt);
 
-	/* IPI vectors for APIC spurious and error interrupts */
+	
 	alloc_intr_gate(SPURIOUS_APIC_VECTOR, spurious_interrupt);
 	alloc_intr_gate(ERROR_APIC_VECTOR, error_interrupt);
 
-	/* Performance monitoring interrupts: */
+	
 # ifdef CONFIG_PERF_EVENTS
 	alloc_intr_gate(LOCAL_PENDING_VECTOR, perf_pending_interrupt);
 # endif
@@ -219,18 +187,14 @@ void __init native_init_IRQ(void)
 {
 	int i;
 
-	/* Execute any quirks before the call gates are initialised: */
+	
 	x86_init.irqs.pre_vector_init();
 
 	apic_intr_init();
 
-	/*
-	 * Cover the whole vector space, no vector can escape
-	 * us. (some of these will be overridden and become
-	 * 'special' SMP interrupts)
-	 */
+	
 	for (i = FIRST_EXTERNAL_VECTOR; i < NR_VECTORS; i++) {
-		/* IA32_SYSCALL_VECTOR could be used in trap_init already. */
+		
 		if (!test_bit(i, used_vectors))
 			set_intr_gate(i, interrupt[i-FIRST_EXTERNAL_VECTOR]);
 	}
@@ -239,10 +203,7 @@ void __init native_init_IRQ(void)
 		setup_irq(2, &irq2);
 
 #ifdef CONFIG_X86_32
-	/*
-	 * External FPU? Set up irq13 if so, for
-	 * original braindamaged IBM FERR coupling.
-	 */
+	
 	if (boot_cpu_data.hard_math && !cpu_has_fpu)
 		setup_irq(FPU_IRQ, &fpu_irq);
 

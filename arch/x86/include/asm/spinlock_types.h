@@ -17,4 +17,4 @@ typedef struct {
 
 #define __RAW_RW_LOCK_UNLOCKED		{ RW_LOCK_BIAS }
 
-#endif /* _ASM_X86_SPINLOCK_TYPES_H */
+#endif 

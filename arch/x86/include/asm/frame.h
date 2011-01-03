@@ -2,9 +2,7 @@
 
 #include <asm/dwarf2.h>
 
-/* The annotation hides the frame from the unwinder and makes it look
-   like a ordinary ebp save/restore. This avoids some special cases for
-   frame pointer later */
+
 #ifdef CONFIG_FRAME_POINTER
 	.macro FRAME
 	pushl %ebp
@@ -24,4 +22,4 @@
 	.endm
 #endif
 
-#endif  /*  __ASSEMBLY__  */
+#endif  

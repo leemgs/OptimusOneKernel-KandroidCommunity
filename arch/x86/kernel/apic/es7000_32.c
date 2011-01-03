@@ -1,32 +1,4 @@
-/*
- * Written by: Garry Forsgren, Unisys Corporation
- *             Natalie Protasevich, Unisys Corporation
- *
- * This file contains the code to configure and interface
- * with Unisys ES7000 series hardware system manager.
- *
- * Copyright (c) 2003 Unisys Corporation.
- * Copyright (C) 2009, Red Hat, Inc., Ingo Molnar
- *
- *   All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of version 2 of the GNU General Public License as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it would be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write the Free Software Foundation, Inc., 59
- * Temple Place - Suite 330, Boston MA 02111-1307, USA.
- *
- * Contact information: Unisys Corporation, Township Line & Union Meeting
- * Roads-A, Unisys Way, Blue Bell, Pennsylvania, 19424, or:
- *
- * http://www.unisys.com
- */
+
 #include <linux/notifier.h>
 #include <linux/spinlock.h>
 #include <linux/cpumask.h>
@@ -51,9 +23,7 @@
 #include <asm/apic.h>
 #include <asm/ipi.h>
 
-/*
- * ES7000 chipsets
- */
+
 
 #define NON_UNISYS			0
 #define ES7000_CLASSIC			1
@@ -108,9 +78,7 @@ static unsigned long			oem_size;
 
 #endif
 
-/*
- * ES7000 Globals
- */
+
 
 static volatile unsigned long		*psai;
 static struct mip_reg			*mip_reg;
@@ -121,9 +89,7 @@ static unsigned long			host_addr;
 
 int					es7000_plat;
 
-/*
- * GSI override for ES7000 platforms.
- */
+
 
 static unsigned int			base;
 
@@ -165,7 +131,7 @@ static int __cpuinit wakeup_secondary_cpu_via_mip(int cpu, unsigned long eip)
 
 static int es7000_apic_is_cluster(void)
 {
-	/* MPENTIUMIII */
+	
 	if (boot_cpu_data.x86 == 6 &&
 	    (boot_cpu_data.x86_model >= 7 && boot_cpu_data.x86_model <= 11))
 		return 1;
@@ -175,13 +141,7 @@ static int es7000_apic_is_cluster(void)
 
 static void setup_unisys(void)
 {
-	/*
-	 * Determine the generation of the ES7000 currently running.
-	 *
-	 * es7000_plat = 1 if the machine is a 5xx ES7000 box
-	 * es7000_plat = 2 if the machine is a x86_64 ES7000 box
-	 *
-	 */
+	
 	if (!(boot_cpu_data.x86 <= 15 && boot_cpu_data.x86_model <= 2))
 		es7000_plat = ES7000_ZORRO;
 	else
@@ -189,9 +149,7 @@ static void setup_unisys(void)
 	ioapic_renumber_irq = es7000_rename_gsi;
 }
 
-/*
- * Parse the OEM Table:
- */
+
 static int parse_unisys_oem(char *oemptr)
 {
 	int			i;
@@ -305,14 +263,14 @@ static int es7000_check_dsdt(void)
 
 static int es7000_acpi_ret;
 
-/* Hook from generic ACPI tables.c */
+
 static int __init es7000_acpi_madt_oem_check(char *oem_id, char *oem_table_id)
 {
 	unsigned long oem_addr = 0;
 	int check_dsdt;
 	int ret = 0;
 
-	/* check dsdt at first to avoid clear fix_map for oem_addr */
+	
 	check_dsdt = es7000_check_dsdt();
 
 	if (!find_unisys_acpi_oem_table(&oem_addr)) {
@@ -322,9 +280,7 @@ static int __init es7000_acpi_madt_oem_check(char *oem_id, char *oem_table_id)
 			setup_unisys();
 			ret = 1;
 		}
-		/*
-		 * we need to unmap it
-		 */
+		
 		unmap_unisys_acpi_oem_table(oem_addr);
 	}
 
@@ -340,7 +296,7 @@ static int es7000_acpi_madt_oem_check_cluster(char *oem_id, char *oem_table_id)
 	return ret && es7000_apic_is_cluster();
 }
 
-#else /* !CONFIG_ACPI: */
+#else 
 static int es7000_acpi_madt_oem_check(char *oem_id, char *oem_table_id)
 {
 	return 0;
@@ -350,7 +306,7 @@ static int es7000_acpi_madt_oem_check_cluster(char *oem_id, char *oem_table_id)
 {
 	return 0;
 }
-#endif /* !CONFIG_ACPI */
+#endif 
 
 static void es7000_spin(int n)
 {
@@ -412,14 +368,7 @@ static void es7000_enable_apic_mode(void)
 
 static void es7000_vector_allocation_domain(int cpu, struct cpumask *retmask)
 {
-	/* Careful. Some cpus do not strictly honor the set of cpus
-	 * specified in the interrupt destination when using lowest
-	 * priority interrupt delivery mode.
-	 *
-	 * In particular there was a hyperthreading cpu observed to
-	 * deliver interrupts to the wrong hyperthread when only one
-	 * hyperthread was specified in the interrupt desitination.
-	 */
+	
 	cpumask_clear(retmask);
 	cpumask_bits(retmask)[0] = APIC_ALL_CPUS;
 }
@@ -483,13 +432,7 @@ static unsigned long calculate_ldr(int cpu)
 	return SET_APIC_LOGICAL_ID(id);
 }
 
-/*
- * Set up the logical destination ID.
- *
- * Intel recommends to set DFR, LdR and TPR before enabling
- * an APIC.  See e.g. "AP-388 82489DX User's Manual" (Intel
- * document number 292116).  So here it goes...
- */
+
 static void es7000_init_apic_ldr_cluster(void)
 {
 	unsigned long val;
@@ -549,7 +492,7 @@ static physid_mask_t es7000_apicid_to_cpu_present(int phys_apicid)
 	return mask;
 }
 
-/* Mapping from cpu number to logical apicid */
+
 static int es7000_cpu_to_logical_apicid(int cpu)
 {
 #ifdef CONFIG_SMP
@@ -563,7 +506,7 @@ static int es7000_cpu_to_logical_apicid(int cpu)
 
 static physid_mask_t es7000_ioapic_phys_id_map(physid_mask_t phys_map)
 {
-	/* For clustered we don't have a good way to do this yet - hack */
+	
 	return physids_promote(0xff);
 }
 
@@ -578,9 +521,7 @@ static unsigned int es7000_cpu_mask_to_apicid(const struct cpumask *cpumask)
 	unsigned int round = 0;
 	int cpu, uninitialized_var(apicid);
 
-	/*
-	 * The cpus in the mask must all be on the apic cluster.
-	 */
+	
 	for_each_cpu(cpu, cpumask) {
 		int new_apicid = es7000_cpu_to_logical_apicid(cpu);
 
@@ -621,7 +562,7 @@ static int es7000_phys_pkg_id(int cpuid_apic, int index_msb)
 
 static int probe_es7000(void)
 {
-	/* probed later in mptable/ACPI hooks */
+	
 	return 0;
 }
 
@@ -652,7 +593,7 @@ static int es7000_mps_oem_check_cluster(struct mpc_table *mpc, char *oem,
 	return ret && es7000_apic_is_cluster();
 }
 
-/* We've been warned by a false positive warning.Use __refdata to keep calm. */
+
 struct apic __refdata apic_es7000_cluster = {
 
 	.name				= "es7000",
@@ -661,7 +602,7 @@ struct apic __refdata apic_es7000_cluster = {
 	.apic_id_registered		= es7000_apic_id_registered,
 
 	.irq_delivery_mode		= dest_LowestPrio,
-	/* logical delivery broadcast to all procs: */
+	
 	.irq_dest_mode			= 1,
 
 	.target_cpus			= target_cpus_cluster,
@@ -706,7 +647,7 @@ struct apic __refdata apic_es7000_cluster = {
 
 	.wait_for_init_deassert		= NULL,
 
-	/* Nothing to do for most platforms, since cleared by the INIT cycle: */
+	
 	.smp_callin_clear_local_apic	= NULL,
 	.inquire_remote_apic		= default_inquire_remote_apic,
 
@@ -726,7 +667,7 @@ struct apic __refdata apic_es7000 = {
 	.apic_id_registered		= es7000_apic_id_registered,
 
 	.irq_delivery_mode		= dest_Fixed,
-	/* phys delivery to target CPUs: */
+	
 	.irq_dest_mode			= 0,
 
 	.target_cpus			= es7000_target_cpus,
@@ -769,7 +710,7 @@ struct apic __refdata apic_es7000 = {
 
 	.wait_for_init_deassert		= es7000_wait_for_init_deassert,
 
-	/* Nothing to do for most platforms, since cleared by the INIT cycle: */
+	
 	.smp_callin_clear_local_apic	= NULL,
 	.inquire_remote_apic		= default_inquire_remote_apic,
 

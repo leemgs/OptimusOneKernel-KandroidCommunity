@@ -1,10 +1,4 @@
-/*
- * (C) Copyright 2002 Linus Torvalds
- * Portions based on the vdso-randomization code from exec-shield:
- * Copyright(C) 2005-2006, Red Hat, Inc., Ingo Molnar
- *
- * This file contains the needed initializations to support sysenter.
- */
+
 
 #include <linux/init.h>
 #include <linux/smp.h>
@@ -43,17 +37,10 @@ enum {
 #define arch_setup_additional_pages	syscall32_setup_pages
 #endif
 
-/*
- * This is the difference between the prelinked addresses in the vDSO images
- * and the VDSO_HIGH_BASE address where CONFIG_COMPAT_VDSO places the vDSO
- * in the user address space.
- */
+
 #define VDSO_ADDR_ADJUST	(VDSO_HIGH_BASE - (unsigned long)VDSO32_PRELINK)
 
-/*
- * Should the kernel map a VDSO page into processes and pass its
- * address down to glibc upon exec()?
- */
+
 unsigned int __read_mostly vdso_enabled = VDSO_DEFAULT;
 
 static int __init vdso_setup(char *s)
@@ -63,11 +50,7 @@ static int __init vdso_setup(char *s)
 	return 1;
 }
 
-/*
- * For consistency, the argument vdso32=[012] affects the 32-bit vDSO
- * behavior on both 64-bit and 32-bit kernels.
- * On 32-bit kernels, vdso=[012] means the same thing.
- */
+
 __setup("vdso32=", vdso_setup);
 
 #ifdef CONFIG_X86_32
@@ -86,7 +69,7 @@ static __init void reloc_symtab(Elf32_Ehdr *ehdr,
 	for(i = 0; i < nsym; i++, sym++) {
 		if (sym->st_shndx == SHN_UNDEF ||
 		    sym->st_shndx == SHN_ABS)
-			continue;  /* skip */
+			continue;  
 
 		if (sym->st_shndx > SHN_LORESERVE) {
 			printk(KERN_INFO "VDSO: unexpected st_shndx %x\n",
@@ -124,14 +107,13 @@ static __init void reloc_dyn(Elf32_Ehdr *ehdr, unsigned offset)
 		case DT_VERDEF:
 		case DT_VERNEED:
 		case DT_ADDRRNGLO ... DT_ADDRRNGHI:
-			/* definitely pointers needing relocation */
+			
 			dyn->d_un.d_ptr += VDSO_ADDR_ADJUST;
 			break;
 
 		case DT_ENCODING ... OLD_DT_LOOS-1:
 		case DT_LOOS ... DT_HIOS-1:
-			/* Tags above DT_ENCODING are pointers if
-			   they're even */
+			
 			if (dyn->d_tag >= DT_ENCODING &&
 			    (dyn->d_tag & 1) == 0)
 				dyn->d_un.d_ptr += VDSO_ADDR_ADJUST;
@@ -143,7 +125,7 @@ static __init void reloc_dyn(Elf32_Ehdr *ehdr, unsigned offset)
 		case DT_RELACOUNT:
 		case DT_RELCOUNT:
 		case DT_VALRNGLO ... DT_VALRNGHI:
-			/* definitely not pointers */
+			
 			break;
 
 		case OLD_DT_LOOS ... DT_LOOS-1:
@@ -168,17 +150,17 @@ static __init void relocate_vdso(Elf32_Ehdr *ehdr)
 
 	ehdr->e_entry += VDSO_ADDR_ADJUST;
 
-	/* rebase phdrs */
+	
 	phdr = (void *)ehdr + ehdr->e_phoff;
 	for (i = 0; i < ehdr->e_phnum; i++) {
 		phdr[i].p_vaddr += VDSO_ADDR_ADJUST;
 
-		/* relocate dynamic stuff */
+		
 		if (phdr[i].p_type == PT_DYNAMIC)
 			reloc_dyn(ehdr, phdr[i].p_offset);
 	}
 
-	/* rebase sections */
+	
 	shdr = (void *)ehdr + ehdr->e_shoff;
 	for(i = 0; i < ehdr->e_shnum; i++) {
 		if (!(shdr[i].sh_flags & SHF_ALLOC))
@@ -200,11 +182,10 @@ static struct page *vdso32_pages[1];
 #define	vdso32_sysenter()	(boot_cpu_has(X86_FEATURE_SYSENTER32))
 #define	vdso32_syscall()	(boot_cpu_has(X86_FEATURE_SYSCALL32))
 
-/* May not be __init: called during resume */
+
 void syscall32_cpu_init(void)
 {
-	/* Load these always in case some future AMD CPU supports
-	   SYSENTER from compat mode too. */
+	
 	checking_wrmsrl(MSR_IA32_SYSENTER_CS, (u64)__KERNEL_CS);
 	checking_wrmsrl(MSR_IA32_SYSENTER_ESP, 0ULL);
 	checking_wrmsrl(MSR_IA32_SYSENTER_EIP, (u64)ia32_sysenter_target);
@@ -218,7 +199,7 @@ static inline void map_compat_vdso(int map)
 {
 }
 
-#else  /* CONFIG_X86_32 */
+#else  
 
 #define vdso32_sysenter()	(boot_cpu_has(X86_FEATURE_SEP))
 #define vdso32_syscall()	(0)
@@ -250,12 +231,7 @@ static int __init gate_vma_init(void)
 	gate_vma.vm_end = FIXADDR_USER_END;
 	gate_vma.vm_flags = VM_READ | VM_MAYREAD | VM_EXEC | VM_MAYEXEC;
 	gate_vma.vm_page_prot = __P101;
-	/*
-	 * Make sure the vDSO gets into every core dump.
-	 * Dumping its contents makes post-mortem fully interpretable later
-	 * without matching up the same kernel and hardware config to see
-	 * what PC values meant.
-	 */
+	
 	gate_vma.vm_flags |= VM_ALWAYSDUMP;
 	return 0;
 }
@@ -274,11 +250,11 @@ static void map_compat_vdso(int map)
 	__set_fixmap(FIX_VDSO, page_to_pfn(vdso32_pages[0]) << PAGE_SHIFT,
 		     map ? PAGE_READONLY_EXEC : PAGE_NONE);
 
-	/* flush stray tlbs */
+	
 	flush_tlb_all();
 }
 
-#endif	/* CONFIG_X86_64 */
+#endif	
 
 int __init sysenter_setup(void)
 {
@@ -309,7 +285,7 @@ int __init sysenter_setup(void)
 	return 0;
 }
 
-/* Setup a VMA at program startup for the vsyscall page */
+
 int arch_setup_additional_pages(struct linux_binprm *bprm, int uses_interp)
 {
 	struct mm_struct *mm = current->mm;
@@ -322,8 +298,7 @@ int arch_setup_additional_pages(struct linux_binprm *bprm, int uses_interp)
 
 	down_write(&mm->mmap_sem);
 
-	/* Test compat mode once here, in case someone
-	   changes it via sysctl */
+	
 	compat = (vdso_enabled == VDSO_COMPAT);
 
 	map_compat_vdso(compat);
@@ -341,15 +316,7 @@ int arch_setup_additional_pages(struct linux_binprm *bprm, int uses_interp)
 	current->mm->context.vdso = (void *)addr;
 
 	if (compat_uses_vma || !compat) {
-		/*
-		 * MAYWRITE to allow gdb to COW and set breakpoints
-		 *
-		 * Make sure the vDSO gets into every core dump.
-		 * Dumping its contents makes post-mortem fully
-		 * interpretable later without matching up the same
-		 * kernel and hardware config to see what PC values
-		 * meant.
-		 */
+		
 		ret = install_special_mapping(mm, addr, PAGE_SIZE,
 					      VM_READ|VM_EXEC|
 					      VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC|
@@ -377,7 +344,7 @@ int arch_setup_additional_pages(struct linux_binprm *bprm, int uses_interp)
 __initcall(sysenter_setup);
 
 #ifdef CONFIG_SYSCTL
-/* Register vsyscall32 into the ABI table */
+
 #include <linux/sysctl.h>
 
 static ctl_table abi_table2[] = {
@@ -409,7 +376,7 @@ static __init int ia32_binfmt_init(void)
 __initcall(ia32_binfmt_init);
 #endif
 
-#else  /* CONFIG_X86_32 */
+#else  
 
 const char *arch_vma_name(struct vm_area_struct *vma)
 {
@@ -422,7 +389,7 @@ struct vm_area_struct *get_gate_vma(struct task_struct *tsk)
 {
 	struct mm_struct *mm = tsk->mm;
 
-	/* Check to see if this task was created in compat vdso mode */
+	
 	if (mm && mm->context.vdso == (void *)VDSO_HIGH_BASE)
 		return &gate_vma;
 	return NULL;
@@ -440,4 +407,4 @@ int in_gate_area_no_task(unsigned long addr)
 	return 0;
 }
 
-#endif	/* CONFIG_X86_64 */
+#endif	

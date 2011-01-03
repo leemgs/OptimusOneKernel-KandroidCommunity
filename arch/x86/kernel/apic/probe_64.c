@@ -1,13 +1,4 @@
-/*
- * Copyright 2004 James Cleverdon, IBM.
- * Subject to the GNU Public License, v.2
- *
- * Generic APIC sub-arch probe layer.
- *
- * Hacked for x86-64 by James Cleverdon from i386 architecture code by
- * Martin Bligh, Andi Kleen, James Bottomley, John Stultz, and
- * James Cleverdon.
- */
+
 #include <linux/threads.h>
 #include <linux/cpumask.h>
 #include <linux/string.h>
@@ -49,9 +40,7 @@ static int apicid_phys_pkg_id(int initial_apic_id, int index_msb)
 	return hard_smp_processor_id() >> index_msb;
 }
 
-/*
- * Check the APIC IDs in bios_cpu_apicid and choose the APIC mode.
- */
+
 void __init default_setup_apic_routing(void)
 {
 #ifdef CONFIG_X86_X2APIC
@@ -82,19 +71,16 @@ void __init default_setup_apic_routing(void)
 	printk(KERN_INFO "Setting APIC routing to %s\n", apic->name);
 
 	if (is_vsmp_box()) {
-		/* need to update phys_pkg_id */
+		
 		apic->phys_pkg_id = apicid_phys_pkg_id;
 	}
 
-	/*
-	 * Now that apic routing model is selected, configure the
-	 * fault handling for intr remapping.
-	 */
+	
 	if (intr_remapping_enabled)
 		enable_drhd_fault_handling();
 }
 
-/* Same for both flat and physical. */
+
 
 void apic_send_IPI_self(int vector)
 {

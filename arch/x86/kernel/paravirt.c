@@ -1,22 +1,4 @@
-/*  Paravirtualization interfaces
-    Copyright (C) 2006 Rusty Russell IBM Corporation
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
-    2007 - x86_64 support added by Glauber de Oliveira Costa, Red Hat Inc
-*/
 
 #include <linux/errno.h>
 #include <linux/module.h>
@@ -38,12 +20,12 @@
 #include <asm/tlbflush.h>
 #include <asm/timer.h>
 
-/* nop stub */
+
 void _paravirt_nop(void)
 {
 }
 
-/* identity function, which can be inlined */
+
 u32 _paravirt_ident_32(u32 x)
 {
 	return x;
@@ -60,12 +42,12 @@ void __init default_banner(void)
 	       pv_info.name);
 }
 
-/* Simple instruction patching code. */
+
 #define DEF_NATIVE(ops, name, code)					\
 	extern const char start_##ops##_##name[], end_##ops##_##name[];	\
 	asm("start_" #ops "_" #name ": " code "; end_" #ops "_" #name ":")
 
-/* Undefined instruction for dealing with missing ops pointers. */
+
 static const unsigned char ud2a[] = { 0x0f, 0x0b };
 
 unsigned paravirt_patch_nop(void)
@@ -92,11 +74,11 @@ unsigned paravirt_patch_call(void *insnbuf,
 	unsigned long delta = (unsigned long)target - (addr+5);
 
 	if (tgt_clobbers & ~site_clobbers)
-		return len;	/* target would clobber too much for this site */
+		return len;	
 	if (len < 5)
-		return len;	/* call too long for patch site */
+		return len;	
 
-	b->opcode = 0xe8; /* call */
+	b->opcode = 0xe8; 
 	b->delta = delta;
 	BUILD_BUG_ON(sizeof(*b) != 5);
 
@@ -110,16 +92,15 @@ unsigned paravirt_patch_jmp(void *insnbuf, const void *target,
 	unsigned long delta = (unsigned long)target - (addr+5);
 
 	if (len < 5)
-		return len;	/* call too long for patch site */
+		return len;	
 
-	b->opcode = 0xe9;	/* jmp */
+	b->opcode = 0xe9;	
 	b->delta = delta;
 
 	return 5;
 }
 
-/* Neat trick to map patch type back to the call within the
- * corresponding structure. */
+
 static void *get_call_destination(u8 type)
 {
 	struct paravirt_patch_template tmpl = {
@@ -143,13 +124,13 @@ unsigned paravirt_patch_default(u8 type, u16 clobbers, void *insnbuf,
 	unsigned ret;
 
 	if (opfunc == NULL)
-		/* If there's no function, patch it with a ud2a (BUG) */
+		
 		ret = paravirt_patch_insns(insnbuf, len, ud2a, ud2a+sizeof(ud2a));
 	else if (opfunc == _paravirt_nop)
-		/* If the operation is a nop, then nop the callsite */
+		
 		ret = paravirt_patch_nop();
 
-	/* identity functions just return their single argument */
+	
 	else if (opfunc == _paravirt_ident_32)
 		ret = paravirt_patch_ident_32(insnbuf, len);
 	else if (opfunc == _paravirt_ident_64)
@@ -159,11 +140,10 @@ unsigned paravirt_patch_default(u8 type, u16 clobbers, void *insnbuf,
 		 type == PARAVIRT_PATCH(pv_cpu_ops.irq_enable_sysexit) ||
 		 type == PARAVIRT_PATCH(pv_cpu_ops.usergs_sysret32) ||
 		 type == PARAVIRT_PATCH(pv_cpu_ops.usergs_sysret64))
-		/* If operation requires a jmp, then jmp */
+		
 		ret = paravirt_patch_jmp(insnbuf, opfunc, addr, len);
 	else
-		/* Otherwise call the function; assume target could
-		   clobber any caller-save reg */
+		
 		ret = paravirt_patch_call(insnbuf, opfunc, CLBR_ANY,
 					  addr, clobbers, len);
 
@@ -188,10 +168,7 @@ static void native_flush_tlb(void)
 	__native_flush_tlb();
 }
 
-/*
- * Global pages have to be flushed a bit differently. Not a real
- * performance problem because this does not happen often.
- */
+
 static void native_flush_tlb_global(void)
 {
 	__native_flush_tlb_global();
@@ -202,7 +179,7 @@ static void native_flush_tlb_single(unsigned long addr)
 	__native_flush_tlb_single(addr);
 }
 
-/* These are in entry.S */
+
 extern void native_iret(void);
 extern void native_irq_enable_sysexit(void);
 extern void native_usergs_sysret32(void);
@@ -215,13 +192,7 @@ static struct resource reserve_ioports = {
 	.flags = IORESOURCE_IO | IORESOURCE_BUSY,
 };
 
-/*
- * Reserve the whole legacy IO space to prevent any legacy drivers
- * from wasting time probing for their hardware.  This is a fairly
- * brute-force approach to disabling all non-virtual drivers.
- *
- * Note that this must be called very early to have any effect.
- */
+
 int paravirt_disable_iospace(void)
 {
 	return request_resource(&ioport_resource, &reserve_ioports);
@@ -298,7 +269,7 @@ struct pv_info pv_info = {
 	.name = "bare hardware",
 	.paravirt_enabled = 0,
 	.kernel_rpl = 0,
-	.shared_kernel_pmd = 1,	/* Only used when CONFIG_X86_PAE is set */
+	.shared_kernel_pmd = 1,	
 };
 
 struct pv_init_ops pv_init_ops = {
@@ -389,10 +360,10 @@ struct pv_apic_ops pv_apic_ops = {
 };
 
 #if defined(CONFIG_X86_32) && !defined(CONFIG_X86_PAE)
-/* 32-bit pagetable entries */
+
 #define PTE_IDENT	__PV_IS_CALLEE_SAVE(_paravirt_ident_32)
 #else
-/* 64-bit pagetable entries */
+
 #define PTE_IDENT	__PV_IS_CALLEE_SAVE(_paravirt_ident_64)
 #endif
 
@@ -449,7 +420,7 @@ struct pv_mmu_ops pv_mmu_ops = {
 
 	.set_pgd = native_set_pgd,
 #endif
-#endif /* PAGETABLE_LEVELS >= 3 */
+#endif 
 
 	.pte_val = PTE_IDENT,
 	.pgd_val = PTE_IDENT,

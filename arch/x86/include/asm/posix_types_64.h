@@ -1,11 +1,7 @@
 #ifndef _ASM_X86_POSIX_TYPES_64_H
 #define _ASM_X86_POSIX_TYPES_64_H
 
-/*
- * This file is generally used by user-level software, so you need to
- * be a little careful about namespace pollution etc.  Also, we cannot
- * assume GCC is being used.
- */
+
 
 typedef unsigned long	__kernel_ino_t;
 typedef unsigned int	__kernel_mode_t;
@@ -69,10 +65,7 @@ static inline int __FD_ISSET(unsigned long fd, __const__ __kernel_fd_set *p)
 	return (p->fds_bits[_tmp] & (1UL<<_rem)) != 0;
 }
 
-/*
- * This will unroll the loop for the normal constant cases (8 or 32 longs,
- * for 256 and 1024-bit fd_sets respectively)
- */
+
 #undef __FD_ZERO
 static inline void __FD_ZERO(__kernel_fd_set *p)
 {
@@ -114,6 +107,6 @@ static inline void __FD_ZERO(__kernel_fd_set *p)
 	}
 }
 
-#endif /* defined(__KERNEL__) */
+#endif 
 
-#endif /* _ASM_X86_POSIX_TYPES_64_H */
+#endif 

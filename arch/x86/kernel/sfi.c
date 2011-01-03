@@ -1,22 +1,4 @@
-/*
- * sfi.c - x86 architecture SFI support.
- *
- * Copyright (c) 2009, Intel Corporation.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
- *
- * This program is distributed in the hope it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
- *
- */
+
 
 #define KMSG_COMPONENT "SFI"
 #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
@@ -45,7 +27,7 @@ void __init mp_sfi_register_lapic_address(unsigned long address)
 	pr_info("Boot CPU = %d\n", boot_cpu_physical_apicid);
 }
 
-/* All CPUs enumerated by SFI must be present and enabled */
+
 void __cpuinit mp_sfi_register_lapic(u8 id)
 {
 	if (MAX_APICS - id <= 0) {
@@ -78,7 +60,7 @@ static int __init sfi_parse_cpus(struct sfi_table_header *table)
 	smp_found_config = 1;
 	return 0;
 }
-#endif /* CONFIG_X86_LOCAL_APIC */
+#endif 
 
 #ifdef CONFIG_X86_IO_APIC
 static u32 gsi_base;
@@ -104,11 +86,9 @@ static int __init sfi_parse_ioapic(struct sfi_table_header *table)
 	pic_mode = 0;
 	return 0;
 }
-#endif /* CONFIG_X86_IO_APIC */
+#endif 
 
-/*
- * sfi_platform_init(): register lapics & io-apics
- */
+
 int __init sfi_platform_init(void)
 {
 #ifdef CONFIG_X86_LOCAL_APIC

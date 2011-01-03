@@ -1,7 +1,4 @@
-/*
- *  Copyright (C) 1991, 1992  Linus Torvalds
- *  Copyright (C) 2000, 2001, 2002 Andi Kleen, SuSE Labs
- */
+
 
 #ifndef DUMPSTACK_H
 #define DUMPSTACK_H
@@ -30,7 +27,7 @@ show_stack_log_lvl(struct task_struct *task, struct pt_regs *regs,
 
 extern unsigned int code_bytes;
 
-/* The form of the top of the frame on the stack */
+
 struct stack_frame {
 	struct stack_frame *next_frame;
 	unsigned long return_address;

@@ -1,8 +1,4 @@
-/*
- * Generate definitions needed by assembly language modules.
- * This code generates raw asm output which is post-processed
- * to extract and format the required data.
- */
+
 
 #include <linux/crypto.h>
 #include <linux/sched.h>
@@ -25,7 +21,7 @@
 #include <linux/lguest.h>
 #include "../../../drivers/lguest/lg.h"
 
-/* workaround for a warning with -Wmissing-prototypes */
+
 void foo(void);
 
 void foo(void)
@@ -93,7 +89,7 @@ void foo(void)
 	OFFSET(pbe_orig_address, pbe, orig_address);
 	OFFSET(pbe_next, pbe, next);
 
-	/* Offset from the sysenter stack to tss.sp0 */
+	
 	DEFINE(TSS_sysenter_sp0, offsetof(struct tss_struct, x86_tss.sp0) -
 		 sizeof(struct tss_struct));
 

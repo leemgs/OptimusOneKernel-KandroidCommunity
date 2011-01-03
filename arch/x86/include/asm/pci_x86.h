@@ -1,8 +1,4 @@
-/*
- *	Low-Level PCI Access for i386 machines.
- *
- *	(c) 1999 Martin Mares <mj@ucw.cz>
- */
+
 
 #undef DEBUG
 
@@ -40,43 +36,40 @@ enum pci_bf_sort_state {
 	pci_dmi_bf,
 };
 
-/* pci-i386.c */
+
 
 extern unsigned int pcibios_max_latency;
 
 void pcibios_resource_survey(void);
 
-/* pci-pc.c */
+
 
 extern int pcibios_last_bus;
 extern struct pci_bus *pci_root_bus;
 extern struct pci_ops pci_root_ops;
 
-/* pci-irq.c */
+
 
 struct irq_info {
-	u8 bus, devfn;			/* Bus, device and function */
+	u8 bus, devfn;			
 	struct {
-		u8 link;		/* IRQ line ID, chipset dependent,
-					   0 = not routed */
-		u16 bitmap;		/* Available IRQs */
+		u8 link;		
+		u16 bitmap;		
 	} __attribute__((packed)) irq[4];
-	u8 slot;			/* Slot number, 0=onboard */
+	u8 slot;			
 	u8 rfu;
 } __attribute__((packed));
 
 struct irq_routing_table {
-	u32 signature;			/* PIRQ_SIGNATURE should be here */
-	u16 version;			/* PIRQ_VERSION */
-	u16 size;			/* Table size in bytes */
-	u8 rtr_bus, rtr_devfn;		/* Where the interrupt router lies */
-	u16 exclusive_irqs;		/* IRQs devoted exclusively to
-					   PCI usage */
-	u16 rtr_vendor, rtr_device;	/* Vendor and device ID of
-					   interrupt router */
-	u32 miniport_data;		/* Crap */
+	u32 signature;			
+	u16 version;			
+	u16 size;			
+	u8 rtr_bus, rtr_devfn;		
+	u16 exclusive_irqs;		
+	u16 rtr_vendor, rtr_device;	
+	u32 miniport_data;		
 	u8 rfu[11];
-	u8 checksum;			/* Modulo 256 checksum must give 0 */
+	u8 checksum;			
 	struct irq_info slots[0];
 } __attribute__((packed));
 
@@ -101,7 +94,7 @@ extern struct pci_raw_ops *raw_pci_ext_ops;
 extern struct pci_raw_ops pci_direct_conf1;
 extern bool port_cf9_safe;
 
-/* arch_initcall level */
+
 extern int pci_direct_probe(void);
 extern void pci_direct_init(int type);
 extern void pci_pcbios_init(void);
@@ -109,14 +102,14 @@ extern int pci_olpc_init(void);
 extern void __init dmi_check_pciprobe(void);
 extern void __init dmi_check_skip_isa_align(void);
 
-/* some common used subsys_initcalls */
+
 extern int __init pci_acpi_init(void);
 extern int __init pcibios_irq_init(void);
 extern int __init pci_visws_init(void);
 extern int __init pci_numaq_init(void);
 extern int __init pcibios_init(void);
 
-/* pci-mmconfig.c */
+
 
 extern int __init pci_mmcfg_arch_init(void);
 extern void __init pci_mmcfg_arch_free(void);
@@ -124,13 +117,7 @@ extern void __init pci_mmcfg_arch_free(void);
 extern struct acpi_mcfg_allocation *pci_mmcfg_config;
 extern int pci_mmcfg_config_num;
 
-/*
- * AMD Fam10h CPUs are buggy, and cannot access MMIO config space
- * on their northbrige except through the * %eax register. As such, you MUST
- * NOT use normal IOMEM accesses, you need to only use the magic mmio-config
- * accessor functions.
- * In fact just use pci_config_*, nothing else please.
- */
+
 static inline unsigned char mmio_config_readb(void __iomem *pos)
 {
 	u8 val;

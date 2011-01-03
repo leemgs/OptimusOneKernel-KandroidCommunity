@@ -9,14 +9,7 @@ int nx_enabled;
 #if defined(CONFIG_X86_64) || defined(CONFIG_X86_PAE)
 static int disable_nx __cpuinitdata;
 
-/*
- * noexec = on|off
- *
- * Control non-executable mappings for processes.
- *
- * on      Enable
- * off     Disable
- */
+
 static int __init noexec_setup(char *str)
 {
 	if (!str)

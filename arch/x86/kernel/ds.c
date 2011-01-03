@@ -1,23 +1,4 @@
-/*
- * Debug Store support
- *
- * This provides a low-level interface to the hardware's Debug Store
- * feature that is used for branch trace store (BTS) and
- * precise-event based sampling (PEBS).
- *
- * It manages:
- * - DS and BTS hardware configuration
- * - buffer overflow handling (to be done)
- * - buffer access
- *
- * It does not do:
- * - security checking (is the caller allowed to trace the task)
- * - buffer allocation (memory accounting)
- *
- *
- * Copyright (C) 2007-2009 Intel Corporation.
- * Markus Metzger <markus.t.metzger@intel.com>, 2007-2009
- */
+
 
 #include <linux/kernel.h>
 #include <linux/string.h>
@@ -31,125 +12,83 @@
 
 #include "ds_selftest.h"
 
-/*
- * The configuration for a particular DS hardware implementation:
- */
+
 struct ds_configuration {
-	/* The name of the configuration: */
+	
 	const char		*name;
 
-	/* The size of pointer-typed fields in DS, BTS, and PEBS: */
+	
 	unsigned char		sizeof_ptr_field;
 
-	/* The size of a BTS/PEBS record in bytes: */
+	
 	unsigned char		sizeof_rec[2];
 
-	/* The number of pebs counter reset values in the DS structure. */
+	
 	unsigned char		nr_counter_reset;
 
-	/* Control bit-masks indexed by enum ds_feature: */
+	
 	unsigned long		ctl[dsf_ctl_max];
 };
 static struct ds_configuration ds_cfg __read_mostly;
 
 
-/* Maximal size of a DS configuration: */
+
 #define MAX_SIZEOF_DS		0x80
 
-/* Maximal size of a BTS record: */
+
 #define MAX_SIZEOF_BTS		(3 * 8)
 
-/* BTS and PEBS buffer alignment: */
+
 #define DS_ALIGNMENT		(1 << 3)
 
-/* Number of buffer pointers in DS: */
+
 #define NUM_DS_PTR_FIELDS	8
 
-/* Size of a pebs reset value in DS: */
+
 #define PEBS_RESET_FIELD_SIZE	8
 
-/* Mask of control bits in the DS MSR register: */
+
 #define BTS_CONTROL				  \
 	( ds_cfg.ctl[dsf_bts]			| \
 	  ds_cfg.ctl[dsf_bts_kernel]		| \
 	  ds_cfg.ctl[dsf_bts_user]		| \
 	  ds_cfg.ctl[dsf_bts_overflow] )
 
-/*
- * A BTS or PEBS tracer.
- *
- * This holds the configuration of the tracer and serves as a handle
- * to identify tracers.
- */
+
 struct ds_tracer {
-	/* The DS context (partially) owned by this tracer. */
+	
 	struct ds_context	*context;
-	/* The buffer provided on ds_request() and its size in bytes. */
+	
 	void			*buffer;
 	size_t			size;
 };
 
 struct bts_tracer {
-	/* The common DS part: */
+	
 	struct ds_tracer	ds;
 
-	/* The trace including the DS configuration: */
+	
 	struct bts_trace	trace;
 
-	/* Buffer overflow notification function: */
+	
 	bts_ovfl_callback_t	ovfl;
 
-	/* Active flags affecting trace collection. */
+	
 	unsigned int		flags;
 };
 
 struct pebs_tracer {
-	/* The common DS part: */
+	
 	struct ds_tracer	ds;
 
-	/* The trace including the DS configuration: */
+	
 	struct pebs_trace	trace;
 
-	/* Buffer overflow notification function: */
+	
 	pebs_ovfl_callback_t	ovfl;
 };
 
-/*
- * Debug Store (DS) save area configuration (see Intel64 and IA32
- * Architectures Software Developer's Manual, section 18.5)
- *
- * The DS configuration consists of the following fields; different
- * architetures vary in the size of those fields.
- *
- * - double-word aligned base linear address of the BTS buffer
- * - write pointer into the BTS buffer
- * - end linear address of the BTS buffer (one byte beyond the end of
- *   the buffer)
- * - interrupt pointer into BTS buffer
- *   (interrupt occurs when write pointer passes interrupt pointer)
- * - double-word aligned base linear address of the PEBS buffer
- * - write pointer into the PEBS buffer
- * - end linear address of the PEBS buffer (one byte beyond the end of
- *   the buffer)
- * - interrupt pointer into PEBS buffer
- *   (interrupt occurs when write pointer passes interrupt pointer)
- * - value to which counter is reset following counter overflow
- *
- * Later architectures use 64bit pointers throughout, whereas earlier
- * architectures use 32bit pointers in 32bit mode.
- *
- *
- * We compute the base address for the first 8 fields based on:
- * - the field size stored in the DS configuration
- * - the relative field position
- * - an offset giving the start of the respective region
- *
- * This offset is further used to index various arrays holding
- * information for BTS and PEBS at the respective index.
- *
- * On later 32bit processors, we only access the lower 32bit of the
- * 64bit pointer fields. The upper halves will be zeroed out.
- */
+
 
 enum ds_field {
 	ds_buffer_base = 0,
@@ -179,27 +118,10 @@ ds_set(unsigned char *base, enum ds_qualifier qual, enum ds_field field,
 }
 
 
-/*
- * Locking is done only for allocating BTS or PEBS resources.
- */
+
 static DEFINE_SPINLOCK(ds_lock);
 
-/*
- * We either support (system-wide) per-cpu or per-thread allocation.
- * We distinguish the two based on the task_struct pointer, where a
- * NULL pointer indicates per-cpu allocation for the current cpu.
- *
- * Allocations are use-counted. As soon as resources are allocated,
- * further allocations must be of the same type (per-cpu or
- * per-thread). We model this by counting allocations (i.e. the number
- * of tracers of a certain type) for one type negatively:
- *   =0  no tracers
- *   >0  number of per-thread tracers
- *   <0  number of per-cpu tracers
- *
- * Tracers essentially gives the number of ds contexts for a certain
- * type of allocation.
- */
+
 static atomic_t tracers = ATOMIC_INIT(0);
 
 static inline int get_tracer(struct task_struct *task)
@@ -234,34 +156,25 @@ static inline void put_tracer(struct task_struct *task)
 		atomic_inc(&tracers);
 }
 
-/*
- * The DS context is either attached to a thread or to a cpu:
- * - in the former case, the thread_struct contains a pointer to the
- *   attached context.
- * - in the latter case, we use a static array of per-cpu context
- *   pointers.
- *
- * Contexts are use-counted. They are allocated on first access and
- * deallocated when the last user puts the context.
- */
+
 struct ds_context {
-	/* The DS configuration; goes into MSR_IA32_DS_AREA: */
+	
 	unsigned char		ds[MAX_SIZEOF_DS];
 
-	/* The owner of the BTS and PEBS configuration, respectively: */
+	
 	struct bts_tracer	*bts_master;
 	struct pebs_tracer	*pebs_master;
 
-	/* Use count: */
+	
 	unsigned long		count;
 
-	/* Pointer to the context pointer field: */
+	
 	struct ds_context	**this;
 
-	/* The traced task; NULL for cpu tracing: */
+	
 	struct task_struct	*task;
 
-	/* The traced cpu; only valid if task is NULL: */
+	
 	int			cpu;
 };
 
@@ -275,7 +188,7 @@ static struct ds_context *ds_get_context(struct task_struct *task, int cpu)
 	struct ds_context *context = NULL;
 	struct ds_context *new_context = NULL;
 
-	/* Chances are small that we already have a context. */
+	
 	new_context = kzalloc(sizeof(*new_context), GFP_KERNEL);
 	if (!new_context)
 		return NULL;
@@ -326,19 +239,11 @@ static void ds_put_context(struct ds_context *context)
 	if (task)
 		clear_tsk_thread_flag(task, TIF_DS_AREA_MSR);
 
-	/*
-	 * We leave the (now dangling) pointer to the DS configuration in
-	 * the DS_AREA msr. This is as good or as bad as replacing it with
-	 * NULL - the hardware would crash if we enabled tracing.
-	 *
-	 * This saves us some problems with having to write an msr on a
-	 * different cpu while preventing others from doing the same for the
-	 * next context for that same cpu.
-	 */
+	
 
 	spin_unlock_irqrestore(&ds_lock, irq);
 
-	/* The context might still be in use for context switching. */
+	
 	if (task && (task != current))
 		wait_task_context_switch(task);
 
@@ -351,15 +256,7 @@ static void ds_install_ds_area(struct ds_context *context)
 
 	ds = (unsigned long)context->ds;
 
-	/*
-	 * There is a race between the bts master and the pebs master.
-	 *
-	 * The thread/cpu access is synchronized via get/put_cpu() for
-	 * task tracing and via wrmsr_on_cpu for cpu tracing.
-	 *
-	 * If bts and pebs are collected for the same task or same cpu,
-	 * the same confiuration is written twice.
-	 */
+	
 	if (context->task) {
 		get_cpu();
 		if (context->task == current)
@@ -371,12 +268,7 @@ static void ds_install_ds_area(struct ds_context *context)
 			     (u32)((u64)ds), (u32)((u64)ds >> 32));
 }
 
-/*
- * Call the tracer's callback on a buffer overflow.
- *
- * context: the ds context
- * qual: the buffer type
- */
+
 static void ds_overflow(struct ds_context *context, enum ds_qualifier qual)
 {
 	switch (qual) {
@@ -394,16 +286,7 @@ static void ds_overflow(struct ds_context *context, enum ds_qualifier qual)
 }
 
 
-/*
- * Write raw data into the BTS or PEBS buffer.
- *
- * The remainder of any partially written record is zeroed out.
- *
- * context: the DS context
- * qual:    the buffer type
- * record:  the data to write
- * size:    the size of the data
- */
+
 static int ds_write(struct ds_context *context, enum ds_qualifier qual,
 		    const void *record, size_t size)
 {
@@ -416,16 +299,7 @@ static int ds_write(struct ds_context *context, enum ds_qualifier qual,
 		unsigned long base, index, end, write_end, int_th;
 		unsigned long write_size, adj_write_size;
 
-		/*
-		 * Write as much as possible without producing an
-		 * overflow interrupt.
-		 *
-		 * Interrupt_threshold must either be
-		 * - bigger than absolute_maximum or
-		 * - point to a record between buffer_base and absolute_maximum
-		 *
-		 * Index points to a valid record.
-		 */
+		
 		base   = ds_get(context->ds, qual, ds_buffer_base);
 		index  = ds_get(context->ds, qual, ds_index);
 		end    = ds_get(context->ds, qual, ds_absolute_maximum);
@@ -433,10 +307,7 @@ static int ds_write(struct ds_context *context, enum ds_qualifier qual,
 
 		write_end = min(end, int_th);
 
-		/*
-		 * If we are already beyond the interrupt threshold,
-		 * we fill the entire buffer.
-		 */
+		
 		if (write_end <= index)
 			write_end = end;
 
@@ -453,7 +324,7 @@ static int ds_write(struct ds_context *context, enum ds_qualifier qual,
 		adj_write_size = write_size / ds_cfg.sizeof_rec[qual];
 		adj_write_size *= ds_cfg.sizeof_rec[qual];
 
-		/* Zero out trailing bytes. */
+		
 		memset((char *)index + write_size, 0,
 		       adj_write_size - write_size);
 		index += adj_write_size;
@@ -470,31 +341,7 @@ static int ds_write(struct ds_context *context, enum ds_qualifier qual,
 }
 
 
-/*
- * Branch Trace Store (BTS) uses the following format. Different
- * architectures vary in the size of those fields.
- * - source linear address
- * - destination linear address
- * - flags
- *
- * Later architectures use 64bit pointers throughout, whereas earlier
- * architectures use 32bit pointers in 32bit mode.
- *
- * We compute the base address for the fields based on:
- * - the field size stored in the DS configuration
- * - the relative field position
- *
- * In order to store additional information in the BTS buffer, we use
- * a special source address to indicate that the record requires
- * special interpretation.
- *
- * Netburst indicated via a bit in the flags field whether the branch
- * was predicted; this is ignored.
- *
- * We use two levels of abstraction:
- * - the raw data level defined here
- * - an arch-independent level defined in ds.h
- */
+
 
 enum bts_field {
 	bts_from,
@@ -522,17 +369,7 @@ static inline void bts_set(char *base, unsigned long field, unsigned long val)
 }
 
 
-/*
- * The raw BTS data is architecture dependent.
- *
- * For higher-level users, we give an arch-independent view.
- * - ds.h defines struct bts_struct
- * - bts_read translates one raw bts record into a bts_struct
- * - bts_write translates one bts_struct into the raw format and
- *   writes it into the top of the parameter tracer's buffer.
- *
- * return: bytes read/written on success; -Eerrno, otherwise
- */
+
 static int
 bts_read(struct bts_tracer *tracer, const void *at, struct bts_struct *out)
 {
@@ -625,15 +462,7 @@ static void ds_init_ds_trace(struct ds_trace *trace, enum ds_qualifier qual,
 			     unsigned int flags) {
 	unsigned long buffer, adj;
 
-	/*
-	 * Adjust the buffer address and size to meet alignment
-	 * constraints:
-	 * - buffer is double-word aligned
-	 * - size is multiple of record size
-	 *
-	 * We checked the size at the very beginning; we have enough
-	 * space to do the adjustment.
-	 */
+	
 	buffer = (unsigned long)base;
 
 	adj = ALIGN(buffer, DS_ALIGNMENT) - buffer;
@@ -648,10 +477,7 @@ static void ds_init_ds_trace(struct ds_trace *trace, enum ds_qualifier qual,
 	trace->begin = (void *)buffer;
 	trace->top = trace->begin;
 	trace->end = (void *)(buffer + size);
-	/*
-	 * The value for 'no threshold' is -1, which will set the
-	 * threshold outside of the buffer, just like we want it.
-	 */
+	
 	ith *= ds_cfg.sizeof_rec[qual];
 	trace->ith = (void *)(buffer + size - ith);
 
@@ -676,7 +502,7 @@ static int ds_request(struct ds_tracer *tracer, struct ds_trace *trace,
 		goto out;
 
 	req_size = ds_cfg.sizeof_rec[qual];
-	/* We might need space for alignment adjustments. */
+	
 	if (!IS_ALIGNED((unsigned long)base, DS_ALIGNMENT))
 		req_size += DS_ALIGNMENT;
 
@@ -701,10 +527,7 @@ static int ds_request(struct ds_tracer *tracer, struct ds_trace *trace,
 		goto out;
 	tracer->context = context;
 
-	/*
-	 * Defer any tracer-specific initialization work for the context until
-	 * context ownership has been clarified.
-	 */
+	
 
 	error = 0;
  out:
@@ -719,7 +542,7 @@ static struct bts_tracer *ds_request_bts(struct task_struct *task, int cpu,
 	struct bts_tracer *tracer;
 	int error;
 
-	/* Buffer overflow notification is not yet implemented. */
+	
 	error = -EOPNOTSUPP;
 	if (ovfl)
 		goto out;
@@ -734,13 +557,13 @@ static struct bts_tracer *ds_request_bts(struct task_struct *task, int cpu,
 		goto out_put_tracer;
 	tracer->ovfl = ovfl;
 
-	/* Do some more error checking and acquire a tracing context. */
+	
 	error = ds_request(&tracer->ds, &tracer->trace.ds,
 			   ds_bts, task, cpu, base, size, th);
 	if (error < 0)
 		goto out_tracer;
 
-	/* Claim the bts part of the tracing context we acquired above. */
+	
 	spin_lock_irq(&ds_lock);
 
 	error = -EPERM;
@@ -750,10 +573,7 @@ static struct bts_tracer *ds_request_bts(struct task_struct *task, int cpu,
 
 	spin_unlock_irq(&ds_lock);
 
-	/*
-	 * Now that we own the bts part of the context, let's complete the
-	 * initialization for that part.
-	 */
+	
 	ds_init_ds_trace(&tracer->trace.ds, ds_bts, base, size, th, flags);
 	ds_write_config(tracer->ds.context, &tracer->trace.ds, ds_bts);
 	ds_install_ds_area(tracer->ds.context);
@@ -761,7 +581,7 @@ static struct bts_tracer *ds_request_bts(struct task_struct *task, int cpu,
 	tracer->trace.read  = bts_read;
 	tracer->trace.write = bts_write;
 
-	/* Start tracing. */
+	
 	ds_resume_bts(tracer);
 
 	return tracer;
@@ -800,7 +620,7 @@ static struct pebs_tracer *ds_request_pebs(struct task_struct *task, int cpu,
 	struct pebs_tracer *tracer;
 	int error;
 
-	/* Buffer overflow notification is not yet implemented. */
+	
 	error = -EOPNOTSUPP;
 	if (ovfl)
 		goto out;
@@ -815,13 +635,13 @@ static struct pebs_tracer *ds_request_pebs(struct task_struct *task, int cpu,
 		goto out_put_tracer;
 	tracer->ovfl = ovfl;
 
-	/* Do some more error checking and acquire a tracing context. */
+	
 	error = ds_request(&tracer->ds, &tracer->trace.ds,
 			   ds_pebs, task, cpu, base, size, th);
 	if (error < 0)
 		goto out_tracer;
 
-	/* Claim the pebs part of the tracing context we acquired above. */
+	
 	spin_lock_irq(&ds_lock);
 
 	error = -EPERM;
@@ -831,15 +651,12 @@ static struct pebs_tracer *ds_request_pebs(struct task_struct *task, int cpu,
 
 	spin_unlock_irq(&ds_lock);
 
-	/*
-	 * Now that we own the pebs part of the context, let's complete the
-	 * initialization for that part.
-	 */
+	
 	ds_init_ds_trace(&tracer->trace.ds, ds_pebs, base, size, th, flags);
 	ds_write_config(tracer->ds.context, &tracer->trace.ds, ds_pebs);
 	ds_install_ds_area(tracer->ds.context);
 
-	/* Start tracing. */
+	
 	ds_resume_pebs(tracer);
 
 	return tracer;
@@ -879,7 +696,7 @@ static void ds_free_bts(struct bts_tracer *tracer)
 	WARN_ON_ONCE(tracer->ds.context->bts_master != tracer);
 	tracer->ds.context->bts_master = NULL;
 
-	/* Make sure tracing stopped and the tracer is not in use. */
+	
 	if (task && (task != current))
 		wait_task_context_switch(task);
 
@@ -1266,10 +1083,7 @@ ds_configure(const struct ds_configuration *cfg,
 	nr_pebs_fields = 18;
 #endif
 
-	/*
-	 * Starting with version 2, architectural performance
-	 * monitoring supports a format specifier.
-	 */
+	
 	if ((cpuid_eax(0xa) & 0xff) > 1) {
 		unsigned long perf_capabilities, format;
 
@@ -1320,7 +1134,7 @@ ds_configure(const struct ds_configuration *cfg,
 
 void __cpuinit ds_init_intel(struct cpuinfo_x86 *c)
 {
-	/* Only configure the first cpu. Others are identical. */
+	
 	if (ds_cfg.name)
 		return;
 
@@ -1328,19 +1142,19 @@ void __cpuinit ds_init_intel(struct cpuinfo_x86 *c)
 	case 0x6:
 		switch (c->x86_model) {
 		case 0x9:
-		case 0xd: /* Pentium M */
+		case 0xd: 
 			ds_configure(&ds_cfg_pentium_m, c);
 			break;
 		case 0xf:
-		case 0x17: /* Core2 */
-		case 0x1c: /* Atom */
+		case 0x17: 
+		case 0x1c: 
 			ds_configure(&ds_cfg_core2_atom, c);
 			break;
-		case 0x1a: /* Core i7 */
+		case 0x1a: 
 			ds_configure(&ds_cfg_core_i7, c);
 			break;
 		default:
-			/* Sorry, don't know about them. */
+			
 			break;
 		}
 		break;
@@ -1348,16 +1162,16 @@ void __cpuinit ds_init_intel(struct cpuinfo_x86 *c)
 		switch (c->x86_model) {
 		case 0x0:
 		case 0x1:
-		case 0x2: /* Netburst */
+		case 0x2: 
 			ds_configure(&ds_cfg_netburst, c);
 			break;
 		default:
-			/* Sorry, don't know about them. */
+			
 			break;
 		}
 		break;
 	default:
-		/* Sorry, don't know about them. */
+		
 		break;
 	}
 }
@@ -1369,7 +1183,7 @@ static inline void ds_take_timestamp(struct ds_context *context,
 	struct bts_tracer *tracer = context->bts_master;
 	struct bts_struct ts;
 
-	/* Prevent compilers from reading the tracer pointer twice. */
+	
 	barrier();
 
 	if (!tracer || !(tracer->flags & BTS_TIMESTAMPS))
@@ -1383,16 +1197,14 @@ static inline void ds_take_timestamp(struct ds_context *context,
 	bts_write(tracer, &ts);
 }
 
-/*
- * Change the DS configuration from tracing prev to tracing next.
- */
+
 void ds_switch_to(struct task_struct *prev, struct task_struct *next)
 {
 	struct ds_context *prev_ctx	= prev->thread.ds_ctx;
 	struct ds_context *next_ctx	= next->thread.ds_ctx;
 	unsigned long debugctlmsr	= next->thread.debugctlmsr;
 
-	/* Make sure all data is read before we start. */
+	
 	barrier();
 
 	if (prev_ctx) {

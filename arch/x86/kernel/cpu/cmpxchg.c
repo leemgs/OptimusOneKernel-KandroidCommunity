@@ -1,6 +1,4 @@
-/*
- * cmpxchg*() fallbacks for CPU not supporting these instructions
- */
+
 
 #include <linux/kernel.h>
 #include <linux/smp.h>
@@ -12,7 +10,7 @@ unsigned long cmpxchg_386_u8(volatile void *ptr, u8 old, u8 new)
 	u8 prev;
 	unsigned long flags;
 
-	/* Poor man's cmpxchg for 386. Unsuitable for SMP */
+	
 	local_irq_save(flags);
 	prev = *(u8 *)ptr;
 	if (prev == old)
@@ -27,7 +25,7 @@ unsigned long cmpxchg_386_u16(volatile void *ptr, u16 old, u16 new)
 	u16 prev;
 	unsigned long flags;
 
-	/* Poor man's cmpxchg for 386. Unsuitable for SMP */
+	
 	local_irq_save(flags);
 	prev = *(u16 *)ptr;
 	if (prev == old)
@@ -42,7 +40,7 @@ unsigned long cmpxchg_386_u32(volatile void *ptr, u32 old, u32 new)
 	u32 prev;
 	unsigned long flags;
 
-	/* Poor man's cmpxchg for 386. Unsuitable for SMP */
+	
 	local_irq_save(flags);
 	prev = *(u32 *)ptr;
 	if (prev == old)
@@ -59,7 +57,7 @@ unsigned long long cmpxchg_486_u64(volatile void *ptr, u64 old, u64 new)
 	u64 prev;
 	unsigned long flags;
 
-	/* Poor man's cmpxchg8b for 386 and 486. Unsuitable for SMP */
+	
 	local_irq_save(flags);
 	prev = *(u64 *)ptr;
 	if (prev == old)

@@ -1,7 +1,7 @@
 #ifndef _ASM_X86_PTRACE_H
 #define _ASM_X86_PTRACE_H
 
-#include <linux/compiler.h>	/* For __user */
+#include <linux/compiler.h>	
 #include <asm/ptrace-abi.h>
 #include <asm/processor-flags.h>
 
@@ -12,8 +12,7 @@
 #ifndef __ASSEMBLY__
 
 #ifdef __i386__
-/* this struct defines the way the registers are stored on the
-   stack during a system call. */
+
 
 #ifndef __KERNEL__
 
@@ -37,7 +36,7 @@ struct pt_regs {
 	int  xss;
 };
 
-#else /* __KERNEL__ */
+#else 
 
 struct pt_regs {
 	unsigned long bx;
@@ -59,9 +58,9 @@ struct pt_regs {
 	unsigned long ss;
 };
 
-#endif /* __KERNEL__ */
+#endif 
 
-#else /* __i386__ */
+#else 
 
 #ifndef __KERNEL__
 
@@ -72,7 +71,7 @@ struct pt_regs {
 	unsigned long r12;
 	unsigned long rbp;
 	unsigned long rbx;
-/* arguments: non interrupts/non tracing syscalls only save upto here*/
+
 	unsigned long r11;
 	unsigned long r10;
 	unsigned long r9;
@@ -83,17 +82,17 @@ struct pt_regs {
 	unsigned long rsi;
 	unsigned long rdi;
 	unsigned long orig_rax;
-/* end of arguments */
-/* cpu exception frame or undefined */
+
+
 	unsigned long rip;
 	unsigned long cs;
 	unsigned long eflags;
 	unsigned long rsp;
 	unsigned long ss;
-/* top of stack page */
+
 };
 
-#else /* __KERNEL__ */
+#else 
 
 struct pt_regs {
 	unsigned long r15;
@@ -102,7 +101,7 @@ struct pt_regs {
 	unsigned long r12;
 	unsigned long bp;
 	unsigned long bx;
-/* arguments: non interrupts/non tracing syscalls only save upto here*/
+
 	unsigned long r11;
 	unsigned long r10;
 	unsigned long r9;
@@ -113,18 +112,18 @@ struct pt_regs {
 	unsigned long si;
 	unsigned long di;
 	unsigned long orig_ax;
-/* end of arguments */
-/* cpu exception frame or undefined */
+
+
 	unsigned long ip;
 	unsigned long cs;
 	unsigned long flags;
 	unsigned long sp;
 	unsigned long ss;
-/* top of stack page */
+
 };
 
-#endif /* __KERNEL__ */
-#endif /* !__i386__ */
+#endif 
+#endif 
 
 
 #ifdef __KERNEL__
@@ -150,13 +149,7 @@ static inline unsigned long regs_return_value(struct pt_regs *regs)
 	return regs->ax;
 }
 
-/*
- * user_mode_vm(regs) determines whether a register set came from user mode.
- * This is true if V8086 mode was enabled OR if the register set was from
- * protected mode with RPL-3 CS value.  This tricky test checks that with
- * one comparison.  Many places in the kernel can bypass this full check
- * if they have already ruled out V8086 mode, so user_mode(regs) can be used.
- */
+
 static inline int user_mode(struct pt_regs *regs)
 {
 #ifdef CONFIG_X86_32
@@ -181,17 +174,11 @@ static inline int v8086_mode(struct pt_regs *regs)
 #ifdef CONFIG_X86_32
 	return (regs->flags & X86_VM_MASK);
 #else
-	return 0;	/* No V86 mode support in long mode */
+	return 0;	
 #endif
 }
 
-/*
- * X86_32 CPUs don't save ss and esp if the CPU is already in kernel mode
- * when it traps.  The previous stack will be directly underneath the saved
- * registers, and 'sp/ss' won't even have been saved. Thus the '&regs->sp'.
- *
- * This is valid only for kernel mode traps.
- */
+
 static inline unsigned long kernel_stack_pointer(struct pt_regs *regs)
 {
 #ifdef CONFIG_X86_32
@@ -216,9 +203,7 @@ static inline unsigned long user_stack_pointer(struct pt_regs *regs)
 	return regs->sp;
 }
 
-/*
- * These are defined as per linux/ptrace.h, which see.
- */
+
 #define arch_has_single_step()	(1)
 extern void user_enable_single_step(struct task_struct *);
 extern void user_disable_single_step(struct task_struct *);
@@ -240,10 +225,10 @@ extern int do_set_thread_area(struct task_struct *p, int idx,
 extern void ptrace_bts_untrace(struct task_struct *tsk);
 
 #define arch_ptrace_untrace(tsk)	ptrace_bts_untrace(tsk)
-#endif /* CONFIG_X86_PTRACE_BTS */
+#endif 
 
-#endif /* __KERNEL__ */
+#endif 
 
-#endif /* !__ASSEMBLY__ */
+#endif 
 
-#endif /* _ASM_X86_PTRACE_H */
+#endif 

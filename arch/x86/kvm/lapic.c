@@ -1,21 +1,5 @@
 
-/*
- * Local APIC virtualization
- *
- * Copyright (C) 2006 Qumranet, Inc.
- * Copyright (C) 2007 Novell
- * Copyright (C) 2007 Intel
- *
- * Authors:
- *   Dor Laor <dor.laor@qumranet.com>
- *   Gregory Haskins <ghaskins@novell.com>
- *   Yaozu (Eddie) Dong <eddie.dong@intel.com>
- *
- * Based on Xen 3.1 code, Copyright (c) 2004, Intel Corporation.
- *
- * This work is licensed under the terms of the GNU GPL, version 2.  See
- * the COPYING file in the top-level directory.
- */
+
 
 #include <linux/kvm_host.h>
 #include <linux/kvm.h>
@@ -51,14 +35,14 @@
 
 #define APIC_BUS_CYCLE_NS 1
 
-/* #define apic_debug(fmt,arg...) printk(KERN_WARNING fmt,##arg) */
+
 #define apic_debug(fmt, arg...)
 
 #define APIC_LVT_NUM			6
-/* 14 is the version for Xeon and Pentium 8.4.8*/
+
 #define APIC_VERSION			(0x14UL | ((APIC_LVT_NUM - 1) << 16))
 #define LAPIC_MMIO_LENGTH		(1 << 12)
-/* followed define is not in apicdef.h */
+
 #define APIC_SHORT_MASK			0xc0000
 #define APIC_DEST_NOSHORT		0x0
 #define APIC_DEST_MASK			0x800
@@ -165,11 +149,11 @@ static inline int apic_x2apic_mode(struct kvm_lapic *apic)
 }
 
 static unsigned int apic_lvt_mask[APIC_LVT_NUM] = {
-	LVT_MASK | APIC_LVT_TIMER_PERIODIC,	/* LVTT */
-	LVT_MASK | APIC_MODE_MASK,	/* LVTTHMR */
-	LVT_MASK | APIC_MODE_MASK,	/* LVTPC */
-	LINT_MASK, LINT_MASK,	/* LVT0-1 */
-	LVT_MASK		/* LVTERR */
+	LVT_MASK | APIC_LVT_TIMER_PERIODIC,	
+	LVT_MASK | APIC_MODE_MASK,	
+	LVT_MASK | APIC_MODE_MASK,	
+	LINT_MASK, LINT_MASK,	
+	LVT_MASK		
 };
 
 static int find_highest_vector(void *bitmap)
@@ -223,11 +207,7 @@ int kvm_lapic_find_highest_irr(struct kvm_vcpu *vcpu)
 	struct kvm_lapic *apic = vcpu->arch.apic;
 	int highest_irr;
 
-	/* This may race with setting of irr in __apic_accept_irq() and
-	 * value returned may be wrong, but kvm_vcpu_kick() in __apic_accept_irq
-	 * will cause vmexit immediately and the value will be recalculated
-	 * on the next vmentry.
-	 */
+	
 	if (!apic)
 		return 0;
 	highest_irr = apic_find_highest_irr(apic);
@@ -332,10 +312,10 @@ int kvm_apic_match_dest(struct kvm_vcpu *vcpu, struct kvm_lapic *source,
 	switch (short_hand) {
 	case APIC_DEST_NOSHORT:
 		if (dest_mode == 0)
-			/* Physical mode. */
+			
 			result = kvm_apic_match_physical_addr(target, dest);
 		else
-			/* Logical mode. */
+			
 			result = kvm_apic_match_logical_addr(target, dest);
 		break;
 	case APIC_DEST_SELF:
@@ -356,10 +336,7 @@ int kvm_apic_match_dest(struct kvm_vcpu *vcpu, struct kvm_lapic *source,
 	return result;
 }
 
-/*
- * Add a pending IRQ into lapic.
- * Return 1 if successfully added and 0 if discarded.
- */
+
 static int __apic_accept_irq(struct kvm_lapic *apic, int delivery_mode,
 			     int vector, int level, int trig_mode)
 {
@@ -370,7 +347,7 @@ static int __apic_accept_irq(struct kvm_lapic *apic, int delivery_mode,
 	case APIC_DM_LOWEST:
 		vcpu->arch.apic_arb_prio++;
 	case APIC_DM_FIXED:
-		/* FIXME add logic for vcpu on reset */
+		
 		if (unlikely(!apic_enabled(apic)))
 			break;
 
@@ -434,11 +411,7 @@ static int __apic_accept_irq(struct kvm_lapic *apic, int delivery_mode,
 		break;
 
 	case APIC_DM_EXTINT:
-		/*
-		 * Should only be called by kvm_apic_local_deliver() with LVT0,
-		 * before NMI watchdog was enabled. Already handled by
-		 * kvm_apic_accept_pic_intr().
-		 */
+		
 		break;
 
 	default:
@@ -458,10 +431,7 @@ static void apic_set_eoi(struct kvm_lapic *apic)
 {
 	int vector = apic_find_highest_isr(apic);
 	int trigger_mode;
-	/*
-	 * Not every write EOI will has corresponding ISR,
-	 * one example is when Kernel check timer on setup_IO_APIC
-	 */
+	
 	if (vector == -1)
 		return;
 
@@ -518,7 +488,7 @@ static u32 apic_get_tmcct(struct kvm_lapic *apic)
 
 	ASSERT(apic != NULL);
 
-	/* if initial count is 0, current count should also be 0 */
+	
 	if (apic_get_reg(apic, APIC_TMICT) == 0)
 		return 0;
 
@@ -568,13 +538,13 @@ static u32 __apic_read(struct kvm_lapic *apic, unsigned int offset)
 		       "which is for P6\n");
 		break;
 
-	case APIC_TMCCT:	/* Timer CCR */
+	case APIC_TMCCT:	
 		val = apic_get_tmcct(apic);
 		break;
 
 	case APIC_TASKPRI:
 		report_tpr_access(apic, false);
-		/* fall thru */
+		
 	default:
 		apic_update_ppr(apic);
 		val = apic_get_reg(apic, offset);
@@ -594,7 +564,7 @@ static int apic_reg_read(struct kvm_lapic *apic, u32 offset, int len,
 {
 	unsigned char alignment = offset & 0xf;
 	u32 result;
-	/* this bitmask has a bit cleared for each reserver register */
+	
 	static const u64 rmask = 0x43ff01ffffffe70cULL;
 
 	if ((alignment + len) > 4) {
@@ -671,11 +641,7 @@ static void start_apic_timer(struct kvm_lapic *apic)
 
 	if (!apic->lapic_timer.period)
 		return;
-	/*
-	 * Do not allow the guest to program periodic timers with small
-	 * interval, since the hrtimers are not throttled by the host
-	 * scheduler.
-	 */
+	
 	if (apic_lvtt_period(apic)) {
 		if (apic->lapic_timer.period < NSEC_PER_MSEC/2)
 			apic->lapic_timer.period = NSEC_PER_MSEC/2;
@@ -717,7 +683,7 @@ static int apic_reg_write(struct kvm_lapic *apic, u32 reg, u32 val)
 	trace_kvm_apic_write(reg, val);
 
 	switch (reg) {
-	case APIC_ID:		/* Local APIC ID */
+	case APIC_ID:		
 		if (!apic_x2apic_mode(apic))
 			apic_set_reg(apic, APIC_ID, val);
 		else
@@ -768,7 +734,7 @@ static int apic_reg_write(struct kvm_lapic *apic, u32 reg, u32 val)
 		break;
 	}
 	case APIC_ICR:
-		/* No delay here, so we always clear the pending bit */
+		
 		apic_set_reg(apic, APIC_ICR, val & ~(1 << 12));
 		apic_send_ipi(apic);
 		break;
@@ -786,7 +752,7 @@ static int apic_reg_write(struct kvm_lapic *apic, u32 reg, u32 val)
 	case APIC_LVTPC:
 	case APIC_LVT1:
 	case APIC_LVTERR:
-		/* TODO: Check vector */
+		
 		if (!apic_sw_enabled(apic))
 			val |= APIC_LVT_MASKED;
 
@@ -840,20 +806,16 @@ static int apic_mmio_write(struct kvm_io_device *this,
 	if (!apic_mmio_in_range(apic, address))
 		return -EOPNOTSUPP;
 
-	/*
-	 * APIC register must be aligned on 128-bits boundary.
-	 * 32/64/128 bits registers must be accessed thru 32 bits.
-	 * Refer SDM 8.4.1
-	 */
+	
 	if (len != 4 || (offset & 0xf)) {
-		/* Don't shout loud, $infamous_os would cause only noise. */
+		
 		apic_debug("apic write: bad size=%d %lx\n", len, (long)address);
 		return 0;
 	}
 
 	val = *(u32*)data;
 
-	/* too common printing */
+	
 	if (offset != APIC_EOI)
 		apic_debug("%s: offset 0x%x with length 0x%x, and value is "
 			   "0x%x\n", __func__, offset, len, val);
@@ -876,11 +838,7 @@ void kvm_free_lapic(struct kvm_vcpu *vcpu)
 	kfree(vcpu->arch.apic);
 }
 
-/*
- *----------------------------------------------------------------------
- * LAPIC interface
- *----------------------------------------------------------------------
- */
+
 
 void kvm_lapic_set_tpr(struct kvm_vcpu *vcpu, unsigned long cr8)
 {
@@ -926,7 +884,7 @@ void kvm_lapic_set_base(struct kvm_vcpu *vcpu, u64 value)
 	apic->base_address = apic->vcpu->arch.apic_base &
 			     MSR_IA32_APICBASE_BASE;
 
-	/* with FSB delivery interrupt, we can restart APIC functionality */
+	
 	apic_debug("apic base msr is 0x%016" PRIx64 ", and base address is "
 		   "0x%lx.\n", apic->vcpu->arch.apic_base, apic->base_address);
 
@@ -943,7 +901,7 @@ void kvm_lapic_reset(struct kvm_vcpu *vcpu)
 	apic = vcpu->arch.apic;
 	ASSERT(apic != NULL);
 
-	/* Stop the timer in case it's a reset to an active apic */
+	
 	hrtimer_cancel(&apic->lapic_timer.timer);
 
 	apic_set_reg(apic, APIC_ID, vcpu->vcpu_id << 24);
@@ -993,11 +951,7 @@ int kvm_lapic_enabled(struct kvm_vcpu *vcpu)
 	return kvm_apic_present(vcpu) && apic_sw_enabled(vcpu->arch.apic);
 }
 
-/*
- *----------------------------------------------------------------------
- * timer interface
- *----------------------------------------------------------------------
- */
+
 
 static bool lapic_is_periodic(struct kvm_timer *ktimer)
 {
@@ -1229,7 +1183,7 @@ int kvm_x2apic_msr_write(struct kvm_vcpu *vcpu, u32 msr, u64 data)
 	if (!irqchip_in_kernel(vcpu->kvm) || !apic_x2apic_mode(apic))
 		return 1;
 
-	/* if this is ICR write vector before command */
+	
 	if (msr == 0x830)
 		apic_reg_write(apic, APIC_ICR2, (u32)(data >> 32));
 	return apic_reg_write(apic, reg, (u32)data);

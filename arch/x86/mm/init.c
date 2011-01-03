@@ -60,15 +60,11 @@ static void __init find_early_table_space(unsigned long end, int use_pse,
 	tables += roundup(ptes * sizeof(pte_t), PAGE_SIZE);
 
 #ifdef CONFIG_X86_32
-	/* for fixmap */
+	
 	tables += roundup(__end_of_fixed_addresses * sizeof(pte_t), PAGE_SIZE);
 #endif
 
-	/*
-	 * RED-PEN putting page tables only on node 0 could
-	 * cause a hotspot and fill up ZONE_DMA. The page tables
-	 * need roughly 0.5KB per GB.
-	 */
+	
 #ifdef CONFIG_X86_32
 	start = 0x7000;
 #else
@@ -95,7 +91,7 @@ struct map_range {
 
 #ifdef CONFIG_X86_32
 #define NR_RANGE_MR 3
-#else /* CONFIG_X86_64 */
+#else 
 #define NR_RANGE_MR 5
 #endif
 
@@ -115,11 +111,7 @@ static int __meminit save_mr(struct map_range *mr, int nr_range,
 	return nr_range;
 }
 
-/*
- * Setup the direct mapping of the physical memory at PAGE_OFFSET.
- * This runs before bootmem is initialized and gets pages directly from
- * the physical memory. To access them they are temporarily mapped.
- */
+
 unsigned long __init_refok init_memory_mapping(unsigned long start,
 					       unsigned long end)
 {
@@ -135,11 +127,7 @@ unsigned long __init_refok init_memory_mapping(unsigned long start,
 	printk(KERN_INFO "init_memory_mapping: %016lx-%016lx\n", start, end);
 
 #if defined(CONFIG_DEBUG_PAGEALLOC) || defined(CONFIG_KMEMCHECK)
-	/*
-	 * For CONFIG_DEBUG_PAGEALLOC, identity mapping will use small pages.
-	 * This will simplify cpa(), which otherwise needs to support splitting
-	 * large pages into small in interrupt context, etc.
-	 */
+	
 	use_pse = use_gbpages = 0;
 #else
 	use_pse = cpu_has_pse;
@@ -150,11 +138,11 @@ unsigned long __init_refok init_memory_mapping(unsigned long start,
 	if (nx_enabled)
 		printk(KERN_INFO "NX (Execute Disable) protection: active\n");
 
-	/* Enable PSE if available */
+	
 	if (cpu_has_pse)
 		set_in_cr4(X86_CR4_PSE);
 
-	/* Enable PGE if available */
+	
 	if (cpu_has_pge) {
 		set_in_cr4(X86_CR4_PGE);
 		__supported_pte_mask |= _PAGE_GLOBAL;
@@ -168,22 +156,17 @@ unsigned long __init_refok init_memory_mapping(unsigned long start,
 	memset(mr, 0, sizeof(mr));
 	nr_range = 0;
 
-	/* head if not big page alignment ? */
+	
 	start_pfn = start >> PAGE_SHIFT;
 	pos = start_pfn << PAGE_SHIFT;
 #ifdef CONFIG_X86_32
-	/*
-	 * Don't use a large page for the first 2/4MB of memory
-	 * because there are often fixed size MTRRs in there
-	 * and overlapping MTRRs into large pages can cause
-	 * slowdowns.
-	 */
+	
 	if (pos == 0)
 		end_pfn = 1<<(PMD_SHIFT - PAGE_SHIFT);
 	else
 		end_pfn = ((pos + (PMD_SIZE - 1))>>PMD_SHIFT)
 				 << (PMD_SHIFT - PAGE_SHIFT);
-#else /* CONFIG_X86_64 */
+#else 
 	end_pfn = ((pos + (PMD_SIZE - 1)) >> PMD_SHIFT)
 			<< (PMD_SHIFT - PAGE_SHIFT);
 #endif
@@ -194,12 +177,12 @@ unsigned long __init_refok init_memory_mapping(unsigned long start,
 		pos = end_pfn << PAGE_SHIFT;
 	}
 
-	/* big page (2M) range */
+	
 	start_pfn = ((pos + (PMD_SIZE - 1))>>PMD_SHIFT)
 			 << (PMD_SHIFT - PAGE_SHIFT);
 #ifdef CONFIG_X86_32
 	end_pfn = (end>>PMD_SHIFT) << (PMD_SHIFT - PAGE_SHIFT);
-#else /* CONFIG_X86_64 */
+#else 
 	end_pfn = ((pos + (PUD_SIZE - 1))>>PUD_SHIFT)
 			 << (PUD_SHIFT - PAGE_SHIFT);
 	if (end_pfn > ((end>>PMD_SHIFT)<<(PMD_SHIFT - PAGE_SHIFT)))
@@ -213,7 +196,7 @@ unsigned long __init_refok init_memory_mapping(unsigned long start,
 	}
 
 #ifdef CONFIG_X86_64
-	/* big page (1G) range */
+	
 	start_pfn = ((pos + (PUD_SIZE - 1))>>PUD_SHIFT)
 			 << (PUD_SHIFT - PAGE_SHIFT);
 	end_pfn = (end >> PUD_SHIFT) << (PUD_SHIFT - PAGE_SHIFT);
@@ -224,7 +207,7 @@ unsigned long __init_refok init_memory_mapping(unsigned long start,
 		pos = end_pfn << PAGE_SHIFT;
 	}
 
-	/* tail is not big page (1G) alignment */
+	
 	start_pfn = ((pos + (PMD_SIZE - 1))>>PMD_SHIFT)
 			 << (PMD_SHIFT - PAGE_SHIFT);
 	end_pfn = (end >> PMD_SHIFT) << (PMD_SHIFT - PAGE_SHIFT);
@@ -235,18 +218,18 @@ unsigned long __init_refok init_memory_mapping(unsigned long start,
 	}
 #endif
 
-	/* tail is not big page (2M) alignment */
+	
 	start_pfn = pos>>PAGE_SHIFT;
 	end_pfn = end>>PAGE_SHIFT;
 	nr_range = save_mr(mr, nr_range, start_pfn, end_pfn, 0);
 
-	/* try to merge same page size and continuous */
+	
 	for (i = 0; nr_range > 1 && i < nr_range - 1; i++) {
 		unsigned long old_start;
 		if (mr[i].end != mr[i+1].start ||
 		    mr[i].page_size_mask != mr[i+1].page_size_mask)
 			continue;
-		/* move it */
+		
 		old_start = mr[i].start;
 		memmove(&mr[i], &mr[i+1],
 			(nr_range - 1 - i) * sizeof(struct map_range));
@@ -260,13 +243,7 @@ unsigned long __init_refok init_memory_mapping(unsigned long start,
 			(mr[i].page_size_mask & (1<<PG_LEVEL_1G))?"1G":(
 			 (mr[i].page_size_mask & (1<<PG_LEVEL_2M))?"2M":"4k"));
 
-	/*
-	 * Find space for the kernel direct mapping tables.
-	 *
-	 * Later we should allocate these tables in the local node of the
-	 * memory mapped. Unfortunately this is done currently before the
-	 * nodes are discovered.
-	 */
+	
 	if (!after_bootmem)
 		find_early_table_space(end, use_pse, use_gbpages);
 
@@ -275,7 +252,7 @@ unsigned long __init_refok init_memory_mapping(unsigned long start,
 		kernel_physical_mapping_init(mr[i].start, mr[i].end,
 					     mr[i].page_size_mask);
 	ret = end;
-#else /* CONFIG_X86_64 */
+#else 
 	for (i = 0; i < nr_range; i++)
 		ret = kernel_physical_mapping_init(mr[i].start, mr[i].end,
 						   mr[i].page_size_mask);
@@ -294,12 +271,7 @@ unsigned long __init_refok init_memory_mapping(unsigned long start,
 
 		mmu_cr4_features = read_cr4();
 
-		/*
-		 * _brk_end cannot change anymore, but it and _end may be
-		 * located on different 2M pages. cleanup_highmap(), however,
-		 * can only consider _end when it runs, so destroy any
-		 * mappings beyond _brk_end here.
-		 */
+		
 		pud = pud_offset(pgd_offset_k(_brk_end), _brk_end);
 		pmd = pmd_offset(pud, _brk_end - 1);
 		while (++pmd <= pmd_offset(pud, (unsigned long)_end - 1))
@@ -319,16 +291,7 @@ unsigned long __init_refok init_memory_mapping(unsigned long start,
 }
 
 
-/*
- * devmem_is_allowed() checks to see if /dev/mem access to a certain address
- * is valid. The argument is a physical page number.
- *
- *
- * On x86, access has to be given to the first megabyte of ram because that area
- * contains bios code and data regions used by X and dosemu and similar apps.
- * Access has to be given to non-kernel-ram areas as well, these contain the PCI
- * mmio resources as well as potential bios/acpi data regions.
- */
+
 int devmem_is_allowed(unsigned long pagenr)
 {
 	if (pagenr <= 256)
@@ -347,21 +310,13 @@ void free_init_pages(char *what, unsigned long begin, unsigned long end)
 	if (addr >= end)
 		return;
 
-	/*
-	 * If debugging page accesses then do not free this memory but
-	 * mark them not present - any buggy init-section access will
-	 * create a kernel page fault:
-	 */
+	
 #ifdef CONFIG_DEBUG_PAGEALLOC
 	printk(KERN_INFO "debug: unmapping init memory %08lx..%08lx\n",
 		begin, PAGE_ALIGN(end));
 	set_memory_np(begin, (end - begin) >> PAGE_SHIFT);
 #else
-	/*
-	 * We just marked the kernel text read only above, now that
-	 * we are going to free part of that, we need to make that
-	 * writeable first.
-	 */
+	
 	set_memory_rw(begin, (end - begin) >> PAGE_SHIFT);
 
 	printk(KERN_INFO "Freeing %s: %luk freed\n", what, (end - begin) >> 10);

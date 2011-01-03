@@ -1,12 +1,4 @@
-/*
- * Xen time implementation.
- *
- * This is implemented in terms of a clocksource driver which uses
- * the hypervisor clock as a nanosecond timebase, and a clockevent
- * driver which uses the hypervisor's timer mechanism.
- *
- * Jeremy Fitzhardinge <jeremy@xensource.com>, XenSource Inc, 2007
- */
+
 #include <linux/kernel.h>
 #include <linux/interrupt.h>
 #include <linux/clocksource.h>
@@ -26,21 +18,21 @@
 
 #define XEN_SHIFT 22
 
-/* Xen may fire a timer up to this many ns early */
+
 #define TIMER_SLOP	100000
 #define NS_PER_TICK	(1000000000LL / HZ)
 
-/* runstate info updated by Xen */
+
 static DEFINE_PER_CPU(struct vcpu_runstate_info, runstate);
 
-/* snapshots of runstate info */
+
 static DEFINE_PER_CPU(struct vcpu_runstate_info, runstate_snapshot);
 
-/* unused ns of stolen and blocked time */
+
 static DEFINE_PER_CPU(u64, residual_stolen);
 static DEFINE_PER_CPU(u64, residual_blocked);
 
-/* return an consistent snapshot of 64-bit time/counter value */
+
 static u64 get64(const u64 *p)
 {
 	u64 ret;
@@ -49,12 +41,7 @@ static u64 get64(const u64 *p)
 		u32 *p32 = (u32 *)p;
 		u32 h, l;
 
-		/*
-		 * Read high then low, and then make sure high is
-		 * still the same; this will only loop if low wraps
-		 * and carries into high.
-		 * XXX some clean way to make this endian-proof?
-		 */
+		
 		do {
 			h = p32[1];
 			barrier();
@@ -69,9 +56,7 @@ static u64 get64(const u64 *p)
 	return ret;
 }
 
-/*
- * Runstate accounting
- */
+
 static void get_runstate_snapshot(struct vcpu_runstate_info *res)
 {
 	u64 state_time;
@@ -81,11 +66,7 @@ static void get_runstate_snapshot(struct vcpu_runstate_info *res)
 
 	state = &__get_cpu_var(runstate);
 
-	/*
-	 * The runstate info is always updated by the hypervisor on
-	 * the current CPU, so there's no need to use anything
-	 * stronger than a compiler barrier when fetching it.
-	 */
+	
 	do {
 		state_time = get64(&state->state_entry_time);
 		barrier();
@@ -94,7 +75,7 @@ static void get_runstate_snapshot(struct vcpu_runstate_info *res)
 	} while (get64(&state->state_entry_time) != state_time);
 }
 
-/* return true when a vcpu could run but has no real cpu to run on */
+
 bool xen_vcpu_stolen(int vcpu)
 {
 	return per_cpu(runstate, vcpu).state == RUNSTATE_runnable;
@@ -124,15 +105,14 @@ static void do_stolen_accounting(void)
 
 	snap = &__get_cpu_var(runstate_snapshot);
 
-	/* work out how much time the VCPU has not been runn*ing*  */
+	
 	blocked = state.time[RUNSTATE_blocked] - snap->time[RUNSTATE_blocked];
 	runnable = state.time[RUNSTATE_runnable] - snap->time[RUNSTATE_runnable];
 	offline = state.time[RUNSTATE_offline] - snap->time[RUNSTATE_offline];
 
 	*snap = state;
 
-	/* Add the appropriate number of ticks of stolen time,
-	   including any left-overs from last time. */
+	
 	stolen = runnable + offline + __get_cpu_var(residual_stolen);
 
 	if (stolen < 0)
@@ -142,8 +122,7 @@ static void do_stolen_accounting(void)
 	__get_cpu_var(residual_stolen) = stolen;
 	account_steal_ticks(ticks);
 
-	/* Add the appropriate number of ticks of blocked time,
-	   including any left-overs from last time. */
+	
 	blocked += __get_cpu_var(residual_blocked);
 
 	if (blocked < 0)
@@ -154,11 +133,7 @@ static void do_stolen_accounting(void)
 	account_idle_ticks(ticks);
 }
 
-/*
- * Xen sched_clock implementation.  Returns the number of unstolen
- * nanoseconds, which is nanoseconds the VCPU spent in RUNNING+BLOCKED
- * states.
- */
+
 unsigned long long xen_sched_clock(void)
 {
 	struct vcpu_runstate_info state;
@@ -166,11 +141,7 @@ unsigned long long xen_sched_clock(void)
 	u64 ret;
 	s64 offset;
 
-	/*
-	 * Ideally sched_clock should be called on a per-cpu basis
-	 * anyway, so preempt should already be disabled, but that's
-	 * not current practice at the moment.
-	 */
+	
 	preempt_disable();
 
 	now = xen_clocksource_read();
@@ -193,7 +164,7 @@ unsigned long long xen_sched_clock(void)
 }
 
 
-/* Get the TSC speed from Xen */
+
 unsigned long xen_tsc_khz(void)
 {
 	struct pvclock_vcpu_time_info *info =
@@ -239,7 +210,7 @@ unsigned long xen_get_wallclock(void)
 
 int xen_set_wallclock(unsigned long now)
 {
-	/* do nothing for domU */
+	
 	return -1;
 }
 
@@ -248,42 +219,15 @@ static struct clocksource xen_clocksource __read_mostly = {
 	.rating = 400,
 	.read = xen_clocksource_get_cycles,
 	.mask = ~0,
-	.mult = 1<<XEN_SHIFT,		/* time directly in nanoseconds */
+	.mult = 1<<XEN_SHIFT,		
 	.shift = XEN_SHIFT,
 	.flags = CLOCK_SOURCE_IS_CONTINUOUS,
 };
 
-/*
-   Xen clockevent implementation
-
-   Xen has two clockevent implementations:
-
-   The old timer_op one works with all released versions of Xen prior
-   to version 3.0.4.  This version of the hypervisor provides a
-   single-shot timer with nanosecond resolution.  However, sharing the
-   same event channel is a 100Hz tick which is delivered while the
-   vcpu is running.  We don't care about or use this tick, but it will
-   cause the core time code to think the timer fired too soon, and
-   will end up resetting it each time.  It could be filtered, but
-   doing so has complications when the ktime clocksource is not yet
-   the xen clocksource (ie, at boot time).
-
-   The new vcpu_op-based timer interface allows the tick timer period
-   to be changed or turned off.  The tick timer is not useful as a
-   periodic timer because events are only delivered to running vcpus.
-   The one-shot timer can report when a timeout is in the past, so
-   set_next_event is capable of returning -ETIME when appropriate.
-   This interface is used when available.
-*/
 
 
-/*
-  Get a hypervisor absolute time.  In theory we could maintain an
-  offset between the kernel's time and the hypervisor's time, and
-  apply that to a kernel's absolute timeout.  Unfortunately the
-  hypervisor and kernel times can drift even if the kernel is using
-  the Xen clocksource, because ntp can warp the kernel's clocksource.
-*/
+
+
 static s64 get_abs_timeout(unsigned long delta)
 {
 	return xen_clocksource_read() + delta;
@@ -294,7 +238,7 @@ static void xen_timerop_set_mode(enum clock_event_mode mode,
 {
 	switch (mode) {
 	case CLOCK_EVT_MODE_PERIODIC:
-		/* unsupported */
+		
 		WARN_ON(1);
 		break;
 
@@ -304,7 +248,7 @@ static void xen_timerop_set_mode(enum clock_event_mode mode,
 
 	case CLOCK_EVT_MODE_UNUSED:
 	case CLOCK_EVT_MODE_SHUTDOWN:
-		HYPERVISOR_set_timer_op(0);  /* cancel timeout */
+		HYPERVISOR_set_timer_op(0);  
 		break;
 	}
 }
@@ -317,9 +261,7 @@ static int xen_timerop_set_next_event(unsigned long delta,
 	if (HYPERVISOR_set_timer_op(get_abs_timeout(delta)) < 0)
 		BUG();
 
-	/* We may have missed the deadline, but there's no real way of
-	   knowing for sure.  If the event was in the past, then we'll
-	   get an immediate interrupt. */
+	
 
 	return 0;
 }
@@ -348,7 +290,7 @@ static void xen_vcpuop_set_mode(enum clock_event_mode mode,
 
 	switch (mode) {
 	case CLOCK_EVT_MODE_PERIODIC:
-		WARN_ON(1);	/* unsupported */
+		WARN_ON(1);	
 		break;
 
 	case CLOCK_EVT_MODE_ONESHOT:
@@ -479,13 +421,12 @@ __init void xen_time_init(void)
 	clocksource_register(&xen_clocksource);
 
 	if (HYPERVISOR_vcpu_op(VCPUOP_stop_periodic_timer, cpu, NULL) == 0) {
-		/* Successfully turned off 100Hz tick, so we have the
-		   vcpuop-based timer interface */
+		
 		printk(KERN_DEBUG "Xen: using vcpuop timer interface\n");
 		xen_clockevent = &xen_vcpuop_clockevent;
 	}
 
-	/* Set initial system time with full resolution */
+	
 	xen_read_wallclock(&xtime);
 	set_normalized_timespec(&wall_to_monotonic,
 				-xtime.tv_sec, -xtime.tv_nsec);

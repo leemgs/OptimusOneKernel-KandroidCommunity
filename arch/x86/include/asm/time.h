@@ -7,4 +7,4 @@ extern void hpet_time_init(void);
 
 extern void time_init(void);
 
-#endif /* _ASM_X86_TIME_H */
+#endif 

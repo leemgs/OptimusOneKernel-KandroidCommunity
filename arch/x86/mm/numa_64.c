@@ -1,7 +1,4 @@
-/*
- * Generic VM initialization for x86-64 NUMA setups.
- * Copyright 2002,2003 Andi Kleen, SuSE Labs.
- */
+
 #include <linux/kernel.h>
 #include <linux/mm.h>
 #include <linux/string.h>
@@ -36,19 +33,11 @@ static unsigned long __initdata nodemap_size;
 DEFINE_PER_CPU(int, node_number) = 0;
 EXPORT_PER_CPU_SYMBOL(node_number);
 
-/*
- * Map cpu index to node index
- */
+
 DEFINE_EARLY_PER_CPU(int, x86_cpu_to_node_map, NUMA_NO_NODE);
 EXPORT_EARLY_PER_CPU_SYMBOL(x86_cpu_to_node_map);
 
-/*
- * Given a shift value, try to populate memnodemap[]
- * Returns :
- * 1 if OK
- * 0 if memnodmap[] too small (of shift too small)
- * -1 if node overlap or lost ram (shift too big)
- */
+
 static int __init populate_memnodemap(const struct bootnode *nodes,
 				      int numnodes, int shift, int *nodeids)
 {
@@ -105,10 +94,7 @@ static int __init allocate_cachealigned_memnodemap(void)
 	return 0;
 }
 
-/*
- * The LSB of all start and end addresses in the node map is the value of the
- * maximum possible shift.
- */
+
 static int __init extract_lsb_from_nodes(const struct bootnode *nodes,
 					 int numnodes)
 {
@@ -178,7 +164,7 @@ static void * __init early_node_mem(int nodeid, unsigned long start,
 	return ptr;
 }
 
-/* Initialize bootmem allocator for a node */
+
 void __init
 setup_node_bootmem(int nodeid, unsigned long start, unsigned long end)
 {
@@ -191,10 +177,7 @@ setup_node_bootmem(int nodeid, unsigned long start, unsigned long end)
 	if (!end)
 		return;
 
-	/*
-	 * Don't confuse VM with a node that doesn't have the
-	 * minimum amount of memory:
-	 */
+	
 	if (end && (end - start) < NODE_MIN_SIZE)
 		return;
 
@@ -219,23 +202,14 @@ setup_node_bootmem(int nodeid, unsigned long start, unsigned long end)
 	NODE_DATA(nodeid)->node_start_pfn = start_pfn;
 	NODE_DATA(nodeid)->node_spanned_pages = last_pfn - start_pfn;
 
-	/*
-	 * Find a place for the bootmem map
-	 * nodedata_phys could be on other nodes by alloc_bootmem,
-	 * so need to sure bootmap_start not to be small, otherwise
-	 * early_node_mem will get that with find_e820_area instead
-	 * of alloc_bootmem, that could clash with reserved range
-	 */
+	
 	bootmap_pages = bootmem_bootmap_pages(last_pfn - start_pfn);
 	nid = phys_to_nid(nodedata_phys);
 	if (nid == nodeid)
 		bootmap_start = roundup(nodedata_phys + pgdat_size, PAGE_SIZE);
 	else
 		bootmap_start = roundup(start, PAGE_SIZE);
-	/*
-	 * SMP_CACHE_BYTES could be enough, but init_bootmem_node like
-	 * to use that to align to PAGE_SIZE
-	 */
+	
 	bootmap = early_node_mem(nodeid, bootmap_start, end,
 				 bootmap_pages<<PAGE_SHIFT, PAGE_SIZE);
 	if (bootmap == NULL)  {
@@ -256,17 +230,10 @@ setup_node_bootmem(int nodeid, unsigned long start, unsigned long end)
 
 	free_bootmem_with_active_regions(nodeid, end);
 
-	/*
-	 * convert early reserve to bootmem reserve earlier
-	 * otherwise early_node_mem could use early reserved mem
-	 * on previous node
-	 */
+	
 	early_res_to_bootmem(start, end);
 
-	/*
-	 * in some case early_node_mem could use alloc_bootmem
-	 * to get range on other node, don't reserve that again
-	 */
+	
 	if (nid != nodeid)
 		printk(KERN_INFO "    NODE_DATA(%d) on node %d\n", nodeid, nid);
 	else
@@ -282,13 +249,7 @@ setup_node_bootmem(int nodeid, unsigned long start, unsigned long end)
 	node_set_online(nodeid);
 }
 
-/*
- * There are unfortunately some poorly designed mainboards around that
- * only connect memory to a single CPU. This breaks the 1:1 cpu->node
- * mapping. To avoid this fill in the mapping for all possible CPUs,
- * as the number of CPUs is not known yet. We round robin the existing
- * nodes.
- */
+
 void __init numa_init_array(void)
 {
 	int rr, i;
@@ -305,16 +266,10 @@ void __init numa_init_array(void)
 }
 
 #ifdef CONFIG_NUMA_EMU
-/* Numa emulation */
+
 static char *cmdline __initdata;
 
-/*
- * Setups up nid to range from addr to addr + size.  If the end
- * boundary is greater than max_addr, then max_addr is used instead.
- * The return value is 0 if there is additional memory left for
- * allocation past addr and -1 otherwise.  addr is adjusted to be at
- * the end of the node.
- */
+
 static int __init setup_node_range(int nid, struct bootnode *nodes, u64 *addr,
 				   u64 size, u64 max_addr)
 {
@@ -334,11 +289,7 @@ static int __init setup_node_range(int nid, struct bootnode *nodes, u64 *addr,
 	return ret;
 }
 
-/*
- * Splits num_nodes nodes up equally starting at node_start.  The return value
- * is the number of nodes split up and addr is adjusted to be at the end of the
- * last node allocated.
- */
+
 static int __init split_nodes_equally(struct bootnode *nodes, u64 *addr,
 				      u64 max_addr, int node_start,
 				      int num_nodes)
@@ -353,14 +304,11 @@ static int __init split_nodes_equally(struct bootnode *nodes, u64 *addr,
 		num_nodes = MAX_NUMNODES;
 	size = (max_addr - *addr - e820_hole_size(*addr, max_addr)) /
 	       num_nodes;
-	/*
-	 * Calculate the number of big nodes that can be allocated as a result
-	 * of consolidating the leftovers.
-	 */
+	
 	big = ((size & ~FAKE_NODE_MIN_HASH_MASK) * num_nodes) /
 	      FAKE_NODE_MIN_SIZE;
 
-	/* Round down to nearest FAKE_NODE_MIN_SIZE. */
+	
 	size &= FAKE_NODE_MIN_HASH_MASK;
 	if (!size) {
 		printk(KERN_ERR "Not enough memory for each node.  "
@@ -373,10 +321,7 @@ static int __init split_nodes_equally(struct bootnode *nodes, u64 *addr,
 
 		if (i < big)
 			end += FAKE_NODE_MIN_SIZE;
-		/*
-		 * The final node can have the remaining system RAM.  Other
-		 * nodes receive roughly the same amount of available pages.
-		 */
+		
 		if (i == num_nodes + node_start - 1)
 			end = max_addr;
 		else
@@ -394,11 +339,7 @@ static int __init split_nodes_equally(struct bootnode *nodes, u64 *addr,
 	return i - node_start + 1;
 }
 
-/*
- * Splits the remaining system RAM into chunks of size.  The remaining memory is
- * always assigned to a final node and can be asymmetric.  Returns the number of
- * nodes split.
- */
+
 static int __init split_nodes_by_size(struct bootnode *nodes, u64 *addr,
 				      u64 max_addr, int node_start, u64 size)
 {
@@ -409,10 +350,7 @@ static int __init split_nodes_by_size(struct bootnode *nodes, u64 *addr,
 	return i - node_start;
 }
 
-/*
- * Sets up the system RAM area from start_pfn to last_pfn according to the
- * numa=fake command-line option.
- */
+
 static struct bootnode nodes[MAX_NUMNODES] __initdata;
 
 static int __init numa_emulation(unsigned long start_pfn, unsigned long last_pfn)
@@ -422,10 +360,7 @@ static int __init numa_emulation(unsigned long start_pfn, unsigned long last_pfn
 	int num_nodes = 0, num = 0, coeff_flag, coeff = -1, i;
 
 	memset(&nodes, 0, sizeof(nodes));
-	/*
-	 * If the numa=fake command-line is just a single number N, split the
-	 * system RAM into N fake nodes.
-	 */
+	
 	if (!strchr(cmdline, '*') && !strchr(cmdline, ',')) {
 		long n = simple_strtol(cmdline, NULL, 0);
 
@@ -435,7 +370,7 @@ static int __init numa_emulation(unsigned long start_pfn, unsigned long last_pfn
 		goto out;
 	}
 
-	/* Parse the command line. */
+	
 	for (coeff_flag = 0; ; cmdline++) {
 		if (*cmdline && isdigit(*cmdline)) {
 			num = num * 10 + *cmdline - '0';
@@ -449,10 +384,7 @@ static int __init numa_emulation(unsigned long start_pfn, unsigned long last_pfn
 		if (!*cmdline || *cmdline == ',') {
 			if (!coeff_flag)
 				coeff = 1;
-			/*
-			 * Round down to the nearest FAKE_NODE_MIN_SIZE.
-			 * Command-line coefficients are in megabytes.
-			 */
+			
 			size = ((u64)num << 20) & FAKE_NODE_MIN_HASH_MASK;
 			if (size)
 				for (i = 0; i < coeff; i++, num_nodes++)
@@ -469,27 +401,27 @@ static int __init numa_emulation(unsigned long start_pfn, unsigned long last_pfn
 done:
 	if (!num_nodes)
 		return -1;
-	/* Fill remainder of system RAM, if appropriate. */
+	
 	if (addr < max_addr) {
 		if (coeff_flag && coeff < 0) {
-			/* Split remaining nodes into num-sized chunks */
+			
 			num_nodes += split_nodes_by_size(nodes, &addr, max_addr,
 							 num_nodes, num);
 			goto out;
 		}
 		switch (*(cmdline - 1)) {
 		case '*':
-			/* Split remaining nodes into coeff chunks */
+			
 			if (coeff <= 0)
 				break;
 			num_nodes += split_nodes_equally(nodes, &addr, max_addr,
 							 num_nodes, coeff);
 			break;
 		case ',':
-			/* Do not allocate remaining system RAM */
+			
 			break;
 		default:
-			/* Give one final node */
+			
 			setup_node_range(num_nodes, nodes, &addr,
 					 max_addr - addr, max_addr);
 			num_nodes++;
@@ -504,11 +436,7 @@ out:
 		return -1;
 	}
 
-	/*
-	 * We need to vacate all active ranges that may have been registered by
-	 * SRAT and set acpi_numa to -1 so that srat_disabled() always returns
-	 * true.  NUMA emulation has succeeded so we will not scan ACPI nodes.
-	 */
+	
 	remove_all_active_ranges();
 #ifdef CONFIG_ACPI_NUMA
 	acpi_numa = -1;
@@ -522,7 +450,7 @@ out:
 	numa_init_array();
 	return 0;
 }
-#endif /* CONFIG_NUMA_EMU */
+#endif 
 
 void __init initmem_init(unsigned long start_pfn, unsigned long last_pfn)
 {
@@ -559,7 +487,7 @@ void __init initmem_init(unsigned long start_pfn, unsigned long last_pfn)
 	printk(KERN_INFO "Faking a node at %016lx-%016lx\n",
 	       start_pfn << PAGE_SHIFT,
 	       last_pfn << PAGE_SHIFT);
-	/* setup dummy node covering all memory */
+	
 	memnode_shift = 63;
 	memnodemap = memnode.embedded_map;
 	memnodemap[0] = 0;
@@ -601,20 +529,7 @@ static __init int numa_setup(char *opt)
 early_param("numa", numa_setup);
 
 #ifdef CONFIG_NUMA
-/*
- * Setup early cpu_to_node.
- *
- * Populate cpu_to_node[] only if x86_cpu_to_apicid[],
- * and apicid_to_node[] tables have valid entries for a CPU.
- * This means we skip cpu_to_node[] initialisation for NUMA
- * emulation and faking node case (when running a kernel compiled
- * for NUMA on a non NUMA box), which is OK as cpu_to_node[]
- * is already initialized in a round robin manner at numa_init_array,
- * prior to this call, and this initialization is good enough
- * for the fake NUMA cases.
- *
- * Called before the per_cpu areas are setup.
- */
+
 void __init init_cpu_to_node(void)
 {
 	int cpu;
@@ -643,7 +558,7 @@ void __cpuinit numa_set_node(int cpu, int node)
 {
 	int *cpu_to_node_map = early_per_cpu_ptr(x86_cpu_to_node_map);
 
-	/* early setting, no percpu area yet */
+	
 	if (cpu_to_node_map) {
 		cpu_to_node_map[cpu] = node;
 		return;
@@ -679,11 +594,9 @@ void __cpuinit numa_remove_cpu(int cpu)
 	cpumask_clear_cpu(cpu, node_to_cpumask_map[early_cpu_to_node(cpu)]);
 }
 
-#else /* CONFIG_DEBUG_PER_CPU_MAPS */
+#else 
 
-/*
- * --------- debug versions of the numa functions ---------
- */
+
 static void __cpuinit numa_set_cpumask(int cpu, int enable)
 {
 	int node = early_cpu_to_node(cpu);
@@ -729,10 +642,7 @@ int cpu_to_node(int cpu)
 }
 EXPORT_SYMBOL(cpu_to_node);
 
-/*
- * Same function as cpu_to_node() but used if called before the
- * per_cpu areas are setup.
- */
+
 int early_cpu_to_node(int cpu)
 {
 	if (early_per_cpu_ptr(x86_cpu_to_node_map))
@@ -747,8 +657,6 @@ int early_cpu_to_node(int cpu)
 	return per_cpu(x86_cpu_to_node_map, cpu);
 }
 
-/*
- * --------- end of debug versions of the numa functions ---------
- */
 
-#endif /* CONFIG_DEBUG_PER_CPU_MAPS */
+
+#endif 

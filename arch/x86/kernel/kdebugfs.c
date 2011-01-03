@@ -1,11 +1,4 @@
-/*
- * Architecture specific debugfs files
- *
- * Copyright (C) 2007, Intel Corp.
- *	Huang Ying <ying.huang@intel.com>
- *
- * This file is released under the GPLv2.
- */
+
 #include <linux/debugfs.h>
 #include <linux/uaccess.h>
 #include <linux/module.h>
@@ -198,7 +191,7 @@ err_dir:
 	debugfs_remove(dbp);
 	return error;
 }
-#endif /* CONFIG_DEBUG_BOOT_PARAMS */
+#endif 
 
 static int __init arch_kdebugfs_init(void)
 {

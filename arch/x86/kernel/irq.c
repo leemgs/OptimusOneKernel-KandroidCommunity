@@ -1,6 +1,4 @@
-/*
- * Common interrupt code for 32 and 64 bit
- */
+
 #include <linux/cpu.h>
 #include <linux/interrupt.h>
 #include <linux/kernel_stat.h>
@@ -17,34 +15,21 @@
 
 atomic_t irq_err_count;
 
-/* Function pointer for generic interrupt vector handling */
+
 void (*generic_interrupt_extension)(void) = NULL;
 
-/*
- * 'what should we do if we get a hw irq event on an illegal vector'.
- * each architecture has to answer this themselves.
- */
+
 void ack_bad_irq(unsigned int irq)
 {
 	if (printk_ratelimit())
 		pr_err("unexpected IRQ trap at vector %02x\n", irq);
 
-	/*
-	 * Currently unexpected vectors happen only on SMP and APIC.
-	 * We _must_ ack these because every local APIC has only N
-	 * irq slots per priority level, and a 'hanging, unacked' IRQ
-	 * holds up an irq slot - in excessive cases (when multiple
-	 * unexpected vectors occur) that might lock up the APIC
-	 * completely.
-	 * But only ack when the APIC is enabled -AK
-	 */
+	
 	ack_APIC_irq();
 }
 
 #define irq_stats(x)		(&per_cpu(irq_stat, x))
-/*
- * /proc/interrupts printing:
- */
+
 static int show_other_interrupts(struct seq_file *p, int prec)
 {
 	int j;
@@ -137,7 +122,7 @@ int show_interrupts(struct seq_file *p, void *v)
 	if (i == nr_irqs)
 		return show_other_interrupts(p, prec);
 
-	/* print header */
+	
 	if (i == 0) {
 		seq_printf(p, "%*s", prec + 8, "");
 		for_each_online_cpu(j)
@@ -174,9 +159,7 @@ out:
 	return 0;
 }
 
-/*
- * /proc/stat helpers
- */
+
 u64 arch_irq_stat_cpu(unsigned int cpu)
 {
 	u64 sum = irq_stats(cpu)->__nmi_count;
@@ -218,16 +201,12 @@ u64 arch_irq_stat(void)
 }
 
 
-/*
- * do_IRQ handles all normal device IRQ's (the special
- * SMP cross-CPU interrupts have their own specific
- * handlers).
- */
+
 unsigned int __irq_entry do_IRQ(struct pt_regs *regs)
 {
 	struct pt_regs *old_regs = set_irq_regs(regs);
 
-	/* high bit used in ret_from_ code  */
+	
 	unsigned vector = ~regs->orig_ax;
 	unsigned irq;
 
@@ -250,9 +229,7 @@ unsigned int __irq_entry do_IRQ(struct pt_regs *regs)
 	return 1;
 }
 
-/*
- * Handler for GENERIC_INTERRUPT_VECTOR.
- */
+
 void smp_generic_interrupt(struct pt_regs *regs)
 {
 	struct pt_regs *old_regs = set_irq_regs(regs);

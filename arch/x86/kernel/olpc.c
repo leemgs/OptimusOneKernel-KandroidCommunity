@@ -1,14 +1,4 @@
-/*
- * Support for the OLPC DCON and OLPC EC access
- *
- * Copyright © 2006  Advanced Micro Devices, Inc.
- * Copyright © 2007-2008  Andres Salomon <dilinger@debian.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -29,10 +19,10 @@ EXPORT_SYMBOL_GPL(olpc_platform_info);
 
 static DEFINE_SPINLOCK(ec_lock);
 
-/* what the timeout *should* be (in ms) */
+
 #define EC_BASE_TIMEOUT 20
 
-/* the timeout that bugs in the EC might force us to actually use */
+
 static int ec_timeout = EC_BASE_TIMEOUT;
 
 static int __init olpc_ec_timeout_set(char *str)
@@ -48,9 +38,7 @@ static int __init olpc_ec_timeout_set(char *str)
 }
 __setup("olpc_ec_timeout=", olpc_ec_timeout_set);
 
-/*
- * These {i,o}bf_status functions return whether the buffers are full or not.
- */
+
 
 static inline unsigned int ibf_status(unsigned int port)
 {
@@ -102,13 +90,7 @@ static int __wait_on_obf(unsigned int line, unsigned int port, int desired)
 	return !(state == desired);
 }
 
-/*
- * This allows the kernel to run Embedded Controller commands.  The EC is
- * documented at <http://wiki.laptop.org/go/Embedded_controller>, and the
- * available EC commands are here:
- * <http://wiki.laptop.org/go/Ec_specification>.  Unfortunately, while
- * OpenFirmware's source is available, the EC's is not.
- */
+
 int olpc_ec_cmd(unsigned char cmd, unsigned char *inbuf, size_t inlen,
 		unsigned char *outbuf,  size_t outlen)
 {
@@ -118,7 +100,7 @@ int olpc_ec_cmd(unsigned char cmd, unsigned char *inbuf, size_t inlen,
 
 	spin_lock_irqsave(&ec_lock, flags);
 
-	/* Clear OBF */
+	
 	for (i = 0; i < 10 && (obf_status(0x6c) == 1); i++)
 		inb(0x68);
 	if (i == 10) {
@@ -134,15 +116,7 @@ int olpc_ec_cmd(unsigned char cmd, unsigned char *inbuf, size_t inlen,
 	}
 
 restart:
-	/*
-	 * Note that if we time out during any IBF checks, that's a failure;
-	 * we have to return.  There's no way for the kernel to clear that.
-	 *
-	 * If we time out during an OBF check, we can restart the command;
-	 * reissuing it will clear the OBF flag, and we should be alright.
-	 * The OBF flag will sometimes misbehave due to what we believe
-	 * is a hardware quirk..
-	 */
+	
 	printk(KERN_DEBUG "olpc-ec:  running cmd 0x%x\n", cmd);
 	outb(cmd, 0x6c);
 
@@ -153,7 +127,7 @@ restart:
 	}
 
 	if (inbuf && inlen) {
-		/* write data to EC */
+		
 		for (i = 0; i < inlen; i++) {
 			if (wait_on_ibf(0x6c, 0)) {
 				printk(KERN_ERR "olpc-ec:  timeout waiting for"
@@ -166,7 +140,7 @@ restart:
 		}
 	}
 	if (outbuf && outlen) {
-		/* read data from EC */
+		
 		for (i = 0; i < outlen; i++) {
 			if (wait_on_obf(0x6c, 1)) {
 				printk(KERN_ERR "olpc-ec:  timeout waiting for"
@@ -202,7 +176,7 @@ static void __init platform_detect(void)
 #else
 static void __init platform_detect(void)
 {
-	/* stopgap until OFW support is added to the kernel */
+	
 	olpc_platform_info.boardrev = olpc_board(0xc2);
 }
 #endif
@@ -211,7 +185,7 @@ static int __init olpc_init(void)
 {
 	unsigned char *romsig;
 
-	/* The ioremap check is dangerous; limit what we run it on */
+	
 	if (!is_geode() || geode_has_vsa2())
 		return 0;
 
@@ -232,18 +206,18 @@ static int __init olpc_init(void)
 	printk(KERN_INFO "OLPC board with OpenFirmware %.16s\n", romsig);
 	olpc_platform_info.flags |= OLPC_F_PRESENT;
 
-	/* get the platform revision */
+	
 	platform_detect();
 
-	/* assume B1 and above models always have a DCON */
+	
 	if (olpc_board_at_least(olpc_board(0xb1)))
 		olpc_platform_info.flags |= OLPC_F_DCON;
 
-	/* get the EC revision */
+	
 	olpc_ec_cmd(EC_FIRMWARE_REV, NULL, 0,
 			(unsigned char *) &olpc_platform_info.ecver, 1);
 
-	/* check to see if the VSA exists */
+	
 	if (geode_has_vsa2())
 		olpc_platform_info.flags |= OLPC_F_VSA;
 

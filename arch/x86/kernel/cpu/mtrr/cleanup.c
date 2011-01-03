@@ -1,22 +1,4 @@
-/*
- * MTRR (Memory Type Range Register) cleanup
- *
- *  Copyright (C) 2009 Yinghai Lu
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Library General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Library General Public License for more details.
- *
- * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, write to the Free
- * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/pci.h>
@@ -53,7 +35,7 @@ struct var_mtrr_state {
 	unsigned int	reg;
 };
 
-/* Should be related to MTRR_VAR_RANGES nums */
+
 #define RANGE_NUM				256
 
 static struct res_range __initdata		range[RANGE_NUM];
@@ -69,7 +51,7 @@ static int __init
 add_range(struct res_range *range, int nr_range,
 	  unsigned long start, unsigned long end)
 {
-	/* Out of slots: */
+	
 	if (nr_range >= RANGE_NUM)
 		return nr_range;
 
@@ -87,7 +69,7 @@ add_range_with_merge(struct res_range *range, int nr_range,
 {
 	int i;
 
-	/* Try to merge it with old one: */
+	
 	for (i = 0; i < nr_range; i++) {
 		unsigned long final_start, final_end;
 		unsigned long common_start, common_end;
@@ -108,7 +90,7 @@ add_range_with_merge(struct res_range *range, int nr_range,
 		return nr_range;
 	}
 
-	/* Need to add it: */
+	
 	return add_range(range, nr_range, start, end);
 }
 
@@ -141,7 +123,7 @@ subtract_range(struct res_range *range, unsigned long start, unsigned long end)
 		}
 
 		if (start > range[j].start && end < range[j].end) {
-			/* Find the new spare: */
+			
 			for (i = 0; i < RANGE_NUM; i++) {
 				if (range[i].end == 0)
 					break;
@@ -198,7 +180,7 @@ x86_get_mtrr_mem_range(struct res_range *range, int nr_range,
 				 range[i].start, range[i].end + 1);
 	}
 
-	/* Take out UC ranges: */
+	
 	for (i = 0; i < num_var_ranges; i++) {
 		type = range_state[i].type;
 		if (type != MTRR_TYPE_UNCACHABLE &&
@@ -210,7 +192,7 @@ x86_get_mtrr_mem_range(struct res_range *range, int nr_range,
 		base = range_state[i].base_pfn;
 		if (base < (1<<(20-PAGE_SHIFT)) && mtrr_state.have_fixed &&
 		    (mtrr_state.enabled & 1)) {
-			/* Var MTRR contains UC entry below 1M? Skip it: */
+			
 			printk(BIOS_BUG_MSG, i);
 			if (base + size <= (1<<(20-PAGE_SHIFT)))
 				continue;
@@ -223,7 +205,7 @@ x86_get_mtrr_mem_range(struct res_range *range, int nr_range,
 		subtract_range(range, extra_remove_base,
 				 extra_remove_base + extra_remove_size  - 1);
 
-	/* get new range num */
+	
 	nr_range = 0;
 	for (i = 0; i < RANGE_NUM; i++) {
 		if (!range[i].end)
@@ -237,7 +219,7 @@ x86_get_mtrr_mem_range(struct res_range *range, int nr_range,
 				 range[i].start, range[i].end + 1);
 	}
 
-	/* sort the ranges */
+	
 	sort(range, nr_range, sizeof(struct res_range), cmp_range, NULL);
 	if  (debug_print) {
 		printk(KERN_DEBUG "After sorting\n");
@@ -246,7 +228,7 @@ x86_get_mtrr_mem_range(struct res_range *range, int nr_range,
 				 range[i].start, range[i].end + 1);
 	}
 
-	/* clear those is not used */
+	
 	for (i = nr_range; i < RANGE_NUM; i++)
 		memset(&range[i], 0, sizeof(range[i]));
 
@@ -349,7 +331,7 @@ static unsigned long to_size_factor(unsigned long sizek, char *factorp)
 	char factor;
 
 	if (base & ((1<<10) - 1)) {
-		/* Not MB-aligned: */
+		
 		factor = 'K';
 	} else if (base & ((1<<20) - 1)) {
 		factor = 'M';
@@ -375,7 +357,7 @@ range_to_mtrr(unsigned int reg, unsigned long range_startk,
 		unsigned long max_align, align;
 		unsigned long sizek;
 
-		/* Compute the maximum size with which we can make a range: */
+		
 		if (range_startk)
 			max_align = ffs(range_startk) - 1;
 		else
@@ -428,7 +410,7 @@ range_to_mtrr_with_hole(struct var_mtrr_state *state, unsigned long basek,
 	chunk_sizek = state->chunk_sizek;
 	gran_sizek = state->gran_sizek;
 
-	/* Align with gran size, prevent small block used up MTRRs: */
+	
 	range_basek = ALIGN(state->range_startk, gran_sizek);
 	if ((range_basek > basek) && basek)
 		return second_sizek;
@@ -443,11 +425,11 @@ range_to_mtrr_with_hole(struct var_mtrr_state *state, unsigned long basek,
 	}
 	state->range_sizek = range_sizek;
 
-	/* Try to append some small hole: */
+	
 	range0_basek = state->range_startk;
 	range0_sizek = ALIGN(state->range_sizek, chunk_sizek);
 
-	/* No increase: */
+	
 	if (range0_sizek == state->range_sizek) {
 		Dprintk("rangeX: %016lx - %016lx\n",
 			range0_basek<<10,
@@ -457,7 +439,7 @@ range_to_mtrr_with_hole(struct var_mtrr_state *state, unsigned long basek,
 		return 0;
 	}
 
-	/* Only cut back when it is not the last: */
+	
 	if (sizek) {
 		while (range0_basek + range0_sizek > (basek + sizek)) {
 			if (range0_sizek >= chunk_sizek)
@@ -473,16 +455,16 @@ range_to_mtrr_with_hole(struct var_mtrr_state *state, unsigned long basek,
 second_try:
 	range_basek = range0_basek + range0_sizek;
 
-	/* One hole in the middle: */
+	
 	if (range_basek > basek && range_basek <= (basek + sizek))
 		second_sizek = range_basek - basek;
 
 	if (range0_sizek > state->range_sizek) {
 
-		/* One hole in middle or at the end: */
+		
 		hole_sizek = range0_sizek - state->range_sizek - second_sizek;
 
-		/* Hole size should be less than half of range0 size: */
+		
 		if (hole_sizek >= (range0_sizek >> 1) &&
 		    range0_sizek >= chunk_sizek) {
 			range0_sizek -= chunk_sizek;
@@ -502,7 +484,7 @@ second_try:
 	}
 
 	if (range0_sizek < state->range_sizek) {
-		/* Need to handle left over range: */
+		
 		range_sizek = state->range_sizek - range0_sizek;
 
 		Dprintk("range: %016lx - %016lx\n",
@@ -538,23 +520,23 @@ set_var_mtrr_range(struct var_mtrr_state *state, unsigned long base_pfn,
 	basek = base_pfn << (PAGE_SHIFT - 10);
 	sizek = size_pfn << (PAGE_SHIFT - 10);
 
-	/* See if I can merge with the last range: */
+	
 	if ((basek <= 1024) ||
 	    (state->range_startk + state->range_sizek == basek)) {
 		unsigned long endk = basek + sizek;
 		state->range_sizek = endk - state->range_startk;
 		return;
 	}
-	/* Write the range mtrrs: */
+	
 	if (state->range_sizek != 0)
 		second_sizek = range_to_mtrr_with_hole(state, basek, sizek);
 
-	/* Allocate an msr: */
+	
 	state->range_startk = basek + second_sizek;
 	state->range_sizek  = sizek - second_sizek;
 }
 
-/* Mininum size of mtrr block that can take hole: */
+
 static u64 mtrr_chunk_size __initdata = (256ULL<<20);
 
 static int __init parse_mtrr_chunk_size_opt(char *p)
@@ -566,7 +548,7 @@ static int __init parse_mtrr_chunk_size_opt(char *p)
 }
 early_param("mtrr_chunk_size", parse_mtrr_chunk_size_opt);
 
-/* Granularity of mtrr of block: */
+
 static u64 mtrr_gran_size __initdata;
 
 static int __init parse_mtrr_gran_size_opt(char *p)
@@ -605,18 +587,18 @@ x86_setup_var_mtrrs(struct res_range *range, int nr_range,
 
 	memset(range_state, 0, sizeof(range_state));
 
-	/* Write the range: */
+	
 	for (i = 0; i < nr_range; i++) {
 		set_var_mtrr_range(&var_state, range[i].start,
 				   range[i].end - range[i].start + 1);
 	}
 
-	/* Write the last range: */
+	
 	if (var_state.range_sizek != 0)
 		range_to_mtrr_with_hole(&var_state, 0, 0);
 
 	num_reg = var_state.reg;
-	/* Clear out the extra MTRR's: */
+	
 	while (var_state.reg < num_var_ranges) {
 		save_var_mtrr(var_state.reg, 0, 0, 0);
 		var_state.reg++;
@@ -633,11 +615,7 @@ struct mtrr_cleanup_result {
 	int		bad;
 };
 
-/*
- * gran_size: 64K, 128K, 256K, 512K, 1M, 2M, ..., 2G
- * chunk size: gran_size, ..., 2G
- * so we need (1+16)*8
- */
+
 #define NUM_RESULT	136
 #define PSHIFT		(PAGE_SHIFT - 10)
 
@@ -677,10 +655,10 @@ static int __init mtrr_need_cleanup(void)
 	int i;
 	mtrr_type type;
 	unsigned long size;
-	/* Extra one for all 0: */
+	
 	int num[MTRR_NUM_TYPES + 1];
 
-	/* Check entries number: */
+	
 	memset(num, 0, sizeof(num));
 	for (i = 0; i < num_var_ranges; i++) {
 		type = range_state[i].type;
@@ -694,11 +672,11 @@ static int __init mtrr_need_cleanup(void)
 		num[type]++;
 	}
 
-	/* Check if we got UC entries: */
+	
 	if (!num[MTRR_TYPE_UNCACHABLE])
 		return 0;
 
-	/* Check if we only had WB and UC */
+	
 	if (num[MTRR_TYPE_WRBACK] + num[MTRR_TYPE_UNCACHABLE] !=
 	    num_var_ranges - num[MTRR_NUM_TYPES])
 		return 0;
@@ -718,10 +696,10 @@ mtrr_calc_range_state(u64 chunk_size, u64 gran_size,
 	static int nr_range_new;
 	int num_reg;
 
-	/* Convert ranges to var ranges state: */
+	
 	num_reg = x86_setup_var_mtrrs(range, nr_range, chunk_size, gran_size);
 
-	/* We got new setting in range_state, check it: */
+	
 	memset(range_new, 0, sizeof(range_new));
 	nr_range_new = x86_get_mtrr_mem_range(range_new, 0,
 				x_remove_base, x_remove_size);
@@ -738,7 +716,7 @@ mtrr_calc_range_state(u64 chunk_size, u64 gran_size,
 		result[i].lose_cover_sizek = (range_sums - range_sums_new) << PSHIFT;
 	}
 
-	/* Double check it: */
+	
 	if (!result[i].bad && !result[i].lose_cover_sizek) {
 		if (nr_range_new != nr_range || memcmp(range, range_new, sizeof(range)))
 			result[i].bad = 1;
@@ -812,7 +790,7 @@ int __init mtrr_cleanup(unsigned address_bits)
 	if (def != MTRR_TYPE_UNCACHABLE)
 		return 0;
 
-	/* Get it and store it aside: */
+	
 	memset(range_state, 0, sizeof(range_state));
 	for (i = 0; i < num_var_ranges; i++) {
 		mtrr_if->get(i, &base, &size, &type);
@@ -821,11 +799,11 @@ int __init mtrr_cleanup(unsigned address_bits)
 		range_state[i].type = type;
 	}
 
-	/* Check if we need handle it and can handle it: */
+	
 	if (!mtrr_need_cleanup())
 		return 0;
 
-	/* Print original var MTRRs at first, for debugging: */
+	
 	printk(KERN_DEBUG "original variable MTRRs\n");
 	print_out_mtrr_range_state();
 
@@ -836,13 +814,10 @@ int __init mtrr_cleanup(unsigned address_bits)
 		x_remove_size = (mtrr_tom2 >> PAGE_SHIFT) - x_remove_base;
 
 	nr_range = x86_get_mtrr_mem_range(range, 0, x_remove_base, x_remove_size);
-	/*
-	 * [0, 1M) should always be covered by var mtrr with WB
-	 * and fixed mtrrs should take effect before var mtrr for it:
-	 */
+	
 	nr_range = add_range_with_merge(range, nr_range, 0,
 					(1ULL<<(20 - PAGE_SHIFT)) - 1);
-	/* Sort the ranges: */
+	
 	sort(range, nr_range, sizeof(struct res_range), cmp_range, NULL);
 
 	range_sums = sum_ranges(range, nr_range);
@@ -888,7 +863,7 @@ int __init mtrr_cleanup(unsigned address_bits)
 		}
 	}
 
-	/* Try to find the optimal index: */
+	
 	index_good = mtrr_search_optimal_index();
 
 	if (index_good != -1) {
@@ -896,7 +871,7 @@ int __init mtrr_cleanup(unsigned address_bits)
 		i = index_good;
 		mtrr_print_out_one_result(i);
 
-		/* Convert ranges to var ranges state: */
+		
 		chunk_size = result[i].chunk_sizek;
 		chunk_size <<= 10;
 		gran_size = result[i].gran_sizek;
@@ -907,7 +882,7 @@ int __init mtrr_cleanup(unsigned address_bits)
 		print_out_mtrr_range_state();
 		return 1;
 	} else {
-		/* print out all */
+		
 		for (i = 0; i < NUM_RESULT; i++)
 			mtrr_print_out_one_result(i);
 	}
@@ -933,12 +908,7 @@ static int __init disable_mtrr_trim_setup(char *str)
 }
 early_param("disable_mtrr_trim", disable_mtrr_trim_setup);
 
-/*
- * Newer AMD K8s and later CPUs have a special magic MSR way to force WB
- * for memory >4GB. Check for that here.
- * Note this won't check if the MTRRs < 4GB where the magic bit doesn't
- * apply to are wrong, but so far we don't know of any such case in the wild.
- */
+
 #define Tom2Enabled		(1U << 21)
 #define Tom2ForceMemTypeWB	(1U << 22)
 
@@ -950,13 +920,10 @@ int __init amd_special_default_mtrr(void)
 		return 0;
 	if (boot_cpu_data.x86 < 0xf || boot_cpu_data.x86 > 0x11)
 		return 0;
-	/* In case some hypervisor doesn't pass SYSCFG through: */
+	
 	if (rdmsr_safe(MSR_K8_SYSCFG, &l, &h) < 0)
 		return 0;
-	/*
-	 * Memory between 4GB and top of mem is forced WB by this magic bit.
-	 * Reserved before K8RevF, but should be zero there.
-	 */
+	
 	if ((l & (Tom2Enabled | Tom2ForceMemTypeWB)) ==
 		 (Tom2Enabled | Tom2ForceMemTypeWB))
 		return 1;
@@ -978,29 +945,16 @@ real_trim_memory(unsigned long start_pfn, unsigned long limit_pfn)
 	return e820_update_range(trim_start, trim_size, E820_RAM, E820_RESERVED);
 }
 
-/**
- * mtrr_trim_uncached_memory - trim RAM not covered by MTRRs
- * @end_pfn: ending page frame number
- *
- * Some buggy BIOSes don't setup the MTRRs properly for systems with certain
- * memory configurations.  This routine checks that the highest MTRR matches
- * the end of memory, to make sure the MTRRs having a write back type cover
- * all of the memory the kernel is intending to use.  If not, it'll trim any
- * memory off the end by adjusting end_pfn, removing it from the kernel's
- * allocation pools, warning the user with an obnoxious message.
- */
+
 int __init mtrr_trim_uncached_memory(unsigned long end_pfn)
 {
 	unsigned long i, base, size, highest_pfn = 0, def, dummy;
 	mtrr_type type;
 	u64 total_trim_size;
-	/* extra one for all 0 */
+	
 	int num[MTRR_NUM_TYPES + 1];
 
-	/*
-	 * Make sure we only trim uncachable memory on machines that
-	 * support the Intel MTRR architecture:
-	 */
+	
 	if (!is_cpu(INTEL) || disable_mtrr_trim)
 		return 0;
 
@@ -1009,7 +963,7 @@ int __init mtrr_trim_uncached_memory(unsigned long end_pfn)
 	if (def != MTRR_TYPE_UNCACHABLE)
 		return 0;
 
-	/* Get it and store it aside: */
+	
 	memset(range_state, 0, sizeof(range_state));
 	for (i = 0; i < num_var_ranges; i++) {
 		mtrr_if->get(i, &base, &size, &type);
@@ -1018,7 +972,7 @@ int __init mtrr_trim_uncached_memory(unsigned long end_pfn)
 		range_state[i].type = type;
 	}
 
-	/* Find highest cached pfn: */
+	
 	for (i = 0; i < num_var_ranges; i++) {
 		type = range_state[i].type;
 		if (type != MTRR_TYPE_WRBACK)
@@ -1029,13 +983,13 @@ int __init mtrr_trim_uncached_memory(unsigned long end_pfn)
 			highest_pfn = base + size;
 	}
 
-	/* kvm/qemu doesn't have mtrr set right, don't trim them all: */
+	
 	if (!highest_pfn) {
 		printk(KERN_INFO "CPU MTRRs all blank - virtualized system.\n");
 		return 0;
 	}
 
-	/* Check entries number: */
+	
 	memset(num, 0, sizeof(num));
 	for (i = 0; i < num_var_ranges; i++) {
 		type = range_state[i].type;
@@ -1047,11 +1001,11 @@ int __init mtrr_trim_uncached_memory(unsigned long end_pfn)
 		num[type]++;
 	}
 
-	/* No entry for WB? */
+	
 	if (!num[MTRR_TYPE_WRBACK])
 		return 0;
 
-	/* Check if we only had WB and UC: */
+	
 	if (num[MTRR_TYPE_WRBACK] + num[MTRR_TYPE_UNCACHABLE] !=
 		num_var_ranges - num[MTRR_NUM_TYPES])
 		return 0;
@@ -1067,19 +1021,19 @@ int __init mtrr_trim_uncached_memory(unsigned long end_pfn)
 	}
 	nr_range = x86_get_mtrr_mem_range(range, nr_range, 0, 0);
 
-	/* Check the head: */
+	
 	total_trim_size = 0;
 	if (range[0].start)
 		total_trim_size += real_trim_memory(0, range[0].start);
 
-	/* Check the holes: */
+	
 	for (i = 0; i < nr_range - 1; i++) {
 		if (range[i].end + 1 < range[i+1].start)
 			total_trim_size += real_trim_memory(range[i].end + 1,
 							    range[i+1].start);
 	}
 
-	/* Check the top: */
+	
 	i = nr_range - 1;
 	if (range[i].end + 1 < end_pfn)
 		total_trim_size += real_trim_memory(range[i].end + 1,

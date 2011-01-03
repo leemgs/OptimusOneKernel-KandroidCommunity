@@ -1,11 +1,4 @@
-/**
- * @file nmi_timer_int.c
- *
- * @remark Copyright 2003 OProfile authors
- * @remark Read the file COPYING
- *
- * @author Zwane Mwaikambo <zwane@linuxpower.ca>
- */
+
 
 #include <linux/init.h>
 #include <linux/smp.h>
@@ -52,7 +45,7 @@ static int timer_start(void)
 static void timer_stop(void)
 {
 	unregister_die_notifier(&profile_timer_exceptions_nb);
-	synchronize_sched();  /* Allow already-started NMIs to complete. */
+	synchronize_sched();  
 }
 
 

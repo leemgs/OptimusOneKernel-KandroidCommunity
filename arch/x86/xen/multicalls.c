@@ -1,24 +1,4 @@
-/*
- * Xen hypercall batching.
- *
- * Xen allows multiple hypercalls to be issued at once, using the
- * multicall interface.  This allows the cost of trapping into the
- * hypervisor to be amortized over several calls.
- *
- * This file implements a simple interface for multicalls.  There's a
- * per-cpu buffer of outstanding multicalls.  When you want to queue a
- * multicall for issuing, you can allocate a multicall slot for the
- * call and its arguments, along with storage for space which is
- * pointed to by the arguments (for passing pointers to structures,
- * etc).  When the multicall is actually issued, all the space for the
- * commands and allocated memory is freed for reuse.
- *
- * Multicalls are flushed whenever any of the buffers get full, or
- * when explicitly requested.  There's no way to get per-multicall
- * return results back.  It will BUG if any of the multicalls fail.
- *
- * Jeremy Fitzhardinge <jeremy@xensource.com>, XenSource Inc, 2007
- */
+
 #include <linux/percpu.h>
 #include <linux/hardirq.h>
 #include <linux/debugfs.h>
@@ -52,7 +32,7 @@ struct mc_buffer {
 static DEFINE_PER_CPU(struct mc_buffer, mc_buffer);
 DEFINE_PER_CPU(unsigned long, xen_mc_irq_flags);
 
-/* flush reasons 0- slots, 1- args, 2- callbacks */
+
 enum flush_reasons
 {
 	FL_SLOTS,
@@ -63,7 +43,7 @@ enum flush_reasons
 };
 
 #ifdef CONFIG_XEN_DEBUG_FS
-#define NHYPERCALLS	40		/* not really */
+#define NHYPERCALLS	40		
 
 static struct {
 	unsigned histo[MC_BATCH+1];
@@ -111,7 +91,7 @@ static void mc_stats_flush(enum flush_reasons idx)
 	mc_stats.flush[idx]++;
 }
 
-#else  /* !CONFIG_XEN_DEBUG_FS */
+#else  
 
 static inline void mc_add_stats(const struct mc_buffer *mc)
 {
@@ -120,7 +100,7 @@ static inline void mc_add_stats(const struct mc_buffer *mc)
 static inline void mc_stats_flush(enum flush_reasons idx)
 {
 }
-#endif	/* CONFIG_XEN_DEBUG_FS */
+#endif	
 
 void xen_mc_flush(void)
 {
@@ -131,8 +111,7 @@ void xen_mc_flush(void)
 
 	BUG_ON(preemptible());
 
-	/* Disable interrupts in case someone comes in and queues
-	   something in the middle */
+	
 	local_irq_save(flags);
 
 	mc_add_stats(b);
@@ -280,4 +259,4 @@ static int __init xen_mc_debugfs(void)
 }
 fs_initcall(xen_mc_debugfs);
 
-#endif	/* CONFIG_XEN_DEBUG_FS */
+#endif	

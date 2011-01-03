@@ -1,22 +1,4 @@
-/*
- * Glue code for optimized assembly version of  Salsa20.
- *
- * Copyright (c) 2007 Tan Swee Heng <thesweeheng@gmail.com>
- *
- * The assembly codes are public domain assembly codes written by Daniel. J.
- * Bernstein <djb@cr.yp.to>. The codes are modified to include indentation
- * and to remove extraneous comments and functions that are not needed.
- * - i586 version, renamed as salsa20-i586-asm_32.S
- *   available from <http://cr.yp.to/snuffle/salsa20/x86-pm/salsa20.s>
- * - x86-64 version, renamed as salsa20-x86_64-asm_64.S
- *   available from <http://cr.yp.to/snuffle/salsa20/amd64-3/salsa20.s>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option)
- * any later version.
- *
- */
+
 
 #include <crypto/algapi.h>
 #include <linux/module.h>
@@ -26,7 +8,7 @@
 #define SALSA20_MIN_KEY_SIZE  16U
 #define SALSA20_MAX_KEY_SIZE  32U
 
-// use the ECRYPT_* function names
+
 #define salsa20_keysetup        ECRYPT_keysetup
 #define salsa20_ivsetup         ECRYPT_ivsetup
 #define salsa20_encrypt_bytes   ECRYPT_encrypt_bytes

@@ -19,4 +19,4 @@
 	.endm
 #endif
 
-#endif  /*  __ASSEMBLY__  */
+#endif  

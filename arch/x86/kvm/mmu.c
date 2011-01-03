@@ -1,21 +1,4 @@
-/*
- * Kernel-based Virtual Machine driver for Linux
- *
- * This module enables machines with Intel VT-x extensions to run virtual
- * machines without emulation or binary translation.
- *
- * MMU support
- *
- * Copyright (C) 2006 Qumranet, Inc.
- *
- * Authors:
- *   Yaniv Kamay  <yaniv@qumranet.com>
- *   Avi Kivity   <avi@qumranet.com>
- *
- * This work is licensed under the terms of the GNU GPL, version 2.  See
- * the COPYING file in the top-level directory.
- *
- */
+
 
 #include "mmu.h"
 #include "kvm_cache_regs.h"
@@ -35,13 +18,7 @@
 #include <asm/io.h>
 #include <asm/vmx.h>
 
-/*
- * When setting this variable to true it enables Two-Dimensional-Paging
- * where the hardware walks 2 page tables:
- * 1. the guest-virtual to guest-physical
- * 2. while doing 1. it walks guest-physical to host-physical
- * If the hardware supports that we don't need to do shadow paging.
- */
+
 bool tdp_enabled = false;
 
 #undef MMU_DEBUG
@@ -193,7 +170,7 @@ static u64 __read_mostly shadow_trap_nonpresent_pte;
 static u64 __read_mostly shadow_notrap_nonpresent_pte;
 static u64 __read_mostly shadow_base_present_pte;
 static u64 __read_mostly shadow_nx_mask;
-static u64 __read_mostly shadow_x_mask;	/* mutual exclusive with nx_mask */
+static u64 __read_mostly shadow_x_mask;	
 static u64 __read_mostly shadow_user_mask;
 static u64 __read_mostly shadow_accessed_mask;
 static u64 __read_mostly shadow_dirty_mask;
@@ -404,10 +381,7 @@ static void mmu_free_rmap_desc(struct kvm_rmap_desc *rd)
 	kfree(rd);
 }
 
-/*
- * Return the pointer to the largepage write count for a given
- * gfn, handling slots that are not large page aligned.
- */
+
 static int *slot_largepage_idx(gfn_t gfn,
 			       struct kvm_memory_slot *slot,
 			       int level)
@@ -522,10 +496,7 @@ static int mapping_level(struct kvm_vcpu *vcpu, gfn_t large_gfn)
 	return level - 1;
 }
 
-/*
- * Take gfn and return the reverse mapping to it.
- * Note: gfn must be unaliased before this function get called
- */
+
 
 static unsigned long *gfn_to_rmap(struct kvm *kvm, gfn_t gfn, int level)
 {
@@ -542,19 +513,7 @@ static unsigned long *gfn_to_rmap(struct kvm *kvm, gfn_t gfn, int level)
 	return &slot->lpage_info[level - 2][idx].rmap_pde;
 }
 
-/*
- * Reverse mapping data structures:
- *
- * If rmapp bit zero is zero, then rmapp point to the shadw page table entry
- * that points to page_address(page).
- *
- * If rmapp bit zero is one, (then rmap & ~1) points to a struct kvm_rmap_desc
- * containing more mappings.
- *
- * Returns the number of rmap entries before the spte was added or zero if
- * the spte was not added.
- *
- */
+
 static int rmap_add(struct kvm_vcpu *vcpu, u64 *spte, gfn_t gfn)
 {
 	struct kvm_mmu_page *sp;
@@ -722,7 +681,7 @@ static int rmap_write_protect(struct kvm *kvm, u64 gfn)
 		kvm_set_pfn_dirty(pfn);
 	}
 
-	/* check for huge page mappings */
+	
 	for (i = PT_DIRECTORY_LEVEL;
 	     i < PT_PAGE_TABLE_LEVEL + KVM_NR_PAGE_SIZES; ++i) {
 		rmapp = gfn_to_rmap(kvm, gfn, i);
@@ -807,16 +766,13 @@ static int kvm_handle_hva(struct kvm *kvm, unsigned long hva,
 	int i, j;
 	int retval = 0;
 
-	/*
-	 * If mmap_sem isn't taken, we can look the memslots with only
-	 * the mmu_lock by skipping over the slots with userspace_addr == 0.
-	 */
+	
 	for (i = 0; i < kvm->nmemslots; i++) {
 		struct kvm_memory_slot *memslot = &kvm->memslots[i];
 		unsigned long start = memslot->userspace_addr;
 		unsigned long end;
 
-		/* mmu_lock protects userspace_addr */
+		
 		if (!start)
 			continue;
 
@@ -856,7 +812,7 @@ static int kvm_age_rmapp(struct kvm *kvm, unsigned long *rmapp,
 	u64 *spte;
 	int young = 0;
 
-	/* always return old for EPT */
+	
 	if (!shadow_accessed_mask)
 		return 0;
 
@@ -1536,10 +1492,7 @@ static int kvm_mmu_zap_page(struct kvm *kvm, struct kvm_mmu_page *sp)
 	return ret;
 }
 
-/*
- * Changing the number of mmu pages allocated to the vm
- * Note: if kvm_nr_mmu_pages is too small, you will get dead lock
- */
+
 void kvm_mmu_change_mmu_pages(struct kvm *kvm, unsigned int kvm_nr_mmu_pages)
 {
 	int used_pages;
@@ -1547,11 +1500,7 @@ void kvm_mmu_change_mmu_pages(struct kvm *kvm, unsigned int kvm_nr_mmu_pages)
 	used_pages = kvm->arch.n_alloc_mmu_pages - kvm->arch.n_free_mmu_pages;
 	used_pages = max(0, used_pages);
 
-	/*
-	 * If we set the number of mmu pages to be smaller be than the
-	 * number of actived pages , we must to free some mmu pages before we
-	 * change the value
-	 */
+	
 
 	if (used_pages > kvm_nr_mmu_pages) {
 		while (used_pages > kvm_nr_mmu_pages) {
@@ -1649,10 +1598,7 @@ struct page *gva_to_page(struct kvm_vcpu *vcpu, gva_t gva)
 	return page;
 }
 
-/*
- * The function is based on mtrr_type_lookup() in
- * arch/x86/kernel/cpu/mtrr/generic.c
- */
+
 static int get_mtrr_type(struct mtrr_state_type *mtrr_state,
 			 u64 start, u64 end)
 {
@@ -1664,10 +1610,10 @@ static int get_mtrr_type(struct mtrr_state_type *mtrr_state,
 	if (!mtrr_state->enabled)
 		return 0xFF;
 
-	/* Make end inclusive end, instead of exclusive */
+	
 	end--;
 
-	/* Look in fixed ranges. Just return the type as per start */
+	
 	if (mtrr_state->have_fixed && (start < 0x100000)) {
 		int idx;
 
@@ -1686,11 +1632,7 @@ static int get_mtrr_type(struct mtrr_state_type *mtrr_state,
 		}
 	}
 
-	/*
-	 * Look in variable ranges
-	 * Look of multiple ranges matching this address and pick type
-	 * as per MTRR precedence
-	 */
+	
 	if (!(mtrr_state->enabled & 2))
 		return mtrr_state->def_type;
 
@@ -1764,7 +1706,7 @@ static int kvm_unsync_page(struct kvm_vcpu *vcpu, struct kvm_mmu_page *sp)
 	trace_kvm_mmu_unsync_page(sp);
 	index = kvm_page_table_hashfn(sp->gfn);
 	bucket = &vcpu->kvm->arch.mmu_page_hash[index];
-	/* don't unsync if pagetable is shadowed with multiple roles */
+	
 	hlist_for_each_entry_safe(s, node, n, bucket, hash_link) {
 		if (s->gfn != sp->gfn || s->role.direct)
 			continue;
@@ -1807,11 +1749,7 @@ static int set_spte(struct kvm_vcpu *vcpu, u64 *sptep,
 	u64 spte;
 	int ret = 0;
 
-	/*
-	 * We don't set the accessed bit, since we sometimes want to see
-	 * whether the guest actually used the pte (in order to detect
-	 * demand paging).
-	 */
+	
 	spte = shadow_base_present_pte | shadow_dirty_mask;
 	if (!speculative)
 		spte |= shadow_accessed_mask;
@@ -1846,12 +1784,7 @@ static int set_spte(struct kvm_vcpu *vcpu, u64 *sptep,
 
 		spte |= PT_WRITABLE_MASK;
 
-		/*
-		 * Optimization: for pte sync, if spte was writable the hash
-		 * lookup is unnecessary (and expensive). Write protection
-		 * is responsibility of mmu_get_page / kvm_sync_page.
-		 * Same reasoning can be applied to dirty page accounting.
-		 */
+		
 		if (!can_unsync && is_writeble_pte(*sptep))
 			goto set_pte;
 
@@ -1890,10 +1823,7 @@ static void mmu_set_spte(struct kvm_vcpu *vcpu, u64 *sptep,
 		 write_fault, user_fault, gfn);
 
 	if (is_rmap_spte(*sptep)) {
-		/*
-		 * If we overwrite a PTE page pointer with a 2MB PMD, unlink
-		 * the parent of the now unreachable PTE.
-		 */
+		
 		if (level > PT_PAGE_TABLE_LEVEL &&
 		    !is_large_pte(*sptep)) {
 			struct kvm_mmu_page *child;
@@ -1993,10 +1923,7 @@ static int nonpaging_map(struct kvm_vcpu *vcpu, gva_t v, int write, gfn_t gfn)
 
 	level = mapping_level(vcpu, gfn);
 
-	/*
-	 * This path builds a PAE pagetable - so we can map 2mb pages at
-	 * maximum. Therefore check if the level is larger than that.
-	 */
+	
 	if (level > PT_DIRECTORY_LEVEL)
 		level = PT_DIRECTORY_LEVEL;
 
@@ -2006,7 +1933,7 @@ static int nonpaging_map(struct kvm_vcpu *vcpu, gva_t v, int write, gfn_t gfn)
 	smp_rmb();
 	pfn = gfn_to_pfn(vcpu->kvm, gfn);
 
-	/* mmio */
+	
 	if (is_error_pfn(pfn)) {
 		kvm_release_pfn_clean(pfn);
 		return 1;
@@ -2302,28 +2229,28 @@ static void reset_rsvds_bits_mask(struct kvm_vcpu *vcpu, int level)
 		exb_bit_rsvd = rsvd_bits(63, 63);
 	switch (level) {
 	case PT32_ROOT_LEVEL:
-		/* no rsvd bits for 2 level 4K page table entries */
+		
 		context->rsvd_bits_mask[0][1] = 0;
 		context->rsvd_bits_mask[0][0] = 0;
 		if (is_cpuid_PSE36())
-			/* 36bits PSE 4MB page */
+			
 			context->rsvd_bits_mask[1][1] = rsvd_bits(17, 21);
 		else
-			/* 32 bits PSE 4MB page */
+			
 			context->rsvd_bits_mask[1][1] = rsvd_bits(13, 21);
 		context->rsvd_bits_mask[1][0] = context->rsvd_bits_mask[1][0];
 		break;
 	case PT32E_ROOT_LEVEL:
 		context->rsvd_bits_mask[0][2] =
 			rsvd_bits(maxphyaddr, 63) |
-			rsvd_bits(7, 8) | rsvd_bits(1, 2);	/* PDPTE */
+			rsvd_bits(7, 8) | rsvd_bits(1, 2);	
 		context->rsvd_bits_mask[0][1] = exb_bit_rsvd |
-			rsvd_bits(maxphyaddr, 62);	/* PDE */
+			rsvd_bits(maxphyaddr, 62);	
 		context->rsvd_bits_mask[0][0] = exb_bit_rsvd |
-			rsvd_bits(maxphyaddr, 62); 	/* PTE */
+			rsvd_bits(maxphyaddr, 62); 	
 		context->rsvd_bits_mask[1][1] = exb_bit_rsvd |
 			rsvd_bits(maxphyaddr, 62) |
-			rsvd_bits(13, 20);		/* large page */
+			rsvd_bits(13, 20);		
 		context->rsvd_bits_mask[1][0] = context->rsvd_bits_mask[1][0];
 		break;
 	case PT64_ROOT_LEVEL:
@@ -2341,7 +2268,7 @@ static void reset_rsvds_bits_mask(struct kvm_vcpu *vcpu, int level)
 			rsvd_bits(13, 29);
 		context->rsvd_bits_mask[1][1] = exb_bit_rsvd |
 			rsvd_bits(maxphyaddr, 51) |
-			rsvd_bits(13, 20);		/* large page */
+			rsvd_bits(13, 20);		
 		context->rsvd_bits_mask[1][0] = context->rsvd_bits_mask[1][0];
 		break;
 	}
@@ -2489,7 +2416,7 @@ int kvm_mmu_load(struct kvm_vcpu *vcpu)
 	spin_unlock(&vcpu->kvm->mmu_lock);
 	if (r)
 		goto out;
-	/* set_cr3() should ensure TLB has been flushed */
+	
 	kvm_x86_ops->set_cr3(vcpu, vcpu->arch.mmu.root_hpa);
 out:
 	return r;
@@ -2578,14 +2505,9 @@ static void mmu_guess_page_from_pte_write(struct kvm_vcpu *vcpu, gpa_t gpa,
 	if (bytes != 4 && bytes != 8)
 		return;
 
-	/*
-	 * Assume that the pte write on a page table of the same type
-	 * as the current vcpu paging mode.  This is nearly always true
-	 * (might be false while changing modes).  Note it is verified later
-	 * by update_pte().
-	 */
+	
 	if (is_pae(vcpu)) {
-		/* Handle a 32-bit guest writing two halves of a 64-bit gpte */
+		
 		if ((bytes == 4) && (gpa % 4 == 0)) {
 			r = kvm_read_guest(vcpu->kvm, gpa & ~(u64)7, &gpte, 8);
 			if (r)
@@ -2675,16 +2597,7 @@ void kvm_mmu_pte_write(struct kvm_vcpu *vcpu, gpa_t gpa,
 		misaligned = (offset ^ (offset + bytes - 1)) & ~(pte_size - 1);
 		misaligned |= bytes < 4;
 		if (misaligned || flooded) {
-			/*
-			 * Misaligned accesses are too much trouble to fix
-			 * up; also, they usually indicate a page is not used
-			 * as a page table.
-			 *
-			 * If we're seeing too many writes to a page,
-			 * it may no longer be a page table, or we may be
-			 * forking, in which case it is better to unmap the
-			 * page.
-			 */
+			
 			pgprintk("misaligned: gpa %llx bytes %d role %x\n",
 				 gpa, bytes, sp->role.word);
 			if (kvm_mmu_zap_page(vcpu->kvm, sp))
@@ -2696,14 +2609,10 @@ void kvm_mmu_pte_write(struct kvm_vcpu *vcpu, gpa_t gpa,
 		level = sp->role.level;
 		npte = 1;
 		if (sp->role.glevels == PT32_ROOT_LEVEL) {
-			page_offset <<= 1;	/* 32->64 */
-			/*
-			 * A 32-bit pde maps 4MB while the shadow pdes map
-			 * only 2MB.  So we need to double the offset again
-			 * and zap two pdes instead of one.
-			 */
+			page_offset <<= 1;	
+			
 			if (level == PT32_ROOT_LEVEL) {
-				page_offset &= ~7; /* kill rounding error */
+				page_offset &= ~7; 
 				page_offset <<= 1;
 				npte = 2;
 			}
@@ -2839,11 +2748,7 @@ static int alloc_mmu_pages(struct kvm_vcpu *vcpu)
 
 	ASSERT(vcpu);
 
-	/*
-	 * When emulating 32-bit mode, cr3 is only 32 bits even on x86_64.
-	 * Therefore we need to allocate shadow page tables in the first
-	 * 4GB of memory, which happens to fit the DMA32 zone.
-	 */
+	
 	page = alloc_page(GFP_KERNEL | __GFP_DMA32);
 	if (!page)
 		goto error_1;
@@ -2896,7 +2801,7 @@ void kvm_mmu_slot_remove_write_access(struct kvm *kvm, int slot)
 
 		pt = sp->spt;
 		for (i = 0; i < PT64_ENT_PER_PAGE; ++i)
-			/* avoid RMW */
+			
 			if (pt[i] & PT_WRITABLE_MASK)
 				pt[i] &= ~PT_WRITABLE_MASK;
 	}
@@ -3010,9 +2915,7 @@ nomem:
 	return -ENOMEM;
 }
 
-/*
- * Caculate mmu pages needed for kvm.
- */
+
 unsigned int kvm_mmu_calculate_mmu_pages(struct kvm *kvm)
 {
 	int i;

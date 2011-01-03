@@ -8,11 +8,11 @@ struct cpu_model_info {
 	const char	*model_names[16];
 };
 
-/* attempt to consolidate cpu attributes */
+
 struct cpu_dev {
 	const char	*c_vendor;
 
-	/* some have two possibilities for cpuid string */
+	
 	const char	*c_ident[2];
 
 	struct		cpu_model_info c_models[4];

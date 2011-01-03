@@ -1,27 +1,19 @@
 
-/*
- * This file is subject to the terms and conditions of the GNU General Public
- * License.  See the file "COPYING" in the main directory of this archive
- * for more details.
- *
- * SGI UV MMR definitions
- *
- * Copyright (C) 2007-2008 Silicon Graphics, Inc. All rights reserved.
- */
+
 
 #ifndef _ASM_X86_UV_UV_MMRS_H
 #define _ASM_X86_UV_UV_MMRS_H
 
 #define UV_MMR_ENABLE		(1UL << 63)
 
-/* ========================================================================= */
-/*                           UVH_BAU_DATA_CONFIG                             */
-/* ========================================================================= */
+
+
+
 #define UVH_LB_BAU_MISC_CONTROL 0x320170UL
 #define UV_ENABLE_INTD_SOFT_ACK_MODE_SHIFT 15
 #define UV_INTD_SOFT_ACK_TIMEOUT_PERIOD_SHIFT 16
 #define UV_INTD_SOFT_ACK_TIMEOUT_PERIOD 0x000000000bUL
-/* 1011 timebase 7 (168millisec) * 3 ticks -> 500ms */
+
 #define UVH_BAU_DATA_CONFIG 0x61680UL
 #define UVH_BAU_DATA_CONFIG_32 0x0438
 
@@ -45,22 +37,22 @@
 union uvh_bau_data_config_u {
     unsigned long	v;
     struct uvh_bau_data_config_s {
-	unsigned long	vector_  :  8;  /* RW */
-	unsigned long	dm       :  3;  /* RW */
-	unsigned long	destmode :  1;  /* RW */
-	unsigned long	status   :  1;  /* RO */
-	unsigned long	p        :  1;  /* RO */
-	unsigned long	rsvd_14  :  1;  /*    */
-	unsigned long	t        :  1;  /* RO */
-	unsigned long	m        :  1;  /* RW */
-	unsigned long	rsvd_17_31: 15;  /*    */
-	unsigned long	apic_id  : 32;  /* RW */
+	unsigned long	vector_  :  8;  
+	unsigned long	dm       :  3;  
+	unsigned long	destmode :  1;  
+	unsigned long	status   :  1;  
+	unsigned long	p        :  1;  
+	unsigned long	rsvd_14  :  1;  
+	unsigned long	t        :  1;  
+	unsigned long	m        :  1;  
+	unsigned long	rsvd_17_31: 15;  
+	unsigned long	apic_id  : 32;  
     } s;
 };
 
-/* ========================================================================= */
-/*                           UVH_EVENT_OCCURRED0                             */
-/* ========================================================================= */
+
+
+
 #define UVH_EVENT_OCCURRED0 0x70000UL
 #define UVH_EVENT_OCCURRED0_32 0x005e8
 
@@ -181,76 +173,76 @@ union uvh_bau_data_config_u {
 union uvh_event_occurred0_u {
     unsigned long	v;
     struct uvh_event_occurred0_s {
-	unsigned long	lb_hcerr             :  1;  /* RW, W1C */
-	unsigned long	gr0_hcerr            :  1;  /* RW, W1C */
-	unsigned long	gr1_hcerr            :  1;  /* RW, W1C */
-	unsigned long	lh_hcerr             :  1;  /* RW, W1C */
-	unsigned long	rh_hcerr             :  1;  /* RW, W1C */
-	unsigned long	xn_hcerr             :  1;  /* RW, W1C */
-	unsigned long	si_hcerr             :  1;  /* RW, W1C */
-	unsigned long	lb_aoerr0            :  1;  /* RW, W1C */
-	unsigned long	gr0_aoerr0           :  1;  /* RW, W1C */
-	unsigned long	gr1_aoerr0           :  1;  /* RW, W1C */
-	unsigned long	lh_aoerr0            :  1;  /* RW, W1C */
-	unsigned long	rh_aoerr0            :  1;  /* RW, W1C */
-	unsigned long	xn_aoerr0            :  1;  /* RW, W1C */
-	unsigned long	si_aoerr0            :  1;  /* RW, W1C */
-	unsigned long	lb_aoerr1            :  1;  /* RW, W1C */
-	unsigned long	gr0_aoerr1           :  1;  /* RW, W1C */
-	unsigned long	gr1_aoerr1           :  1;  /* RW, W1C */
-	unsigned long	lh_aoerr1            :  1;  /* RW, W1C */
-	unsigned long	rh_aoerr1            :  1;  /* RW, W1C */
-	unsigned long	xn_aoerr1            :  1;  /* RW, W1C */
-	unsigned long	si_aoerr1            :  1;  /* RW, W1C */
-	unsigned long	rh_vpi_int           :  1;  /* RW, W1C */
-	unsigned long	system_shutdown_int  :  1;  /* RW, W1C */
-	unsigned long	lb_irq_int_0         :  1;  /* RW, W1C */
-	unsigned long	lb_irq_int_1         :  1;  /* RW, W1C */
-	unsigned long	lb_irq_int_2         :  1;  /* RW, W1C */
-	unsigned long	lb_irq_int_3         :  1;  /* RW, W1C */
-	unsigned long	lb_irq_int_4         :  1;  /* RW, W1C */
-	unsigned long	lb_irq_int_5         :  1;  /* RW, W1C */
-	unsigned long	lb_irq_int_6         :  1;  /* RW, W1C */
-	unsigned long	lb_irq_int_7         :  1;  /* RW, W1C */
-	unsigned long	lb_irq_int_8         :  1;  /* RW, W1C */
-	unsigned long	lb_irq_int_9         :  1;  /* RW, W1C */
-	unsigned long	lb_irq_int_10        :  1;  /* RW, W1C */
-	unsigned long	lb_irq_int_11        :  1;  /* RW, W1C */
-	unsigned long	lb_irq_int_12        :  1;  /* RW, W1C */
-	unsigned long	lb_irq_int_13        :  1;  /* RW, W1C */
-	unsigned long	lb_irq_int_14        :  1;  /* RW, W1C */
-	unsigned long	lb_irq_int_15        :  1;  /* RW, W1C */
-	unsigned long	l1_nmi_int           :  1;  /* RW, W1C */
-	unsigned long	stop_clock           :  1;  /* RW, W1C */
-	unsigned long	asic_to_l1           :  1;  /* RW, W1C */
-	unsigned long	l1_to_asic           :  1;  /* RW, W1C */
-	unsigned long	ltc_int              :  1;  /* RW, W1C */
-	unsigned long	la_seq_trigger       :  1;  /* RW, W1C */
-	unsigned long	ipi_int              :  1;  /* RW, W1C */
-	unsigned long	extio_int0           :  1;  /* RW, W1C */
-	unsigned long	extio_int1           :  1;  /* RW, W1C */
-	unsigned long	extio_int2           :  1;  /* RW, W1C */
-	unsigned long	extio_int3           :  1;  /* RW, W1C */
-	unsigned long	profile_int          :  1;  /* RW, W1C */
-	unsigned long	rtc0                 :  1;  /* RW, W1C */
-	unsigned long	rtc1                 :  1;  /* RW, W1C */
-	unsigned long	rtc2                 :  1;  /* RW, W1C */
-	unsigned long	rtc3                 :  1;  /* RW, W1C */
-	unsigned long	bau_data             :  1;  /* RW, W1C */
-	unsigned long	power_management_req :  1;  /* RW, W1C */
-	unsigned long	rsvd_57_63           :  7;  /*    */
+	unsigned long	lb_hcerr             :  1;  
+	unsigned long	gr0_hcerr            :  1;  
+	unsigned long	gr1_hcerr            :  1;  
+	unsigned long	lh_hcerr             :  1;  
+	unsigned long	rh_hcerr             :  1;  
+	unsigned long	xn_hcerr             :  1;  
+	unsigned long	si_hcerr             :  1;  
+	unsigned long	lb_aoerr0            :  1;  
+	unsigned long	gr0_aoerr0           :  1;  
+	unsigned long	gr1_aoerr0           :  1;  
+	unsigned long	lh_aoerr0            :  1;  
+	unsigned long	rh_aoerr0            :  1;  
+	unsigned long	xn_aoerr0            :  1;  
+	unsigned long	si_aoerr0            :  1;  
+	unsigned long	lb_aoerr1            :  1;  
+	unsigned long	gr0_aoerr1           :  1;  
+	unsigned long	gr1_aoerr1           :  1;  
+	unsigned long	lh_aoerr1            :  1;  
+	unsigned long	rh_aoerr1            :  1;  
+	unsigned long	xn_aoerr1            :  1;  
+	unsigned long	si_aoerr1            :  1;  
+	unsigned long	rh_vpi_int           :  1;  
+	unsigned long	system_shutdown_int  :  1;  
+	unsigned long	lb_irq_int_0         :  1;  
+	unsigned long	lb_irq_int_1         :  1;  
+	unsigned long	lb_irq_int_2         :  1;  
+	unsigned long	lb_irq_int_3         :  1;  
+	unsigned long	lb_irq_int_4         :  1;  
+	unsigned long	lb_irq_int_5         :  1;  
+	unsigned long	lb_irq_int_6         :  1;  
+	unsigned long	lb_irq_int_7         :  1;  
+	unsigned long	lb_irq_int_8         :  1;  
+	unsigned long	lb_irq_int_9         :  1;  
+	unsigned long	lb_irq_int_10        :  1;  
+	unsigned long	lb_irq_int_11        :  1;  
+	unsigned long	lb_irq_int_12        :  1;  
+	unsigned long	lb_irq_int_13        :  1;  
+	unsigned long	lb_irq_int_14        :  1;  
+	unsigned long	lb_irq_int_15        :  1;  
+	unsigned long	l1_nmi_int           :  1;  
+	unsigned long	stop_clock           :  1;  
+	unsigned long	asic_to_l1           :  1;  
+	unsigned long	l1_to_asic           :  1;  
+	unsigned long	ltc_int              :  1;  
+	unsigned long	la_seq_trigger       :  1;  
+	unsigned long	ipi_int              :  1;  
+	unsigned long	extio_int0           :  1;  
+	unsigned long	extio_int1           :  1;  
+	unsigned long	extio_int2           :  1;  
+	unsigned long	extio_int3           :  1;  
+	unsigned long	profile_int          :  1;  
+	unsigned long	rtc0                 :  1;  
+	unsigned long	rtc1                 :  1;  
+	unsigned long	rtc2                 :  1;  
+	unsigned long	rtc3                 :  1;  
+	unsigned long	bau_data             :  1;  
+	unsigned long	power_management_req :  1;  
+	unsigned long	rsvd_57_63           :  7;  
     } s;
 };
 
-/* ========================================================================= */
-/*                        UVH_EVENT_OCCURRED0_ALIAS                          */
-/* ========================================================================= */
+
+
+
 #define UVH_EVENT_OCCURRED0_ALIAS 0x0000000000070008UL
 #define UVH_EVENT_OCCURRED0_ALIAS_32 0x005f0
 
-/* ========================================================================= */
-/*                         UVH_GR0_TLB_INT0_CONFIG                           */
-/* ========================================================================= */
+
+
+
 #define UVH_GR0_TLB_INT0_CONFIG 0x61b00UL
 
 #define UVH_GR0_TLB_INT0_CONFIG_VECTOR_SHFT 0
@@ -273,22 +265,22 @@ union uvh_event_occurred0_u {
 union uvh_gr0_tlb_int0_config_u {
     unsigned long	v;
     struct uvh_gr0_tlb_int0_config_s {
-	unsigned long	vector_  :  8;  /* RW */
-	unsigned long	dm       :  3;  /* RW */
-	unsigned long	destmode :  1;  /* RW */
-	unsigned long	status   :  1;  /* RO */
-	unsigned long	p        :  1;  /* RO */
-	unsigned long	rsvd_14  :  1;  /*    */
-	unsigned long	t        :  1;  /* RO */
-	unsigned long	m        :  1;  /* RW */
-	unsigned long	rsvd_17_31: 15;  /*    */
-	unsigned long	apic_id  : 32;  /* RW */
+	unsigned long	vector_  :  8;  
+	unsigned long	dm       :  3;  
+	unsigned long	destmode :  1;  
+	unsigned long	status   :  1;  
+	unsigned long	p        :  1;  
+	unsigned long	rsvd_14  :  1;  
+	unsigned long	t        :  1;  
+	unsigned long	m        :  1;  
+	unsigned long	rsvd_17_31: 15;  
+	unsigned long	apic_id  : 32;  
     } s;
 };
 
-/* ========================================================================= */
-/*                         UVH_GR0_TLB_INT1_CONFIG                           */
-/* ========================================================================= */
+
+
+
 #define UVH_GR0_TLB_INT1_CONFIG 0x61b40UL
 
 #define UVH_GR0_TLB_INT1_CONFIG_VECTOR_SHFT 0
@@ -311,22 +303,22 @@ union uvh_gr0_tlb_int0_config_u {
 union uvh_gr0_tlb_int1_config_u {
     unsigned long	v;
     struct uvh_gr0_tlb_int1_config_s {
-	unsigned long	vector_  :  8;  /* RW */
-	unsigned long	dm       :  3;  /* RW */
-	unsigned long	destmode :  1;  /* RW */
-	unsigned long	status   :  1;  /* RO */
-	unsigned long	p        :  1;  /* RO */
-	unsigned long	rsvd_14  :  1;  /*    */
-	unsigned long	t        :  1;  /* RO */
-	unsigned long	m        :  1;  /* RW */
-	unsigned long	rsvd_17_31: 15;  /*    */
-	unsigned long	apic_id  : 32;  /* RW */
+	unsigned long	vector_  :  8;  
+	unsigned long	dm       :  3;  
+	unsigned long	destmode :  1;  
+	unsigned long	status   :  1;  
+	unsigned long	p        :  1;  
+	unsigned long	rsvd_14  :  1;  
+	unsigned long	t        :  1;  
+	unsigned long	m        :  1;  
+	unsigned long	rsvd_17_31: 15;  
+	unsigned long	apic_id  : 32;  
     } s;
 };
 
-/* ========================================================================= */
-/*                         UVH_GR1_TLB_INT0_CONFIG                           */
-/* ========================================================================= */
+
+
+
 #define UVH_GR1_TLB_INT0_CONFIG 0x61f00UL
 
 #define UVH_GR1_TLB_INT0_CONFIG_VECTOR_SHFT 0
@@ -349,22 +341,22 @@ union uvh_gr0_tlb_int1_config_u {
 union uvh_gr1_tlb_int0_config_u {
     unsigned long	v;
     struct uvh_gr1_tlb_int0_config_s {
-	unsigned long	vector_  :  8;  /* RW */
-	unsigned long	dm       :  3;  /* RW */
-	unsigned long	destmode :  1;  /* RW */
-	unsigned long	status   :  1;  /* RO */
-	unsigned long	p        :  1;  /* RO */
-	unsigned long	rsvd_14  :  1;  /*    */
-	unsigned long	t        :  1;  /* RO */
-	unsigned long	m        :  1;  /* RW */
-	unsigned long	rsvd_17_31: 15;  /*    */
-	unsigned long	apic_id  : 32;  /* RW */
+	unsigned long	vector_  :  8;  
+	unsigned long	dm       :  3;  
+	unsigned long	destmode :  1;  
+	unsigned long	status   :  1;  
+	unsigned long	p        :  1;  
+	unsigned long	rsvd_14  :  1;  
+	unsigned long	t        :  1;  
+	unsigned long	m        :  1;  
+	unsigned long	rsvd_17_31: 15;  
+	unsigned long	apic_id  : 32;  
     } s;
 };
 
-/* ========================================================================= */
-/*                         UVH_GR1_TLB_INT1_CONFIG                           */
-/* ========================================================================= */
+
+
+
 #define UVH_GR1_TLB_INT1_CONFIG 0x61f40UL
 
 #define UVH_GR1_TLB_INT1_CONFIG_VECTOR_SHFT 0
@@ -387,22 +379,22 @@ union uvh_gr1_tlb_int0_config_u {
 union uvh_gr1_tlb_int1_config_u {
     unsigned long	v;
     struct uvh_gr1_tlb_int1_config_s {
-	unsigned long	vector_  :  8;  /* RW */
-	unsigned long	dm       :  3;  /* RW */
-	unsigned long	destmode :  1;  /* RW */
-	unsigned long	status   :  1;  /* RO */
-	unsigned long	p        :  1;  /* RO */
-	unsigned long	rsvd_14  :  1;  /*    */
-	unsigned long	t        :  1;  /* RO */
-	unsigned long	m        :  1;  /* RW */
-	unsigned long	rsvd_17_31: 15;  /*    */
-	unsigned long	apic_id  : 32;  /* RW */
+	unsigned long	vector_  :  8;  
+	unsigned long	dm       :  3;  
+	unsigned long	destmode :  1;  
+	unsigned long	status   :  1;  
+	unsigned long	p        :  1;  
+	unsigned long	rsvd_14  :  1;  
+	unsigned long	t        :  1;  
+	unsigned long	m        :  1;  
+	unsigned long	rsvd_17_31: 15;  
+	unsigned long	apic_id  : 32;  
     } s;
 };
 
-/* ========================================================================= */
-/*                               UVH_INT_CMPB                                */
-/* ========================================================================= */
+
+
+
 #define UVH_INT_CMPB 0x22080UL
 
 #define UVH_INT_CMPB_REAL_TIME_CMPB_SHFT 0
@@ -411,14 +403,14 @@ union uvh_gr1_tlb_int1_config_u {
 union uvh_int_cmpb_u {
     unsigned long	v;
     struct uvh_int_cmpb_s {
-	unsigned long	real_time_cmpb : 56;  /* RW */
-	unsigned long	rsvd_56_63     :  8;  /*    */
+	unsigned long	real_time_cmpb : 56;  
+	unsigned long	rsvd_56_63     :  8;  
     } s;
 };
 
-/* ========================================================================= */
-/*                               UVH_INT_CMPC                                */
-/* ========================================================================= */
+
+
+
 #define UVH_INT_CMPC 0x22100UL
 
 #define UVH_INT_CMPC_REAL_TIME_CMPC_SHFT 0
@@ -427,14 +419,14 @@ union uvh_int_cmpb_u {
 union uvh_int_cmpc_u {
     unsigned long	v;
     struct uvh_int_cmpc_s {
-	unsigned long	real_time_cmpc : 56;  /* RW */
-	unsigned long	rsvd_56_63     :  8;  /*    */
+	unsigned long	real_time_cmpc : 56;  
+	unsigned long	rsvd_56_63     :  8;  
     } s;
 };
 
-/* ========================================================================= */
-/*                               UVH_INT_CMPD                                */
-/* ========================================================================= */
+
+
+
 #define UVH_INT_CMPD 0x22180UL
 
 #define UVH_INT_CMPD_REAL_TIME_CMPD_SHFT 0
@@ -443,14 +435,14 @@ union uvh_int_cmpc_u {
 union uvh_int_cmpd_u {
     unsigned long	v;
     struct uvh_int_cmpd_s {
-	unsigned long	real_time_cmpd : 56;  /* RW */
-	unsigned long	rsvd_56_63     :  8;  /*    */
+	unsigned long	real_time_cmpd : 56;  
+	unsigned long	rsvd_56_63     :  8;  
     } s;
 };
 
-/* ========================================================================= */
-/*                               UVH_IPI_INT                                 */
-/* ========================================================================= */
+
+
+
 #define UVH_IPI_INT 0x60500UL
 #define UVH_IPI_INT_32 0x0348
 
@@ -468,19 +460,19 @@ union uvh_int_cmpd_u {
 union uvh_ipi_int_u {
     unsigned long	v;
     struct uvh_ipi_int_s {
-	unsigned long	vector_       :  8;  /* RW */
-	unsigned long	delivery_mode :  3;  /* RW */
-	unsigned long	destmode      :  1;  /* RW */
-	unsigned long	rsvd_12_15    :  4;  /*    */
-	unsigned long	apic_id       : 32;  /* RW */
-	unsigned long	rsvd_48_62    : 15;  /*    */
-	unsigned long	send          :  1;  /* WP */
+	unsigned long	vector_       :  8;  
+	unsigned long	delivery_mode :  3;  
+	unsigned long	destmode      :  1;  
+	unsigned long	rsvd_12_15    :  4;  
+	unsigned long	apic_id       : 32;  
+	unsigned long	rsvd_48_62    : 15;  
+	unsigned long	send          :  1;  
     } s;
 };
 
-/* ========================================================================= */
-/*                   UVH_LB_BAU_INTD_PAYLOAD_QUEUE_FIRST                     */
-/* ========================================================================= */
+
+
+
 #define UVH_LB_BAU_INTD_PAYLOAD_QUEUE_FIRST 0x320050UL
 #define UVH_LB_BAU_INTD_PAYLOAD_QUEUE_FIRST_32 0x009c0
 
@@ -492,17 +484,17 @@ union uvh_ipi_int_u {
 union uvh_lb_bau_intd_payload_queue_first_u {
     unsigned long	v;
     struct uvh_lb_bau_intd_payload_queue_first_s {
-	unsigned long	rsvd_0_3:  4;  /*    */
-	unsigned long	address : 39;  /* RW */
-	unsigned long	rsvd_43_48:  6;  /*    */
-	unsigned long	node_id : 14;  /* RW */
-	unsigned long	rsvd_63 :  1;  /*    */
+	unsigned long	rsvd_0_3:  4;  
+	unsigned long	address : 39;  
+	unsigned long	rsvd_43_48:  6;  
+	unsigned long	node_id : 14;  
+	unsigned long	rsvd_63 :  1;  
     } s;
 };
 
-/* ========================================================================= */
-/*                    UVH_LB_BAU_INTD_PAYLOAD_QUEUE_LAST                     */
-/* ========================================================================= */
+
+
+
 #define UVH_LB_BAU_INTD_PAYLOAD_QUEUE_LAST 0x320060UL
 #define UVH_LB_BAU_INTD_PAYLOAD_QUEUE_LAST_32 0x009c8
 
@@ -512,15 +504,15 @@ union uvh_lb_bau_intd_payload_queue_first_u {
 union uvh_lb_bau_intd_payload_queue_last_u {
     unsigned long	v;
     struct uvh_lb_bau_intd_payload_queue_last_s {
-	unsigned long	rsvd_0_3:  4;  /*    */
-	unsigned long	address : 39;  /* RW */
-	unsigned long	rsvd_43_63: 21;  /*    */
+	unsigned long	rsvd_0_3:  4;  
+	unsigned long	address : 39;  
+	unsigned long	rsvd_43_63: 21;  
     } s;
 };
 
-/* ========================================================================= */
-/*                    UVH_LB_BAU_INTD_PAYLOAD_QUEUE_TAIL                     */
-/* ========================================================================= */
+
+
+
 #define UVH_LB_BAU_INTD_PAYLOAD_QUEUE_TAIL 0x320070UL
 #define UVH_LB_BAU_INTD_PAYLOAD_QUEUE_TAIL_32 0x009d0
 
@@ -530,15 +522,15 @@ union uvh_lb_bau_intd_payload_queue_last_u {
 union uvh_lb_bau_intd_payload_queue_tail_u {
     unsigned long	v;
     struct uvh_lb_bau_intd_payload_queue_tail_s {
-	unsigned long	rsvd_0_3:  4;  /*    */
-	unsigned long	address : 39;  /* RW */
-	unsigned long	rsvd_43_63: 21;  /*    */
+	unsigned long	rsvd_0_3:  4;  
+	unsigned long	address : 39;  
+	unsigned long	rsvd_43_63: 21;  
     } s;
 };
 
-/* ========================================================================= */
-/*                   UVH_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE                    */
-/* ========================================================================= */
+
+
+
 #define UVH_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE 0x320080UL
 #define UVH_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE_32 0x0a68
 
@@ -577,35 +569,35 @@ union uvh_lb_bau_intd_payload_queue_tail_u {
 union uvh_lb_bau_intd_software_acknowledge_u {
     unsigned long	v;
     struct uvh_lb_bau_intd_software_acknowledge_s {
-	unsigned long	pending_0 :  1;  /* RW, W1C */
-	unsigned long	pending_1 :  1;  /* RW, W1C */
-	unsigned long	pending_2 :  1;  /* RW, W1C */
-	unsigned long	pending_3 :  1;  /* RW, W1C */
-	unsigned long	pending_4 :  1;  /* RW, W1C */
-	unsigned long	pending_5 :  1;  /* RW, W1C */
-	unsigned long	pending_6 :  1;  /* RW, W1C */
-	unsigned long	pending_7 :  1;  /* RW, W1C */
-	unsigned long	timeout_0 :  1;  /* RW, W1C */
-	unsigned long	timeout_1 :  1;  /* RW, W1C */
-	unsigned long	timeout_2 :  1;  /* RW, W1C */
-	unsigned long	timeout_3 :  1;  /* RW, W1C */
-	unsigned long	timeout_4 :  1;  /* RW, W1C */
-	unsigned long	timeout_5 :  1;  /* RW, W1C */
-	unsigned long	timeout_6 :  1;  /* RW, W1C */
-	unsigned long	timeout_7 :  1;  /* RW, W1C */
-	unsigned long	rsvd_16_63: 48;  /*    */
+	unsigned long	pending_0 :  1;  
+	unsigned long	pending_1 :  1;  
+	unsigned long	pending_2 :  1;  
+	unsigned long	pending_3 :  1;  
+	unsigned long	pending_4 :  1;  
+	unsigned long	pending_5 :  1;  
+	unsigned long	pending_6 :  1;  
+	unsigned long	pending_7 :  1;  
+	unsigned long	timeout_0 :  1;  
+	unsigned long	timeout_1 :  1;  
+	unsigned long	timeout_2 :  1;  
+	unsigned long	timeout_3 :  1;  
+	unsigned long	timeout_4 :  1;  
+	unsigned long	timeout_5 :  1;  
+	unsigned long	timeout_6 :  1;  
+	unsigned long	timeout_7 :  1;  
+	unsigned long	rsvd_16_63: 48;  
     } s;
 };
 
-/* ========================================================================= */
-/*                UVH_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE_ALIAS                 */
-/* ========================================================================= */
+
+
+
 #define UVH_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE_ALIAS 0x0000000000320088UL
 #define UVH_LB_BAU_INTD_SOFTWARE_ACKNOWLEDGE_ALIAS_32 0x0a70
 
-/* ========================================================================= */
-/*                     UVH_LB_BAU_SB_ACTIVATION_CONTROL                      */
-/* ========================================================================= */
+
+
+
 #define UVH_LB_BAU_SB_ACTIVATION_CONTROL 0x320020UL
 #define UVH_LB_BAU_SB_ACTIVATION_CONTROL_32 0x009a8
 
@@ -619,16 +611,16 @@ union uvh_lb_bau_intd_software_acknowledge_u {
 union uvh_lb_bau_sb_activation_control_u {
     unsigned long	v;
     struct uvh_lb_bau_sb_activation_control_s {
-	unsigned long	index :  6;  /* RW */
-	unsigned long	rsvd_6_61: 56;  /*    */
-	unsigned long	push  :  1;  /* WP */
-	unsigned long	init  :  1;  /* WP */
+	unsigned long	index :  6;  
+	unsigned long	rsvd_6_61: 56;  
+	unsigned long	push  :  1;  
+	unsigned long	init  :  1;  
     } s;
 };
 
-/* ========================================================================= */
-/*                    UVH_LB_BAU_SB_ACTIVATION_STATUS_0                      */
-/* ========================================================================= */
+
+
+
 #define UVH_LB_BAU_SB_ACTIVATION_STATUS_0 0x320030UL
 #define UVH_LB_BAU_SB_ACTIVATION_STATUS_0_32 0x009b0
 
@@ -638,13 +630,13 @@ union uvh_lb_bau_sb_activation_control_u {
 union uvh_lb_bau_sb_activation_status_0_u {
     unsigned long	v;
     struct uvh_lb_bau_sb_activation_status_0_s {
-	unsigned long	status : 64;  /* RW */
+	unsigned long	status : 64;  
     } s;
 };
 
-/* ========================================================================= */
-/*                    UVH_LB_BAU_SB_ACTIVATION_STATUS_1                      */
-/* ========================================================================= */
+
+
+
 #define UVH_LB_BAU_SB_ACTIVATION_STATUS_1 0x320040UL
 #define UVH_LB_BAU_SB_ACTIVATION_STATUS_1_32 0x009b8
 
@@ -654,13 +646,13 @@ union uvh_lb_bau_sb_activation_status_0_u {
 union uvh_lb_bau_sb_activation_status_1_u {
     unsigned long	v;
     struct uvh_lb_bau_sb_activation_status_1_s {
-	unsigned long	status : 64;  /* RW */
+	unsigned long	status : 64;  
     } s;
 };
 
-/* ========================================================================= */
-/*                      UVH_LB_BAU_SB_DESCRIPTOR_BASE                        */
-/* ========================================================================= */
+
+
+
 #define UVH_LB_BAU_SB_DESCRIPTOR_BASE 0x320010UL
 #define UVH_LB_BAU_SB_DESCRIPTOR_BASE_32 0x009a0
 
@@ -672,17 +664,17 @@ union uvh_lb_bau_sb_activation_status_1_u {
 union uvh_lb_bau_sb_descriptor_base_u {
     unsigned long	v;
     struct uvh_lb_bau_sb_descriptor_base_s {
-	unsigned long	rsvd_0_11    : 12;  /*    */
-	unsigned long	page_address : 31;  /* RW */
-	unsigned long	rsvd_43_48   :  6;  /*    */
-	unsigned long	node_id      : 14;  /* RW */
-	unsigned long	rsvd_63      :  1;  /*    */
+	unsigned long	rsvd_0_11    : 12;  
+	unsigned long	page_address : 31;  
+	unsigned long	rsvd_43_48   :  6;  
+	unsigned long	node_id      : 14;  
+	unsigned long	rsvd_63      :  1;  
     } s;
 };
 
-/* ========================================================================= */
-/*                      UVH_LB_MCAST_AOERR0_RPT_ENABLE                       */
-/* ========================================================================= */
+
+
+
 #define UVH_LB_MCAST_AOERR0_RPT_ENABLE 0x50b20UL
 
 #define UVH_LB_MCAST_AOERR0_RPT_ENABLE_MCAST_OBESE_MSG_SHFT 0
@@ -775,56 +767,56 @@ union uvh_lb_bau_sb_descriptor_base_u {
 union uvh_lb_mcast_aoerr0_rpt_enable_u {
     unsigned long	v;
     struct uvh_lb_mcast_aoerr0_rpt_enable_s {
-	unsigned long	mcast_obese_msg                         :  1;  /* RW */
-	unsigned long	mcast_data_sb_err                       :  1;  /* RW */
-	unsigned long	mcast_nack_buff_parity                  :  1;  /* RW */
-	unsigned long	mcast_timeout                           :  1;  /* RW */
-	unsigned long	mcast_inactive_reply                    :  1;  /* RW */
-	unsigned long	mcast_upgrade_error                     :  1;  /* RW */
-	unsigned long	mcast_reg_count_underflow               :  1;  /* RW */
-	unsigned long	mcast_rep_obese_msg                     :  1;  /* RW */
-	unsigned long	ucache_req_runt_msg                     :  1;  /* RW */
-	unsigned long	ucache_req_obese_msg                    :  1;  /* RW */
-	unsigned long	ucache_req_data_sb_err                  :  1;  /* RW */
-	unsigned long	ucache_rep_runt_msg                     :  1;  /* RW */
-	unsigned long	ucache_rep_obese_msg                    :  1;  /* RW */
-	unsigned long	ucache_rep_data_sb_err                  :  1;  /* RW */
-	unsigned long	ucache_rep_command_err                  :  1;  /* RW */
-	unsigned long	ucache_pend_timeout                     :  1;  /* RW */
-	unsigned long	macc_req_runt_msg                       :  1;  /* RW */
-	unsigned long	macc_req_obese_msg                      :  1;  /* RW */
-	unsigned long	macc_req_data_sb_err                    :  1;  /* RW */
-	unsigned long	macc_rep_runt_msg                       :  1;  /* RW */
-	unsigned long	macc_rep_obese_msg                      :  1;  /* RW */
-	unsigned long	macc_rep_data_sb_err                    :  1;  /* RW */
-	unsigned long	macc_amo_timeout                        :  1;  /* RW */
-	unsigned long	macc_put_timeout                        :  1;  /* RW */
-	unsigned long	macc_spurious_event                     :  1;  /* RW */
-	unsigned long	ioh_destination_table_parity            :  1;  /* RW */
-	unsigned long	get_had_error_reply                     :  1;  /* RW */
-	unsigned long	get_timeout                             :  1;  /* RW */
-	unsigned long	lock_manager_had_error_reply            :  1;  /* RW */
-	unsigned long	put_had_error_reply                     :  1;  /* RW */
-	unsigned long	put_timeout                             :  1;  /* RW */
-	unsigned long	sb_activation_overrun                   :  1;  /* RW */
-	unsigned long	completed_gb_activation_had_error_reply :  1;  /* RW */
-	unsigned long	completed_gb_activation_timeout         :  1;  /* RW */
-	unsigned long	descriptor_buffer_0_parity              :  1;  /* RW */
-	unsigned long	descriptor_buffer_1_parity              :  1;  /* RW */
-	unsigned long	socket_destination_table_parity         :  1;  /* RW */
-	unsigned long	bau_reply_payload_corruption            :  1;  /* RW */
-	unsigned long	io_port_destination_table_parity        :  1;  /* RW */
-	unsigned long	intd_soft_ack_timeout                   :  1;  /* RW */
-	unsigned long	int_rep_obese_msg                       :  1;  /* RW */
-	unsigned long	int_rep_command_err                     :  1;  /* RW */
-	unsigned long	int_timeout                             :  1;  /* RW */
-	unsigned long	rsvd_43_63                              : 21;  /*    */
+	unsigned long	mcast_obese_msg                         :  1;  
+	unsigned long	mcast_data_sb_err                       :  1;  
+	unsigned long	mcast_nack_buff_parity                  :  1;  
+	unsigned long	mcast_timeout                           :  1;  
+	unsigned long	mcast_inactive_reply                    :  1;  
+	unsigned long	mcast_upgrade_error                     :  1;  
+	unsigned long	mcast_reg_count_underflow               :  1;  
+	unsigned long	mcast_rep_obese_msg                     :  1;  
+	unsigned long	ucache_req_runt_msg                     :  1;  
+	unsigned long	ucache_req_obese_msg                    :  1;  
+	unsigned long	ucache_req_data_sb_err                  :  1;  
+	unsigned long	ucache_rep_runt_msg                     :  1;  
+	unsigned long	ucache_rep_obese_msg                    :  1;  
+	unsigned long	ucache_rep_data_sb_err                  :  1;  
+	unsigned long	ucache_rep_command_err                  :  1;  
+	unsigned long	ucache_pend_timeout                     :  1;  
+	unsigned long	macc_req_runt_msg                       :  1;  
+	unsigned long	macc_req_obese_msg                      :  1;  
+	unsigned long	macc_req_data_sb_err                    :  1;  
+	unsigned long	macc_rep_runt_msg                       :  1;  
+	unsigned long	macc_rep_obese_msg                      :  1;  
+	unsigned long	macc_rep_data_sb_err                    :  1;  
+	unsigned long	macc_amo_timeout                        :  1;  
+	unsigned long	macc_put_timeout                        :  1;  
+	unsigned long	macc_spurious_event                     :  1;  
+	unsigned long	ioh_destination_table_parity            :  1;  
+	unsigned long	get_had_error_reply                     :  1;  
+	unsigned long	get_timeout                             :  1;  
+	unsigned long	lock_manager_had_error_reply            :  1;  
+	unsigned long	put_had_error_reply                     :  1;  
+	unsigned long	put_timeout                             :  1;  
+	unsigned long	sb_activation_overrun                   :  1;  
+	unsigned long	completed_gb_activation_had_error_reply :  1;  
+	unsigned long	completed_gb_activation_timeout         :  1;  
+	unsigned long	descriptor_buffer_0_parity              :  1;  
+	unsigned long	descriptor_buffer_1_parity              :  1;  
+	unsigned long	socket_destination_table_parity         :  1;  
+	unsigned long	bau_reply_payload_corruption            :  1;  
+	unsigned long	io_port_destination_table_parity        :  1;  
+	unsigned long	intd_soft_ack_timeout                   :  1;  
+	unsigned long	int_rep_obese_msg                       :  1;  
+	unsigned long	int_rep_command_err                     :  1;  
+	unsigned long	int_timeout                             :  1;  
+	unsigned long	rsvd_43_63                              : 21;  
     } s;
 };
 
-/* ========================================================================= */
-/*                          UVH_LOCAL_INT0_CONFIG                            */
-/* ========================================================================= */
+
+
+
 #define UVH_LOCAL_INT0_CONFIG 0x61000UL
 
 #define UVH_LOCAL_INT0_CONFIG_VECTOR_SHFT 0
@@ -847,22 +839,22 @@ union uvh_lb_mcast_aoerr0_rpt_enable_u {
 union uvh_local_int0_config_u {
     unsigned long	v;
     struct uvh_local_int0_config_s {
-	unsigned long	vector_  :  8;  /* RW */
-	unsigned long	dm       :  3;  /* RW */
-	unsigned long	destmode :  1;  /* RW */
-	unsigned long	status   :  1;  /* RO */
-	unsigned long	p        :  1;  /* RO */
-	unsigned long	rsvd_14  :  1;  /*    */
-	unsigned long	t        :  1;  /* RO */
-	unsigned long	m        :  1;  /* RW */
-	unsigned long	rsvd_17_31: 15;  /*    */
-	unsigned long	apic_id  : 32;  /* RW */
+	unsigned long	vector_  :  8;  
+	unsigned long	dm       :  3;  
+	unsigned long	destmode :  1;  
+	unsigned long	status   :  1;  
+	unsigned long	p        :  1;  
+	unsigned long	rsvd_14  :  1;  
+	unsigned long	t        :  1;  
+	unsigned long	m        :  1;  
+	unsigned long	rsvd_17_31: 15;  
+	unsigned long	apic_id  : 32;  
     } s;
 };
 
-/* ========================================================================= */
-/*                          UVH_LOCAL_INT0_ENABLE                            */
-/* ========================================================================= */
+
+
+
 #define UVH_LOCAL_INT0_ENABLE 0x65000UL
 
 #define UVH_LOCAL_INT0_ENABLE_LB_HCERR_SHFT 0
@@ -959,58 +951,58 @@ union uvh_local_int0_config_u {
 union uvh_local_int0_enable_u {
     unsigned long	v;
     struct uvh_local_int0_enable_s {
-	unsigned long	lb_hcerr            :  1;  /* RW */
-	unsigned long	gr0_hcerr           :  1;  /* RW */
-	unsigned long	gr1_hcerr           :  1;  /* RW */
-	unsigned long	lh_hcerr            :  1;  /* RW */
-	unsigned long	rh_hcerr            :  1;  /* RW */
-	unsigned long	xn_hcerr            :  1;  /* RW */
-	unsigned long	si_hcerr            :  1;  /* RW */
-	unsigned long	lb_aoerr0           :  1;  /* RW */
-	unsigned long	gr0_aoerr0          :  1;  /* RW */
-	unsigned long	gr1_aoerr0          :  1;  /* RW */
-	unsigned long	lh_aoerr0           :  1;  /* RW */
-	unsigned long	rh_aoerr0           :  1;  /* RW */
-	unsigned long	xn_aoerr0           :  1;  /* RW */
-	unsigned long	si_aoerr0           :  1;  /* RW */
-	unsigned long	lb_aoerr1           :  1;  /* RW */
-	unsigned long	gr0_aoerr1          :  1;  /* RW */
-	unsigned long	gr1_aoerr1          :  1;  /* RW */
-	unsigned long	lh_aoerr1           :  1;  /* RW */
-	unsigned long	rh_aoerr1           :  1;  /* RW */
-	unsigned long	xn_aoerr1           :  1;  /* RW */
-	unsigned long	si_aoerr1           :  1;  /* RW */
-	unsigned long	rh_vpi_int          :  1;  /* RW */
-	unsigned long	system_shutdown_int :  1;  /* RW */
-	unsigned long	lb_irq_int_0        :  1;  /* RW */
-	unsigned long	lb_irq_int_1        :  1;  /* RW */
-	unsigned long	lb_irq_int_2        :  1;  /* RW */
-	unsigned long	lb_irq_int_3        :  1;  /* RW */
-	unsigned long	lb_irq_int_4        :  1;  /* RW */
-	unsigned long	lb_irq_int_5        :  1;  /* RW */
-	unsigned long	lb_irq_int_6        :  1;  /* RW */
-	unsigned long	lb_irq_int_7        :  1;  /* RW */
-	unsigned long	lb_irq_int_8        :  1;  /* RW */
-	unsigned long	lb_irq_int_9        :  1;  /* RW */
-	unsigned long	lb_irq_int_10       :  1;  /* RW */
-	unsigned long	lb_irq_int_11       :  1;  /* RW */
-	unsigned long	lb_irq_int_12       :  1;  /* RW */
-	unsigned long	lb_irq_int_13       :  1;  /* RW */
-	unsigned long	lb_irq_int_14       :  1;  /* RW */
-	unsigned long	lb_irq_int_15       :  1;  /* RW */
-	unsigned long	l1_nmi_int          :  1;  /* RW */
-	unsigned long	stop_clock          :  1;  /* RW */
-	unsigned long	asic_to_l1          :  1;  /* RW */
-	unsigned long	l1_to_asic          :  1;  /* RW */
-	unsigned long	ltc_int             :  1;  /* RW */
-	unsigned long	la_seq_trigger      :  1;  /* RW */
-	unsigned long	rsvd_45_63          : 19;  /*    */
+	unsigned long	lb_hcerr            :  1;  
+	unsigned long	gr0_hcerr           :  1;  
+	unsigned long	gr1_hcerr           :  1;  
+	unsigned long	lh_hcerr            :  1;  
+	unsigned long	rh_hcerr            :  1;  
+	unsigned long	xn_hcerr            :  1;  
+	unsigned long	si_hcerr            :  1;  
+	unsigned long	lb_aoerr0           :  1;  
+	unsigned long	gr0_aoerr0          :  1;  
+	unsigned long	gr1_aoerr0          :  1;  
+	unsigned long	lh_aoerr0           :  1;  
+	unsigned long	rh_aoerr0           :  1;  
+	unsigned long	xn_aoerr0           :  1;  
+	unsigned long	si_aoerr0           :  1;  
+	unsigned long	lb_aoerr1           :  1;  
+	unsigned long	gr0_aoerr1          :  1;  
+	unsigned long	gr1_aoerr1          :  1;  
+	unsigned long	lh_aoerr1           :  1;  
+	unsigned long	rh_aoerr1           :  1;  
+	unsigned long	xn_aoerr1           :  1;  
+	unsigned long	si_aoerr1           :  1;  
+	unsigned long	rh_vpi_int          :  1;  
+	unsigned long	system_shutdown_int :  1;  
+	unsigned long	lb_irq_int_0        :  1;  
+	unsigned long	lb_irq_int_1        :  1;  
+	unsigned long	lb_irq_int_2        :  1;  
+	unsigned long	lb_irq_int_3        :  1;  
+	unsigned long	lb_irq_int_4        :  1;  
+	unsigned long	lb_irq_int_5        :  1;  
+	unsigned long	lb_irq_int_6        :  1;  
+	unsigned long	lb_irq_int_7        :  1;  
+	unsigned long	lb_irq_int_8        :  1;  
+	unsigned long	lb_irq_int_9        :  1;  
+	unsigned long	lb_irq_int_10       :  1;  
+	unsigned long	lb_irq_int_11       :  1;  
+	unsigned long	lb_irq_int_12       :  1;  
+	unsigned long	lb_irq_int_13       :  1;  
+	unsigned long	lb_irq_int_14       :  1;  
+	unsigned long	lb_irq_int_15       :  1;  
+	unsigned long	l1_nmi_int          :  1;  
+	unsigned long	stop_clock          :  1;  
+	unsigned long	asic_to_l1          :  1;  
+	unsigned long	l1_to_asic          :  1;  
+	unsigned long	ltc_int             :  1;  
+	unsigned long	la_seq_trigger      :  1;  
+	unsigned long	rsvd_45_63          : 19;  
     } s;
 };
 
-/* ========================================================================= */
-/*                               UVH_NODE_ID                                 */
-/* ========================================================================= */
+
+
+
 #define UVH_NODE_ID 0x0UL
 
 #define UVH_NODE_ID_FORCE1_SHFT 0
@@ -1031,22 +1023,22 @@ union uvh_local_int0_enable_u {
 union uvh_node_id_u {
     unsigned long	v;
     struct uvh_node_id_s {
-	unsigned long	force1        :  1;  /* RO */
-	unsigned long	manufacturer  : 11;  /* RO */
-	unsigned long	part_number   : 16;  /* RO */
-	unsigned long	revision      :  4;  /* RO */
-	unsigned long	node_id       : 15;  /* RW */
-	unsigned long	rsvd_47       :  1;  /*    */
-	unsigned long	nodes_per_bit :  7;  /* RW */
-	unsigned long	rsvd_55       :  1;  /*    */
-	unsigned long	ni_port       :  4;  /* RO */
-	unsigned long	rsvd_60_63    :  4;  /*    */
+	unsigned long	force1        :  1;  
+	unsigned long	manufacturer  : 11;  
+	unsigned long	part_number   : 16;  
+	unsigned long	revision      :  4;  
+	unsigned long	node_id       : 15;  
+	unsigned long	rsvd_47       :  1;  
+	unsigned long	nodes_per_bit :  7;  
+	unsigned long	rsvd_55       :  1;  
+	unsigned long	ni_port       :  4;  
+	unsigned long	rsvd_60_63    :  4;  
     } s;
 };
 
-/* ========================================================================= */
-/*                          UVH_NODE_PRESENT_TABLE                           */
-/* ========================================================================= */
+
+
+
 #define UVH_NODE_PRESENT_TABLE 0x1400UL
 #define UVH_NODE_PRESENT_TABLE_DEPTH 16
 
@@ -1056,13 +1048,13 @@ union uvh_node_id_u {
 union uvh_node_present_table_u {
     unsigned long	v;
     struct uvh_node_present_table_s {
-	unsigned long	nodes : 64;  /* RW */
+	unsigned long	nodes : 64;  
     } s;
 };
 
-/* ========================================================================= */
-/*                UVH_RH_GAM_ALIAS210_REDIRECT_CONFIG_0_MMR                  */
-/* ========================================================================= */
+
+
+
 #define UVH_RH_GAM_ALIAS210_REDIRECT_CONFIG_0_MMR 0x16000d0UL
 
 #define UVH_RH_GAM_ALIAS210_REDIRECT_CONFIG_0_MMR_DEST_BASE_SHFT 24
@@ -1071,15 +1063,15 @@ union uvh_node_present_table_u {
 union uvh_rh_gam_alias210_redirect_config_0_mmr_u {
     unsigned long	v;
     struct uvh_rh_gam_alias210_redirect_config_0_mmr_s {
-	unsigned long	rsvd_0_23 : 24;  /*    */
-	unsigned long	dest_base : 22;  /* RW */
-	unsigned long	rsvd_46_63: 18;  /*    */
+	unsigned long	rsvd_0_23 : 24;  
+	unsigned long	dest_base : 22;  
+	unsigned long	rsvd_46_63: 18;  
     } s;
 };
 
-/* ========================================================================= */
-/*                UVH_RH_GAM_ALIAS210_REDIRECT_CONFIG_1_MMR                  */
-/* ========================================================================= */
+
+
+
 #define UVH_RH_GAM_ALIAS210_REDIRECT_CONFIG_1_MMR 0x16000e0UL
 
 #define UVH_RH_GAM_ALIAS210_REDIRECT_CONFIG_1_MMR_DEST_BASE_SHFT 24
@@ -1088,15 +1080,15 @@ union uvh_rh_gam_alias210_redirect_config_0_mmr_u {
 union uvh_rh_gam_alias210_redirect_config_1_mmr_u {
     unsigned long	v;
     struct uvh_rh_gam_alias210_redirect_config_1_mmr_s {
-	unsigned long	rsvd_0_23 : 24;  /*    */
-	unsigned long	dest_base : 22;  /* RW */
-	unsigned long	rsvd_46_63: 18;  /*    */
+	unsigned long	rsvd_0_23 : 24;  
+	unsigned long	dest_base : 22;  
+	unsigned long	rsvd_46_63: 18;  
     } s;
 };
 
-/* ========================================================================= */
-/*                UVH_RH_GAM_ALIAS210_REDIRECT_CONFIG_2_MMR                  */
-/* ========================================================================= */
+
+
+
 #define UVH_RH_GAM_ALIAS210_REDIRECT_CONFIG_2_MMR 0x16000f0UL
 
 #define UVH_RH_GAM_ALIAS210_REDIRECT_CONFIG_2_MMR_DEST_BASE_SHFT 24
@@ -1105,15 +1097,15 @@ union uvh_rh_gam_alias210_redirect_config_1_mmr_u {
 union uvh_rh_gam_alias210_redirect_config_2_mmr_u {
     unsigned long	v;
     struct uvh_rh_gam_alias210_redirect_config_2_mmr_s {
-	unsigned long	rsvd_0_23 : 24;  /*    */
-	unsigned long	dest_base : 22;  /* RW */
-	unsigned long	rsvd_46_63: 18;  /*    */
+	unsigned long	rsvd_0_23 : 24;  
+	unsigned long	dest_base : 22;  
+	unsigned long	rsvd_46_63: 18;  
     } s;
 };
 
-/* ========================================================================= */
-/*                    UVH_RH_GAM_CFG_OVERLAY_CONFIG_MMR                      */
-/* ========================================================================= */
+
+
+
 #define UVH_RH_GAM_CFG_OVERLAY_CONFIG_MMR 0x1600020UL
 
 #define UVH_RH_GAM_CFG_OVERLAY_CONFIG_MMR_BASE_SHFT 26
@@ -1124,16 +1116,16 @@ union uvh_rh_gam_alias210_redirect_config_2_mmr_u {
 union uvh_rh_gam_cfg_overlay_config_mmr_u {
     unsigned long	v;
     struct uvh_rh_gam_cfg_overlay_config_mmr_s {
-	unsigned long	rsvd_0_25: 26;  /*    */
-	unsigned long	base   : 20;  /* RW */
-	unsigned long	rsvd_46_62: 17;  /*    */
-	unsigned long	enable :  1;  /* RW */
+	unsigned long	rsvd_0_25: 26;  
+	unsigned long	base   : 20;  
+	unsigned long	rsvd_46_62: 17;  
+	unsigned long	enable :  1;  
     } s;
 };
 
-/* ========================================================================= */
-/*                    UVH_RH_GAM_GRU_OVERLAY_CONFIG_MMR                      */
-/* ========================================================================= */
+
+
+
 #define UVH_RH_GAM_GRU_OVERLAY_CONFIG_MMR 0x1600010UL
 
 #define UVH_RH_GAM_GRU_OVERLAY_CONFIG_MMR_BASE_SHFT 28
@@ -1148,20 +1140,20 @@ union uvh_rh_gam_cfg_overlay_config_mmr_u {
 union uvh_rh_gam_gru_overlay_config_mmr_u {
     unsigned long	v;
     struct uvh_rh_gam_gru_overlay_config_mmr_s {
-	unsigned long	rsvd_0_27: 28;  /*    */
-	unsigned long	base   : 18;  /* RW */
-	unsigned long	rsvd_46_47:  2;  /*    */
-	unsigned long	gr4    :  1;  /* RW */
-	unsigned long	rsvd_49_51:  3;  /*    */
-	unsigned long	n_gru  :  4;  /* RW */
-	unsigned long	rsvd_56_62:  7;  /*    */
-	unsigned long	enable :  1;  /* RW */
+	unsigned long	rsvd_0_27: 28;  
+	unsigned long	base   : 18;  
+	unsigned long	rsvd_46_47:  2;  
+	unsigned long	gr4    :  1;  
+	unsigned long	rsvd_49_51:  3;  
+	unsigned long	n_gru  :  4;  
+	unsigned long	rsvd_56_62:  7;  
+	unsigned long	enable :  1;  
     } s;
 };
 
-/* ========================================================================= */
-/*                   UVH_RH_GAM_MMIOH_OVERLAY_CONFIG_MMR                     */
-/* ========================================================================= */
+
+
+
 #define UVH_RH_GAM_MMIOH_OVERLAY_CONFIG_MMR 0x1600030UL
 
 #define UVH_RH_GAM_MMIOH_OVERLAY_CONFIG_MMR_BASE_SHFT 30
@@ -1176,18 +1168,18 @@ union uvh_rh_gam_gru_overlay_config_mmr_u {
 union uvh_rh_gam_mmioh_overlay_config_mmr_u {
     unsigned long	v;
     struct uvh_rh_gam_mmioh_overlay_config_mmr_s {
-	unsigned long	rsvd_0_29: 30;  /*    */
-	unsigned long	base   : 16;  /* RW */
-	unsigned long	m_io   :  6;  /* RW */
-	unsigned long	n_io   :  4;  /* RW */
-	unsigned long	rsvd_56_62:  7;  /*    */
-	unsigned long	enable :  1;  /* RW */
+	unsigned long	rsvd_0_29: 30;  
+	unsigned long	base   : 16;  
+	unsigned long	m_io   :  6;  
+	unsigned long	n_io   :  4;  
+	unsigned long	rsvd_56_62:  7;  
+	unsigned long	enable :  1;  
     } s;
 };
 
-/* ========================================================================= */
-/*                    UVH_RH_GAM_MMR_OVERLAY_CONFIG_MMR                      */
-/* ========================================================================= */
+
+
+
 #define UVH_RH_GAM_MMR_OVERLAY_CONFIG_MMR 0x1600028UL
 
 #define UVH_RH_GAM_MMR_OVERLAY_CONFIG_MMR_BASE_SHFT 26
@@ -1200,17 +1192,17 @@ union uvh_rh_gam_mmioh_overlay_config_mmr_u {
 union uvh_rh_gam_mmr_overlay_config_mmr_u {
     unsigned long	v;
     struct uvh_rh_gam_mmr_overlay_config_mmr_s {
-	unsigned long	rsvd_0_25: 26;  /*    */
-	unsigned long	base     : 20;  /* RW */
-	unsigned long	dual_hub :  1;  /* RW */
-	unsigned long	rsvd_47_62: 16;  /*    */
-	unsigned long	enable   :  1;  /* RW */
+	unsigned long	rsvd_0_25: 26;  
+	unsigned long	base     : 20;  
+	unsigned long	dual_hub :  1;  
+	unsigned long	rsvd_47_62: 16;  
+	unsigned long	enable   :  1;  
     } s;
 };
 
-/* ========================================================================= */
-/*                                 UVH_RTC                                   */
-/* ========================================================================= */
+
+
+
 #define UVH_RTC 0x340000UL
 
 #define UVH_RTC_REAL_TIME_CLOCK_SHFT 0
@@ -1219,14 +1211,14 @@ union uvh_rh_gam_mmr_overlay_config_mmr_u {
 union uvh_rtc_u {
     unsigned long	v;
     struct uvh_rtc_s {
-	unsigned long	real_time_clock : 56;  /* RW */
-	unsigned long	rsvd_56_63      :  8;  /*    */
+	unsigned long	real_time_clock : 56;  
+	unsigned long	rsvd_56_63      :  8;  
     } s;
 };
 
-/* ========================================================================= */
-/*                           UVH_RTC1_INT_CONFIG                             */
-/* ========================================================================= */
+
+
+
 #define UVH_RTC1_INT_CONFIG 0x615c0UL
 
 #define UVH_RTC1_INT_CONFIG_VECTOR_SHFT 0
@@ -1249,22 +1241,22 @@ union uvh_rtc_u {
 union uvh_rtc1_int_config_u {
     unsigned long	v;
     struct uvh_rtc1_int_config_s {
-	unsigned long	vector_  :  8;  /* RW */
-	unsigned long	dm       :  3;  /* RW */
-	unsigned long	destmode :  1;  /* RW */
-	unsigned long	status   :  1;  /* RO */
-	unsigned long	p        :  1;  /* RO */
-	unsigned long	rsvd_14  :  1;  /*    */
-	unsigned long	t        :  1;  /* RO */
-	unsigned long	m        :  1;  /* RW */
-	unsigned long	rsvd_17_31: 15;  /*    */
-	unsigned long	apic_id  : 32;  /* RW */
+	unsigned long	vector_  :  8;  
+	unsigned long	dm       :  3;  
+	unsigned long	destmode :  1;  
+	unsigned long	status   :  1;  
+	unsigned long	p        :  1;  
+	unsigned long	rsvd_14  :  1;  
+	unsigned long	t        :  1;  
+	unsigned long	m        :  1;  
+	unsigned long	rsvd_17_31: 15;  
+	unsigned long	apic_id  : 32;  
     } s;
 };
 
-/* ========================================================================= */
-/*                           UVH_RTC2_INT_CONFIG                             */
-/* ========================================================================= */
+
+
+
 #define UVH_RTC2_INT_CONFIG 0x61600UL
 
 #define UVH_RTC2_INT_CONFIG_VECTOR_SHFT 0
@@ -1287,22 +1279,22 @@ union uvh_rtc1_int_config_u {
 union uvh_rtc2_int_config_u {
     unsigned long	v;
     struct uvh_rtc2_int_config_s {
-	unsigned long	vector_  :  8;  /* RW */
-	unsigned long	dm       :  3;  /* RW */
-	unsigned long	destmode :  1;  /* RW */
-	unsigned long	status   :  1;  /* RO */
-	unsigned long	p        :  1;  /* RO */
-	unsigned long	rsvd_14  :  1;  /*    */
-	unsigned long	t        :  1;  /* RO */
-	unsigned long	m        :  1;  /* RW */
-	unsigned long	rsvd_17_31: 15;  /*    */
-	unsigned long	apic_id  : 32;  /* RW */
+	unsigned long	vector_  :  8;  
+	unsigned long	dm       :  3;  
+	unsigned long	destmode :  1;  
+	unsigned long	status   :  1;  
+	unsigned long	p        :  1;  
+	unsigned long	rsvd_14  :  1;  
+	unsigned long	t        :  1;  
+	unsigned long	m        :  1;  
+	unsigned long	rsvd_17_31: 15;  
+	unsigned long	apic_id  : 32;  
     } s;
 };
 
-/* ========================================================================= */
-/*                           UVH_RTC3_INT_CONFIG                             */
-/* ========================================================================= */
+
+
+
 #define UVH_RTC3_INT_CONFIG 0x61640UL
 
 #define UVH_RTC3_INT_CONFIG_VECTOR_SHFT 0
@@ -1325,22 +1317,22 @@ union uvh_rtc2_int_config_u {
 union uvh_rtc3_int_config_u {
     unsigned long	v;
     struct uvh_rtc3_int_config_s {
-	unsigned long	vector_  :  8;  /* RW */
-	unsigned long	dm       :  3;  /* RW */
-	unsigned long	destmode :  1;  /* RW */
-	unsigned long	status   :  1;  /* RO */
-	unsigned long	p        :  1;  /* RO */
-	unsigned long	rsvd_14  :  1;  /*    */
-	unsigned long	t        :  1;  /* RO */
-	unsigned long	m        :  1;  /* RW */
-	unsigned long	rsvd_17_31: 15;  /*    */
-	unsigned long	apic_id  : 32;  /* RW */
+	unsigned long	vector_  :  8;  
+	unsigned long	dm       :  3;  
+	unsigned long	destmode :  1;  
+	unsigned long	status   :  1;  
+	unsigned long	p        :  1;  
+	unsigned long	rsvd_14  :  1;  
+	unsigned long	t        :  1;  
+	unsigned long	m        :  1;  
+	unsigned long	rsvd_17_31: 15;  
+	unsigned long	apic_id  : 32;  
     } s;
 };
 
-/* ========================================================================= */
-/*                            UVH_RTC_INC_RATIO                              */
-/* ========================================================================= */
+
+
+
 #define UVH_RTC_INC_RATIO 0x350000UL
 
 #define UVH_RTC_INC_RATIO_FRACTION_SHFT 0
@@ -1351,15 +1343,15 @@ union uvh_rtc3_int_config_u {
 union uvh_rtc_inc_ratio_u {
     unsigned long	v;
     struct uvh_rtc_inc_ratio_s {
-	unsigned long	fraction : 20;  /* RW */
-	unsigned long	ratio    :  3;  /* RW */
-	unsigned long	rsvd_23_63: 41;  /*    */
+	unsigned long	fraction : 20;  
+	unsigned long	ratio    :  3;  
+	unsigned long	rsvd_23_63: 41;  
     } s;
 };
 
-/* ========================================================================= */
-/*                          UVH_SI_ADDR_MAP_CONFIG                           */
-/* ========================================================================= */
+
+
+
 #define UVH_SI_ADDR_MAP_CONFIG 0xc80000UL
 
 #define UVH_SI_ADDR_MAP_CONFIG_M_SKT_SHFT 0
@@ -1370,16 +1362,16 @@ union uvh_rtc_inc_ratio_u {
 union uvh_si_addr_map_config_u {
     unsigned long	v;
     struct uvh_si_addr_map_config_s {
-	unsigned long	m_skt :  6;  /* RW */
-	unsigned long	rsvd_6_7:  2;  /*    */
-	unsigned long	n_skt :  4;  /* RW */
-	unsigned long	rsvd_12_63: 52;  /*    */
+	unsigned long	m_skt :  6;  
+	unsigned long	rsvd_6_7:  2;  
+	unsigned long	n_skt :  4;  
+	unsigned long	rsvd_12_63: 52;  
     } s;
 };
 
-/* ========================================================================= */
-/*                       UVH_SI_ALIAS0_OVERLAY_CONFIG                        */
-/* ========================================================================= */
+
+
+
 #define UVH_SI_ALIAS0_OVERLAY_CONFIG 0xc80008UL
 
 #define UVH_SI_ALIAS0_OVERLAY_CONFIG_BASE_SHFT 24
@@ -1392,18 +1384,18 @@ union uvh_si_addr_map_config_u {
 union uvh_si_alias0_overlay_config_u {
     unsigned long	v;
     struct uvh_si_alias0_overlay_config_s {
-	unsigned long	rsvd_0_23: 24;  /*    */
-	unsigned long	base    :  8;  /* RW */
-	unsigned long	rsvd_32_47: 16;  /*    */
-	unsigned long	m_alias :  5;  /* RW */
-	unsigned long	rsvd_53_62: 10;  /*    */
-	unsigned long	enable  :  1;  /* RW */
+	unsigned long	rsvd_0_23: 24;  
+	unsigned long	base    :  8;  
+	unsigned long	rsvd_32_47: 16;  
+	unsigned long	m_alias :  5;  
+	unsigned long	rsvd_53_62: 10;  
+	unsigned long	enable  :  1;  
     } s;
 };
 
-/* ========================================================================= */
-/*                       UVH_SI_ALIAS1_OVERLAY_CONFIG                        */
-/* ========================================================================= */
+
+
+
 #define UVH_SI_ALIAS1_OVERLAY_CONFIG 0xc80010UL
 
 #define UVH_SI_ALIAS1_OVERLAY_CONFIG_BASE_SHFT 24
@@ -1416,18 +1408,18 @@ union uvh_si_alias0_overlay_config_u {
 union uvh_si_alias1_overlay_config_u {
     unsigned long	v;
     struct uvh_si_alias1_overlay_config_s {
-	unsigned long	rsvd_0_23: 24;  /*    */
-	unsigned long	base    :  8;  /* RW */
-	unsigned long	rsvd_32_47: 16;  /*    */
-	unsigned long	m_alias :  5;  /* RW */
-	unsigned long	rsvd_53_62: 10;  /*    */
-	unsigned long	enable  :  1;  /* RW */
+	unsigned long	rsvd_0_23: 24;  
+	unsigned long	base    :  8;  
+	unsigned long	rsvd_32_47: 16;  
+	unsigned long	m_alias :  5;  
+	unsigned long	rsvd_53_62: 10;  
+	unsigned long	enable  :  1;  
     } s;
 };
 
-/* ========================================================================= */
-/*                       UVH_SI_ALIAS2_OVERLAY_CONFIG                        */
-/* ========================================================================= */
+
+
+
 #define UVH_SI_ALIAS2_OVERLAY_CONFIG 0xc80018UL
 
 #define UVH_SI_ALIAS2_OVERLAY_CONFIG_BASE_SHFT 24
@@ -1440,14 +1432,14 @@ union uvh_si_alias1_overlay_config_u {
 union uvh_si_alias2_overlay_config_u {
     unsigned long	v;
     struct uvh_si_alias2_overlay_config_s {
-	unsigned long	rsvd_0_23: 24;  /*    */
-	unsigned long	base    :  8;  /* RW */
-	unsigned long	rsvd_32_47: 16;  /*    */
-	unsigned long	m_alias :  5;  /* RW */
-	unsigned long	rsvd_53_62: 10;  /*    */
-	unsigned long	enable  :  1;  /* RW */
+	unsigned long	rsvd_0_23: 24;  
+	unsigned long	base    :  8;  
+	unsigned long	rsvd_32_47: 16;  
+	unsigned long	m_alias :  5;  
+	unsigned long	rsvd_53_62: 10;  
+	unsigned long	enable  :  1;  
     } s;
 };
 
 
-#endif /* _ASM_X86_UV_UV_MMRS_H */
+#endif 

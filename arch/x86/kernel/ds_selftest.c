@@ -1,10 +1,4 @@
-/*
- * Debug Store support - selftest
- *
- *
- * Copyright (C) 2009 Intel Corporation.
- * Markus Metzger <markus.t.metzger@intel.com>, 2009
- */
+
 
 #include "ds_selftest.h"
 
@@ -16,8 +10,8 @@
 #include <asm/ds.h>
 
 
-#define BUFFER_SIZE		521	/* Intentionally chose an odd size. */
-#define SMALL_BUFFER_SIZE	24	/* A single bts entry. */
+#define BUFFER_SIZE		521	
+#define SMALL_BUFFER_SIZE	24	
 
 struct ds_selftest_bts_conf {
 	struct bts_tracer *tracer;
@@ -32,7 +26,7 @@ static int ds_selftest_bts_consistency(const struct bts_trace *trace)
 
 	if (!trace) {
 		printk(KERN_CONT "failed to access trace...");
-		/* Bail out. Other tests are pointless. */
+		
 		return -1;
 	}
 
@@ -41,7 +35,7 @@ static int ds_selftest_bts_consistency(const struct bts_trace *trace)
 		error = -1;
 	}
 
-	/* Do some sanity checks on the trace configuration. */
+	
 	if (!trace->ds.n) {
 		printk(KERN_CONT "empty bts buffer...");
 		error = -1;
@@ -55,11 +49,7 @@ static int ds_selftest_bts_consistency(const struct bts_trace *trace)
 		printk(KERN_CONT "bad bts buffer setup...");
 		error = -1;
 	}
-	/*
-	 * We allow top in [begin; end], since its not clear when the
-	 * overflow adjustment happens: after the increment or before the
-	 * write.
-	 */
+	
 	if ((trace->ds.top < trace->ds.begin) ||
 	    (trace->ds.end < trace->ds.top)) {
 		printk(KERN_CONT "bts top out of bounds...");
@@ -75,10 +65,7 @@ static int ds_selftest_bts_read(struct bts_tracer *tracer,
 {
 	const unsigned char *at;
 
-	/*
-	 * Check a few things which do not belong to this test.
-	 * They should be covered by other tests.
-	 */
+	
 	if (!trace)
 		return -1;
 
@@ -97,7 +84,7 @@ static int ds_selftest_bts_read(struct bts_tracer *tracer,
 	if (!trace->ds.size)
 		return -1;
 
-	/* Now to the test itself. */
+	
 	for (at = from; (void *)at < to; at += trace->ds.size) {
 		struct bts_struct bts;
 		unsigned long index;
@@ -148,40 +135,32 @@ static void ds_selftest_bts_cpu(void *arg)
 		return;
 	}
 
-	/* We should meanwhile have enough trace. */
+	
 	conf->error = conf->suspend(conf->tracer);
 	if (conf->error < 0)
 		return;
 
-	/* Let's see if we can access the trace. */
+	
 	trace = ds_read_bts(conf->tracer);
 
 	conf->error = ds_selftest_bts_consistency(trace);
 	if (conf->error < 0)
 		return;
 
-	/* If everything went well, we should have a few trace entries. */
+	
 	if (trace->ds.top == trace->ds.begin) {
-		/*
-		 * It is possible but highly unlikely that we got a
-		 * buffer overflow and end up at exactly the same
-		 * position we started from.
-		 * Let's issue a warning, but continue.
-		 */
+		
 		printk(KERN_CONT "no trace/overflow...");
 	}
 
-	/* Let's try to read the trace we collected. */
+	
 	conf->error =
 		ds_selftest_bts_read(conf->tracer, trace,
 				     trace->ds.begin, trace->ds.top);
 	if (conf->error < 0)
 		return;
 
-	/*
-	 * Let's read the trace again.
-	 * Since we suspended tracing, we should get the same result.
-	 */
+	
 	top = trace->ds.top;
 
 	trace = ds_read_bts(conf->tracer);
@@ -195,7 +174,7 @@ static void ds_selftest_bts_cpu(void *arg)
 		return;
 	}
 
-	/* Let's collect some more trace - see if resume is working. */
+	
 	conf->error = conf->resume(conf->tracer);
 	if (conf->error < 0)
 		return;
@@ -211,12 +190,7 @@ static void ds_selftest_bts_cpu(void *arg)
 		return;
 
 	if (trace->ds.top == top) {
-		/*
-		 * It is possible but highly unlikely that we got a
-		 * buffer overflow and end up at exactly the same
-		 * position we started from.
-		 * Let's issue a warning and check the full trace.
-		 */
+		
 		printk(KERN_CONT
 		       "no resume progress/overflow...");
 
@@ -224,18 +198,12 @@ static void ds_selftest_bts_cpu(void *arg)
 			ds_selftest_bts_read(conf->tracer, trace,
 					     trace->ds.begin, trace->ds.end);
 	} else if (trace->ds.top < top) {
-		/*
-		 * We had a buffer overflow - the entire buffer should
-		 * contain trace records.
-		 */
+		
 		conf->error =
 			ds_selftest_bts_read(conf->tracer, trace,
 					     trace->ds.begin, trace->ds.end);
 	} else {
-		/*
-		 * It is quite likely that the buffer did not overflow.
-		 * Let's just check the delta trace.
-		 */
+		
 		conf->error =
 			ds_selftest_bts_read(conf->tracer, trace, top,
 					     trace->ds.top);
@@ -268,7 +236,7 @@ static int ds_selftest_bts_bad_release_noirq(int cpu,
 {
 	int error = -EPERM;
 
-	/* Try to release the tracer on the wrong cpu. */
+	
 	get_cpu();
 	if (cpu != smp_processor_id()) {
 		error = ds_release_bts_noirq(tracer);
@@ -285,7 +253,7 @@ static int ds_selftest_bts_bad_request_cpu(int cpu, void *buffer)
 	struct bts_tracer *tracer;
 	int error;
 
-	/* Try to request cpu tracing while task tracing is active. */
+	
 	tracer = ds_request_bts_cpu(cpu, buffer, BUFFER_SIZE, NULL,
 				    (size_t)-1, BTS_KERNEL);
 	error = PTR_ERR(tracer);
@@ -305,7 +273,7 @@ static int ds_selftest_bts_bad_request_task(void *buffer)
 	struct bts_tracer *tracer;
 	int error;
 
-	/* Try to request cpu tracing while task tracing is active. */
+	
 	tracer = ds_request_bts_task(current, buffer, BUFFER_SIZE, NULL,
 				    (size_t)-1, BTS_KERNEL);
 	error = PTR_ERR(tracer);
@@ -356,7 +324,7 @@ int ds_selftest_bts(void)
 			conf.error =
 				ds_selftest_bts_bad_release_noirq(cpu,
 								  conf.tracer);
-			/* We must not release the tracer twice. */
+			
 			if (conf.error < 0)
 				conf.tracer = NULL;
 		}

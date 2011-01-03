@@ -182,10 +182,7 @@ struct pci_bus * __devinit pci_acpi_scan_root(struct acpi_device *device, int do
 	if (node != -1 && !node_online(node))
 		node = -1;
 
-	/* Allocate per-root-bus (not per bus) arch-specific data.
-	 * TODO: leak; this memory is never freed.
-	 * It's arguable whether it's worth the trouble to care.
-	 */
+	
 	sd = kzalloc(sizeof(*sd), GFP_KERNEL);
 	if (!sd) {
 		printk(KERN_ERR "PCI: OOM, not probing PCI bus %02x\n", busnum);
@@ -194,16 +191,10 @@ struct pci_bus * __devinit pci_acpi_scan_root(struct acpi_device *device, int do
 
 	sd->domain = domain;
 	sd->node = node;
-	/*
-	 * Maybe the desired pci bus has been already scanned. In such case
-	 * it is unnecessary to scan the pci bus with the given domain,busnum.
-	 */
+	
 	bus = pci_find_bus(domain, busnum);
 	if (bus) {
-		/*
-		 * If the desired bus exits, the content of bus->sysdata will
-		 * be replaced by sd.
-		 */
+		
 		memcpy(bus->sysdata, sd, sizeof(*sd));
 		kfree(sd);
 	} else {
@@ -249,11 +240,7 @@ int __init pci_acpi_init(void)
 	pcibios_disable_irq = acpi_pci_irq_disable;
 
 	if (pci_routeirq) {
-		/*
-		 * PCI IRQ routing is set up by pci_enable_device(), but we
-		 * also do it here in case there are still broken drivers that
-		 * don't use pci_enable_device().
-		 */
+		
 		printk(KERN_INFO "PCI: Routing PCI interrupts for all devices because \"pci=routeirq\" specified\n");
 		for_each_pci_dev(dev)
 			acpi_pci_irq_enable(dev);

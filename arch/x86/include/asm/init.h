@@ -15,4 +15,4 @@ extern unsigned long __initdata e820_table_start;
 extern unsigned long __meminitdata e820_table_end;
 extern unsigned long __meminitdata e820_table_top;
 
-#endif /* _ASM_X86_INIT_32_H */
+#endif 

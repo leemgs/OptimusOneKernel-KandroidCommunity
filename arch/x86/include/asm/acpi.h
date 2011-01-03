@@ -1,28 +1,7 @@
 #ifndef _ASM_X86_ACPI_H
 #define _ASM_X86_ACPI_H
 
-/*
- *  Copyright (C) 2001 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
- *  Copyright (C) 2001 Patrick Mochel <mochel@osdl.org>
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- */
+
 #include <acpi/pdc_intel.h>
 
 #include <asm/numa.h>
@@ -33,20 +12,13 @@
 #define COMPILER_DEPENDENT_INT64   long long
 #define COMPILER_DEPENDENT_UINT64  unsigned long long
 
-/*
- * Calling conventions:
- *
- * ACPI_SYSTEM_XFACE        - Interfaces to host OS (handlers, threads)
- * ACPI_EXTERNAL_XFACE      - External ACPI interfaces
- * ACPI_INTERNAL_XFACE      - Internal ACPI interfaces
- * ACPI_INTERNAL_VAR_XFACE  - Internal variable-parameter list interfaces
- */
+
 #define ACPI_SYSTEM_XFACE
 #define ACPI_EXTERNAL_XFACE
 #define ACPI_INTERNAL_XFACE
 #define ACPI_INTERNAL_VAR_XFACE
 
-/* Asm macros */
+
 
 #define ACPI_ASM_MACROS
 #define BREAKPOINT3
@@ -63,9 +35,7 @@ int __acpi_release_global_lock(unsigned int *lock);
 #define ACPI_RELEASE_GLOBAL_LOCK(facs, Acq) \
 	((Acq) = __acpi_release_global_lock(&facs->global_lock))
 
-/*
- * Math helper asm macros
- */
+
 #define ACPI_DIV_64_BY_32(n_hi, n_lo, d32, q32, r32) \
 	asm("divl %2;"				     \
 	    : "=a"(q32), "=d"(r32)		     \
@@ -111,26 +81,19 @@ static inline void acpi_disable_pci(void)
 	acpi_noirq_set();
 }
 
-/* routines for saving/restoring kernel state */
+
 extern int acpi_save_state_mem(void);
 extern void acpi_restore_state_mem(void);
 
 extern unsigned long acpi_wakeup_address;
 
-/* early initialization routine */
+
 extern void acpi_reserve_bootmem(void);
 
-/*
- * Check if the CPU can handle C2 and deeper
- */
+
 static inline unsigned int acpi_processor_cstate_check(unsigned int max_cstate)
 {
-	/*
-	 * Early models (<=5) of AMD Opterons are not supposed to go into
-	 * C2 state.
-	 *
-	 * Steppings 0x0A and later are good
-	 */
+	
 	if (boot_cpu_data.x86 == 0x0F &&
 	    boot_cpu_data.x86_vendor == X86_VENDOR_AMD &&
 	    boot_cpu_data.x86_model <= 0x05 &&
@@ -142,7 +105,7 @@ static inline unsigned int acpi_processor_cstate_check(unsigned int max_cstate)
 		return max_cstate;
 }
 
-#else /* !CONFIG_ACPI */
+#else 
 
 #define acpi_lapic 0
 #define acpi_ioapic 0
@@ -150,7 +113,7 @@ static inline void acpi_noirq_set(void) { }
 static inline void acpi_disable_pci(void) { }
 static inline void disable_acpi(void) { }
 
-#endif /* !CONFIG_ACPI */
+#endif 
 
 #define ARCH_HAS_POWER_INIT	1
 
@@ -171,4 +134,4 @@ static inline void acpi_fake_nodes(const struct bootnode *fake_nodes,
 
 #define acpi_unlazy_tlb(x)	leave_mm(x)
 
-#endif /* _ASM_X86_ACPI_H */
+#endif 

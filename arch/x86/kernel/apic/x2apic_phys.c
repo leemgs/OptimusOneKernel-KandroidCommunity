@@ -27,10 +27,7 @@ static int x2apic_acpi_madt_oem_check(char *oem_id, char *oem_table_id)
 		return 0;
 }
 
-/*
- * need to use more than cpu 0, because we need more vectors when
- * MSI-X are used.
- */
+
 static const struct cpumask *x2apic_target_cpus(void)
 {
 	return cpu_online_mask;
@@ -49,9 +46,7 @@ static void __x2apic_send_IPI_dest(unsigned int apicid, int vector,
 
 	cfg = __prepare_ICR(0, vector, dest);
 
-	/*
-	 * send the IPI.
-	 */
+	
 	native_x2apic_icr_write(cfg, apicid);
 }
 
@@ -119,10 +114,7 @@ static int x2apic_apic_id_registered(void)
 
 static unsigned int x2apic_cpu_mask_to_apicid(const struct cpumask *cpumask)
 {
-	/*
-	 * We're using fixed IRQ delivery, can only return one phys APIC ID.
-	 * May as well be the first.
-	 */
+	
 	int cpu = cpumask_first(cpumask);
 
 	if ((unsigned)cpu < nr_cpu_ids)
@@ -137,10 +129,7 @@ x2apic_cpu_mask_to_apicid_and(const struct cpumask *cpumask,
 {
 	int cpu;
 
-	/*
-	 * We're using fixed IRQ delivery, can only return one phys APIC ID.
-	 * May as well be the first.
-	 */
+	
 	for_each_cpu_and(cpu, cpumask, andmask) {
 		if (cpumask_test_cpu(cpu, cpu_online_mask))
 			break;
@@ -184,7 +173,7 @@ struct apic apic_x2apic_phys = {
 	.apic_id_registered		= x2apic_apic_id_registered,
 
 	.irq_delivery_mode		= dest_Fixed,
-	.irq_dest_mode			= 0, /* physical */
+	.irq_dest_mode			= 0, 
 
 	.target_cpus			= x2apic_target_cpus,
 	.disable_esr			= 0,

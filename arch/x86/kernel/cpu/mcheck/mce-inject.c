@@ -1,16 +1,4 @@
-/*
- * Machine check injection support.
- * Copyright 2008 Intel Corporation.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License.
- *
- * Authors:
- * Andi Kleen
- * Ying Huang
- */
+
 #include <linux/uaccess.h>
 #include <linux/module.h>
 #include <linux/timer.h>
@@ -25,21 +13,21 @@
 #include <asm/mce.h>
 #include <asm/apic.h>
 
-/* Update fake mce registers on current CPU. */
+
 static void inject_mce(struct mce *m)
 {
 	struct mce *i = &per_cpu(injectm, m->extcpu);
 
-	/* Make sure noone reads partially written injectm */
+	
 	i->finished = 0;
 	mb();
 	m->finished = 0;
-	/* First set the fields after finished */
+	
 	i->extcpu = m->extcpu;
 	mb();
-	/* Now write record in order, finished last (except above) */
+	
 	memcpy(i, m, sizeof(struct mce));
-	/* Finally activate it */
+	
 	mb();
 	i->finished = 1;
 }
@@ -67,7 +55,7 @@ static void raise_exception(struct mce *m, struct pt_regs *pregs)
 		regs.cs = m->cs;
 		pregs = &regs;
 	}
-	/* in mcheck exeception handler, irq will be disabled */
+	
 	local_irq_save(flags);
 	do_machine_check(pregs, 0);
 	local_irq_restore(flags);
@@ -97,7 +85,7 @@ static struct notifier_block mce_raise_nb = {
 	.priority = 1000,
 };
 
-/* Inject mce on current CPU */
+
 static int raise_local(void)
 {
 	struct mce *m = &__get_cpu_var(injectm);
@@ -109,12 +97,8 @@ static int raise_local(void)
 		printk(KERN_INFO "Triggering MCE exception on CPU %d\n", cpu);
 		switch (context) {
 		case MCJ_CTX_IRQ:
-			/*
-			 * Could do more to fake interrupts like
-			 * calling irq_enter, but the necessary
-			 * machinery isn't exported currently.
-			 */
-			/*FALL THROUGH*/
+			
+			
 		case MCJ_CTX_PROCESS:
 			raise_exception(m, NULL);
 			break;
@@ -176,7 +160,7 @@ static void raise_mce(struct mce *m)
 		raise_local();
 }
 
-/* Error injection interface */
+
 static ssize_t mce_write(struct file *filp, const char __user *ubuf,
 			 size_t usize, loff_t *off)
 {
@@ -184,10 +168,7 @@ static ssize_t mce_write(struct file *filp, const char __user *ubuf,
 
 	if (!capable(CAP_SYS_ADMIN))
 		return -EPERM;
-	/*
-	 * There are some cases where real MSR reads could slip
-	 * through.
-	 */
+	
 	if (!boot_cpu_has(X86_FEATURE_MCE) || !boot_cpu_has(X86_FEATURE_MCA))
 		return -EIO;
 
@@ -199,10 +180,7 @@ static ssize_t mce_write(struct file *filp, const char __user *ubuf,
 	if (m.extcpu >= num_possible_cpus() || !cpu_online(m.extcpu))
 		return -EINVAL;
 
-	/*
-	 * Need to give user space some time to set everything up,
-	 * so do it a jiffie or two later everywhere.
-	 */
+	
 	schedule_timeout(2);
 	raise_mce(&m);
 	return usize;
@@ -217,8 +195,5 @@ static int inject_init(void)
 }
 
 module_init(inject_init);
-/*
- * Cannot tolerate unloading currently because we cannot
- * guarantee all openers of mce_chrdev will get a reference to us.
- */
+
 MODULE_LICENSE("GPL");

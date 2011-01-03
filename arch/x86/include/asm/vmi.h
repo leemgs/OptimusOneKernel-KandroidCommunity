@@ -1,45 +1,13 @@
-/*
- * VMI interface definition
- *
- * Copyright (C) 2005, VMware, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, GOOD TITLE or
- * NON INFRINGEMENT.  See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * Maintained by: Zachary Amsden zach@vmware.com
- *
- */
+
 #include <linux/types.h>
 
-/*
- *---------------------------------------------------------------------
- *
- *  VMI Option ROM API
- *
- *---------------------------------------------------------------------
- */
-#define VMI_SIGNATURE 0x696d5663   /* "cVmi" */
+
+#define VMI_SIGNATURE 0x696d5663   
 
 #define PCI_VENDOR_ID_VMWARE            0x15AD
 #define PCI_DEVICE_ID_VMWARE_VMI        0x0801
 
-/*
- * We use two version numbers for compatibility, with the major
- * number signifying interface breakages, and the minor number
- * interface extensions.
- */
+
 #define VMI_API_REV_MAJOR       3
 #define VMI_API_REV_MINOR       0
 
@@ -100,31 +68,25 @@
 #define VMI_CALL_IODelay		65
 #define VMI_CALL_SetLazyMode		73
 
-/*
- *---------------------------------------------------------------------
- *
- * MMU operation flags
- *
- *---------------------------------------------------------------------
- */
-
-/* Flags used by VMI_{Allocate|Release}Page call */
-#define VMI_PAGE_PAE             0x10  /* Allocate PAE shadow */
-#define VMI_PAGE_CLONE           0x20  /* Clone from another shadow */
-#define VMI_PAGE_ZEROED          0x40  /* Page is pre-zeroed */
 
 
-/* Flags shared by Allocate|Release Page and PTE updates */
+
+#define VMI_PAGE_PAE             0x10  
+#define VMI_PAGE_CLONE           0x20  
+#define VMI_PAGE_ZEROED          0x40  
+
+
+
 #define VMI_PAGE_PT              0x01
 #define VMI_PAGE_PD              0x02
 #define VMI_PAGE_PDP             0x04
 #define VMI_PAGE_PML4            0x08
 
-#define VMI_PAGE_NORMAL          0x00 /* for debugging */
+#define VMI_PAGE_NORMAL          0x00 
 
-/* Flags used by PTE updates */
-#define VMI_PAGE_CURRENT_AS      0x10 /* implies VMI_PAGE_VA_MASK is valid */
-#define VMI_PAGE_DEFER           0x20 /* may queue update until TLB inval */
+
+#define VMI_PAGE_CURRENT_AS      0x10 
+#define VMI_PAGE_DEFER           0x20 
 #define VMI_PAGE_VA_MASK         0xfffff000
 
 #ifdef CONFIG_X86_PAE
@@ -135,19 +97,13 @@
 #define VMI_PAGE_L2		(VMI_PAGE_PD | VMI_PAGE_ZEROED)
 #endif
 
-/* Flags used by VMI_FlushTLB call */
+
 #define VMI_FLUSH_TLB            0x01
 #define VMI_FLUSH_GLOBAL         0x02
 
-/*
- *---------------------------------------------------------------------
- *
- *  VMI relocation definitions for ROM call get_reloc
- *
- *---------------------------------------------------------------------
- */
 
-/* VMI Relocation types */
+
+
 #define VMI_RELOCATION_NONE     0
 #define VMI_RELOCATION_CALL_REL 1
 #define VMI_RELOCATION_JUMP_REL 2
@@ -162,35 +118,29 @@ struct vmi_relocation_info {
 #endif
 
 
-/*
- *---------------------------------------------------------------------
- *
- *  Generic ROM structures and definitions
- *
- *---------------------------------------------------------------------
- */
+
 
 #ifndef __ASSEMBLY__
 
 struct vrom_header {
-	u16     rom_signature;  /* option ROM signature */
-	u8      rom_length;     /* ROM length in 512 byte chunks */
-	u8      rom_entry[4];   /* 16-bit code entry point */
-	u8      rom_pad0;       /* 4-byte align pad */
-	u32     vrom_signature; /* VROM identification signature */
-	u8      api_version_min;/* Minor version of API */
-	u8      api_version_maj;/* Major version of API */
-	u8      jump_slots;     /* Number of jump slots */
-	u8      reserved1;      /* Reserved for expansion */
-	u32     virtual_top;    /* Hypervisor virtual address start */
-	u16     reserved2;      /* Reserved for expansion */
-	u16	license_offs;	/* Offset to License string */
-	u16     pci_header_offs;/* Offset to PCI OPROM header */
-	u16     pnp_header_offs;/* Offset to PnP OPROM header */
-	u32     rom_pad3;       /* PnP reserverd / VMI reserved */
-	u8      reserved[96];   /* Reserved for headers */
-	char    vmi_init[8];    /* VMI_Init jump point */
-	char    get_reloc[8];   /* VMI_GetRelocationInfo jump point */
+	u16     rom_signature;  
+	u8      rom_length;     
+	u8      rom_entry[4];   
+	u8      rom_pad0;       
+	u32     vrom_signature; 
+	u8      api_version_min;
+	u8      api_version_maj;
+	u8      jump_slots;     
+	u8      reserved1;      
+	u32     virtual_top;    
+	u16     reserved2;      
+	u16	license_offs;	
+	u16     pci_header_offs;
+	u16     pnp_header_offs;
+	u32     rom_pad3;       
+	u8      reserved[96];   
+	char    vmi_init[8];    
+	char    get_reloc[8];   
 } __attribute__((packed));
 
 struct pnp_header {
@@ -222,7 +172,7 @@ struct pci_header {
 	short reserved;
 } __attribute__((packed));
 
-/* Function prototypes for bootstrapping */
+
 #ifdef CONFIG_VMI
 extern void vmi_init(void);
 extern void vmi_activate(void);
@@ -233,7 +183,7 @@ static inline void vmi_activate(void) {}
 static inline void vmi_bringup(void) {}
 #endif
 
-/* State needed to start an application processor in an SMP system. */
+
 struct vmi_ap_state {
 	u32 cr0;
 	u32 cr2;

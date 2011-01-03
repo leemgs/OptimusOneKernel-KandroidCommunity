@@ -1,6 +1,4 @@
-/*
- * Written by Pekka Paalanen, 2008-2009 <pq@iki.fi>
- */
+
 #include <linux/module.h>
 #include <linux/io.h>
 #include <linux/mmiotrace.h>

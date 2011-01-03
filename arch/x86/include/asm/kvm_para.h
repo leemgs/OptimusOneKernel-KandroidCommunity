@@ -3,14 +3,10 @@
 
 #include <linux/types.h>
 
-/* This CPUID returns the signature 'KVMKVMKVM' in ebx, ecx, and edx.  It
- * should be used to determine that a VM is running under KVM.
- */
+
 #define KVM_CPUID_SIGNATURE	0x40000000
 
-/* This CPUID returns a feature bitmap in eax.  Before enabling a particular
- * paravirtualization, the appropriate feature bit should be checked.
- */
+
 #define KVM_CPUID_FEATURES	0x40000001
 #define KVM_FEATURE_CLOCKSOURCE		0
 #define KVM_FEATURE_NOP_IO_DELAY	1
@@ -21,12 +17,12 @@
 
 #define KVM_MAX_MMU_OP_BATCH           32
 
-/* Operations for KVM_HC_MMU_OP */
+
 #define KVM_MMU_OP_WRITE_PTE            1
 #define KVM_MMU_OP_FLUSH_TLB	        2
 #define KVM_MMU_OP_RELEASE_PT	        3
 
-/* Payload for KVM_HC_MMU_OP */
+
 struct kvm_mmu_op_header {
 	__u32 op;
 	__u32 pad;
@@ -53,20 +49,10 @@ struct kvm_mmu_op_release_pt {
 extern void kvmclock_init(void);
 
 
-/* This instruction is vmcall.  On non-VT architectures, it will generate a
- * trap that we will then rewrite to the appropriate instruction.
- */
+
 #define KVM_HYPERCALL ".byte 0x0f,0x01,0xc1"
 
-/* For KVM hypercalls, a three-byte sequence of either the vmrun or the vmmrun
- * instruction.  The hypervisor may replace it with something else but only the
- * instructions are guaranteed to be supported.
- *
- * Up to four arguments may be passed in rbx, rcx, rdx, and rsi respectively.
- * The hypercall number should be placed in rax and the return value will be
- * placed in rax.  No other registers will be clobbered unless explicited
- * noted by the particular hypercall.
- */
+
 
 static inline long kvm_hypercall0(unsigned int nr)
 {
@@ -146,4 +132,4 @@ static inline unsigned int kvm_arch_para_features(void)
 
 #endif
 
-#endif /* _ASM_X86_KVM_PARA_H */
+#endif 

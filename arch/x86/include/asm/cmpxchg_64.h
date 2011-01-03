@@ -1,7 +1,7 @@
 #ifndef _ASM_X86_CMPXCHG_64_H
 #define _ASM_X86_CMPXCHG_64_H
 
-#include <asm/alternative.h> /* Provides LOCK_PREFIX */
+#include <asm/alternative.h> 
 
 #define xchg(ptr, v) ((__typeof__(*(ptr)))__xchg((unsigned long)(v), \
 						 (ptr), sizeof(*(ptr))))
@@ -15,11 +15,7 @@ static inline void set_64bit(volatile unsigned long *ptr, unsigned long val)
 
 #define _set_64bit set_64bit
 
-/*
- * Note: no "lock" prefix even on SMP: xchg always implies lock anyway
- * Note 2: xchg has side effect, so that attribute volatile is necessary,
- *	  but generally the primitive is invalid, *ptr is output argument. --ANK
- */
+
 static inline unsigned long __xchg(unsigned long x, volatile void *ptr,
 				   int size)
 {
@@ -52,11 +48,7 @@ static inline unsigned long __xchg(unsigned long x, volatile void *ptr,
 	return x;
 }
 
-/*
- * Atomic compare and exchange.  Compare OLD with MEM, if identical,
- * store NEW in MEM.  Return the initial value in MEM.  Success is
- * indicated by comparing RETURN with OLD.
- */
+
 
 #define __HAVE_ARCH_CMPXCHG 1
 
@@ -93,11 +85,7 @@ static inline unsigned long __cmpxchg(volatile void *ptr, unsigned long old,
 	return old;
 }
 
-/*
- * Always use locked operations when touching memory shared with a
- * hypervisor, since the system may be SMP even if the guest kernel
- * isn't.
- */
+
 static inline unsigned long __sync_cmpxchg(volatile void *ptr,
 					   unsigned long old,
 					   unsigned long new, int size)
@@ -182,4 +170,4 @@ static inline unsigned long __cmpxchg_local(volatile void *ptr,
 	cmpxchg_local((ptr), (o), (n));					\
 })
 
-#endif /* _ASM_X86_CMPXCHG_64_H */
+#endif 

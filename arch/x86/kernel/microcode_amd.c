@@ -1,18 +1,4 @@
-/*
- *  AMD CPU Microcode Update Driver for Linux
- *  Copyright (C) 2008 Advanced Micro Devices Inc.
- *
- *  Author: Peter Oruba <peter.oruba@amd.com>
- *
- *  Based on work by:
- *  Tigran Aivazian <tigran@aivazian.fsnet.co.uk>
- *
- *  This driver allows to upgrade microcode on AMD
- *  family 0x10 and 0x11 processors.
- *
- *  Licensed under the terms of the GNU General Public
- *  License version 2. See file COPYING for details.
- */
+
 #include <linux/firmware.h>
 #include <linux/pci_ids.h>
 #include <linux/uaccess.h>
@@ -116,7 +102,7 @@ static int get_matching_microcode(int cpu, void *mc, int rev)
 		return 0;
 	}
 
-	/* ucode might be chipset specific -- currently we don't support this */
+	
 	if (mc_header->nb_dev_id || mc_header->sb_dev_id) {
 		printk(KERN_ERR "microcode: CPU%d: loading of chipset "
 		       "specific code not yet supported\n", cpu);
@@ -136,17 +122,17 @@ static int apply_microcode_amd(int cpu)
 	struct ucode_cpu_info *uci = ucode_cpu_info + cpu_num;
 	struct microcode_amd *mc_amd = uci->mc;
 
-	/* We should bind the task to the CPU */
+	
 	BUG_ON(cpu_num != cpu);
 
 	if (mc_amd == NULL)
 		return 0;
 
 	wrmsrl(MSR_AMD64_PATCH_LOADER, (u64)(long)&mc_amd->hdr.data_code);
-	/* get patch id after patching */
+	
 	rdmsr(MSR_AMD64_PATCH_LEVEL, rev, dummy);
 
-	/* check current patch id and patch's id for match */
+	
 	if (rev != mc_amd->hdr.patch_id) {
 		printk(KERN_ERR "microcode: CPU%d: update failed "
 		       "(for patch_level=0x%x)\n", cpu, mc_amd->hdr.patch_id);
@@ -236,7 +222,7 @@ static int install_equiv_cpu_table(const u8 *buf)
 		return 0;
 	}
 
-	return size + UCODE_CONTAINER_HEADER_SIZE; /* add header length */
+	return size + UCODE_CONTAINER_HEADER_SIZE; 
 }
 
 static void free_equiv_cpu_table(void)

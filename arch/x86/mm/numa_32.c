@@ -1,26 +1,4 @@
-/*
- * Written by: Patricia Gaughen <gone@us.ibm.com>, IBM Corporation
- * August 2002: added remote node KVA remap - Martin J. Bligh 
- *
- * Copyright (C) 2002, IBM Corp.
- *
- * All rights reserved.          
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, GOOD TITLE or
- * NON INFRINGEMENT.  See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/mm.h>
 #include <linux/bootmem.h>
@@ -43,31 +21,13 @@
 struct pglist_data *node_data[MAX_NUMNODES] __read_mostly;
 EXPORT_SYMBOL(node_data);
 
-/*
- * numa interface - we expect the numa architecture specific code to have
- *                  populated the following initialisation.
- *
- * 1) node_online_map  - the map of all nodes configured (online) in the system
- * 2) node_start_pfn   - the starting page frame number for a node
- * 3) node_end_pfn     - the ending page fram number for a node
- */
+
 unsigned long node_start_pfn[MAX_NUMNODES] __read_mostly;
 unsigned long node_end_pfn[MAX_NUMNODES] __read_mostly;
 
 
 #ifdef CONFIG_DISCONTIGMEM
-/*
- * 4) physnode_map     - the mapping between a pfn and owning node
- * physnode_map keeps track of the physical memory layout of a generic
- * numa node on a 64Mb break (each element of the array will
- * represent 64Mb of memory and will be marked by the node id.  so,
- * if the first gig is on node 0, and the second gig is on node 1
- * physnode_map will contain:
- *
- *     physnode_map[0-15] = 0;
- *     physnode_map[16-31] = 1;
- *     physnode_map[32- ] = -1;
- */
+
 s8 physnode_map[MAX_ELEMENTS] __read_mostly = { [0 ... (MAX_ELEMENTS - 1)] = -1};
 EXPORT_SYMBOL(physnode_map);
 
@@ -109,11 +69,7 @@ void set_pmd_pfn(unsigned long vaddr, unsigned long pfn, pgprot_t flags);
 
 static unsigned long kva_start_pfn;
 static unsigned long kva_pages;
-/*
- * FLAT - support for basic PC memory model with discontig enabled, essentially
- *        a single node with all available processors in it with a flat
- *        memory map.
- */
+
 int __init get_memcfg_numa_flat(void)
 {
 	printk(KERN_DEBUG "NUMA - single node, flat memory mode\n");
@@ -124,35 +80,24 @@ int __init get_memcfg_numa_flat(void)
 	memory_present(0, 0, max_pfn);
 	node_remap_size[0] = node_memmap_size_bytes(0, 0, max_pfn);
 
-        /* Indicate there is one node available. */
+        
 	nodes_clear(node_online_map);
 	node_set_online(0);
 	return 1;
 }
 
-/*
- * Find the highest page frame number we have available for the node
- */
+
 static void __init propagate_e820_map_node(int nid)
 {
 	if (node_end_pfn[nid] > max_pfn)
 		node_end_pfn[nid] = max_pfn;
-	/*
-	 * if a user has given mem=XXXX, then we need to make sure 
-	 * that the node _starts_ before that, too, not just ends
-	 */
+	
 	if (node_start_pfn[nid] > max_pfn)
 		node_start_pfn[nid] = max_pfn;
 	BUG_ON(node_start_pfn[nid] > node_end_pfn[nid]);
 }
 
-/* 
- * Allocate memory for the pg_data_t for this node via a crude pre-bootmem
- * method.  For node zero take this from the bottom of memory, for
- * subsequent nodes place them at node_remap_start_vaddr which contains
- * node local data in physically node local memory.  See setup_memory()
- * for details.
- */
+
 static void __init allocate_pgdat(int nid)
 {
 	char buf[16];
@@ -174,14 +119,7 @@ static void __init allocate_pgdat(int nid)
 		nid, (unsigned long)NODE_DATA(nid));
 }
 
-/*
- * In the DISCONTIGMEM and SPARSEMEM memory model, a portion of the kernel
- * virtual address space (KVA) is reserved and portions of nodes are mapped
- * using it. This is to allow node-local memory to be allocated for
- * structures that would normally require ZONE_NORMAL. The memory is
- * allocated with alloc_remap() and callers should be prepared to allocate
- * from the bootmem allocator instead.
- */
+
 static unsigned long node_remap_start_pfn[MAX_NUMNODES];
 static void *node_remap_end_vaddr[MAX_NUMNODES];
 static void *node_remap_alloc_vaddr[MAX_NUMNODES];
@@ -223,11 +161,7 @@ static void __init remap_numa_kva(void)
 }
 
 #ifdef CONFIG_HIBERNATION
-/**
- * resume_map_numa_kva - add KVA mapping to the temporary page tables created
- *                       during resume from hibernation
- * @pgd_base - temporary resume page directory
- */
+
 void resume_map_numa_kva(pgd_t *pgd_base)
 {
 	int node;
@@ -266,10 +200,7 @@ static __init unsigned long calculate_numa_remap_pages(void)
 		u64 node_kva_target;
 		u64 node_kva_final;
 
-		/*
-		 * The acpi/srat node info can show hot-add memroy zones
-		 * where memory could be added but not currently present.
-		 */
+		
 		printk(KERN_DEBUG "node %d pfn: [%lx - %lx]\n",
 			nid, node_start_pfn[nid], node_end_pfn[nid]);
 		if (node_start_pfn[nid] > max_pfn)
@@ -279,12 +210,12 @@ static __init unsigned long calculate_numa_remap_pages(void)
 		if (node_end_pfn[nid] > max_pfn)
 			node_end_pfn[nid] = max_pfn;
 
-		/* ensure the remap includes space for the pgdat. */
+		
 		size = node_remap_size[nid] + sizeof(pg_data_t);
 
-		/* convert size to large (pmd size) pages, rounding up */
+		
 		size = (size + LARGE_PAGE_BYTES - 1) / LARGE_PAGE_BYTES;
-		/* now the roundup is correct, convert to PAGE_SIZE pages */
+		
 		size = size * PTRS_PER_PTE;
 
 		node_kva_target = round_down(node_end_pfn[nid] - size,
@@ -309,17 +240,7 @@ static __init unsigned long calculate_numa_remap_pages(void)
 				  " node %d at %llx\n",
 				size, nid, node_kva_final>>PAGE_SHIFT);
 
-		/*
-		 *  prevent kva address below max_low_pfn want it on system
-		 *  with less memory later.
-		 *  layout will be: KVA address , KVA RAM
-		 *
-		 *  we are supposed to only record the one less then max_low_pfn
-		 *  but we could have some hole in high memory, and it will only
-		 *  check page_is_ram(pfn) && !page_is_reserved_early(pfn) to decide
-		 *  to use it as free.
-		 *  So reserve_early here, hope we don't run out of that array
-		 */
+		
 		reserve_early(node_kva_final,
 			      node_kva_final+(((u64)size)<<PAGE_SHIFT),
 			      "KVA RAM");
@@ -353,13 +274,7 @@ void __init initmem_init(unsigned long start_pfn,
 	int nid;
 	long kva_target_pfn;
 
-	/*
-	 * When mapping a NUMA machine we allocate the node_mem_map arrays
-	 * from node local memory.  They are then mapped directly into KVA
-	 * between zone normal and vmalloc space.  Calculate the size of
-	 * this space and use it to adjust the boundary between ZONE_NORMAL
-	 * and ZONE_HIGHMEM.
-	 */
+	
 
 	get_memcfg_numa();
 
@@ -381,7 +296,7 @@ void __init initmem_init(unsigned long start_pfn,
 		kva_start_pfn, max_low_pfn);
 	printk(KERN_INFO "max_pfn = %lx\n", max_pfn);
 
-	/* avoid clash with initrd */
+	
 	reserve_early(kva_start_pfn<<PAGE_SHIFT,
 		      (kva_start_pfn + kva_pages)<<PAGE_SHIFT,
 		     "KVA PG");
@@ -438,11 +353,7 @@ static int paddr_to_nid(u64 addr)
 	return -1;
 }
 
-/*
- * This function is used to ask node id BEFORE memmap and mem_section's
- * initialization (pfn_to_nid() can't be used yet).
- * If _PXM is not defined on ACPI's DSDT, node id must be found by this.
- */
+
 int memory_add_physaddr_to_nid(u64 addr)
 {
 	int nid = paddr_to_nid(addr);

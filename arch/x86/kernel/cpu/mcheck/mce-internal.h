@@ -13,12 +13,12 @@ enum severity_level {
 
 #define ATTR_LEN		16
 
-/* One object for each MCE bank, shared by all CPUs */
+
 struct mce_bank {
-	u64			ctl;			/* subevents to enable */
-	unsigned char init;				/* initialise bank? */
-	struct sysdev_attribute attr;			/* sysdev attribute */
-	char			attrname[ATTR_LEN];	/* attribute name */
+	u64			ctl;			
+	unsigned char init;				
+	struct sysdev_attribute attr;			
+	char			attrname[ATTR_LEN];	
 };
 
 int mce_severity(struct mce *a, int tolerant, char **msg);

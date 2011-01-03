@@ -6,7 +6,7 @@
 #include <linux/irqreturn.h>
 #include <xen/xen-ops.h>
 
-/* These are code, but not functions.  Defined in entry.S */
+
 extern const char xen_hypervisor_callback[];
 extern const char xen_failsafe_callback[];
 
@@ -82,8 +82,7 @@ static inline void xen_uninit_lock_cpu(int cpu)
 }
 #endif
 
-/* Declare an asm function, along with symbols needed to make it
-   inlineable */
+
 #define DECL_ASM(ret, name, ...)		\
 	ret name(__VA_ARGS__);			\
 	extern char name##_end[];		\
@@ -94,11 +93,11 @@ DECL_ASM(void, xen_irq_disable_direct, void);
 DECL_ASM(unsigned long, xen_save_fl_direct, void);
 DECL_ASM(void, xen_restore_fl_direct, unsigned long);
 
-/* These are not functions, and cannot be called normally */
+
 void xen_iret(void);
 void xen_sysexit(void);
 void xen_sysret32(void);
 void xen_sysret64(void);
 void xen_adjust_exception_frame(void);
 
-#endif /* XEN_OPS_H */
+#endif 

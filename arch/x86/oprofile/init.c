@@ -1,20 +1,10 @@
-/**
- * @file init.c
- *
- * @remark Copyright 2002 OProfile authors
- * @remark Read the file COPYING
- *
- * @author John Levon <levon@movementarian.org>
- */
+
 
 #include <linux/oprofile.h>
 #include <linux/init.h>
 #include <linux/errno.h>
 
-/*
- * We support CPUs that have performance counters like the Pentium Pro
- * with the NMI mode driver.
- */
+
 
 extern int op_nmi_init(struct oprofile_operations *ops);
 extern int op_nmi_timer_init(struct oprofile_operations *ops);

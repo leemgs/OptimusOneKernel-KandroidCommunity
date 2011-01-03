@@ -4,9 +4,7 @@
 #ifndef __ASSEMBLY__
 
 #ifdef CONFIG_X86_TRAMPOLINE
-/*
- * Trampoline 80x86 program as an array.
- */
+
 extern const unsigned char trampoline_data [];
 extern const unsigned char trampoline_end  [];
 extern unsigned char *trampoline_base;
@@ -22,8 +20,8 @@ extern unsigned long setup_trampoline(void);
 extern void __init reserve_trampoline_memory(void);
 #else
 static inline void reserve_trampoline_memory(void) {};
-#endif /* CONFIG_X86_TRAMPOLINE */
+#endif 
 
-#endif /* __ASSEMBLY__ */
+#endif 
 
-#endif /* _ASM_X86_TRAMPOLINE_H */
+#endif 

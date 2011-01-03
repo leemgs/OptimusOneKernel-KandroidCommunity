@@ -10,17 +10,11 @@
 #include <linux/cpumask.h>
 #endif
 
-/*
- * This discovers the pcibus <-> node mapping on AMD K8.
- * also get peer root bus resource for io,mmio
- */
+
 
 #ifdef CONFIG_X86_64
 
-/*
- * sub bus (transparent) will use entres from 3 to store extra from root,
- * so need to make sure have enought slot there, increase PCI_BUS_NUM_RESOURCES?
- */
+
 #define RES_NUM 16
 struct pci_root_info {
 	char name[12];
@@ -32,7 +26,7 @@ struct pci_root_info {
 	int link;
 };
 
-/* 4 at this time, it may become to 32 */
+
 #define PCI_ROOT_NR 4
 static int pci_root_num;
 static struct pci_root_info pci_root_info[PCI_ROOT_NR];
@@ -43,12 +37,12 @@ void x86_pci_root_bus_res_quirks(struct pci_bus *b)
 	int j;
 	struct pci_root_info *info;
 
-	/* don't go for it if _CRS is used already */
+	
 	if (b->resource[0] != &ioport_resource ||
 	    b->resource[1] != &iomem_resource)
 		return;
 
-	/* if only one root bus, don't need to anything */
+	
 	if (pci_root_num < 2)
 		return;
 
@@ -113,7 +107,7 @@ static void __init update_range(struct res_range *range, size_t start,
 		}
 
 		if (start > range[j].start && end < range[j].end) {
-			/* find the new spare */
+			
 			for (i = 0; i < RANGE_NUM; i++) {
 				if (range[i].end == 0)
 					break;
@@ -139,7 +133,7 @@ static void __init update_res(struct pci_root_info *info, size_t start,
 	if (!merge)
 		goto addit;
 
-	/* try to merge it with old one */
+	
 	for (i = 0; i < info->res_num; i++) {
 		size_t final_start, final_end;
 		size_t common_start, common_end;
@@ -163,7 +157,7 @@ static void __init update_res(struct pci_root_info *info, size_t start,
 
 addit:
 
-	/* need to add that */
+	
 	if (info->res_num >= RES_NUM)
 		return;
 
@@ -198,14 +192,14 @@ static void __init get_pci_mmcfg_amd_fam10h_range(void)
 	u64 base, msr;
 	unsigned segn_busn_bits;
 
-	/* assume all cpus from fam10h have mmconf */
+	
         if (boot_cpu_data.x86 < 0x10)
 		return;
 
 	address = MSR_FAM10H_MMIO_CONF_BASE;
 	rdmsrl(address, msr);
 
-	/* mmconfig is not enable */
+	
 	if (!(msr & FAM10H_MMIO_CONF_ENABLE))
 		return;
 
@@ -218,12 +212,7 @@ static void __init get_pci_mmcfg_amd_fam10h_range(void)
 	fam10h_mmconf_end = base + (1ULL<<(segn_busn_bits + 20)) - 1;
 }
 
-/**
- * early_fill_mp_bus_to_node()
- * called before pcibios_scan_root and pci_scan_bus
- * fills the mp_bus_to_cpumask array based according to the LDT Bus Number
- * Registers found in the K8 northbridge
- */
+
 static int __init early_fill_mp_bus_info(void)
 {
 	int i;
@@ -275,7 +264,7 @@ static int __init early_fill_mp_bus_info(void)
 		int max_bus;
 		reg = read_pci_config(bus, slot, 1, 0xe0 + (i << 2));
 
-		/* Check if that register is enabled for bus range */
+		
 		if ((reg & 7) != 3)
 			continue;
 
@@ -297,7 +286,7 @@ static int __init early_fill_mp_bus_info(void)
 		pci_root_num++;
 	}
 
-	/* get the default node and link for left over res */
+	
 	reg = read_pci_config(bus, slot, 0, 0x60);
 	def_node = (reg >> 8) & 0x07;
 	reg = read_pci_config(bus, slot, 0, 0x64);
@@ -305,7 +294,7 @@ static int __init early_fill_mp_bus_info(void)
 
 	memset(range, 0, sizeof(range));
 	range[0].end = 0xffff;
-	/* io port resource */
+	
 	for (i = 0; i < 4; i++) {
 		reg = read_pci_config(bus, slot, 1, 0xc0 + (i << 3));
 		if (!(reg & 3))
@@ -317,27 +306,27 @@ static int __init early_fill_mp_bus_info(void)
 		link = (reg >> 4) & 0x03;
 		end = (reg & 0xfff000) | 0xfff;
 
-		/* find the position */
+		
 		for (j = 0; j < pci_root_num; j++) {
 			info = &pci_root_info[j];
 			if (info->node == node && info->link == link)
 				break;
 		}
 		if (j == pci_root_num)
-			continue; /* not found */
+			continue; 
 
 		info = &pci_root_info[j];
 		printk(KERN_DEBUG "node %d link %d: io port [%llx, %llx]\n",
 		       node, link, (u64)start, (u64)end);
 
-		/* kernel only handle 16 bit only */
+		
 		if (end > 0xffff)
 			end = 0xffff;
 		update_res(info, start, end, IORESOURCE_IO, 1);
 		update_range(range, start, end);
 	}
-	/* add left over io port range to def node/link, [0, 0xffff] */
-	/* find the position */
+	
+	
 	for (j = 0; j < pci_root_num; j++) {
 		info = &pci_root_info[j];
 		if (info->node == def_node && info->link == def_link)
@@ -355,10 +344,10 @@ static int __init early_fill_mp_bus_info(void)
 	}
 
 	memset(range, 0, sizeof(range));
-	/* 0xfd00000000-0xffffffffff for HT */
+	
 	range[0].end = (0xfdULL<<32) - 1;
 
-	/* need to take out [0, TOM) for RAM*/
+	
 	address = MSR_K8_TOP_MEM1;
 	rdmsrl(address, val);
 	end = (val & 0xffffff800000ULL);
@@ -366,21 +355,21 @@ static int __init early_fill_mp_bus_info(void)
 	if (end < (1ULL<<32))
 		update_range(range, 0, end - 1);
 
-	/* get mmconfig */
+	
 	get_pci_mmcfg_amd_fam10h_range();
-	/* need to take out mmconf range */
+	
 	if (fam10h_mmconf_end) {
 		printk(KERN_DEBUG "Fam 10h mmconf [%llx, %llx]\n", fam10h_mmconf_start, fam10h_mmconf_end);
 		update_range(range, fam10h_mmconf_start, fam10h_mmconf_end);
 	}
 
-	/* mmio resource */
+	
 	for (i = 0; i < 8; i++) {
 		reg = read_pci_config(bus, slot, 1, 0x80 + (i << 3));
 		if (!(reg & 3))
 			continue;
 
-		start = reg & 0xffffff00; /* 39:16 on 31:8*/
+		start = reg & 0xffffff00; 
 		start <<= 8;
 		reg = read_pci_config(bus, slot, 1, 0x84 + (i << 3));
 		node = reg & 0x07;
@@ -389,23 +378,20 @@ static int __init early_fill_mp_bus_info(void)
 		end <<= 8;
 		end |= 0xffff;
 
-		/* find the position */
+		
 		for (j = 0; j < pci_root_num; j++) {
 			info = &pci_root_info[j];
 			if (info->node == node && info->link == link)
 				break;
 		}
 		if (j == pci_root_num)
-			continue; /* not found */
+			continue; 
 
 		info = &pci_root_info[j];
 
 		printk(KERN_DEBUG "node %d link %d: mmio [%llx, %llx]",
 		       node, link, (u64)start, (u64)end);
-		/*
-		 * some sick allocation would have range overlap with fam10h
-		 * mmconf range, so need to update start and end.
-		 */
+		
 		if (fam10h_mmconf_end) {
 			int changed = 0;
 			u64 endx = 0;
@@ -423,7 +409,7 @@ static int __init early_fill_mp_bus_info(void)
 
 			if (start < fam10h_mmconf_start &&
 			    end > fam10h_mmconf_end) {
-				/* we got a hole */
+				
 				endx = fam10h_mmconf_start - 1;
 				update_res(info, start, endx, IORESOURCE_MEM, 0);
 				update_range(range, start, endx);
@@ -446,13 +432,13 @@ static int __init early_fill_mp_bus_info(void)
 		printk(KERN_CONT "\n");
 	}
 
-	/* need to take out [4G, TOM2) for RAM*/
-	/* SYS_CFG */
+	
+	
 	address = MSR_K8_SYSCFG;
 	rdmsrl(address, val);
-	/* TOP_MEM2 is enabled? */
+	
 	if (val & (1<<21)) {
-		/* TOP_MEM2 */
+		
 		address = MSR_K8_TOP_MEM2;
 		rdmsrl(address, val);
 		end = (val & 0xffffff800000ULL);
@@ -460,10 +446,7 @@ static int __init early_fill_mp_bus_info(void)
 		update_range(range, 1ULL<<32, end - 1);
 	}
 
-	/*
-	 * add left over mmio range to def node/link ?
-	 * that is tricky, just record range in from start_min to 4G
-	 */
+	
 	for (j = 0; j < pci_root_num; j++) {
 		info = &pci_root_info[j];
 		if (info->node == def_node && info->link == def_link)
@@ -502,13 +485,13 @@ static int __init early_fill_mp_bus_info(void)
 	return 0;
 }
 
-#else  /* !CONFIG_X86_64 */
+#else  
 
 static int __init early_fill_mp_bus_info(void) { return 0; }
 
-#endif /* !CONFIG_X86_64 */
+#endif 
 
-/* common 32/64 bit code */
+
 
 #define ENABLE_CF8_EXT_CFG      (1ULL << 46)
 
@@ -545,7 +528,7 @@ static int __init pci_io_ecs_init(void)
 {
 	int cpu;
 
-	/* assume all cpus from fam10h have IO ECS */
+	
         if (boot_cpu_data.x86 < 0x10)
 		return 0;
 

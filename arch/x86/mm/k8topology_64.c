@@ -1,11 +1,4 @@
-/*
- * AMD K8 NUMA support.
- * Discover the memory map and associated nodes.
- *
- * This version reads it directly from the K8 northbridge.
- *
- * Copyright 2002,2003 Andi Kleen, SuSE Labs.
- */
+
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/string.h>
@@ -50,26 +43,17 @@ static __init int find_northbridge(void)
 
 static __init void early_get_boot_cpu_id(void)
 {
-	/*
-	 * need to get boot_cpu_id so can use that to create apicid_to_node
-	 * in k8_scan_nodes()
-	 */
-	/*
-	 * Find possible boot-time SMP configuration:
-	 */
+	
+	
 #ifdef CONFIG_X86_MPPARSE
 	early_find_smp_config();
 #endif
 #ifdef CONFIG_ACPI
-	/*
-	 * Read APIC information from ACPI tables.
-	 */
+	
 	early_acpi_boot_init();
 #endif
 #ifdef CONFIG_X86_MPPARSE
-	/*
-	 * get boot-time SMP configuration:
-	 */
+	
 	if (smp_found_config)
 		early_get_smp_config();
 #endif
@@ -163,7 +147,7 @@ int __init k8_scan_nodes(unsigned long start, unsigned long end)
 			continue;
 		}
 
-		/* Could sort here, but pun for now. Should not happen anyroads. */
+		
 		if (prevbase > base) {
 			printk(KERN_ERR "Node map not sorted %lx,%lx\n",
 			       prevbase, base);
@@ -193,11 +177,11 @@ int __init k8_scan_nodes(unsigned long start, unsigned long end)
 	}
 	printk(KERN_INFO "Using node hash shift of %d\n", memnode_shift);
 
-	/* use the coreid bits from early_identify_cpu */
+	
 	bits = boot_cpu_data.x86_coreid_bits;
 	cores = (1<<bits);
 	apicid_base = 0;
-	/* need to get boot_cpu_id early for system with apicid lifting */
+	
 	early_get_boot_cpu_id();
 	if (boot_cpu_physical_apicid > 0) {
 		printk(KERN_INFO "BSP APIC ID: %02x\n",

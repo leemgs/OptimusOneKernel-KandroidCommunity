@@ -1,23 +1,4 @@
-/*
- * BIOS run time interface routines.
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- *
- *  Copyright (c) 2008 Silicon Graphics, Inc.  All Rights Reserved.
- *  Copyright (c) Russ Anderson
- */
+
 
 #include <linux/efi.h>
 #include <asm/efi.h>
@@ -32,9 +13,7 @@ s64 uv_bios_call(enum uv_bios_cmd which, u64 a1, u64 a2, u64 a3, u64 a4, u64 a5)
 	struct uv_systab *tab = &uv_systab;
 
 	if (!tab->function)
-		/*
-		 * BIOS does not support UV systab
-		 */
+		
 		return BIOS_STATUS_UNIMPLEMENTED;
 
 	return efi_call6((void *)__va(tab->function),
@@ -111,9 +90,7 @@ uv_bios_mq_watchlist_alloc(int blade, unsigned long addr, unsigned int mq_size,
 	size_blade.size = mq_size;
 	size_blade.blade = blade;
 
-	/*
-	 * bios returns watchlist number or negative error number.
-	 */
+	
 	ret = (int)uv_bios_call_irqsave(UV_BIOS_WATCHLIST_ALLOC, addr,
 			size_blade.val, (u64)intr_mmr_offset,
 			(u64)&watchlist, 0);
@@ -176,16 +153,14 @@ void uv_bios_init(void)
 	if (strncmp(tab->signature, "UVST", 4) != 0)
 		printk(KERN_ERR "bad signature in UV system table!");
 
-	/*
-	 * Copy table to permanent spot for later use.
-	 */
+	
 	memcpy(&uv_systab, tab, sizeof(struct uv_systab));
 	iounmap(tab);
 
 	printk(KERN_INFO "EFI UV System Table Revision %d\n",
 					uv_systab.revision);
 }
-#else	/* !CONFIG_EFI */
+#else	
 
 void uv_bios_init(void) { }
 #endif

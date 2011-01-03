@@ -1,15 +1,4 @@
-/*
- * Performance events x86 architecture code
- *
- *  Copyright (C) 2008 Thomas Gleixner <tglx@linutronix.de>
- *  Copyright (C) 2008-2009 Red Hat, Inc., Ingo Molnar
- *  Copyright (C) 2009 Jaswinder Singh Rajput
- *  Copyright (C) 2009 Advanced Micro Devices, Inc., Robert Richter
- *  Copyright (C) 2008-2009 Red Hat, Inc., Peter Zijlstra <pzijlstr@redhat.com>
- *  Copyright (C) 2009 Intel Corporation, <markus.t.metzger@intel.com>
- *
- *  For licencing details see kernel-base/COPYING
- */
+
 
 #include <linux/perf_event.h>
 #include <linux/capability.h>
@@ -29,33 +18,27 @@
 
 static u64 perf_event_mask __read_mostly;
 
-/* The maximal number of PEBS events: */
+
 #define MAX_PEBS_EVENTS	4
 
-/* The size of a BTS record in bytes: */
+
 #define BTS_RECORD_SIZE		24
 
-/* The size of a per-cpu BTS buffer in bytes: */
+
 #define BTS_BUFFER_SIZE		(BTS_RECORD_SIZE * 2048)
 
-/* The BTS overflow threshold in bytes from the end of the buffer: */
+
 #define BTS_OVFL_TH		(BTS_RECORD_SIZE * 128)
 
 
-/*
- * Bits in the debugctlmsr controlling branch tracing.
- */
+
 #define X86_DEBUGCTL_TR			(1 << 6)
 #define X86_DEBUGCTL_BTS		(1 << 7)
 #define X86_DEBUGCTL_BTINT		(1 << 8)
 #define X86_DEBUGCTL_BTS_OFF_OS		(1 << 9)
 #define X86_DEBUGCTL_BTS_OFF_USR	(1 << 10)
 
-/*
- * A debug store configuration.
- *
- * We only support architectures that use 64bit fields.
- */
+
 struct debug_store {
 	u64	bts_buffer_base;
 	u64	bts_index;
@@ -77,9 +60,7 @@ struct cpu_hw_events {
 	struct debug_store	*ds;
 };
 
-/*
- * struct x86_pmu - generic x86 pmu
- */
+
 struct x86_pmu {
 	const char	*name;
 	int		version;
@@ -110,9 +91,7 @@ static DEFINE_PER_CPU(struct cpu_hw_events, cpu_hw_events) = {
 	.enabled = 1,
 };
 
-/*
- * Not sure about some of these
- */
+
 static const u64 p6_perfmon_event_map[] =
 {
   [PERF_COUNT_HW_CPU_CYCLES]		= 0x0079,
@@ -129,12 +108,7 @@ static u64 p6_pmu_event_map(int hw_event)
 	return p6_perfmon_event_map[hw_event];
 }
 
-/*
- * Event setting that is specified not to count anything.
- * We use this to effectively disable a counter.
- *
- * L2_RQSTS with 0 MESI unit mask.
- */
+
 #define P6_NOP_EVENT			0x0000002EULL
 
 static u64 p6_pmu_raw_event(u64 hw_event)
@@ -156,9 +130,7 @@ static u64 p6_pmu_raw_event(u64 hw_event)
 }
 
 
-/*
- * Intel PerfMon v3. Used on Core2 and later.
- */
+
 static const u64 intel_perfmon_event_map[] =
 {
   [PERF_COUNT_HW_CPU_CYCLES]		= 0x003c,
@@ -175,13 +147,7 @@ static u64 intel_pmu_event_map(int hw_event)
 	return intel_perfmon_event_map[hw_event];
 }
 
-/*
- * Generalized hw caching related hw_event table, filled
- * in on a per model basis. A value of 0 means
- * 'not supported', -1 means 'hw_event makes no sense on
- * this CPU', any other value means the raw hw_event
- * ID.
- */
+
 
 #define C(x) PERF_COUNT_HW_CACHE_##x
 
@@ -197,22 +163,22 @@ static const u64 nehalem_hw_cache_event_ids
 {
  [ C(L1D) ] = {
 	[ C(OP_READ) ] = {
-		[ C(RESULT_ACCESS) ] = 0x0f40, /* L1D_CACHE_LD.MESI            */
-		[ C(RESULT_MISS)   ] = 0x0140, /* L1D_CACHE_LD.I_STATE         */
+		[ C(RESULT_ACCESS) ] = 0x0f40, 
+		[ C(RESULT_MISS)   ] = 0x0140, 
 	},
 	[ C(OP_WRITE) ] = {
-		[ C(RESULT_ACCESS) ] = 0x0f41, /* L1D_CACHE_ST.MESI            */
-		[ C(RESULT_MISS)   ] = 0x0141, /* L1D_CACHE_ST.I_STATE         */
+		[ C(RESULT_ACCESS) ] = 0x0f41, 
+		[ C(RESULT_MISS)   ] = 0x0141, 
 	},
 	[ C(OP_PREFETCH) ] = {
-		[ C(RESULT_ACCESS) ] = 0x014e, /* L1D_PREFETCH.REQUESTS        */
-		[ C(RESULT_MISS)   ] = 0x024e, /* L1D_PREFETCH.MISS            */
+		[ C(RESULT_ACCESS) ] = 0x014e, 
+		[ C(RESULT_MISS)   ] = 0x024e, 
 	},
  },
  [ C(L1I ) ] = {
 	[ C(OP_READ) ] = {
-		[ C(RESULT_ACCESS) ] = 0x0380, /* L1I.READS                    */
-		[ C(RESULT_MISS)   ] = 0x0280, /* L1I.MISSES                   */
+		[ C(RESULT_ACCESS) ] = 0x0380, 
+		[ C(RESULT_MISS)   ] = 0x0280, 
 	},
 	[ C(OP_WRITE) ] = {
 		[ C(RESULT_ACCESS) ] = -1,
@@ -225,26 +191,26 @@ static const u64 nehalem_hw_cache_event_ids
  },
  [ C(LL  ) ] = {
 	[ C(OP_READ) ] = {
-		[ C(RESULT_ACCESS) ] = 0x0324, /* L2_RQSTS.LOADS               */
-		[ C(RESULT_MISS)   ] = 0x0224, /* L2_RQSTS.LD_MISS             */
+		[ C(RESULT_ACCESS) ] = 0x0324, 
+		[ C(RESULT_MISS)   ] = 0x0224, 
 	},
 	[ C(OP_WRITE) ] = {
-		[ C(RESULT_ACCESS) ] = 0x0c24, /* L2_RQSTS.RFOS                */
-		[ C(RESULT_MISS)   ] = 0x0824, /* L2_RQSTS.RFO_MISS            */
+		[ C(RESULT_ACCESS) ] = 0x0c24, 
+		[ C(RESULT_MISS)   ] = 0x0824, 
 	},
 	[ C(OP_PREFETCH) ] = {
-		[ C(RESULT_ACCESS) ] = 0x4f2e, /* LLC Reference                */
-		[ C(RESULT_MISS)   ] = 0x412e, /* LLC Misses                   */
+		[ C(RESULT_ACCESS) ] = 0x4f2e, 
+		[ C(RESULT_MISS)   ] = 0x412e, 
 	},
  },
  [ C(DTLB) ] = {
 	[ C(OP_READ) ] = {
-		[ C(RESULT_ACCESS) ] = 0x0f40, /* L1D_CACHE_LD.MESI   (alias)  */
-		[ C(RESULT_MISS)   ] = 0x0108, /* DTLB_LOAD_MISSES.ANY         */
+		[ C(RESULT_ACCESS) ] = 0x0f40, 
+		[ C(RESULT_MISS)   ] = 0x0108, 
 	},
 	[ C(OP_WRITE) ] = {
-		[ C(RESULT_ACCESS) ] = 0x0f41, /* L1D_CACHE_ST.MESI   (alias)  */
-		[ C(RESULT_MISS)   ] = 0x010c, /* MEM_STORE_RETIRED.DTLB_MISS  */
+		[ C(RESULT_ACCESS) ] = 0x0f41, 
+		[ C(RESULT_MISS)   ] = 0x010c, 
 	},
 	[ C(OP_PREFETCH) ] = {
 		[ C(RESULT_ACCESS) ] = 0x0,
@@ -253,8 +219,8 @@ static const u64 nehalem_hw_cache_event_ids
  },
  [ C(ITLB) ] = {
 	[ C(OP_READ) ] = {
-		[ C(RESULT_ACCESS) ] = 0x01c0, /* INST_RETIRED.ANY_P           */
-		[ C(RESULT_MISS)   ] = 0x20c8, /* ITLB_MISS_RETIRED            */
+		[ C(RESULT_ACCESS) ] = 0x01c0, 
+		[ C(RESULT_MISS)   ] = 0x20c8, 
 	},
 	[ C(OP_WRITE) ] = {
 		[ C(RESULT_ACCESS) ] = -1,
@@ -267,8 +233,8 @@ static const u64 nehalem_hw_cache_event_ids
  },
  [ C(BPU ) ] = {
 	[ C(OP_READ) ] = {
-		[ C(RESULT_ACCESS) ] = 0x00c4, /* BR_INST_RETIRED.ALL_BRANCHES */
-		[ C(RESULT_MISS)   ] = 0x03e8, /* BPU_CLEARS.ANY               */
+		[ C(RESULT_ACCESS) ] = 0x00c4, 
+		[ C(RESULT_MISS)   ] = 0x03e8, 
 	},
 	[ C(OP_WRITE) ] = {
 		[ C(RESULT_ACCESS) ] = -1,
@@ -288,22 +254,22 @@ static const u64 core2_hw_cache_event_ids
 {
  [ C(L1D) ] = {
 	[ C(OP_READ) ] = {
-		[ C(RESULT_ACCESS) ] = 0x0f40, /* L1D_CACHE_LD.MESI          */
-		[ C(RESULT_MISS)   ] = 0x0140, /* L1D_CACHE_LD.I_STATE       */
+		[ C(RESULT_ACCESS) ] = 0x0f40, 
+		[ C(RESULT_MISS)   ] = 0x0140, 
 	},
 	[ C(OP_WRITE) ] = {
-		[ C(RESULT_ACCESS) ] = 0x0f41, /* L1D_CACHE_ST.MESI          */
-		[ C(RESULT_MISS)   ] = 0x0141, /* L1D_CACHE_ST.I_STATE       */
+		[ C(RESULT_ACCESS) ] = 0x0f41, 
+		[ C(RESULT_MISS)   ] = 0x0141, 
 	},
 	[ C(OP_PREFETCH) ] = {
-		[ C(RESULT_ACCESS) ] = 0x104e, /* L1D_PREFETCH.REQUESTS      */
+		[ C(RESULT_ACCESS) ] = 0x104e, 
 		[ C(RESULT_MISS)   ] = 0,
 	},
  },
  [ C(L1I ) ] = {
 	[ C(OP_READ) ] = {
-		[ C(RESULT_ACCESS) ] = 0x0080, /* L1I.READS                  */
-		[ C(RESULT_MISS)   ] = 0x0081, /* L1I.MISSES                 */
+		[ C(RESULT_ACCESS) ] = 0x0080, 
+		[ C(RESULT_MISS)   ] = 0x0081, 
 	},
 	[ C(OP_WRITE) ] = {
 		[ C(RESULT_ACCESS) ] = -1,
@@ -316,12 +282,12 @@ static const u64 core2_hw_cache_event_ids
  },
  [ C(LL  ) ] = {
 	[ C(OP_READ) ] = {
-		[ C(RESULT_ACCESS) ] = 0x4f29, /* L2_LD.MESI                 */
-		[ C(RESULT_MISS)   ] = 0x4129, /* L2_LD.ISTATE               */
+		[ C(RESULT_ACCESS) ] = 0x4f29, 
+		[ C(RESULT_MISS)   ] = 0x4129, 
 	},
 	[ C(OP_WRITE) ] = {
-		[ C(RESULT_ACCESS) ] = 0x4f2A, /* L2_ST.MESI                 */
-		[ C(RESULT_MISS)   ] = 0x412A, /* L2_ST.ISTATE               */
+		[ C(RESULT_ACCESS) ] = 0x4f2A, 
+		[ C(RESULT_MISS)   ] = 0x412A, 
 	},
 	[ C(OP_PREFETCH) ] = {
 		[ C(RESULT_ACCESS) ] = 0,
@@ -330,12 +296,12 @@ static const u64 core2_hw_cache_event_ids
  },
  [ C(DTLB) ] = {
 	[ C(OP_READ) ] = {
-		[ C(RESULT_ACCESS) ] = 0x0f40, /* L1D_CACHE_LD.MESI  (alias) */
-		[ C(RESULT_MISS)   ] = 0x0208, /* DTLB_MISSES.MISS_LD        */
+		[ C(RESULT_ACCESS) ] = 0x0f40, 
+		[ C(RESULT_MISS)   ] = 0x0208, 
 	},
 	[ C(OP_WRITE) ] = {
-		[ C(RESULT_ACCESS) ] = 0x0f41, /* L1D_CACHE_ST.MESI  (alias) */
-		[ C(RESULT_MISS)   ] = 0x0808, /* DTLB_MISSES.MISS_ST        */
+		[ C(RESULT_ACCESS) ] = 0x0f41, 
+		[ C(RESULT_MISS)   ] = 0x0808, 
 	},
 	[ C(OP_PREFETCH) ] = {
 		[ C(RESULT_ACCESS) ] = 0,
@@ -344,8 +310,8 @@ static const u64 core2_hw_cache_event_ids
  },
  [ C(ITLB) ] = {
 	[ C(OP_READ) ] = {
-		[ C(RESULT_ACCESS) ] = 0x00c0, /* INST_RETIRED.ANY_P         */
-		[ C(RESULT_MISS)   ] = 0x1282, /* ITLBMISSES                 */
+		[ C(RESULT_ACCESS) ] = 0x00c0, 
+		[ C(RESULT_MISS)   ] = 0x1282, 
 	},
 	[ C(OP_WRITE) ] = {
 		[ C(RESULT_ACCESS) ] = -1,
@@ -358,8 +324,8 @@ static const u64 core2_hw_cache_event_ids
  },
  [ C(BPU ) ] = {
 	[ C(OP_READ) ] = {
-		[ C(RESULT_ACCESS) ] = 0x00c4, /* BR_INST_RETIRED.ANY        */
-		[ C(RESULT_MISS)   ] = 0x00c5, /* BP_INST_RETIRED.MISPRED    */
+		[ C(RESULT_ACCESS) ] = 0x00c4, 
+		[ C(RESULT_MISS)   ] = 0x00c5, 
 	},
 	[ C(OP_WRITE) ] = {
 		[ C(RESULT_ACCESS) ] = -1,
@@ -379,11 +345,11 @@ static const u64 atom_hw_cache_event_ids
 {
  [ C(L1D) ] = {
 	[ C(OP_READ) ] = {
-		[ C(RESULT_ACCESS) ] = 0x2140, /* L1D_CACHE.LD               */
+		[ C(RESULT_ACCESS) ] = 0x2140, 
 		[ C(RESULT_MISS)   ] = 0,
 	},
 	[ C(OP_WRITE) ] = {
-		[ C(RESULT_ACCESS) ] = 0x2240, /* L1D_CACHE.ST               */
+		[ C(RESULT_ACCESS) ] = 0x2240, 
 		[ C(RESULT_MISS)   ] = 0,
 	},
 	[ C(OP_PREFETCH) ] = {
@@ -393,8 +359,8 @@ static const u64 atom_hw_cache_event_ids
  },
  [ C(L1I ) ] = {
 	[ C(OP_READ) ] = {
-		[ C(RESULT_ACCESS) ] = 0x0380, /* L1I.READS                  */
-		[ C(RESULT_MISS)   ] = 0x0280, /* L1I.MISSES                 */
+		[ C(RESULT_ACCESS) ] = 0x0380, 
+		[ C(RESULT_MISS)   ] = 0x0280, 
 	},
 	[ C(OP_WRITE) ] = {
 		[ C(RESULT_ACCESS) ] = -1,
@@ -407,12 +373,12 @@ static const u64 atom_hw_cache_event_ids
  },
  [ C(LL  ) ] = {
 	[ C(OP_READ) ] = {
-		[ C(RESULT_ACCESS) ] = 0x4f29, /* L2_LD.MESI                 */
-		[ C(RESULT_MISS)   ] = 0x4129, /* L2_LD.ISTATE               */
+		[ C(RESULT_ACCESS) ] = 0x4f29, 
+		[ C(RESULT_MISS)   ] = 0x4129, 
 	},
 	[ C(OP_WRITE) ] = {
-		[ C(RESULT_ACCESS) ] = 0x4f2A, /* L2_ST.MESI                 */
-		[ C(RESULT_MISS)   ] = 0x412A, /* L2_ST.ISTATE               */
+		[ C(RESULT_ACCESS) ] = 0x4f2A, 
+		[ C(RESULT_MISS)   ] = 0x412A, 
 	},
 	[ C(OP_PREFETCH) ] = {
 		[ C(RESULT_ACCESS) ] = 0,
@@ -421,12 +387,12 @@ static const u64 atom_hw_cache_event_ids
  },
  [ C(DTLB) ] = {
 	[ C(OP_READ) ] = {
-		[ C(RESULT_ACCESS) ] = 0x2140, /* L1D_CACHE_LD.MESI  (alias) */
-		[ C(RESULT_MISS)   ] = 0x0508, /* DTLB_MISSES.MISS_LD        */
+		[ C(RESULT_ACCESS) ] = 0x2140, 
+		[ C(RESULT_MISS)   ] = 0x0508, 
 	},
 	[ C(OP_WRITE) ] = {
-		[ C(RESULT_ACCESS) ] = 0x2240, /* L1D_CACHE_ST.MESI  (alias) */
-		[ C(RESULT_MISS)   ] = 0x0608, /* DTLB_MISSES.MISS_ST        */
+		[ C(RESULT_ACCESS) ] = 0x2240, 
+		[ C(RESULT_MISS)   ] = 0x0608, 
 	},
 	[ C(OP_PREFETCH) ] = {
 		[ C(RESULT_ACCESS) ] = 0,
@@ -435,8 +401,8 @@ static const u64 atom_hw_cache_event_ids
  },
  [ C(ITLB) ] = {
 	[ C(OP_READ) ] = {
-		[ C(RESULT_ACCESS) ] = 0x00c0, /* INST_RETIRED.ANY_P         */
-		[ C(RESULT_MISS)   ] = 0x0282, /* ITLB.MISSES                */
+		[ C(RESULT_ACCESS) ] = 0x00c0, 
+		[ C(RESULT_MISS)   ] = 0x0282, 
 	},
 	[ C(OP_WRITE) ] = {
 		[ C(RESULT_ACCESS) ] = -1,
@@ -449,8 +415,8 @@ static const u64 atom_hw_cache_event_ids
  },
  [ C(BPU ) ] = {
 	[ C(OP_READ) ] = {
-		[ C(RESULT_ACCESS) ] = 0x00c4, /* BR_INST_RETIRED.ANY        */
-		[ C(RESULT_MISS)   ] = 0x00c5, /* BP_INST_RETIRED.MISPRED    */
+		[ C(RESULT_ACCESS) ] = 0x00c4, 
+		[ C(RESULT_MISS)   ] = 0x00c5, 
 	},
 	[ C(OP_WRITE) ] = {
 		[ C(RESULT_ACCESS) ] = -1,
@@ -488,39 +454,39 @@ static const u64 amd_hw_cache_event_ids
 {
  [ C(L1D) ] = {
 	[ C(OP_READ) ] = {
-		[ C(RESULT_ACCESS) ] = 0x0040, /* Data Cache Accesses        */
-		[ C(RESULT_MISS)   ] = 0x0041, /* Data Cache Misses          */
+		[ C(RESULT_ACCESS) ] = 0x0040, 
+		[ C(RESULT_MISS)   ] = 0x0041, 
 	},
 	[ C(OP_WRITE) ] = {
-		[ C(RESULT_ACCESS) ] = 0x0142, /* Data Cache Refills :system */
+		[ C(RESULT_ACCESS) ] = 0x0142, 
 		[ C(RESULT_MISS)   ] = 0,
 	},
 	[ C(OP_PREFETCH) ] = {
-		[ C(RESULT_ACCESS) ] = 0x0267, /* Data Prefetcher :attempts  */
-		[ C(RESULT_MISS)   ] = 0x0167, /* Data Prefetcher :cancelled */
+		[ C(RESULT_ACCESS) ] = 0x0267, 
+		[ C(RESULT_MISS)   ] = 0x0167, 
 	},
  },
  [ C(L1I ) ] = {
 	[ C(OP_READ) ] = {
-		[ C(RESULT_ACCESS) ] = 0x0080, /* Instruction cache fetches  */
-		[ C(RESULT_MISS)   ] = 0x0081, /* Instruction cache misses   */
+		[ C(RESULT_ACCESS) ] = 0x0080, 
+		[ C(RESULT_MISS)   ] = 0x0081, 
 	},
 	[ C(OP_WRITE) ] = {
 		[ C(RESULT_ACCESS) ] = -1,
 		[ C(RESULT_MISS)   ] = -1,
 	},
 	[ C(OP_PREFETCH) ] = {
-		[ C(RESULT_ACCESS) ] = 0x014B, /* Prefetch Instructions :Load */
+		[ C(RESULT_ACCESS) ] = 0x014B, 
 		[ C(RESULT_MISS)   ] = 0,
 	},
  },
  [ C(LL  ) ] = {
 	[ C(OP_READ) ] = {
-		[ C(RESULT_ACCESS) ] = 0x037D, /* Requests to L2 Cache :IC+DC */
-		[ C(RESULT_MISS)   ] = 0x037E, /* L2 Cache Misses : IC+DC     */
+		[ C(RESULT_ACCESS) ] = 0x037D, 
+		[ C(RESULT_MISS)   ] = 0x037E, 
 	},
 	[ C(OP_WRITE) ] = {
-		[ C(RESULT_ACCESS) ] = 0x017F, /* L2 Fill/Writeback           */
+		[ C(RESULT_ACCESS) ] = 0x017F, 
 		[ C(RESULT_MISS)   ] = 0,
 	},
 	[ C(OP_PREFETCH) ] = {
@@ -530,8 +496,8 @@ static const u64 amd_hw_cache_event_ids
  },
  [ C(DTLB) ] = {
 	[ C(OP_READ) ] = {
-		[ C(RESULT_ACCESS) ] = 0x0040, /* Data Cache Accesses        */
-		[ C(RESULT_MISS)   ] = 0x0046, /* L1 DTLB and L2 DLTB Miss   */
+		[ C(RESULT_ACCESS) ] = 0x0040, 
+		[ C(RESULT_MISS)   ] = 0x0046, 
 	},
 	[ C(OP_WRITE) ] = {
 		[ C(RESULT_ACCESS) ] = 0,
@@ -544,8 +510,8 @@ static const u64 amd_hw_cache_event_ids
  },
  [ C(ITLB) ] = {
 	[ C(OP_READ) ] = {
-		[ C(RESULT_ACCESS) ] = 0x0080, /* Instruction fecthes        */
-		[ C(RESULT_MISS)   ] = 0x0085, /* Instr. fetch ITLB misses   */
+		[ C(RESULT_ACCESS) ] = 0x0080, 
+		[ C(RESULT_MISS)   ] = 0x0085, 
 	},
 	[ C(OP_WRITE) ] = {
 		[ C(RESULT_ACCESS) ] = -1,
@@ -558,8 +524,8 @@ static const u64 amd_hw_cache_event_ids
  },
  [ C(BPU ) ] = {
 	[ C(OP_READ) ] = {
-		[ C(RESULT_ACCESS) ] = 0x00c2, /* Retired Branch Instr.      */
-		[ C(RESULT_MISS)   ] = 0x00c3, /* Retired Mispredicted BI    */
+		[ C(RESULT_ACCESS) ] = 0x00c2, 
+		[ C(RESULT_MISS)   ] = 0x00c3, 
 	},
 	[ C(OP_WRITE) ] = {
 		[ C(RESULT_ACCESS) ] = -1,
@@ -572,9 +538,7 @@ static const u64 amd_hw_cache_event_ids
  },
 };
 
-/*
- * AMD Performance Monitor K7 and later.
- */
+
 static const u64 amd_perfmon_event_map[] =
 {
   [PERF_COUNT_HW_CPU_CYCLES]		= 0x0076,
@@ -608,11 +572,7 @@ static u64 amd_pmu_raw_event(u64 hw_event)
 	return hw_event & K7_EVNTSEL_MASK;
 }
 
-/*
- * Propagate event elapsed time into the generic event.
- * Can only be executed on the CPU where the event is active.
- * Returns the delta events processed.
- */
+
 static u64
 x86_perf_event_update(struct perf_event *event,
 			struct hw_perf_event *hwc, int idx)
@@ -624,13 +584,7 @@ x86_perf_event_update(struct perf_event *event,
 	if (idx == X86_PMC_IDX_FIXED_BTS)
 		return 0;
 
-	/*
-	 * Careful: an NMI might modify the previous event value.
-	 *
-	 * Our tactic to handle this is to first atomically read and
-	 * exchange a new raw count - then add that new-prev delta
-	 * count to the generic event atomically:
-	 */
+	
 again:
 	prev_raw_count = atomic64_read(&hwc->prev_count);
 	rdmsrl(hwc->event_base + idx, new_raw_count);
@@ -639,14 +593,7 @@ again:
 					new_raw_count) != prev_raw_count)
 		goto again;
 
-	/*
-	 * Now we have the new raw value and have updated the prev
-	 * timestamp already. We can now calculate the elapsed delta
-	 * (event-)time and add that to the generic event.
-	 *
-	 * Careful, not all hw sign-extends above the physical width
-	 * of the count.
-	 */
+	
 	delta = (new_raw_count << shift) - (prev_raw_count << shift);
 	delta >>= shift;
 
@@ -895,9 +842,7 @@ static void intel_pmu_disable_bts(void)
 	update_debugctlmsr(debugctlmsr);
 }
 
-/*
- * Setup the hardware configuration for a given attr_type
- */
+
 static int __hw_perf_event_init(struct perf_event *event)
 {
 	struct perf_event_attr *attr = &event->attr;
@@ -926,15 +871,10 @@ static int __hw_perf_event_init(struct perf_event *event)
 
 	event->destroy = hw_perf_event_destroy;
 
-	/*
-	 * Generate PMC IRQs:
-	 * (keep 'enabled' bit clear for now)
-	 */
+	
 	hwc->config = ARCH_PERFMON_EVENTSEL_INT;
 
-	/*
-	 * Count user and OS events unless requested not to.
-	 */
+	
 	if (!attr->exclude_user)
 		hwc->config |= ARCH_PERFMON_EVENTSEL_USR;
 	if (!attr->exclude_kernel)
@@ -945,19 +885,12 @@ static int __hw_perf_event_init(struct perf_event *event)
 		hwc->last_period = hwc->sample_period;
 		atomic64_set(&hwc->period_left, hwc->sample_period);
 	} else {
-		/*
-		 * If we have a PMU initialized but no APIC
-		 * interrupts, we cannot sample hardware
-		 * events (user-space has to fall back and
-		 * sample via a hrtimer based software event):
-		 */
+		
 		if (!x86_pmu.apic)
 			return -EOPNOTSUPP;
 	}
 
-	/*
-	 * Raw hw_event type provide the config in the hw_event structure
-	 */
+	
 	if (attr->type == PERF_TYPE_RAW) {
 		hwc->config |= x86_pmu.raw_event(attr->config);
 		return 0;
@@ -969,9 +902,7 @@ static int __hw_perf_event_init(struct perf_event *event)
 	if (attr->config >= x86_pmu.max_events)
 		return -EINVAL;
 
-	/*
-	 * The generic map:
-	 */
+	
 	config = x86_pmu.event_map(attr->config);
 
 	if (config == 0)
@@ -980,16 +911,14 @@ static int __hw_perf_event_init(struct perf_event *event)
 	if (config == -1LL)
 		return -EINVAL;
 
-	/*
-	 * Branch tracing:
-	 */
+	
 	if ((attr->config == PERF_COUNT_HW_BRANCH_INSTRUCTIONS) &&
 	    (hwc->sample_period == 1)) {
-		/* BTS is not supported by this architecture. */
+		
 		if (!bts_available())
 			return -EOPNOTSUPP;
 
-		/* BTS is currently only allowed for user-mode. */
+		
 		if (hwc->config & ARCH_PERFMON_EVENTSEL_OS)
 			return -EOPNOTSUPP;
 	}
@@ -1010,7 +939,7 @@ static void p6_pmu_disable_all(void)
 	cpuc->enabled = 0;
 	barrier();
 
-	/* p6 only has one enable register */
+	
 	rdmsrl(MSR_P6_EVNTSEL0, val);
 	val &= ~ARCH_PERFMON_EVENTSEL0_ENABLE;
 	wrmsrl(MSR_P6_EVNTSEL0, val);
@@ -1041,11 +970,7 @@ static void amd_pmu_disable_all(void)
 		return;
 
 	cpuc->enabled = 0;
-	/*
-	 * ensure we write the disable before we start disabling the
-	 * events proper, so that amd_pmu_enable_event() does the
-	 * right thing.
-	 */
+	
 	barrier();
 
 	for (idx = 0; idx < x86_pmu.num_events; idx++) {
@@ -1079,7 +1004,7 @@ static void p6_pmu_enable_all(void)
 	cpuc->enabled = 1;
 	barrier();
 
-	/* p6 only has one enable register */
+	
 	rdmsrl(MSR_P6_EVNTSEL0, val);
 	val |= ARCH_PERFMON_EVENTSEL0_ENABLE;
 	wrmsrl(MSR_P6_EVNTSEL0, val);
@@ -1213,10 +1138,7 @@ amd_pmu_disable_event(struct hw_perf_event *hwc, int idx)
 
 static DEFINE_PER_CPU(u64 [X86_PMC_IDX_MAX], pmc_prev_left);
 
-/*
- * Set the next IRQ period, based on the hwc->period_left value.
- * To be called with the event disabled in hw:
- */
+
 static int
 x86_perf_event_set_period(struct perf_event *event,
 			     struct hw_perf_event *hwc, int idx)
@@ -1228,9 +1150,7 @@ x86_perf_event_set_period(struct perf_event *event,
 	if (idx == X86_PMC_IDX_FIXED_BTS)
 		return 0;
 
-	/*
-	 * If we are way outside a reasoable range then just skip forward:
-	 */
+	
 	if (unlikely(left <= -period)) {
 		left = period;
 		atomic64_set(&hwc->period_left, left);
@@ -1244,9 +1164,7 @@ x86_perf_event_set_period(struct perf_event *event,
 		hwc->last_period = period;
 		ret = 1;
 	}
-	/*
-	 * Quirk: certain CPUs dont like it if just 1 hw_event is left:
-	 */
+	
 	if (unlikely(left < 2))
 		left = 2;
 
@@ -1255,10 +1173,7 @@ x86_perf_event_set_period(struct perf_event *event,
 
 	per_cpu(pmc_prev_left[idx], smp_processor_id()) = left;
 
-	/*
-	 * The hw event starts counting from this event offset,
-	 * mark it to be able to extra future deltas:
-	 */
+	
 	atomic64_set(&hwc->prev_count, (u64)-left);
 
 	err = checking_wrmsrl(hwc->event_base + idx,
@@ -1276,11 +1191,7 @@ intel_pmu_enable_fixed(struct hw_perf_event *hwc, int __idx)
 	u64 ctrl_val, bits, mask;
 	int err;
 
-	/*
-	 * Enable IRQ generation (0x8),
-	 * and enable ring-3 counting (0x2) and ring-0 counting (0x1)
-	 * if requested:
-	 */
+	
 	bits = 0x8ULL;
 	if (hwc->config & ARCH_PERFMON_EVENTSEL_USR)
 		bits |= 0x2;
@@ -1359,9 +1270,7 @@ fixed_mode_idx(struct perf_event *event, struct hw_perf_event *hwc)
 	return -1;
 }
 
-/*
- * Find a PMC slot for the freshly enabled / scheduled in event:
- */
+
 static int x86_pmu_enable(struct perf_event *event)
 {
 	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
@@ -1370,7 +1279,7 @@ static int x86_pmu_enable(struct perf_event *event)
 
 	idx = fixed_mode_idx(event, hwc);
 	if (idx == X86_PMC_IDX_FIXED_BTS) {
-		/* BTS is already occupied. */
+		
 		if (test_and_set_bit(idx, cpuc->used_mask))
 			return -EAGAIN;
 
@@ -1378,24 +1287,18 @@ static int x86_pmu_enable(struct perf_event *event)
 		hwc->event_base	= 0;
 		hwc->idx		= idx;
 	} else if (idx >= 0) {
-		/*
-		 * Try to get the fixed event, if that is already taken
-		 * then try to get a generic event:
-		 */
+		
 		if (test_and_set_bit(idx, cpuc->used_mask))
 			goto try_generic;
 
 		hwc->config_base = MSR_ARCH_PERFMON_FIXED_CTR_CTRL;
-		/*
-		 * We set it so that event_base + idx in wrmsr/rdmsr maps to
-		 * MSR_ARCH_PERFMON_FIXED_CTR0 ... CTR2:
-		 */
+		
 		hwc->event_base =
 			MSR_ARCH_PERFMON_FIXED_CTR0 - X86_PMC_IDX_FIXED;
 		hwc->idx = idx;
 	} else {
 		idx = hwc->idx;
-		/* Try to get the previous generic event again */
+		
 		if (test_and_set_bit(idx, cpuc->used_mask)) {
 try_generic:
 			idx = find_first_zero_bit(cpuc->used_mask,
@@ -1522,11 +1425,7 @@ static void intel_pmu_drain_bts_buffer(struct cpu_hw_events *cpuc)
 	data.addr	= 0;
 	regs.ip		= 0;
 
-	/*
-	 * Prepare a generic sample, i.e. fill in the invariant fields.
-	 * We will overwrite the from and to address before we output
-	 * the sample.
-	 */
+	
 	perf_prepare_sample(&header, &data, event, &regs);
 
 	if (perf_output_begin(&handle, event,
@@ -1542,7 +1441,7 @@ static void intel_pmu_drain_bts_buffer(struct cpu_hw_events *cpuc)
 
 	perf_output_end(&handle);
 
-	/* There's new data available. */
+	
 	event->hw.interrupts++;
 	event->pending_kill = POLL_IN;
 }
@@ -1553,26 +1452,17 @@ static void x86_pmu_disable(struct perf_event *event)
 	struct hw_perf_event *hwc = &event->hw;
 	int idx = hwc->idx;
 
-	/*
-	 * Must be done before we disable, otherwise the nmi handler
-	 * could reenable again:
-	 */
+	
 	clear_bit(idx, cpuc->active_mask);
 	x86_pmu.disable(hwc, idx);
 
-	/*
-	 * Make sure the cleared pointer becomes visible before we
-	 * (potentially) free the event:
-	 */
+	
 	barrier();
 
-	/*
-	 * Drain the remaining delta count out of a event
-	 * that we are disabling:
-	 */
+	
 	x86_perf_event_update(event, hwc, idx);
 
-	/* Drain the remaining BTS records. */
+	
 	if (unlikely(idx == X86_PMC_IDX_FIXED_BTS))
 		intel_pmu_drain_bts_buffer(cpuc);
 
@@ -1582,10 +1472,7 @@ static void x86_pmu_disable(struct perf_event *event)
 	perf_event_update_userpage(event);
 }
 
-/*
- * Save and restart an expired event. Called by NMI contexts,
- * so it has to be careful about preempting normal event ops:
- */
+
 static int intel_pmu_save_and_restart(struct perf_event *event)
 {
 	struct hw_perf_event *hwc = &event->hw;
@@ -1651,9 +1538,7 @@ static int p6_pmu_handle_irq(struct pt_regs *regs)
 		if (val & (1ULL << (x86_pmu.event_bits - 1)))
 			continue;
 
-		/*
-		 * event overflow
-		 */
+		
 		handled		= 1;
 		data.period	= event->hw.last_period;
 
@@ -1670,10 +1555,7 @@ static int p6_pmu_handle_irq(struct pt_regs *regs)
 	return handled;
 }
 
-/*
- * This handler is triggered by the local APIC, so the APIC IRQ handling
- * rules apply:
- */
+
 static int intel_pmu_handle_irq(struct pt_regs *regs)
 {
 	struct perf_sample_data data;
@@ -1723,9 +1605,7 @@ again:
 
 	intel_pmu_ack_status(ack);
 
-	/*
-	 * Repeat if there is more work to be done:
-	 */
+	
 	status = intel_pmu_get_status();
 	if (status)
 		goto again;
@@ -1759,9 +1639,7 @@ static int amd_pmu_handle_irq(struct pt_regs *regs)
 		if (val & (1ULL << (x86_pmu.event_bits - 1)))
 			continue;
 
-		/*
-		 * event overflow
-		 */
+		
 		handled		= 1;
 		data.period	= event->hw.last_period;
 
@@ -1803,9 +1681,7 @@ void perf_events_lapic_init(void)
 	if (!x86_pmu.apic || !x86_pmu_initialized())
 		return;
 
-	/*
-	 * Always use NMI for PMU
-	 */
+	
 	apic_write(APIC_LVTPC, APIC_DM_NMI);
 #endif
 }
@@ -1834,13 +1710,7 @@ perf_event_nmi_handler(struct notifier_block *self,
 #ifdef CONFIG_X86_LOCAL_APIC
 	apic_write(APIC_LVTPC, APIC_DM_NMI);
 #endif
-	/*
-	 * Can't rely on the handled return value to say it was our NMI, two
-	 * events could trigger 'simultaneously' raising two back-to-back NMIs.
-	 *
-	 * If the first NMI handles both, the latter will be empty and daze
-	 * the CPU.
-	 */
+	
 	x86_pmu.handle_irq(regs);
 
 	return NOTIFY_STOP;
@@ -1868,13 +1738,7 @@ static struct x86_pmu p6_pmu = {
 	.max_period		= (1ULL << 31) - 1,
 	.version		= 0,
 	.num_events		= 2,
-	/*
-	 * Events have 40 bits implemented. However they are designed such
-	 * that bits [32-39] are sign extensions of bit 31. As such the
-	 * effective width of a event for P6-like PMU is 32 bits only.
-	 *
-	 * See IA-32 Intel Architecture Software developer manual Vol 3B
-	 */
+	
 	.event_bits		= 32,
 	.event_mask		= (1ULL << 32) - 1,
 };
@@ -1892,11 +1756,7 @@ static struct x86_pmu intel_pmu = {
 	.raw_event		= intel_pmu_raw_event,
 	.max_events		= ARRAY_SIZE(intel_perfmon_event_map),
 	.apic			= 1,
-	/*
-	 * Intel PMCs cannot be accessed sanely above 32 bit width,
-	 * so we install an artificial 1<<31 period regardless of
-	 * the generic event period:
-	 */
+	
 	.max_period		= (1ULL << 31) - 1,
 	.enable_bts		= intel_pmu_enable_bts,
 	.disable_bts		= intel_pmu_disable_bts,
@@ -1918,7 +1778,7 @@ static struct x86_pmu amd_pmu = {
 	.event_bits		= 48,
 	.event_mask		= (1ULL << 48) - 1,
 	.apic			= 1,
-	/* use highest bit to detect overflow */
+	
 	.max_period		= (1ULL << 47) - 1,
 };
 
@@ -1926,16 +1786,16 @@ static int p6_pmu_init(void)
 {
 	switch (boot_cpu_data.x86_model) {
 	case 1:
-	case 3:  /* Pentium Pro */
+	case 3:  
 	case 5:
-	case 6:  /* Pentium II */
+	case 6:  
 	case 7:
 	case 8:
-	case 11: /* Pentium III */
+	case 11: 
 		break;
 	case 9:
 	case 13:
-		/* Pentium M */
+		
 		break;
 	default:
 		pr_cont("unsupported p6 CPU model %d ",
@@ -1963,7 +1823,7 @@ static int intel_pmu_init(void)
 	int version;
 
 	if (!cpu_has(&boot_cpu_data, X86_FEATURE_ARCH_PERFMON)) {
-		/* check for P6 processor family */
+		
 	   if (boot_cpu_data.x86 == 6) {
 		return p6_pmu_init();
 	   } else {
@@ -1971,10 +1831,7 @@ static int intel_pmu_init(void)
 	   }
 	}
 
-	/*
-	 * Check whether the Architectural PerfMon supports
-	 * Branch Misses Retired hw_event or not.
-	 */
+	
 	cpuid(10, &eax.full, &ebx, &unused, &edx.full);
 	if (eax.split.mask_length <= ARCH_PERFMON_BRANCH_MISSES_RETIRED)
 		return -ENODEV;
@@ -1989,20 +1846,15 @@ static int intel_pmu_init(void)
 	x86_pmu.event_bits		= eax.split.bit_width;
 	x86_pmu.event_mask		= (1ULL << eax.split.bit_width) - 1;
 
-	/*
-	 * Quirk: v2 perfmon does not report fixed-purpose events, so
-	 * assume at least 3 events:
-	 */
+	
 	x86_pmu.num_events_fixed	= max((int)edx.split.num_events_fixed, 3);
 
-	/*
-	 * Install the hw-cache-events table:
-	 */
+	
 	switch (boot_cpu_data.x86_model) {
-	case 15: /* original 65 nm celeron/pentium/core2/xeon, "Merom"/"Conroe" */
-	case 22: /* single-core 65 nm celeron/core2solo "Merom-L"/"Conroe-L" */
-	case 23: /* current 45 nm celeron/core2/xeon "Penryn"/"Wolfdale" */
-	case 29: /* six-core 45 nm xeon "Dunnington" */
+	case 15: 
+	case 22: 
+	case 23: 
+	case 29: 
 		memcpy(hw_cache_event_ids, core2_hw_cache_event_ids,
 		       sizeof(hw_cache_event_ids));
 
@@ -2027,13 +1879,13 @@ static int intel_pmu_init(void)
 
 static int amd_pmu_init(void)
 {
-	/* Performance-monitoring supported from K7 and later: */
+	
 	if (boot_cpu_data.x86 < 6)
 		return -ENODEV;
 
 	x86_pmu = amd_pmu;
 
-	/* Events are common for all AMDs */
+	
 	memcpy(hw_cache_event_ids, amd_hw_cache_event_ids,
 	       sizeof(hw_cache_event_ids));
 
@@ -2119,9 +1971,7 @@ const struct pmu *hw_perf_event_init(struct perf_event *event)
 	return &pmu;
 }
 
-/*
- * callchain support
- */
+
 
 static inline
 void callchain_store(struct perf_callchain_entry *entry, u64 ip)
@@ -2138,12 +1988,12 @@ static DEFINE_PER_CPU(int, in_nmi_frame);
 static void
 backtrace_warning_symbol(void *data, char *msg, unsigned long symbol)
 {
-	/* Ignore warnings */
+	
 }
 
 static void backtrace_warning(void *data, char *msg)
 {
-	/* Ignore warnings */
+	
 }
 
 static int backtrace_stack(void *data, char *name)
@@ -2183,9 +2033,7 @@ perf_callchain_kernel(struct pt_regs *regs, struct perf_callchain_entry *entry)
 	dump_trace(NULL, regs, NULL, 0, &backtrace_ops, entry);
 }
 
-/*
- * best effort, GUP based copy_from_user() that assumes IRQ or NMI context
- */
+
 static unsigned long
 copy_from_user_nmi(void *to, const void __user *from, unsigned long n)
 {

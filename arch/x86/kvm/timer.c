@@ -9,14 +9,10 @@ static int __kvm_timer_fn(struct kvm_vcpu *vcpu, struct kvm_timer *ktimer)
 	int restart_timer = 0;
 	wait_queue_head_t *q = &vcpu->wq;
 
-	/*
-	 * There is a race window between reading and incrementing, but we do
-	 * not care about potentially loosing timer events in the !reinject
-	 * case anyway.
-	 */
+	
 	if (ktimer->reinject || !atomic_read(&ktimer->pending)) {
 		atomic_inc(&ktimer->pending);
-		/* FIXME: this code should not know anything about vcpus */
+		
 		set_bit(KVM_REQ_PENDING_TIMER, &vcpu->requests);
 	}
 

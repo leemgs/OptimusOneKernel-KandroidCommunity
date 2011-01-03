@@ -1,8 +1,4 @@
-/*
- *	Low-Level PCI Support for PC
- *
- *	(c) 1999--2000 Martin Mares <mj@ucw.cz>
- */
+
 
 #include <linux/sched.h>
 #include <linux/pci.h>
@@ -71,16 +67,10 @@ struct pci_ops pci_root_ops = {
 	.write = pci_write,
 };
 
-/*
- * legacy, numa, and acpi all want to call pcibios_scan_root
- * from their initcalls. This flag prevents that.
- */
+
 int pcibios_scanned;
 
-/*
- * This interrupt-safe spinlock protects all accesses to PCI
- * configuration space.
- */
+
 DEFINE_SPINLOCK(pci_config_lock);
 
 static int __devinit can_skip_ioresource_align(const struct dmi_system_id *d)
@@ -91,10 +81,7 @@ static int __devinit can_skip_ioresource_align(const struct dmi_system_id *d)
 }
 
 static const struct dmi_system_id can_skip_pciprobe_dmi_table[] __devinitconst = {
-/*
- * Systems where PCI IO resource ISA alignment can be skipped
- * when the ISA enable bit in the bridge control is not set
- */
+
 	{
 		.callback = can_skip_ioresource_align,
 		.ident = "IBM System x3800",
@@ -135,23 +122,20 @@ static void __devinit pcibios_fixup_device_resources(struct pci_dev *dev)
 		if (rom_r->parent)
 			return;
 		if (rom_r->start) {
-			/* we deal with BIOS assigned ROM later */
+			
 			return;
 		}
 		rom_r->start = rom_r->end = rom_r->flags = 0;
 	}
 }
 
-/*
- *  Called after each bus is probed, but before its children
- *  are examined.
- */
+
 
 void __devinit pcibios_fixup_bus(struct pci_bus *b)
 {
 	struct pci_dev *dev;
 
-	/* root bus? */
+	
 	if (!b->parent)
 		x86_pci_root_bus_res_quirks(b);
 	pci_read_bridge_bases(b);
@@ -159,10 +143,7 @@ void __devinit pcibios_fixup_bus(struct pci_bus *b)
 		pcibios_fixup_device_resources(dev);
 }
 
-/*
- * Only use DMI information to set this if nothing was passed
- * on the kernel command line (which was parsed earlier).
- */
+
 
 static int __devinit set_bf_sort(const struct dmi_system_id *d)
 {
@@ -173,9 +154,7 @@ static int __devinit set_bf_sort(const struct dmi_system_id *d)
 	return 0;
 }
 
-/*
- * Enable renumbering of PCI bus# ranges to reach all PCI busses (Cardbus)
- */
+
 #ifdef __i386__
 static int __devinit assign_all_busses(const struct dmi_system_id *d)
 {
@@ -188,9 +167,7 @@ static int __devinit assign_all_busses(const struct dmi_system_id *d)
 
 static const struct dmi_system_id __devinitconst pciprobe_dmi_table[] = {
 #ifdef __i386__
-/*
- * Laptops which need pci=assign-busses to see Cardbus cards
- */
+
 	{
 		.callback = assign_all_busses,
 		.ident = "Samsung X20 Laptop",
@@ -199,7 +176,7 @@ static const struct dmi_system_id __devinitconst pciprobe_dmi_table[] = {
 			DMI_MATCH(DMI_PRODUCT_NAME, "SX20S"),
 		},
 	},
-#endif		/* __i386__ */
+#endif		
 	{
 		.callback = set_bf_sort,
 		.ident = "Dell PowerEdge 1950",
@@ -385,15 +362,12 @@ struct pci_bus * __devinit pcibios_scan_root(int busnum)
 
 	while ((bus = pci_find_next_bus(bus)) != NULL) {
 		if (bus->number == busnum) {
-			/* Already scanned */
+			
 			return bus;
 		}
 	}
 
-	/* Allocate per-root-bus (not per bus) arch-specific data.
-	 * TODO: leak; this memory is never freed.
-	 * It's arguable whether it's worth the trouble to care.
-	 */
+	
 	sd = kzalloc(sizeof(*sd), GFP_KERNEL);
 	if (!sd) {
 		printk(KERN_ERR "PCI: OOM, not probing PCI bus %02x\n", busnum);
@@ -421,16 +395,12 @@ int __init pcibios_init(void)
 		return 0;
 	}
 
-	/*
-	 * Assume PCI cacheline size of 32 bytes for all x86s except K7/K8
-	 * and P4. It's also good for 386/486s (which actually have 16)
-	 * as quite a few PCI devices do not support smaller values.
-	 */
+	
 	pci_cache_line_size = 32 >> 2;
 	if (c->x86 >= 6 && c->x86_vendor == X86_VENDOR_AMD)
-		pci_cache_line_size = 64 >> 2;	/* K7 & K8 */
+		pci_cache_line_size = 64 >> 2;	
 	else if (c->x86 > 6 && c->x86_vendor == X86_VENDOR_INTEL)
-		pci_cache_line_size = 128 >> 2;	/* P4 */
+		pci_cache_line_size = 128 >> 2;	
 
 	pcibios_resource_survey();
 
@@ -578,11 +548,7 @@ struct pci_bus * __devinit pci_scan_bus_on_node(int busno, struct pci_ops *ops, 
 	struct pci_bus *bus = NULL;
 	struct pci_sysdata *sd;
 
-	/*
-	 * Allocate per-root-bus (not per bus) arch-specific data.
-	 * TODO: leak; this memory is never freed.
-	 * It's arguable whether it's worth the trouble to care.
-	 */
+	
 	sd = kzalloc(sizeof(*sd), GFP_KERNEL);
 	if (!sd) {
 		printk(KERN_ERR "PCI: OOM, skipping PCI bus %02x\n", busno);
@@ -601,14 +567,7 @@ struct pci_bus * __devinit pci_scan_bus_with_sysdata(int busno)
 	return pci_scan_bus_on_node(busno, &pci_root_ops, -1);
 }
 
-/*
- * NUMA info for PCI busses
- *
- * Early arch code is responsible for filling in reasonable values here.
- * A node id of "-1" means "use current node".  In other words, if a bus
- * has a -1 node id, it's not tightly coupled to any particular chunk
- * of memory (as is the case on some Nehalem systems).
- */
+
 #ifdef CONFIG_NUMA
 
 #define BUS_NR 256
@@ -634,17 +593,14 @@ int get_mp_bus_to_node(int busnum)
 
 	node = mp_bus_to_node[busnum];
 
-	/*
-	 * let numa_node_id to decide it later in dma_alloc_pages
-	 * if there is no ram on that node
-	 */
+	
 	if (node != -1 && !node_online(node))
 		node = -1;
 
 	return node;
 }
 
-#else /* CONFIG_X86_32 */
+#else 
 
 static int mp_bus_to_node[BUS_NR] = {
 	[0 ... BUS_NR - 1] = -1
@@ -666,6 +622,6 @@ int get_mp_bus_to_node(int busnum)
 	return node;
 }
 
-#endif /* CONFIG_X86_32 */
+#endif 
 
-#endif /* CONFIG_NUMA */
+#endif 

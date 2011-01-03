@@ -1,12 +1,4 @@
-/*
- * AMD Geode southbridge support code
- * Copyright (C) 2006, Advanced Micro Devices, Inc.
- * Copyright (C) 2007, Andres Salomon <dilinger@debian.org>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU General Public License
- * as published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -50,7 +42,7 @@ int geode_get_dev_base(unsigned int dev)
 }
 EXPORT_SYMBOL_GPL(geode_get_dev_base);
 
-/* === GPIO API === */
+
 
 void geode_gpio_set(u32 gpio, unsigned int reg)
 {
@@ -59,10 +51,10 @@ void geode_gpio_set(u32 gpio, unsigned int reg)
 	if (!base)
 		return;
 
-	/* low bank register */
+	
 	if (gpio & 0xFFFF)
 		outl(gpio & 0xFFFF, base + reg);
-	/* high bank register */
+	
 	gpio >>= 16;
 	if (gpio)
 		outl(gpio, base + 0x80 + reg);
@@ -76,10 +68,10 @@ void geode_gpio_clear(u32 gpio, unsigned int reg)
 	if (!base)
 		return;
 
-	/* low bank register */
+	
 	if (gpio & 0xFFFF)
 		outl((gpio & 0xFFFF) << 16, base + reg);
-	/* high bank register */
+	
 	gpio &= (0xFFFF << 16);
 	if (gpio)
 		outl(gpio, base + 0x80 + reg);
@@ -94,13 +86,13 @@ int geode_gpio_isset(u32 gpio, unsigned int reg)
 	if (!base)
 		return 0;
 
-	/* low bank register */
+	
 	if (gpio & 0xFFFF) {
 		val = inl(base + reg) & (gpio & 0xFFFF);
 		if ((gpio & 0xFFFF) == val)
 			return 1;
 	}
-	/* high bank register */
+	
 	gpio >>= 16;
 	if (gpio) {
 		val = inl(base + 0x80 + reg) & gpio;
@@ -145,14 +137,14 @@ void geode_gpio_setup_event(unsigned int gpio, int pair, int pme)
 
 	val = inl(base + offset);
 
-	/* Clear whatever was there before */
+	
 	val &= ~(0xF << shift);
 
-	/* And set the new value */
+	
 
 	val |= ((pair & 7) << shift);
 
-	/* Set the PME bit if this is a PME event */
+	
 
 	if (pme)
 		val |= (1 << (shift + 3));
@@ -168,10 +160,7 @@ int geode_has_vsa2(void)
 	if (has_vsa2 == -1) {
 		u16 val;
 
-		/*
-		 * The VSA has virtual registers that we can query for a
-		 * signature.
-		 */
+		
 		outw(VSA_VR_UNLOCK, VSA_VRC_INDEX);
 		outw(VSA_VR_SIGNATURE, VSA_VRC_INDEX);
 

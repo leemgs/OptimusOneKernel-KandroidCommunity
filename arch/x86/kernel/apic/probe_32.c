@@ -1,11 +1,4 @@
-/*
- * Default generic APIC driver. This handles up to 8 CPUs.
- *
- * Copyright 2003 Andi Kleen, SuSE Labs.
- * Subject to the GNU Public License, v.2
- *
- * Generic x86 APIC driver probe layer.
- */
+
 #include <linux/threads.h>
 #include <linux/cpumask.h>
 #include <linux/module.h>
@@ -63,20 +56,12 @@ void default_setup_apic_routing(void)
 
 static void default_vector_allocation_domain(int cpu, struct cpumask *retmask)
 {
-	/*
-	 * Careful. Some cpus do not strictly honor the set of cpus
-	 * specified in the interrupt destination when using lowest
-	 * priority interrupt delivery mode.
-	 *
-	 * In particular there was a hyperthreading cpu observed to
-	 * deliver interrupts to the wrong hyperthread when only one
-	 * hyperthread was specified in the interrupt desitination.
-	 */
+	
 	cpumask_clear(retmask);
 	cpumask_bits(retmask)[0] = APIC_ALL_CPUS;
 }
 
-/* should be called last. */
+
 static int probe_default(void)
 {
 	return 1;
@@ -90,7 +75,7 @@ struct apic apic_default = {
 	.apic_id_registered		= default_apic_id_registered,
 
 	.irq_delivery_mode		= dest_LowestPrio,
-	/* logical delivery broadcast to all CPUs: */
+	
 	.irq_dest_mode			= 1,
 
 	.target_cpus			= default_target_cpus,
@@ -167,7 +152,7 @@ static struct apic *apic_probe[] __initdata = {
 	&apic_es7000,
 	&apic_es7000_cluster,
 #endif
-	&apic_default,	/* must be last */
+	&apic_default,	
 	NULL,
 };
 
@@ -187,7 +172,7 @@ static int __init parse_apic(char *arg)
 		}
 	}
 
-	/* Parsed again by __setup for debug/verbose */
+	
 	return 0;
 }
 early_param("apic", parse_apic);
@@ -195,12 +180,7 @@ early_param("apic", parse_apic);
 void __init generic_bigsmp_probe(void)
 {
 #ifdef CONFIG_X86_BIGSMP
-	/*
-	 * This routine is used to switch to bigsmp mode when
-	 * - There is no apic= option specified by the user
-	 * - generic_apic_probe() has chosen apic_default as the sub_arch
-	 * - we find more than 8 CPUs in acpi LAPIC listing with xAPIC support
-	 */
+	
 
 	if (!cmdline_apic && apic == &apic_default) {
 		if (apic_bigsmp.probe()) {
@@ -222,14 +202,14 @@ void __init generic_apic_probe(void)
 				break;
 			}
 		}
-		/* Not visible without early console */
+		
 		if (!apic_probe[i])
 			panic("Didn't find an APIC driver");
 	}
 	printk(KERN_INFO "Using APIC driver %s\n", apic->name);
 }
 
-/* These functions can switch the APIC even after the initial ->probe() */
+
 
 int __init
 generic_mps_oem_check(struct mpc_table *mpc, char *oem, char *productid)

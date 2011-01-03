@@ -1,26 +1,4 @@
-/*
- * VMI specific paravirt-ops implementation
- *
- * Copyright (C) 2005, VMware, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, GOOD TITLE or
- * NON INFRINGEMENT.  See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * Send feedback to zach@vmware.com
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/cpu.h>
@@ -39,7 +17,7 @@
 #include <asm/kmap_types.h>
 #include <asm/setup.h>
 
-/* Convenient for calling VMI functions indirectly in the ROM */
+
 typedef u32 __attribute__((regparm(1))) (VROMFUNC)(void);
 typedef u64 __attribute__((regparm(2))) (VROMLONGFUNC)(int);
 
@@ -58,9 +36,9 @@ static int disable_mtrr;
 static int disable_noidle;
 static int disable_vmi_timer;
 
-/* Cached VMI operations */
+
 static struct {
-	void (*cpuid)(void /* non-c */);
+	void (*cpuid)(void );
 	void (*_set_ldt)(u32 selector);
 	void (*set_tr)(u32 selector);
 	void (*write_idt_entry)(struct desc_struct *, int, u32, u32);
@@ -78,12 +56,10 @@ static struct {
   	void (*set_lazy_mode)(int mode);
 } vmi_ops;
 
-/* Cached VMI operations */
+
 struct vmi_timer_ops vmi_timer_ops;
 
-/*
- * VMI patching routines.
- */
+
 #define MNEM_CALL 0xe8
 #define MNEM_JMP  0xe9
 #define MNEM_RET  0xc3
@@ -117,11 +93,11 @@ static unsigned patch_internal(int call, unsigned len, void *insnbuf,
 			return 5;
 
 		case VMI_RELOCATION_NOP:
-			/* obliterate the whole thing */
+			
 			return 0;
 
 		case VMI_RELOCATION_NONE:
-			/* leave native code in place */
+			
 			break;
 
 		default:
@@ -130,10 +106,7 @@ static unsigned patch_internal(int call, unsigned len, void *insnbuf,
 	return len;
 }
 
-/*
- * Apply patch if appropriate, return length of new instruction
- * sequence.  The callee does nop padding for us.
- */
+
 static unsigned vmi_patch(u8 type, u16 clobbers, void *insns,
 			  unsigned long ip, unsigned len)
 {
@@ -160,7 +133,7 @@ static unsigned vmi_patch(u8 type, u16 clobbers, void *insns,
 	return len;
 }
 
-/* CPUID has non-C semantics, and paravirt-ops API doesn't match hardware ISA */
+
 static void vmi_cpuid(unsigned int *ax, unsigned int *bx,
                                unsigned int *cx, unsigned int *dx)
 {
@@ -243,7 +216,7 @@ static void vmi_load_sp0(struct tss_struct *tss,
 {
 	tss->x86_tss.sp0 = thread->sp0;
 
-	/* This can only happen when SEP is enabled, no need to test "SEP"arately */
+	
 	if (unlikely(tss->x86_tss.ss1 != thread->sysenter_cs)) {
 		tss->x86_tss.ss1 = thread->sysenter_cs;
 		wrmsr(MSR_IA32_SYSENTER_CS, thread->sysenter_cs, 0);
@@ -261,7 +234,7 @@ static void vmi_flush_tlb_kernel(void)
 	vmi_ops._flush_tlb(VMI_FLUSH_TLB | VMI_FLUSH_GLOBAL);
 }
 
-/* Stub to do nothing at all; used for delays and unimplemented calls */
+
 static void vmi_nop(void)
 {
 }
@@ -271,18 +244,7 @@ static void *vmi_kmap_atomic_pte(struct page *page, enum km_type type)
 {
 	void *va = kmap_atomic(page, type);
 
-	/*
-	 * Internally, the VMI ROM must map virtual addresses to physical
-	 * addresses for processing MMU updates.  By the time MMU updates
-	 * are issued, this information is typically already lost.
-	 * Fortunately, the VMI provides a cache of mapping slots for active
-	 * page tables.
-	 *
-	 * We use slot zero for the linear mapping of physical memory, and
-	 * in HIGHPTE kernels, slot 1 and 2 for KM_PTE0 and KM_PTE1.
-	 *
-	 *  args:                 SLOT                 VA    COUNT PFN
-	 */
+	
 	BUG_ON(type != KM_PTE0 && type != KM_PTE1);
 	vmi_ops.set_linear_mapping((type - KM_PTE0)+1, va, 1, page_to_pfn(page));
 
@@ -297,11 +259,7 @@ static void vmi_allocate_pte(struct mm_struct *mm, unsigned long pfn)
 
 static void vmi_allocate_pmd(struct mm_struct *mm, unsigned long pfn)
 {
- 	/*
-	 * This call comes in very early, before mem_map is setup.
-	 * It is called only for swapper_pg_dir, which already has
-	 * data on it.
-	 */
+ 	
 	vmi_ops.allocate_page(pfn, VMI_PAGE_L2, 0, 0, 0);
 }
 
@@ -320,9 +278,7 @@ static void vmi_release_pmd(unsigned long pfn)
 	vmi_ops.release_page(pfn, VMI_PAGE_L2);
 }
 
-/*
- * We use the pgd_free hook for releasing the pgd page:
- */
+
 static void vmi_pgd_free(struct mm_struct *mm, pgd_t *pgd)
 {
 	unsigned long pfn = __pa(pgd) >> PAGE_SHIFT;
@@ -330,16 +286,7 @@ static void vmi_pgd_free(struct mm_struct *mm, pgd_t *pgd)
 	vmi_ops.release_page(pfn, VMI_PAGE_L2);
 }
 
-/*
- * Helper macros for MMU update flags.  We can defer updates until a flush
- * or page invalidation only if the update is to the current address space
- * (otherwise, there is no flush).  We must check against init_mm, since
- * this could be a kernel update, which usually passes init_mm, although
- * sometimes this check can be skipped if we know the particular function
- * is only called on user mode PTEs.  We could change the kernel to pass
- * current->active_mm here, but in particular, I was unsure if changing
- * mm/highmem.c to do this would still be correct on other architectures.
- */
+
 #define is_current_as(mm, mustbeuser) ((mm) == current->active_mm ||    \
                                        (!mustbeuser && (mm) == &init_mm))
 #define vmi_flags_addr(mm, addr, level, user)                           \
@@ -361,7 +308,7 @@ static void vmi_update_pte_defer(struct mm_struct *mm, unsigned long addr, pte_t
 
 static void vmi_set_pte(pte_t *ptep, pte_t pte)
 {
-	/* XXX because of set_pmd_pte, this can be called on PT or PD layers */
+	
 	vmi_ops.set_pte(pte, ptep, VMI_PAGE_PT);
 }
 
@@ -384,20 +331,14 @@ static void vmi_set_pmd(pmd_t *pmdp, pmd_t pmdval)
 
 static void vmi_set_pte_atomic(pte_t *ptep, pte_t pteval)
 {
-	/*
-	 * XXX This is called from set_pmd_pte, but at both PT
-	 * and PD layers so the VMI_PAGE_PT flag is wrong.  But
-	 * it is only called for large page mapping changes,
-	 * the Xen backend, doesn't support large pages, and the
-	 * ESX backend doesn't depend on the flag.
-	 */
+	
 	set_64bit((unsigned long long *)ptep,pte_val(pteval));
 	vmi_ops.update_pte(ptep, VMI_PAGE_PT);
 }
 
 static void vmi_set_pud(pud_t *pudp, pud_t pudval)
 {
-	/* Um, eww */
+	
 	const pte_t pte = { .pte = pudval.pgd.pgd };
 	vmi_ops.set_pte(pte, (pte_t *)pudp, VMI_PAGE_PDP);
 }
@@ -422,7 +363,7 @@ vmi_startup_ipi_hook(int phys_apicid, unsigned long start_eip,
 {
 	struct vmi_ap_state ap;
 
-	/* Default everything to zero.  This is fine for most GPRs. */
+	
 	memset(&ap, 0, sizeof(struct vmi_ap_state));
 
 	ap.gdtr_limit = GDT_SIZE - 1;
@@ -446,7 +387,7 @@ vmi_startup_ipi_hook(int phys_apicid, unsigned long start_eip,
 	ap.eflags = 0;
 
 #ifdef CONFIG_X86_PAE
-	/* efer should match BSP efer. */
+	
 	if (cpu_has_nx) {
 		unsigned l, h;
 		rdmsr(MSR_EFER, l, h);
@@ -455,7 +396,7 @@ vmi_startup_ipi_hook(int phys_apicid, unsigned long start_eip,
 #endif
 
 	ap.cr3 = __pa(swapper_pg_dir);
-	/* Protected mode, paging, AM, WP, NE, MP. */
+	
 	ap.cr0 = 0x80050023;
 	ap.cr4 = mmu_cr4_features;
 	vmi_ops.set_initial_ap_state((u32)&ap, phys_apicid);
@@ -506,11 +447,7 @@ static inline int __init check_vmi_rom(struct vrom_header *rom)
 		return 0;
 	}
 
-	/*
-	 * Relying on the VMI_SIGNATURE field is not 100% safe, so check
-	 * the PCI header and device type to make sure this is really a
-	 * VMI device.
-	 */
+	
 	if (!rom->pci_header_offs) {
 		printk(KERN_WARNING "VMI: ROM does not contain PCI header.\n");
 		return 0;
@@ -519,7 +456,7 @@ static inline int __init check_vmi_rom(struct vrom_header *rom)
 	pci = (struct pci_header *)((char *)rom+rom->pci_header_offs);
 	if (pci->vendorID != PCI_VENDOR_ID_VMWARE ||
 	    pci->deviceID != PCI_DEVICE_ID_VMWARE_VMI) {
-		/* Allow it to run... anyways, but warn */
+		
 		printk(KERN_WARNING "VMI: ROM from unknown manufacturer\n");
 	}
 
@@ -539,8 +476,7 @@ static inline int __init check_vmi_rom(struct vrom_header *rom)
 		rom->api_version_maj, rom->api_version_min,
 		pci->rom_version_maj, pci->rom_version_min);
 
-	/* Don't allow BSD/MIT here for now because we don't want to end up
-	   with any binary only shim layers */
+	
 	if (strcmp(license, "GPL") && strcmp(license, "GPL v2")) {
 		printk(KERN_WARNING "VMI: Non GPL license `%s' found for ROM. Not used.\n",
 			license);
@@ -550,14 +486,12 @@ static inline int __init check_vmi_rom(struct vrom_header *rom)
 	return 1;
 }
 
-/*
- * Probe for the VMI option ROM
- */
+
 static inline int __init probe_vmi_rom(void)
 {
 	unsigned long base;
 
-	/* VMI ROM is in option ROM area, check signature */
+	
 	for (base = 0xC0000; base < 0xE0000; base += 2048) {
 		struct vrom_header *romstart;
 		romstart = (struct vrom_header *)isa_bus_to_virt(base);
@@ -569,19 +503,15 @@ static inline int __init probe_vmi_rom(void)
 	return 0;
 }
 
-/*
- * VMI setup common to all processors
- */
+
 void vmi_bringup(void)
 {
- 	/* We must establish the lowmem mapping for MMU ops to work */
+ 	
 	if (vmi_ops.set_linear_mapping)
 		vmi_ops.set_linear_mapping(0, (void *)__PAGE_OFFSET, MAXMEM_PFN, 0);
 }
 
-/*
- * Return a pointer to a VMI function or NULL if unimplemented
- */
+
 static void *vmi_get_function(int vmicall)
 {
 	u64 reloc;
@@ -594,11 +524,7 @@ static void *vmi_get_function(int vmicall)
 		return NULL;
 }
 
-/*
- * Helper macro for making the VMI paravirt-ops fill code readable.
- * For unimplemented operations, fall back to default, unless nop
- * is returned by the ROM.
- */
+
 #define para_fill(opname, vmicall)				\
 do {								\
 	reloc = call_vrom_long_func(vmi_rom, get_reloc,		\
@@ -613,13 +539,7 @@ do {								\
 					rel->type);		\
 } while (0)
 
-/*
- * Helper macro for making the VMI paravirt-ops fill code readable.
- * For cached operations which do not match the VMI ROM ABI and must
- * go through a tranlation stub.  Ignore NOPs, since it is not clear
- * a NOP * VMI function corresponds to a NOP paravirt-op when the
- * functions are not in 1-1 correspondence.
- */
+
 #define para_wrap(opname, wrapper, cache, vmicall)		\
 do {								\
 	reloc = call_vrom_long_func(vmi_rom, get_reloc,		\
@@ -631,9 +551,7 @@ do {								\
 	}							\
 } while (0)
 
-/*
- * Activate the VMI interface and switch into paravirtualized mode
- */
+
 static inline int __init activate_vmi(void)
 {
 	short kernel_cs;
@@ -652,22 +570,9 @@ static inline int __init activate_vmi(void)
 
 	pv_init_ops.patch = vmi_patch;
 
-	/*
-	 * Many of these operations are ABI compatible with VMI.
-	 * This means we can fill in the paravirt-ops with direct
-	 * pointers into the VMI ROM.  If the calling convention for
-	 * these operations changes, this code needs to be updated.
-	 *
-	 * Exceptions
-	 *  CPUID paravirt-op uses pointers, not the native ISA
-	 *  halt has no VMI equivalent; all VMI halts are "safe"
-	 *  no MSR support yet - just trap and emulate.  VMI uses the
-	 *    same ABI as the native ISA, but Linux wants exceptions
-	 *    from bogus MSR read / write handled
-	 *  rdpmc is not yet used in Linux
-	 */
+	
 
-	/* CPUID is special, so very special it gets wrapped like a present */
+	
 	para_wrap(pv_cpu_ops.cpuid, vmi_cpuid, cpuid, CPUID);
 
 	para_fill(pv_cpu_ops.clts, CLTS);
@@ -690,15 +595,15 @@ static inline int __init activate_vmi(void)
 	para_fill(pv_cpu_ops.wbinvd, WBINVD);
 	para_fill(pv_cpu_ops.read_tsc, RDTSC);
 
-	/* The following we emulate with trap and emulate for now */
-	/* paravirt_ops.read_msr = vmi_rdmsr */
-	/* paravirt_ops.write_msr = vmi_wrmsr */
-	/* paravirt_ops.rdpmc = vmi_rdpmc */
+	
+	
+	
+	
 
-	/* TR interface doesn't pass TR value, wrap */
+	
 	para_wrap(pv_cpu_ops.load_tr_desc, vmi_set_tr, set_tr, SetTR);
 
-	/* LDT is special, too */
+	
 	para_wrap(pv_cpu_ops.set_ldt, vmi_set_ldt, _set_ldt, SetLDT);
 
 	para_fill(pv_cpu_ops.load_gdt, SetGDT);
@@ -727,16 +632,12 @@ static inline int __init activate_vmi(void)
 	para_wrap(pv_mmu_ops.lazy_mode.leave, vmi_leave_lazy_mmu,
 		  set_lazy_mode, SetLazyMode);
 
-	/* user and kernel flush are just handled with different flags to FlushTLB */
+	
 	para_wrap(pv_mmu_ops.flush_tlb_user, vmi_flush_tlb_user, _flush_tlb, FlushTLB);
 	para_wrap(pv_mmu_ops.flush_tlb_kernel, vmi_flush_tlb_kernel, _flush_tlb, FlushTLB);
 	para_fill(pv_mmu_ops.flush_tlb_single, InvalPage);
 
-	/*
-	 * Until a standard flag format can be agreed on, we need to
-	 * implement these as wrappers in Linux.  Get the VMI ROM
-	 * function pointers for the two backend calls.
-	 */
+	
 #ifdef CONFIG_X86_PAE
 	vmi_ops.set_pte = vmi_get_function(VMI_CALL_SetPxELong);
 	vmi_ops.update_pte = vmi_get_function(VMI_CALL_UpdatePxELong);
@@ -776,20 +677,14 @@ static inline int __init activate_vmi(void)
 		pv_mmu_ops.pgd_free = vmi_pgd_free;
 	}
 
-	/* Set linear is needed in all cases */
+	
 	vmi_ops.set_linear_mapping = vmi_get_function(VMI_CALL_SetLinearMapping);
 #ifdef CONFIG_HIGHPTE
 	if (vmi_ops.set_linear_mapping)
 		pv_mmu_ops.kmap_atomic_pte = vmi_kmap_atomic_pte;
 #endif
 
-	/*
-	 * These MUST always be patched.  Don't support indirect jumps
-	 * through these operations, as the VMI interface may use either
-	 * a jump or a call to get to these operations, depending on
-	 * the backend.  They are performance critical anyway, so requiring
-	 * a patch is not a big problem.
-	 */
+	
 	pv_cpu_ops.irq_enable_sysexit = (void *)0xfeedbab0;
 	pv_cpu_ops.iret = (void *)0xbadbab0;
 
@@ -802,9 +697,7 @@ static inline int __init activate_vmi(void)
        para_fill(apic->write, APICWrite);
 #endif
 
-	/*
-	 * Check for VMI timer functionality by probing for a cycle frequency method
-	 */
+	
 	reloc = call_vrom_long_func(vmi_rom, get_reloc, VMI_CALL_GetCycleFrequency);
 	if (!disable_vmi_timer && rel->type != VMI_RELOCATION_NONE) {
 		vmi_timer_ops.get_cycle_frequency = (void *)rel->eip;
@@ -827,7 +720,7 @@ static inline int __init activate_vmi(void)
 		x86_platform.get_wallclock = vmi_get_wallclock;
 		x86_platform.set_wallclock = vmi_set_wallclock;
 
-		/* We have true wallclock functions; disable CMOS clock sync */
+		
 		no_sync_cmos_clock = 1;
 	} else {
 		disable_noidle = 1;
@@ -836,12 +729,7 @@ static inline int __init activate_vmi(void)
 
 	para_fill(pv_irq_ops.safe_halt, Halt);
 
-	/*
-	 * Alternative instruction rewriting doesn't happen soon enough
-	 * to convert VMI_IRET to a call instead of a jump; so we have
-	 * to do this before IRQs get reenabled.  Fortunately, it is
-	 * idempotent.
-	 */
+	
 	apply_paravirt(__parainstructions, __parainstructions_end);
 
 	vmi_bringup();
@@ -858,14 +746,14 @@ void __init vmi_init(void)
 	else
 		check_vmi_rom(vmi_rom);
 
-	/* In case probing for or validating the ROM failed, basil */
+	
 	if (!vmi_rom)
 		return;
 
 	reserve_top_address(-vmi_rom->virtual_top);
 
 #ifdef CONFIG_X86_IO_APIC
-	/* This is virtual hardware; timer routing is wired correctly */
+	
 	no_timer_check = 1;
 #endif
 }

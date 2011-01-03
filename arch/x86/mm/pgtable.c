@@ -45,8 +45,8 @@ void ___pud_free_tlb(struct mmu_gather *tlb, pud_t *pud)
 	paravirt_release_pud(__pa(pud) >> PAGE_SHIFT);
 	tlb_remove_page(tlb, virt_to_page(pud));
 }
-#endif	/* PAGETABLE_LEVELS > 3 */
-#endif	/* PAGETABLE_LEVELS > 2 */
+#endif	
+#endif	
 
 static inline void pgd_list_add(pgd_t *pgd)
 {
@@ -67,9 +67,7 @@ static inline void pgd_list_del(pgd_t *pgd)
 
 static void pgd_ctor(pgd_t *pgd)
 {
-	/* If the pgd points to a shared pagetable level (either the
-	   ptes in non-PAE, or shared PMD in PAE), then just copy the
-	   references from swapper_pg_dir. */
+	
 	if (PAGETABLE_LEVELS == 2 ||
 	    (PAGETABLE_LEVELS == 3 && SHARED_KERNEL_PMD) ||
 	    PAGETABLE_LEVELS == 4) {
@@ -82,14 +80,14 @@ static void pgd_ctor(pgd_t *pgd)
 					 KERNEL_PGD_PTRS);
 	}
 
-	/* list required to sync kernel mapping updates */
+	
 	if (!SHARED_KERNEL_PMD)
 		pgd_list_add(pgd);
 }
 
 static void pgd_dtor(pgd_t *pgd)
 {
-	unsigned long flags; /* can be called from interrupt context */
+	unsigned long flags; 
 
 	if (SHARED_KERNEL_PMD)
 		return;
@@ -99,54 +97,29 @@ static void pgd_dtor(pgd_t *pgd)
 	spin_unlock_irqrestore(&pgd_lock, flags);
 }
 
-/*
- * List of all pgd's needed for non-PAE so it can invalidate entries
- * in both cached and uncached pgd's; not needed for PAE since the
- * kernel pmd is shared. If PAE were not to share the pmd a similar
- * tactic would be needed. This is essentially codepath-based locking
- * against pageattr.c; it is the unique case in which a valid change
- * of kernel pagetables can't be lazily synchronized by vmalloc faults.
- * vmalloc faults work because attached pagetables are never freed.
- * -- wli
- */
+
 
 #ifdef CONFIG_X86_PAE
-/*
- * In PAE mode, we need to do a cr3 reload (=tlb flush) when
- * updating the top-level pagetable entries to guarantee the
- * processor notices the update.  Since this is expensive, and
- * all 4 top-level entries are used almost immediately in a
- * new process's life, we just pre-populate them here.
- *
- * Also, if we're in a paravirt environment where the kernel pmd is
- * not shared between pagetables (!SHARED_KERNEL_PMDS), we allocate
- * and initialize the kernel pmds here.
- */
+
 #define PREALLOCATED_PMDS	UNSHARED_PTRS_PER_PGD
 
 void pud_populate(struct mm_struct *mm, pud_t *pudp, pmd_t *pmd)
 {
 	paravirt_alloc_pmd(mm, __pa(pmd) >> PAGE_SHIFT);
 
-	/* Note: almost everything apart from _PAGE_PRESENT is
-	   reserved at the pmd (PDPT) level. */
+	
 	set_pud(pudp, __pud(__pa(pmd) | _PAGE_PRESENT));
 
-	/*
-	 * According to Intel App note "TLBs, Paging-Structure Caches,
-	 * and Their Invalidation", April 2007, document 317080-001,
-	 * section 8.1: in PAE mode we explicitly have to flush the
-	 * TLB via cr3 if the top-level pgd is changed...
-	 */
+	
 	if (mm == current->active_mm)
 		write_cr3(read_cr3());
 }
-#else  /* !CONFIG_X86_PAE */
+#else  
 
-/* No need to prepopulate any pagetable entries in non-PAE modes. */
+
 #define PREALLOCATED_PMDS	0
 
-#endif	/* CONFIG_X86_PAE */
+#endif	
 
 static void free_pmds(pmd_t *pmds[])
 {
@@ -177,12 +150,7 @@ static int preallocate_pmds(pmd_t *pmds[])
 	return 0;
 }
 
-/*
- * Mop up any pmd pages which may still be attached to the pgd.
- * Normally they will be freed by munmap/exit_mmap, but any pmd we
- * preallocate which never got a corresponding vma will need to be
- * freed manually.
- */
+
 static void pgd_mop_up_pmds(struct mm_struct *mm, pgd_t *pgdp)
 {
 	int i;
@@ -207,7 +175,7 @@ static void pgd_prepopulate_pmd(struct mm_struct *mm, pgd_t *pgd, pmd_t *pmds[])
 	unsigned long addr;
 	int i;
 
-	if (PREALLOCATED_PMDS == 0) /* Work around gcc-3.4.x bug */
+	if (PREALLOCATED_PMDS == 0) 
 		return;
 
 	pud = pud_offset(pgd, 0);
@@ -243,11 +211,7 @@ pgd_t *pgd_alloc(struct mm_struct *mm)
 	if (paravirt_pgd_alloc(mm) != 0)
 		goto out_free_pmds;
 
-	/*
-	 * Make sure that pre-populating the pmds is atomic with
-	 * respect to anything walking the pgd_list, so that they
-	 * never see a partially populated pgd.
-	 */
+	
 	spin_lock_irqsave(&pgd_lock, flags);
 
 	pgd_ctor(pgd);
@@ -315,13 +279,7 @@ int ptep_clear_flush_young(struct vm_area_struct *vma,
 	return young;
 }
 
-/**
- * reserve_top_address - reserves a hole in the top of kernel address space
- * @reserve - size of hole to reserve
- *
- * Can be used to relocate the fixmap area and poke a hole in the top
- * of kernel address space to make room for a hypervisor.
- */
+
 void __init reserve_top_address(unsigned long reserve)
 {
 #ifdef CONFIG_X86_32

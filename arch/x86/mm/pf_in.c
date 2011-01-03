@@ -1,48 +1,24 @@
-/*
- *  Fault Injection Test harness (FI)
- *  Copyright (C) Intel Crop.
- *
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License
- *  as published by the Free Software Foundation; either version 2
- *  of the License, or (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
- *  USA.
- *
- */
 
-/*  Id: pf_in.c,v 1.1.1.1 2002/11/12 05:56:32 brlock Exp
- *  Copyright by Intel Crop., 2002
- *  Louis Zhuang (louis.zhuang@intel.com)
- *
- *  Bjorn Steinbrink (B.Steinbrink@gmx.de), 2007
- */
+
+
 
 #include <linux/module.h>
-#include <linux/ptrace.h> /* struct pt_regs */
+#include <linux/ptrace.h> 
 #include "pf_in.h"
 
 #ifdef __i386__
-/* IA32 Manual 3, 2-1 */
+
 static unsigned char prefix_codes[] = {
 	0xF0, 0xF2, 0xF3, 0x2E, 0x36, 0x3E, 0x26, 0x64,
 	0x65, 0x2E, 0x3E, 0x66, 0x67
 };
-/* IA32 Manual 3, 3-432*/
+
 static unsigned int reg_rop[] = {
 	0x8A, 0x8B, 0xB60F, 0xB70F, 0xBE0F, 0xBF0F
 };
 static unsigned int reg_wop[] = { 0x88, 0x89 };
 static unsigned int imm_wop[] = { 0xC6, 0xC7 };
-/* IA32 Manual 3, 3-432*/
+
 static unsigned int rw8[] = { 0x88, 0x8A, 0xC6 };
 static unsigned int rw32[] = {
 	0x89, 0x8B, 0xC7, 0xB60F, 0xB70F, 0xBE0F, 0xBF0F
@@ -51,15 +27,15 @@ static unsigned int mw8[] = { 0x88, 0x8A, 0xC6, 0xB60F, 0xBE0F };
 static unsigned int mw16[] = { 0xB70F, 0xBF0F };
 static unsigned int mw32[] = { 0x89, 0x8B, 0xC7 };
 static unsigned int mw64[] = {};
-#else /* not __i386__ */
+#else 
 static unsigned char prefix_codes[] = {
 	0x66, 0x67, 0x2E, 0x3E, 0x26, 0x64, 0x65, 0x36,
 	0xF0, 0xF3, 0xF2,
-	/* REX Prefixes */
+	
 	0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47,
 	0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e, 0x4f
 };
-/* AMD64 Manual 3, Appendix A*/
+
 static unsigned int reg_rop[] = {
 	0x8A, 0x8B, 0xB60F, 0xB70F, 0xBE0F, 0xBF0F
 };
@@ -69,15 +45,15 @@ static unsigned int rw8[] = { 0xC6, 0x88, 0x8A };
 static unsigned int rw32[] = {
 	0xC7, 0x89, 0x8B, 0xB60F, 0xB70F, 0xBE0F, 0xBF0F
 };
-/* 8 bit only */
+
 static unsigned int mw8[] = { 0xC6, 0x88, 0x8A, 0xB60F, 0xBE0F };
-/* 16 bit only */
+
 static unsigned int mw16[] = { 0xB70F, 0xBF0F };
-/* 16 or 32 bit */
+
 static unsigned int mw32[] = { 0xC7 };
-/* 16, 32 or 64 bit */
+
 static unsigned int mw64[] = { 0x89, 0x8B };
-#endif /* not __i386__ */
+#endif 
 
 struct prefix_bits {
 	unsigned shorted:1;
@@ -121,7 +97,7 @@ static int get_opcode(unsigned char *addr, unsigned int *opcode)
 	int len;
 
 	if (*addr == 0x0F) {
-		/* 0x0F is extension instruction */
+		
 		*opcode = *(unsigned short *)addr;
 		len = 2;
 	} else {
@@ -215,10 +191,7 @@ unsigned int get_ins_mem_width(unsigned long ins_addr)
 	return 0;
 }
 
-/*
- * Define register ident in mod/rm byte.
- * Note: these are NOT the same as in ptrace-abi.h.
- */
+
 enum {
 	arg_AL = 0,
 	arg_CL = 1,
@@ -300,10 +273,7 @@ static unsigned char *get_reg_w8(int no, int rex, struct pt_regs *regs)
 		return rv;
 
 	if (rex) {
-		/*
-		 * If REX prefix exists, access low bytes of SI etc.
-		 * instead of AH etc.
-		 */
+		
 		switch (no) {
 		case arg_SI:
 			rv = (unsigned char *)&regs->si;
@@ -491,8 +461,8 @@ do_work:
 	p++;
 	switch (mod) {
 	case 0:
-		/* if r/m is 5 we have a 32 disp (IA32 Manual 3, Table 2-2)  */
-		/* AMD64: XXX Check for address size prefix? */
+		
+		
 		if ((mod_rm & 0x7) == 0x5)
 			p += 4;
 		break;

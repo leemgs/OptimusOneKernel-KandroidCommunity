@@ -1,7 +1,4 @@
-/*
- * Written by Pat Gaughen (gone@us.ibm.com) Mar 2002
- *
- */
+
 
 #ifndef _ASM_X86_MMZONE_32_H
 #define _ASM_X86_MMZONE_32_H
@@ -13,15 +10,11 @@ extern struct pglist_data *node_data[];
 #define NODE_DATA(nid)	(node_data[nid])
 
 #include <asm/numaq.h>
-/* summit or generic arch */
+
 #include <asm/srat.h>
 
 extern int get_memcfg_numa_flat(void);
-/*
- * This allows any one NUMA architecture to be compiled
- * for, and still fall back to the flat function if it
- * fails.
- */
+
 static inline void get_memcfg_numa(void)
 {
 
@@ -34,25 +27,17 @@ static inline void get_memcfg_numa(void)
 
 extern void resume_map_numa_kva(pgd_t *pgd);
 
-#else /* !CONFIG_NUMA */
+#else 
 
 #define get_memcfg_numa get_memcfg_numa_flat
 
 static inline void resume_map_numa_kva(pgd_t *pgd) {}
 
-#endif /* CONFIG_NUMA */
+#endif 
 
 #ifdef CONFIG_DISCONTIGMEM
 
-/*
- * generic node memory support, the following assumptions apply:
- *
- * 1) memory comes in 64Mb contigious chunks which are either present or not
- * 2) we will not have more than 64Gb in total
- *
- * for now assume that 64Gb is max amount of RAM for whole system
- *    64Gb / 4096bytes/page = 16777216 pages
- */
+
 #define MAX_NR_PAGES 16777216
 #define MAX_ELEMENTS 1024
 #define PAGES_PER_ELEMENT (MAX_NR_PAGES/MAX_ELEMENTS)
@@ -68,9 +53,7 @@ static inline int pfn_to_nid(unsigned long pfn)
 #endif
 }
 
-/*
- * Following are macros that each numa implmentation must define.
- */
+
 
 #define node_start_pfn(nid)	(NODE_DATA(nid)->node_start_pfn)
 #define node_end_pfn(nid)						\
@@ -88,12 +71,12 @@ static inline int pfn_valid(int pfn)
 	return 0;
 }
 
-#endif /* CONFIG_DISCONTIGMEM */
+#endif 
 
 #ifdef CONFIG_NEED_MULTIPLE_NODES
-/* always use node 0 for bootmem on this numa platform */
+
 #define bootmem_arch_preferred_node(__bdata, size, align, goal, limit)	\
 	(NODE_DATA(0)->bdata)
-#endif /* CONFIG_NEED_MULTIPLE_NODES */
+#endif 
 
-#endif /* _ASM_X86_MMZONE_32_H */
+#endif 

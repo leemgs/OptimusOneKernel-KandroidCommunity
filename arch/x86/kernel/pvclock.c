@@ -1,42 +1,19 @@
-/*  paravirtual clock -- common code used by kvm/xen
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-*/
 
 #include <linux/kernel.h>
 #include <linux/percpu.h>
 #include <asm/pvclock.h>
 
-/*
- * These are perodically updated
- *    xen: magic shared_info page
- *    kvm: gpa registered via msr
- * and then copied here.
- */
+
 struct pvclock_shadow_time {
-	u64 tsc_timestamp;     /* TSC at last update of time vals.  */
-	u64 system_timestamp;  /* Time, in nanosecs, since boot.    */
+	u64 tsc_timestamp;     
+	u64 system_timestamp;  
 	u32 tsc_to_nsec_mul;
 	int tsc_shift;
 	u32 version;
 };
 
-/*
- * Scale a 64-bit delta by scaling and multiplying by a 32-bit fraction,
- * yielding a 64-bit result.
- */
+
 static inline u64 scale_delta(u64 delta, u32 mul_frac, int shift)
 {
 	u64 product;
@@ -77,21 +54,18 @@ static u64 pvclock_get_nsec_offset(struct pvclock_shadow_time *shadow)
 	return scale_delta(delta, shadow->tsc_to_nsec_mul, shadow->tsc_shift);
 }
 
-/*
- * Reads a consistent set of time-base values from hypervisor,
- * into a shadow data area.
- */
+
 static unsigned pvclock_get_time_values(struct pvclock_shadow_time *dst,
 					struct pvclock_vcpu_time_info *src)
 {
 	do {
 		dst->version = src->version;
-		rmb();		/* fetch version before data */
+		rmb();		
 		dst->tsc_timestamp     = src->tsc_timestamp;
 		dst->system_timestamp  = src->system_time;
 		dst->tsc_to_nsec_mul   = src->tsc_to_system_mul;
 		dst->tsc_shift         = src->tsc_shift;
-		rmb();		/* test version after fetching data */
+		rmb();		
 	} while ((src->version & 1) || (dst->version != src->version));
 
 	return dst->version;
@@ -134,16 +108,16 @@ void pvclock_read_wallclock(struct pvclock_wall_clock *wall_clock,
 	u64 delta;
 	struct timespec now;
 
-	/* get wallclock at system boot */
+	
 	do {
 		version = wall_clock->version;
-		rmb();		/* fetch version before time */
+		rmb();		
 		now.tv_sec  = wall_clock->sec;
 		now.tv_nsec = wall_clock->nsec;
-		rmb();		/* fetch time before checking version */
+		rmb();		
 	} while ((wall_clock->version & 1) || (version != wall_clock->version));
 
-	delta = pvclock_clocksource_read(vcpu_time);	/* time since system boot */
+	delta = pvclock_clocksource_read(vcpu_time);	
 	delta += now.tv_sec * (u64)NSEC_PER_SEC + now.tv_nsec;
 
 	now.tv_nsec = do_div(delta, NSEC_PER_SEC);

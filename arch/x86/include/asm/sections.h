@@ -5,4 +5,4 @@
 
 extern char __brk_base[], __brk_limit[];
 
-#endif	/* _ASM_X86_SECTIONS_H */
+#endif	

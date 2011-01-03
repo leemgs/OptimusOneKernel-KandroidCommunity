@@ -1,12 +1,4 @@
-/*
- *	Copyright (C) 1992, 1998 Linus Torvalds, Ingo Molnar
- *
- * This file contains the lowest level x86_64-specific interrupt
- * entry and irq statistics code. All the remaining irq logic is
- * done by the generic kernel/irq/ code and in the
- * x86_64-specific irq controller code. (e.g. i8259.c and
- * io_apic.c.)
- */
+
 
 #include <linux/kernel_stat.h>
 #include <linux/interrupt.h>
@@ -26,13 +18,7 @@ EXPORT_PER_CPU_SYMBOL(irq_stat);
 DEFINE_PER_CPU(struct pt_regs *, irq_regs);
 EXPORT_PER_CPU_SYMBOL(irq_regs);
 
-/*
- * Probabilistic stack overflow check:
- *
- * Only check the stack in process context, because everything else
- * runs on the big interrupt stacks. Checking reliably is too expensive,
- * so we just check from interrupts.
- */
+
 static inline void stack_overflow_check(struct pt_regs *regs)
 {
 #ifdef CONFIG_DEBUG_STACKOVERFLOW
@@ -63,7 +49,7 @@ bool handle_irq(unsigned irq, struct pt_regs *regs)
 }
 
 #ifdef CONFIG_HOTPLUG_CPU
-/* A cpu has been removed from cpu_online_mask.  Reset irq affinities. */
+
 void fixup_irqs(void)
 {
 	unsigned int irq;
@@ -80,7 +66,7 @@ void fixup_irqs(void)
 		if (irq == 2)
 			continue;
 
-		/* interrupt's are disabled at this point */
+		
 		spin_lock(&desc->lock);
 
 		affinity = desc->affinity;
@@ -114,7 +100,7 @@ void fixup_irqs(void)
 			printk("Cannot set affinity for irq %i\n", irq);
 	}
 
-	/* That doesn't seem sufficient.  Give it 1ms. */
+	
 	local_irq_enable();
 	mdelay(1);
 	local_irq_disable();
@@ -133,7 +119,7 @@ asmlinkage void do_softirq(void)
 
 	local_irq_save(flags);
 	pending = local_softirq_pending();
-	/* Switch to interrupt stack */
+	
 	if (pending) {
 		call_softirq();
 		WARN_ON_ONCE(softirq_count());

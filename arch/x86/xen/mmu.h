@@ -37,7 +37,7 @@ void xen_set_pte_at(struct mm_struct *mm, unsigned long addr,
 void xen_set_pte_atomic(pte_t *ptep, pte_t pte);
 void xen_pte_clear(struct mm_struct *mm, unsigned long addr, pte_t *ptep);
 void xen_pmd_clear(pmd_t *pmdp);
-#endif	/* CONFIG_X86_PAE */
+#endif	
 
 void xen_set_pmd(pmd_t *pmdp, pmd_t pmdval);
 void xen_set_pud(pud_t *ptr, pud_t val);
@@ -60,4 +60,4 @@ void  xen_ptep_modify_prot_commit(struct mm_struct *mm, unsigned long addr,
 unsigned long xen_read_cr2_direct(void);
 
 extern void xen_init_mmu_ops(void);
-#endif	/* _XEN_MMU_H */
+#endif	

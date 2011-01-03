@@ -1,8 +1,4 @@
-/*
- * Machine specific setup for xen
- *
- * Jeremy Fitzhardinge <jeremy@xensource.com>, XenSource Inc, 2007
- */
+
 
 #include <linux/module.h>
 #include <linux/sched.h>
@@ -25,7 +21,7 @@
 #include "xen-ops.h"
 #include "vdso.h"
 
-/* These are code, but not functions.  Defined in entry.S */
+
 extern const char xen_hypervisor_callback[];
 extern const char xen_failsafe_callback[];
 extern void xen_sysenter_target(void);
@@ -33,9 +29,7 @@ extern void xen_syscall_target(void);
 extern void xen_syscall32_target(void);
 
 
-/**
- * machine_specific_memory_setup - Hook for machine specific memory setup.
- **/
+
 
 char * __init xen_memory_setup(void)
 {
@@ -47,20 +41,11 @@ char * __init xen_memory_setup(void)
 
 	e820_add_region(0, PFN_PHYS((u64)max_pfn), E820_RAM);
 
-	/*
-	 * Even though this is normal, usable memory under Xen, reserve
-	 * ISA memory anyway because too many things think they can poke
-	 * about in there.
-	 */
+	
 	e820_add_region(ISA_START_ADDRESS, ISA_END_ADDRESS - ISA_START_ADDRESS,
 			E820_RESERVED);
 
-	/*
-	 * Reserve Xen bits:
-	 *  - mfn_list
-	 *  - xen_start_info
-	 * See comment above "struct start_info" in <xen/interface/xen.h>
-	 */
+	
 	reserve_early(__pa(xen_start_info->mfn_list),
 		      __pa(xen_start_info->pt_base),
 			"XEN START INFO");
@@ -84,11 +69,7 @@ static void xen_idle(void)
 	}
 }
 
-/*
- * Set the bit indicating "nosegneg" library variants should be used.
- * We only need to bother in pure 32-bit mode; compat 32-bit processes
- * can have un-truncated segments, so wrapping around is allowed.
- */
+
 static void __init fiddle_vdso(void)
 {
 #ifdef CONFIG_X86_32
@@ -138,8 +119,7 @@ void __cpuinit xen_enable_syscall(void)
 	ret = register_callback(CALLBACKTYPE_syscall, xen_syscall_target);
 	if (ret != 0) {
 		printk(KERN_ERR "Failed to set syscall callback: %d\n", ret);
-		/* Pretty fatal; 64-bit userspace has no other
-		   mechanism for syscalls. */
+		
 	}
 
 	if (boot_cpu_has(X86_FEATURE_SYSCALL32)) {
@@ -148,7 +128,7 @@ void __cpuinit xen_enable_syscall(void)
 		if (ret != 0)
 			setup_clear_cpu_cap(X86_FEATURE_SYSCALL32);
 	}
-#endif /* CONFIG_X86_64 */
+#endif 
 }
 
 void __init xen_arch_setup(void)

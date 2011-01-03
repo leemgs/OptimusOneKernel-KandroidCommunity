@@ -1,13 +1,4 @@
-/**
- * @file op_x86_model.h
- * interface to x86 model-specific MSR operations
- *
- * @remark Copyright 2002 OProfile authors
- * @remark Read the file COPYING
- *
- * @author Graydon Hoare
- * @author Robert Richter <robert.richter@amd.com>
- */
+
 
 #ifndef OP_X86_MODEL_H
 #define OP_X86_MODEL_H
@@ -30,9 +21,7 @@ struct pt_regs;
 
 struct oprofile_operations;
 
-/* The model vtable abstracts the differences between
- * various x86 CPU models' perfctr support.
- */
+
 struct op_x86_model_spec {
 	unsigned int	num_counters;
 	unsigned int	num_controls;
@@ -68,4 +57,4 @@ extern struct op_x86_model_spec op_p4_ht2_spec;
 extern struct op_x86_model_spec op_amd_spec;
 extern struct op_x86_model_spec op_arch_perfmon_spec;
 
-#endif /* OP_X86_MODEL_H */
+#endif 

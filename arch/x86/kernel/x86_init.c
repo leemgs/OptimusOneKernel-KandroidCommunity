@@ -1,8 +1,4 @@
-/*
- * Copyright (C) 2009 Thomas Gleixner <tglx@linutronix.de>
- *
- *  For licencing details see kernel-base/COPYING
- */
+
 #include <linux/init.h>
 
 #include <asm/bios_ebda.h>
@@ -19,10 +15,7 @@ void __cpuinit x86_init_noop(void) { }
 void __init x86_init_uint_noop(unsigned int unused) { }
 void __init x86_init_pgd_noop(pgd_t *unused) { }
 
-/*
- * The platform setup functions are preset with the default functions
- * for standard PC hardware.
- */
+
 struct x86_init_ops x86_init __initdata = {
 
 	.resources = {

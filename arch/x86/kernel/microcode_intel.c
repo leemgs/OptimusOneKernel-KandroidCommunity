@@ -1,75 +1,4 @@
-/*
- *	Intel CPU Microcode Update Driver for Linux
- *
- *	Copyright (C) 2000-2006 Tigran Aivazian <tigran@aivazian.fsnet.co.uk>
- *		      2006	Shaohua Li <shaohua.li@intel.com>
- *
- *	This driver allows to upgrade microcode on Intel processors
- *	belonging to IA-32 family - PentiumPro, Pentium II,
- *	Pentium III, Xeon, Pentium 4, etc.
- *
- *	Reference: Section 8.11 of Volume 3a, IA-32 Intel? Architecture
- *	Software Developer's Manual
- *	Order Number 253668 or free download from:
- *
- *	http://developer.intel.com/design/pentium4/manuals/253668.htm
- *
- *	For more information, go to http://www.urbanmyth.org/microcode
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License
- *	as published by the Free Software Foundation; either version
- *	2 of the License, or (at your option) any later version.
- *
- *	1.0	16 Feb 2000, Tigran Aivazian <tigran@sco.com>
- *		Initial release.
- *	1.01	18 Feb 2000, Tigran Aivazian <tigran@sco.com>
- *		Added read() support + cleanups.
- *	1.02	21 Feb 2000, Tigran Aivazian <tigran@sco.com>
- *		Added 'device trimming' support. open(O_WRONLY) zeroes
- *		and frees the saved copy of applied microcode.
- *	1.03	29 Feb 2000, Tigran Aivazian <tigran@sco.com>
- *		Made to use devfs (/dev/cpu/microcode) + cleanups.
- *	1.04	06 Jun 2000, Simon Trimmer <simon@veritas.com>
- *		Added misc device support (now uses both devfs and misc).
- *		Added MICROCODE_IOCFREE ioctl to clear memory.
- *	1.05	09 Jun 2000, Simon Trimmer <simon@veritas.com>
- *		Messages for error cases (non Intel & no suitable microcode).
- *	1.06	03 Aug 2000, Tigran Aivazian <tigran@veritas.com>
- *		Removed ->release(). Removed exclusive open and status bitmap.
- *		Added microcode_rwsem to serialize read()/write()/ioctl().
- *		Removed global kernel lock usage.
- *	1.07	07 Sep 2000, Tigran Aivazian <tigran@veritas.com>
- *		Write 0 to 0x8B msr and then cpuid before reading revision,
- *		so that it works even if there were no update done by the
- *		BIOS. Otherwise, reading from 0x8B gives junk (which happened
- *		to be 0 on my machine which is why it worked even when I
- *		disabled update by the BIOS)
- *		Thanks to Eric W. Biederman <ebiederman@lnxi.com> for the fix.
- *	1.08	11 Dec 2000, Richard Schaal <richard.schaal@intel.com> and
- *			     Tigran Aivazian <tigran@veritas.com>
- *		Intel Pentium 4 processor support and bugfixes.
- *	1.09	30 Oct 2001, Tigran Aivazian <tigran@veritas.com>
- *		Bugfix for HT (Hyper-Threading) enabled processors
- *		whereby processor resources are shared by all logical processors
- *		in a single CPU package.
- *	1.10	28 Feb 2002 Asit K Mallick <asit.k.mallick@intel.com> and
- *		Tigran Aivazian <tigran@veritas.com>,
- *		Serialize updates as required on HT processors due to
- *		speculative nature of implementation.
- *	1.11	22 Mar 2002 Tigran Aivazian <tigran@veritas.com>
- *		Fix the panic when writing zero-length microcode chunk.
- *	1.12	29 Sep 2003 Nitin Kamble <nitin.a.kamble@intel.com>,
- *		Jun Nakajima <jun.nakajima@intel.com>
- *		Support for the microcode updates in the new format.
- *	1.13	10 Oct 2003 Tigran Aivazian <tigran@veritas.com>
- *		Removed ->read() method and obsoleted MICROCODE_IOCFREE ioctl
- *		because we no longer hold a copy of applied microcode
- *		in kernel memory.
- *	1.14	25 Jun 2004 Tigran Aivazian <tigran@veritas.com>
- *		Fix sigmatch() macro to handle old CPUs with pf == 0.
- *		Thanks to Stuart Swales for pointing out this bug.
- */
+
 #include <linux/firmware.h>
 #include <linux/uaccess.h>
 #include <linux/kernel.h>
@@ -102,7 +31,7 @@ struct microcode_intel {
 	unsigned int            bits[0];
 };
 
-/* microcode format is extended from prescott processors */
+
 struct extended_signature {
 	unsigned int            sig;
 	unsigned int            pf;
@@ -154,15 +83,15 @@ static int collect_cpu_info(int cpu_num, struct cpu_signature *csig)
 	csig->sig = cpuid_eax(0x00000001);
 
 	if ((c->x86_model >= 5) || (c->x86 > 6)) {
-		/* get processor flags from MSR 0x17 */
+		
 		rdmsr(MSR_IA32_PLATFORM_ID, val[0], val[1]);
 		csig->pf = 1 << ((val[1] >> 18) & 7);
 	}
 
 	wrmsr(MSR_IA32_UCODE_REV, 0, 0);
-	/* see notes above for revision 1.07.  Apparent chip bug */
+	
 	sync_core();
-	/* get the current revision from MSR 0x8B */
+	
 	rdmsr(MSR_IA32_UCODE_REV, val[0], csig->rev);
 
 	printk(KERN_INFO "microcode: CPU%d sig=0x%x, pf=0x%x, revision=0x%x\n",
@@ -221,7 +150,7 @@ static int microcode_sanity_check(void *mc)
 		ext_sigcount = ext_header->count;
 	}
 
-	/* check extended table checksum */
+	
 	if (ext_table_size) {
 		int ext_table_sum = 0;
 		int *ext_tablep = (int *)ext_header;
@@ -236,7 +165,7 @@ static int microcode_sanity_check(void *mc)
 		}
 	}
 
-	/* calculate the checksum */
+	
 	orig_sum = 0;
 	i = (MC_HEADER_SIZE + data_size) / DWSIZE;
 	while (i--)
@@ -247,7 +176,7 @@ static int microcode_sanity_check(void *mc)
 	}
 	if (!ext_table_size)
 		return 0;
-	/* check extended signature checksum */
+	
 	for (i = 0; i < ext_sigcount; i++) {
 		ext_sig = (void *)ext_header + EXT_HEADER_SIZE +
 			  EXT_SIGNATURE_SIZE * i;
@@ -262,10 +191,7 @@ static int microcode_sanity_check(void *mc)
 	return 0;
 }
 
-/*
- * return 0 - no update found
- * return 1 - found update
- */
+
 static int
 get_matching_microcode(struct cpu_signature *cpu_sig, void *mc, int rev)
 {
@@ -281,7 +207,7 @@ get_matching_microcode(struct cpu_signature *cpu_sig, void *mc, int rev)
 	if (update_match_cpu(cpu_sig, mc_header->sig, mc_header->pf))
 		return 1;
 
-	/* Look for ext. headers: */
+	
 	if (total_size <= get_datasize(mc_header) + MC_HEADER_SIZE)
 		return 0;
 
@@ -308,22 +234,22 @@ static int apply_microcode(int cpu)
 	uci = ucode_cpu_info + cpu;
 	mc_intel = uci->mc;
 
-	/* We should bind the task to the CPU */
+	
 	BUG_ON(cpu_num != cpu);
 
 	if (mc_intel == NULL)
 		return 0;
 
-	/* write microcode via MSR 0x79 */
+	
 	wrmsr(MSR_IA32_UCODE_WRITE,
 	      (unsigned long) mc_intel->bits,
 	      (unsigned long) mc_intel->bits >> 16 >> 16);
 	wrmsr(MSR_IA32_UCODE_REV, 0, 0);
 
-	/* see notes above for revision 1.07.  Apparent chip bug */
+	
 	sync_core();
 
-	/* get the current revision from MSR 0x8B */
+	
 	rdmsr(MSR_IA32_UCODE_REV, val[0], val[1]);
 
 	if (val[1] != mc_intel->hdr.rev) {

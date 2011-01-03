@@ -5,4 +5,4 @@
 
 #include <asm-generic/scatterlist.h>
 
-#endif /* _ASM_X86_SCATTERLIST_H */
+#endif 

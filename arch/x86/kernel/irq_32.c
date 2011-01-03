@@ -1,12 +1,4 @@
-/*
- *	Copyright (C) 1992, 1998 Linus Torvalds, Ingo Molnar
- *
- * This file contains the lowest level x86-specific interrupt
- * entry, irq-stacks and irq statistics code. All the remaining
- * irq logic is done by the generic kernel/irq/ code and
- * by the x86-specific irq controller code. (e.g. i8259.c and
- * io_apic.c.)
- */
+
 
 #include <linux/module.h>
 #include <linux/seq_file.h>
@@ -27,7 +19,7 @@ DEFINE_PER_CPU(struct pt_regs *, irq_regs);
 EXPORT_PER_CPU_SYMBOL(irq_regs);
 
 #ifdef CONFIG_DEBUG_STACKOVERFLOW
-/* Debugging check for stack overflow: is there less than 1KB free? */
+
 static int check_stack_overflow(void)
 {
 	long sp;
@@ -50,9 +42,7 @@ static inline void print_stack_overflow(void) { }
 #endif
 
 #ifdef CONFIG_4KSTACKS
-/*
- * per-CPU IRQ handling contexts (thread information and stack)
- */
+
 union irq_ctx {
 	struct thread_info      tinfo;
 	u32                     stack[THREAD_SIZE/sizeof(u32)];
@@ -84,24 +74,16 @@ execute_on_irq_stack(int overflow, struct irq_desc *desc, int irq)
 	curctx = (union irq_ctx *) current_thread_info();
 	irqctx = __get_cpu_var(hardirq_ctx);
 
-	/*
-	 * this is where we switch to the IRQ stack. However, if we are
-	 * already using the IRQ stack (because we interrupted a hardirq
-	 * handler) we can't do that and just have to keep using the
-	 * current stack (which is the irq stack already after all)
-	 */
+	
 	if (unlikely(curctx == irqctx))
 		return 0;
 
-	/* build the stack frame on the IRQ stack */
+	
 	isp = (u32 *) ((char *)irqctx + sizeof(*irqctx));
 	irqctx->tinfo.task = curctx->tinfo.task;
 	irqctx->tinfo.previous_esp = current_stack_pointer;
 
-	/*
-	 * Copy the softirq bits in preempt_count so that the
-	 * softirq checks work in the hardirq context.
-	 */
+	
 	irqctx->tinfo.preempt_count =
 		(irqctx->tinfo.preempt_count & ~SOFTIRQ_MASK) |
 		(curctx->tinfo.preempt_count & SOFTIRQ_MASK);
@@ -119,9 +101,7 @@ execute_on_irq_stack(int overflow, struct irq_desc *desc, int irq)
 	return 1;
 }
 
-/*
- * allocate per-cpu stacks for hardirq and for softirq processing
- */
+
 void __cpuinit irq_ctx_init(int cpu)
 {
 	union irq_ctx *irqctx;
@@ -174,13 +154,11 @@ asmlinkage void do_softirq(void)
 		irqctx->tinfo.task = curctx->task;
 		irqctx->tinfo.previous_esp = current_stack_pointer;
 
-		/* build the stack frame on the softirq stack */
+		
 		isp = (u32 *) ((char *)irqctx + sizeof(*irqctx));
 
 		call_on_stack(__do_softirq, isp);
-		/*
-		 * Shouldnt happen, we returned above if in_interrupt():
-		 */
+		
 		WARN_ON_ONCE(softirq_count());
 	}
 
@@ -214,7 +192,7 @@ bool handle_irq(unsigned irq, struct pt_regs *regs)
 
 #ifdef CONFIG_HOTPLUG_CPU
 
-/* A cpu has been removed from cpu_online_mask.  Reset irq affinities. */
+
 void fixup_irqs(void)
 {
 	unsigned int irq;
@@ -241,14 +219,11 @@ void fixup_irqs(void)
 
 #if 0
 	barrier();
-	/* Ingo Molnar says: "after the IO-APIC masks have been redirected
-	   [note the nop - the interrupt-enable boundary on x86 is two
-	   instructions from sti] - to flush out pending hardirqs and
-	   IPIs. After this point nothing is supposed to reach this CPU." */
+	
 	__asm__ __volatile__("sti; nop; cli");
 	barrier();
 #else
-	/* That doesn't seem sufficient.  Give it 1ms. */
+	
 	local_irq_enable();
 	mdelay(1);
 	local_irq_disable();

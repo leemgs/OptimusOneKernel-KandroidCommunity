@@ -19,4 +19,4 @@ static inline void write_cr8(unsigned long val)
 
 #include <linux/irqflags.h>
 
-#endif /* _ASM_X86_SYSTEM_64_H */
+#endif 

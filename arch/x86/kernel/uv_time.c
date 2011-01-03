@@ -1,23 +1,4 @@
-/*
- * SGI RTC clock/timer routines.
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- *
- *  Copyright (c) 2009 Silicon Graphics, Inc.  All Rights Reserved.
- *  Copyright (c) Dimitri Sivanich
- */
+
 #include <linux/clockchips.h>
 
 #include <asm/uv/uv_mmrs.h>
@@ -56,31 +37,27 @@ static struct clock_event_device clock_event_device_uv = {
 
 static DEFINE_PER_CPU(struct clock_event_device, cpu_ced);
 
-/* There is one of these allocated per node */
+
 struct uv_rtc_timer_head {
 	spinlock_t	lock;
-	/* next cpu waiting for timer, local node relative: */
+	
 	int		next_cpu;
-	/* number of cpus on this node: */
+	
 	int		ncpus;
 	struct {
-		int	lcpu;		/* systemwide logical cpu number */
-		u64	expires;	/* next timer expiration for this cpu */
+		int	lcpu;		
+		u64	expires;	
 	} cpu[1];
 };
 
-/*
- * Access to uv_rtc_timer_head via blade id.
- */
+
 static struct uv_rtc_timer_head		**blade_info __read_mostly;
 
 static int				uv_rtc_enable;
 
-/*
- * Hardware interface routines
- */
 
-/* Send IPIs to another node */
+
+
 static void uv_rtc_send_IPI(int cpu)
 {
 	unsigned long apicid, val;
@@ -95,14 +72,14 @@ static void uv_rtc_send_IPI(int cpu)
 	uv_write_global_mmr64(pnode, UVH_IPI_INT, val);
 }
 
-/* Check for an RTC interrupt pending */
+
 static int uv_intr_pending(int pnode)
 {
 	return uv_read_global_mmr64(pnode, UVH_EVENT_OCCURRED0) &
 		UVH_EVENT_OCCURRED0_RTC1_MASK;
 }
 
-/* Setup interrupt and return non-zero if early expiration occurred. */
+
 static int uv_setup_intr(int cpu, u64 expires)
 {
 	u64 val;
@@ -118,17 +95,15 @@ static int uv_setup_intr(int cpu, u64 expires)
 	val = (GENERIC_INTERRUPT_VECTOR << UVH_RTC1_INT_CONFIG_VECTOR_SHFT) |
 		((u64)cpu_physical_id(cpu) << UVH_RTC1_INT_CONFIG_APIC_ID_SHFT);
 
-	/* Set configuration */
+	
 	uv_write_global_mmr64(pnode, UVH_RTC1_INT_CONFIG, val);
-	/* Initialize comparator value */
+	
 	uv_write_global_mmr64(pnode, UVH_INT_CMPB, expires);
 
 	return (expires < uv_read_rtc(NULL) && !uv_intr_pending(pnode));
 }
 
-/*
- * Per-cpu timer tracking routines
- */
+
 
 static __init void uv_rtc_deallocate_timers(void)
 {
@@ -140,7 +115,7 @@ static __init void uv_rtc_deallocate_timers(void)
 	kfree(blade_info);
 }
 
-/* Allocate per-node list of cpu timer expiration times. */
+
 static __init int uv_rtc_allocate_timers(void)
 {
 	int cpu;
@@ -178,7 +153,7 @@ static __init int uv_rtc_allocate_timers(void)
 	return 0;
 }
 
-/* Find and set the next expiring timer.  */
+
 static void uv_rtc_find_next_timer(struct uv_rtc_timer_head *head, int pnode)
 {
 	u64 lowest = ULLONG_MAX;
@@ -196,7 +171,7 @@ static void uv_rtc_find_next_timer(struct uv_rtc_timer_head *head, int pnode)
 		head->next_cpu = bcpu;
 		c = head->cpu[bcpu].lcpu;
 		if (uv_setup_intr(c, lowest))
-			/* If we didn't set it up in time, trigger */
+			
 			uv_rtc_send_IPI(c);
 	} else {
 		uv_write_global_mmr64(pnode, UVH_RTC1_INT_CONFIG,
@@ -204,11 +179,7 @@ static void uv_rtc_find_next_timer(struct uv_rtc_timer_head *head, int pnode)
 	}
 }
 
-/*
- * Set expiration time for current cpu.
- *
- * Returns 1 if we missed the expiration time.
- */
+
 static int uv_rtc_set_timer(int cpu, u64 expires)
 {
 	int pnode = uv_cpu_to_pnode(cpu);
@@ -223,7 +194,7 @@ static int uv_rtc_set_timer(int cpu, u64 expires)
 
 	next_cpu = head->next_cpu;
 	*t = expires;
-	/* Will this one be next to go off? */
+	
 	if (next_cpu < 0 || bcpu == next_cpu ||
 			expires < head->cpu[next_cpu].expires) {
 		head->next_cpu = bcpu;
@@ -239,11 +210,7 @@ static int uv_rtc_set_timer(int cpu, u64 expires)
 	return 0;
 }
 
-/*
- * Unset expiration time for current cpu.
- *
- * Returns 1 if this timer was pending.
- */
+
 static int uv_rtc_unset_timer(int cpu)
 {
 	int pnode = uv_cpu_to_pnode(cpu);
@@ -261,7 +228,7 @@ static int uv_rtc_unset_timer(int cpu)
 
 	*t = ULLONG_MAX;
 
-	/* Was the hardware setup for this timer? */
+	
 	if (head->next_cpu == bcpu)
 		uv_rtc_find_next_timer(head, pnode);
 
@@ -271,21 +238,15 @@ static int uv_rtc_unset_timer(int cpu)
 }
 
 
-/*
- * Kernel interface routines.
- */
 
-/*
- * Read the RTC.
- */
+
+
 static cycle_t uv_read_rtc(struct clocksource *cs)
 {
 	return (cycle_t)uv_read_local_mmr(UVH_RTC);
 }
 
-/*
- * Program the next event, relative to now
- */
+
 static int uv_rtc_next_event(unsigned long delta,
 			     struct clock_event_device *ced)
 {
@@ -294,9 +255,7 @@ static int uv_rtc_next_event(unsigned long delta,
 	return uv_rtc_set_timer(ced_cpu, delta + uv_read_rtc(NULL));
 }
 
-/*
- * Setup the RTC timer in oneshot mode
- */
+
 static void uv_rtc_timer_setup(enum clock_event_mode mode,
 			       struct clock_event_device *evt)
 {
@@ -306,7 +265,7 @@ static void uv_rtc_timer_setup(enum clock_event_mode mode,
 	case CLOCK_EVT_MODE_PERIODIC:
 	case CLOCK_EVT_MODE_ONESHOT:
 	case CLOCK_EVT_MODE_RESUME:
-		/* Nothing to do here yet */
+		
 		break;
 	case CLOCK_EVT_MODE_UNUSED:
 	case CLOCK_EVT_MODE_SHUTDOWN:
@@ -364,7 +323,7 @@ static __init int uv_rtc_setup_clock(void)
 		return rc;
 	}
 
-	/* Setup and register clockevents */
+	
 	rc = uv_rtc_allocate_timers();
 	if (rc) {
 		clocksource_unregister(&clocksource_uv);

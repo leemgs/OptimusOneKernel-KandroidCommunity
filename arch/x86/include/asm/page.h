@@ -11,7 +11,7 @@
 #include <asm/page_64.h>
 #else
 #include <asm/page_32.h>
-#endif	/* CONFIG_X86_64 */
+#endif	
 
 #ifndef __ASSEMBLY__
 
@@ -35,8 +35,7 @@ static inline void copy_user_page(void *to, void *from, unsigned long vaddr,
 
 #define __pa(x)		__phys_addr((unsigned long)(x))
 #define __pa_nodebug(x)	__phys_addr_nodebug((unsigned long)(x))
-/* __pa_symbol should be used for C visible symbols.
-   This seems to be the official gcc blessed way to do such arithmetic. */
+
 #define __pa_symbol(x)	__pa(__phys_reloc_hide((unsigned long)(x)))
 
 #define __va(x)			((void *)((unsigned long)(x)+PAGE_OFFSET))
@@ -44,21 +43,18 @@ static inline void copy_user_page(void *to, void *from, unsigned long vaddr,
 #define __boot_va(x)		__va(x)
 #define __boot_pa(x)		__pa(x)
 
-/*
- * virt_to_page(kaddr) returns a valid pointer if and only if
- * virt_addr_valid(kaddr) returns true.
- */
+
 #define virt_to_page(kaddr)	pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
 #define pfn_to_kaddr(pfn)      __va((pfn) << PAGE_SHIFT)
 extern bool __virt_addr_valid(unsigned long kaddr);
 #define virt_addr_valid(kaddr)	__virt_addr_valid((unsigned long) (kaddr))
 
-#endif	/* __ASSEMBLY__ */
+#endif	
 
 #include <asm-generic/memory_model.h>
 #include <asm-generic/getorder.h>
 
 #define __HAVE_ARCH_GATE_AREA 1
 
-#endif	/* __KERNEL__ */
-#endif /* _ASM_X86_PAGE_H */
+#endif	
+#endif 

@@ -1,11 +1,4 @@
-/*
- * AMD Geode definitions
- * Copyright (C) 2006, Advanced Micro Devices, Inc.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU General Public License
- * as published by the Free Software Foundation.
- */
+
 
 #ifndef _ASM_X86_GEODE_H
 #define _ASM_X86_GEODE_H
@@ -13,7 +6,7 @@
 #include <asm/processor.h>
 #include <linux/io.h>
 
-/* Generic southbridge functions */
+
 
 #define GEODE_DEV_PMS 0
 #define GEODE_DEV_ACPI 1
@@ -22,19 +15,18 @@
 
 extern int geode_get_dev_base(unsigned int dev);
 
-/* Useful macros */
+
 #define geode_pms_base()	geode_get_dev_base(GEODE_DEV_PMS)
 #define geode_acpi_base()	geode_get_dev_base(GEODE_DEV_ACPI)
 #define geode_gpio_base()	geode_get_dev_base(GEODE_DEV_GPIO)
 #define geode_mfgpt_base()	geode_get_dev_base(GEODE_DEV_MFGPT)
 
-/* MSRS */
+
 
 #define MSR_GLIU_P2D_RO0	0x10000029
 
 #define MSR_LX_GLD_MSR_CONFIG	0x48002001
-#define MSR_LX_MSR_PADSEL	0x48002011	/* NOT 0x48000011; the data
-						 * sheet has the wrong value */
+#define MSR_LX_MSR_PADSEL	0x48002011	
 #define MSR_GLCP_SYS_RSTPLL	0x4C000014
 #define MSR_GLCP_DOTPLL		0x4C000015
 
@@ -56,25 +48,21 @@ extern int geode_get_dev_base(unsigned int dev);
 #define MSR_MFGPT_NR		0x51400029
 #define MSR_MFGPT_SETUP		0x5140002B
 
-#define MSR_LX_SPARE_MSR	0x80000011	/* DC-specific */
+#define MSR_LX_SPARE_MSR	0x80000011	
 
 #define MSR_GX_GLD_MSR_CONFIG	0xC0002001
 #define MSR_GX_MSR_PADSEL	0xC0002011
 
-/* Resource Sizes */
+
 
 #define LBAR_GPIO_SIZE		0xFF
 #define LBAR_MFGPT_SIZE		0x40
 #define LBAR_ACPI_SIZE		0x40
 #define LBAR_PMS_SIZE		0x80
 
-/* ACPI registers (PMS block) */
 
-/*
- * PM1_EN is only valid when VSA is enabled for 16 bit reads.
- * When VSA is not enabled, *always* read both PM1_STS and PM1_EN
- * with a 32 bit read at offset 0x0
- */
+
+
 
 #define PM1_STS			0x00
 #define PM1_EN			0x02
@@ -84,7 +72,7 @@ extern int geode_get_dev_base(unsigned int dev);
 #define PM_GPE0_STS		0x18
 #define PM_GPE0_EN		0x1C
 
-/* PMC registers (PMS block) */
+
 
 #define PM_SSD			0x00
 #define PM_SCXA			0x04
@@ -106,16 +94,16 @@ extern int geode_get_dev_base(unsigned int dev);
 #define PM_AWKD			0x50
 #define PM_SSC			0x54
 
-/* VSA2 magic values */
+
 
 #define VSA_VRC_INDEX		0xAC1C
 #define VSA_VRC_DATA		0xAC1E
-#define VSA_VR_UNLOCK		0xFC53	/* unlock virtual register */
+#define VSA_VR_UNLOCK		0xFC53	
 #define VSA_VR_SIGNATURE	0x0003
 #define VSA_VR_MEM_SIZE		0x0200
-#define AMD_VSA_SIG		0x4132	/* signature is ascii 'VSA2' */
-#define GSW_VSA_SIG		0x534d  /* General Software signature */
-/* GPIO */
+#define AMD_VSA_SIG		0x4132	
+#define GSW_VSA_SIG		0x534d  
+
 
 #define GPIO_OUTPUT_VAL		0x00
 #define GPIO_OUTPUT_ENABLE	0x04
@@ -165,7 +153,7 @@ static inline void geode_gpio_event_pme(unsigned int gpio, int pair)
 	geode_gpio_setup_event(gpio, pair, 1);
 }
 
-/* Specific geode tests */
+
 
 static inline int is_geode_gx(void)
 {
@@ -195,7 +183,7 @@ static inline int geode_has_vsa2(void)
 }
 #endif
 
-/* MFGPTs */
+
 
 #define MFGPT_MAX_TIMERS	8
 #define MFGPT_TIMER_ANY		(-1)
@@ -250,4 +238,4 @@ extern int __init mfgpt_timer_setup(void);
 static inline int mfgpt_timer_setup(void) { return 0; }
 #endif
 
-#endif /* _ASM_X86_GEODE_H */
+#endif 

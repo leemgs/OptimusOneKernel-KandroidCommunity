@@ -2,7 +2,7 @@
 #define _ASM_X86_TRAPS_H
 
 #include <asm/debugreg.h>
-#include <asm/siginfo.h>			/* TRAP_TRACE, ... */
+#include <asm/siginfo.h>			
 
 #ifdef CONFIG_X86_32
 #define dotraplinkage
@@ -35,7 +35,7 @@ asmlinkage void coprocessor_error(void);
 asmlinkage void alignment_check(void);
 #ifdef CONFIG_X86_MCE
 asmlinkage void machine_check(void);
-#endif /* CONFIG_X86_MCE */
+#endif 
 asmlinkage void simd_coprocessor_error(void);
 
 dotraplinkage void do_divide_error(struct pt_regs *, long);
@@ -86,4 +86,4 @@ asmlinkage void smp_thermal_interrupt(void);
 asmlinkage void mce_threshold_interrupt(void);
 #endif
 
-#endif /* _ASM_X86_TRAPS_H */
+#endif 

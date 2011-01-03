@@ -18,4 +18,4 @@ extern int fb_is_primary_device(struct fb_info *info);
 static inline int fb_is_primary_device(struct fb_info *info) { return 0; }
 #endif
 
-#endif /* _ASM_X86_FB_H */
+#endif 

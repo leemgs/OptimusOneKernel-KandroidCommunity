@@ -13,12 +13,12 @@
 #include <xen/interface/xen.h>
 #include <xen/features.h>
 
-/* Xen machine address */
+
 typedef struct xmaddr {
 	phys_addr_t maddr;
 } xmaddr_t;
 
-/* Xen pseudo-physical address */
+
 typedef struct xpaddr {
 	phys_addr_t paddr;
 } xpaddr_t;
@@ -26,12 +26,12 @@ typedef struct xpaddr {
 #define XMADDR(x)	((xmaddr_t) { .maddr = (x) })
 #define XPADDR(x)	((xpaddr_t) { .paddr = (x) })
 
-/**** MACHINE <-> PHYSICAL CONVERSION MACROS ****/
+
 #define INVALID_P2M_ENTRY	(~0UL)
 #define FOREIGN_FRAME_BIT	(1UL<<31)
 #define FOREIGN_FRAME(m)	((m) | FOREIGN_FRAME_BIT)
 
-/* Maximum amount of memory we can handle in a domain in pages */
+
 #define MAX_DOMAIN_PAGES						\
     ((unsigned long)((u64)CONFIG_XEN_MAX_DOMAIN_MEMORY * 1024 * 1024 * 1024 / PAGE_SIZE))
 
@@ -68,11 +68,7 @@ static inline unsigned long mfn_to_pfn(unsigned long mfn)
 #endif
 
 	pfn = 0;
-	/*
-	 * The array access can fail (e.g., device space beyond end of RAM).
-	 * In such cases it doesn't matter what we return (we return garbage),
-	 * but we must handle the fault without crashing!
-	 */
+	
 	__get_user(pfn, &machine_to_phys_mapping[mfn]);
 
 	return pfn;
@@ -90,26 +86,7 @@ static inline xpaddr_t machine_to_phys(xmaddr_t machine)
 	return XPADDR(PFN_PHYS(mfn_to_pfn(PFN_DOWN(machine.maddr))) | offset);
 }
 
-/*
- * We detect special mappings in one of two ways:
- *  1. If the MFN is an I/O page then Xen will set the m2p entry
- *     to be outside our maximum possible pseudophys range.
- *  2. If the MFN belongs to a different domain then we will certainly
- *     not have MFN in our p2m table. Conversely, if the page is ours,
- *     then we'll have p2m(m2p(MFN))==MFN.
- * If we detect a special mapping then it doesn't have a 'struct page'.
- * We force !pfn_valid() by returning an out-of-range pointer.
- *
- * NB. These checks require that, for any MFN that is not in our reservation,
- * there is no PFN such that p2m(PFN) == MFN. Otherwise we can get confused if
- * we are foreign-mapping the MFN, and the other domain as m2p(MFN) == PFN.
- * Yikes! Various places must poke in INVALID_P2M_ENTRY for safety.
- *
- * NB2. When deliberately mapping foreign pages into the p2m table, you *must*
- *      use FOREIGN_FRAME(). This will cause pte_pfn() to choke on it, as we
- *      require. In all the cases we care about, the FOREIGN_FRAME bit is
- *      masked (e.g., pfn_to_mfn()) so behaviour there is correct.
- */
+
 static inline unsigned long mfn_to_local_pfn(unsigned long mfn)
 {
 	extern unsigned long max_mapnr;
@@ -117,12 +94,12 @@ static inline unsigned long mfn_to_local_pfn(unsigned long mfn)
 	if ((pfn < max_mapnr)
 	    && !xen_feature(XENFEAT_auto_translated_physmap)
 	    && (get_phys_to_machine(pfn) != mfn))
-		return max_mapnr; /* force !pfn_valid() */
-	/* XXX fixme; not true with sparsemem */
+		return max_mapnr; 
+	
 	return pfn;
 }
 
-/* VIRT <-> MACHINE conversion */
+
 #define virt_to_machine(v)	(phys_to_machine(XPADDR(__pa(v))))
 #define virt_to_pfn(v)          (PFN_DOWN(__pa(v)))
 #define virt_to_mfn(v)		(pfn_to_mfn(virt_to_pfn(v)))
@@ -169,4 +146,4 @@ unsigned long arbitrary_virt_to_mfn(void *vaddr);
 void make_lowmem_page_readonly(void *vaddr);
 void make_lowmem_page_readwrite(void *vaddr);
 
-#endif /* _ASM_X86_XEN_PAGE_H */
+#endif 

@@ -7,12 +7,7 @@
 
 #ifdef ARCH_HAS_NMI_WATCHDOG
 
-/**
- * do_nmi_callback
- *
- * Check to see if a callback exists and execute it.  Return 1
- * if the handler exists and was handled successfully.
- */
+
 int do_nmi_callback(struct pt_regs *regs, int cpu);
 
 extern void die_nmi(char *str, struct pt_regs *regs, int do_panic);
@@ -53,16 +48,10 @@ static inline void localise_nmi_watchdog(void)
 		nmi_watchdog = NMI_LOCAL_APIC;
 }
 
-/* check if nmi_watchdog is active (ie was specified at boot) */
+
 static inline int nmi_watchdog_active(void)
 {
-	/*
-	 * actually it should be:
-	 * 	return (nmi_watchdog == NMI_LOCAL_APIC ||
-	 * 		nmi_watchdog == NMI_IO_APIC)
-	 * but since they are power of two we could use a
-	 * cheaper way --cvg
-	 */
+	
 	return nmi_watchdog & (NMI_LOCAL_APIC | NMI_IO_APIC);
 }
 #endif
@@ -76,4 +65,4 @@ void enable_lapic_nmi_watchdog(void);
 void stop_nmi(void);
 void restart_nmi(void);
 
-#endif /* _ASM_X86_NMI_H */
+#endif 

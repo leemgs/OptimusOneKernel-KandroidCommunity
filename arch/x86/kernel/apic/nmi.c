@@ -1,15 +1,4 @@
-/*
- *  NMI watchdog support on APIC systems
- *
- *  Started by Ingo Molnar <mingo@redhat.com>
- *
- *  Fixes:
- *  Mikael Pettersson	: AMD K7 support for local APIC NMI watchdog.
- *  Mikael Pettersson	: Power Management for local APIC NMI watchdog.
- *  Mikael Pettersson	: Pentium 4 support for local APIC NMI watchdog.
- *  Pavel Machek and
- *  Mikael Pettersson	: PM converted to driver model. Disable/enable API.
- */
+
 
 #include <asm/apic.h>
 
@@ -41,13 +30,8 @@ int nmi_watchdog_enabled;
 
 static cpumask_t backtrace_mask __read_mostly;
 
-/* nmi_active:
- * >0: the lapic NMI watchdog is active, but can be disabled
- * <0: the lapic NMI watchdog has not been set up, and cannot
- *     be enabled
- *  0: the lapic NMI watchdog is disabled, but can be enabled
- */
-atomic_t nmi_active = ATOMIC_INIT(0);		/* oprofile uses this */
+
+atomic_t nmi_active = ATOMIC_INIT(0);		
 EXPORT_SYMBOL(nmi_active);
 
 unsigned int nmi_watchdog = NMI_NONE;
@@ -72,10 +56,7 @@ static inline int mce_in_progress(void)
 	return 0;
 }
 
-/*
- * Take the local apic timer and PIT/HPET into account. We don't
- * know which one is active, when we have highres/dyntick on
- */
+
 static inline unsigned int get_timer_irqs(int cpu)
 {
 	return per_cpu(irq_stat, cpu).apic_timer_irqs +
@@ -83,22 +64,11 @@ static inline unsigned int get_timer_irqs(int cpu)
 }
 
 #ifdef CONFIG_SMP
-/*
- * The performance counters used by NMI_LOCAL_APIC don't trigger when
- * the CPU is idle. To make sure the NMI watchdog really ticks on all
- * CPUs during the test make them busy.
- */
+
 static __init void nmi_cpu_busy(void *data)
 {
 	local_irq_enable_in_hardirq();
-	/*
-	 * Intentionally don't use cpu_relax here. This is
-	 * to make sure that the performance counter really ticks,
-	 * even if there is a simulator or similar that catches the
-	 * pause instruction. On a real HT machine this is fine because
-	 * all other CPUs are busy with "useless" delay loops and don't
-	 * care if they get somewhat less cycles.
-	 */
+	
 	while (endflag == 0)
 		mb();
 }
@@ -148,7 +118,7 @@ int __init check_nmi_watchdog(void)
 	for_each_possible_cpu(cpu)
 		prev_nmi_count[cpu] = get_nmi_count(cpu);
 	local_irq_enable();
-	mdelay((20 * 1000) / nmi_hz); /* wait 20 ticks */
+	mdelay((20 * 1000) / nmi_hz); 
 
 	for_each_online_cpu(cpu) {
 		if (!per_cpu(wd_enabled, cpu))
@@ -164,10 +134,7 @@ int __init check_nmi_watchdog(void)
 	}
 	printk("OK.\n");
 
-	/*
-	 * now that we know it works we can reduce NMI frequency to
-	 * something more reasonable; makes a difference in some configs
-	 */
+	
 	if (nmi_watchdog == NMI_LOCAL_APIC)
 		nmi_hz = lapic_adjust_nmi_hz(1);
 
@@ -213,16 +180,14 @@ static int __init setup_nmi_watchdog(char *str)
 }
 __setup("nmi_watchdog=", setup_nmi_watchdog);
 
-/*
- * Suspend/resume support
- */
+
 #ifdef CONFIG_PM
 
-static int nmi_pm_active; /* nmi_active before suspend */
+static int nmi_pm_active; 
 
 static int lapic_nmi_suspend(struct sys_device *dev, pm_message_t state)
 {
-	/* only CPU0 goes here, other CPUs should be offline */
+	
 	nmi_pm_active = atomic_read(&nmi_active);
 	stop_apic_nmi_watchdog(NULL);
 	BUG_ON(atomic_read(&nmi_active) != 0);
@@ -231,7 +196,7 @@ static int lapic_nmi_suspend(struct sys_device *dev, pm_message_t state)
 
 static int lapic_nmi_resume(struct sys_device *dev)
 {
-	/* only CPU0 goes here, other CPUs should be offline */
+	
 	if (nmi_pm_active > 0) {
 		setup_apic_nmi_watchdog(NULL);
 		touch_nmi_watchdog();
@@ -254,10 +219,7 @@ static int __init init_lapic_nmi_sysfs(void)
 {
 	int error;
 
-	/*
-	 * should really be a BUG_ON but b/c this is an
-	 * init call, it just doesn't work.  -dcz
-	 */
+	
 	if (nmi_watchdog != NMI_LOCAL_APIC)
 		return 0;
 
@@ -270,38 +232,31 @@ static int __init init_lapic_nmi_sysfs(void)
 	return error;
 }
 
-/* must come after the local APIC's device_initcall() */
+
 late_initcall(init_lapic_nmi_sysfs);
 
-#endif	/* CONFIG_PM */
+#endif	
 
 static void __acpi_nmi_enable(void *__unused)
 {
 	apic_write(APIC_LVT0, APIC_DM_NMI);
 }
 
-/*
- * Enable timer based NMIs on all CPUs:
- */
+
 void acpi_nmi_enable(void)
 {
 	if (atomic_read(&nmi_active) && nmi_watchdog == NMI_IO_APIC)
 		on_each_cpu(__acpi_nmi_enable, NULL, 1);
 }
 
-/*
- * Disable timer based NMIs on all CPUs:
- */
+
 void acpi_nmi_disable(void)
 {
 	if (atomic_read(&nmi_active) && nmi_watchdog == NMI_IO_APIC)
 		on_each_cpu(__acpi_nmi_disable, NULL, 1);
 }
 
-/*
- * This function is called as soon the LAPIC NMI watchdog driver has everything
- * in place and it's ready to check if the NMIs belong to the NMI watchdog
- */
+
 void cpu_nmi_set_wd_enabled(void)
 {
 	__get_cpu_var(wd_enabled) = 1;
@@ -312,8 +267,8 @@ void setup_apic_nmi_watchdog(void *unused)
 	if (__get_cpu_var(wd_enabled))
 		return;
 
-	/* cheap hack to support suspend/resume */
-	/* if cpu0 is not active neither should the other cpus */
+	
+	
 	if (smp_processor_id() != 0 && atomic_read(&nmi_active) <= 0)
 		return;
 
@@ -323,7 +278,7 @@ void setup_apic_nmi_watchdog(void *unused)
 			__get_cpu_var(wd_enabled) = 0;
 			return;
 		}
-		/* FALL THROUGH */
+		
 	case NMI_IO_APIC:
 		__get_cpu_var(wd_enabled) = 1;
 		atomic_inc(&nmi_active);
@@ -332,7 +287,7 @@ void setup_apic_nmi_watchdog(void *unused)
 
 void stop_apic_nmi_watchdog(void *unused)
 {
-	/* only support LOCAL and IO APICs for now */
+	
 	if (!nmi_watchdog_active())
 		return;
 	if (__get_cpu_var(wd_enabled) == 0)
@@ -345,19 +300,7 @@ void stop_apic_nmi_watchdog(void *unused)
 	atomic_dec(&nmi_active);
 }
 
-/*
- * the best way to detect whether a CPU has a 'hard lockup' problem
- * is to check it's local APIC timer IRQ counts. If they are not
- * changing then that CPU has some problem.
- *
- * as these watchdog NMI IRQs are generated on every CPU, we only
- * have to check the current processor.
- *
- * since NMIs don't listen to _any_ locks, we have to be extremely
- * careful not to rely on unsafe variables. The printk might lock
- * up though, so we have to break up any console locks first ...
- * [when there will be more tty-related locks, break them up here too!]
- */
+
 
 static DEFINE_PER_CPU(unsigned, last_irq_sum);
 static DEFINE_PER_CPU(local_t, alert_counter);
@@ -368,20 +311,14 @@ void touch_nmi_watchdog(void)
 	if (nmi_watchdog_active()) {
 		unsigned cpu;
 
-		/*
-		 * Tell other CPUs to reset their alert counters. We cannot
-		 * do it ourselves because the alert count increase is not
-		 * atomic.
-		 */
+		
 		for_each_present_cpu(cpu) {
 			if (per_cpu(nmi_touch, cpu) != 1)
 				per_cpu(nmi_touch, cpu) = 1;
 		}
 	}
 
-	/*
-	 * Tickle the softlockup detector too:
-	 */
+	
 	touch_softlockup_watchdog();
 }
 EXPORT_SYMBOL(touch_nmi_watchdog);
@@ -389,17 +326,13 @@ EXPORT_SYMBOL(touch_nmi_watchdog);
 notrace __kprobes int
 nmi_watchdog_tick(struct pt_regs *regs, unsigned reason)
 {
-	/*
-	 * Since current_thread_info()-> is always on the stack, and we
-	 * always switch the stack NMI-atomically, it's safe to use
-	 * smp_processor_id().
-	 */
+	
 	unsigned int sum;
 	int touched = 0;
 	int cpu = smp_processor_id();
 	int rc = 0;
 
-	/* check for other users first */
+	
 	if (notify_die(DIE_NMI, "nmi", regs, reason, 2, SIGINT)
 			== NOTIFY_STOP) {
 		rc = 1;
@@ -413,9 +346,9 @@ nmi_watchdog_tick(struct pt_regs *regs, unsigned reason)
 		touched = 1;
 	}
 
-	/* We can be called before check_nmi_watchdog, hence NULL check. */
+	
 	if (cpumask_test_cpu(cpu, &backtrace_mask)) {
-		static DEFINE_SPINLOCK(lock);	/* Serialise the printks */
+		static DEFINE_SPINLOCK(lock);	
 
 		spin_lock(&lock);
 		printk(KERN_WARNING "NMI backtrace for cpu %d\n", cpu);
@@ -427,21 +360,16 @@ nmi_watchdog_tick(struct pt_regs *regs, unsigned reason)
 		rc = 1;
 	}
 
-	/* Could check oops_in_progress here too, but it's safer not to */
+	
 	if (mce_in_progress())
 		touched = 1;
 
-	/* if the none of the timers isn't firing, this cpu isn't doing much */
+	
 	if (!touched && __get_cpu_var(last_irq_sum) == sum) {
-		/*
-		 * Ayiee, looks like this CPU is stuck ...
-		 * wait a few IRQs (5 seconds) before doing the oops ...
-		 */
+		
 		local_inc(&__get_cpu_var(alert_counter));
 		if (local_read(&__get_cpu_var(alert_counter)) == 5 * nmi_hz)
-			/*
-			 * die_nmi will return ONLY if NOTIFY_STOP happens..
-			 */
+			
 			die_nmi("BUG: NMI Watchdog detected LOCKUP",
 				regs, panic_on_timeout);
 	} else {
@@ -449,7 +377,7 @@ nmi_watchdog_tick(struct pt_regs *regs, unsigned reason)
 		local_set(&__get_cpu_var(alert_counter), 0);
 	}
 
-	/* see if the nmi watchdog went off */
+	
 	if (!__get_cpu_var(wd_enabled))
 		return rc;
 	switch (nmi_watchdog) {
@@ -457,11 +385,7 @@ nmi_watchdog_tick(struct pt_regs *regs, unsigned reason)
 		rc |= lapic_wd_event(nmi_hz);
 		break;
 	case NMI_IO_APIC:
-		/*
-		 * don't know how to accurately check for this.
-		 * just assume it was a watchdog timer interrupt
-		 * This matches the old behaviour.
-		 */
+		
 		rc = 1;
 		break;
 	}
@@ -501,13 +425,11 @@ static int unknown_nmi_panic_callback(struct pt_regs *regs, int cpu)
 	char buf[64];
 
 	sprintf(buf, "NMI received for unknown reason %02x\n", reason);
-	die_nmi(buf, regs, 1); /* Always panic here */
+	die_nmi(buf, regs, 1); 
 	return 0;
 }
 
-/*
- * proc handler for /proc/sys/kernel/nmi
- */
+
 int proc_nmi_enabled(struct ctl_table *table, int write,
 			void __user *buffer, size_t *length, loff_t *ppos)
 {
@@ -543,7 +465,7 @@ int proc_nmi_enabled(struct ctl_table *table, int write,
 	return 0;
 }
 
-#endif /* CONFIG_SYSCTL */
+#endif 
 
 int do_nmi_callback(struct pt_regs *regs, int cpu)
 {
@@ -563,7 +485,7 @@ void arch_trigger_all_cpu_backtrace(void)
 	printk(KERN_INFO "sending NMI to all CPUs:\n");
 	apic->send_IPI_all(NMI_VECTOR);
 
-	/* Wait for up to 10 seconds for all CPUs to do the backtrace */
+	
 	for (i = 0; i < 10 * 1000; i++) {
 		if (cpumask_empty(&backtrace_mask))
 			break;

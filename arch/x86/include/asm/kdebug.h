@@ -5,7 +5,7 @@
 
 struct pt_regs;
 
-/* Grossly misnamed. */
+
 enum die_val {
 	DIE_OOPS = 1,
 	DIE_INT3,
@@ -34,4 +34,4 @@ extern void show_regs(struct pt_regs *regs);
 extern unsigned long oops_begin(void);
 extern void oops_end(unsigned long, struct pt_regs *, int signr);
 
-#endif /* _ASM_X86_KDEBUG_H */
+#endif 

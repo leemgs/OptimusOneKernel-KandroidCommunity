@@ -1,34 +1,4 @@
-/******************************************************************************
- * hypercall.h
- *
- * Linux-specific hypervisor handling.
- *
- * Copyright (c) 2002-2004, K A Fraser
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version 2
- * as published by the Free Software Foundation; or, when distributed
- * separately from the Linux kernel or incorporated into other
- * software packages, subject to the following license:
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this source file (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use, copy, modify,
- * merge, publish, distribute, sublicense, and/or sell copies of the Software,
- * and to permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
- */
+
 
 #ifndef _ASM_X86_XEN_HYPERCALL_H
 #define _ASM_X86_XEN_HYPERCALL_H
@@ -46,37 +16,7 @@
 #include <xen/interface/sched.h>
 #include <xen/interface/physdev.h>
 
-/*
- * The hypercall asms have to meet several constraints:
- * - Work on 32- and 64-bit.
- *    The two architectures put their arguments in different sets of
- *    registers.
- *
- * - Work around asm syntax quirks
- *    It isn't possible to specify one of the rNN registers in a
- *    constraint, so we use explicit register variables to get the
- *    args into the right place.
- *
- * - Mark all registers as potentially clobbered
- *    Even unused parameters can be clobbered by the hypervisor, so we
- *    need to make sure gcc knows it.
- *
- * - Avoid compiler bugs.
- *    This is the tricky part.  Because x86_32 has such a constrained
- *    register set, gcc versions below 4.3 have trouble generating
- *    code when all the arg registers and memory are trashed by the
- *    asm.  There are syntactically simpler ways of achieving the
- *    semantics below, but they cause the compiler to crash.
- *
- *    The only combination I found which works is:
- *     - assign the __argX variables first
- *     - list all actually used parameters as "+r" (__argX)
- *     - clobber the rest
- *
- * The result certainly isn't pretty, and it really shows up cpp's
- * weakness as as macro language.  Sorry.  (But let's just give thanks
- * there aren't more than 5 arguments...)
- */
+
 
 extern struct { char _entry[32]; } hypercall_page[];
 
@@ -243,7 +183,7 @@ HYPERVISOR_set_callbacks(unsigned long event_selector,
 			   event_selector, event_address,
 			   failsafe_selector, failsafe_address);
 }
-#else  /* CONFIG_X86_64 */
+#else  
 static inline int
 HYPERVISOR_set_callbacks(unsigned long event_address,
 			unsigned long failsafe_address,
@@ -253,7 +193,7 @@ HYPERVISOR_set_callbacks(unsigned long event_address,
 			   event_address, failsafe_address,
 			   syscall_address);
 }
-#endif  /* CONFIG_X86_{32,64} */
+#endif  
 
 static inline int
 HYPERVISOR_callback_op(int cmd, void *arg)
@@ -532,4 +472,4 @@ MULTI_stack_switch(struct multicall_entry *mcl,
 	mcl->args[1] = esp;
 }
 
-#endif /* _ASM_X86_XEN_HYPERCALL_H */
+#endif 

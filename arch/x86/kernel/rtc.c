@@ -1,6 +1,4 @@
-/*
- * RTC related functions
- */
+
 #include <linux/platform_device.h>
 #include <linux/mc146818rtc.h>
 #include <linux/acpi.h>
@@ -12,42 +10,29 @@
 #include <asm/time.h>
 
 #ifdef CONFIG_X86_32
-/*
- * This is a special lock that is owned by the CPU and holds the index
- * register we are working with.  It is required for NMI access to the
- * CMOS/RTC registers.  See include/asm-i386/mc146818rtc.h for details.
- */
+
 volatile unsigned long cmos_lock;
 EXPORT_SYMBOL(cmos_lock);
-#endif /* CONFIG_X86_32 */
+#endif 
 
-/* For two digit years assume time is always after that */
+
 #define CMOS_YEARS_OFFS 2000
 
 DEFINE_SPINLOCK(rtc_lock);
 EXPORT_SYMBOL(rtc_lock);
 
-/*
- * In order to set the CMOS clock precisely, set_rtc_mmss has to be
- * called 500 ms after the second nowtime has started, because when
- * nowtime is written into the registers of the CMOS clock, it will
- * jump to the next second precisely 500 ms later. Check the Motorola
- * MC146818A or Dallas DS12887 data sheet for details.
- *
- * BUG: This routine does not handle hour overflow properly; it just
- *      sets the minutes. Usually you'll only notice that after reboot!
- */
+
 int mach_set_rtc_mmss(unsigned long nowtime)
 {
 	int real_seconds, real_minutes, cmos_minutes;
 	unsigned char save_control, save_freq_select;
 	int retval = 0;
 
-	 /* tell the clock it's being set */
+	 
 	save_control = CMOS_READ(RTC_CONTROL);
 	CMOS_WRITE((save_control|RTC_SET), RTC_CONTROL);
 
-	/* stop and reset prescaler */
+	
 	save_freq_select = CMOS_READ(RTC_FREQ_SELECT);
 	CMOS_WRITE((save_freq_select|RTC_DIV_RESET2), RTC_FREQ_SELECT);
 
@@ -55,15 +40,10 @@ int mach_set_rtc_mmss(unsigned long nowtime)
 	if (!(save_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD)
 		cmos_minutes = bcd2bin(cmos_minutes);
 
-	/*
-	 * since we're only adjusting minutes and seconds,
-	 * don't interfere with hour overflow. This avoids
-	 * messing with unknown time zones but requires your
-	 * RTC not to be off by more than 15 minutes
-	 */
+	
 	real_seconds = nowtime % 60;
 	real_minutes = nowtime / 60;
-	/* correct for half hour time zone */
+	
 	if (((abs(real_minutes - cmos_minutes) + 15)/30) & 1)
 		real_minutes += 30;
 	real_minutes %= 60;
@@ -82,13 +62,7 @@ int mach_set_rtc_mmss(unsigned long nowtime)
 		retval = -1;
 	}
 
-	/* The following flags have to be released exactly in this order,
-	 * otherwise the DS12887 (popular MC146818A clone with integrated
-	 * battery and quartz) will not reset the oscillator and will not
-	 * update precisely 500 ms later. You won't find this mentioned in
-	 * the Dallas Semiconductor data sheets, but who believes data
-	 * sheets anyway ...                           -- Markus Kuhn
-	 */
+	
 	CMOS_WRITE(save_control, RTC_CONTROL);
 	CMOS_WRITE(save_freq_select, RTC_FREQ_SELECT);
 
@@ -99,12 +73,7 @@ unsigned long mach_get_cmos_time(void)
 {
 	unsigned int status, year, mon, day, hour, min, sec, century = 0;
 
-	/*
-	 * If UIP is clear, then we have >= 244 microseconds before
-	 * RTC registers will be updated.  Spec sheet says that this
-	 * is the reliable way to read RTC - registers. If UIP is set
-	 * then the register access might be invalid.
-	 */
+	
 	while ((CMOS_READ(RTC_FREQ_SELECT) & RTC_UIP))
 		cpu_relax();
 
@@ -143,7 +112,7 @@ unsigned long mach_get_cmos_time(void)
 	return mktime(year, mon, day, hour, min, sec);
 }
 
-/* Routines for accessing the CMOS RAM/RTC. */
+
 unsigned char rtc_cmos_read(unsigned char addr)
 {
 	unsigned char val;
@@ -178,7 +147,7 @@ int update_persistent_clock(struct timespec now)
 	return retval;
 }
 
-/* not static: needed by APM */
+
 void read_persistent_clock(struct timespec *ts)
 {
 	unsigned long retval, flags;

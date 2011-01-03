@@ -1,30 +1,4 @@
-/*
- * 8259 interrupt controller emulation
- *
- * Copyright (c) 2003-2004 Fabrice Bellard
- * Copyright (c) 2007 Intel Corporation
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
- * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * Authors:
- *   Yaozu (Eddie) Dong <Eddie.dong@intel.com>
- *   Port from Qemu.
- */
+
 #include <linux/mm.h>
 #include <linux/bitops.h>
 #include "irq.h"
@@ -50,14 +24,12 @@ void kvm_pic_clear_isr_ack(struct kvm *kvm)
 	spin_unlock(&s->lock);
 }
 
-/*
- * set irq level. If an edge is detected, then the IRR is set to 1
- */
+
 static inline int pic_set_irq1(struct kvm_kpic_state *s, int irq, int level)
 {
 	int mask, ret = 1;
 	mask = 1 << irq;
-	if (s->elcr & mask)	/* level triggered */
+	if (s->elcr & mask)	
 		if (level) {
 			ret = !(s->irr & mask);
 			s->irr |= mask;
@@ -66,7 +38,7 @@ static inline int pic_set_irq1(struct kvm_kpic_state *s, int irq, int level)
 			s->irr &= ~mask;
 			s->last_irr &= ~mask;
 		}
-	else	/* edge triggered */
+	else	
 		if (level) {
 			if ((s->last_irr & mask) == 0) {
 				ret = !(s->irr & mask);
@@ -79,10 +51,7 @@ static inline int pic_set_irq1(struct kvm_kpic_state *s, int irq, int level)
 	return (s->imr & mask) ? -1 : ret;
 }
 
-/*
- * return the highest priority found in mask (highest = smallest
- * number). Return 8 if no irq
- */
+
 static inline int get_priority(struct kvm_kpic_state *s, int mask)
 {
 	int priority;
@@ -94,9 +63,7 @@ static inline int get_priority(struct kvm_kpic_state *s, int mask)
 	return priority;
 }
 
-/*
- * return the pic wanted interrupt. return -1 if none
- */
+
 static int pic_get_irq(struct kvm_kpic_state *s)
 {
 	int mask, cur_priority, priority;
@@ -105,37 +72,26 @@ static int pic_get_irq(struct kvm_kpic_state *s)
 	priority = get_priority(s, mask);
 	if (priority == 8)
 		return -1;
-	/*
-	 * compute current priority. If special fully nested mode on the
-	 * master, the IRQ coming from the slave is not taken into account
-	 * for the priority computation.
-	 */
+	
 	mask = s->isr;
 	if (s->special_fully_nested_mode && s == &s->pics_state->pics[0])
 		mask &= ~(1 << 2);
 	cur_priority = get_priority(s, mask);
 	if (priority < cur_priority)
-		/*
-		 * higher priority found: an irq should be generated
-		 */
+		
 		return (priority + s->priority_add) & 7;
 	else
 		return -1;
 }
 
-/*
- * raise irq to CPU if necessary. must be called every time the active
- * irq may change
- */
+
 static void pic_update_irq(struct kvm_pic *s)
 {
 	int irq2, irq;
 
 	irq2 = pic_get_irq(&s->pics[1]);
 	if (irq2 >= 0) {
-		/*
-		 * if irq request by slave pic, signal master PIC
-		 */
+		
 		pic_set_irq1(&s->pics[0], 2, 1);
 		pic_set_irq1(&s->pics[0], 2, 0);
 	}
@@ -170,9 +126,7 @@ int kvm_pic_set_irq(void *opaque, int irq, int level)
 	return ret;
 }
 
-/*
- * acknowledge interrupt 'irq'
- */
+
 static inline void pic_intack(struct kvm_kpic_state *s, int irq)
 {
 	s->isr |= 1 << irq;
@@ -181,9 +135,7 @@ static inline void pic_intack(struct kvm_kpic_state *s, int irq)
 			s->priority_add = (irq + 1) & 7;
 		pic_clear_isr(s, irq);
 	}
-	/*
-	 * We don't clear a level sensitive interrupt here
-	 */
+	
 	if (!(s->elcr & (1 << irq)))
 		s->irr &= ~(1 << irq);
 }
@@ -202,18 +154,14 @@ int kvm_pic_read_irq(struct kvm *kvm)
 			if (irq2 >= 0)
 				pic_intack(&s->pics[1], irq2);
 			else
-				/*
-				 * spurious IRQ on slave controller
-				 */
+				
 				irq2 = 7;
 			intno = s->pics[1].irq_base + irq2;
 			irq = irq2 + 8;
 		} else
 			intno = s->pics[0].irq_base + irq;
 	} else {
-		/*
-		 * spurious IRQ on host controller
-		 */
+		
 		irq = 7;
 		intno = s->pics[0].irq_base + irq;
 	}
@@ -266,10 +214,8 @@ static void pic_ioport_write(void *opaque, u32 addr, u32 val)
 	addr &= 1;
 	if (addr == 0) {
 		if (val & 0x10) {
-			kvm_pic_reset(s);	/* init */
-			/*
-			 * deassert a pending interrupt
-			 */
+			kvm_pic_reset(s);	
+			
 			s->pics_state->irq_request(s->pics_state->
 						   irq_request_opaque, 0);
 			s->init_state = 1;
@@ -293,7 +239,7 @@ static void pic_ioport_write(void *opaque, u32 addr, u32 val)
 			case 4:
 				s->rotate_on_auto_eoi = cmd >> 2;
 				break;
-			case 1:	/* end of interrupt */
+			case 1:	
 			case 5:
 				priority = get_priority(s, s->isr);
 				if (priority != 8) {
@@ -320,12 +266,12 @@ static void pic_ioport_write(void *opaque, u32 addr, u32 val)
 				pic_update_irq(s->pics_state);
 				break;
 			default:
-				break;	/* no operation */
+				break;	
 			}
 		}
 	} else
 		switch (s->init_state) {
-		case 0:		/* normal mode */
+		case 0:		
 			s->imr = val;
 			pic_update_irq(s->pics_state);
 			break;
@@ -484,9 +430,7 @@ static int picdev_read(struct kvm_io_device *this,
 	return 0;
 }
 
-/*
- * callback when PIC0 irq status changed
- */
+
 static void pic_irq_request(void *opaque, int level)
 {
 	struct kvm *kvm = opaque;
@@ -523,9 +467,7 @@ struct kvm_pic *kvm_create_pic(struct kvm *kvm)
 	s->pics[0].pics_state = s;
 	s->pics[1].pics_state = s;
 
-	/*
-	 * Initialize PIO device
-	 */
+	
 	kvm_iodevice_init(&s->dev, &picdev_ops);
 	ret = kvm_io_bus_register_dev(kvm, &kvm->pio_bus, &s->dev);
 	if (ret < 0) {

@@ -1,15 +1,6 @@
-/*
- * Copyright 2006 Andi Kleen, SUSE Labs.
- * Subject to the GNU Public License, v.2
- *
- * Fast user context implementation of clock_gettime and gettimeofday.
- *
- * The code should have no internal unresolved relocations.
- * Check with readelf after changing.
- * Also alternative() doesn't work.
- */
 
-/* Disable profiling for userspace code: */
+
+
 #define DISABLE_BRANCH_PROFILING
 
 #include <linux/kernel.h>
@@ -56,7 +47,7 @@ notrace static noinline int do_realtime(struct timespec *ts)
 	return 0;
 }
 
-/* Copy of the version in kernel/time.c which we cannot directly access */
+
 notrace static void
 vset_normalized_timespec(struct timespec *ts, long sec, long nsec)
 {
@@ -145,7 +136,7 @@ notrace int __vdso_gettimeofday(struct timeval *tv, struct timezone *tz)
 			tv->tv_usec /= 1000;
 		}
 		if (unlikely(tz != NULL)) {
-			/* Avoid memcpy. Some old compilers fail to inline it */
+			
 			tz->tz_minuteswest = gtod->sys_tz.tz_minuteswest;
 			tz->tz_dsttime = gtod->sys_tz.tz_dsttime;
 		}

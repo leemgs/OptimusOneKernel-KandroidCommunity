@@ -1,26 +1,6 @@
-/* ----------------------------------------------------------------------- *
- *
- *   Copyright 2000-2008 H. Peter Anvin - All Rights Reserved
- *   Copyright 2009 Intel Corporation; author: H. Peter Anvin
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation, Inc., 675 Mass Ave, Cambridge MA 02139,
- *   USA; either version 2 of the License, or (at your option) any later
- *   version; incorporated herein by reference.
- *
- * ----------------------------------------------------------------------- */
 
-/*
- * x86 MSR access device
- *
- * This device is accessed by lseek() to the appropriate register number
- * and then read/write in chunks of 8 bytes.  A larger size means multiple
- * reads or writes of the same register.
- *
- * This driver uses /dev/cpu/%d/msr where %d is the minor number, and on
- * an SMP box will direct the access to CPU %d.
- */
+
+
 
 #include <linux/module.h>
 
@@ -77,7 +57,7 @@ static ssize_t msr_read(struct file *file, char __user *buf,
 	ssize_t bytes = 0;
 
 	if (count % 8)
-		return -EINVAL;	/* Invalid chunk size */
+		return -EINVAL;	
 
 	for (; count; count -= 8) {
 		err = rdmsr_safe_on_cpu(cpu, reg, &data[0], &data[1]);
@@ -105,7 +85,7 @@ static ssize_t msr_write(struct file *file, const char __user *buf,
 	ssize_t bytes = 0;
 
 	if (count % 8)
-		return -EINVAL;	/* Invalid chunk size */
+		return -EINVAL;	
 
 	for (; count; count -= 8) {
 		if (copy_from_user(&data, tmp, 8)) {
@@ -180,20 +160,18 @@ static int msr_open(struct inode *inode, struct file *file)
 	cpu = iminor(file->f_path.dentry->d_inode);
 
 	if (cpu >= nr_cpu_ids || !cpu_online(cpu)) {
-		ret = -ENXIO;	/* No such CPU */
+		ret = -ENXIO;	
 		goto out;
 	}
 	c = &cpu_data(cpu);
 	if (!cpu_has(c, X86_FEATURE_MSR))
-		ret = -EIO;	/* MSR not supported */
+		ret = -EIO;	
 out:
 	unlock_kernel();
 	return ret;
 }
 
-/*
- * File operations we support
- */
+
 static const struct file_operations msr_fops = {
 	.owner = THIS_MODULE,
 	.llseek = msr_seek,

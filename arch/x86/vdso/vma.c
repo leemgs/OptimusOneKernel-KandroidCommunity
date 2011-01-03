@@ -1,8 +1,4 @@
-/*
- * Set up the VMAs to tell the VM about the vDSO.
- * Copyright 2007 Andi Kleen, SUSE Labs.
- * Subject to the GPL, v.2
- */
+
 #include <linux/mm.h>
 #include <linux/err.h>
 #include <linux/sched.h>
@@ -14,7 +10,7 @@
 #include <asm/proto.h>
 #include <asm/vdso.h>
 
-#include "vextern.h"		/* Just for VMAGIC.  */
+#include "vextern.h"		
 #undef VEXTERN
 
 unsigned int __read_mostly vdso_enabled = 1;
@@ -77,10 +73,7 @@ __initcall(init_vdso_vars);
 
 struct linux_binprm;
 
-/* Put the vdso above the (randomized) stack with another randomized offset.
-   This way there is no hole in the middle of address space.
-   To save memory make sure it is still in the same PTE as the stack top.
-   This doesn't give that many random bits */
+
 static unsigned long vdso_addr(unsigned long start, unsigned len)
 {
 	unsigned long addr, end;
@@ -89,7 +82,7 @@ static unsigned long vdso_addr(unsigned long start, unsigned len)
 	if (end >= TASK_SIZE_MAX)
 		end = TASK_SIZE_MAX;
 	end -= len;
-	/* This loses some more bits than a modulo, but is cheaper */
+	
 	offset = get_random_int() & (PTRS_PER_PTE - 1);
 	addr = start + (offset << PAGE_SHIFT);
 	if (addr >= end)
@@ -97,8 +90,7 @@ static unsigned long vdso_addr(unsigned long start, unsigned len)
 	return addr;
 }
 
-/* Setup a VMA at program startup for the vsyscall page.
-   Not called for compat tasks */
+
 int arch_setup_additional_pages(struct linux_binprm *bprm, int uses_interp)
 {
 	struct mm_struct *mm = current->mm;

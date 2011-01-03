@@ -7,4 +7,4 @@
 
 #include <asm-generic/siginfo.h>
 
-#endif /* _ASM_X86_SIGINFO_H */
+#endif 

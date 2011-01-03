@@ -1,23 +1,9 @@
 #ifndef _ASM_X86_XOR_32_H
 #define _ASM_X86_XOR_32_H
 
-/*
- * Optimized RAID-5 checksumming functions for MMX and SSE.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * You should have received a copy of the GNU General Public License
- * (for example /usr/src/linux/COPYING); if not, write to the Free
- * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
 
-/*
- * High-speed RAID5 checksumming functions utilizing MMX instructions.
- * Copyright (C) 1998 Ingo Molnar.
- */
+
+
 
 #define LD(x, y)	"       movq   8*("#x")(%1), %%mm"#y"   ;\n"
 #define ST(x, y)	"       movq %%mm"#y",   8*("#x")(%1)   ;\n"
@@ -183,12 +169,7 @@ xor_pII_mmx_5(unsigned long bytes, unsigned long *p1, unsigned long *p2,
 
 	kernel_fpu_begin();
 
-	/* Make sure GCC forgets anything it knows about p4 or p5,
-	   such that it won't pass to the asm volatile below a
-	   register that is shared with any other variable.  That's
-	   because we modify p4 and p5 there, but we can't mark them
-	   as read/write, otherwise we'd overflow the 10-asm-operands
-	   limit of GCC < 3.1.  */
+	
 	asm("" : "+r" (p4), "+r" (p5));
 
 	asm volatile(
@@ -239,9 +220,7 @@ xor_pII_mmx_5(unsigned long bytes, unsigned long *p1, unsigned long *p2,
 	: "r" (p4), "r" (p5)
 	: "memory");
 
-	/* p4 and p5 were modified, and now the variables are dead.
-	   Clobber them just to be sure nobody does something stupid
-	   like assuming they have some legal value.  */
+	
 	asm("" : "=r" (p4), "=r" (p5));
 
 	kernel_fpu_end();
@@ -433,12 +412,7 @@ xor_p5_mmx_5(unsigned long bytes, unsigned long *p1, unsigned long *p2,
 
 	kernel_fpu_begin();
 
-	/* Make sure GCC forgets anything it knows about p4 or p5,
-	   such that it won't pass to the asm volatile below a
-	   register that is shared with any other variable.  That's
-	   because we modify p4 and p5 there, but we can't mark them
-	   as read/write, otherwise we'd overflow the 10-asm-operands
-	   limit of GCC < 3.1.  */
+	
 	asm("" : "+r" (p4), "+r" (p5));
 
 	asm volatile(
@@ -505,9 +479,7 @@ xor_p5_mmx_5(unsigned long bytes, unsigned long *p1, unsigned long *p2,
 	: "r" (p4), "r" (p5)
 	: "memory");
 
-	/* p4 and p5 were modified, and now the variables are dead.
-	   Clobber them just to be sure nobody does something stupid
-	   like assuming they have some legal value.  */
+	
 	asm("" : "=r" (p4), "=r" (p5));
 
 	kernel_fpu_end();
@@ -529,10 +501,7 @@ static struct xor_block_template xor_block_p5_mmx = {
 	.do_5 = xor_p5_mmx_5,
 };
 
-/*
- * Cache avoiding checksumming functions utilizing KNI instructions
- * Copyright (C) 1999 Zach Brown (with obvious credit due Ingo)
- */
+
 
 #define XMMS_SAVE				\
 do {						\
@@ -775,12 +744,7 @@ xor_sse_5(unsigned long bytes, unsigned long *p1, unsigned long *p2,
 
 	XMMS_SAVE;
 
-	/* Make sure GCC forgets anything it knows about p4 or p5,
-	   such that it won't pass to the asm volatile below a
-	   register that is shared with any other variable.  That's
-	   because we modify p4 and p5 there, but we can't mark them
-	   as read/write, otherwise we'd overflow the 10-asm-operands
-	   limit of GCC < 3.1.  */
+	
 	asm("" : "+r" (p4), "+r" (p5));
 
 	asm volatile(
@@ -845,9 +809,7 @@ xor_sse_5(unsigned long bytes, unsigned long *p1, unsigned long *p2,
 	: "r" (p4), "r" (p5)
 	: "memory");
 
-	/* p4 and p5 were modified, and now the variables are dead.
-	   Clobber them just to be sure nobody does something stupid
-	   like assuming they have some legal value.  */
+	
 	asm("" : "=r" (p4), "=r" (p5));
 
 	XMMS_RESTORE;
@@ -861,7 +823,7 @@ static struct xor_block_template xor_block_pIII_sse = {
 	.do_5 = xor_sse_5,
 };
 
-/* Also try the generic routines.  */
+
 #include <asm-generic/xor.h>
 
 #undef XOR_TRY_TEMPLATES
@@ -879,10 +841,8 @@ do {							\
 	}						\
 } while (0)
 
-/* We force the use of the SSE xor block because it can write around L2.
-   We may also be able to load into the L1 only depending on how the cpu
-   deals with a load to a line that is being prefetched.  */
+
 #define XOR_SELECT_TEMPLATE(FASTEST)			\
 	(cpu_has_xmm ? &xor_block_pIII_sse : FASTEST)
 
-#endif /* _ASM_X86_XOR_32_H */
+#endif 

@@ -1,13 +1,4 @@
-/*
- * ACPI 3.0 based NUMA setup
- * Copyright 2004 Andi Kleen, SuSE Labs.
- *
- * Reads the ACPI SRAT table to figure out what memory belongs to which CPUs.
- *
- * Called from acpi_numa_init while reading the SRAT and SLIT tables.
- * Assumes all memory regions belonging to a single proximity domain
- * are in one chunk. Holes between them will be included in the node.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/acpi.h>
@@ -91,7 +82,7 @@ static __init inline int srat_disabled(void)
 	return numa_off || acpi_numa < 0;
 }
 
-/* Callback for SLIT parsing */
+
 void __init acpi_numa_slit_init(struct acpi_table_slit *slit)
 {
 	unsigned length;
@@ -109,7 +100,7 @@ void __init acpi_numa_slit_init(struct acpi_table_slit *slit)
 	reserve_early(phys, phys + length, "ACPI SLIT");
 }
 
-/* Callback for Proximity Domain -> x2APIC mapping */
+
 void __init
 acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa)
 {
@@ -140,7 +131,7 @@ acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa)
 	       pxm, apic_id, node);
 }
 
-/* Callback for Proximity Domain -> LAPIC mapping */
+
 void __init
 acpi_numa_processor_affinity_init(struct acpi_srat_cpu_affinity *pa)
 {
@@ -179,10 +170,7 @@ static inline int save_add_info(void) {return 1;}
 #else
 static inline int save_add_info(void) {return 0;}
 #endif
-/*
- * Update nodes_add[]
- * This code supports one contiguous hot add area per node
- */
+
 static void __init
 update_nodes_add(int node, unsigned long start, unsigned long end)
 {
@@ -191,18 +179,13 @@ update_nodes_add(int node, unsigned long start, unsigned long end)
 	int changed = 0;
 	struct bootnode *nd = &nodes_add[node];
 
-	/* I had some trouble with strange memory hotadd regions breaking
-	   the boot. Be very strict here and reject anything unexpected.
-	   If you want working memory hotadd write correct SRATs.
-
-	   The node size check is a basic sanity check to guard against
-	   mistakes */
+	
 	if ((signed long)(end - start) < NODE_MIN_SIZE) {
 		printk(KERN_ERR "SRAT: Hotplug area too small\n");
 		return;
 	}
 
-	/* This check might be a bit too strict, but I'm keeping it for now. */
+	
 	if (absent_pages_in_range(s_pfn, e_pfn) != e_pfn - s_pfn) {
 		printk(KERN_ERR
 			"SRAT: Hotplug area %lu -> %lu has existing memory\n",
@@ -210,7 +193,7 @@ update_nodes_add(int node, unsigned long start, unsigned long end)
 		return;
 	}
 
-	/* Looks good */
+	
 
 	if (nd->start == nd->end) {
 		nd->start = start;
@@ -236,7 +219,7 @@ update_nodes_add(int node, unsigned long start, unsigned long end)
 	}
 }
 
-/* Callback for parsing of the Proximity Domain <-> Memory Area mappings */
+
 void __init
 acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
 {
@@ -297,7 +280,7 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
 
 	if (ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE) {
 		update_nodes_add(node, start, end);
-		/* restore nodes[node] */
+		
 		*nd = oldnode;
 		if ((nd->start | nd->end) == 0)
 			node_clear(node, nodes_parsed);
@@ -309,8 +292,7 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
 	num_node_memblks++;
 }
 
-/* Sanity check to catch more bad SRATs (they are amazingly common).
-   Make sure the PXMs cover all memory. */
+
 static int __init nodes_cover_memory(const struct bootnode *nodes)
 {
 	int i;
@@ -327,7 +309,7 @@ static int __init nodes_cover_memory(const struct bootnode *nodes)
 	}
 
 	e820ram = max_pfn - (e820_hole_size(0, max_pfn<<PAGE_SHIFT)>>PAGE_SHIFT);
-	/* We seem to lose 3 pages somewhere. Allow 1M of slack. */
+	
 	if ((long)(e820ram - pxmram) >= (1<<(20 - PAGE_SHIFT))) {
 		printk(KERN_ERR
 	"SRAT: PXMs only cover %luMB of your %luMB e820 RAM. Not used.\n",
@@ -340,7 +322,7 @@ static int __init nodes_cover_memory(const struct bootnode *nodes)
 
 void __init acpi_numa_arch_fixup(void) {}
 
-/* Use the information discovered above to actually set up the nodes. */
+
 int __init acpi_scan_nodes(unsigned long start, unsigned long end)
 {
 	int i;
@@ -348,7 +330,7 @@ int __init acpi_scan_nodes(unsigned long start, unsigned long end)
 	if (acpi_numa <= 0)
 		return -1;
 
-	/* First clean up the node list */
+	
 	for (i = 0; i < MAX_NUMNODES; i++)
 		cutoff_node(i, start, end);
 
@@ -366,14 +348,13 @@ int __init acpi_scan_nodes(unsigned long start, unsigned long end)
 		return -1;
 	}
 
-	/* Account for nodes with cpus and no memory */
+	
 	nodes_or(node_possible_map, nodes_parsed, cpu_nodes_parsed);
 
-	/* Finally register nodes */
+	
 	for_each_node_mask(i, node_possible_map)
 		setup_node_bootmem(i, nodes[i].start, nodes[i].end);
-	/* Try again in case setup_node_bootmem missed one due
-	   to missing bootmem */
+	
 	for_each_node_mask(i, node_possible_map)
 		if (!node_online(i))
 			setup_node_bootmem(i, nodes[i].start, nodes[i].end);
@@ -403,11 +384,7 @@ static int __init find_node_by_addr(unsigned long addr)
 	int i;
 
 	for_each_node_mask(i, nodes_parsed) {
-		/*
-		 * Find the real node that this emulated node appears on.  For
-		 * the sake of simplicity, we only use a real node's starting
-		 * address to determine which emulated node it appears on.
-		 */
+		
 		if (addr >= nodes[i].start && addr < nodes[i].end) {
 			ret = i;
 			break;
@@ -416,14 +393,7 @@ static int __init find_node_by_addr(unsigned long addr)
 	return ret;
 }
 
-/*
- * In NUMA emulation, we need to setup proximity domain (_PXM) to node ID
- * mappings that respect the real ACPI topology but reflect our emulated
- * environment.  For each emulated node, we find which real node it appears on
- * and create PXM to NID mappings for those fake nodes which mirror that
- * locality.  SLIT will now represent the correct distances between emulated
- * nodes as a result of the real topology.
- */
+
 void __init acpi_fake_nodes(const struct bootnode *fake_nodes, int num_nodes)
 {
 	int i, j;
@@ -440,10 +410,7 @@ void __init acpi_fake_nodes(const struct bootnode *fake_nodes, int num_nodes)
 		if (pxm == PXM_INVAL)
 			continue;
 		fake_node_to_pxm_map[i] = pxm;
-		/*
-		 * For each apicid_to_node mapping that exists for this real
-		 * node, it must now point to the fake node ID.
-		 */
+		
 		for (j = 0; j < MAX_LOCAL_APIC; j++)
 			if (apicid_to_node[j] == nid)
 				fake_apicid_to_node[j] = i;
@@ -468,7 +435,7 @@ static int null_slit_node_compare(int a, int b)
 {
 	return a == b;
 }
-#endif /* CONFIG_NUMA_EMU */
+#endif 
 
 int __node_distance(int a, int b)
 {

@@ -1,20 +1,16 @@
 #ifndef _ASM_X86_UACCESS_64_H
 #define _ASM_X86_UACCESS_64_H
 
-/*
- * User space memory access functions
- */
+
 #include <linux/compiler.h>
 #include <linux/errno.h>
 #include <linux/prefetch.h>
 #include <linux/lockdep.h>
 #include <asm/page.h>
 
-/*
- * Copy To/From Userspace
- */
 
-/* Handles exceptions in both to and from, but doesn't do access_ok */
+
+
 __must_check unsigned long
 copy_user_generic(void *to, const void *from, unsigned len);
 
@@ -205,4 +201,4 @@ __copy_from_user_inatomic_nocache(void *dst, const void __user *src,
 unsigned long
 copy_user_handle_tail(char *to, char *from, unsigned len, unsigned zerorest);
 
-#endif /* _ASM_X86_UACCESS_64_H */
+#endif 

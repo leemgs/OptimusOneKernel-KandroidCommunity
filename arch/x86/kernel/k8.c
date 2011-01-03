@@ -1,7 +1,4 @@
-/*
- * Shared support code for AMD K8 northbridges and derivates.
- * Copyright 2006 Andi Kleen, SUSE Labs. Subject to GPLv2.
- */
+
 #include <linux/gfp.h>
 #include <linux/types.h>
 #include <linux/init.h>
@@ -74,8 +71,7 @@ int cache_k8_northbridges(void)
 }
 EXPORT_SYMBOL_GPL(cache_k8_northbridges);
 
-/* Ignores subdevice/subvendor but as far as I can figure out
-   they're useless anyways */
+
 int __init early_is_k8_nb(u32 device)
 {
 	struct pci_device_id *id;
@@ -93,10 +89,7 @@ void k8_flush_garts(void)
 	unsigned long flags;
 	static DEFINE_SPINLOCK(gart_lock);
 
-	/* Avoid races between AGP and IOMMU. In theory it's not needed
-	   but I'm not sure if the hardware won't lose flush requests
-	   when another is pending. This whole thing is so expensive anyways
-	   that it doesn't matter to serialize more. -AK */
+	
 	spin_lock_irqsave(&gart_lock, flags);
 	flushed = 0;
 	for (i = 0; i < num_k8_northbridges; i++) {
@@ -106,7 +99,7 @@ void k8_flush_garts(void)
 	}
 	for (i = 0; i < num_k8_northbridges; i++) {
 		u32 w;
-		/* Make sure the hardware actually executed the flush*/
+		
 		for (;;) {
 			pci_read_config_dword(k8_northbridges[i],
 					      0x9c, &w);

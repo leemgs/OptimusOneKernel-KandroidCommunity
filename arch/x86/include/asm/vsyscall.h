@@ -19,7 +19,7 @@ enum vsyscall_num {
 #define __section_vgetcpu_mode __attribute__ ((unused, __section__ (".vgetcpu_mode"), aligned(16)))
 #define __section_jiffies __attribute__ ((unused, __section__ (".jiffies"), aligned(16)))
 
-/* Definitions for CONFIG_GENERIC_TIME definitions */
+
 #define __section_vsyscall_gtod_data __attribute__ \
 	((unused, __section__ (".vsyscall_gtod_data"),aligned(16)))
 #define __section_vsyscall_clock __attribute__ \
@@ -33,12 +33,12 @@ enum vsyscall_num {
 extern int __vgetcpu_mode;
 extern volatile unsigned long __jiffies;
 
-/* kernel space (writeable) */
+
 extern int vgetcpu_mode;
 extern struct timezone sys_tz;
 
 extern void map_vsyscall(void);
 
-#endif /* __KERNEL__ */
+#endif 
 
-#endif /* _ASM_X86_VSYSCALL_H */
+#endif 

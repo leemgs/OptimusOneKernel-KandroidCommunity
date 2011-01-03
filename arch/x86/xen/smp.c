@@ -1,17 +1,4 @@
-/*
- * Xen SMP support
- *
- * This file implements the Xen versions of smp_ops.  SMP under Xen is
- * very straightforward.  Bringing a CPU up is simply a matter of
- * loading its initial context and setting it running.
- *
- * IPIs are handled through the Xen event mechanism.
- *
- * Because virtual CPUs can be scheduled onto any real CPU, there's no
- * useful topology information for the kernel to make use of.  As a
- * result, all CPUs are treated as if they're single-core and
- * single-threaded.
- */
+
 #include <linux/sched.h>
 #include <linux/err.h>
 #include <linux/smp.h>
@@ -43,11 +30,7 @@ static DEFINE_PER_CPU(int, debug_irq) = -1;
 static irqreturn_t xen_call_function_interrupt(int irq, void *dev_id);
 static irqreturn_t xen_call_function_single_interrupt(int irq, void *dev_id);
 
-/*
- * Reschedule call back. Nothing to do,
- * all the work is done automatically when
- * we return from the interrupt.
- */
+
 static irqreturn_t xen_reschedule_interrupt(int irq, void *dev_id)
 {
 	inc_irq_stat(irq_resched_count);
@@ -77,10 +60,10 @@ static __cpuinit void cpu_bringup(void)
 	percpu_write(cpu_state, CPU_ONLINE);
 	wmb();
 
-	/* We can take interrupts now: we're officially "up". */
+	
 	local_irq_enable();
 
-	wmb();			/* make sure everything is out */
+	wmb();			
 }
 
 static __cpuinit void cpu_bringup_and_idle(void)
@@ -168,8 +151,7 @@ static void __init xen_smp_prepare_boot_cpu(void)
 	BUG_ON(smp_processor_id() != 0);
 	native_smp_prepare_boot_cpu();
 
-	/* We've switched to the "real" per-cpu gdt, so make sure the
-	   old memory can be recycled */
+	
 	make_lowmem_page_readwrite(xen_initial_gdt);
 
 	xen_setup_vcpu_info_placement();
@@ -193,7 +175,7 @@ static void __init xen_smp_prepare_cpus(unsigned int max_cpus)
 
 	cpumask_copy(xen_cpu_initialized_map, cpumask_of(0));
 
-	/* Restrict the possible_map according to max_cpus. */
+	
 	while ((num_possible_cpus() > 1) && (num_possible_cpus() > max_cpus)) {
 		for (cpu = nr_cpu_ids - 1; !cpu_possible(cpu); cpu--)
 			continue;
@@ -241,7 +223,7 @@ cpu_initialize_context(unsigned int cpu, struct task_struct *idle)
 	ctxt->gs_base_kernel = per_cpu_offset(cpu);
 #endif
 	ctxt->user_regs.eip = (unsigned long)cpu_bringup_and_idle;
-	ctxt->user_regs.eflags = 0x1000; /* IOPL_RING1 */
+	ctxt->user_regs.eflags = 0x1000; 
 
 	memset(&ctxt->fpu_ctxt, 0, sizeof(ctxt->fpu_ctxt));
 
@@ -301,7 +283,7 @@ static int __cpuinit xen_cpu_up(unsigned int cpu)
 
 	per_cpu(cpu_state, cpu) = CPU_UP_PREPARE;
 
-	/* make sure interrupts start blocked */
+	
 	per_cpu(xen_vcpu, cpu)->evtchn_upcall_mask = 1;
 
 	rc = cpu_initialize_context(cpu, idle);
@@ -360,14 +342,14 @@ static void xen_cpu_die(unsigned int cpu)
 		alternatives_smp_switch(0);
 }
 
-static void __cpuinit xen_play_dead(void) /* used only with CPU_HOTPLUG */
+static void __cpuinit xen_play_dead(void) 
 {
 	play_dead_common();
 	HYPERVISOR_vcpu_op(VCPUOP_down, smp_processor_id(), NULL);
 	cpu_bringup();
 }
 
-#else /* !CONFIG_HOTPLUG_CPU */
+#else 
 static int xen_cpu_disable(void)
 {
 	return -ENOSYS;
@@ -388,9 +370,9 @@ static void stop_self(void *v)
 {
 	int cpu = smp_processor_id();
 
-	/* make sure we're not pinning something down */
+	
 	load_cr3(swapper_pg_dir);
-	/* should set up a minimal gdt */
+	
 
 	HYPERVISOR_vcpu_op(VCPUOP_down, cpu, NULL);
 	BUG();
@@ -421,7 +403,7 @@ static void xen_smp_send_call_function_ipi(const struct cpumask *mask)
 
 	xen_send_IPI_mask(mask, XEN_CALL_FUNCTION_VECTOR);
 
-	/* Make sure other vcpus get a chance to run if they need to. */
+	
 	for_each_cpu(cpu, mask) {
 		if (xen_vcpu_stolen(cpu)) {
 			HYPERVISOR_sched_op(SCHEDOP_yield, NULL);

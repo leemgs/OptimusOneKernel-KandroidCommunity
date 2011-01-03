@@ -13,11 +13,9 @@ static inline void paravirt_activate_mm(struct mm_struct *prev,
 					struct mm_struct *next)
 {
 }
-#endif	/* !CONFIG_PARAVIRT */
+#endif	
 
-/*
- * Used for LDT copy/destruction.
- */
+
 int init_new_context(struct task_struct *tsk, struct mm_struct *mm);
 void destroy_context(struct mm_struct *mm);
 
@@ -36,7 +34,7 @@ static inline void switch_mm(struct mm_struct *prev, struct mm_struct *next,
 	unsigned cpu = smp_processor_id();
 
 	if (likely(prev != next)) {
-		/* stop flush ipis for the previous mm */
+		
 		cpumask_clear_cpu(cpu, mm_cpumask(prev));
 #ifdef CONFIG_SMP
 		percpu_write(cpu_tlbstate.state, TLBSTATE_OK);
@@ -44,12 +42,10 @@ static inline void switch_mm(struct mm_struct *prev, struct mm_struct *next,
 #endif
 		cpumask_set_cpu(cpu, mm_cpumask(next));
 
-		/* Re-load page tables */
+		
 		load_cr3(next->pgd);
 
-		/*
-		 * load the LDT, if the LDT is different:
-		 */
+		
 		if (unlikely(prev->context.ldt != next->context.ldt))
 			load_LDT_nolock(&next->context);
 	}
@@ -59,10 +55,7 @@ static inline void switch_mm(struct mm_struct *prev, struct mm_struct *next,
 		BUG_ON(percpu_read(cpu_tlbstate.active_mm) != next);
 
 		if (!cpumask_test_and_set_cpu(cpu, mm_cpumask(next))) {
-			/* We were in lazy tlb mode and leave_mm disabled
-			 * tlb flush IPI delivery. We must reload CR3
-			 * to make sure to use no freed page tables.
-			 */
+			
 			load_cr3(next->pgd);
 			load_LDT_nolock(&next->context);
 		}
@@ -89,4 +82,4 @@ do {						\
 } while (0)
 #endif
 
-#endif /* _ASM_X86_MMU_CONTEXT_H */
+#endif 

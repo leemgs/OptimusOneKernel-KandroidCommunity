@@ -1,12 +1,4 @@
-/**
- * @file backtrace.c
- *
- * @remark Copyright 2002 OProfile authors
- * @remark Read the file COPYING
- *
- * @author John Levon
- * @author David Smith
- */
+
 
 #include <linux/oprofile.h>
 #include <linux/sched.h>
@@ -18,17 +10,17 @@
 static void backtrace_warning_symbol(void *data, char *msg,
 				     unsigned long symbol)
 {
-	/* Ignore warnings */
+	
 }
 
 static void backtrace_warning(void *data, char *msg)
 {
-	/* Ignore warnings */
+	
 }
 
 static int backtrace_stack(void *data, char *name)
 {
-	/* Yes, we want all stacks */
+	
 	return 0;
 }
 
@@ -56,7 +48,7 @@ static struct frame_head *dump_user_backtrace(struct frame_head *head)
 {
 	struct frame_head bufhead[2];
 
-	/* Also check accessibility of one struct frame_head beyond */
+	
 	if (!access_ok(VERIFY_READ, head, sizeof(bufhead)))
 		return NULL;
 	if (__copy_from_user_inatomic(bufhead, head, sizeof(bufhead)))
@@ -64,8 +56,7 @@ static struct frame_head *dump_user_backtrace(struct frame_head *head)
 
 	oprofile_add_trace(bufhead[0].ret);
 
-	/* frame pointers should strictly progress back up the stack
-	 * (towards higher addresses) */
+	
 	if (head >= bufhead[0].bp)
 		return NULL;
 

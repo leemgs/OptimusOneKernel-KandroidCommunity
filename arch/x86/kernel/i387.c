@@ -1,10 +1,4 @@
-/*
- *  Copyright (C) 1994 Linus Torvalds
- *
- *  Pentium III FXSR, SSE support
- *  General FPU state handling cleanups
- *	Gareth Hughes <gareth@valinux.com>, May 2000
- */
+
 #include <linux/module.h>
 #include <linux/regset.h>
 #include <linux/sched.h>
@@ -79,10 +73,7 @@ void __cpuinit init_thread_xstate(void)
 }
 
 #ifdef CONFIG_X86_64
-/*
- * Called at bootup to set up the initial FPU state that is later cloned
- * into all processes.
- */
+
 void __cpuinit fpu_init(void)
 {
 	unsigned long oldcr0 = read_cr0();
@@ -90,31 +81,24 @@ void __cpuinit fpu_init(void)
 	set_in_cr4(X86_CR4_OSFXSR);
 	set_in_cr4(X86_CR4_OSXMMEXCPT);
 
-	write_cr0(oldcr0 & ~(X86_CR0_TS|X86_CR0_EM)); /* clear TS and EM */
+	write_cr0(oldcr0 & ~(X86_CR0_TS|X86_CR0_EM)); 
 
-	/*
-	 * Boot processor to setup the FP and extended state context info.
-	 */
+	
 	if (!smp_processor_id())
 		init_thread_xstate();
 	xsave_init();
 
 	mxcsr_feature_mask_init();
-	/* clean state in init */
+	
 	if (cpu_has_xsave)
 		current_thread_info()->status = TS_XSAVE;
 	else
 		current_thread_info()->status = 0;
 	clear_used_math();
 }
-#endif	/* CONFIG_X86_64 */
+#endif	
 
-/*
- * The _current_ task is using the FPU for the first time
- * so initialize it and set the mxcsr to its default
- * value at reset if we support XMM instructions and then
- * remeber the current task has used the FPU.
- */
+
 int init_fpu(struct task_struct *tsk)
 {
 	if (tsk_used_math(tsk)) {
@@ -123,9 +107,7 @@ int init_fpu(struct task_struct *tsk)
 		return 0;
 	}
 
-	/*
-	 * Memory allocation at the first usage of the FPU and other state.
-	 */
+	
 	if (!tsk->thread.xstate) {
 		tsk->thread.xstate = kmem_cache_alloc(task_xstate_cachep,
 						      GFP_KERNEL);
@@ -157,9 +139,7 @@ int init_fpu(struct task_struct *tsk)
 		fp->twd = 0xffffffffu;
 		fp->fos = 0xffff0000u;
 	}
-	/*
-	 * Only the device not available exception or ptrace can call init_fpu.
-	 */
+	
 	set_stopped_child_used_math(tsk);
 	return 0;
 }
@@ -209,15 +189,10 @@ int xfpregs_set(struct task_struct *target, const struct user_regset *regset,
 	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf,
 				 &target->thread.xstate->fxsave, 0, -1);
 
-	/*
-	 * mxcsr reserved bits must be masked to zero for security reasons.
-	 */
+	
 	target->thread.xstate->fxsave.mxcsr &= mxcsr_feature_mask;
 
-	/*
-	 * update the header bits in the xsave header, indicating the
-	 * presence of FP and SSE state.
-	 */
+	
 	if (cpu_has_xsave)
 		target->thread.xstate->xsave.xsave_hdr.xstate_bv |= XSTATE_FPSSE;
 
@@ -226,21 +201,19 @@ int xfpregs_set(struct task_struct *target, const struct user_regset *regset,
 
 #if defined CONFIG_X86_32 || defined CONFIG_IA32_EMULATION
 
-/*
- * FPU tag word conversions.
- */
+
 
 static inline unsigned short twd_i387_to_fxsr(unsigned short twd)
 {
-	unsigned int tmp; /* to avoid 16 bit prefixes in the code */
+	unsigned int tmp; 
 
-	/* Transform each pair of bits into 01 (valid) or 00 (empty) */
+	
 	tmp = ~twd;
-	tmp = (tmp | (tmp>>1)) & 0x5555; /* 0V0V0V0V0V0V0V0V */
-	/* and move the valid bits to the lower byte. */
-	tmp = (tmp | (tmp >> 1)) & 0x3333; /* 00VV00VV00VV00VV */
-	tmp = (tmp | (tmp >> 2)) & 0x0f0f; /* 0000VVVV0000VVVV */
-	tmp = (tmp | (tmp >> 4)) & 0x00ff; /* 00000000VVVVVVVV */
+	tmp = (tmp | (tmp>>1)) & 0x5555; 
+	
+	tmp = (tmp | (tmp >> 1)) & 0x3333; 
+	tmp = (tmp | (tmp >> 2)) & 0x0f0f; 
+	tmp = (tmp | (tmp >> 4)) & 0x00ff; 
 
 	return tmp;
 }
@@ -292,9 +265,7 @@ static inline u32 twd_fxsr_to_i387(struct i387_fxsave_struct *fxsave)
 	return ret;
 }
 
-/*
- * FXSR floating point environment conversions.
- */
+
 
 static void
 convert_from_fxsr(struct user_i387_ia32_struct *env, struct task_struct *tsk)
@@ -312,10 +283,7 @@ convert_from_fxsr(struct user_i387_ia32_struct *env, struct task_struct *tsk)
 	env->fip = fxsave->rip;
 	env->foo = fxsave->rdp;
 	if (tsk == current) {
-		/*
-		 * should be actually ds/cs at fpu exception time, but
-		 * that information is not available in 64bit mode.
-		 */
+		
 		asm("mov %%ds, %[fos]" : [fos] "=r" (env->fos));
 		asm("mov %%cs, %[fcs]" : [fcs] "=r" (env->fcs));
 	} else {
@@ -351,7 +319,7 @@ static void convert_to_fxsr(struct task_struct *tsk,
 #ifdef CONFIG_X86_64
 	fxsave->rip = env->fip;
 	fxsave->rdp = env->foo;
-	/* cs and ds ignored */
+	
 #else
 	fxsave->fip = env->fip;
 	fxsave->fcs = (env->fcs & 0xffff);
@@ -421,18 +389,13 @@ int fpregs_set(struct task_struct *target, const struct user_regset *regset,
 	if (!ret)
 		convert_to_fxsr(target, &env);
 
-	/*
-	 * update the header bit in the xsave header, indicating the
-	 * presence of FP.
-	 */
+	
 	if (cpu_has_xsave)
 		target->thread.xstate->xsave.xsave_hdr.xstate_bv |= XSTATE_FP;
 	return ret;
 }
 
-/*
- * Signal frame handlers.
- */
+
 
 static inline int save_i387_fsave(struct _fpstate_ia32 __user *buf)
 {
@@ -472,17 +435,7 @@ static int save_i387_xsave(void __user *buf)
 	struct _fpstate_ia32 __user *fx = buf;
 	int err = 0;
 
-	/*
-	 * For legacy compatible, we always set FP/SSE bits in the bit
-	 * vector while saving the state to the user context.
-	 * This will enable us capturing any changes(during sigreturn) to
-	 * the FP/SSE bits by the legacy applications which don't touch
-	 * xstate_bv in the xsave header.
-	 *
-	 * xsave aware applications can change the xstate_bv in the xsave
-	 * header as well as change any contents in the memory layout.
-	 * xrestore as part of sigreturn will capture all the changes.
-	 */
+	
 	tsk->thread.xstate->xsave.xsave_hdr.xstate_bv |= XSTATE_FPSSE;
 
 	if (save_i387_fxsave(fx) < 0)
@@ -509,10 +462,7 @@ int save_i387_xstate_ia32(void __user *buf)
 
 	if (!access_ok(VERIFY_WRITE, buf, sig_xstate_ia32_size))
 		return -EACCES;
-	/*
-	 * This will cause a "finit" to be triggered by the next
-	 * attempted FPU operation by the 'current' process.
-	 */
+	
 	clear_used_math();
 
 	if (!HAVE_HWFP) {
@@ -548,7 +498,7 @@ static int restore_i387_fxsave(struct _fpstate_ia32 __user *buf,
 
 	err = __copy_from_user(&tsk->thread.xstate->fxsave, &buf->_fxsr_env[0],
 			       size);
-	/* mxcsr reserved bits must be masked to zero for security reasons */
+	
 	tsk->thread.xstate->fxsave.mxcsr &= mxcsr_feature_mask;
 	if (err || __copy_from_user(&env, buf, sizeof(env)))
 		return 1;
@@ -577,25 +527,16 @@ static int restore_i387_xsave(void __user *buf)
 	err = restore_i387_fxsave(buf, fx_sw_user.xstate_size);
 
 	xsave_hdr->xstate_bv &= pcntxt_mask;
-	/*
-	 * These bits must be zero.
-	 */
+	
 	xsave_hdr->reserved1[0] = xsave_hdr->reserved1[1] = 0;
 
-	/*
-	 * Init the state that is not present in the memory layout
-	 * and enabled by the OS.
-	 */
+	
 	mask = ~(pcntxt_mask & ~mask);
 	xsave_hdr->xstate_bv &= mask;
 
 	return err;
 fx_only:
-	/*
-	 * Couldn't find the extended state information in the memory
-	 * layout. Restore the FP/SSE and init the other extended state
-	 * enabled by the OS.
-	 */
+	
 	xsave_hdr->xstate_bv = XSTATE_FPSSE;
 	return restore_i387_fxsave(buf, sizeof(struct i387_fxsave_struct));
 }
@@ -644,13 +585,7 @@ int restore_i387_xstate_ia32(void __user *buf)
 	return err;
 }
 
-/*
- * FPU state for core dumps.
- * This is only used for a.out dumps now.
- * It is declared generically using elf_fpregset_t (which is
- * struct user_i387_struct) but is in fact only used for 32-bit
- * dumps, so on 64-bit it is really struct user_i387_ia32_struct.
- */
+
 int dump_fpu(struct pt_regs *regs, struct user_i387_struct *fpu)
 {
 	struct task_struct *tsk = current;
@@ -666,4 +601,4 @@ int dump_fpu(struct pt_regs *regs, struct user_i387_struct *fpu)
 }
 EXPORT_SYMBOL(dump_fpu);
 
-#endif	/* CONFIG_X86_32 || CONFIG_IA32_EMULATION */
+#endif	

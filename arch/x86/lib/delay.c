@@ -1,15 +1,4 @@
-/*
- *	Precise Delay Loops for i386
- *
- *	Copyright (C) 1993 Linus Torvalds
- *	Copyright (C) 1997 Martin Mares <mj@atrey.karlin.mff.cuni.cz>
- *	Copyright (C) 2008 Jiri Hladky <hladky _dot_ jiri _at_ gmail _dot_ com>
- *
- *	The __delay function must _NOT_ be inlined as its execution time
- *	depends wildly on alignment on many x86 processors. The additional
- *	jump magic is needed to get the timing stable on all the CPU's
- *	we have to worry about.
- */
+
 
 #include <linux/module.h>
 #include <linux/sched.h>
@@ -26,7 +15,7 @@
 # include <asm/smp.h>
 #endif
 
-/* simple loop based delay: */
+
 static void delay_loop(unsigned long loops)
 {
 	asm volatile(
@@ -42,12 +31,12 @@ static void delay_loop(unsigned long loops)
 		"	jnz 2b		\n"
 		"3:	dec %0		\n"
 
-		: /* we don't need output */
+		: 
 		:"a" (loops)
 	);
 }
 
-/* TSC based delay: */
+
 static void delay_tsc(unsigned long loops)
 {
 	unsigned long bclock, now;
@@ -63,20 +52,12 @@ static void delay_tsc(unsigned long loops)
 		if ((now - bclock) >= loops)
 			break;
 
-		/* Allow RT tasks to run */
+		
 		preempt_enable();
 		rep_nop();
 		preempt_disable();
 
-		/*
-		 * It is possible that we moved to another CPU, and
-		 * since TSC's are per-cpu we need to calculate
-		 * that. The delay must guarantee that we wait "at
-		 * least" the amount of time. Being moved to another
-		 * CPU could make the wait longer but we just need to
-		 * make sure we waited long enough. Rebalance the
-		 * counter for this CPU.
-		 */
+		
 		if (unlikely(cpu != smp_processor_id())) {
 			loops -= (now - bclock);
 			cpu = smp_processor_id();
@@ -87,10 +68,7 @@ static void delay_tsc(unsigned long loops)
 	preempt_enable();
 }
 
-/*
- * Since we calibrate only once at boot, this
- * function should be set once at boot and not changed
- */
+
 static void (*delay_fn)(unsigned long) = delay_loop;
 
 void use_tsc_delay(void)
@@ -129,12 +107,12 @@ EXPORT_SYMBOL(__const_udelay);
 
 void __udelay(unsigned long usecs)
 {
-	__const_udelay(usecs * 0x000010c7); /* 2**32 / 1000000 (rounded up) */
+	__const_udelay(usecs * 0x000010c7); 
 }
 EXPORT_SYMBOL(__udelay);
 
 void __ndelay(unsigned long nsecs)
 {
-	__const_udelay(nsecs * 0x00005); /* 2**32 / 1000000000 (rounded up) */
+	__const_udelay(nsecs * 0x00005); 
 }
 EXPORT_SYMBOL(__ndelay);

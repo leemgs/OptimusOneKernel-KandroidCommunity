@@ -1,12 +1,4 @@
-/*
- * Kernel-based Virtual Machine driver for Linux
- *
- * This header defines architecture specific interfaces, x86 version
- *
- * This work is licensed under the terms of the GNU GPL, version 2.  See
- * the COPYING file in the top-level directory.
- *
- */
+
 
 #ifndef _ASM_X86_KVM_HOST_H
 #define _ASM_X86_KVM_HOST_H
@@ -27,7 +19,7 @@
 
 #define KVM_MAX_VCPUS 16
 #define KVM_MEMORY_SLOTS 32
-/* memory slots that does not exposed to userspace */
+
 #define KVM_PRIVATE_MEM_SLOTS 4
 
 #define KVM_PIO_PAGE_OFFSET 1
@@ -54,7 +46,7 @@
 #define INVALID_PAGE (~(hpa_t)0)
 #define UNMAPPED_GVA (~(gpa_t)0)
 
-/* KVM Hugepage definitions for x86 */
+
 #define KVM_NR_PAGE_SIZES	3
 #define KVM_HPAGE_SHIFT(x)	(PAGE_SHIFT + (((x) - 1) * 9))
 #define KVM_HPAGE_SIZE(x)	(1UL << KVM_HPAGE_SHIFT(x))
@@ -155,10 +147,7 @@ enum {
 #define DR7_FIXED_1	0x00000400
 #define DR7_VOLATILE	0xffff23ff
 
-/*
- * We don't want allocation failures within the mmu code, so we preallocate
- * enough memory for a single page fault in a cache.
- */
+
 struct kvm_mmu_memory_cache {
 	int nobjs;
 	void *objects[KVM_NR_MEM_OBJS];
@@ -171,16 +160,7 @@ struct kvm_pte_chain {
 	struct hlist_node link;
 };
 
-/*
- * kvm_mmu_page_role, below, is defined as:
- *
- *   bits 0:3 - total guest paging levels (2-4, or zero for real mode)
- *   bits 4:7 - page table level for this shadow (1-4)
- *   bits 8:9 - page table quadrant for 2-level guests
- *   bit   16 - direct mapping of virtual to physical mapping at gfn
- *              used for real mode and two-dimensional paging
- *   bits 17:19 - common access permissions for all ptes in this shadow page
- */
+
 union kvm_mmu_page_role {
 	unsigned word;
 	struct {
@@ -202,28 +182,22 @@ struct kvm_mmu_page {
 
 	struct list_head oos_link;
 
-	/*
-	 * The following two entries are used to key the shadow page in the
-	 * hash table.
-	 */
+	
 	gfn_t gfn;
 	union kvm_mmu_page_role role;
 
 	u64 *spt;
-	/* hold the gfn of each spte inside spt */
+	
 	gfn_t *gfns;
-	/*
-	 * One bit set per slot which has memory
-	 * in this shadow page.
-	 */
+	
 	DECLARE_BITMAP(slot_bitmap, KVM_MEMORY_SLOTS + KVM_PRIVATE_MEM_SLOTS);
-	int multimapped;         /* More than one parent_pte? */
-	int root_count;          /* Currently serving as active root */
+	int multimapped;         
+	int root_count;          
 	bool unsync;
 	unsigned int unsync_children;
 	union {
-		u64 *parent_pte;               /* !multimapped */
-		struct hlist_head parent_ptes; /* multimapped, kvm_pte_chain */
+		u64 *parent_pte;               
+		struct hlist_head parent_ptes; 
 	};
 	DECLARE_BITMAP(unsync_child_bitmap, 512);
 };
@@ -247,11 +221,7 @@ struct kvm_pio_request {
 	int rep;
 };
 
-/*
- * x86 supports 3 paging modes (4-level 64-bit, 3-level 64-bit, and 2-level
- * 32-bit).  The kvm_mmu structure abstracts the details of the current mmu
- * mode.
- */
+
 struct kvm_mmu {
 	void (*new_cr3)(struct kvm_vcpu *vcpu);
 	int (*page_fault)(struct kvm_vcpu *vcpu, gva_t gva, u32 err);
@@ -273,10 +243,7 @@ struct kvm_mmu {
 
 struct kvm_vcpu_arch {
 	u64 host_tsc;
-	/*
-	 * rip and regs accesses must go through
-	 * kvm_{register,rip}_{read,write} functions.
-	 */
+	
 	unsigned long regs[NR_VCPU_REGS];
 	u32 regs_avail;
 	u32 regs_dirty;
@@ -287,10 +254,10 @@ struct kvm_vcpu_arch {
 	unsigned long cr4;
 	unsigned long cr8;
 	u32 hflags;
-	u64 pdptrs[4]; /* pae */
+	u64 pdptrs[4]; 
 	u64 shadow_efer;
 	u64 apic_base;
-	struct kvm_lapic *apic;    /* kernel irqchip context */
+	struct kvm_lapic *apic;    
 	int32_t apic_arb_prio;
 	int mp_state;
 	int sipi_vector;
@@ -298,8 +265,7 @@ struct kvm_vcpu_arch {
 	bool tpr_access_reporting;
 
 	struct kvm_mmu mmu;
-	/* only needed in kvm_pv_mmu_op() path, but it's hot so
-	 * put it here to avoid allocation */
+	
 	struct kvm_pv_mmu_op_buffer mmu_op_buffer;
 
 	struct kvm_mmu_memory_cache mmu_pte_chain_cache;
@@ -313,8 +279,8 @@ struct kvm_vcpu_arch {
 	gfn_t last_pte_gfn;
 
 	struct {
-		gfn_t gfn;	/* presumed gfn during guest pte update */
-		pfn_t pfn;	/* pfn corresponding to that gfn */
+		gfn_t gfn;	
+		pfn_t pfn;	
 		unsigned long mmu_seq;
 	} update_pte;
 
@@ -340,11 +306,11 @@ struct kvm_vcpu_arch {
 		u8 nr;
 	} interrupt;
 
-	int halt_request; /* real mode on Intel only */
+	int halt_request; 
 
 	int cpuid_nent;
 	struct kvm_cpuid_entry2 cpuid_entries[KVM_MAX_CPUID_ENTRIES];
-	/* emulate context */
+	
 
 	struct x86_emulate_ctxt emulate_ctxt;
 
@@ -354,7 +320,7 @@ struct kvm_vcpu_arch {
 	unsigned int time_offset;
 	struct page *time_page;
 
-	bool singlestep; /* guest is single stepped by KVM */
+	bool singlestep; 
 	bool nmi_pending;
 	bool nmi_injected;
 
@@ -387,9 +353,7 @@ struct kvm_arch{
 	unsigned int n_requested_mmu_pages;
 	unsigned int n_alloc_mmu_pages;
 	struct hlist_head mmu_page_hash[KVM_NUM_MMU_PAGES];
-	/*
-	 * Hash table of struct kvm_mmu_page.
-	 */
+	
 	struct list_head active_mmu_pages;
 	struct list_head assigned_dev_head;
 	struct iommu_domain *iommu_domain;
@@ -460,16 +424,16 @@ struct descriptor_table {
 } __attribute__((packed));
 
 struct kvm_x86_ops {
-	int (*cpu_has_kvm_support)(void);          /* __init */
-	int (*disabled_by_bios)(void);             /* __init */
-	void (*hardware_enable)(void *dummy);      /* __init */
+	int (*cpu_has_kvm_support)(void);          
+	int (*disabled_by_bios)(void);             
+	void (*hardware_enable)(void *dummy);      
 	void (*hardware_disable)(void *dummy);
 	void (*check_processor_compatibility)(void *rtn);
-	int (*hardware_setup)(void);               /* __init */
-	void (*hardware_unsetup)(void);            /* __exit */
+	int (*hardware_setup)(void);               
+	void (*hardware_unsetup)(void);            
 	bool (*cpu_has_accelerated_tpr)(void);
 
-	/* Create, but do not attach this VCPU */
+	
 	struct kvm_vcpu *(*vcpu_create)(struct kvm *kvm, unsigned id);
 	void (*vcpu_free)(struct kvm_vcpu *vcpu);
 	int (*vcpu_reset)(struct kvm_vcpu *vcpu);
@@ -561,9 +525,9 @@ u8 kvm_get_guest_memory_type(struct kvm_vcpu *vcpu, gfn_t gfn);
 extern bool tdp_enabled;
 
 enum emulation_result {
-	EMULATE_DONE,       /* no further processing */
-	EMULATE_DO_MMIO,      /* kvm_run filled with mmio request */
-	EMULATE_FAIL,         /* can't emulate this instruction */
+	EMULATE_DONE,       
+	EMULATE_DO_MMIO,      
+	EMULATE_FAIL,         
 };
 
 #define EMULTYPE_NO_DECODE	    (1 << 0)
@@ -748,7 +712,7 @@ static inline void kvm_fx_finit(void)
 
 static inline u32 get_rdx_init_val(void)
 {
-	return 0x600; /* P6 family */
+	return 0x600; 
 }
 
 static inline void kvm_inject_gp(struct kvm_vcpu *vcpu, u32 error_code)
@@ -776,11 +740,7 @@ enum {
 #define HF_NMI_MASK		(1 << 3)
 #define HF_IRET_MASK		(1 << 4)
 
-/*
- * Hardware virtualization extension instructions may fault if a
- * reboot turns off virtualization while processes are running.
- * Trap the fault and ignore the instruction if that happens.
- */
+
 asmlinkage void kvm_handle_fault_on_reboot(void);
 
 #define __kvm_handle_fault_on_reboot(insn) \
@@ -803,4 +763,4 @@ int kvm_cpu_has_interrupt(struct kvm_vcpu *vcpu);
 int kvm_arch_interrupt_allowed(struct kvm_vcpu *vcpu);
 int kvm_cpu_get_interrupt(struct kvm_vcpu *v);
 
-#endif /* _ASM_X86_KVM_HOST_H */
+#endif 

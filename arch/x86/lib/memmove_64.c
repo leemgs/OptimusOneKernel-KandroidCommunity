@@ -1,6 +1,4 @@
-/* Normally compiler builtins are used, but sometimes the compiler calls out
-   of line code. Based on asm-i386/string.h.
- */
+
 #define _STRING_C
 #include <linux/string.h>
 #include <linux/module.h>

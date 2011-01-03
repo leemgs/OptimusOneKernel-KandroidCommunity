@@ -1,12 +1,4 @@
-/*
- * This file is subject to the terms and conditions of the GNU General Public
- * License.  See the file "COPYING" in the main directory of this archive
- * for more details.
- *
- * SGI UV APIC functions (note: not an Intel compatible APIC)
- *
- * Copyright (C) 2007-2008 Silicon Graphics, Inc. All rights reserved.
- */
+
 #include <linux/cpumask.h>
 #include <linux/hardirq.h>
 #include <linux/proc_fs.h>
@@ -92,7 +84,7 @@ EXPORT_SYMBOL_GPL(uv_possible_blades);
 unsigned long sn_rtc_cycles_per_second;
 EXPORT_SYMBOL(sn_rtc_cycles_per_second);
 
-/* Start with all IRQs pointing to boot CPU.  IRQ balancing will shift them. */
+
 
 static const struct cpumask *uv_target_cpus(void)
 {
@@ -186,10 +178,7 @@ static void uv_init_apic_ldr(void)
 
 static unsigned int uv_cpu_mask_to_apicid(const struct cpumask *cpumask)
 {
-	/*
-	 * We're using fixed IRQ delivery, can only return one phys APIC ID.
-	 * May as well be the first.
-	 */
+	
 	int cpu = cpumask_first(cpumask);
 
 	if ((unsigned)cpu < nr_cpu_ids)
@@ -204,10 +193,7 @@ uv_cpu_mask_to_apicid_and(const struct cpumask *cpumask,
 {
 	int cpu;
 
-	/*
-	 * We're using fixed IRQ delivery, can only return one phys APIC ID.
-	 * May as well be the first.
-	 */
+	
 	for_each_cpu_and(cpu, cpumask, andmask) {
 		if (cpumask_test_cpu(cpu, cpu_online_mask))
 			break;
@@ -232,7 +218,7 @@ static unsigned long set_apic_id(unsigned int id)
 {
 	unsigned long x;
 
-	/* maskout x2apic_extra_bits ? */
+	
 	x = id;
 	return x;
 }
@@ -261,7 +247,7 @@ struct apic __refdata apic_x2apic_uv_x = {
 	.apic_id_registered		= uv_apic_id_registered,
 
 	.irq_delivery_mode		= dest_Fixed,
-	.irq_dest_mode			= 0, /* physical */
+	.irq_dest_mode			= 0, 
 
 	.target_cpus			= uv_target_cpus,
 	.disable_esr			= 0,
@@ -318,9 +304,7 @@ static __cpuinit void set_x2apic_extra_bits(int pnode)
 	__get_cpu_var(x2apic_extra_bits) = (pnode << 6);
 }
 
-/*
- * Called on boot cpu.
- */
+
 static __init int boot_pnode_to_blade(int pnode)
 {
 	int blade;
@@ -421,33 +405,31 @@ static __init void uv_rtc_init(void)
 		printk(KERN_WARNING
 			"unable to determine platform RTC clock frequency, "
 			"guessing.\n");
-		/* BIOS gives wrong value for clock freq. so guess */
+		
 		sn_rtc_cycles_per_second = 1000000000000UL / 30000UL;
 	} else
 		sn_rtc_cycles_per_second = ticks_per_sec;
 }
 
-/*
- * percpu heartbeat timer
- */
+
 static void uv_heartbeat(unsigned long ignored)
 {
 	struct timer_list *timer = &uv_hub_info->scir.timer;
 	unsigned char bits = uv_hub_info->scir.state;
 
-	/* flip heartbeat bit */
+	
 	bits ^= SCIR_CPU_HEARTBEAT;
 
-	/* is this cpu idle? */
+	
 	if (idle_cpu(raw_smp_processor_id()))
 		bits &= ~SCIR_CPU_ACTIVITY;
 	else
 		bits |= SCIR_CPU_ACTIVITY;
 
-	/* update system controller interface reg */
+	
 	uv_set_scir_bits(bits);
 
-	/* enable next timer period */
+	
 	mod_timer_pinned(timer, jiffies + SCIR_CPU_HB_INTERVAL);
 }
 
@@ -463,7 +445,7 @@ static void __cpuinit uv_heartbeat_enable(int cpu)
 		uv_cpu_hub_info(cpu)->scir.enabled = 1;
 	}
 
-	/* check boot cpu */
+	
 	if (!uv_cpu_hub_info(0)->scir.enabled)
 		uv_heartbeat_enable(0);
 }
@@ -478,9 +460,7 @@ static void __cpuinit uv_heartbeat_disable(int cpu)
 	uv_set_cpu_scir_bits(cpu, 0xff);
 }
 
-/*
- * cpu hotplug notifier
- */
+
 static __cpuinit int uv_scir_cpu_notify(struct notifier_block *self,
 				       unsigned long action, void *hcpu)
 {
@@ -504,7 +484,7 @@ static __init void uv_scir_register_cpu_notifier(void)
 	hotcpu_notifier(uv_scir_cpu_notify, 0);
 }
 
-#else /* !CONFIG_HOTPLUG_CPU */
+#else 
 
 static __init void uv_scir_register_cpu_notifier(void)
 {
@@ -522,15 +502,12 @@ static __init int uv_init_heartbeat(void)
 
 late_initcall(uv_init_heartbeat);
 
-#endif /* !CONFIG_HOTPLUG_CPU */
+#endif 
 
-/*
- * Called on each cpu to initialize the per_cpu UV data area.
- * FIXME: hotplug not supported yet
- */
+
 void __cpuinit uv_cpu_init(void)
 {
-	/* CPU 0 initilization will be done via uv_system_init. */
+	
 	if (!uv_blade_info)
 		return;
 
@@ -616,7 +593,7 @@ void __init uv_system_init(void)
 		lcpu = uv_blade_info[blade].nr_possible_cpus;
 		uv_blade_info[blade].nr_possible_cpus++;
 
-		/* Any node on the blade, else will contain -1. */
+		
 		uv_blade_info[blade].memory_nid = nid;
 
 		uv_cpu_hub_info(cpu)->lowmem_remap_base = lowmem_redir_base;
@@ -641,7 +618,7 @@ void __init uv_system_init(void)
 			cpu, apicid, pnode, nid, lcpu, blade);
 	}
 
-	/* Add blade/pnode info for nodes without cpus */
+	
 	for_each_online_node(nid) {
 		if (uv_node_to_blade[nid] >= 0)
 			continue;

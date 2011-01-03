@@ -1,13 +1,6 @@
-/*
- * Copyright (C) 2004 Matthew Wilcox <matthew@wil.cx>
- * Copyright (C) 2004 Intel Corp.
- *
- * This code is released under the GNU General Public License version 2.
- */
 
-/*
- * mmconfig.c - Low-level direct PCI config space access via MMCONFIG
- */
+
+
 
 #include <linux/pci.h>
 #include <linux/init.h>
@@ -15,16 +8,14 @@
 #include <asm/pci_x86.h>
 #include <acpi/acpi.h>
 
-/* Assume systems with more busses have correct MCFG */
+
 #define mmcfg_virt_addr ((void __iomem *) fix_to_virt(FIX_PCIE_MCFG))
 
-/* The base address of the last MMCONFIG device accessed */
+
 static u32 mmcfg_last_accessed_device;
 static int mmcfg_last_accessed_cpu;
 
-/*
- * Functions for accessing PCI configuration space with MMCONFIG accesses
- */
+
 static u32 get_base_addr(unsigned int seg, int bus, unsigned devfn)
 {
 	struct acpi_mcfg_allocation *cfg;
@@ -38,13 +29,11 @@ static u32 get_base_addr(unsigned int seg, int bus, unsigned devfn)
 			return cfg->address;
 	}
 
-	/* Fall back to type 0 */
+	
 	return 0;
 }
 
-/*
- * This is always called under pci_config_lock
- */
+
 static void pci_exp_set_dev_base(unsigned int base, int bus, int devfn)
 {
 	u32 dev_base = base | (bus << 20) | (devfn << 12);

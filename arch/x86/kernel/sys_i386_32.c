@@ -1,8 +1,4 @@
-/*
- * This file contains various random system calls that
- * have a non-standard calling sequence on the Linux/i386
- * platform.
- */
+
 
 #include <linux/errno.h>
 #include <linux/sched.h>
@@ -24,12 +20,7 @@
 
 #include <asm/syscalls.h>
 
-/*
- * Perform the select(nd, in, out, ex, tv) and mmap() system
- * calls. Linux/i386 didn't use to be able to handle more than
- * 4 system call parameters, so these system calls used a memory
- * block for parameter passing..
- */
+
 
 struct mmap_arg_struct {
 	unsigned long addr;
@@ -71,21 +62,17 @@ asmlinkage int old_select(struct sel_arg_struct __user *arg)
 
 	if (copy_from_user(&a, arg, sizeof(a)))
 		return -EFAULT;
-	/* sys_select() does the appropriate kernel locking */
+	
 	return sys_select(a.n, a.inp, a.outp, a.exp, a.tvp);
 }
 
-/*
- * sys_ipc() is the de-multiplexer for the SysV IPC calls..
- *
- * This is really horribly ugly.
- */
+
 asmlinkage int sys_ipc(uint call, int first, int second,
 			int third, void __user *ptr, long fifth)
 {
 	int version, ret;
 
-	version = call >> 16; /* hack for backward compatibility */
+	version = call >> 16; 
 	call &= 0xffff;
 
 	switch (call) {
@@ -142,10 +129,10 @@ asmlinkage int sys_ipc(uint call, int first, int second,
 				return ret;
 			return put_user(raddr, (ulong __user *) third);
 		}
-		case 1:	/* iBCS2 emulator entry point */
+		case 1:	
 			if (!segment_eq(get_fs(), get_ds()))
 				return -EINVAL;
-			/* The "(ulong *) third" is valid _only_ because of the kernel segment thing */
+			
 			return do_shmat(first, (char __user *) ptr, second, (ulong *) third);
 		}
 	case SHMDT:
@@ -160,9 +147,7 @@ asmlinkage int sys_ipc(uint call, int first, int second,
 	}
 }
 
-/*
- * Old cruft
- */
+
 asmlinkage int sys_uname(struct old_utsname __user *name)
 {
 	int err;
@@ -209,10 +194,7 @@ asmlinkage int sys_olduname(struct oldold_utsname __user *name)
 }
 
 
-/*
- * Do a system call from kernel instead of calling sys_execve so we
- * end up with proper pt_regs.
- */
+
 int kernel_execve(const char *filename, char *const argv[], char *const envp[])
 {
 	long __res;

@@ -1,19 +1,4 @@
-/*
- * x86_64 specific EFI support functions
- * Based on Extensible Firmware Interface Specification version 1.0
- *
- * Copyright (C) 2005-2008 Intel Co.
- *	Fenghua Yu <fenghua.yu@intel.com>
- *	Bibo Mao <bibo.mao@intel.com>
- *	Chandramouli Narayanan <mouli@linux.intel.com>
- *	Huang Ying <ying.huang@intel.com>
- *
- * Code to convert EFI to E820 map has been implemented in elilo bootloader
- * based on a EFI patch by Edgar Hucek. Based on the E820 map, the page table
- * is setup appropriately for EFI runtime code.
- * - mouli 06/14/2007.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -64,7 +49,7 @@ static void __init early_runtime_code_mapping_set_exec(int executable)
 	if (!(__supported_pte_mask & _PAGE_NX))
 		return;
 
-	/* Make EFI runtime service code area executable */
+	
 	for (p = memmap.map; p < memmap.map_end; p += memmap.desc_size) {
 		md = p;
 		if (md->type == EFI_RUNTIME_SERVICES_CODE) {
@@ -89,9 +74,7 @@ void __init efi_call_phys_prelog(void)
 
 void __init efi_call_phys_epilog(void)
 {
-	/*
-	 * After the lock is released, the original page table is restored.
-	 */
+	
 	set_pgd(pgd_offset_k(0x0UL), save_pgd);
 	__flush_tlb_all();
 	local_irq_restore(efi_flags);

@@ -1,24 +1,4 @@
-/*
- * VMI paravirtual timer support routines.
- *
- * Copyright (C) 2007, VMware, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, GOOD TITLE or
- * NON INFRINGEMENT.  See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- */
+
 
 #include <linux/smp.h>
 #include <linux/interrupt.h>
@@ -41,34 +21,33 @@ static DEFINE_PER_CPU(struct clock_event_device, local_events);
 
 static inline u32 vmi_counter(u32 flags)
 {
-	/* Given VMI_ONESHOT or VMI_PERIODIC, return the corresponding
-	 * cycle counter. */
+	
 	return flags & VMI_ALARM_COUNTER_MASK;
 }
 
-/* paravirt_ops.get_wallclock = vmi_get_wallclock */
+
 unsigned long vmi_get_wallclock(void)
 {
 	unsigned long long wallclock;
-	wallclock = vmi_timer_ops.get_wallclock(); // nsec
-	(void)do_div(wallclock, 1000000000);       // sec
+	wallclock = vmi_timer_ops.get_wallclock(); 
+	(void)do_div(wallclock, 1000000000);       
 
 	return wallclock;
 }
 
-/* paravirt_ops.set_wallclock = vmi_set_wallclock */
+
 int vmi_set_wallclock(unsigned long now)
 {
 	return 0;
 }
 
-/* paravirt_ops.sched_clock = vmi_sched_clock */
+
 unsigned long long vmi_sched_clock(void)
 {
 	return cycles_2_ns(vmi_timer_ops.get_cycle_counter(VMI_CYCLES_AVAILABLE));
 }
 
-/* x86_platform.calibrate_tsc = vmi_tsc_khz */
+
 unsigned long vmi_tsc_khz(void)
 {
 	unsigned long long khz;
@@ -86,7 +65,7 @@ static inline unsigned int vmi_get_timer_vector(void)
 #endif
 }
 
-/** vmi clockchip */
+
 #ifdef CONFIG_X86_LOCAL_APIC
 static unsigned int startup_timer_irq(unsigned int irq)
 {
@@ -122,7 +101,7 @@ static struct irq_chip vmi_chip __read_mostly = {
 };
 #endif
 
-/** vmi clockevent */
+
 #define VMI_ALARM_WIRED_IRQ0    0x00000000
 #define VMI_ALARM_WIRED_LVTT    0x00010000
 static int vmi_wiring = VMI_ALARM_WIRED_IRQ0;
@@ -169,11 +148,7 @@ static void vmi_timer_set_mode(enum clock_event_mode mode,
 static int vmi_timer_next_event(unsigned long delta,
 				struct clock_event_device *evt)
 {
-	/* Unfortunately, set_next_event interface only passes relative
-	 * expiry, but we want absolute expiry.  It'd be better if were
-	 * were passed an aboslute expiry, since a bunch of time may
-	 * have been stolen between the time the delta is computed and
-	 * when we set the alarm below. */
+	
 	cycle_t now = vmi_timer_ops.get_cycle_counter(vmi_counter(VMI_ONESHOT));
 
 	BUG_ON(evt->mode != CLOCK_EVT_MODE_ONESHOT);
@@ -212,16 +187,14 @@ static void __devinit vmi_time_init_clockevent(void)
 	int cpu = smp_processor_id();
 	evt = &__get_cpu_var(local_events);
 
-	/* Use cycles_per_msec since div_sc params are 32-bits. */
+	
 	cycles_per_msec = vmi_timer_ops.get_cycle_frequency();
 	(void)do_div(cycles_per_msec, 1000);
 
 	memcpy(evt, &vmi_clockevent, sizeof(*evt));
-	/* Must pick .shift such that .mult fits in 32-bits.  Choosing
-	 * .shift to be 22 allows 2^(32-22) cycles per nano-seconds
-	 * before overflow. */
+	
 	evt->mult = div_sc(cycles_per_msec, NSEC_PER_MSEC, evt->shift);
-	/* Upper bound is clockevent's use of ulong for cycle deltas. */
+	
 	evt->max_delta_ns = clockevent_delta2ns(ULONG_MAX, evt);
 	evt->min_delta_ns = clockevent_delta2ns(1, evt);
 	evt->cpumask = cpumask_of(cpu);
@@ -234,8 +207,8 @@ static void __devinit vmi_time_init_clockevent(void)
 void __init vmi_time_init(void)
 {
 	unsigned int cpu;
-	/* Disable PIT: BIOSes start PIT CH0 with 18.2hz peridic. */
-	outb_pit(0x3a, PIT_MODE); /* binary, mode 5, LSB/MSB, ch 0 */
+	
+	outb_pit(0x3a, PIT_MODE); 
 
 	vmi_time_init_clockevent();
 	setup_irq(0, &vmi_clock_action);
@@ -246,23 +219,11 @@ void __init vmi_time_init(void)
 #ifdef CONFIG_X86_LOCAL_APIC
 void __devinit vmi_time_bsp_init(void)
 {
-	/*
-	 * On APIC systems, we want local timers to fire on each cpu.  We do
-	 * this by programming LVTT to deliver timer events to the IRQ handler
-	 * for IRQ-0, since we can't re-use the APIC local timer handler
-	 * without interfering with that code.
-	 */
+	
 	clockevents_notify(CLOCK_EVT_NOTIFY_SUSPEND, NULL);
 	local_irq_disable();
 #ifdef CONFIG_SMP
-	/*
-	 * XXX handle_percpu_irq only defined for SMP; we need to switch over
-	 * to using it, since this is a local interrupt, which each CPU must
-	 * handle individually without locking out or dropping simultaneous
-	 * local timers on other CPUs.  We also don't want to trigger the
-	 * quirk workaround code for interrupts which gets invoked from
-	 * handle_percpu_irq via eoi, so we use our own IRQ chip.
-	 */
+	
 	set_irq_chip_and_handler_name(0, &vmi_chip, handle_percpu_irq, "lvtt");
 #else
 	set_irq_chip_and_handler_name(0, &vmi_chip, handle_edge_irq, "lvtt");
@@ -280,7 +241,7 @@ void __devinit vmi_time_ap_init(void)
 }
 #endif
 
-/** vmi clocksource */
+
 static struct clocksource clocksource_vmi;
 
 static cycle_t read_real_cycles(struct clocksource *cs)
@@ -294,7 +255,7 @@ static struct clocksource clocksource_vmi = {
 	.rating			= 450,
 	.read			= read_real_cycles,
 	.mask			= CLOCKSOURCE_MASK(64),
-	.mult			= 0, /* to be set */
+	.mult			= 0, 
 	.shift			= 22,
 	.flags			= CLOCK_SOURCE_IS_CONTINUOUS,
 };
@@ -305,12 +266,11 @@ static int __init init_vmi_clocksource(void)
 
 	if (!vmi_timer_ops.get_cycle_frequency)
 		return 0;
-	/* Use khz2mult rather than hz2mult since hz arg is only 32-bits. */
+	
 	cycles_per_msec = vmi_timer_ops.get_cycle_frequency();
 	(void)do_div(cycles_per_msec, 1000);
 
-	/* Note that clocksource.{mult, shift} converts in the opposite direction
-	 * as clockevents.  */
+	
 	clocksource_vmi.mult = clocksource_khz2mult(cycles_per_msec,
 						    clocksource_vmi.shift);
 

@@ -1,8 +1,4 @@
-/* thread_info.h: low-level thread information
- *
- * Copyright (C) 2002  David Howells (dhowells@redhat.com)
- * - Incorporating suggestions made by Linus Torvalds and Dave Miller
- */
+
 
 #ifndef _ASM_X86_THREAD_INFO_H
 #define _ASM_X86_THREAD_INFO_H
@@ -11,11 +7,7 @@
 #include <asm/page.h>
 #include <asm/types.h>
 
-/*
- * low level task data that entry.S needs immediate access to
- * - this struct should fit entirely inside of one cache line
- * - this struct shares the supervisor stack pages
- */
+
 #ifndef __ASSEMBLY__
 struct task_struct;
 struct exec_domain;
@@ -24,20 +16,17 @@ struct exec_domain;
 #include <asm/atomic.h>
 
 struct thread_info {
-	struct task_struct	*task;		/* main task structure */
-	struct exec_domain	*exec_domain;	/* execution domain */
-	__u32			flags;		/* low level flags */
-	__u32			status;		/* thread synchronous flags */
-	__u32			cpu;		/* current CPU */
-	int			preempt_count;	/* 0 => preemptable,
-						   <0 => BUG */
+	struct task_struct	*task;		
+	struct exec_domain	*exec_domain;	
+	__u32			flags;		
+	__u32			status;		
+	__u32			cpu;		
+	int			preempt_count;	
 	mm_segment_t		addr_limit;
 	struct restart_block    restart_block;
 	void __user		*sysenter_return;
 #ifdef CONFIG_X86_32
-	unsigned long           previous_esp;   /* ESP of the previous stack in
-						   case of nested (IRQ) stacks
-						*/
+	unsigned long           previous_esp;   
 	__u8			supervisor_stack[0];
 #endif
 	int			uaccess_err;
@@ -59,42 +48,35 @@ struct thread_info {
 #define init_thread_info	(init_thread_union.thread_info)
 #define init_stack		(init_thread_union.stack)
 
-#else /* !__ASSEMBLY__ */
+#else 
 
 #include <asm/asm-offsets.h>
 
 #endif
 
-/*
- * thread information flags
- * - these are process state flags that various assembly files
- *   may need to access
- * - pending work-to-be-done flags are in LSW
- * - other flags in MSW
- * Warning: layout of LSW is hardcoded in entry.S
- */
-#define TIF_SYSCALL_TRACE	0	/* syscall trace active */
-#define TIF_NOTIFY_RESUME	1	/* callback before returning to user */
-#define TIF_SIGPENDING		2	/* signal pending */
-#define TIF_NEED_RESCHED	3	/* rescheduling necessary */
-#define TIF_SINGLESTEP		4	/* reenable singlestep on user return*/
-#define TIF_IRET		5	/* force IRET */
-#define TIF_SYSCALL_EMU		6	/* syscall emulation active */
-#define TIF_SYSCALL_AUDIT	7	/* syscall auditing active */
-#define TIF_SECCOMP		8	/* secure computing */
-#define TIF_MCE_NOTIFY		10	/* notify userspace of an MCE */
-#define TIF_NOTSC		16	/* TSC is not accessible in userland */
-#define TIF_IA32		17	/* 32bit process */
-#define TIF_FORK		18	/* ret_from_fork */
+
+#define TIF_SYSCALL_TRACE	0	
+#define TIF_NOTIFY_RESUME	1	
+#define TIF_SIGPENDING		2	
+#define TIF_NEED_RESCHED	3	
+#define TIF_SINGLESTEP		4	
+#define TIF_IRET		5	
+#define TIF_SYSCALL_EMU		6	
+#define TIF_SYSCALL_AUDIT	7	
+#define TIF_SECCOMP		8	
+#define TIF_MCE_NOTIFY		10	
+#define TIF_NOTSC		16	
+#define TIF_IA32		17	
+#define TIF_FORK		18	
 #define TIF_MEMDIE		20
-#define TIF_DEBUG		21	/* uses debug registers */
-#define TIF_IO_BITMAP		22	/* uses I/O bitmap */
-#define TIF_FREEZE		23	/* is freezing for suspend */
-#define TIF_FORCED_TF		24	/* true if TF in eflags artificially */
-#define TIF_DEBUGCTLMSR		25	/* uses thread_struct.debugctlmsr */
-#define TIF_DS_AREA_MSR		26      /* uses thread_struct.ds_area_msr */
-#define TIF_LAZY_MMU_UPDATES	27	/* task is updating the mmu lazily */
-#define TIF_SYSCALL_TRACEPOINT	28	/* syscall tracepoint instrumentation */
+#define TIF_DEBUG		21	
+#define TIF_IO_BITMAP		22	
+#define TIF_FREEZE		23	
+#define TIF_FORCED_TF		24	
+#define TIF_DEBUGCTLMSR		25	
+#define TIF_DS_AREA_MSR		26      
+#define TIF_LAZY_MMU_UPDATES	27	
+#define TIF_SYSCALL_TRACEPOINT	28	
 
 #define _TIF_SYSCALL_TRACE	(1 << TIF_SYSCALL_TRACE)
 #define _TIF_NOTIFY_RESUME	(1 << TIF_NOTIFY_RESUME)
@@ -118,31 +100,31 @@ struct thread_info {
 #define _TIF_LAZY_MMU_UPDATES	(1 << TIF_LAZY_MMU_UPDATES)
 #define _TIF_SYSCALL_TRACEPOINT	(1 << TIF_SYSCALL_TRACEPOINT)
 
-/* work to do in syscall_trace_enter() */
+
 #define _TIF_WORK_SYSCALL_ENTRY	\
 	(_TIF_SYSCALL_TRACE | _TIF_SYSCALL_EMU | _TIF_SYSCALL_AUDIT |	\
 	 _TIF_SECCOMP | _TIF_SINGLESTEP | _TIF_SYSCALL_TRACEPOINT)
 
-/* work to do in syscall_trace_leave() */
+
 #define _TIF_WORK_SYSCALL_EXIT	\
 	(_TIF_SYSCALL_TRACE | _TIF_SYSCALL_AUDIT | _TIF_SINGLESTEP |	\
 	 _TIF_SYSCALL_TRACEPOINT)
 
-/* work to do on interrupt/exception return */
+
 #define _TIF_WORK_MASK							\
 	(0x0000FFFF &							\
 	 ~(_TIF_SYSCALL_TRACE|_TIF_SYSCALL_AUDIT|			\
 	   _TIF_SINGLESTEP|_TIF_SECCOMP|_TIF_SYSCALL_EMU))
 
-/* work to do on any return to user space */
+
 #define _TIF_ALLWORK_MASK						\
 	((0x0000FFFF & ~_TIF_SECCOMP) | _TIF_SYSCALL_TRACEPOINT)
 
-/* Only used for 64 bit */
+
 #define _TIF_DO_NOTIFY_MASK						\
 	(_TIF_SIGPENDING|_TIF_MCE_NOTIFY|_TIF_NOTIFY_RESUME)
 
-/* flags to check in __switch_to() */
+
 #define _TIF_WORK_CTXSW							\
 	(_TIF_IO_BITMAP|_TIF_DEBUGCTLMSR|_TIF_DS_AREA_MSR|_TIF_NOTSC)
 
@@ -151,7 +133,7 @@ struct thread_info {
 
 #define PREEMPT_ACTIVE		0x10000000
 
-/* thread information allocation */
+
 #ifdef CONFIG_DEBUG_STACK_USAGE
 #define THREAD_FLAGS (GFP_KERNEL | __GFP_NOTRACK | __GFP_ZERO)
 #else
@@ -166,46 +148,39 @@ struct thread_info {
 #ifdef CONFIG_X86_32
 
 #define STACK_WARN	(THREAD_SIZE/8)
-/*
- * macros/functions for gaining access to the thread information structure
- *
- * preempt_count needs to be 1 initially, until the scheduler is functional.
- */
+
 #ifndef __ASSEMBLY__
 
 
-/* how to get the current stack pointer from C */
+
 register unsigned long current_stack_pointer asm("esp") __used;
 
-/* how to get the thread information struct from C */
+
 static inline struct thread_info *current_thread_info(void)
 {
 	return (struct thread_info *)
 		(current_stack_pointer & ~(THREAD_SIZE - 1));
 }
 
-#else /* !__ASSEMBLY__ */
+#else 
 
-/* how to get the thread information struct from ASM */
+
 #define GET_THREAD_INFO(reg)	 \
 	movl $-THREAD_SIZE, reg; \
 	andl %esp, reg
 
-/* use this one if reg already contains %esp */
+
 #define GET_THREAD_INFO_WITH_ESP(reg) \
 	andl $-THREAD_SIZE, reg
 
 #endif
 
-#else /* X86_32 */
+#else 
 
 #include <asm/percpu.h>
 #define KERNEL_STACK_OFFSET (5*8)
 
-/*
- * macros/functions for gaining access to the thread information structure
- * preempt_count needs to be 1 initially, until the scheduler is functional.
- */
+
 #ifndef __ASSEMBLY__
 DECLARE_PER_CPU(unsigned long, kernel_stack);
 
@@ -217,31 +192,23 @@ static inline struct thread_info *current_thread_info(void)
 	return ti;
 }
 
-#else /* !__ASSEMBLY__ */
+#else 
 
-/* how to get the thread information struct from ASM */
+
 #define GET_THREAD_INFO(reg) \
 	movq PER_CPU_VAR(kernel_stack),reg ; \
 	subq $(THREAD_SIZE-KERNEL_STACK_OFFSET),reg
 
 #endif
 
-#endif /* !X86_32 */
+#endif 
 
-/*
- * Thread-synchronous status.
- *
- * This is different from the flags in that nobody else
- * ever touches our thread-synchronous status, so we don't
- * have to worry about atomic accesses.
- */
-#define TS_USEDFPU		0x0001	/* FPU was used by this task
-					   this quantum (SMP) */
-#define TS_COMPAT		0x0002	/* 32bit syscall active (64BIT)*/
-#define TS_POLLING		0x0004	/* true if in idle loop
-					   and not sleeping */
-#define TS_RESTORE_SIGMASK	0x0008	/* restore signal mask in do_signal() */
-#define TS_XSAVE		0x0010	/* Use xsave/xrstor */
+
+#define TS_USEDFPU		0x0001	
+#define TS_COMPAT		0x0002	
+#define TS_POLLING		0x0004	
+#define TS_RESTORE_SIGMASK	0x0008	
+#define TS_XSAVE		0x0010	
 
 #define tsk_is_polling(t) (task_thread_info(t)->status & TS_POLLING)
 
@@ -253,7 +220,7 @@ static inline void set_restore_sigmask(void)
 	ti->status |= TS_RESTORE_SIGMASK;
 	set_bit(TIF_SIGPENDING, (unsigned long *)&ti->flags);
 }
-#endif	/* !__ASSEMBLY__ */
+#endif	
 
 #ifndef __ASSEMBLY__
 extern void arch_task_cache_init(void);
@@ -261,4 +228,4 @@ extern void free_thread_info(struct thread_info *ti);
 extern int arch_dup_task_struct(struct task_struct *dst, struct task_struct *src);
 #define arch_task_cache_init arch_task_cache_init
 #endif
-#endif /* _ASM_X86_THREAD_INFO_H */
+#endif 

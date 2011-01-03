@@ -13,9 +13,7 @@
 
 #define FXSAVE_SIZE	512
 
-/*
- * These are the features that the OS can handle currently.
- */
+
 #define XCNTXT_MASK	(XSTATE_FP | XSTATE_SSE | XSTATE_YMM)
 
 #ifdef CONFIG_X86_64
@@ -71,7 +69,7 @@ static inline int xsave_user(struct xsave_struct __user *buf)
 			     : "memory");
 	if (unlikely(err) && __clear_user(buf, xstate_size))
 		err = -EFAULT;
-	/* No need to clear here because the caller clears USED_MATH */
+	
 	return err;
 }
 
@@ -94,7 +92,7 @@ static inline int xrestore_user(struct xsave_struct __user *buf, u64 mask)
 			     ".previous"
 			     : [err] "=r" (err)
 			     : "D" (xstate), "a" (lmask), "d" (hmask), "0" (0)
-			     : "memory");	/* memory required? */
+			     : "memory");	
 	return err;
 }
 
@@ -110,8 +108,7 @@ static inline void xrstor_state(struct xsave_struct *fx, u64 mask)
 
 static inline void xsave(struct task_struct *tsk)
 {
-	/* This, however, we can work around by forcing the compiler to select
-	   an addressing mode that doesn't require extended registers. */
+	
 	__asm__ __volatile__(".byte " REX_PREFIX "0x0f,0xae,0x27"
 			     : : "D" (&(tsk->thread.xstate->xsave)),
 				 "a" (-1), "d"(-1) : "memory");

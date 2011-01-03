@@ -1,28 +1,4 @@
-/*
- * Some of the code in this file has been gleaned from the 64 bit 
- * discontigmem support code base.
- *
- * Copyright (C) 2002, IBM Corp.
- *
- * All rights reserved.          
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, GOOD TITLE or
- * NON INFRINGEMENT.  See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * Send feedback to Pat Gaughen <gone@us.ibm.com>
- */
+
 #include <linux/mm.h>
 #include <linux/bootmem.h>
 #include <linux/mmzone.h>
@@ -33,29 +9,27 @@
 #include <asm/smp.h>
 #include <asm/e820.h>
 
-/*
- * proximity macros and definitions
- */
-#define NODE_ARRAY_INDEX(x)	((x) / 8)	/* 8 bits/char */
-#define NODE_ARRAY_OFFSET(x)	((x) % 8)	/* 8 bits/char */
+
+#define NODE_ARRAY_INDEX(x)	((x) / 8)	
+#define NODE_ARRAY_OFFSET(x)	((x) % 8)	
 #define BMAP_SET(bmap, bit)	((bmap)[NODE_ARRAY_INDEX(bit)] |= 1 << NODE_ARRAY_OFFSET(bit))
 #define BMAP_TEST(bmap, bit)	((bmap)[NODE_ARRAY_INDEX(bit)] & (1 << NODE_ARRAY_OFFSET(bit)))
-/* bitmap length; _PXM is at most 255 */
+
 #define PXM_BITMAP_LEN (MAX_PXM_DOMAINS / 8) 
-static u8 __initdata pxm_bitmap[PXM_BITMAP_LEN];	/* bitmap of proximity domains */
+static u8 __initdata pxm_bitmap[PXM_BITMAP_LEN];	
 
 #define MAX_CHUNKS_PER_NODE	3
 #define MAXCHUNKS		(MAX_CHUNKS_PER_NODE * MAX_NUMNODES)
 struct node_memory_chunk_s {
 	unsigned long	start_pfn;
 	unsigned long	end_pfn;
-	u8	pxm;		// proximity domain of node
-	u8	nid;		// which cnode contains this chunk?
-	u8	bank;		// which mem bank on this node
+	u8	pxm;		
+	u8	nid;		
+	u8	bank;		
 };
 static struct node_memory_chunk_s __initdata node_memory_chunk[MAXCHUNKS];
 
-static int __initdata num_memory_chunks; /* total number of memory chunks */
+static int __initdata num_memory_chunks; 
 static u8 __initdata apicid_to_pxm[MAX_APICID];
 
 int numa_off __initdata;
@@ -73,7 +47,7 @@ static __init inline int srat_disabled(void)
 	return numa_off || acpi_numa < 0;
 }
 
-/* Identify CPU proximity domains */
+
 void __init
 acpi_numa_processor_affinity_init(struct acpi_srat_cpu_affinity *cpu_affinity)
 {
@@ -86,9 +60,9 @@ acpi_numa_processor_affinity_init(struct acpi_srat_cpu_affinity *cpu_affinity)
 	}
 
 	if ((cpu_affinity->flags & ACPI_SRAT_CPU_ENABLED) == 0)
-		return;		/* empty entry */
+		return;		
 
-	/* mark this node as "seen" in node bitmap */
+	
 	BMAP_SET(pxm_bitmap, cpu_affinity->proximity_domain_lo);
 
 	apicid_to_pxm[cpu_affinity->apic_id] = cpu_affinity->proximity_domain_lo;
@@ -97,10 +71,7 @@ acpi_numa_processor_affinity_init(struct acpi_srat_cpu_affinity *cpu_affinity)
 		cpu_affinity->apic_id, cpu_affinity->proximity_domain_lo);
 }
 
-/*
- * Identify memory proximity domains and hot-remove capabilities.
- * Fill node memory chunk list structure.
- */
+
 void __init
 acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *memory_affinity)
 {
@@ -118,14 +89,14 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *memory_affinity)
 	}
 
 	if ((memory_affinity->flags & ACPI_SRAT_MEM_ENABLED) == 0)
-		return;		/* empty entry */
+		return;		
 
 	pxm = memory_affinity->proximity_domain & 0xff;
 
-	/* mark this node as "seen" in node bitmap */
+	
 	BMAP_SET(pxm_bitmap, pxm);
 
-	/* calculate info for memory chunk structure */
+	
 	paddr = memory_affinity->base_address;
 	size = memory_affinity->length;
 
@@ -140,7 +111,7 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *memory_affinity)
 		return;
 	}
 
-	/* Insertion sort based on base address */
+	
 	pend = &node_memory_chunk[num_memory_chunks];
 	for (p = &node_memory_chunk[0]; p < pend; p++) {
 		if (start_pfn < p->start_pfn)
@@ -164,7 +135,7 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *memory_affinity)
 		 "enabled and removable" : "enabled" ) );
 }
 
-/* Callback for SLIT parsing */
+
 void __init acpi_numa_slit_init(struct acpi_table_slit *slit)
 {
 }
@@ -172,20 +143,10 @@ void __init acpi_numa_slit_init(struct acpi_table_slit *slit)
 void acpi_numa_arch_fixup(void)
 {
 }
-/*
- * The SRAT table always lists ascending addresses, so can always
- * assume that the first "start" address that you see is the real
- * start of the node, and that the current "end" address is after
- * the previous one.
- */
+
 static __init int node_read_chunk(int nid, struct node_memory_chunk_s *memory_chunk)
 {
-	/*
-	 * Only add present memory as told by the e820.
-	 * There is no guarantee from the SRAT that the memory it
-	 * enumerates is present at boot time because it represents
-	 * *possible* memory hotplug areas the same as normal RAM.
-	 */
+	
 	if (memory_chunk->start_pfn >= max_pfn) {
 		printk(KERN_INFO "Ignoring SRAT pfns: %08lx - %08lx\n",
 			memory_chunk->start_pfn, memory_chunk->end_pfn);
@@ -220,16 +181,8 @@ int __init get_memcfg_from_srat(void)
 		goto out_fail;
 	}
 
-	/* Calculate total number of nodes in system from PXM bitmap and create
-	 * a set of sequential node IDs starting at zero.  (ACPI doesn't seem
-	 * to specify the range of _PXM values.)
-	 */
-	/*
-	 * MCD - we no longer HAVE to number nodes sequentially.  PXM domain
-	 * numbers could go as high as 256, and MAX_NUMNODES for i386 is typically
-	 * 32, so we will continue numbering them in this manner until MAX_NUMNODES
-	 * approaches MAX_PXM_DOMAINS for i386.
-	 */
+	
+	
 	nodes_clear(node_online_map);
 	for (i = 0; i < MAX_PXM_DOMAINS; i++) {
 		if (BMAP_TEST(pxm_bitmap, i)) {
@@ -239,7 +192,7 @@ int __init get_memcfg_from_srat(void)
 	}
 	BUG_ON(num_online_nodes() == 0);
 
-	/* set cnode id in memory chunk structure */
+	
 	for (i = 0; i < num_memory_chunks; i++)
 		node_memory_chunk[i].nid = pxm_to_node(node_memory_chunk[i].pxm);
 

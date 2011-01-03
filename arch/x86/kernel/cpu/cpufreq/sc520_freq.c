@@ -1,17 +1,4 @@
-/*
- *	sc520_freq.c: cpufreq driver for the AMD Elan sc520
- *
- *	Copyright (C) 2005 Sean Young <sean@mess.org>
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License
- *	as published by the Free Software Foundation; either version
- *	2 of the License, or (at your option) any later version.
- *
- *	Based on elanfreq.c
- *
- *	2005-03-30: - initial revision
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -24,8 +11,8 @@
 
 #include <asm/msr.h>
 
-#define MMCR_BASE	0xfffef000	/* The default base address */
-#define OFFS_CPUCTL	0x2   /* CPU Control Register */
+#define MMCR_BASE	0xfffef000	
+#define OFFS_CPUCTL	0x2   
 
 static __u8 __iomem *cpuctl;
 
@@ -62,7 +49,7 @@ static void sc520_freq_set_cpu_state(unsigned int state)
 
 	freqs.old = sc520_freq_get_cpu_frequency(0);
 	freqs.new = sc520_freq_table[state].frequency;
-	freqs.cpu = 0; /* AMD Elan is UP */
+	freqs.cpu = 0; 
 
 	cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
 
@@ -100,22 +87,20 @@ static int sc520_freq_target(struct cpufreq_policy *policy,
 }
 
 
-/*
- *	Module init and exit code
- */
+
 
 static int sc520_freq_cpu_init(struct cpufreq_policy *policy)
 {
 	struct cpuinfo_x86 *c = &cpu_data(0);
 	int result;
 
-	/* capability check */
+	
 	if (c->x86_vendor != X86_VENDOR_AMD ||
 	    c->x86 != 4 || c->x86_model != 9)
 		return -ENODEV;
 
-	/* cpuinfo and default policy values */
-	policy->cpuinfo.transition_latency = 1000000; /* 1ms */
+	
+	policy->cpuinfo.transition_latency = 1000000; 
 	policy->cur = sc520_freq_get_cpu_frequency(0);
 
 	result = cpufreq_frequency_table_cpuinfo(policy, sc520_freq_table);
@@ -158,7 +143,7 @@ static int __init sc520_freq_init(void)
 	struct cpuinfo_x86 *c = &cpu_data(0);
 	int err;
 
-	/* Test if we have the right hardware */
+	
 	if (c->x86_vendor != X86_VENDOR_AMD ||
 	    c->x86 != 4 || c->x86_model != 9) {
 		dprintk("no Elan SC520 processor found!\n");

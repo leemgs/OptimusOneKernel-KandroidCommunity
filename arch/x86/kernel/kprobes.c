@@ -1,44 +1,4 @@
-/*
- *  Kernel Probes (KProbes)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *
- * Copyright (C) IBM Corporation, 2002, 2004
- *
- * 2002-Oct	Created by Vamsi Krishna S <vamsi_krishna@in.ibm.com> Kernel
- *		Probes initial implementation ( includes contributions from
- *		Rusty Russell).
- * 2004-July	Suparna Bhattacharya <suparna@in.ibm.com> added jumper probes
- *		interface to access function arguments.
- * 2004-Oct	Jim Keniston <jkenisto@us.ibm.com> and Prasanna S Panchamukhi
- *		<prasanna@in.ibm.com> adapted for x86_64 from i386.
- * 2005-Mar	Roland McGrath <roland@redhat.com>
- *		Fixed to handle %rip-relative addressing mode correctly.
- * 2005-May	Hien Nguyen <hien@us.ibm.com>, Jim Keniston
- *		<jkenisto@us.ibm.com> and Prasanna S Panchamukhi
- *		<prasanna@in.ibm.com> added function-return probes.
- * 2005-May	Rusty Lynch <rusty.lynch@intel.com>
- * 		Added function return probes functionality
- * 2006-Feb	Masami Hiramatsu <hiramatu@sdl.hitachi.co.jp> added
- * 		kprobe-booster and kretprobe-booster for i386.
- * 2007-Dec	Masami Hiramatsu <mhiramat@redhat.com> added kprobe-booster
- * 		and kretprobe-booster for x86-64
- * 2007-Dec	Masami Hiramatsu <mhiramat@redhat.com>, Arjan van de Ven
- * 		<arjan@infradead.org> and Jim Keniston <jkenisto@us.ibm.com>
- * 		unified x86 kprobes code.
- */
+
 
 #include <linux/kprobes.h>
 #include <linux/ptrace.h>
@@ -63,14 +23,7 @@ DEFINE_PER_CPU(struct kprobe_ctlblk, kprobe_ctlblk);
 #ifdef CONFIG_X86_64
 #define stack_addr(regs) ((unsigned long *)regs->sp)
 #else
-/*
- * "&regs->sp" looks wrong, but it's correct for x86_32.  x86_32 CPUs
- * don't save the ss and esp registers if the CPU is already in kernel
- * mode when it traps.  So for kprobes, regs->sp and regs->ss are not
- * the [nonexistent] saved stack pointer and ss register, but rather
- * the top 8 bytes of the pre-int3 stack.  So &regs->sp happens to
- * point to the top of the pre-int3 stack.
- */
+
 #define stack_addr(regs) ((unsigned long *)&regs->sp)
 #endif
 
@@ -80,86 +33,82 @@ DEFINE_PER_CPU(struct kprobe_ctlblk, kprobe_ctlblk);
 	  (b8##UL << 0x8)|(b9##UL << 0x9)|(ba##UL << 0xa)|(bb##UL << 0xb) |   \
 	  (bc##UL << 0xc)|(bd##UL << 0xd)|(be##UL << 0xe)|(bf##UL << 0xf))    \
 	 << (row % 32))
-	/*
-	 * Undefined/reserved opcodes, conditional jump, Opcode Extension
-	 * Groups, and some special opcodes can not boost.
-	 */
+	
 static const u32 twobyte_is_boostable[256 / 32] = {
-	/*      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f          */
-	/*      ----------------------------------------------          */
-	W(0x00, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0) | /* 00 */
-	W(0x10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) , /* 10 */
-	W(0x20, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) | /* 20 */
-	W(0x30, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) , /* 30 */
-	W(0x40, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1) | /* 40 */
-	W(0x50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) , /* 50 */
-	W(0x60, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1) | /* 60 */
-	W(0x70, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1) , /* 70 */
-	W(0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) | /* 80 */
-	W(0x90, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1) , /* 90 */
-	W(0xa0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1) | /* a0 */
-	W(0xb0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1) , /* b0 */
-	W(0xc0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1) | /* c0 */
-	W(0xd0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1) , /* d0 */
-	W(0xe0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1) | /* e0 */
-	W(0xf0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0)   /* f0 */
-	/*      -----------------------------------------------         */
-	/*      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f          */
+	
+	
+	W(0x00, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0) | 
+	W(0x10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) , 
+	W(0x20, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) | 
+	W(0x30, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) , 
+	W(0x40, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1) | 
+	W(0x50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) , 
+	W(0x60, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1) | 
+	W(0x70, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1) , 
+	W(0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) | 
+	W(0x90, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1) , 
+	W(0xa0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1) | 
+	W(0xb0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1) , 
+	W(0xc0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1) | 
+	W(0xd0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1) , 
+	W(0xe0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1) | 
+	W(0xf0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0)   
+	
+	
 };
 static const u32 onebyte_has_modrm[256 / 32] = {
-	/*      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f          */
-	/*      -----------------------------------------------         */
-	W(0x00, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0) | /* 00 */
-	W(0x10, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0) , /* 10 */
-	W(0x20, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0) | /* 20 */
-	W(0x30, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0) , /* 30 */
-	W(0x40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) | /* 40 */
-	W(0x50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) , /* 50 */
-	W(0x60, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0) | /* 60 */
-	W(0x70, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) , /* 70 */
-	W(0x80, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1) | /* 80 */
-	W(0x90, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) , /* 90 */
-	W(0xa0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) | /* a0 */
-	W(0xb0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) , /* b0 */
-	W(0xc0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0) | /* c0 */
-	W(0xd0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1) , /* d0 */
-	W(0xe0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) | /* e0 */
-	W(0xf0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1)   /* f0 */
-	/*      -----------------------------------------------         */
-	/*      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f          */
+	
+	
+	W(0x00, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0) | 
+	W(0x10, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0) , 
+	W(0x20, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0) | 
+	W(0x30, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0) , 
+	W(0x40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) | 
+	W(0x50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) , 
+	W(0x60, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0) | 
+	W(0x70, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) , 
+	W(0x80, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1) | 
+	W(0x90, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) , 
+	W(0xa0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) | 
+	W(0xb0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) , 
+	W(0xc0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0) | 
+	W(0xd0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1) , 
+	W(0xe0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) | 
+	W(0xf0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1)   
+	
+	
 };
 static const u32 twobyte_has_modrm[256 / 32] = {
-	/*      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f          */
-	/*      -----------------------------------------------         */
-	W(0x00, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1) | /* 0f */
-	W(0x10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0) , /* 1f */
-	W(0x20, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1) | /* 2f */
-	W(0x30, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) , /* 3f */
-	W(0x40, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1) | /* 4f */
-	W(0x50, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1) , /* 5f */
-	W(0x60, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1) | /* 6f */
-	W(0x70, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1) , /* 7f */
-	W(0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) | /* 8f */
-	W(0x90, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1) , /* 9f */
-	W(0xa0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1) | /* af */
-	W(0xb0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1) , /* bf */
-	W(0xc0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0) | /* cf */
-	W(0xd0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1) , /* df */
-	W(0xe0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1) | /* ef */
-	W(0xf0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)   /* ff */
-	/*      -----------------------------------------------         */
-	/*      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f          */
+	
+	
+	W(0x00, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1) | 
+	W(0x10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0) , 
+	W(0x20, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1) | 
+	W(0x30, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) , 
+	W(0x40, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1) | 
+	W(0x50, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1) , 
+	W(0x60, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1) | 
+	W(0x70, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1) , 
+	W(0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) | 
+	W(0x90, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1) , 
+	W(0xa0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1) | 
+	W(0xb0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1) , 
+	W(0xc0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0) | 
+	W(0xd0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1) , 
+	W(0xe0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1) | 
+	W(0xf0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)   
+	
+	
 };
 #undef W
 
 struct kretprobe_blackpoint kretprobe_blacklist[] = {
-	{"__switch_to", }, /* This function switches only current task, but
-			      doesn't switch kernel stack.*/
-	{NULL, NULL}	/* Terminator */
+	{"__switch_to", }, 
+	{NULL, NULL}	
 };
 const int kretprobe_blacklist_size = ARRAY_SIZE(kretprobe_blacklist);
 
-/* Insert a jump instruction at address 'from', which jumps to address 'to'.*/
+
 static void __kprobes set_jmp_op(void *from, void *to)
 {
 	struct __arch_jmp_op {
@@ -171,10 +120,7 @@ static void __kprobes set_jmp_op(void *from, void *to)
 	jop->op = RELATIVEJUMP_INSTRUCTION;
 }
 
-/*
- * Check for the REX prefix which can only exist on X86_64
- * X86_32 always returns 0
- */
+
 static int __kprobes is_REX_prefix(kprobe_opcode_t *insn)
 {
 #ifdef CONFIG_X86_64
@@ -184,24 +130,21 @@ static int __kprobes is_REX_prefix(kprobe_opcode_t *insn)
 	return 0;
 }
 
-/*
- * Returns non-zero if opcode is boostable.
- * RIP relative instructions are adjusted at copying time in 64 bits mode
- */
+
 static int __kprobes can_boost(kprobe_opcode_t *opcodes)
 {
 	kprobe_opcode_t opcode;
 	kprobe_opcode_t *orig_opcodes = opcodes;
 
 	if (search_exception_tables((unsigned long)opcodes))
-		return 0;	/* Page fault may occur on this address. */
+		return 0;	
 
 retry:
 	if (opcodes - orig_opcodes > MAX_INSN_SIZE - 1)
 		return 0;
 	opcode = *(opcodes++);
 
-	/* 2nd-byte opcode */
+	
 	if (opcode == 0x0f) {
 		if (opcodes - orig_opcodes > MAX_INSN_SIZE - 1)
 			return 0;
@@ -212,68 +155,57 @@ retry:
 	switch (opcode & 0xf0) {
 #ifdef CONFIG_X86_64
 	case 0x40:
-		goto retry; /* REX prefix is boostable */
+		goto retry; 
 #endif
 	case 0x60:
 		if (0x63 < opcode && opcode < 0x67)
-			goto retry; /* prefixes */
-		/* can't boost Address-size override and bound */
+			goto retry; 
+		
 		return (opcode != 0x62 && opcode != 0x67);
 	case 0x70:
-		return 0; /* can't boost conditional jump */
+		return 0; 
 	case 0xc0:
-		/* can't boost software-interruptions */
+		
 		return (0xc1 < opcode && opcode < 0xcc) || opcode == 0xcf;
 	case 0xd0:
-		/* can boost AA* and XLAT */
+		
 		return (opcode == 0xd4 || opcode == 0xd5 || opcode == 0xd7);
 	case 0xe0:
-		/* can boost in/out and absolute jmps */
+		
 		return ((opcode & 0x04) || opcode == 0xea);
 	case 0xf0:
 		if ((opcode & 0x0c) == 0 && opcode != 0xf1)
-			goto retry; /* lock/rep(ne) prefix */
-		/* clear and set flags are boostable */
+			goto retry; 
+		
 		return (opcode == 0xf5 || (0xf7 < opcode && opcode < 0xfe));
 	default:
-		/* segment override prefixes are boostable */
+		
 		if (opcode == 0x26 || opcode == 0x36 || opcode == 0x3e)
-			goto retry; /* prefixes */
-		/* CS override prefix and call are not boostable */
+			goto retry; 
+		
 		return (opcode != 0x2e && opcode != 0x9a);
 	}
 }
 
-/*
- * Returns non-zero if opcode modifies the interrupt flag.
- */
+
 static int __kprobes is_IF_modifier(kprobe_opcode_t *insn)
 {
 	switch (*insn) {
-	case 0xfa:		/* cli */
-	case 0xfb:		/* sti */
-	case 0xcf:		/* iret/iretd */
-	case 0x9d:		/* popf/popfd */
+	case 0xfa:		
+	case 0xfb:		
+	case 0xcf:		
+	case 0x9d:		
 		return 1;
 	}
 
-	/*
-	 * on X86_64, 0x40-0x4f are REX prefixes so we need to look
-	 * at the next byte instead.. but of course not recurse infinitely
-	 */
+	
 	if (is_REX_prefix(insn))
 		return is_IF_modifier(++insn);
 
 	return 0;
 }
 
-/*
- * Adjust the displacement if the instruction uses the %rip-relative
- * addressing mode.
- * If it does, Return the address of the 32-bit displacement word.
- * If not, return null.
- * Only applicable to 64-bit x86.
- */
+
 static void __kprobes fix_riprel(struct kprobe *p)
 {
 #ifdef CONFIG_X86_64
@@ -281,7 +213,7 @@ static void __kprobes fix_riprel(struct kprobe *p)
 	s64 disp;
 	int need_modrm;
 
-	/* Skip legacy instruction prefixes.  */
+	
 	while (1) {
 		switch (*insn) {
 		case 0x66:
@@ -301,42 +233,30 @@ static void __kprobes fix_riprel(struct kprobe *p)
 		break;
 	}
 
-	/* Skip REX instruction prefix.  */
+	
 	if (is_REX_prefix(insn))
 		++insn;
 
 	if (*insn == 0x0f) {
-		/* Two-byte opcode.  */
+		
 		++insn;
 		need_modrm = test_bit(*insn,
 				      (unsigned long *)twobyte_has_modrm);
 	} else
-		/* One-byte opcode.  */
+		
 		need_modrm = test_bit(*insn,
 				      (unsigned long *)onebyte_has_modrm);
 
 	if (need_modrm) {
 		u8 modrm = *++insn;
 		if ((modrm & 0xc7) == 0x05) {
-			/* %rip+disp32 addressing mode */
-			/* Displacement follows ModRM byte.  */
+			
+			
 			++insn;
-			/*
-			 * The copied instruction uses the %rip-relative
-			 * addressing mode.  Adjust the displacement for the
-			 * difference between the original location of this
-			 * instruction and the location of the copy that will
-			 * actually be run.  The tricky bit here is making sure
-			 * that the sign extension happens correctly in this
-			 * calculation, since we need a signed 32-bit result to
-			 * be sign-extended to 64 bits when it's added to the
-			 * %rip value and yield the same 64-bit result that the
-			 * sign-extension of the original signed 32-bit
-			 * displacement would have given.
-			 */
+			
 			disp = (u8 *) p->addr + *((s32 *) insn) -
 			       (u8 *) p->ainsn.insn;
-			BUG_ON((s64) (s32) disp != disp); /* Sanity check.  */
+			BUG_ON((s64) (s32) disp != disp); 
 			*(s32 *)insn = (s32) disp;
 		}
 	}
@@ -359,7 +279,7 @@ static void __kprobes arch_copy_kprobe(struct kprobe *p)
 
 int __kprobes arch_prepare_kprobe(struct kprobe *p)
 {
-	/* insn: must be on special executable page on x86. */
+	
 	p->ainsn.insn = get_insn_slot();
 	if (!p->ainsn.insn)
 		return -ENOMEM;
@@ -428,7 +348,7 @@ static void __kprobes prepare_singlestep(struct kprobe *p, struct pt_regs *regs)
 	clear_btf();
 	regs->flags |= X86_EFLAGS_TF;
 	regs->flags &= ~X86_EFLAGS_IF;
-	/* single step inline if the instruction is an int3 */
+	
 	if (p->opcode == BREAKPOINT_INSTRUCTION)
 		regs->ip = (unsigned long)p->addr;
 	else
@@ -442,7 +362,7 @@ void __kprobes arch_prepare_kretprobe(struct kretprobe_instance *ri,
 
 	ri->ret_addr = (kprobe_opcode_t *) *sara;
 
-	/* Replace the return addr with trampoline addr */
+	
 	*sara = (unsigned long) &kretprobe_trampoline;
 }
 
@@ -451,7 +371,7 @@ static void __kprobes setup_singlestep(struct kprobe *p, struct pt_regs *regs,
 {
 #if !defined(CONFIG_PREEMPT) || defined(CONFIG_FREEZER)
 	if (p->ainsn.boostable == 1 && !p->post_handler) {
-		/* Boost up -- we can execute copied instructions directly */
+		
 		reset_current_kprobe();
 		regs->ip = (unsigned long)p->ainsn.insn;
 		preempt_enable_no_resched();
@@ -462,21 +382,14 @@ static void __kprobes setup_singlestep(struct kprobe *p, struct pt_regs *regs,
 	kcb->kprobe_status = KPROBE_HIT_SS;
 }
 
-/*
- * We have reentered the kprobe_handler(), since another probe was hit while
- * within the handler. We save the original kprobes variables and just single
- * step on the instruction of the new probe without calling any user handlers.
- */
+
 static int __kprobes reenter_kprobe(struct kprobe *p, struct pt_regs *regs,
 				    struct kprobe_ctlblk *kcb)
 {
 	switch (kcb->kprobe_status) {
 	case KPROBE_HIT_SSDONE:
 #ifdef CONFIG_X86_64
-		/* TODO: Provide re-entrancy from post_kprobes_handler() and
-		 * avoid exception stack corruption while single-stepping on
-		 * the instruction of the new probe.
-		 */
+		
 		arch_disarm_kprobe(p);
 		regs->ip = (unsigned long)p->addr;
 		reset_current_kprobe();
@@ -496,15 +409,10 @@ static int __kprobes reenter_kprobe(struct kprobe *p, struct pt_regs *regs,
 			regs->flags |= kcb->kprobe_saved_flags;
 			return 0;
 		} else {
-			/* A probe has been hit in the codepath leading up
-			 * to, or just after, single-stepping of a probed
-			 * instruction. This entire codepath should strictly
-			 * reside in .kprobes.text section. Raise a warning
-			 * to highlight this peculiar case.
-			 */
+			
 		}
 	default:
-		/* impossible cases */
+		
 		WARN_ON(1);
 		return 0;
 	}
@@ -512,10 +420,7 @@ static int __kprobes reenter_kprobe(struct kprobe *p, struct pt_regs *regs,
 	return 1;
 }
 
-/*
- * Interrupts are disabled on entry as trap3 is an interrupt gate and they
- * remain disabled thorough out this function.
- */
+
 static int __kprobes kprobe_handler(struct pt_regs *regs)
 {
 	kprobe_opcode_t *addr;
@@ -524,25 +429,12 @@ static int __kprobes kprobe_handler(struct pt_regs *regs)
 
 	addr = (kprobe_opcode_t *)(regs->ip - sizeof(kprobe_opcode_t));
 	if (*addr != BREAKPOINT_INSTRUCTION) {
-		/*
-		 * The breakpoint instruction was removed right
-		 * after we hit it.  Another cpu has removed
-		 * either a probepoint or a debugger breakpoint
-		 * at this address.  In either case, no further
-		 * handling of this interrupt is appropriate.
-		 * Back up over the (now missing) int3 and run
-		 * the original instruction.
-		 */
+		
 		regs->ip = (unsigned long)addr;
 		return 1;
 	}
 
-	/*
-	 * We don't want to be preempted for the entire
-	 * duration of kprobe processing. We conditionally
-	 * re-enable preemption at the end of this function,
-	 * and also in reenter_kprobe() and setup_singlestep().
-	 */
+	
 	preempt_disable();
 
 	kcb = get_kprobe_ctlblk();
@@ -556,14 +448,7 @@ static int __kprobes kprobe_handler(struct pt_regs *regs)
 			set_current_kprobe(p, regs, kcb);
 			kcb->kprobe_status = KPROBE_HIT_ACTIVE;
 
-			/*
-			 * If we have no pre-handler or it returned 0, we
-			 * continue with normal processing.  If we have a
-			 * pre-handler and it returned non-zero, it prepped
-			 * for calling the break_handler below on re-entry
-			 * for jprobe processing, so get out doing nothing
-			 * more here.
-			 */
+			
 			if (!p->pre_handler || !p->pre_handler(p, regs))
 				setup_singlestep(p, regs, kcb);
 			return 1;
@@ -574,29 +459,23 @@ static int __kprobes kprobe_handler(struct pt_regs *regs)
 			setup_singlestep(p, regs, kcb);
 			return 1;
 		}
-	} /* else: not a kprobe fault; let the kernel handle it */
+	} 
 
 	preempt_enable_no_resched();
 	return 0;
 }
 
-/*
- * When a retprobed function returns, this code saves registers and
- * calls trampoline_handler() runs, which calls the kretprobe's handler.
- */
+
 static void __used __kprobes kretprobe_trampoline_holder(void)
 {
 	asm volatile (
 			".global kretprobe_trampoline\n"
 			"kretprobe_trampoline: \n"
 #ifdef CONFIG_X86_64
-			/* We don't bother saving the ss register */
+			
 			"	pushq %rsp\n"
 			"	pushfq\n"
-			/*
-			 * Skip cs, ip, orig_ax.
-			 * trampoline_handler() will plug in these values
-			 */
+			
 			"	subq $24, %rsp\n"
 			"	pushq %rdi\n"
 			"	pushq %rsi\n"
@@ -615,7 +494,7 @@ static void __used __kprobes kretprobe_trampoline_holder(void)
 			"	pushq %r15\n"
 			"	movq %rsp, %rdi\n"
 			"	call trampoline_handler\n"
-			/* Replace saved sp with true return address. */
+			
 			"	movq %rax, 152(%rsp)\n"
 			"	popq %r15\n"
 			"	popq %r14\n"
@@ -632,15 +511,12 @@ static void __used __kprobes kretprobe_trampoline_holder(void)
 			"	popq %rdx\n"
 			"	popq %rsi\n"
 			"	popq %rdi\n"
-			/* Skip orig_ax, ip, cs */
+			
 			"	addq $24, %rsp\n"
 			"	popfq\n"
 #else
 			"	pushf\n"
-			/*
-			 * Skip cs, ip, orig_ax and gs.
-			 * trampoline_handler() will plug in these values
-			 */
+			
 			"	subl $16, %esp\n"
 			"	pushl %fs\n"
 			"	pushl %es\n"
@@ -654,10 +530,10 @@ static void __used __kprobes kretprobe_trampoline_holder(void)
 			"	pushl %ebx\n"
 			"	movl %esp, %eax\n"
 			"	call trampoline_handler\n"
-			/* Move flags to cs */
+			
 			"	movl 56(%esp), %edx\n"
 			"	movl %edx, 52(%esp)\n"
-			/* Replace saved flags with true return address. */
+			
 			"	movl %eax, 56(%esp)\n"
 			"	popl %ebx\n"
 			"	popl %ecx\n"
@@ -666,16 +542,14 @@ static void __used __kprobes kretprobe_trampoline_holder(void)
 			"	popl %edi\n"
 			"	popl %ebp\n"
 			"	popl %eax\n"
-			/* Skip ds, es, fs, gs, orig_ax and ip */
+			
 			"	addl $24, %esp\n"
 			"	popf\n"
 #endif
 			"	ret\n");
 }
 
-/*
- * Called from kretprobe_trampoline
- */
+
 static __used __kprobes void *trampoline_handler(struct pt_regs *regs)
 {
 	struct kretprobe_instance *ri = NULL;
@@ -686,7 +560,7 @@ static __used __kprobes void *trampoline_handler(struct pt_regs *regs)
 
 	INIT_HLIST_HEAD(&empty_rp);
 	kretprobe_hash_lock(current, &head, &flags);
-	/* fixup registers */
+	
 #ifdef CONFIG_X86_64
 	regs->cs = __KERNEL_CS;
 #else
@@ -696,22 +570,10 @@ static __used __kprobes void *trampoline_handler(struct pt_regs *regs)
 	regs->ip = trampoline_address;
 	regs->orig_ax = ~0UL;
 
-	/*
-	 * It is possible to have multiple instances associated with a given
-	 * task either because multiple functions in the call path have
-	 * return probes installed on them, and/or more than one
-	 * return probe was registered for a target function.
-	 *
-	 * We can handle this because:
-	 *     - instances are always pushed into the head of the list
-	 *     - when multiple return probes are registered for the same
-	 *	 function, the (chronologically) first instance's ret_addr
-	 *	 will be the real return address, and all the rest will
-	 *	 point to kretprobe_trampoline.
-	 */
+	
 	hlist_for_each_entry_safe(ri, node, tmp, head, hlist) {
 		if (ri->task != current)
-			/* another task is sharing our hash bucket */
+			
 			continue;
 
 		if (ri->rp && ri->rp->handler) {
@@ -725,11 +587,7 @@ static __used __kprobes void *trampoline_handler(struct pt_regs *regs)
 		recycle_rp_inst(ri, &empty_rp);
 
 		if (orig_ret_address != trampoline_address)
-			/*
-			 * This is the real return address. Any other
-			 * instances associated with this task are for
-			 * other calls deeper on the call stack
-			 */
+			
 			break;
 	}
 
@@ -744,33 +602,7 @@ static __used __kprobes void *trampoline_handler(struct pt_regs *regs)
 	return (void *)orig_ret_address;
 }
 
-/*
- * Called after single-stepping.  p->addr is the address of the
- * instruction whose first byte has been replaced by the "int 3"
- * instruction.  To avoid the SMP problems that can occur when we
- * temporarily put back the original opcode to single-step, we
- * single-stepped a copy of the instruction.  The address of this
- * copy is p->ainsn.insn.
- *
- * This function prepares to return from the post-single-step
- * interrupt.  We have to fix up the stack as follows:
- *
- * 0) Except in the case of absolute or indirect jump or call instructions,
- * the new ip is relative to the copied instruction.  We need to make
- * it relative to the original instruction.
- *
- * 1) If the single-stepped instruction was pushfl, then the TF and IF
- * flags are set in the just-pushed flags, and may need to be cleared.
- *
- * 2) If the single-stepped instruction was a call, the return address
- * that is atop the stack is the address following the copied instruction.
- * We need to make it the address following the original instruction.
- *
- * If this is the first time we've single-stepped the instruction at
- * this probepoint, and the instruction is boostable, boost it: add a
- * jump instruction after the copied instruction, that jumps to the next
- * instruction after the probepoint.
- */
+
 static void __kprobes resume_execution(struct kprobe *p,
 		struct pt_regs *regs, struct kprobe_ctlblk *kcb)
 {
@@ -779,48 +611,41 @@ static void __kprobes resume_execution(struct kprobe *p,
 	unsigned long orig_ip = (unsigned long)p->addr;
 	kprobe_opcode_t *insn = p->ainsn.insn;
 
-	/*skip the REX prefix*/
+	
 	if (is_REX_prefix(insn))
 		insn++;
 
 	regs->flags &= ~X86_EFLAGS_TF;
 	switch (*insn) {
-	case 0x9c:	/* pushfl */
+	case 0x9c:	
 		*tos &= ~(X86_EFLAGS_TF | X86_EFLAGS_IF);
 		*tos |= kcb->kprobe_old_flags;
 		break;
-	case 0xc2:	/* iret/ret/lret */
+	case 0xc2:	
 	case 0xc3:
 	case 0xca:
 	case 0xcb:
 	case 0xcf:
-	case 0xea:	/* jmp absolute -- ip is correct */
-		/* ip is already adjusted, no more changes required */
+	case 0xea:	
+		
 		p->ainsn.boostable = 1;
 		goto no_change;
-	case 0xe8:	/* call relative - Fix return addr */
+	case 0xe8:	
 		*tos = orig_ip + (*tos - copy_ip);
 		break;
 #ifdef CONFIG_X86_32
-	case 0x9a:	/* call absolute -- same as call absolute, indirect */
+	case 0x9a:	
 		*tos = orig_ip + (*tos - copy_ip);
 		goto no_change;
 #endif
 	case 0xff:
 		if ((insn[1] & 0x30) == 0x10) {
-			/*
-			 * call absolute, indirect
-			 * Fix return addr; ip is correct.
-			 * But this is not boostable
-			 */
+			
 			*tos = orig_ip + (*tos - copy_ip);
 			goto no_change;
 		} else if (((insn[1] & 0x31) == 0x20) ||
 			   ((insn[1] & 0x31) == 0x21)) {
-			/*
-			 * jmp near and far, absolute indirect
-			 * ip is correct. And this is boostable
-			 */
+			
 			p->ainsn.boostable = 1;
 			goto no_change;
 		}
@@ -831,10 +656,7 @@ static void __kprobes resume_execution(struct kprobe *p,
 	if (p->ainsn.boostable == 0) {
 		if ((regs->ip > copy_ip) &&
 		    (regs->ip - copy_ip) + 5 < MAX_INSN_SIZE) {
-			/*
-			 * These instructions can be executed directly if it
-			 * jumps back to correct address.
-			 */
+			
 			set_jmp_op((void *)regs->ip,
 				   (void *)orig_ip + (regs->ip - copy_ip));
 			p->ainsn.boostable = 1;
@@ -849,10 +671,7 @@ no_change:
 	restore_btf();
 }
 
-/*
- * Interrupts are disabled on entry as trap1 is an interrupt gate and they
- * remain disabled thoroughout this function.
- */
+
 static int __kprobes post_kprobe_handler(struct pt_regs *regs)
 {
 	struct kprobe *cur = kprobe_running();
@@ -869,7 +688,7 @@ static int __kprobes post_kprobe_handler(struct pt_regs *regs)
 		cur->post_handler(cur, regs, 0);
 	}
 
-	/* Restore back the original saved kprobes variables and continue. */
+	
 	if (kcb->kprobe_status == KPROBE_REENTER) {
 		restore_previous_kprobe(kcb);
 		goto out;
@@ -878,11 +697,7 @@ static int __kprobes post_kprobe_handler(struct pt_regs *regs)
 out:
 	preempt_enable_no_resched();
 
-	/*
-	 * if somebody else is singlestepping across a probe point, flags
-	 * will have TF set, in which case, continue the remaining processing
-	 * of do_debug, as if this is not a probe hit.
-	 */
+	
 	if (regs->flags & X86_EFLAGS_TF)
 		return 0;
 
@@ -897,13 +712,7 @@ int __kprobes kprobe_fault_handler(struct pt_regs *regs, int trapnr)
 	switch (kcb->kprobe_status) {
 	case KPROBE_HIT_SS:
 	case KPROBE_REENTER:
-		/*
-		 * We are here because the instruction being single
-		 * stepped caused a page fault. We reset the current
-		 * kprobe and the ip points back to the probe address
-		 * and allow the page fault handler to continue as a
-		 * normal page fault.
-		 */
+		
 		regs->ip = (unsigned long)cur->addr;
 		regs->flags |= kcb->kprobe_old_flags;
 		if (kcb->kprobe_status == KPROBE_REENTER)
@@ -914,34 +723,18 @@ int __kprobes kprobe_fault_handler(struct pt_regs *regs, int trapnr)
 		break;
 	case KPROBE_HIT_ACTIVE:
 	case KPROBE_HIT_SSDONE:
-		/*
-		 * We increment the nmissed count for accounting,
-		 * we can also use npre/npostfault count for accounting
-		 * these specific fault cases.
-		 */
+		
 		kprobes_inc_nmissed_count(cur);
 
-		/*
-		 * We come here because instructions in the pre/post
-		 * handler caused the page_fault, this could happen
-		 * if handler tries to access user space by
-		 * copy_from_user(), get_user() etc. Let the
-		 * user-specified handler try to fix it first.
-		 */
+		
 		if (cur->fault_handler && cur->fault_handler(cur, regs, trapnr))
 			return 1;
 
-		/*
-		 * In case the user-specified fault handler returned
-		 * zero, try to fix up.
-		 */
+		
 		if (fixup_exception(regs))
 			return 1;
 
-		/*
-		 * fixup routine could not handle it,
-		 * Let do_page_fault() fix it.
-		 */
+		
 		break;
 	default:
 		break;
@@ -949,9 +742,7 @@ int __kprobes kprobe_fault_handler(struct pt_regs *regs, int trapnr)
 	return 0;
 }
 
-/*
- * Wrapper routine for handling exceptions.
- */
+
 int __kprobes kprobe_exceptions_notify(struct notifier_block *self,
 				       unsigned long val, void *data)
 {
@@ -971,11 +762,7 @@ int __kprobes kprobe_exceptions_notify(struct notifier_block *self,
 			ret = NOTIFY_STOP;
 		break;
 	case DIE_GPF:
-		/*
-		 * To be potentially processing a kprobe fault and to
-		 * trust the result from kprobe_running(), we have
-		 * be non-preemptible.
-		 */
+		
 		if (!preemptible() && kprobe_running() &&
 		    kprobe_fault_handler(args->regs, args->trapnr))
 			ret = NOTIFY_STOP;
@@ -996,13 +783,7 @@ int __kprobes setjmp_pre_handler(struct kprobe *p, struct pt_regs *regs)
 	kcb->jprobe_saved_sp = stack_addr(regs);
 	addr = (unsigned long)(kcb->jprobe_saved_sp);
 
-	/*
-	 * As Linus pointed out, gcc assumes that the callee
-	 * owns the argument space and could overwrite it, e.g.
-	 * tailcall optimization. So, to be absolutely safe
-	 * we also save and restore enough stack bytes to cover
-	 * the argument area.
-	 */
+	
 	memcpy(kcb->jprobes_stack, (kprobe_opcode_t *)addr,
 	       MIN_STACK_SIZE(addr));
 	regs->flags &= ~X86_EFLAGS_IF;

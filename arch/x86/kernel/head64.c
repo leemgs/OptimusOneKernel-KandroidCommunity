@@ -1,8 +1,4 @@
-/*
- *  prepare to run common code
- *
- *  Copyright (C) 2000 Andrea Arcangeli <andrea@suse.de> SuSE
- */
+
 
 #include <linux/init.h>
 #include <linux/linkage.h>
@@ -33,8 +29,7 @@ static void __init zap_identity_mappings(void)
 	__flush_tlb_all();
 }
 
-/* Don't add a printk in there. printk relies on the PDA which is not initialized 
-   yet. */
+
 static void __init clear_bss(void)
 {
 	memset(__bss_start, 0,
@@ -56,10 +51,7 @@ void __init x86_64_start_kernel(char * real_mode_data)
 {
 	int i;
 
-	/*
-	 * Build-time sanity checks on the kernel image and module
-	 * area mappings. (these are purely build-time and produce no code)
-	 */
+	
 	BUILD_BUG_ON(MODULES_VADDR < KERNEL_IMAGE_START);
 	BUILD_BUG_ON(MODULES_VADDR-KERNEL_IMAGE_START < KERNEL_IMAGE_SIZE);
 	BUILD_BUG_ON(MODULES_LEN + KERNEL_IMAGE_SIZE > 2*PUD_SIZE);
@@ -70,13 +62,13 @@ void __init x86_64_start_kernel(char * real_mode_data)
 				(__START_KERNEL & PGDIR_MASK)));
 	BUILD_BUG_ON(__fix_to_virt(__end_of_fixed_addresses) <= MODULES_END);
 
-	/* clear bss before set_intr_gate with early_idt_handler */
+	
 	clear_bss();
 
-	/* Make NULL pointers segfault */
+	
 	zap_identity_mappings();
 
-	/* Cleanup the over mapped high alias */
+	
 	cleanup_highmap();
 
 	for (i = 0; i < NUM_EXCEPTION_VECTORS; i++) {
@@ -103,7 +95,7 @@ void __init x86_64_start_reservations(char *real_mode_data)
 	reserve_early(__pa_symbol(&_text), __pa_symbol(&__bss_stop), "TEXT DATA BSS");
 
 #ifdef CONFIG_BLK_DEV_INITRD
-	/* Reserve INITRD */
+	
 	if (boot_params.hdr.type_of_loader && boot_params.hdr.ramdisk_image) {
 		unsigned long ramdisk_image = boot_params.hdr.ramdisk_image;
 		unsigned long ramdisk_size  = boot_params.hdr.ramdisk_size;
@@ -114,11 +106,7 @@ void __init x86_64_start_reservations(char *real_mode_data)
 
 	reserve_ebda_region();
 
-	/*
-	 * At this point everything still needed from the boot loader
-	 * or BIOS or kernel text should be early reserved or marked not
-	 * RAM in e820. All other memory is free game.
-	 */
+	
 
 	start_kernel();
 }

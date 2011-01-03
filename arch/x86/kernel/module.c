@@ -1,20 +1,4 @@
-/*  Kernel module help for x86.
-    Copyright (C) 2001 Rusty Russell.
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
 #include <linux/moduleloader.h>
 #include <linux/elf.h>
 #include <linux/vmalloc.h>
@@ -52,13 +36,13 @@ void *module_alloc(unsigned long size)
 					PAGE_KERNEL_EXEC);
 }
 
-/* Free memory returned from module_alloc */
+
 void module_free(struct module *mod, void *module_region)
 {
 	vfree(module_region);
 }
 
-/* We don't need anything special. */
+
 int module_frob_arch_sections(Elf_Ehdr *hdr,
 			      Elf_Shdr *sechdrs,
 			      char *secstrings,
@@ -82,21 +66,20 @@ int apply_relocate(Elf32_Shdr *sechdrs,
 	DEBUGP("Applying relocate section %u to %u\n", relsec,
 	       sechdrs[relsec].sh_info);
 	for (i = 0; i < sechdrs[relsec].sh_size / sizeof(*rel); i++) {
-		/* This is where to make the change */
+		
 		location = (void *)sechdrs[sechdrs[relsec].sh_info].sh_addr
 			+ rel[i].r_offset;
-		/* This is the symbol it is referring to.  Note that all
-		   undefined symbols have been resolved.  */
+		
 		sym = (Elf32_Sym *)sechdrs[symindex].sh_addr
 			+ ELF32_R_SYM(rel[i].r_info);
 
 		switch (ELF32_R_TYPE(rel[i].r_info)) {
 		case R_386_32:
-			/* We add the value into the location given */
+			
 			*location += sym->st_value;
 			break;
 		case R_386_PC32:
-			/* Add the value, subtract its postition */
+			
 			*location += sym->st_value - (uint32_t)location;
 			break;
 		default:
@@ -118,7 +101,7 @@ int apply_relocate_add(Elf32_Shdr *sechdrs,
 	       me->name);
 	return -ENOEXEC;
 }
-#else /*X86_64*/
+#else 
 int apply_relocate_add(Elf64_Shdr *sechdrs,
 		   const char *strtab,
 		   unsigned int symindex,
@@ -134,12 +117,11 @@ int apply_relocate_add(Elf64_Shdr *sechdrs,
 	DEBUGP("Applying relocate section %u to %u\n", relsec,
 	       sechdrs[relsec].sh_info);
 	for (i = 0; i < sechdrs[relsec].sh_size / sizeof(*rel); i++) {
-		/* This is where to make the change */
+		
 		loc = (void *)sechdrs[sechdrs[relsec].sh_info].sh_addr
 			+ rel[i].r_offset;
 
-		/* This is the symbol it is referring to.  Note that all
-		   undefined symbols have been resolved.  */
+		
 		sym = (Elf64_Sym *)sechdrs[symindex].sh_addr
 			+ ELF64_R_SYM(rel[i].r_info);
 
@@ -221,7 +203,7 @@ int module_finalize(const Elf_Ehdr *hdr,
 	}
 
 	if (alt) {
-		/* patch .altinstructions */
+		
 		void *aseg = (void *)alt->sh_addr;
 		apply_alternatives(aseg, aseg + alt->sh_size);
 	}
