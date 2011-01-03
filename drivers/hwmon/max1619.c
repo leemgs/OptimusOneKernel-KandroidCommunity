@@ -1,29 +1,4 @@
-/*
- * max1619.c - Part of lm_sensors, Linux kernel modules for hardware
- *             monitoring
- * Copyright (C) 2003-2004 Alexey Fisher <fishor@mail.ru>
- *                         Jean Delvare <khali@linux-fr.org>
- *
- * Based on the lm90 driver. The MAX1619 is a sensor chip made by Maxim.
- * It reports up to two temperatures (its own plus up to
- * one external one). Complete datasheet can be
- * obtained from Maxim's website at:
- *   http://pdfserv.maxim-ic.com/en/ds/MAX1619.pdf
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 
 #include <linux/module.h>
@@ -40,15 +15,11 @@
 static const unsigned short normal_i2c[] = {
 	0x18, 0x19, 0x1a, 0x29, 0x2a, 0x2b, 0x4c, 0x4d, 0x4e, I2C_CLIENT_END };
 
-/*
- * Insmod parameters
- */
+
 
 I2C_CLIENT_INSMOD_1(max1619);
 
-/*
- * The MAX1619 registers
- */
+
 
 #define MAX1619_REG_R_MAN_ID		0xFE
 #define MAX1619_REG_R_CHIP_ID		0xFF
@@ -68,9 +39,7 @@ I2C_CLIENT_INSMOD_1(max1619);
 #define MAX1619_REG_R_TCRIT_HYST	0x11
 #define MAX1619_REG_W_TCRIT_HYST	0x13
 
-/*
- * Conversions
- */
+
 
 static int temp_from_reg(int val)
 {
@@ -82,9 +51,7 @@ static int temp_to_reg(int val)
 	return (val < 0 ? val+0x100*1000 : val) / 1000;
 }
 
-/*
- * Functions declaration
- */
+
 
 static int max1619_probe(struct i2c_client *client,
 			 const struct i2c_device_id *id);
@@ -94,9 +61,7 @@ static void max1619_init_client(struct i2c_client *client);
 static int max1619_remove(struct i2c_client *client);
 static struct max1619_data *max1619_update_device(struct device *dev);
 
-/*
- * Driver data (common to all clients)
- */
+
 
 static const struct i2c_device_id max1619_id[] = {
 	{ "max1619", max1619 },
@@ -116,27 +81,23 @@ static struct i2c_driver max1619_driver = {
 	.address_data	= &addr_data,
 };
 
-/*
- * Client data (each client gets its own)
- */
+
 
 struct max1619_data {
 	struct device *hwmon_dev;
 	struct mutex update_lock;
-	char valid; /* zero until following fields are valid */
-	unsigned long last_updated; /* in jiffies */
+	char valid; 
+	unsigned long last_updated; 
 
-	/* registers values */
-	u8 temp_input1; /* local */
-	u8 temp_input2, temp_low2, temp_high2; /* remote */
+	
+	u8 temp_input1; 
+	u8 temp_input2, temp_low2, temp_high2; 
 	u8 temp_crit2;
 	u8 temp_hyst2;
 	u8 alarms; 
 };
 
-/*
- * Sysfs stuff
- */
+
 
 #define show_temp(value) \
 static ssize_t show_##value(struct device *dev, struct device_attribute *attr, char *buf) \
@@ -221,11 +182,9 @@ static const struct attribute_group max1619_group = {
 	.attrs = max1619_attributes,
 };
 
-/*
- * Real code
- */
 
-/* Return 0 if detection is successful, -ENODEV otherwise */
+
+
 static int max1619_detect(struct i2c_client *new_client, int kind,
 			  struct i2c_board_info *info)
 {
@@ -235,17 +194,8 @@ static int max1619_detect(struct i2c_client *new_client, int kind,
 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
 		return -ENODEV;
 
-	/*
-	 * Now we do the remaining detection. A negative kind means that
-	 * the driver was loaded with no force parameter (default), so we
-	 * must both detect and identify the chip. A zero kind means that
-	 * the driver was loaded with the force parameter, the detection
-	 * step shall be skipped. A positive kind means that the driver
-	 * was loaded with the force parameter and a given kind of chip is
-	 * requested, so both the detection and the identification steps
-	 * are skipped.
-	 */
-	if (kind < 0) { /* detection */
+	
+	if (kind < 0) { 
 		reg_config = i2c_smbus_read_byte_data(new_client,
 			      MAX1619_REG_R_CONFIG);
 		reg_convrate = i2c_smbus_read_byte_data(new_client,
@@ -261,7 +211,7 @@ static int max1619_detect(struct i2c_client *new_client, int kind,
 		}
 	}
 
-	if (kind <= 0) { /* identification */
+	if (kind <= 0) { 
 		u8 man_id, chip_id;
 	
 		man_id = i2c_smbus_read_byte_data(new_client,
@@ -272,7 +222,7 @@ static int max1619_detect(struct i2c_client *new_client, int kind,
 		if ((man_id == 0x4D) && (chip_id == 0x04))
 			kind = max1619;
 
-		if (kind <= 0) { /* identification failed */
+		if (kind <= 0) { 
 			dev_info(&adapter->dev,
 			    "Unsupported chip (man_id=0x%02X, "
 			    "chip_id=0x%02X).\n", man_id, chip_id);
@@ -301,10 +251,10 @@ static int max1619_probe(struct i2c_client *new_client,
 	data->valid = 0;
 	mutex_init(&data->update_lock);
 
-	/* Initialize the MAX1619 chip */
+	
 	max1619_init_client(new_client);
 
-	/* Register sysfs hooks */
+	
 	if ((err = sysfs_create_group(&new_client->dev.kobj, &max1619_group)))
 		goto exit_free;
 
@@ -328,15 +278,13 @@ static void max1619_init_client(struct i2c_client *client)
 {
 	u8 config;
 
-	/*
-	 * Start the conversions.
-	 */
+	
 	i2c_smbus_write_byte_data(client, MAX1619_REG_W_CONVRATE,
-				  5); /* 2 Hz */
+				  5); 
 	config = i2c_smbus_read_byte_data(client, MAX1619_REG_R_CONFIG);
 	if (config & 0x40)
 		i2c_smbus_write_byte_data(client, MAX1619_REG_W_CONFIG,
-					  config & 0xBF); /* run */
+					  config & 0xBF); 
 }
 
 static int max1619_remove(struct i2c_client *client)

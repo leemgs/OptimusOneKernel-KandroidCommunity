@@ -1,35 +1,4 @@
-/*
- * lm83.c - Part of lm_sensors, Linux kernel modules for hardware
- *          monitoring
- * Copyright (C) 2003-2008  Jean Delvare <khali@linux-fr.org>
- *
- * Heavily inspired from the lm78, lm75 and adm1021 drivers. The LM83 is
- * a sensor chip made by National Semiconductor. It reports up to four
- * temperatures (its own plus up to three external ones) with a 1 deg
- * resolution and a 3-4 deg accuracy. Complete datasheet can be obtained
- * from National's website at:
- *   http://www.national.com/pf/LM/LM83.html
- * Since the datasheet omits to give the chip stepping code, I give it
- * here: 0x03 (at register 0xff).
- *
- * Also supports the LM82 temp sensor, which is basically a stripped down
- * model of the LM83.  Datasheet is here:
- * http://www.national.com/pf/LM/LM82.html
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -42,25 +11,16 @@
 #include <linux/mutex.h>
 #include <linux/sysfs.h>
 
-/*
- * Addresses to scan
- * Address is selected using 2 three-level pins, resulting in 9 possible
- * addresses.
- */
+
 
 static const unsigned short normal_i2c[] = {
 	0x18, 0x19, 0x1a, 0x29, 0x2a, 0x2b, 0x4c, 0x4d, 0x4e, I2C_CLIENT_END };
 
-/*
- * Insmod parameters
- */
+
 
 I2C_CLIENT_INSMOD_2(lm83, lm82);
 
-/*
- * The LM83 registers
- * Manufacturer ID is 0x01 for National Semiconductor.
- */
+
 
 #define LM83_REG_R_MAN_ID		0xFE
 #define LM83_REG_R_CHIP_ID		0xFF
@@ -83,10 +43,7 @@ I2C_CLIENT_INSMOD_2(lm83, lm82);
 #define LM83_REG_R_TCRIT		0x42
 #define LM83_REG_W_TCRIT		0x5A
 
-/*
- * Conversions and various macros
- * The LM83 uses signed 8-bit values with LSB = 1 degree Celsius.
- */
+
 
 #define TEMP_FROM_REG(val)	((val) * 1000)
 #define TEMP_TO_REG(val)	((val) <= -128000 ? -128 : \
@@ -114,9 +71,7 @@ static const u8 LM83_REG_W_HIGH[] = {
 	LM83_REG_W_TCRIT,
 };
 
-/*
- * Functions declaration
- */
+
 
 static int lm83_detect(struct i2c_client *new_client, int kind,
 		       struct i2c_board_info *info);
@@ -125,9 +80,7 @@ static int lm83_probe(struct i2c_client *client,
 static int lm83_remove(struct i2c_client *client);
 static struct lm83_data *lm83_update_device(struct device *dev);
 
-/*
- * Driver data (common to all clients)
- */
+
  
 static const struct i2c_device_id lm83_id[] = {
 	{ "lm83", lm83 },
@@ -148,26 +101,20 @@ static struct i2c_driver lm83_driver = {
 	.address_data	= &addr_data,
 };
 
-/*
- * Client data (each client gets its own)
- */
+
 
 struct lm83_data {
 	struct device *hwmon_dev;
 	struct mutex update_lock;
-	char valid; /* zero until following fields are valid */
-	unsigned long last_updated; /* in jiffies */
+	char valid; 
+	unsigned long last_updated; 
 
-	/* registers values */
-	s8 temp[9];	/* 0..3: input 1-4,
-			   4..7: high limit 1-4,
-			   8   : critical limit */
-	u16 alarms; /* bitvector, combined */
+	
+	s8 temp[9];	
+	u16 alarms; 
 };
 
-/*
- * Sysfs stuff
- */
+
 
 static ssize_t show_temp(struct device *dev, struct device_attribute *devattr,
 			 char *buf)
@@ -229,7 +176,7 @@ static SENSOR_DEVICE_ATTR(temp3_crit, S_IWUSR | S_IRUGO, show_temp,
 	set_temp, 8);
 static SENSOR_DEVICE_ATTR(temp4_crit, S_IRUGO, show_temp, NULL, 8);
 
-/* Individual alarm files */
+
 static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, show_alarm, NULL, 0);
 static SENSOR_DEVICE_ATTR(temp3_crit_alarm, S_IRUGO, show_alarm, NULL, 1);
 static SENSOR_DEVICE_ATTR(temp3_fault, S_IRUGO, show_alarm, NULL, 2);
@@ -241,7 +188,7 @@ static SENSOR_DEVICE_ATTR(temp4_fault, S_IRUGO, show_alarm, NULL, 10);
 static SENSOR_DEVICE_ATTR(temp4_max_alarm, S_IRUGO, show_alarm, NULL, 12);
 static SENSOR_DEVICE_ATTR(temp2_fault, S_IRUGO, show_alarm, NULL, 13);
 static SENSOR_DEVICE_ATTR(temp2_max_alarm, S_IRUGO, show_alarm, NULL, 15);
-/* Raw alarm file for compatibility */
+
 static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
 
 static struct attribute *lm83_attributes[] = {
@@ -286,11 +233,9 @@ static const struct attribute_group lm83_group_opt = {
 	.attrs = lm83_attributes_opt,
 };
 
-/*
- * Real code
- */
 
-/* Return 0 if detection is successful, -ENODEV otherwise */
+
+
 static int lm83_detect(struct i2c_client *new_client, int kind,
 		       struct i2c_board_info *info)
 {
@@ -300,21 +245,13 @@ static int lm83_detect(struct i2c_client *new_client, int kind,
 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
 		return -ENODEV;
 
-	/* Now we do the detection and identification. A negative kind
-	 * means that the driver was loaded with no force parameter
-	 * (default), so we must both detect and identify the chip
-	 * (actually there is only one possible kind of chip for now, LM83).
-	 * A zero kind means that the driver was loaded with the force
-	 * parameter, the detection step shall be skipped. A positive kind
-	 * means that the driver was loaded with the force parameter and a
-	 * given kind of chip is requested, so both the detection and the
-	 * identification steps are skipped. */
+	
 
-	/* Default to an LM83 if forced */
+	
 	if (kind == 0)
 		kind = lm83;
 
-	if (kind < 0) { /* detection */
+	if (kind < 0) { 
 		if (((i2c_smbus_read_byte_data(new_client, LM83_REG_R_STATUS1)
 		    & 0xA8) != 0x00) ||
 		    ((i2c_smbus_read_byte_data(new_client, LM83_REG_R_STATUS2)
@@ -328,7 +265,7 @@ static int lm83_detect(struct i2c_client *new_client, int kind,
 		}
 	}
 
-	if (kind <= 0) { /* identification */
+	if (kind <= 0) { 
 		u8 man_id, chip_id;
 
 		man_id = i2c_smbus_read_byte_data(new_client,
@@ -336,7 +273,7 @@ static int lm83_detect(struct i2c_client *new_client, int kind,
 		chip_id = i2c_smbus_read_byte_data(new_client,
 		    LM83_REG_R_CHIP_ID);
 
-		if (man_id == 0x01) { /* National Semiconductor */
+		if (man_id == 0x01) { 
 			if (chip_id == 0x03) {
 				kind = lm83;
 			} else
@@ -345,7 +282,7 @@ static int lm83_detect(struct i2c_client *new_client, int kind,
 			}
 		}
 
-		if (kind <= 0) { /* identification failed */
+		if (kind <= 0) { 
 			dev_info(&adapter->dev,
 			    "Unsupported chip (man_id=0x%02X, "
 			    "chip_id=0x%02X).\n", man_id, chip_id);
@@ -381,12 +318,7 @@ static int lm83_probe(struct i2c_client *new_client,
 	data->valid = 0;
 	mutex_init(&data->update_lock);
 
-	/*
-	 * Register sysfs hooks
-	 * The LM82 can only monitor one external diode which is
-	 * at the same register as the LM83 temp3 entry - so we
-	 * declare 1 and 3 common, and then 2 and 4 only for the LM83.
-	 */
+	
 
 	if ((err = sysfs_create_group(&new_client->dev.kobj, &lm83_group)))
 		goto exit_free;

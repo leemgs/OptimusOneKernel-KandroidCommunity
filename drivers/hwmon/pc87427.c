@@ -1,25 +1,4 @@
-/*
- *  pc87427.c - hardware monitoring driver for the
- *              National Semiconductor PC87427 Super-I/O chip
- *  Copyright (C) 2006 Jean Delvare <khali@linux-fr.org>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  Supports the following chips:
- *
- *  Chip        #vin    #fan    #pwm    #temp   devid
- *  PC87427     -       8       -       -       0xF2
- *
- *  This driver assumes that no more than one chip is present.
- *  Only fan inputs are supported so far, although the chip can do much more.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -43,31 +22,27 @@ static struct platform_device *pdev;
 
 #define DRVNAME "pc87427"
 
-/* The lock mutex protects both the I/O accesses (needed because the
-   device is using banked registers) and the register cache (needed to keep
-   the data in the registers and the cache in sync at any time). */
+
 struct pc87427_data {
 	struct device *hwmon_dev;
 	struct mutex lock;
 	int address[2];
 	const char *name;
 
-	unsigned long last_updated;	/* in jiffies */
-	u8 fan_enabled;			/* bit vector */
-	u16 fan[8];			/* register values */
-	u16 fan_min[8];			/* register values */
-	u8 fan_status[8];		/* register values */
+	unsigned long last_updated;	
+	u8 fan_enabled;			
+	u16 fan[8];			
+	u16 fan_min[8];			
+	u8 fan_status[8];		
 };
 
-/*
- * Super-I/O registers and operations
- */
 
-#define SIOREG_LDSEL	0x07	/* Logical device select */
-#define SIOREG_DEVID	0x20	/* Device ID */
-#define SIOREG_ACT	0x30	/* Device activation */
-#define SIOREG_MAP	0x50	/* I/O or memory mapping */
-#define SIOREG_IOBASE	0x60	/* I/O base address */
+
+#define SIOREG_LDSEL	0x07	
+#define SIOREG_DEVID	0x20	
+#define SIOREG_ACT	0x30	
+#define SIOREG_MAP	0x50	
+#define SIOREG_IOBASE	0x60	
 
 static const u8 logdev[2] = { 0x09, 0x14 };
 static const char *logdev_str[2] = { DRVNAME " FMC", DRVNAME " HMC" };
@@ -93,9 +68,7 @@ static inline void superio_exit(int sioaddr)
 	outb(0x02, sioaddr + 1);
 }
 
-/*
- * Logical devices
- */
+
 
 #define REGION_LENGTH		32
 #define PC87427_REG_BANK	0x0f
@@ -103,17 +76,15 @@ static inline void superio_exit(int sioaddr)
 #define BANK_FT(nr)		(0x08 + (nr))
 #define BANK_FC(nr)		(0x10 + (nr) * 2)
 
-/*
- * I/O access functions
- */
 
-/* ldi is the logical device index */
+
+
 static inline int pc87427_read8(struct pc87427_data *data, u8 ldi, u8 reg)
 {
 	return inb(data->address[ldi] + reg);
 }
 
-/* Must be called with data->lock held, except during init */
+
 static inline int pc87427_read8_bank(struct pc87427_data *data, u8 ldi,
 				     u8 bank, u8 reg)
 {
@@ -121,7 +92,7 @@ static inline int pc87427_read8_bank(struct pc87427_data *data, u8 ldi,
 	return inb(data->address[ldi] + reg);
 }
 
-/* Must be called with data->lock held, except during init */
+
 static inline void pc87427_write8_bank(struct pc87427_data *data, u8 ldi,
 				       u8 bank, u8 reg, u8 value)
 {
@@ -129,11 +100,9 @@ static inline void pc87427_write8_bank(struct pc87427_data *data, u8 ldi,
 	outb(value, data->address[ldi] + reg);
 }
 
-/*
- * Fan registers and conversions
- */
 
-/* fan data registers are 16-bit wide */
+
+
 #define PC87427_REG_FAN			0x12
 #define PC87427_REG_FAN_MIN		0x14
 #define PC87427_REG_FAN_STATUS		0x10
@@ -142,10 +111,7 @@ static inline void pc87427_write8_bank(struct pc87427_data *data, u8 ldi,
 #define FAN_STATUS_LOSPD		(1 << 1)
 #define FAN_STATUS_MONEN		(1 << 0)
 
-/* Dedicated function to read all registers related to a given fan input.
-   This saves us quite a few locks and bank selections.
-   Must be called with data->lock held.
-   nr is from 0 to 7 */
+
 static void pc87427_readall_fan(struct pc87427_data *data, u8 nr)
 {
 	int iobase = data->address[LD_FAN];
@@ -154,12 +120,11 @@ static void pc87427_readall_fan(struct pc87427_data *data, u8 nr)
 	data->fan[nr] = inw(iobase + PC87427_REG_FAN);
 	data->fan_min[nr] = inw(iobase + PC87427_REG_FAN_MIN);
 	data->fan_status[nr] = inb(iobase + PC87427_REG_FAN_STATUS);
-	/* Clear fan alarm bits */
+	
 	outb(data->fan_status[nr], iobase + PC87427_REG_FAN_STATUS);
 }
 
-/* The 2 LSB of fan speed registers are used for something different.
-   The actual 2 LSB of the measurements are not available. */
+
 static inline unsigned long fan_from_reg(u16 reg)
 {
 	reg &= 0xfffc;
@@ -168,7 +133,7 @@ static inline unsigned long fan_from_reg(u16 reg)
 	return 5400000UL / reg;
 }
 
-/* The 2 LSB of the fan speed limit registers are not significant. */
+
 static inline u16 fan_to_reg(unsigned long val)
 {
 	if (val < 83UL)
@@ -178,9 +143,7 @@ static inline u16 fan_to_reg(unsigned long val)
 	return ((1350000UL + val / 2) / val) << 2;
 }
 
-/*
- * Data interface
- */
+
 
 static struct pc87427_data *pc87427_update_device(struct device *dev)
 {
@@ -192,7 +155,7 @@ static struct pc87427_data *pc87427_update_device(struct device *dev)
 	 && data->last_updated)
 		goto done;
 
-	/* Fans */
+	
 	for (i = 0; i < 8; i++) {
 		if (!(data->fan_enabled & (1 << i)))
 			continue;
@@ -258,9 +221,7 @@ static ssize_t set_fan_min(struct device *dev, struct device_attribute
 
 	mutex_lock(&data->lock);
 	outb(BANK_FM(nr), iobase + PC87427_REG_BANK);
-	/* The low speed limit registers are read-only while monitoring
-	   is enabled, so we have to disable monitoring, then change the
-	   limit, and finally enable monitoring again. */
+	
 	outb(0, iobase + PC87427_REG_FAN_STATUS);
 	data->fan_min[nr] = fan_to_reg(val);
 	outw(data->fan_min[nr], iobase + PC87427_REG_FAN_MIN);
@@ -387,9 +348,7 @@ static ssize_t show_name(struct device *dev, struct device_attribute
 static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
 
 
-/*
- * Device detection, attach and detach
- */
+
 
 static void __devinit pc87427_init_device(struct device *dev)
 {
@@ -397,12 +356,12 @@ static void __devinit pc87427_init_device(struct device *dev)
 	int i;
 	u8 reg;
 
-	/* The FMC module should be ready */
+	
 	reg = pc87427_read8(data, LD_FAN, PC87427_REG_BANK);
 	if (!(reg & 0x80))
 		dev_warn(dev, "FMC module not ready!\n");
 
-	/* Check which fans are enabled */
+	
 	for (i = 0; i < 8; i++) {
 		reg = pc87427_read8_bank(data, LD_FAN, BANK_FM(i),
 					 PC87427_REG_FAN_STATUS);
@@ -432,8 +391,7 @@ static int __devinit pc87427_probe(struct platform_device *pdev)
 		goto exit;
 	}
 
-	/* This will need to be revisited when we add support for
-	   temperature and voltage monitoring. */
+	
 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
 	if (!request_region(res->start, resource_size(res), DRVNAME)) {
 		err = -EBUSY;
@@ -448,7 +406,7 @@ static int __devinit pc87427_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, data);
 	pc87427_init_device(&pdev->dev);
 
-	/* Register sysfs hooks */
+	
 	if ((err = device_create_file(&pdev->dev, &dev_attr_name)))
 		goto exit_release_region;
 	for (i = 0; i < 8; i++) {
@@ -563,16 +521,16 @@ static int __init pc87427_find(int sioaddr, unsigned short *address)
 	u16 val;
 	int i, err = 0;
 
-	/* Identify device */
+	
 	val = force_id ? force_id : superio_inb(sioaddr, SIOREG_DEVID);
-	if (val != 0xf2) {	/* PC87427 */
+	if (val != 0xf2) {	
 		err = -ENODEV;
 		goto exit;
 	}
 
 	for (i = 0; i < 2; i++) {
 		address[i] = 0;
-		/* Select logical device */
+		
 		superio_outb(sioaddr, SIOREG_LDSEL, logdev[i]);
 
 		val = superio_inb(sioaddr, SIOREG_ACT);
@@ -613,8 +571,7 @@ static int __init pc87427_init(void)
 	 && pc87427_find(0x4e, address))
 		return -ENODEV;
 
-	/* For now the driver only handles fans so we only care about the
-	   first address. */
+	
 	if (!address[0])
 		return -ENODEV;
 
@@ -622,7 +579,7 @@ static int __init pc87427_init(void)
 	if (err)
 		goto exit;
 
-	/* Sets global pdev as a side effect */
+	
 	err = pc87427_device_add(address[0]);
 	if (err)
 		goto exit_driver;

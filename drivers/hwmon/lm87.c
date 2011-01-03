@@ -1,60 +1,4 @@
-/*
- * lm87.c
- *
- * Copyright (C) 2000       Frodo Looijaard <frodol@dds.nl>
- *                          Philip Edelbrock <phil@netroedge.com>
- *                          Stephen Rousset <stephen.rousset@rocketlogix.com>
- *                          Dan Eaton <dan.eaton@rocketlogix.com>
- * Copyright (C) 2004-2008  Jean Delvare <khali@linux-fr.org>
- *
- * Original port to Linux 2.6 by Jeff Oliver.
- *
- * The LM87 is a sensor chip made by National Semiconductor. It monitors up
- * to 8 voltages (including its own power source), up to three temperatures
- * (its own plus up to two external ones) and up to two fans. The default
- * configuration is 6 voltages, two temperatures and two fans (see below).
- * Voltages are scaled internally with ratios such that the nominal value of
- * each voltage correspond to a register value of 192 (which means a
- * resolution of about 0.5% of the nominal value). Temperature values are
- * reported with a 1 deg resolution and a 3-4 deg accuracy. Complete
- * datasheet can be obtained from National's website at:
- *   http://www.national.com/pf/LM/LM87.html
- *
- * Some functions share pins, so not all functions are available at the same
- * time. Which are depends on the hardware setup. This driver normally
- * assumes that firmware configured the chip correctly. Where this is not
- * the case, platform code must set the I2C client's platform_data to point
- * to a u8 value to be written to the channel register.
- * For reference, here is the list of exclusive functions:
- *  - in0+in5 (default) or temp3
- *  - fan1 (default) or in6
- *  - fan2 (default) or in7
- *  - VID lines (default) or IRQ lines (not handled by this driver)
- *
- * The LM87 additionally features an analog output, supposedly usable to
- * control the speed of a fan. All new chips use pulse width modulation
- * instead. The LM87 is the only hardware monitoring chipset I know of
- * which uses amplitude modulation. Be careful when using this feature.
- *
- * This driver also supports the ADM1024, a sensor chip made by Analog
- * Devices. That chip is fully compatible with the LM87. Complete
- * datasheet can be obtained from Analog's website at:
- *   http://www.analog.com/en/prod/0,2877,ADM1024,00.html
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -67,28 +11,21 @@
 #include <linux/err.h>
 #include <linux/mutex.h>
 
-/*
- * Addresses to scan
- * LM87 has three possible addresses: 0x2c, 0x2d and 0x2e.
- */
+
 
 static const unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, I2C_CLIENT_END };
 
-/*
- * Insmod parameters
- */
+
 
 I2C_CLIENT_INSMOD_2(lm87, adm1024);
 
-/*
- * The LM87 registers
- */
 
-/* nr in 0..5 */
+
+
 #define LM87_REG_IN(nr)			(0x20 + (nr))
 #define LM87_REG_IN_MAX(nr)		(0x2B + (nr) * 2)
 #define LM87_REG_IN_MIN(nr)		(0x2C + (nr) * 2)
-/* nr in 0..1 */
+
 #define LM87_REG_AIN(nr)		(0x28 + (nr))
 #define LM87_REG_AIN_MIN(nr)		(0x1A + (nr))
 #define LM87_REG_AIN_MAX(nr)		(0x3B + (nr))
@@ -102,7 +39,7 @@ static u8 LM87_REG_TEMP_LOW[3] = { 0x3A, 0x38, 0x2C };
 #define LM87_REG_TEMP_HW_INT		0x17
 #define LM87_REG_TEMP_HW_EXT		0x18
 
-/* nr in 0..1 */
+
 #define LM87_REG_FAN(nr)		(0x28 + (nr))
 #define LM87_REG_FAN_MIN(nr)		(0x3B + (nr))
 #define LM87_REG_AOUT			0x19
@@ -118,10 +55,7 @@ static u8 LM87_REG_TEMP_LOW[3] = { 0x3A, 0x38, 0x2C };
 #define LM87_REG_COMPANY_ID		0x3E
 #define LM87_REG_REVISION		0x3F
 
-/*
- * Conversions and various macros
- * The LM87 uses signed 8-bit values for temperatures.
- */
+
 
 #define IN_FROM_REG(reg,scale)	(((reg) * (scale) + 96) / 192)
 #define IN_TO_REG(val,scale)	((val) <= 0 ? 0 : \
@@ -140,21 +74,19 @@ static u8 LM87_REG_TEMP_LOW[3] = { 0x3A, 0x38, 0x2C };
 
 #define FAN_DIV_FROM_REG(reg)	(1 << (reg))
 
-/* analog out is 9.80mV/LSB */
+
 #define AOUT_FROM_REG(reg)	(((reg) * 98 + 5) / 10)
 #define AOUT_TO_REG(val)	((val) <= 0 ? 0 : \
 				 (val) >= 2500 ? 255 : \
 				 ((val) * 10 + 49) / 98)
 
-/* nr in 0..1 */
+
 #define CHAN_NO_FAN(nr)		(1 << (nr))
 #define CHAN_TEMP3		(1 << 2)
 #define CHAN_VCC_5V		(1 << 3)
 #define CHAN_NO_VID		(1 << 7)
 
-/*
- * Functions declaration
- */
+
 
 static int lm87_probe(struct i2c_client *client,
 		      const struct i2c_device_id *id);
@@ -164,9 +96,7 @@ static void lm87_init_client(struct i2c_client *client);
 static int lm87_remove(struct i2c_client *client);
 static struct lm87_data *lm87_update_device(struct device *dev);
 
-/*
- * Driver data (common to all clients)
- */
+
 
 static const struct i2c_device_id lm87_id[] = {
 	{ "lm87", lm87 },
@@ -187,43 +117,39 @@ static struct i2c_driver lm87_driver = {
 	.address_data	= &addr_data,
 };
 
-/*
- * Client data (each client gets its own)
- */
+
 
 struct lm87_data {
 	struct device *hwmon_dev;
 	struct mutex update_lock;
-	char valid; /* zero until following fields are valid */
-	unsigned long last_updated; /* In jiffies */
+	char valid; 
+	unsigned long last_updated; 
 
-	u8 channel;		/* register value */
-	u8 config;		/* original register value */
+	u8 channel;		
+	u8 config;		
 
-	u8 in[8];		/* register value */
-	u8 in_max[8];		/* register value */
-	u8 in_min[8];		/* register value */
+	u8 in[8];		
+	u8 in_max[8];		
+	u8 in_min[8];		
 	u16 in_scale[8];
 
-	s8 temp[3];		/* register value */
-	s8 temp_high[3];	/* register value */
-	s8 temp_low[3];		/* register value */
-	s8 temp_crit_int;	/* min of two register values */
-	s8 temp_crit_ext;	/* min of two register values */
+	s8 temp[3];		
+	s8 temp_high[3];	
+	s8 temp_low[3];		
+	s8 temp_crit_int;	
+	s8 temp_crit_ext;	
 
-	u8 fan[2];		/* register value */
-	u8 fan_min[2];		/* register value */
-	u8 fan_div[2];		/* register value, shifted right */
-	u8 aout;		/* register value */
+	u8 fan[2];		
+	u8 fan_min[2];		
+	u8 fan_div[2];		
+	u8 aout;		
 
-	u16 alarms;		/* register values, combined */
-	u8 vid;			/* register values, combined */
+	u16 alarms;		
+	u8 vid;			
 	u8 vrm;
 };
 
-/*
- * Sysfs stuff
- */
+
 
 static inline int lm87_read_value(struct i2c_client *client, u8 reg)
 {
@@ -436,10 +362,7 @@ static void set_fan_min(struct device *dev, const char *buf, int nr)
 	mutex_unlock(&data->update_lock);
 }
 
-/* Note: we save and restore the fan minimum here, because its value is
-   determined in part by the fan clock divider.  This follows the principle
-   of least surprise; the user doesn't expect the fan minimum to change just
-   because the divider changed. */
+
 static ssize_t set_fan_div(struct device *dev, const char *buf,
 		size_t count, int nr)
 {
@@ -570,9 +493,7 @@ static SENSOR_DEVICE_ATTR(fan2_alarm, S_IRUGO, show_alarm, NULL, 7);
 static SENSOR_DEVICE_ATTR(temp2_fault, S_IRUGO, show_alarm, NULL, 14);
 static SENSOR_DEVICE_ATTR(temp3_fault, S_IRUGO, show_alarm, NULL, 15);
 
-/*
- * Real code
- */
+
 
 static struct attribute *lm87_attributes[] = {
 	&dev_attr_in1_input.attr,
@@ -661,7 +582,7 @@ static const struct attribute_group lm87_group_opt = {
 	.attrs = lm87_attributes_opt,
 };
 
-/* Return 0 if detection is successful, -ENODEV otherwise */
+
 static int lm87_detect(struct i2c_client *new_client, int kind,
 		       struct i2c_board_info *info)
 {
@@ -671,19 +592,19 @@ static int lm87_detect(struct i2c_client *new_client, int kind,
 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
 		return -ENODEV;
 
-	/* Default to an LM87 if forced */
+	
 	if (kind == 0)
 		kind = lm87;
 
-	/* Now, we do the remaining detection. */
+	
 	if (kind < 0) {
 		u8 cid = lm87_read_value(new_client, LM87_REG_COMPANY_ID);
 		u8 rev = lm87_read_value(new_client, LM87_REG_REVISION);
 
-		if (cid == 0x02			/* National Semiconductor */
+		if (cid == 0x02			
 		 && (rev >= 0x01 && rev <= 0x08))
 			kind = lm87;
-		else if (cid == 0x41		/* Analog Devices */
+		else if (cid == 0x41		
 		      && (rev & 0xf0) == 0x10)
 			kind = adm1024;
 
@@ -717,7 +638,7 @@ static int lm87_probe(struct i2c_client *new_client,
 	data->valid = 0;
 	mutex_init(&data->update_lock);
 
-	/* Initialize the LM87 chip */
+	
 	lm87_init_client(new_client);
 
 	data->in_scale[0] = 2500;
@@ -729,7 +650,7 @@ static int lm87_probe(struct i2c_client *new_client,
 	data->in_scale[6] = 1875;
 	data->in_scale[7] = 1875;
 
-	/* Register sysfs hooks */
+	
 	if ((err = sysfs_create_group(&new_client->dev.kobj, &lm87_group)))
 		goto exit_free;
 
@@ -854,7 +775,7 @@ static void lm87_init_client(struct i2c_client *client)
 	if (!(data->config & 0x01)) {
 		int i;
 
-		/* Limits are left uninitialized after power-up */
+		
 		for (i = 1; i < 6; i++) {
 			lm87_write_value(client, LM87_REG_IN_MIN(i), 0x00);
 			lm87_write_value(client, LM87_REG_IN_MAX(i), 0xFF);
@@ -874,7 +795,7 @@ static void lm87_init_client(struct i2c_client *client)
 		}
 	}
 
-	/* Make sure Start is set and INT#_Clear is clear */
+	
 	if ((data->config & 0x09) != 0x01)
 		lm87_write_value(client, LM87_REG_CONFIG,
 				 (data->config & 0x77) | 0x01);

@@ -1,31 +1,4 @@
-/*
- * f75375s.c - driver for the Fintek F75375/SP and F75373
- *             hardware monitoring features
- * Copyright (C) 2006-2007  Riku Voipio
- *
- * Datasheets available at:
- *
- * f75375:
- * http://www.fintek.com.tw/files/productfiles/2005111152950.pdf
- *
- * f75373:
- * http://www.fintek.com.tw/files/productfiles/2005111153128.pdf
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/jiffies.h>
@@ -36,13 +9,13 @@
 #include <linux/mutex.h>
 #include <linux/f75375s.h>
 
-/* Addresses to scan */
+
 static const unsigned short normal_i2c[] = { 0x2d, 0x2e, I2C_CLIENT_END };
 
-/* Insmod parameters */
+
 I2C_CLIENT_INSMOD_2(f75373, f75375);
 
-/* Fintek F75375 registers  */
+
 #define F75375_REG_CONFIG0		0x0
 #define F75375_REG_CONFIG1		0x1
 #define F75375_REG_CONFIG2		0x2
@@ -81,9 +54,7 @@ I2C_CLIENT_INSMOD_2(f75373, f75375);
 #define FAN_CTRL_LINEAR(nr)		(4 + nr)
 #define FAN_CTRL_MODE(nr)		(5 + ((nr) * 2))
 
-/*
- * Data structures and manipulation thereof
- */
+
 
 struct f75375_data {
 	unsigned short addr;
@@ -91,12 +62,12 @@ struct f75375_data {
 
 	const char *name;
 	int kind;
-	struct mutex update_lock; /* protect register access */
+	struct mutex update_lock; 
 	char valid;
-	unsigned long last_updated;	/* In jiffies */
-	unsigned long last_limits;	/* In jiffies */
+	unsigned long last_updated;	
+	unsigned long last_limits;	
 
-	/* Register values */
+	
 	u8 in[4];
 	u8 in_max[4];
 	u8 in_min[4];
@@ -143,7 +114,7 @@ static inline int f75375_read8(struct i2c_client *client, u8 reg)
 	return i2c_smbus_read_byte_data(client, reg);
 }
 
-/* in most cases, should be called while holding update_lock */
+
 static inline u16 f75375_read16(struct i2c_client *client, u8 reg)
 {
 	return ((i2c_smbus_read_byte_data(client, reg) << 8)
@@ -173,7 +144,7 @@ static struct f75375_data *f75375_update_device(struct device *dev)
 
 	mutex_lock(&data->update_lock);
 
-	/* Limit registers cache is refreshed after 60 seconds */
+	
 	if (time_after(jiffies, data->last_limits + 60 * HZ)
 		|| !data->valid) {
 		for (nr = 0; nr < 2; nr++) {
@@ -201,7 +172,7 @@ static struct f75375_data *f75375_update_device(struct device *dev)
 		data->last_limits = jiffies;
 	}
 
-	/* Measurement registers cache is refreshed after 2 second */
+	
 	if (time_after(jiffies, data->last_updated + 2 * HZ)
 		|| !data->valid) {
 		for (nr = 0; nr < 2; nr++) {
@@ -301,19 +272,19 @@ static int set_pwm_enable_direct(struct i2c_client *client, int nr, int val)
 	fanmode = ~(3 << FAN_CTRL_MODE(nr));
 
 	switch (val) {
-	case 0: /* Full speed */
+	case 0: 
 		fanmode  |= (3 << FAN_CTRL_MODE(nr));
 		data->pwm[nr] = 255;
 		f75375_write8(client, F75375_REG_FAN_PWM_DUTY(nr),
 				data->pwm[nr]);
 		break;
-	case 1: /* PWM */
+	case 1: 
 		fanmode  |= (3 << FAN_CTRL_MODE(nr));
 		break;
-	case 2: /* AUTOMATIC*/
+	case 2: 
 		fanmode  |= (2 << FAN_CTRL_MODE(nr));
 		break;
-	case 3: /* fan speed */
+	case 3: 
 		break;
 	}
 	f75375_write8(client, F75375_REG_FAN_TIMER, fanmode);
@@ -676,7 +647,7 @@ static int f75375_remove(struct i2c_client *client)
 	return 0;
 }
 
-/* Return 0 if detection is successful, -ENODEV otherwise */
+
 static int f75375_detect(struct i2c_client *client, int kind,
 			 struct i2c_board_info *info)
 {

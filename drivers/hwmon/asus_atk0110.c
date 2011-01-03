@@ -1,9 +1,4 @@
-/*
- * Copyright (C) 2007-2009 Luca Tettamanti <kronos.it@gmail.com>
- *
- * This file is released under the GPLv2
- * See COPYING in the top level directory of the kernel tree.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/hwmon.h>
@@ -18,9 +13,7 @@
 
 #define ATK_HID "ATK0110"
 
-/* Minimum time between readings, enforced in order to avoid
- * hogging the CPU.
- */
+
 #define CACHE_TIME		HZ
 
 #define BOARD_ID		"MBIF"
@@ -60,7 +53,7 @@ enum atk_pack_member {
 	HWMON_PACK_ENABLE
 };
 
-/* New package format */
+
 #define _HWMON_NEW_PACK_SIZE	7
 #define _HWMON_NEW_PACK_FLAGS	0
 #define _HWMON_NEW_PACK_NAME	1
@@ -70,7 +63,7 @@ enum atk_pack_member {
 #define _HWMON_NEW_PACK_LIMIT2	5
 #define _HWMON_NEW_PACK_ENABLE	6
 
-/* Old package format */
+
 #define _HWMON_OLD_PACK_SIZE	5
 #define _HWMON_OLD_PACK_FLAGS	0
 #define _HWMON_OLD_PACK_NAME	1
@@ -86,11 +79,11 @@ struct atk_data {
 
 	bool old_interface;
 
-	/* old interface */
+	
 	acpi_handle rtmp_handle;
 	acpi_handle rvlt_handle;
 	acpi_handle rfan_handle;
-	/* new inteface */
+	
 	acpi_handle enumerate_handle;
 	acpi_handle read_handle;
 	acpi_handle write_handle;
@@ -113,7 +106,7 @@ static const struct acpi_device_id atk_ids[] = {
 };
 MODULE_DEVICE_TABLE(acpi, atk_ids);
 
-#define ATTR_NAME_SIZE 16 /* Worst case is "tempN_input" */
+#define ATTR_NAME_SIZE 16 
 
 struct atk_sensor_data {
 	struct list_head list;
@@ -131,23 +124,19 @@ struct atk_sensor_data {
 	u64 limit1;
 	u64 limit2;
 	u64 cached_value;
-	unsigned long last_updated; /* in jiffies */
+	unsigned long last_updated; 
 	bool is_valid;
 	char const *acpi_name;
 };
 
-/* Return buffer format:
- * [0-3] "value" is valid flag
- * [4-7] value
- * [8- ] unknown stuff on newer mobos
- */
+
 struct atk_acpi_ret_buffer {
 	u32 flags;
 	u32 value;
 	u8 data[];
 };
 
-/* Input buffer used for GITM and SITM methods */
+
 struct atk_acpi_input_buf {
 	u32 id;
 	u32 param1;
@@ -194,7 +183,7 @@ static ssize_t atk_input_show(struct device *dev,
 		return err;
 
 	if (s->type == HWMON_TYPE_TEMP)
-		/* ACPI returns decidegree */
+		
 		value *= 100;
 
 	return sprintf(buf, "%llu\n", value);
@@ -284,21 +273,7 @@ static union acpi_object *atk_get_pack_member(struct atk_data *data,
 }
 
 
-/* New package format is:
- * - flag (int)
- *	class - used for de-muxing the request to the correct GITn
- *	type (volt, temp, fan)
- *	sensor id |
- *	sensor id - used for de-muxing the request _inside_ the GITn
- * - name (str)
- * - unknown (int)
- * - unknown (int)
- * - limit1 (int)
- * - limit2 (int)
- * - enable (int)
- *
- * The old package has the same format but it's missing the two unknown fields.
- */
+
 static int validate_hwmon_pack(struct atk_data *data, union acpi_object *obj)
 {
 	struct device *dev = &data->acpi_dev->dev;
@@ -330,7 +305,7 @@ static int validate_hwmon_pack(struct atk_data *data, union acpi_object *obj)
 		return -EINVAL;
 	}
 
-	/* Don't check... we don't know what they're useful for anyway */
+	
 #if 0
 	tmp = &obj->package.elements[HWMON_PACK_UNK1];
 	if (tmp->type != ACPI_TYPE_INTEGER) {
@@ -482,7 +457,7 @@ static union acpi_object *atk_ggrp(struct atk_data *data, u16 mux)
 	}
 	pack = buf.pointer;
 	if (pack->type != ACPI_TYPE_PACKAGE) {
-		/* Execution was successful, but the id was not found */
+		
 		ACPI_FREE(pack);
 		return ERR_PTR(-ENOENT);
 	}
@@ -526,7 +501,7 @@ static union acpi_object *atk_gitm(struct atk_data *data, u64 id)
 	}
 	obj = ret.pointer;
 
-	/* Sanity check */
+	
 	if (obj->buffer.length < 8) {
 		dev_warn(dev, "Unexpected ASBF length: %u\n",
 				obj->buffer.length);
@@ -563,7 +538,7 @@ static union acpi_object *atk_sitm(struct atk_data *data,
 	}
 	obj = ret.pointer;
 
-	/* Sanity check */
+	
 	if (obj->buffer.length < 8) {
 		dev_warn(dev, "Unexpected ASBF length: %u\n",
 				obj->buffer.length);
@@ -587,10 +562,7 @@ static int atk_read_value_new(struct atk_sensor_data *sensor, u64 *value)
 
 	buf = (struct atk_acpi_ret_buffer *)obj->buffer.pointer;
 	if (buf->flags == 0) {
-		/* The reading is not valid, possible causes:
-		 * - sensor failure
-		 * - enumeration was FUBAR (and we didn't notice)
-		 */
+		
 		dev_warn(dev, "Read failed, sensor = %#llx\n", sensor->id);
 		err = -EIO;
 		goto out;
@@ -642,7 +614,7 @@ static int atk_add_sensor(struct atk_data *data, union acpi_object *obj)
 	int start;
 
 	if (obj->type != ACPI_TYPE_PACKAGE) {
-		/* wft is this? */
+		
 		dev_warn(dev, "Unknown type for ACPI object: (%d)\n",
 				obj->type);
 		return -EINVAL;
@@ -652,7 +624,7 @@ static int atk_add_sensor(struct atk_data *data, union acpi_object *obj)
 	if (err)
 		return err;
 
-	/* Ok, we have a valid hwmon package */
+	
 	type = atk_get_pack_member(data, obj, HWMON_PACK_FLAGS)->integer.value
 	       & ATK_TYPE_MASK;
 
@@ -685,7 +657,7 @@ static int atk_add_sensor(struct atk_data *data, union acpi_object *obj)
 
 	enable = atk_get_pack_member(data, obj, HWMON_PACK_ENABLE);
 	if (!enable->integer.value)
-		/* sensor is disabled */
+		
 		return 0;
 
 	flags = atk_get_pack_member(data, obj, HWMON_PACK_FLAGS);
@@ -711,7 +683,7 @@ static int atk_add_sensor(struct atk_data *data, union acpi_object *obj)
 	if (data->old_interface)
 		sensor->limit2 = limit2->integer.value;
 	else
-		/* The upper limit is expressed as delta from lower limit */
+		
 		sensor->limit2 = sensor->limit1 + limit2->integer.value;
 
 	snprintf(sensor->input_attr_name, ATTR_NAME_SIZE,
@@ -757,7 +729,7 @@ static int atk_enumerate_old_hwmon(struct atk_data *data)
 	int i, ret;
 	int count = 0;
 
-	/* Voltages */
+	
 	buf.length = ACPI_ALLOCATE_BUFFER;
 	status = acpi_evaluate_object_typed(data->atk_handle,
 			METHOD_OLD_ENUM_VLT, NULL, &buf, ACPI_TYPE_PACKAGE);
@@ -778,7 +750,7 @@ static int atk_enumerate_old_hwmon(struct atk_data *data)
 	}
 	ACPI_FREE(buf.pointer);
 
-	/* Temperatures */
+	
 	buf.length = ACPI_ALLOCATE_BUFFER;
 	status = acpi_evaluate_object_typed(data->atk_handle,
 			METHOD_OLD_ENUM_TMP, NULL, &buf, ACPI_TYPE_PACKAGE);
@@ -800,7 +772,7 @@ static int atk_enumerate_old_hwmon(struct atk_data *data)
 	}
 	ACPI_FREE(buf.pointer);
 
-	/* Fans */
+	
 	buf.length = ACPI_ALLOCATE_BUFFER;
 	status = acpi_evaluate_object_typed(data->atk_handle,
 			METHOD_OLD_ENUM_FAN, NULL, &buf, ACPI_TYPE_PACKAGE);
@@ -839,14 +811,14 @@ static int atk_ec_present(struct atk_data *data)
 	pack = atk_ggrp(data, ATK_MUX_MGMT);
 	if (IS_ERR(pack)) {
 		if (PTR_ERR(pack) == -ENOENT) {
-			/* The MGMT class does not exists - that's ok */
+			
 			dev_dbg(dev, "Class %#llx not found\n", ATK_MUX_MGMT);
 			return 0;
 		}
 		return PTR_ERR(pack);
 	}
 
-	/* Search the EC */
+	
 	ec = NULL;
 	for (i = 0; i < pack->package.count; i++) {
 		union acpi_object *obj = &pack->package.elements[i];
@@ -867,7 +839,7 @@ static int atk_ec_present(struct atk_data *data)
 
 	ret = (ec != NULL);
 	if (!ret)
-		/* The system has no EC */
+		
 		dev_dbg(dev, "EC not found\n");
 
 	ACPI_FREE(pack);
@@ -947,7 +919,7 @@ static int atk_enumerate_new_hwmon(struct atk_data *data)
 		err = atk_ec_enabled(data);
 		if (err < 0)
 			return err;
-		/* If the EC was disabled we will disable it again on unload */
+		
 		data->disable_ec = err;
 
 		err = atk_ec_ctl(data, 1);
@@ -1041,7 +1013,7 @@ static int atk_register_hwmon(struct atk_data *data)
 
 	return 0;
 remove:
-	/* Cleanup the registered files */
+	
 	atk_remove_files(data);
 	hwmon_device_unregister(data->hwmon_dev);
 	return err;
@@ -1053,7 +1025,7 @@ static int atk_check_old_if(struct atk_data *data)
 	acpi_handle ret;
 	acpi_status status;
 
-	/* RTMP: read temperature */
+	
 	status = acpi_get_handle(data->atk_handle, METHOD_OLD_READ_TMP, &ret);
 	if (status != AE_OK) {
 		dev_dbg(dev, "method " METHOD_OLD_READ_TMP " not found: %s\n",
@@ -1062,7 +1034,7 @@ static int atk_check_old_if(struct atk_data *data)
 	}
 	data->rtmp_handle = ret;
 
-	/* RVLT: read voltage */
+	
 	status = acpi_get_handle(data->atk_handle, METHOD_OLD_READ_VLT, &ret);
 	if (status != AE_OK) {
 		dev_dbg(dev, "method " METHOD_OLD_READ_VLT " not found: %s\n",
@@ -1071,7 +1043,7 @@ static int atk_check_old_if(struct atk_data *data)
 	}
 	data->rvlt_handle = ret;
 
-	/* RFAN: read fan status */
+	
 	status = acpi_get_handle(data->atk_handle, METHOD_OLD_READ_FAN, &ret);
 	if (status != AE_OK) {
 		dev_dbg(dev, "method " METHOD_OLD_READ_FAN " not found: %s\n",
@@ -1089,7 +1061,7 @@ static int atk_check_new_if(struct atk_data *data)
 	acpi_handle ret;
 	acpi_status status;
 
-	/* Enumeration */
+	
 	status = acpi_get_handle(data->atk_handle, METHOD_ENUMERATE, &ret);
 	if (status != AE_OK) {
 		dev_dbg(dev, "method " METHOD_ENUMERATE " not found: %s\n",
@@ -1098,7 +1070,7 @@ static int atk_check_new_if(struct atk_data *data)
 	}
 	data->enumerate_handle = ret;
 
-	/* De-multiplexer (read) */
+	
 	status = acpi_get_handle(data->atk_handle, METHOD_READ, &ret);
 	if (status != AE_OK) {
 		dev_dbg(dev, "method " METHOD_READ " not found: %s\n",
@@ -1107,7 +1079,7 @@ static int atk_check_new_if(struct atk_data *data)
 	}
 	data->read_handle = ret;
 
-	/* De-multiplexer (write) */
+	
 	status = acpi_get_handle(data->atk_handle, METHOD_WRITE, &ret);
 	if (status != AE_OK) {
 		dev_dbg(dev, "method " METHOD_READ " not found: %s\n",
@@ -1155,11 +1127,7 @@ static int atk_add(struct acpi_device *device)
 	}
 	ACPI_FREE(buf.pointer);
 
-	/* Check for hwmon methods: first check "old" style methods; note that
-	 * both may be present: in this case we stick to the old interface;
-	 * analysis of multiple DSDTs indicates that when both interfaces
-	 * are present the new one (GGRP/GITM) is not functional.
-	 */
+	
 	err = atk_check_old_if(data);
 	if (!err) {
 		dev_dbg(&device->dev, "Using old hwmon interface\n");

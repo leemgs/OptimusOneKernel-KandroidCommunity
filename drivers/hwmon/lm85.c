@@ -1,28 +1,4 @@
-/*
-    lm85.c - Part of lm_sensors, Linux kernel modules for hardware
-             monitoring
-    Copyright (c) 1998, 1999  Frodo Looijaard <frodol@dds.nl>
-    Copyright (c) 2002, 2003  Philip Pokorny <ppokorny@penguincomputing.com>
-    Copyright (c) 2003        Margit Schubert-While <margitsw@t-online.de>
-    Copyright (c) 2004        Justin Thiessen <jthiessen@penguincomputing.com>
-    Copyright (C) 2007, 2008  Jean Delvare <khali@linux-fr.org>
 
-    Chip details at	      <http://www.national.com/ds/LM/LM85.pdf>
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -35,14 +11,14 @@
 #include <linux/err.h>
 #include <linux/mutex.h>
 
-/* Addresses to scan */
+
 static const unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, I2C_CLIENT_END };
 
-/* Insmod parameters */
+
 I2C_CLIENT_INSMOD_7(lm85b, lm85c, adm1027, adt7463, adt7468, emc6d100,
 		    emc6d102);
 
-/* The LM85 registers */
+
 
 #define	LM85_REG_IN(nr)			(0x20 + (nr))
 #define	LM85_REG_IN_MIN(nr)		(0x44 + (nr) * 2)
@@ -52,7 +28,7 @@ I2C_CLIENT_INSMOD_7(lm85b, lm85c, adm1027, adt7463, adt7468, emc6d100,
 #define	LM85_REG_TEMP_MIN(nr)		(0x4e + (nr) * 2)
 #define	LM85_REG_TEMP_MAX(nr)		(0x4f + (nr) * 2)
 
-/* Fan speeds are LSB, MSB (2 bytes) */
+
 #define	LM85_REG_FAN(nr)		(0x28 + (nr) * 2)
 #define	LM85_REG_FAN_MIN(nr)		(0x54 + (nr) * 2)
 
@@ -66,7 +42,7 @@ I2C_CLIENT_INSMOD_7(lm85b, lm85c, adm1027, adt7463, adt7468, emc6d100,
 #define	IS_ADT7468_OFF64(data)		\
 	((data)->type == adt7468 && !((data)->cfg5 & ADT7468_OFF64))
 
-/* These are the recognized values for the above regs */
+
 #define	LM85_COMPANY_NATIONAL		0x01
 #define	LM85_COMPANY_ANALOG_DEV		0x41
 #define	LM85_COMPANY_SMSC		0x5c
@@ -93,7 +69,7 @@ I2C_CLIENT_INSMOD_7(lm85b, lm85c, adm1027, adt7463, adt7468, emc6d100,
 
 #define	LM85_REG_VID			0x43
 
-/* Automated FAN control */
+
 #define	LM85_REG_AFAN_CONFIG(nr)	(0x5c + (nr))
 #define	LM85_REG_AFAN_RANGE(nr)		(0x5f + (nr))
 #define	LM85_REG_AFAN_SPIKE1		0x62
@@ -107,7 +83,7 @@ I2C_CLIENT_INSMOD_7(lm85b, lm85c, adm1027, adt7463, adt7468, emc6d100,
 #define	ADM1027_REG_EXTEND_ADC2		0x77
 
 #define EMC6D100_REG_ALARM3             0x7d
-/* IN5, IN6 and IN7 */
+
 #define	EMC6D100_REG_IN(nr)             (0x70 + ((nr) - 5))
 #define	EMC6D100_REG_IN_MIN(nr)         (0x73 + ((nr) - 5) * 2)
 #define	EMC6D100_REG_IN_MAX(nr)         (0x74 + ((nr) - 5) * 2)
@@ -117,15 +93,12 @@ I2C_CLIENT_INSMOD_7(lm85b, lm85c, adm1027, adt7463, adt7468, emc6d100,
 #define	EMC6D102_REG_EXTEND_ADC4	0x88
 
 
-/* Conversions. Rounding and limit checking is only done on the TO_REG
-   variants. Note that you should be a bit careful with which arguments
-   these macros are called: arguments may be evaluated more than once.
- */
 
-/* IN are scaled acording to built-in resistors */
-static const int lm85_scaling[] = {  /* .001 Volts */
+
+
+static const int lm85_scaling[] = {  
 	2500, 2250, 3300, 5000, 12000,
-	3300, 1500, 1800 /*EMC6D100*/
+	3300, 1500, 1800 
 };
 #define SCALE(val, from, to)	(((val) * (to) + ((from) / 2)) / (from))
 
@@ -137,7 +110,7 @@ static const int lm85_scaling[] = {  /* .001 Volts */
 
 #define INS_FROM_REG(n, val)	SCALE((val), 192, lm85_scaling[n])
 
-/* FAN speed is measured using 90kHz clock */
+
 static inline u16 FAN_TO_REG(unsigned long val)
 {
 	if (!val)
@@ -147,7 +120,7 @@ static inline u16 FAN_TO_REG(unsigned long val)
 #define FAN_FROM_REG(val)	((val) == 0 ? -1 : (val) == 0xffff ? 0 : \
 				 5400000 / (val))
 
-/* Temperature is reported in .001 degC increments */
+
 #define TEMP_TO_REG(val)	\
 		SENSORS_LIMIT(SCALE(val, 1000, 1), -127, 127)
 #define TEMPEXT_FROM_REG(val, ext)	\
@@ -158,25 +131,9 @@ static inline u16 FAN_TO_REG(unsigned long val)
 #define PWM_FROM_REG(val)		(val)
 
 
-/* ZONEs have the following parameters:
- *    Limit (low) temp,           1. degC
- *    Hysteresis (below limit),   1. degC (0-15)
- *    Range of speed control,     .1 degC (2-80)
- *    Critical (high) temp,       1. degC
- *
- * FAN PWMs have the following parameters:
- *    Reference Zone,                 1, 2, 3, etc.
- *    Spinup time,                    .05 sec
- *    PWM value at limit/low temp,    1 count
- *    PWM Frequency,                  1. Hz
- *    PWM is Min or OFF below limit,  flag
- *    Invert PWM output,              flag
- *
- * Some chips filter the temp, others the fan.
- *    Filter constant (or disabled)   .1 seconds
- */
 
-/* These are the zone temperature range encodings in .001 degree C */
+
+
 static const int lm85_range_map[] = {
 	2000, 2500, 3300, 4000, 5000, 6600, 8000, 10000,
 	13300, 16000, 20000, 26600, 32000, 40000, 53300, 80000
@@ -186,7 +143,7 @@ static int RANGE_TO_REG(int range)
 {
 	int i;
 
-	/* Find the closest match */
+	
 	for (i = 0; i < 15; ++i) {
 		if (range <= (lm85_range_map[i] + lm85_range_map[i + 1]) / 2)
 			break;
@@ -196,11 +153,11 @@ static int RANGE_TO_REG(int range)
 }
 #define RANGE_FROM_REG(val)	lm85_range_map[(val) & 0x0f]
 
-/* These are the PWM frequency encodings */
-static const int lm85_freq_map[8] = { /* 1 Hz */
+
+static const int lm85_freq_map[8] = { 
 	10, 15, 23, 30, 38, 47, 61, 94
 };
-static const int adm1027_freq_map[8] = { /* 1 Hz */
+static const int adm1027_freq_map[8] = { 
 	11, 15, 22, 29, 35, 44, 59, 88
 };
 
@@ -208,7 +165,7 @@ static int FREQ_TO_REG(const int *map, int freq)
 {
 	int i;
 
-	/* Find the closest match */
+	
 	for (i = 0; i < 7; ++i)
 		if (freq <= (map[i] + map[i + 1]) / 2)
 			break;
@@ -220,17 +177,7 @@ static int FREQ_FROM_REG(const int *map, u8 reg)
 	return map[reg & 0x07];
 }
 
-/* Since we can't use strings, I'm abusing these numbers
- *   to stand in for the following meanings:
- *      1 -- PWM responds to Zone 1
- *      2 -- PWM responds to Zone 2
- *      3 -- PWM responds to Zone 3
- *     23 -- PWM responds to the higher temp of Zone 2 or 3
- *    123 -- PWM responds to highest of Zone 1, 2, or 3
- *      0 -- PWM is always at 0% (ie, off)
- *     -1 -- PWM is always at 100%
- *     -2 -- PWM responds to manual control
- */
+
 
 static const int lm85_zone_map[] = { 1, 2, 3, -1, 0, 23, 123, -2 };
 #define ZONE_FROM_REG(val)	lm85_zone_map[(val) >> 5]
@@ -242,83 +189,61 @@ static int ZONE_TO_REG(int zone)
 	for (i = 0; i <= 7; ++i)
 		if (zone == lm85_zone_map[i])
 			break;
-	if (i > 7)   /* Not found. */
-		i = 3;  /* Always 100% */
+	if (i > 7)   
+		i = 3;  
 	return i << 5;
 }
 
 #define HYST_TO_REG(val)	SENSORS_LIMIT(((val) + 500) / 1000, 0, 15)
 #define HYST_FROM_REG(val)	((val) * 1000)
 
-/* Chip sampling rates
- *
- * Some sensors are not updated more frequently than once per second
- *    so it doesn't make sense to read them more often than that.
- *    We cache the results and return the saved data if the driver
- *    is called again before a second has elapsed.
- *
- * Also, there is significant configuration data for this chip
- *    given the automatic PWM fan control that is possible.  There
- *    are about 47 bytes of config data to only 22 bytes of actual
- *    readings.  So, we keep the config data up to date in the cache
- *    when it is written and only sample it once every 1 *minute*
- */
+
 #define LM85_DATA_INTERVAL  (HZ + HZ / 2)
 #define LM85_CONFIG_INTERVAL  (1 * 60 * HZ)
 
-/* LM85 can automatically adjust fan speeds based on temperature
- * This structure encapsulates an entire Zone config.  There are
- * three zones (one for each temperature input) on the lm85
- */
+
 struct lm85_zone {
-	s8 limit;	/* Low temp limit */
-	u8 hyst;	/* Low limit hysteresis. (0-15) */
-	u8 range;	/* Temp range, encoded */
-	s8 critical;	/* "All fans ON" temp limit */
-	u8 off_desired; /* Actual "off" temperature specified.  Preserved
-			 * to prevent "drift" as other autofan control
-			 * values change.
-			 */
-	u8 max_desired; /* Actual "max" temperature specified.  Preserved
-			 * to prevent "drift" as other autofan control
-			 * values change.
-			 */
+	s8 limit;	
+	u8 hyst;	
+	u8 range;	
+	s8 critical;	
+	u8 off_desired; 
+	u8 max_desired; 
 };
 
 struct lm85_autofan {
-	u8 config;	/* Register value */
-	u8 min_pwm;	/* Minimum PWM value, encoded */
-	u8 min_off;	/* Min PWM or OFF below "limit", flag */
+	u8 config;	
+	u8 min_pwm;	
+	u8 min_off;	
 };
 
-/* For each registered chip, we need to keep some data in memory.
-   The structure is dynamically allocated. */
+
 struct lm85_data {
 	struct device *hwmon_dev;
 	const int *freq_map;
 	enum chips type;
 
 	struct mutex update_lock;
-	int valid;		/* !=0 if following fields are valid */
-	unsigned long last_reading;	/* In jiffies */
-	unsigned long last_config;	/* In jiffies */
+	int valid;		
+	unsigned long last_reading;	
+	unsigned long last_config;	
 
-	u8 in[8];		/* Register value */
-	u8 in_max[8];		/* Register value */
-	u8 in_min[8];		/* Register value */
-	s8 temp[3];		/* Register value */
-	s8 temp_min[3];		/* Register value */
-	s8 temp_max[3];		/* Register value */
-	u16 fan[4];		/* Register value */
-	u16 fan_min[4];		/* Register value */
-	u8 pwm[3];		/* Register value */
-	u8 pwm_freq[3];		/* Register encoding */
-	u8 temp_ext[3];		/* Decoded values */
-	u8 in_ext[8];		/* Decoded values */
-	u8 vid;			/* Register value */
-	u8 vrm;			/* VRM version */
-	u32 alarms;		/* Register encoding, combined */
-	u8 cfg5;		/* Config Register 5 on ADT7468 */
+	u8 in[8];		
+	u8 in_max[8];		
+	u8 in_min[8];		
+	s8 temp[3];		
+	s8 temp_min[3];		
+	s8 temp_max[3];		
+	u16 fan[4];		
+	u16 fan_min[4];		
+	u8 pwm[3];		
+	u8 pwm_freq[3];		
+	u8 temp_ext[3];		
+	u8 in_ext[8];		
+	u8 vid;			
+	u8 vrm;			
+	u32 alarms;		
+	u8 cfg5;		
 	struct lm85_autofan autofan[3];
 	struct lm85_zone zone[3];
 };
@@ -361,7 +286,7 @@ static struct i2c_driver lm85_driver = {
 };
 
 
-/* 4 Fans */
+
 static ssize_t show_fan(struct device *dev, struct device_attribute *attr,
 		char *buf)
 {
@@ -404,7 +329,7 @@ show_fan_offset(2);
 show_fan_offset(3);
 show_fan_offset(4);
 
-/* vid, vrm, alarms */
+
 
 static ssize_t show_vid_reg(struct device *dev, struct device_attribute *attr,
 		char *buf)
@@ -414,10 +339,10 @@ static ssize_t show_vid_reg(struct device *dev, struct device_attribute *attr,
 
 	if ((data->type == adt7463 || data->type == adt7468) &&
 	    (data->vid & 0x80)) {
-		/* 6-pin VID (VRM 10) */
+		
 		vid = vid_from_reg(data->vid & 0x3f, data->vrm);
 	} else {
-		/* 5-pin VID (VRM 9) */
+		
 		vid = vid_from_reg(data->vid & 0x1f, data->vrm);
 	}
 
@@ -478,7 +403,7 @@ static SENSOR_DEVICE_ATTR(fan2_alarm, S_IRUGO, show_alarm, NULL, 11);
 static SENSOR_DEVICE_ATTR(fan3_alarm, S_IRUGO, show_alarm, NULL, 12);
 static SENSOR_DEVICE_ATTR(fan4_alarm, S_IRUGO, show_alarm, NULL, 13);
 
-/* pwm */
+
 
 static ssize_t show_pwm(struct device *dev, struct device_attribute *attr,
 		char *buf)
@@ -512,14 +437,14 @@ static ssize_t show_pwm_enable(struct device *dev, struct device_attribute
 
 	pwm_zone = ZONE_FROM_REG(data->autofan[nr].config);
 	switch (pwm_zone) {
-	case -1:	/* PWM is always at 100% */
+	case -1:	
 		enable = 0;
 		break;
-	case 0:		/* PWM is always at 0% */
-	case -2:	/* PWM responds to manual control */
+	case 0:		
+	case -2:	
 		enable = 1;
 		break;
-	default:	/* PWM in automatic mode */
+	default:	
 		enable = 2;
 	}
 	return sprintf(buf, "%d\n", enable);
@@ -542,8 +467,7 @@ static ssize_t set_pwm_enable(struct device *dev, struct device_attribute
 		config = 7;
 		break;
 	case 2:
-		/* Here we have to choose arbitrarily one of the 5 possible
-		   configurations; I go for the safest */
+		
 		config = 6;
 		break;
 	default:
@@ -599,7 +523,7 @@ show_pwm_reg(1);
 show_pwm_reg(2);
 show_pwm_reg(3);
 
-/* Voltages */
+
 
 static ssize_t show_in(struct device *dev, struct device_attribute *attr,
 		char *buf)
@@ -673,7 +597,7 @@ show_in_reg(5);
 show_in_reg(6);
 show_in_reg(7);
 
-/* Temps */
+
 
 static ssize_t show_temp(struct device *dev, struct device_attribute *attr,
 		char *buf)
@@ -749,7 +673,7 @@ show_temp_reg(2);
 show_temp_reg(3);
 
 
-/* Automatic PWM control */
+
 
 static ssize_t show_pwm_auto_channels(struct device *dev,
 		struct device_attribute *attr, char *buf)
@@ -843,7 +767,7 @@ pwm_auto(1);
 pwm_auto(2);
 pwm_auto(3);
 
-/* Temperature settings for automatic PWM control */
+
 
 static ssize_t show_temp_auto_temp_off(struct device *dev,
 		struct device_attribute *attr, char *buf)
@@ -900,7 +824,7 @@ static ssize_t set_temp_auto_temp_min(struct device *dev,
 	lm85_write_value(client, LM85_REG_AFAN_LIMIT(nr),
 		data->zone[nr].limit);
 
-/* Update temp_auto_max and temp_auto_range */
+
 	data->zone[nr].range = RANGE_TO_REG(
 		TEMP_FROM_REG(data->zone[nr].max_desired) -
 		TEMP_FROM_REG(data->zone[nr].limit));
@@ -908,7 +832,7 @@ static ssize_t set_temp_auto_temp_min(struct device *dev,
 		((data->zone[nr].range & 0x0f) << 4)
 		| (data->pwm_freq[nr] & 0x07));
 
-/* Update temp_auto_hyst and temp_auto_off */
+
 	data->zone[nr].hyst = HYST_TO_REG(TEMP_FROM_REG(
 		data->zone[nr].limit) - TEMP_FROM_REG(
 		data->zone[nr].off_desired));
@@ -1121,14 +1045,14 @@ static void lm85_init_client(struct i2c_client *client)
 {
 	int value;
 
-	/* Start monitoring if needed */
+	
 	value = lm85_read_value(client, LM85_REG_CONFIG);
 	if (!(value & 0x01)) {
 		dev_info(&client->dev, "Starting monitoring\n");
 		lm85_write_value(client, LM85_REG_CONFIG, value | 0x01);
 	}
 
-	/* Warn about unusual configuration bits */
+	
 	if (value & 0x02)
 		dev_warn(&client->dev, "Device configuration is locked\n");
 	if (!(value & 0x04))
@@ -1137,11 +1061,7 @@ static void lm85_init_client(struct i2c_client *client)
 
 static int lm85_is_fake(struct i2c_client *client)
 {
-	/*
-	 * Differenciate between real LM96000 and Winbond WPCD377I. The latter
-	 * emulate the former except that it has no hardware monitoring function
-	 * so the readings are always 0.
-	 */
+	
 	int i;
 	u8 in_temp, fan;
 
@@ -1155,7 +1075,7 @@ static int lm85_is_fake(struct i2c_client *client)
 	return 1;
 }
 
-/* Return 0 if detection is successful, -ENODEV otherwise */
+
 static int lm85_detect(struct i2c_client *client, int kind,
 		       struct i2c_board_info *info)
 {
@@ -1164,11 +1084,11 @@ static int lm85_detect(struct i2c_client *client, int kind,
 	const char *type_name;
 
 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
-		/* We need to be able to do byte I/O */
+		
 		return -ENODEV;
 	}
 
-	/* If auto-detecting, determine the chip type */
+	
 	if (kind < 0) {
 		int company = lm85_read_value(client, LM85_REG_COMPANY);
 		int verstep = lm85_read_value(client, LM85_REG_VERSTEP);
@@ -1177,7 +1097,7 @@ static int lm85_detect(struct i2c_client *client, int kind,
 			"COMPANY: 0x%02x and VERSTEP: 0x%02x\n",
 			address, company, verstep);
 
-		/* All supported chips have the version in common */
+		
 		if ((verstep & LM85_VERSTEP_VMASK) != LM85_VERSTEP_GENERIC &&
 		    (verstep & LM85_VERSTEP_VMASK) != LM85_VERSTEP_GENERIC2) {
 			dev_dbg(&adapter->dev, "Autodetection failed: "
@@ -1186,7 +1106,7 @@ static int lm85_detect(struct i2c_client *client, int kind,
 		}
 		kind = any_chip;
 
-		/* Now, refine the detection */
+		
 		if (company == LM85_COMPANY_NATIONAL) {
 			switch (verstep) {
 			case LM85_VERSTEP_LM85C:
@@ -1197,7 +1117,7 @@ static int lm85_detect(struct i2c_client *client, int kind,
 				break;
 			case LM85_VERSTEP_LM96000_1:
 			case LM85_VERSTEP_LM96000_2:
-				/* Check for Winbond WPCD377I */
+				
 				if (lm85_is_fake(client)) {
 					dev_dbg(&adapter->dev,
 						"Found Winbond WPCD377I, "
@@ -1224,7 +1144,7 @@ static int lm85_detect(struct i2c_client *client, int kind,
 			switch (verstep) {
 			case LM85_VERSTEP_EMC6D100_A0:
 			case LM85_VERSTEP_EMC6D100_A1:
-				/* Note: we can't tell a '100 from a '101 */
+				
 				kind = emc6d100;
 				break;
 			case LM85_VERSTEP_EMC6D102:
@@ -1282,7 +1202,7 @@ static int lm85_probe(struct i2c_client *client,
 	data->type = id->driver_data;
 	mutex_init(&data->update_lock);
 
-	/* Fill in the chip specific driver values */
+	
 	switch (data->type) {
 	case adm1027:
 	case adt7463:
@@ -1294,19 +1214,18 @@ static int lm85_probe(struct i2c_client *client,
 		data->freq_map = lm85_freq_map;
 	}
 
-	/* Set the VRM version */
+	
 	data->vrm = vid_which_vrm();
 
-	/* Initialize the LM85 chip */
+	
 	lm85_init_client(client);
 
-	/* Register sysfs hooks */
+	
 	err = sysfs_create_group(&client->dev.kobj, &lm85_group);
 	if (err)
 		goto err_kfree;
 
-	/* The ADT7463/68 have an optional VRM 10 mode where pin 21 is used
-	   as a sixth digital VID input rather than an analog input. */
+	
 	data->vid = lm85_read_value(client, LM85_REG_VID);
 	if (!((data->type == adt7463 || data->type == adt7468) &&
 	    (data->vid & 0x80)))
@@ -1314,7 +1233,7 @@ static int lm85_probe(struct i2c_client *client,
 					&lm85_group_in4)))
 			goto err_remove_files;
 
-	/* The EMC6D100 has 3 additional voltage inputs */
+	
 	if (data->type == emc6d100)
 		if ((err = sysfs_create_group(&client->dev.kobj,
 					&lm85_group_in567)))
@@ -1328,7 +1247,7 @@ static int lm85_probe(struct i2c_client *client,
 
 	return 0;
 
-	/* Error out and cleanup code */
+	
  err_remove_files:
 	sysfs_remove_group(&client->dev.kobj, &lm85_group);
 	sysfs_remove_group(&client->dev.kobj, &lm85_group_in4);
@@ -1356,9 +1275,9 @@ static int lm85_read_value(struct i2c_client *client, u8 reg)
 {
 	int res;
 
-	/* What size location is it? */
+	
 	switch (reg) {
-	case LM85_REG_FAN(0):  /* Read WORD data */
+	case LM85_REG_FAN(0):  
 	case LM85_REG_FAN(1):
 	case LM85_REG_FAN(2):
 	case LM85_REG_FAN(3):
@@ -1366,11 +1285,11 @@ static int lm85_read_value(struct i2c_client *client, u8 reg)
 	case LM85_REG_FAN_MIN(1):
 	case LM85_REG_FAN_MIN(2):
 	case LM85_REG_FAN_MIN(3):
-	case LM85_REG_ALARM1:	/* Read both bytes at once */
+	case LM85_REG_ALARM1:	
 		res = i2c_smbus_read_byte_data(client, reg) & 0xff;
 		res |= i2c_smbus_read_byte_data(client, reg + 1) << 8;
 		break;
-	default:	/* Read BYTE data */
+	default:	
 		res = i2c_smbus_read_byte_data(client, reg);
 		break;
 	}
@@ -1381,7 +1300,7 @@ static int lm85_read_value(struct i2c_client *client, u8 reg)
 static void lm85_write_value(struct i2c_client *client, u8 reg, int value)
 {
 	switch (reg) {
-	case LM85_REG_FAN(0):  /* Write WORD data */
+	case LM85_REG_FAN(0):  
 	case LM85_REG_FAN(1):
 	case LM85_REG_FAN(2):
 	case LM85_REG_FAN(3):
@@ -1389,11 +1308,11 @@ static void lm85_write_value(struct i2c_client *client, u8 reg, int value)
 	case LM85_REG_FAN_MIN(1):
 	case LM85_REG_FAN_MIN(2):
 	case LM85_REG_FAN_MIN(3):
-	/* NOTE: ALARM is read only, so not included here */
+	
 		i2c_smbus_write_byte_data(client, reg, value & 0xff);
 		i2c_smbus_write_byte_data(client, reg + 1, value >> 8);
 		break;
-	default:	/* Write BYTE data */
+	default:	
 		i2c_smbus_write_byte_data(client, reg, value);
 		break;
 	}
@@ -1409,14 +1328,10 @@ static struct lm85_data *lm85_update_device(struct device *dev)
 
 	if (!data->valid ||
 	     time_after(jiffies, data->last_reading + LM85_DATA_INTERVAL)) {
-		/* Things that change quickly */
+		
 		dev_dbg(&client->dev, "Reading sensor values\n");
 
-		/* Have to read extended bits first to "freeze" the
-		 * more significant bits that are read later.
-		 * There are 2 additional resolution bits per channel and we
-		 * have room for 4, so we shift them to the left.
-		 */
+		
 		if (data->type == adm1027 || data->type == adt7463 ||
 		    data->type == adt7468) {
 			int ext1 = lm85_read_value(client,
@@ -1465,19 +1380,16 @@ static struct lm85_data *lm85_update_device(struct device *dev)
 		data->alarms = lm85_read_value(client, LM85_REG_ALARM1);
 
 		if (data->type == emc6d100) {
-			/* Three more voltage sensors */
+			
 			for (i = 5; i <= 7; ++i) {
 				data->in[i] = lm85_read_value(client,
 							EMC6D100_REG_IN(i));
 			}
-			/* More alarm bits */
+			
 			data->alarms |= lm85_read_value(client,
 						EMC6D100_REG_ALARM3) << 16;
 		} else if (data->type == emc6d102) {
-			/* Have to read LSB bits after the MSB ones because
-			   the reading of the MSB bits has frozen the
-			   LSBs (backward from the ADM1027).
-			 */
+			
 			int ext1 = lm85_read_value(client,
 						   EMC6D102_REG_EXTEND_ADC1);
 			int ext2 = lm85_read_value(client,
@@ -1498,11 +1410,11 @@ static struct lm85_data *lm85_update_device(struct device *dev)
 		}
 
 		data->last_reading = jiffies;
-	}  /* last_reading */
+	}  
 
 	if (!data->valid ||
 	     time_after(jiffies, data->last_config + LM85_CONFIG_INTERVAL)) {
-		/* Things that don't change often */
+		
 		dev_dbg(&client->dev, "Reading config values\n");
 
 		for (i = 0; i <= 3; ++i) {
@@ -1572,7 +1484,7 @@ static struct lm85_data *lm85_update_device(struct device *dev)
 		data->zone[2].hyst = i >> 4;
 
 		data->last_config = jiffies;
-	}  /* last_config */
+	}  
 
 	data->valid = 1;
 

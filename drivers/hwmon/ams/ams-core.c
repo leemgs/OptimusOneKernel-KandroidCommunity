@@ -1,23 +1,4 @@
-/*
- * Apple Motion Sensor driver
- *
- * Copyright (C) 2005 Stelian Pop (stelian@popies.net)
- * Copyright (C) 2006 Michael Hanselmann (linux-kernel@hansmi.ch)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/types.h>
@@ -28,20 +9,20 @@
 
 #include "ams.h"
 
-/* There is only one motion sensor per machine */
+
 struct ams ams_info;
 
 static unsigned int verbose;
 module_param(verbose, bool, 0644);
 MODULE_PARM_DESC(verbose, "Show free falls and shocks in kernel output");
 
-/* Call with ams_info.lock held! */
+
 void ams_sensors(s8 *x, s8 *y, s8 *z)
 {
 	u32 orient = ams_info.vflag? ams_info.orient1 : ams_info.orient2;
 
 	if (orient & 0x80)
-		/* X and Y swapped */
+		
 		ams_info.get_xyz(y, x, z);
 	else
 		ams_info.get_xyz(x, y, z);
@@ -94,9 +75,7 @@ static struct pmf_irq_client ams_shock_client = {
 	.data = &ams_shock_irq_data,
 };
 
-/* Once hard disk parking is implemented in the kernel, this function can
- * trigger it.
- */
+
 static void ams_worker(struct work_struct *work)
 {
 	unsigned long flags;
@@ -128,51 +107,51 @@ static void ams_worker(struct work_struct *work)
 	mutex_unlock(&ams_info.lock);
 }
 
-/* Call with ams_info.lock held! */
+
 int ams_sensor_attach(void)
 {
 	int result;
 	const u32 *prop;
 
-	/* Get orientation */
+	
 	prop = of_get_property(ams_info.of_node, "orientation", NULL);
 	if (!prop)
 		return -ENODEV;
 	ams_info.orient1 = *prop;
 	ams_info.orient2 = *(prop + 1);
 
-	/* Register freefall interrupt handler */
+	
 	result = pmf_register_irq_client(ams_info.of_node,
 			"accel-int-1",
 			&ams_freefall_client);
 	if (result < 0)
 		return -ENODEV;
 
-	/* Reset saved irqs */
+	
 	ams_info.worker_irqs = 0;
 
-	/* Register shock interrupt handler */
+	
 	result = pmf_register_irq_client(ams_info.of_node,
 			"accel-int-2",
 			&ams_shock_client);
 	if (result < 0)
 		goto release_freefall;
 
-	/* Create device */
+	
 	ams_info.of_dev = of_platform_device_create(ams_info.of_node, "ams", NULL);
 	if (!ams_info.of_dev) {
 		result = -ENODEV;
 		goto release_shock;
 	}
 
-	/* Create attributes */
+	
 	result = device_create_file(&ams_info.of_dev->dev, &dev_attr_current);
 	if (result)
 		goto release_of;
 
 	ams_info.vflag = !!(ams_info.get_vendor() & 0x10);
 
-	/* Init input device */
+	
 	result = ams_input_init();
 	if (result)
 		goto release_device_file;
@@ -200,14 +179,14 @@ int __init ams_init(void)
 #ifdef CONFIG_SENSORS_AMS_I2C
 	np = of_find_node_by_name(NULL, "accelerometer");
 	if (np && of_device_is_compatible(np, "AAPL,accelerometer_1"))
-		/* Found I2C motion sensor */
+		
 		return ams_i2c_init(np);
 #endif
 
 #ifdef CONFIG_SENSORS_AMS_PMU
 	np = of_find_node_by_name(NULL, "sms");
 	if (np && of_device_is_compatible(np, "sms"))
-		/* Found PMU motion sensor */
+		
 		return ams_pmu_init(np);
 #endif
 	return -ENODEV;
@@ -215,26 +194,22 @@ int __init ams_init(void)
 
 void ams_exit(void)
 {
-	/* Remove input device */
+	
 	ams_input_exit();
 
-	/* Remove attributes */
+	
 	device_remove_file(&ams_info.of_dev->dev, &dev_attr_current);
 
-	/* Shut down implementation */
+	
 	ams_info.exit();
 
-	/* Flush interrupt worker
-	 *
-	 * We do this after ams_info.exit(), because an interrupt might
-	 * have arrived before disabling them.
-	 */
+	
 	flush_scheduled_work();
 
-	/* Remove device */
+	
 	of_device_unregister(ams_info.of_dev);
 
-	/* Remove handler */
+	
 	pmf_unregister_irq_client(&ams_shock_client);
 	pmf_unregister_irq_client(&ams_freefall_client);
 }

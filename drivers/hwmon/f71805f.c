@@ -1,32 +1,4 @@
-/*
- * f71805f.c - driver for the Fintek F71805F/FG and F71872F/FG Super-I/O
- *             chips integrated hardware monitoring features
- * Copyright (C) 2005-2006  Jean Delvare <khali@linux-fr.org>
- *
- * The F71805F/FG is a LPC Super-I/O chip made by Fintek. It integrates
- * complete hardware monitoring features: voltage, fan and temperature
- * sensors, and manual and automatic fan speed control.
- *
- * The F71872F/FG is almost the same, with two more voltages monitored,
- * and 6 VID inputs.
- *
- * The F71806F/FG is essentially the same as the F71872F/FG. It even has
- * the same chip ID, so the driver can't differentiate between.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -51,19 +23,17 @@ static struct platform_device *pdev;
 #define DRVNAME "f71805f"
 enum kinds { f71805f, f71872f };
 
-/*
- * Super-I/O constants and functions
- */
+
 
 #define F71805F_LD_HWM		0x04
 
-#define SIO_REG_LDSEL		0x07	/* Logical device select */
-#define SIO_REG_DEVID		0x20	/* Device ID (2 bytes) */
-#define SIO_REG_DEVREV		0x22	/* Device revision */
-#define SIO_REG_MANID		0x23	/* Fintek ID (2 bytes) */
-#define SIO_REG_FNSEL1		0x29	/* Multi Function Select 1 (F71872F) */
-#define SIO_REG_ENABLE		0x30	/* Logical device enable */
-#define SIO_REG_ADDR		0x60	/* Logical device address (2 bytes) */
+#define SIO_REG_LDSEL		0x07	
+#define SIO_REG_DEVID		0x20	
+#define SIO_REG_DEVREV		0x22	
+#define SIO_REG_MANID		0x23	
+#define SIO_REG_FNSEL1		0x29	
+#define SIO_REG_ENABLE		0x30	
+#define SIO_REG_ADDR		0x60	
 
 #define SIO_FINTEK_ID		0x1934
 #define SIO_F71805F_ID		0x0406
@@ -107,36 +77,32 @@ superio_exit(int base)
 	outb(0xaa, base);
 }
 
-/*
- * ISA constants
- */
+
 
 #define REGION_LENGTH		8
 #define ADDR_REG_OFFSET		5
 #define DATA_REG_OFFSET		6
 
-/*
- * Registers
- */
 
-/* in nr from 0 to 10 (8-bit values) */
+
+
 #define F71805F_REG_IN(nr)		(0x10 + (nr))
 #define F71805F_REG_IN_HIGH(nr)		((nr) < 10 ? 0x40 + 2 * (nr) : 0x2E)
 #define F71805F_REG_IN_LOW(nr)		((nr) < 10 ? 0x41 + 2 * (nr) : 0x2F)
-/* fan nr from 0 to 2 (12-bit values, two registers) */
+
 #define F71805F_REG_FAN(nr)		(0x20 + 2 * (nr))
 #define F71805F_REG_FAN_LOW(nr)		(0x28 + 2 * (nr))
 #define F71805F_REG_FAN_TARGET(nr)	(0x69 + 16 * (nr))
 #define F71805F_REG_FAN_CTRL(nr)	(0x60 + 16 * (nr))
 #define F71805F_REG_PWM_FREQ(nr)	(0x63 + 16 * (nr))
 #define F71805F_REG_PWM_DUTY(nr)	(0x6B + 16 * (nr))
-/* temp nr from 0 to 2 (8-bit values) */
+
 #define F71805F_REG_TEMP(nr)		(0x1B + (nr))
 #define F71805F_REG_TEMP_HIGH(nr)	(0x54 + 2 * (nr))
 #define F71805F_REG_TEMP_HYST(nr)	(0x55 + 2 * (nr))
 #define F71805F_REG_TEMP_MODE		0x01
-/* pwm/fan pwmnr from 0 to 2, auto point apnr from 0 to 2 */
-/* map Fintek numbers to our numbers as follows: 9->0, 5->1, 1->2 */
+
+
 #define F71805F_REG_PWM_AUTO_POINT_TEMP(pwmnr, apnr) \
 					(0xA0 + 0x10 * (pwmnr) + (2 - (apnr)))
 #define F71805F_REG_PWM_AUTO_POINT_FAN(pwmnr, apnr) \
@@ -144,10 +110,10 @@ superio_exit(int base)
 						2 * (2 - (apnr)))
 
 #define F71805F_REG_START		0x00
-/* status nr from 0 to 2 */
+
 #define F71805F_REG_STATUS(nr)		(0x36 + (nr))
 
-/* individual register bits */
+
 #define FAN_CTRL_DC_MODE		0x10
 #define FAN_CTRL_LATCH_FULL		0x08
 #define FAN_CTRL_MODE_MASK		0x03
@@ -155,9 +121,7 @@ superio_exit(int base)
 #define FAN_CTRL_MODE_TEMPERATURE	0x01
 #define FAN_CTRL_MODE_MANUAL		0x02
 
-/*
- * Data structures and manipulation thereof
- */
+
 
 struct f71805f_auto_point {
 	u8 temp[3];
@@ -170,11 +134,11 @@ struct f71805f_data {
 	struct device *hwmon_dev;
 
 	struct mutex update_lock;
-	char valid;		/* !=0 if following fields are valid */
-	unsigned long last_updated;	/* In jiffies */
-	unsigned long last_limits;	/* In jiffies */
+	char valid;		
+	unsigned long last_updated;	
+	unsigned long last_limits;	
 
-	/* Register values */
+	
 	u8 in[11];
 	u8 in_high[11];
 	u8 in_low[11];
@@ -203,7 +167,7 @@ static inline long in_from_reg(u8 reg)
 	return (reg * 8);
 }
 
-/* The 2 least significant bits are not used */
+
 static inline u8 in_to_reg(long val)
 {
 	if (val <= 0)
@@ -213,7 +177,7 @@ static inline u8 in_to_reg(long val)
 	return (((val + 16) / 32) << 2);
 }
 
-/* in0 is downscaled by a factor 2 internally */
+
 static inline long in0_from_reg(u8 reg)
 {
 	return (reg * 16);
@@ -228,7 +192,7 @@ static inline u8 in0_to_reg(long val)
 	return (((val + 32) / 64) << 2);
 }
 
-/* The 4 most significant bits are not used */
+
 static inline long fan_from_reg(u16 reg)
 {
 	reg &= 0xfff;
@@ -239,9 +203,7 @@ static inline long fan_from_reg(u16 reg)
 
 static inline u16 fan_to_reg(long rpm)
 {
-	/* If the low limit is set below what the chip can measure,
-	   store the largest possible 12-bit value in the registers,
-	   so that no alarm will ever trigger. */
+	
 	if (rpm < 367)
 		return 0xfff;
 	return (1500000 / rpm);
@@ -259,13 +221,13 @@ static inline unsigned long pwm_freq_from_reg(u8 reg)
 
 static inline u8 pwm_freq_to_reg(unsigned long val)
 {
-	if (val >= 187500)	/* The highest we can do */
+	if (val >= 187500)	
 		return 0x80;
-	if (val >= 1475)	/* Use 48 MHz clock */
+	if (val >= 1475)	
 		return 0x80 | (48000000UL / (val << 8));
-	if (val < 31)		/* The lowest we can do */
+	if (val < 31)		
 		return 0x7f;
-	else			/* Use 1 MHz clock */
+	else			
 		return 1000000UL / (val << 8);
 }
 
@@ -288,27 +250,23 @@ static inline u8 temp_to_reg(long val)
 	return ((val + 500) / 1000);
 }
 
-/*
- * Device I/O access
- */
 
-/* Must be called with data->update_lock held, except during initialization */
+
+
 static u8 f71805f_read8(struct f71805f_data *data, u8 reg)
 {
 	outb(reg, data->addr + ADDR_REG_OFFSET);
 	return inb(data->addr + DATA_REG_OFFSET);
 }
 
-/* Must be called with data->update_lock held, except during initialization */
+
 static void f71805f_write8(struct f71805f_data *data, u8 reg, u8 val)
 {
 	outb(reg, data->addr + ADDR_REG_OFFSET);
 	outb(val, data->addr + DATA_REG_OFFSET);
 }
 
-/* It is important to read the MSB first, because doing so latches the
-   value of the LSB, so we are sure both bytes belong to the same value.
-   Must be called with data->update_lock held, except during initialization */
+
 static u16 f71805f_read16(struct f71805f_data *data, u8 reg)
 {
 	u16 val;
@@ -321,7 +279,7 @@ static u16 f71805f_read16(struct f71805f_data *data, u8 reg)
 	return val;
 }
 
-/* Must be called with data->update_lock held, except during initialization */
+
 static void f71805f_write16(struct f71805f_data *data, u8 reg, u16 val)
 {
 	outb(reg, data->addr + ADDR_REG_OFFSET);
@@ -337,7 +295,7 @@ static struct f71805f_data *f71805f_update_device(struct device *dev)
 
 	mutex_lock(&data->update_lock);
 
-	/* Limit registers cache is refreshed after 60 seconds */
+	
 	if (time_after(jiffies, data->last_updated + 60 * HZ)
 	 || !data->valid) {
 		for (nr = 0; nr < 11; nr++) {
@@ -379,7 +337,7 @@ static struct f71805f_data *f71805f_update_device(struct device *dev)
 		data->last_limits = jiffies;
 	}
 
-	/* Measurement registers cache is refreshed after 1 second */
+	
 	if (time_after(jiffies, data->last_updated + HZ)
 	 || !data->valid) {
 		for (nr = 0; nr < 11; nr++) {
@@ -413,9 +371,7 @@ static struct f71805f_data *f71805f_update_device(struct device *dev)
 	return data;
 }
 
-/*
- * Sysfs interface
- */
+
 
 static ssize_t show_in0(struct device *dev, struct device_attribute *devattr,
 			char *buf)
@@ -629,7 +585,7 @@ static ssize_t show_pwm_enable(struct device *dev, struct device_attribute
 	case FAN_CTRL_MODE_TEMPERATURE:
 		mode = 2;
 		break;
-	default: /* MANUAL */
+	default: 
 		mode = 1;
 	}
 
@@ -689,7 +645,7 @@ static ssize_t set_pwm_enable(struct device *dev, struct device_attribute
 	if (val < 1 || val > 3)
 		return -EINVAL;
 
-	if (val > 1) { /* Automatic mode, user can't set PWM value */
+	if (val > 1) { 
 		if (sysfs_chmod_file(&dev->kobj, f71805f_attr_pwm[nr],
 				     S_IRUGO))
 			dev_dbg(dev, "chmod -w pwm%d failed\n", nr + 1);
@@ -713,7 +669,7 @@ static ssize_t set_pwm_enable(struct device *dev, struct device_attribute
 	f71805f_write8(data, F71805F_REG_FAN_CTRL(nr), reg);
 	mutex_unlock(&data->update_lock);
 
-	if (val == 1) { /* Manual mode, user can set PWM value */
+	if (val == 1) { 
 		if (sysfs_chmod_file(&dev->kobj, f71805f_attr_pwm[nr],
 				     S_IRUGO | S_IWUSR))
 			dev_dbg(dev, "chmod +w pwm%d failed\n", nr + 1);
@@ -839,7 +795,7 @@ static ssize_t show_temp_type(struct device *dev, struct device_attribute
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
 	int nr = attr->index;
 
-	/* 3 is diode, 4 is thermistor */
+	
 	return sprintf(buf, "%u\n", (data->temp_mode & (1 << nr)) ? 3 : 4);
 }
 
@@ -1008,8 +964,7 @@ static SENSOR_DEVICE_ATTR(temp3_max_hyst, S_IRUGO | S_IWUSR,
 		    show_temp_hyst, set_temp_hyst, 2);
 static SENSOR_DEVICE_ATTR(temp3_type, S_IRUGO, show_temp_type, NULL, 2);
 
-/* pwm (value) files are created read-only, write permission is
-   then added or removed dynamically as needed */
+
 static SENSOR_DEVICE_ATTR(pwm1, S_IRUGO, show_pwm, set_pwm, 0);
 static SENSOR_DEVICE_ATTR(pwm1_enable, S_IRUGO | S_IWUSR,
 			  show_pwm_enable, set_pwm_enable, 0);
@@ -1244,8 +1199,7 @@ static const struct attribute_group f71805f_group_optin[4] = {
 	{ .attrs = f71805f_attributes_optin[3] },
 };
 
-/* We don't include pwm_freq files in the arrays above, because they must be
-   created conditionally (only if pwm_mode is 1 == PWM) */
+
 static struct attribute *f71805f_attributes_pwm_freq[] = {
 	&sensor_dev_attr_pwm1_freq.dev_attr.attr,
 	&sensor_dev_attr_pwm2_freq.dev_attr.attr,
@@ -1257,16 +1211,14 @@ static const struct attribute_group f71805f_group_pwm_freq = {
 	.attrs = f71805f_attributes_pwm_freq,
 };
 
-/* We also need an indexed access to pwmN files to toggle writability */
+
 static struct attribute *f71805f_attr_pwm[] = {
 	&sensor_dev_attr_pwm1.dev_attr.attr,
 	&sensor_dev_attr_pwm2.dev_attr.attr,
 	&sensor_dev_attr_pwm3.dev_attr.attr,
 };
 
-/*
- * Device registration and initialization
- */
+
 
 static void __devinit f71805f_init_device(struct f71805f_data *data)
 {
@@ -1280,13 +1232,11 @@ static void __devinit f71805f_init_device(struct f71805f_data *data)
 		f71805f_write8(data, F71805F_REG_START, (reg | 0x01) & ~0x40);
 	}
 
-	/* Fan monitoring can be disabled. If it is, we won't be polling
-	   the register values, and won't create the related sysfs files. */
+	
 	for (i = 0; i < 3; i++) {
 		data->fan_ctrl[i] = f71805f_read8(data,
 						  F71805F_REG_FAN_CTRL(i));
-		/* Clear latch full bit, else "speed mode" fan speed control
-		   doesn't work */
+		
 		if (data->fan_ctrl[i] & FAN_CTRL_LATCH_FULL) {
 			data->fan_ctrl[i] &= ~FAN_CTRL_LATCH_FULL;
 			f71805f_write8(data, F71805F_REG_FAN_CTRL(i),
@@ -1327,7 +1277,7 @@ static int __devinit f71805f_probe(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, data);
 
-	/* Some voltage inputs depend on chip model and configuration */
+	
 	switch (sio_data->kind) {
 	case f71805f:
 		data->has_in = 0x1ff;
@@ -1335,46 +1285,46 @@ static int __devinit f71805f_probe(struct platform_device *pdev)
 	case f71872f:
 		data->has_in = 0x6ef;
 		if (sio_data->fnsel1 & 0x01)
-			data->has_in |= (1 << 4); /* in4 */
+			data->has_in |= (1 << 4); 
 		if (sio_data->fnsel1 & 0x02)
-			data->has_in |= (1 << 8); /* in8 */
+			data->has_in |= (1 << 8); 
 		break;
 	}
 
-	/* Initialize the F71805F chip */
+	
 	f71805f_init_device(data);
 
-	/* Register sysfs interface files */
+	
 	if ((err = sysfs_create_group(&pdev->dev.kobj, &f71805f_group)))
 		goto exit_release_region;
-	if (data->has_in & (1 << 4)) { /* in4 */
+	if (data->has_in & (1 << 4)) { 
 		if ((err = sysfs_create_group(&pdev->dev.kobj,
 					      &f71805f_group_optin[0])))
 			goto exit_remove_files;
 	}
-	if (data->has_in & (1 << 8)) { /* in8 */
+	if (data->has_in & (1 << 8)) { 
 		if ((err = sysfs_create_group(&pdev->dev.kobj,
 					      &f71805f_group_optin[1])))
 			goto exit_remove_files;
 	}
-	if (data->has_in & (1 << 9)) { /* in9 (F71872F/FG only) */
+	if (data->has_in & (1 << 9)) { 
 		if ((err = sysfs_create_group(&pdev->dev.kobj,
 					      &f71805f_group_optin[2])))
 			goto exit_remove_files;
 	}
-	if (data->has_in & (1 << 10)) { /* in9 (F71872F/FG only) */
+	if (data->has_in & (1 << 10)) { 
 		if ((err = sysfs_create_group(&pdev->dev.kobj,
 					      &f71805f_group_optin[3])))
 			goto exit_remove_files;
 	}
 	for (i = 0; i < 3; i++) {
-		/* If control mode is PWM, create pwm_freq file */
+		
 		if (!(data->fan_ctrl[i] & FAN_CTRL_DC_MODE)) {
 			if ((err = sysfs_create_file(&pdev->dev.kobj,
 					f71805f_attributes_pwm_freq[i])))
 				goto exit_remove_files;
 		}
-		/* If PWM is in manual mode, add write permission */
+		
 		if (data->fan_ctrl[i] & FAN_CTRL_MODE_MANUAL) {
 			if ((err = sysfs_chmod_file(&pdev->dev.kobj,
 						    f71805f_attr_pwm[i],
@@ -1534,7 +1484,7 @@ static int __init f71805f_find(int sioaddr, unsigned short *address,
 		       "skipping\n");
 		goto exit;
 	}
-	*address &= ~(REGION_LENGTH - 1);	/* Ignore 3 LSB */
+	*address &= ~(REGION_LENGTH - 1);	
 
 	err = 0;
 	printk(KERN_INFO DRVNAME ": Found %s chip at %#x, revision %u\n",
@@ -1560,7 +1510,7 @@ static int __init f71805f_init(void)
 	if (err)
 		goto exit;
 
-	/* Sets global pdev as a side effect */
+	
 	err = f71805f_device_add(address, &sio_data);
 	if (err)
 		goto exit_driver;

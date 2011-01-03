@@ -1,40 +1,15 @@
-/*
- *  lis3lv02d.h - ST LIS3LV02DL accelerometer driver
- *
- *  Copyright (C) 2007-2008 Yan Burman
- *  Copyright (C) 2008 Eric Piel
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 #include <linux/platform_device.h>
 #include <linux/input-polldev.h>
 
-/*
- * The actual chip is STMicroelectronics LIS3LV02DL or LIS3LV02DQ that seems to
- * be connected via SPI. There exists also several similar chips (such as LIS302DL or
- * LIS3L02DQ) and they have slightly different registers, but we can provide a
- * common interface for all of them.
- * They can also be connected via I²C.
- */
+
 
 #include <linux/lis3lv02d.h>
 
-/* 2-byte registers */
-#define LIS_DOUBLE_ID	0x3A /* LIS3LV02D[LQ] */
-/* 1-byte registers */
-#define LIS_SINGLE_ID	0x3B /* LIS[32]02DL and others */
+
+#define LIS_DOUBLE_ID	0x3A 
+
+#define LIS_SINGLE_ID	0x3B 
 
 enum lis3_reg {
 	WHO_AM_I	= 0x0F,
@@ -111,8 +86,8 @@ enum lis3lv02d_ctrl2 {
 	CTRL2_IEN	= 0x08,
 	CTRL2_BOOT	= 0x10,
 	CTRL2_BLE	= 0x20,
-	CTRL2_BDU	= 0x40, /* Block Data Update */
-	CTRL2_FS	= 0x80, /* Full Scale selection */
+	CTRL2_BDU	= 0x40, 
+	CTRL2_FS	= 0x80, 
 };
 
 enum lis302d_ctrl2 {
@@ -189,29 +164,29 @@ struct axis_conversion {
 };
 
 struct lis3lv02d {
-	void			*bus_priv; /* used by the bus layer only */
+	void			*bus_priv; 
 	int (*init) (struct lis3lv02d *lis3);
 	int (*write) (struct lis3lv02d *lis3, int reg, u8 val);
 	int (*read) (struct lis3lv02d *lis3, int reg, u8 *ret);
 
-	u8			whoami;    /* 3Ah: 2-byte registries, 3Bh: 1-byte registries */
+	u8			whoami;    
 	s16 (*read_data) (struct lis3lv02d *lis3, int reg);
 	int			mdps_max_val;
 
-	struct input_polled_dev	*idev;     /* input device */
-	struct platform_device	*pdev;     /* platform device */
-	atomic_t		count;     /* interrupt count after last read */
-	int			xcalib;    /* calibrated null value for x */
-	int			ycalib;    /* calibrated null value for y */
-	int			zcalib;    /* calibrated null value for z */
-	struct axis_conversion	ac;        /* hw -> logical axis */
+	struct input_polled_dev	*idev;     
+	struct platform_device	*pdev;     
+	atomic_t		count;     
+	int			xcalib;    
+	int			ycalib;    
+	int			zcalib;    
+	struct axis_conversion	ac;        
 
-	u32			irq;       /* IRQ number */
-	struct fasync_struct	*async_queue; /* queue for the misc device */
-	wait_queue_head_t	misc_wait; /* Wait queue for the misc device */
-	unsigned long		misc_opened; /* bit0: whether the device is open */
+	u32			irq;       
+	struct fasync_struct	*async_queue; 
+	wait_queue_head_t	misc_wait; 
+	unsigned long		misc_opened; 
 
-	struct lis3lv02d_platform_data *pdata;	/* for passing board config */
+	struct lis3lv02d_platform_data *pdata;	
 };
 
 int lis3lv02d_init_device(struct lis3lv02d *lis3);

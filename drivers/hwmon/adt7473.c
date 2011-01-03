@@ -1,23 +1,4 @@
-/*
- * A hwmon driver for the Analog Devices ADT7473
- * Copyright (C) 2007 IBM
- *
- * Author: Darrick J. Wong <djwong@us.ibm.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
+
 
 #include <linux/module.h>
 #include <linux/jiffies.h>
@@ -29,13 +10,13 @@
 #include <linux/delay.h>
 #include <linux/log2.h>
 
-/* Addresses to scan */
+
 static const unsigned short normal_i2c[] = { 0x2C, 0x2D, 0x2E, I2C_CLIENT_END };
 
-/* Insmod parameters */
+
 I2C_CLIENT_INSMOD_1(adt7473);
 
-/* ADT7473 registers */
+
 #define ADT7473_REG_BASE_ADDR			0x20
 
 #define ADT7473_REG_VOLT_BASE_ADDR		0x21
@@ -117,13 +98,13 @@ I2C_CLIENT_INSMOD_1(adt7473);
 #define ADT7473_REG_PWM_MIN(x)	(ADT7473_REG_PWM_MIN_BASE_ADDR + (x))
 #define ADT7473_REG_PWM_BHVR(x)	(ADT7473_REG_PWM_BHVR_BASE_ADDR + (x))
 
-/* How often do we reread sensors values? (In jiffies) */
+
 #define SENSOR_REFRESH_INTERVAL	(2 * HZ)
 
-/* How often do we reread sensor limit values? (In jiffies) */
+
 #define LIMIT_REFRESH_INTERVAL	(60 * HZ)
 
-/* datasheet says to divide this number by the fan reading to get fan rpm */
+
 #define FAN_PERIOD_TO_RPM(x)	((90000 * 60) / (x))
 #define FAN_RPM_TO_PERIOD	FAN_PERIOD_TO_RPM
 #define FAN_PERIOD_INVALID	65535
@@ -135,8 +116,8 @@ struct adt7473_data {
 	struct mutex		lock;
 	char			sensors_valid;
 	char			limits_valid;
-	unsigned long		sensors_last_updated;	/* In jiffies */
-	unsigned long		limits_last_updated;	/* In jiffies */
+	unsigned long		sensors_last_updated;	
+	unsigned long		limits_last_updated;	
 
 	u8			volt[ADT7473_VOLT_COUNT];
 	s8			volt_min[ADT7473_VOLT_COUNT];
@@ -146,7 +127,7 @@ struct adt7473_data {
 	s8			temp_min[ADT7473_TEMP_COUNT];
 	s8			temp_max[ADT7473_TEMP_COUNT];
 	s8			temp_tmin[ADT7473_TEMP_COUNT];
-	/* This is called the !THERM limit in the datasheet */
+	
 	s8			temp_tmax[ADT7473_TEMP_COUNT];
 
 	u16			fan[ADT7473_FAN_COUNT];
@@ -188,10 +169,7 @@ static struct i2c_driver adt7473_driver = {
 	.address_data	= &addr_data,
 };
 
-/*
- * 16-bit registers on the ADT7473 are low-byte first.  The data sheet says
- * that the low byte must be read before the high byte.
- */
+
 static inline int adt7473_read_word_data(struct i2c_client *client, u8 reg)
 {
 	u16 foo;
@@ -214,7 +192,7 @@ static void adt7473_init_client(struct i2c_client *client)
 	if (!(reg & ADT7473_CFG1_READY)) {
 		dev_err(&client->dev, "Chip not ready.\n");
 	} else {
-		/* start monitoring */
+		
 		i2c_smbus_write_byte_data(client, ADT7473_REG_CFG1,
 					  reg | ADT7473_CFG1_START);
 	}
@@ -238,16 +216,11 @@ static struct adt7473_data *adt7473_update_device(struct device *dev)
 		data->volt[i] = i2c_smbus_read_byte_data(client,
 						ADT7473_REG_VOLT(i));
 
-	/* Determine temperature encoding */
+	
 	cfg = i2c_smbus_read_byte_data(client, ADT7473_REG_CFG5);
 	data->temp_twos_complement = (cfg & ADT7473_CFG5_TEMP_TWOS);
 
-	/*
-	 * What does this do? it implies a variable temperature sensor
-	 * offset, but the datasheet doesn't say anything about this bit
-	 * and other parts of the datasheet imply that "offset64" mode
-	 * means that you shift temp values by -64 if the above bit was set.
-	 */
+	
 	data->temp_offset = (cfg & ADT7473_CFG5_TEMP_OFFSET);
 
 	for (i = 0; i < ADT7473_TEMP_COUNT; i++)
@@ -318,12 +291,10 @@ out:
 	return data;
 }
 
-/*
- * Conversions
- */
 
-/* IN are scaled acording to built-in resistors */
-static const int adt7473_scaling[] = {  /* .001 Volts */
+
+
+static const int adt7473_scaling[] = {  
 	2250, 3300
 };
 #define SCALE(val, from, to)	(((val) * (to) + ((from) / 2)) / (from))
@@ -417,11 +388,7 @@ static ssize_t show_volt(struct device *dev, struct device_attribute *devattr,
 		       decode_volt(attr->index, data->volt[attr->index]));
 }
 
-/*
- * This chip can report temperature data either as a two's complement
- * number in the range -128 to 127, or as an unsigned number that must
- * be offset by 64.
- */
+
 static int decode_temp(u8 twos_complement, u8 raw)
 {
 	return twos_complement ? (s8)raw : raw - 64;
@@ -805,7 +772,7 @@ static ssize_t set_pwm_enable(struct device *dev,
 		temp = 7;
 		break;
 	case 2:
-		/* Enter automatic mode with fans off */
+		
 		temp = 4;
 		break;
 	default:
@@ -846,7 +813,7 @@ static ssize_t show_pwm_auto_temp(struct device *dev,
 	case 2:
 		return sprintf(buf, "4\n");
 	}
-	/* shouldn't ever get here */
+	
 	BUG();
 }
 
@@ -1085,7 +1052,7 @@ static struct attribute *adt7473_attr[] =
 	NULL
 };
 
-/* Return 0 if detection is successful, -ENODEV otherwise */
+
 static int adt7473_detect(struct i2c_client *client, int kind,
 			  struct i2c_board_info *info)
 {
@@ -1134,10 +1101,10 @@ static int adt7473_probe(struct i2c_client *client,
 
 	dev_info(&client->dev, "%s chip found\n", client->name);
 
-	/* Initialize the ADT7473 chip */
+	
 	adt7473_init_client(client);
 
-	/* Register sysfs hooks */
+	
 	data->attrs.attrs = adt7473_attr;
 	err = sysfs_create_group(&client->dev.kobj, &data->attrs);
 	if (err)

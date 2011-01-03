@@ -1,49 +1,4 @@
-/*
- * adm1025.c
- *
- * Copyright (C) 2000       Chen-Yuan Wu <gwu@esoft.com>
- * Copyright (C) 2003-2008  Jean Delvare <khali@linux-fr.org>
- *
- * The ADM1025 is a sensor chip made by Analog Devices. It reports up to 6
- * voltages (including its own power source) and up to two temperatures
- * (its own plus up to one external one). Voltages are scaled internally
- * (which is not the common way) with ratios such that the nominal value
- * of each voltage correspond to a register value of 192 (which means a
- * resolution of about 0.5% of the nominal value). Temperature values are
- * reported with a 1 deg resolution and a 3 deg accuracy. Complete
- * datasheet can be obtained from Analog's website at:
- *   http://www.analog.com/Analog_Root/productPage/productHome/0,2121,ADM1025,00.html
- *
- * This driver also supports the ADM1025A, which differs from the ADM1025
- * only in that it has "open-drain VID inputs while the ADM1025 has
- * on-chip 100k pull-ups on the VID inputs". It doesn't make any
- * difference for us.
- *
- * This driver also supports the NE1619, a sensor chip made by Philips.
- * That chip is similar to the ADM1025A, with a few differences. The only
- * difference that matters to us is that the NE1619 has only two possible
- * addresses while the ADM1025A has a third one. Complete datasheet can be
- * obtained from Philips's website at:
- *   http://www.semiconductors.philips.com/pip/NE1619DS.html
- *
- * Since the ADM1025 was the first chipset supported by this driver, most
- * comments will refer to this chipset, but are actually general and
- * concern all supported chipsets, unless mentioned otherwise.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -56,23 +11,15 @@
 #include <linux/err.h>
 #include <linux/mutex.h>
 
-/*
- * Addresses to scan
- * ADM1025 and ADM1025A have three possible addresses: 0x2c, 0x2d and 0x2e.
- * NE1619 has two possible addresses: 0x2c and 0x2d.
- */
+
 
 static const unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, I2C_CLIENT_END };
 
-/*
- * Insmod parameters
- */
+
 
 I2C_CLIENT_INSMOD_2(adm1025, ne1619);
 
-/*
- * The ADM1025 registers
- */
+
 
 #define ADM1025_REG_MAN_ID		0x3E
 #define ADM1025_REG_CHIP_ID		0x3F
@@ -88,10 +35,7 @@ I2C_CLIENT_INSMOD_2(adm1025, ne1619);
 #define ADM1025_REG_VID			0x47
 #define ADM1025_REG_VID4		0x49
 
-/*
- * Conversions and various macros
- * The ADM1025 uses signed 8-bit values for temperatures.
- */
+
 
 static const int in_scale[6] = { 2500, 2250, 3300, 5000, 12000, 3300 };
 
@@ -105,9 +49,7 @@ static const int in_scale[6] = { 2500, 2250, 3300, 5000, 12000, 3300 };
 				 (val) >= 126500 ? 127 : \
 				 (((val) < 0 ? (val)-500 : (val)+500) / 1000))
 
-/*
- * Functions declaration
- */
+
 
 static int adm1025_probe(struct i2c_client *client,
 			 const struct i2c_device_id *id);
@@ -117,9 +59,7 @@ static void adm1025_init_client(struct i2c_client *client);
 static int adm1025_remove(struct i2c_client *client);
 static struct adm1025_data *adm1025_update_device(struct device *dev);
 
-/*
- * Driver data (common to all clients)
- */
+
 
 static const struct i2c_device_id adm1025_id[] = {
 	{ "adm1025", adm1025 },
@@ -140,30 +80,26 @@ static struct i2c_driver adm1025_driver = {
 	.address_data	= &addr_data,
 };
 
-/*
- * Client data (each client gets its own)
- */
+
 
 struct adm1025_data {
 	struct device *hwmon_dev;
 	struct mutex update_lock;
-	char valid; /* zero until following fields are valid */
-	unsigned long last_updated; /* in jiffies */
+	char valid; 
+	unsigned long last_updated; 
 
-	u8 in[6];		/* register value */
-	u8 in_max[6];		/* register value */
-	u8 in_min[6];		/* register value */
-	s8 temp[2];		/* register value */
-	s8 temp_min[2];		/* register value */
-	s8 temp_max[2];		/* register value */
-	u16 alarms;		/* register values, combined */
-	u8 vid;			/* register values, combined */
+	u8 in[6];		
+	u8 in_max[6];		
+	u8 in_min[6];		
+	s8 temp[2];		
+	s8 temp_min[2];		
+	s8 temp_max[2];		
+	u16 alarms;		
+	u8 vid;			
 	u8 vrm;
 };
 
-/*
- * Sysfs stuff
- */
+
 
 static ssize_t
 show_in(struct device *dev, struct device_attribute *attr, char *buf)
@@ -352,9 +288,7 @@ static ssize_t set_vrm(struct device *dev, struct device_attribute *attr,
 }
 static DEVICE_ATTR(vrm, S_IRUGO | S_IWUSR, show_vrm, set_vrm);
 
-/*
- * Real code
- */
+
 
 static struct attribute *adm1025_attributes[] = {
 	&sensor_dev_attr_in0_input.dev_attr.attr,
@@ -408,7 +342,7 @@ static const struct attribute_group adm1025_group_in4 = {
 	.attrs = adm1025_attributes_in4,
 };
 
-/* Return 0 if detection is successful, -ENODEV otherwise */
+
 static int adm1025_detect(struct i2c_client *client, int kind,
 			  struct i2c_board_info *info)
 {
@@ -419,18 +353,9 @@ static int adm1025_detect(struct i2c_client *client, int kind,
 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
 		return -ENODEV;
 
-	/*
-	 * Now we do the remaining detection. A negative kind means that
-	 * the driver was loaded with no force parameter (default), so we
-	 * must both detect and identify the chip. A zero kind means that
-	 * the driver was loaded with the force parameter, the detection
-	 * step shall be skipped. A positive kind means that the driver
-	 * was loaded with the force parameter and a given kind of chip is
-	 * requested, so both the detection and the identification steps
-	 * are skipped.
-	 */
+	
 	config = i2c_smbus_read_byte_data(client, ADM1025_REG_CONFIG);
-	if (kind < 0) { /* detection */
+	if (kind < 0) { 
 		if ((config & 0x80) != 0x00
 		 || (i2c_smbus_read_byte_data(client,
 		     ADM1025_REG_STATUS1) & 0xC0) != 0x00
@@ -443,25 +368,25 @@ static int adm1025_detect(struct i2c_client *client, int kind,
 		}
 	}
 
-	if (kind <= 0) { /* identification */
+	if (kind <= 0) { 
 		u8 man_id, chip_id;
 
 		man_id = i2c_smbus_read_byte_data(client, ADM1025_REG_MAN_ID);
 		chip_id = i2c_smbus_read_byte_data(client, ADM1025_REG_CHIP_ID);
 
-		if (man_id == 0x41) { /* Analog Devices */
-			if ((chip_id & 0xF0) == 0x20) { /* ADM1025/ADM1025A */
+		if (man_id == 0x41) { 
+			if ((chip_id & 0xF0) == 0x20) { 
 				kind = adm1025;
 			}
 		} else
-		if (man_id == 0xA1) { /* Philips */
+		if (man_id == 0xA1) { 
 			if (client->addr != 0x2E
-			 && (chip_id & 0xF0) == 0x20) { /* NE1619 */
+			 && (chip_id & 0xF0) == 0x20) { 
 				kind = ne1619;
 			}
 		}
 
-		if (kind <= 0) { /* identification failed */
+		if (kind <= 0) { 
 			dev_info(&adapter->dev,
 			    "Unsupported chip (man_id=0x%02X, "
 			    "chip_id=0x%02X).\n", man_id, chip_id);
@@ -495,14 +420,14 @@ static int adm1025_probe(struct i2c_client *client,
 	i2c_set_clientdata(client, data);
 	mutex_init(&data->update_lock);
 
-	/* Initialize the ADM1025 chip */
+	
 	adm1025_init_client(client);
 
-	/* Register sysfs hooks */
+	
 	if ((err = sysfs_create_group(&client->dev.kobj, &adm1025_group)))
 		goto exit_free;
 
-	/* Pin 11 is either in4 (+12V) or VID4 */
+	
 	config = i2c_smbus_read_byte_data(client, ADM1025_REG_CONFIG);
 	if (!(config & 0x20)) {
 		if ((err = sysfs_create_group(&client->dev.kobj,
@@ -535,14 +460,7 @@ static void adm1025_init_client(struct i2c_client *client)
 
 	data->vrm = vid_which_vrm();
 
-	/*
-	 * Set high limits
-	 * Usually we avoid setting limits on driver init, but it happens
-	 * that the ADM1025 comes with stupid default limits (all registers
-	 * set to 0). In case the chip has not gone through any limit
-	 * setting yet, we better set the high limits to the max so that
-	 * no alarm triggers.
-	 */
+	
 	for (i=0; i<6; i++) {
 		reg = i2c_smbus_read_byte_data(client,
 					       ADM1025_REG_IN_MAX(i));
@@ -560,9 +478,7 @@ static void adm1025_init_client(struct i2c_client *client)
 						  0x7F);
 	}
 
-	/*
-	 * Start the conversions
-	 */
+	
 	reg = i2c_smbus_read_byte_data(client, ADM1025_REG_CONFIG);
 	if (!(reg & 0x01))
 		i2c_smbus_write_byte_data(client, ADM1025_REG_CONFIG,

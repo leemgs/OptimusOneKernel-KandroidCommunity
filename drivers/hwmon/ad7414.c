@@ -1,23 +1,4 @@
-/*
- * An hwmon driver for the Analog Devices AD7414
- *
- * Copyright 2006 Stefan Roese <sr at denx.de>, DENX Software Engineering
- *
- * Copyright (c) 2008 PIKA Technologies
- *   Sean MacLennan <smaclennan@pikatech.com>
- *
- * Copyright (c) 2008 Spansion Inc.
- *   Frank Edelhaeuser <frank.edelhaeuser at spansion.com>
- *   (converted to "new style" I2C driver model, removed checkpatch.pl warnings)
- *
- * Based on ad7418.c
- * Copyright 2006 Tower Technologies, Alessandro Zummo <a.zummo at towertech.it>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
+
 
 #include <linux/module.h>
 #include <linux/jiffies.h>
@@ -29,7 +10,7 @@
 #include <linux/sysfs.h>
 
 
-/* AD7414 registers */
+
 #define AD7414_REG_TEMP		0x00
 #define AD7414_REG_CONF		0x01
 #define AD7414_REG_T_HIGH	0x02
@@ -39,19 +20,17 @@ static u8 AD7414_REG_LIMIT[] = { AD7414_REG_T_HIGH, AD7414_REG_T_LOW };
 
 struct ad7414_data {
 	struct device		*hwmon_dev;
-	struct mutex		lock;	/* atomic read data updates */
-	char			valid;	/* !=0 if following fields are valid */
-	unsigned long		next_update;	/* In jiffies */
-	s16			temp_input;	/* Register values */
+	struct mutex		lock;	
+	char			valid;	
+	unsigned long		next_update;	
+	s16			temp_input;	
 	s8			temps[ARRAY_SIZE(AD7414_REG_LIMIT)];
 };
 
-/* REG: (0.25C/bit, two's complement) << 6 */
+
 static inline int ad7414_temp_from_reg(s16 reg)
 {
-	/* use integer division instead of equivalent right shift to
-	 * guarantee arithmetic shift and preserve the sign
-	 */
+	
 	return ((int)reg / 64) * 250;
 }
 
@@ -194,7 +173,7 @@ static int ad7414_probe(struct i2c_client *client,
 
 	dev_info(&client->dev, "chip found\n");
 
-	/* Make sure the chip is powered up. */
+	
 	conf = i2c_smbus_read_byte_data(client, AD7414_REG_CONF);
 	if (conf < 0)
 		dev_warn(&client->dev,
@@ -204,7 +183,7 @@ static int ad7414_probe(struct i2c_client *client,
 		i2c_smbus_write_byte_data(client, AD7414_REG_CONF, conf);
 	}
 
-	/* Register sysfs hooks */
+	
 	err = sysfs_create_group(&client->dev.kobj, &ad7414_group);
 	if (err)
 		goto exit_free;

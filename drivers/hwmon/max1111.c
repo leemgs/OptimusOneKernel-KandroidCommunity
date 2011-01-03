@@ -1,17 +1,4 @@
-/*
- * max1111.c - +2.7V, Low-Power, Multichannel, Serial 8-bit ADCs
- *
- * Based on arch/arm/mach-pxa/corgi_ssp.c
- *
- * Copyright (C) 2004-2005 Richard Purdie
- *
- * Copyright (C) 2008 Marvell International Ltd.
- * 	Eric Miao <eric.miao@marvell.com>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  publishhed by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -24,12 +11,12 @@
 #define MAX1111_TX_BUF_SIZE	1
 #define MAX1111_RX_BUF_SIZE	2
 
-/* MAX1111 Commands */
+
 #define MAX1111_CTRL_PD0      (1u << 0)
 #define MAX1111_CTRL_PD1      (1u << 1)
 #define MAX1111_CTRL_SGL      (1u << 2)
 #define MAX1111_CTRL_UNI      (1u << 3)
-#define MAX1111_CTRL_SEL_SH   (5)	/* NOTE: bit 4 is ignored */
+#define MAX1111_CTRL_SEL_SH   (5)	
 #define MAX1111_CTRL_STR      (1u << 7)
 
 struct max1111_data {
@@ -76,11 +63,7 @@ int max1111_read_channel(int channel)
 EXPORT_SYMBOL(max1111_read_channel);
 #endif
 
-/*
- * NOTE: SPI devices do not have a default 'name' attribute, which is
- * likely to be used by hwmon applications to distinguish between
- * different devices, explicitly add a name attribute here.
- */
+
 static ssize_t show_name(struct device *dev,
 			 struct device_attribute *attr, char *buf)
 {

@@ -1,29 +1,4 @@
-/*
- * lm95241.c - Part of lm_sensors, Linux kernel modules for hardware
- *             monitoring
- * Copyright (C) 2008 Davide Rizzo <elpa-rizzo@gmail.com>
- *
- * Based on the max1619 driver. The LM95241 is a sensor chip made by National
- *   Semiconductors.
- * It reports up to three temperatures (its own plus up to
- * two external ones). Complete datasheet can be
- * obtained from National's website at:
- *   http://www.national.com/ds.cgi/LM/LM95241.pdf
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -39,10 +14,10 @@
 static const unsigned short normal_i2c[] = {
 	0x19, 0x2a, 0x2b, I2C_CLIENT_END};
 
-/* Insmod parameters */
+
 I2C_CLIENT_INSMOD_1(lm95241);
 
-/* LM95241 registers */
+
 #define LM95241_REG_R_MAN_ID		0xFE
 #define LM95241_REG_R_CHIP_ID		0xFF
 #define LM95241_REG_R_STATUS		0x02
@@ -58,7 +33,7 @@ I2C_CLIENT_INSMOD_1(lm95241);
 #define LM95241_REG_R_REMOTE2_TEMPL	0x22
 #define LM95241_REG_RW_REMOTE_MODEL	0x30
 
-/* LM95241 specific bitfields */
+
 #define CFG_STOP 0x40
 #define CFG_CR0076 0x00
 #define CFG_CR0182 0x10
@@ -82,28 +57,28 @@ I2C_CLIENT_INSMOD_1(lm95241);
 #define MANUFACTURER_ID 0x01
 #define DEFAULT_REVISION 0xA4
 
-/* Conversions and various macros */
+
 #define TEMP_FROM_REG(val_h, val_l) (((val_h) & 0x80 ? (val_h) - 0x100 : \
     (val_h)) * 1000 + (val_l) * 1000 / 256)
 
-/* Functions declaration */
+
 static void lm95241_init_client(struct i2c_client *client);
 static struct lm95241_data *lm95241_update_device(struct device *dev);
 
-/* Client data (each client gets its own) */
+
 struct lm95241_data {
 	struct device *hwmon_dev;
 	struct mutex update_lock;
-	unsigned long last_updated, rate; /* in jiffies */
-	char valid; /* zero until following fields are valid */
-	/* registers values */
-	u8 local_h, local_l; /* local */
-	u8 remote1_h, remote1_l; /* remote1 */
-	u8 remote2_h, remote2_l; /* remote2 */
+	unsigned long last_updated, rate; 
+	char valid; 
+	
+	u8 local_h, local_l; 
+	u8 remote1_h, remote1_l; 
+	u8 remote2_h, remote2_l; 
 	u8 config, model, trutherm;
 };
 
-/* Sysfs stuff */
+
 #define show_temp(value) \
 static ssize_t show_##value(struct device *dev, \
     struct device_attribute *attr, char *buf) \
@@ -309,7 +284,7 @@ static const struct attribute_group lm95241_group = {
 	.attrs = lm95241_attributes,
 };
 
-/* Return 0 if detection is successful, -ENODEV otherwise */
+
 static int lm95241_detect(struct i2c_client *new_client, int kind,
 			  struct i2c_board_info *info)
 {
@@ -320,17 +295,8 @@ static int lm95241_detect(struct i2c_client *new_client, int kind,
 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
 		return -ENODEV;
 
-	/*
-	 * Now we do the remaining detection. A negative kind means that
-	 * the driver was loaded with no force parameter (default), so we
-	 * must both detect and identify the chip. A zero kind means that
-	 * the driver was loaded with the force parameter, the detection
-	 * step shall be skipped. A positive kind means that the driver
-	 * was loaded with the force parameter and a given kind of chip is
-	 * requested, so both the detection and the identification steps
-	 * are skipped.
-	 */
-	if (kind < 0) {	/* detection */
+	
+	if (kind < 0) {	
 		if ((i2c_smbus_read_byte_data(new_client, LM95241_REG_R_MAN_ID)
 		     != MANUFACTURER_ID)
 		|| (i2c_smbus_read_byte_data(new_client, LM95241_REG_R_CHIP_ID)
@@ -342,7 +308,7 @@ static int lm95241_detect(struct i2c_client *new_client, int kind,
 		}
 	}
 
-	if (kind <= 0) { /* identification */
+	if (kind <= 0) { 
 		if ((i2c_smbus_read_byte_data(new_client, LM95241_REG_R_MAN_ID)
 		     == MANUFACTURER_ID)
 		&& (i2c_smbus_read_byte_data(new_client, LM95241_REG_R_CHIP_ID)
@@ -350,14 +316,14 @@ static int lm95241_detect(struct i2c_client *new_client, int kind,
 
 			kind = lm95241;
 
-			if (kind <= 0) { /* identification failed */
+			if (kind <= 0) { 
 				dev_info(&adapter->dev, "Unsupported chip\n");
 				return -ENODEV;
 			}
 		}
 	}
 
-	/* Fill the i2c board info */
+	
 	if (kind == lm95241)
 		name = "lm95241";
 	strlcpy(info->type, name, I2C_NAME_SIZE);
@@ -379,10 +345,10 @@ static int lm95241_probe(struct i2c_client *new_client,
 	i2c_set_clientdata(new_client, data);
 	mutex_init(&data->update_lock);
 
-	/* Initialize the LM95241 chip */
+	
 	lm95241_init_client(new_client);
 
-	/* Register sysfs hooks */
+	
 	err = sysfs_create_group(&new_client->dev.kobj, &lm95241_group);
 	if (err)
 		goto exit_free;
@@ -407,7 +373,7 @@ static void lm95241_init_client(struct i2c_client *client)
 {
 	struct lm95241_data *data = i2c_get_clientdata(client);
 
-	data->rate = HZ;    /* 1 sec default */
+	data->rate = HZ;    
 	data->valid = 0;
 	data->config = CFG_CR0076;
 	data->model = 0;
@@ -472,7 +438,7 @@ static struct lm95241_data *lm95241_update_device(struct device *dev)
 	return data;
 }
 
-/* Driver data (common to all clients) */
+
 static const struct i2c_device_id lm95241_id[] = {
 	{ "lm95241", lm95241 },
 	{ }

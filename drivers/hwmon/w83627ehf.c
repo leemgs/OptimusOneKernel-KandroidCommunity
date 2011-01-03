@@ -1,44 +1,4 @@
-/*
-    w83627ehf - Driver for the hardware monitoring functionality of
-                the Winbond W83627EHF Super-I/O chip
-    Copyright (C) 2005  Jean Delvare <khali@linux-fr.org>
-    Copyright (C) 2006  Yuan Mu (Winbond),
-                        Rudolf Marek <r.marek@assembler.cz>
-                        David Hubbard <david.c.hubbard@gmail.com>
 
-    Shamelessly ripped from the w83627hf driver
-    Copyright (C) 2003  Mark Studebaker
-
-    Thanks to Leon Moonen, Steve Cliffe and Grant Coady for their help
-    in testing and debugging this driver.
-
-    This driver also supports the W83627EHG, which is the lead-free
-    version of the W83627EHF.
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-
-    Supports the following chips:
-
-    Chip        #vin    #fan    #pwm    #temp  chip IDs       man ID
-    w83627ehf   10      5       4       3      0x8850 0x88    0x5ca3
-                                               0x8860 0xa1
-    w83627dhg    9      5       4       3      0xa020 0xc1    0x5ca3
-    w83627dhg-p  9      5       4       3      0xb070 0xc1    0x5ca3
-    w83667hg     9      5       3       3      0xa510 0xc1    0x5ca3
-*/
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -56,7 +16,7 @@
 
 enum kinds { w83627ehf, w83627dhg, w83627dhg_p, w83667hg };
 
-/* used to set data->name = w83627ehf_device_names[data->sio_kind] */
+
 static const char * w83627ehf_device_names[] = {
 	"w83627ehf",
 	"w83627dhg",
@@ -70,20 +30,18 @@ MODULE_PARM_DESC(force_id, "Override the detected device ID");
 
 #define DRVNAME "w83627ehf"
 
-/*
- * Super-I/O constants and functions
- */
+
 
 #define W83627EHF_LD_HWM	0x0b
 #define W83667HG_LD_VID 	0x0d
 
-#define SIO_REG_LDSEL		0x07	/* Logical device select */
-#define SIO_REG_DEVID		0x20	/* Device ID (2 bytes) */
-#define SIO_REG_EN_VRM10	0x2C	/* GPIO3, GPIO4 selection */
-#define SIO_REG_ENABLE		0x30	/* Logical device enable */
-#define SIO_REG_ADDR		0x60	/* Logical device address (2 bytes) */
-#define SIO_REG_VID_CTRL	0xF0	/* VID control */
-#define SIO_REG_VID_DATA	0xF1	/* VID data */
+#define SIO_REG_LDSEL		0x07	
+#define SIO_REG_DEVID		0x20	
+#define SIO_REG_EN_VRM10	0x2C	
+#define SIO_REG_ENABLE		0x30	
+#define SIO_REG_ADDR		0x60	
+#define SIO_REG_VID_CTRL	0xF0	
+#define SIO_REG_VID_DATA	0xF1	
 
 #define SIO_W83627EHF_ID	0x8850
 #define SIO_W83627EHG_ID	0x8860
@@ -127,9 +85,7 @@ superio_exit(int ioreg)
 	outb(0x02, ioreg + 1);
 }
 
-/*
- * ISA constants
- */
+
 
 #define IOREGION_ALIGNMENT	~7
 #define IOREGION_OFFSET		5
@@ -140,16 +96,12 @@ superio_exit(int ioreg)
 #define W83627EHF_REG_BANK		0x4E
 #define W83627EHF_REG_CONFIG		0x40
 
-/* Not currently used:
- * REG_MAN_ID has the value 0x5ca3 for all supported chips.
- * REG_CHIP_ID == 0x88/0xa1/0xc1 depending on chip model.
- * REG_MAN_ID is at port 0x4f
- * REG_CHIP_ID is at port 0x58 */
+
 
 static const u16 W83627EHF_REG_FAN[] = { 0x28, 0x29, 0x2a, 0x3f, 0x553 };
 static const u16 W83627EHF_REG_FAN_MIN[] = { 0x3b, 0x3c, 0x3d, 0x3e, 0x55c };
 
-/* The W83627EHF registers for nr=7,8,9 are in bank 5 */
+
 #define W83627EHF_REG_IN_MAX(nr)	((nr < 7) ? (0x2b + (nr) * 2) : \
 					 (0x554 + (((nr) - 7) * 2)))
 #define W83627EHF_REG_IN_MIN(nr)	((nr < 7) ? (0x2c + (nr) * 2) : \
@@ -165,7 +117,7 @@ static const u16 W83627EHF_REG_TEMP_HYST[] = { 0x153, 0x253 };
 static const u16 W83627EHF_REG_TEMP_OVER[] = { 0x155, 0x255 };
 static const u16 W83627EHF_REG_TEMP_CONFIG[] = { 0x152, 0x252 };
 
-/* Fan clock dividers are spread over the following five registers */
+
 #define W83627EHF_REG_FANDIV1		0x47
 #define W83627EHF_REG_FANDIV2		0x4B
 #define W83627EHF_REG_VBAT		0x5D
@@ -176,33 +128,31 @@ static const u16 W83627EHF_REG_TEMP_CONFIG[] = { 0x152, 0x252 };
 #define W83627EHF_REG_ALARM2		0x45A
 #define W83627EHF_REG_ALARM3		0x45B
 
-/* SmartFan registers */
-/* DC or PWM output fan configuration */
+
+
 static const u8 W83627EHF_REG_PWM_ENABLE[] = {
-	0x04,			/* SYS FAN0 output mode and PWM mode */
-	0x04,			/* CPU FAN0 output mode and PWM mode */
-	0x12,			/* AUX FAN mode */
-	0x62,			/* CPU fan1 mode */
+	0x04,			
+	0x04,			
+	0x12,			
+	0x62,			
 };
 
 static const u8 W83627EHF_PWM_MODE_SHIFT[] = { 0, 1, 0, 6 };
 static const u8 W83627EHF_PWM_ENABLE_SHIFT[] = { 2, 4, 1, 4 };
 
-/* FAN Duty Cycle, be used to control */
+
 static const u8 W83627EHF_REG_PWM[] = { 0x01, 0x03, 0x11, 0x61 };
 static const u8 W83627EHF_REG_TARGET[] = { 0x05, 0x06, 0x13, 0x63 };
 static const u8 W83627EHF_REG_TOLERANCE[] = { 0x07, 0x07, 0x14, 0x62 };
 
 
-/* Advanced Fan control, some values are common for all fans */
+
 static const u8 W83627EHF_REG_FAN_MIN_OUTPUT[] = { 0x08, 0x09, 0x15, 0x64 };
 static const u8 W83627EHF_REG_FAN_STOP_TIME[] = { 0x0C, 0x0D, 0x17, 0x66 };
 
-/*
- * Conversions
- */
 
-/* 1 is PWM mode, output in ms */
+
+
 static inline unsigned int step_time_from_reg(u8 reg, u8 mode)
 {
 	return mode ? 100 * reg : 400 * reg;
@@ -246,7 +196,7 @@ temp1_to_reg(long temp, int min, int max)
 	return (temp + 500) / 1000;
 }
 
-/* Some of analog inputs have internal scaling (2x), 8mV is ADC LSB */
+
 
 static u8 scale_in[10] = { 8, 8, 16, 16, 8, 8, 8, 16, 16, 8 };
 
@@ -260,30 +210,28 @@ static inline u8 in_to_reg(u32 val, u8 nr)
 	return SENSORS_LIMIT(((val + (scale_in[nr] / 2)) / scale_in[nr]), 0, 255);
 }
 
-/*
- * Data structures and manipulation thereof
- */
+
 
 struct w83627ehf_data {
-	int addr;	/* IO base of hw monitor block */
+	int addr;	
 	const char *name;
 
 	struct device *hwmon_dev;
 	struct mutex lock;
 
 	struct mutex update_lock;
-	char valid;		/* !=0 if following fields are valid */
-	unsigned long last_updated;	/* In jiffies */
+	char valid;		
+	unsigned long last_updated;	
 
-	/* Register values */
-	u8 in_num;		/* number of in inputs we have */
-	u8 in[10];		/* Register value */
-	u8 in_max[10];		/* Register value */
-	u8 in_min[10];		/* Register value */
+	
+	u8 in_num;		
+	u8 in[10];		
+	u8 in_max[10];		
+	u8 in_min[10];		
 	u8 fan[5];
 	u8 fan_min[5];
 	u8 fan_div[5];
-	u8 has_fan;		/* some fan inputs can be disabled */
+	u8 has_fan;		
 	u8 temp_type[3];
 	s8 temp1;
 	s8 temp1_max;
@@ -293,15 +241,14 @@ struct w83627ehf_data {
 	s16 temp_max_hyst[2];
 	u32 alarms;
 
-	u8 pwm_mode[4]; /* 0->DC variable voltage, 1->PWM variable duty cycle */
-	u8 pwm_enable[4]; /* 1->manual
-			     2->thermal cruise (also called SmartFan I) */
-	u8 pwm_num;		/* number of pwm */
+	u8 pwm_mode[4]; 
+	u8 pwm_enable[4]; 
+	u8 pwm_num;		
 	u8 pwm[4];
 	u8 target_temp[4];
 	u8 tolerance[4];
 
-	u8 fan_min_output[4]; /* minimum fan speed */
+	u8 fan_min_output[4]; 
 	u8 fan_stop_time[4];
 
 	u8 vid;
@@ -325,7 +272,7 @@ static inline int is_word_sized(u16 reg)
 	      || (reg & 0x00ff) == 0x55));
 }
 
-/* Registers 0x50-0x5f are banked */
+
 static inline void w83627ehf_set_bank(struct w83627ehf_data *data, u16 reg)
 {
 	if ((reg & 0x00f0) == 0x50) {
@@ -334,7 +281,7 @@ static inline void w83627ehf_set_bank(struct w83627ehf_data *data, u16 reg)
 	}
 }
 
-/* Not strictly necessary, but play it safe for now */
+
 static inline void w83627ehf_reset_bank(struct w83627ehf_data *data, u16 reg)
 {
 	if (reg & 0xff00) {
@@ -384,7 +331,7 @@ static int w83627ehf_write_value(struct w83627ehf_data *data, u16 reg, u16 value
 	return 0;
 }
 
-/* This function assumes that the caller holds data->update_lock */
+
 static void w83627ehf_write_fan_div(struct w83627ehf_data *data, int nr)
 {
 	u8 reg;
@@ -393,7 +340,7 @@ static void w83627ehf_write_fan_div(struct w83627ehf_data *data, int nr)
 	case 0:
 		reg = (w83627ehf_read_value(data, W83627EHF_REG_FANDIV1) & 0xcf)
 		    | ((data->fan_div[0] & 0x03) << 4);
-		/* fan5 input control bit is write only, compute the value */
+		
 		reg |= (data->has_fan & (1 << 4)) ? 1 : 0;
 		w83627ehf_write_value(data, W83627EHF_REG_FANDIV1, reg);
 		reg = (w83627ehf_read_value(data, W83627EHF_REG_VBAT) & 0xdf)
@@ -403,7 +350,7 @@ static void w83627ehf_write_fan_div(struct w83627ehf_data *data, int nr)
 	case 1:
 		reg = (w83627ehf_read_value(data, W83627EHF_REG_FANDIV1) & 0x3f)
 		    | ((data->fan_div[1] & 0x03) << 6);
-		/* fan5 input control bit is write only, compute the value */
+		
 		reg |= (data->has_fan & (1 << 4)) ? 1 : 0;
 		w83627ehf_write_value(data, W83627EHF_REG_FANDIV1, reg);
 		reg = (w83627ehf_read_value(data, W83627EHF_REG_VBAT) & 0xbf)
@@ -463,17 +410,17 @@ static void w83627ehf_update_fan_div(struct w83627ehf_data *data)
 static struct w83627ehf_data *w83627ehf_update_device(struct device *dev)
 {
 	struct w83627ehf_data *data = dev_get_drvdata(dev);
-	int pwmcfg = 0, tolerance = 0; /* shut up the compiler */
+	int pwmcfg = 0, tolerance = 0; 
 	int i;
 
 	mutex_lock(&data->update_lock);
 
 	if (time_after(jiffies, data->last_updated + HZ + HZ/2)
 	 || !data->valid) {
-		/* Fan clock dividers */
+		
 		w83627ehf_update_fan_div(data);
 
-		/* Measured voltages and limits */
+		
 		for (i = 0; i < data->in_num; i++) {
 			data->in[i] = w83627ehf_read_value(data,
 				      W83627EHF_REG_IN(i));
@@ -483,7 +430,7 @@ static struct w83627ehf_data *w83627ehf_update_device(struct device *dev)
 					  W83627EHF_REG_IN_MAX(i));
 		}
 
-		/* Measured fan speeds and limits */
+		
 		for (i = 0; i < 5; i++) {
 			if (!(data->has_fan & (1 << i)))
 				continue;
@@ -493,9 +440,7 @@ static struct w83627ehf_data *w83627ehf_update_device(struct device *dev)
 			data->fan_min[i] = w83627ehf_read_value(data,
 					   W83627EHF_REG_FAN_MIN[i]);
 
-			/* If we failed to measure the fan speed and clock
-			   divider can be increased, let's try that for next
-			   time */
+			
 			if (data->fan[i] == 0xff
 			 && data->fan_div[i] < 0x07) {
 			 	dev_dbg(dev, "Increasing fan%d "
@@ -504,7 +449,7 @@ static struct w83627ehf_data *w83627ehf_update_device(struct device *dev)
 					div_from_reg(data->fan_div[i] + 1));
 				data->fan_div[i]++;
 				w83627ehf_write_fan_div(data, i);
-				/* Preserve min limit if possible */
+				
 				if (data->fan_min[i] >= 2
 				 && data->fan_min[i] != 255)
 					w83627ehf_write_value(data,
@@ -514,7 +459,7 @@ static struct w83627ehf_data *w83627ehf_update_device(struct device *dev)
 		}
 
 		for (i = 0; i < 4; i++) {
-			/* pwmcfg, tolerance mapped for i=0, i=1 to same reg */
+			
 			if (i != 1) {
 				pwmcfg = w83627ehf_read_value(data,
 						W83627EHF_REG_PWM_ENABLE[i]);
@@ -541,7 +486,7 @@ static struct w83627ehf_data *w83627ehf_update_device(struct device *dev)
 									& 0x0f;
 		}
 
-		/* Measured temperatures and limits */
+		
 		data->temp1 = w83627ehf_read_value(data,
 			      W83627EHF_REG_TEMP1);
 		data->temp1_max = w83627ehf_read_value(data,
@@ -572,9 +517,7 @@ static struct w83627ehf_data *w83627ehf_update_device(struct device *dev)
 	return data;
 }
 
-/*
- * Sysfs callback functions
- */
+
 #define show_in_reg(reg) \
 static ssize_t \
 show_##reg(struct device *dev, struct device_attribute *attr, \
@@ -708,28 +651,24 @@ store_fan_min(struct device *dev, struct device_attribute *attr,
 
 	mutex_lock(&data->update_lock);
 	if (!val) {
-		/* No min limit, alarm disabled */
+		
 		data->fan_min[nr] = 255;
-		new_div = data->fan_div[nr]; /* No change */
+		new_div = data->fan_div[nr]; 
 		dev_info(dev, "fan%u low limit and alarm disabled\n", nr + 1);
 	} else if ((reg = 1350000U / val) >= 128 * 255) {
-		/* Speed below this value cannot possibly be represented,
-		   even with the highest divider (128) */
+		
 		data->fan_min[nr] = 254;
-		new_div = 7; /* 128 == (1 << 7) */
+		new_div = 7; 
 		dev_warn(dev, "fan%u low limit %u below minimum %u, set to "
 			 "minimum\n", nr + 1, val, fan_from_reg(254, 128));
 	} else if (!reg) {
-		/* Speed above this value cannot possibly be represented,
-		   even with the lowest divider (1) */
+		
 		data->fan_min[nr] = 1;
-		new_div = 0; /* 1 == (1 << 0) */
+		new_div = 0; 
 		dev_warn(dev, "fan%u low limit %u above maximum %u, set to "
 			 "maximum\n", nr + 1, val, fan_from_reg(1, 1));
 	} else {
-		/* Automatically pick the best divider, i.e. the one such
-		   that the min limit will correspond to a register value
-		   in the 96..192 range */
+		
 		new_div = 0;
 		while (reg > 192 && new_div < 7) {
 			reg >>= 1;
@@ -738,10 +677,9 @@ store_fan_min(struct device *dev, struct device_attribute *attr,
 		data->fan_min[nr] = reg;
 	}
 
-	/* Write both the fan clock divider (if it changed) and the new
-	   fan min (unconditionally) */
+	
 	if (new_div != data->fan_div[nr]) {
-		/* Preserve the fan speed reading */
+		
 		if (data->fan[nr] != 0xff) {
 			if (new_div > data->fan_div[nr])
 				data->fan[nr] >>= new_div - data->fan_div[nr];
@@ -756,7 +694,7 @@ store_fan_min(struct device *dev, struct device_attribute *attr,
 			div_from_reg(new_div));
 		data->fan_div[nr] = new_div;
 		w83627ehf_write_fan_div(data, nr);
-		/* Give the chip time to sample a new speed value */
+		
 		data->last_updated = jiffies;
 	}
 	w83627ehf_write_value(data, W83627EHF_REG_FAN_MIN[nr],
@@ -976,7 +914,7 @@ store_pwm_enable(struct device *dev, struct device_attribute *attr,
 	u32 val = simple_strtoul(buf, NULL, 10);
 	u16 reg;
 
-	if (!val || (val > 2))	/* only modes 1 and 2 are supported */
+	if (!val || (val > 2))	
 		return -EINVAL;
 	mutex_lock(&data->update_lock);
 	reg = w83627ehf_read_value(data, W83627EHF_REG_PWM_ENABLE[nr]);
@@ -1026,7 +964,7 @@ store_tolerance(struct device *dev, struct device_attribute *attr,
 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
 	int nr = sensor_attr->index;
 	u16 reg;
-	/* Limit the temp to 0C - 15C */
+	
 	u8 val = temp1_to_reg(simple_strtoul(buf, NULL, 10), 0, 15000);
 
 	mutex_lock(&data->update_lock);
@@ -1092,7 +1030,7 @@ static struct sensor_device_attribute sda_tolerance[] = {
 		    store_tolerance, 3),
 };
 
-/* Smart Fan registers */
+
 
 #define fan_functions(reg, REG) \
 static ssize_t show_##reg(struct device *dev, struct device_attribute *attr, \
@@ -1188,14 +1126,11 @@ show_vid(struct device *dev, struct device_attribute *attr, char *buf)
 }
 static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid, NULL);
 
-/*
- * Driver and device management
- */
+
 
 static void w83627ehf_device_remove_files(struct device *dev)
 {
-	/* some entries in the following arrays may not have been used in
-	 * device_create_file(), but device_remove_file() will ignore them */
+	
 	int i;
 	struct w83627ehf_data *data = dev_get_drvdata(dev);
 
@@ -1238,19 +1173,19 @@ static void w83627ehf_device_remove_files(struct device *dev)
 	device_remove_file(dev, &dev_attr_cpu0_vid);
 }
 
-/* Get the monitoring functions started */
+
 static inline void __devinit w83627ehf_init_device(struct w83627ehf_data *data)
 {
 	int i;
 	u8 tmp, diode;
 
-	/* Start monitoring is needed */
+	
 	tmp = w83627ehf_read_value(data, W83627EHF_REG_CONFIG);
 	if (!(tmp & 0x01))
 		w83627ehf_write_value(data, W83627EHF_REG_CONFIG,
 				      tmp | 0x01);
 
-	/* Enable temp2 and temp3 if needed */
+	
 	for (i = 0; i < 2; i++) {
 		tmp = w83627ehf_read_value(data,
 					   W83627EHF_REG_TEMP_CONFIG[i]);
@@ -1262,18 +1197,18 @@ static inline void __devinit w83627ehf_init_device(struct w83627ehf_data *data)
 					      tmp & 0xfe);
 	}
 
-	/* Enable VBAT monitoring if needed */
+	
 	tmp = w83627ehf_read_value(data, W83627EHF_REG_VBAT);
 	if (!(tmp & 0x01))
 		w83627ehf_write_value(data, W83627EHF_REG_VBAT, tmp | 0x01);
 
-	/* Get thermal sensor types */
+	
 	diode = w83627ehf_read_value(data, W83627EHF_REG_DIODE);
 	for (i = 0; i < 3; i++) {
 		if ((tmp & (0x02 << i)))
 			data->temp_type[i] = (diode & (0x10 << i)) ? 1 : 2;
 		else
-			data->temp_type[i] = 4; /* thermistor */
+			data->temp_type[i] = 4; 
 	}
 }
 
@@ -1306,28 +1241,26 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
 	data->name = w83627ehf_device_names[sio_data->kind];
 	platform_set_drvdata(pdev, data);
 
-	/* 627EHG and 627EHF have 10 voltage inputs; 627DHG and 667HG have 9 */
+	
 	data->in_num = (sio_data->kind == w83627ehf) ? 10 : 9;
-	/* 667HG has 3 pwms */
+	
 	data->pwm_num = (sio_data->kind == w83667hg) ? 3 : 4;
 
-	/* Check temp3 configuration bit for 667HG */
+	
 	if (sio_data->kind == w83667hg) {
 		data->temp3_disable = w83627ehf_read_value(data,
 					W83627EHF_REG_TEMP_CONFIG[1]) & 0x01;
 		data->in6_skip = !data->temp3_disable;
 	}
 
-	/* Initialize the chip */
+	
 	w83627ehf_init_device(data);
 
 	data->vrm = vid_which_vrm();
 	superio_enter(sio_data->sioreg);
-	/* Read VID value */
+	
 	if (sio_data->kind == w83667hg) {
-		/* W83667HG has different pins for VID input and output, so
-		we can get the VID input values directly at logical device D
-		0xe3. */
+		
 		superio_select(sio_data->sioreg, W83667HG_LD_VID);
 		data->vid = superio_inb(sio_data->sioreg, 0xe3);
 		err = device_create_file(dev, &dev_attr_cpu0_vid);
@@ -1336,11 +1269,7 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
 	} else {
 		superio_select(sio_data->sioreg, W83627EHF_LD_HWM);
 		if (superio_inb(sio_data->sioreg, SIO_REG_VID_CTRL) & 0x80) {
-			/* Set VID input sensibility if needed. In theory the
-			   BIOS should have set it, but in practice it's not
-			   always the case. We only do it for the W83627EHF/EHG
-			   because the W83627DHG is more complex in this
-			   respect. */
+			
 			if (sio_data->kind == w83627ehf) {
 				en_vrm10 = superio_inb(sio_data->sioreg,
 						       SIO_REG_EN_VRM10);
@@ -1362,7 +1291,7 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
 
 			data->vid = superio_inb(sio_data->sioreg,
 						SIO_REG_VID_DATA);
-			if (sio_data->kind == w83627ehf) /* 6 VID pins only */
+			if (sio_data->kind == w83627ehf) 
 				data->vid &= 0x3f;
 
 			err = device_create_file(dev, &dev_attr_cpu0_vid);
@@ -1374,7 +1303,7 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
 		}
 	}
 
-	/* fan4 and fan5 share some pins with the GPIO and serial flash */
+	
 	if (sio_data->kind == w83667hg) {
 		fan5pin = superio_inb(sio_data->sioreg, 0x27) & 0x20;
 		fan4pin = superio_inb(sio_data->sioreg, 0x27) & 0x40;
@@ -1384,29 +1313,25 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
 	}
 	superio_exit(sio_data->sioreg);
 
-	/* It looks like fan4 and fan5 pins can be alternatively used
-	   as fan on/off switches, but fan5 control is write only :/
-	   We assume that if the serial interface is disabled, designers
-	   connected fan5 as input unless they are emitting log 1, which
-	   is not the default. */
+	
 
-	data->has_fan = 0x07; /* fan1, fan2 and fan3 */
+	data->has_fan = 0x07; 
 	i = w83627ehf_read_value(data, W83627EHF_REG_FANDIV1);
 	if ((i & (1 << 2)) && fan4pin)
 		data->has_fan |= (1 << 3);
 	if (!(i & (1 << 1)) && fan5pin)
 		data->has_fan |= (1 << 4);
 
-	/* Read fan clock dividers immediately */
+	
 	w83627ehf_update_fan_div(data);
 
-	/* Register sysfs hooks */
+	
   	for (i = 0; i < ARRAY_SIZE(sda_sf3_arrays); i++)
 		if ((err = device_create_file(dev,
 			&sda_sf3_arrays[i].dev_attr)))
 			goto exit_remove;
 
-	/* if fan4 is enabled create the sf3 files for it */
+	
 	if ((data->has_fan & (1 << 3)) && data->pwm_num >= 4)
 		for (i = 0; i < ARRAY_SIZE(sda_sf3_arrays_fan4); i++) {
 			if ((err = device_create_file(dev,
@@ -1513,7 +1438,7 @@ static struct platform_driver w83627ehf_driver = {
 	.remove		= __devexit_p(w83627ehf_remove),
 };
 
-/* w83627ehf_find() looks for a '627 in the Super-I/O config space */
+
 static int __init w83627ehf_find(int sioaddr, unsigned short *addr,
 				 struct w83627ehf_sio_data *sio_data)
 {
@@ -1562,7 +1487,7 @@ static int __init w83627ehf_find(int sioaddr, unsigned short *addr,
 		return -ENODEV;
 	}
 
-	/* We have a known chip, find the HWM I/O address */
+	
 	superio_select(sioaddr, W83627EHF_LD_HWM);
 	val = (superio_inb(sioaddr, SIO_REG_ADDR) << 8)
 	    | superio_inb(sioaddr, SIO_REG_ADDR + 1);
@@ -1574,7 +1499,7 @@ static int __init w83627ehf_find(int sioaddr, unsigned short *addr,
 		return -ENODEV;
 	}
 
-	/* Activate logical device if needed */
+	
 	val = superio_inb(sioaddr, SIO_REG_ENABLE);
 	if (!(val & 0x01)) {
 		printk(KERN_WARNING DRVNAME ": Forcibly enabling Super-I/O. "
@@ -1589,10 +1514,7 @@ static int __init w83627ehf_find(int sioaddr, unsigned short *addr,
 	return 0;
 }
 
-/* when Super-I/O functions move to a separate file, the Super-I/O
- * bus will manage the lifetime of the device and this module will only keep
- * track of the w83627ehf driver. But since we platform_device_alloc(), we
- * must keep track of the device */
+
 static struct platform_device *pdev;
 
 static int __init sensors_w83627ehf_init(void)
@@ -1602,11 +1524,7 @@ static int __init sensors_w83627ehf_init(void)
 	struct resource res;
 	struct w83627ehf_sio_data sio_data;
 
-	/* initialize sio_data->kind and sio_data->sioreg.
-	 *
-	 * when Super-I/O functions move to a separate file, the Super-I/O
-	 * driver will probe 0x2e and 0x4e and auto-detect the presence of a
-	 * w83627ehf hardware monitor, and call probe() */
+	
 	if (w83627ehf_find(0x2e, &address, &sio_data) &&
 	    w83627ehf_find(0x4e, &address, &sio_data))
 		return -ENODEV;
@@ -1645,7 +1563,7 @@ static int __init sensors_w83627ehf_init(void)
 		goto exit_device_put;
 	}
 
-	/* platform_device_add calls probe() */
+	
 	err = platform_device_add(pdev);
 	if (err) {
 		printk(KERN_ERR DRVNAME ": Device addition failed (%d)\n",

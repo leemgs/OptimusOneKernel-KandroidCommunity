@@ -1,27 +1,4 @@
-/*
-	ads7828.c - lm_sensors driver for ads7828 12-bit 8-channel ADC
-	(C) 2007 EADS Astrium
 
-	This driver is based on the lm75 and other lm_sensors/hwmon drivers
-
-	Written by Steve Hardy <steve@linuxrealtime.co.uk>
-
-	Datasheet available at: http://focus.ti.com/lit/ds/symlink/ads7828.pdf
-
-	This program is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
-
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with this program; if not, write to the Free Software
-	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -33,52 +10,51 @@
 #include <linux/err.h>
 #include <linux/mutex.h>
 
-/* The ADS7828 registers */
-#define ADS7828_NCH 8 /* 8 channels of 12-bit A-D supported */
-#define ADS7828_CMD_SD_SE 0x80 /* Single ended inputs */
-#define ADS7828_CMD_SD_DIFF 0x00 /* Differential inputs */
-#define ADS7828_CMD_PD0 0x0 /* Power Down between A-D conversions */
-#define ADS7828_CMD_PD1 0x04 /* Internal ref OFF && A-D ON */
-#define ADS7828_CMD_PD2 0x08 /* Internal ref ON && A-D OFF */
-#define ADS7828_CMD_PD3 0x0C /* Internal ref ON && A-D ON */
-#define ADS7828_INT_VREF_MV 2500 /* Internal vref is 2.5V, 2500mV */
 
-/* Addresses to scan */
+#define ADS7828_NCH 8 
+#define ADS7828_CMD_SD_SE 0x80 
+#define ADS7828_CMD_SD_DIFF 0x00 
+#define ADS7828_CMD_PD0 0x0 
+#define ADS7828_CMD_PD1 0x04 
+#define ADS7828_CMD_PD2 0x08 
+#define ADS7828_CMD_PD3 0x0C 
+#define ADS7828_INT_VREF_MV 2500 
+
+
 static const unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4b,
 	I2C_CLIENT_END };
 
-/* Insmod parameters */
+
 I2C_CLIENT_INSMOD_1(ads7828);
 
-/* Other module parameters */
-static int se_input = 1; /* Default is SE, 0 == diff */
-static int int_vref = 1; /* Default is internal ref ON */
-static int vref_mv = ADS7828_INT_VREF_MV; /* set if vref != 2.5V */
+
+static int se_input = 1; 
+static int int_vref = 1; 
+static int vref_mv = ADS7828_INT_VREF_MV; 
 module_param(se_input, bool, S_IRUGO);
 module_param(int_vref, bool, S_IRUGO);
 module_param(vref_mv, int, S_IRUGO);
 
-/* Global Variables */
-static u8 ads7828_cmd_byte; /* cmd byte without channel bits */
-static unsigned int ads7828_lsb_resol; /* resolution of the ADC sample lsb */
 
-/* Each client has this additional data */
+static u8 ads7828_cmd_byte; 
+static unsigned int ads7828_lsb_resol; 
+
+
 struct ads7828_data {
 	struct device *hwmon_dev;
-	struct mutex update_lock; /* mutex protect updates */
-	char valid; /* !=0 if following fields are valid */
-	unsigned long last_updated; /* In jiffies */
-	u16 adc_input[ADS7828_NCH]; /* ADS7828_NCH 12-bit samples */
+	struct mutex update_lock; 
+	char valid; 
+	unsigned long last_updated; 
+	u16 adc_input[ADS7828_NCH]; 
 };
 
-/* Function declaration - necessary due to function dependencies */
+
 static int ads7828_detect(struct i2c_client *client, int kind,
 			  struct i2c_board_info *info);
 static int ads7828_probe(struct i2c_client *client,
 			 const struct i2c_device_id *id);
 
-/* The ADS7828 returns the 12-bit sample in two bytes,
-	these are read as a word then byte-swapped */
+
 static u16 ads7828_read_value(struct i2c_client *client, u8 reg)
 {
 	return swab16(i2c_smbus_read_word_data(client, reg));
@@ -86,13 +62,13 @@ static u16 ads7828_read_value(struct i2c_client *client, u8 reg)
 
 static inline u8 channel_cmd_byte(int ch)
 {
-	/* cmd byte C2,C1,C0 - see datasheet */
+	
 	u8 cmd = (((ch>>1) | (ch&0x01)<<2)<<4);
 	cmd |= ads7828_cmd_byte;
 	return cmd;
 }
 
-/* Update data for the device (all 8 channels) */
+
 static struct ads7828_data *ads7828_update_device(struct device *dev)
 {
 	struct i2c_client *client = to_i2c_client(dev);
@@ -118,13 +94,13 @@ static struct ads7828_data *ads7828_update_device(struct device *dev)
 	return data;
 }
 
-/* sysfs callback function */
+
 static ssize_t show_in(struct device *dev, struct device_attribute *da,
 	char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
 	struct ads7828_data *data = ads7828_update_device(dev);
-	/* Print value (in mV as specified in sysfs-interface documentation) */
+	
 	return sprintf(buf, "%d\n", (data->adc_input[attr->index] *
 		ads7828_lsb_resol)/1000);
 }
@@ -173,7 +149,7 @@ static const struct i2c_device_id ads7828_id[] = {
 };
 MODULE_DEVICE_TABLE(i2c, ads7828_id);
 
-/* This is the driver that will be inserted */
+
 static struct i2c_driver ads7828_driver = {
 	.class = I2C_CLASS_HWMON,
 	.driver = {
@@ -186,22 +162,17 @@ static struct i2c_driver ads7828_driver = {
 	.address_data = &addr_data,
 };
 
-/* Return 0 if detection is successful, -ENODEV otherwise */
+
 static int ads7828_detect(struct i2c_client *client, int kind,
 			  struct i2c_board_info *info)
 {
 	struct i2c_adapter *adapter = client->adapter;
 
-	/* Check we have a valid client */
+	
 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_READ_WORD_DATA))
 		return -ENODEV;
 
-	/* Now, we do the remaining detection. There is no identification
-	dedicated register so attempt to sanity check using knowledge of
-	the chip
-	- Read from the 8 channel addresses
-	- Check the top 4 bits of each result are not set (12 data bits)
-	*/
+	
 	if (kind < 0) {
 		int ch;
 		for (ch = 0; ch < ADS7828_NCH; ch++) {
@@ -236,7 +207,7 @@ static int ads7828_probe(struct i2c_client *client,
 	i2c_set_clientdata(client, data);
 	mutex_init(&data->update_lock);
 
-	/* Register sysfs hooks */
+	
 	err = sysfs_create_group(&client->dev.kobj, &ads7828_group);
 	if (err)
 		goto exit_free;
@@ -259,13 +230,13 @@ exit:
 
 static int __init sensors_ads7828_init(void)
 {
-	/* Initialize the command byte according to module parameters */
+	
 	ads7828_cmd_byte = se_input ?
 		ADS7828_CMD_SD_SE : ADS7828_CMD_SD_DIFF;
 	ads7828_cmd_byte |= int_vref ?
 		ADS7828_CMD_PD3 : ADS7828_CMD_PD1;
 
-	/* Calculate the LSB resolution */
+	
 	ads7828_lsb_resol = (vref_mv*1000)/4096;
 
 	return i2c_add_driver(&ads7828_driver);

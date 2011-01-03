@@ -1,23 +1,4 @@
-/*
-    lm78.c - Part of lm_sensors, Linux kernel modules for hardware
-             monitoring
-    Copyright (c) 1998, 1999  Frodo Looijaard <frodol@dds.nl> 
-    Copyright (c) 2007        Jean Delvare <khali@linux-fr.org>
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -33,27 +14,27 @@
 #include <linux/mutex.h>
 #include <linux/io.h>
 
-/* ISA device, if found */
+
 static struct platform_device *pdev;
 
-/* Addresses to scan */
+
 static const unsigned short normal_i2c[] = { 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d,
 						0x2e, 0x2f, I2C_CLIENT_END };
 static unsigned short isa_address = 0x290;
 
-/* Insmod parameters */
+
 I2C_CLIENT_INSMOD_2(lm78, lm79);
 
-/* Many LM78 constants specified below */
 
-/* Length of ISA address segment */
+
+
 #define LM78_EXTENT 8
 
-/* Where are the ISA address/data registers relative to the base address */
+
 #define LM78_ADDR_REG_OFFSET 5
 #define LM78_DATA_REG_OFFSET 6
 
-/* The LM78 registers */
+
 #define LM78_REG_IN_MAX(nr) (0x2b + (nr) * 2)
 #define LM78_REG_IN_MIN(nr) (0x2c + (nr) * 2)
 #define LM78_REG_IN(nr) (0x20 + (nr))
@@ -75,11 +56,9 @@ I2C_CLIENT_INSMOD_2(lm78, lm79);
 #define LM78_REG_I2C_ADDR 0x48
 
 
-/* Conversions. Rounding and limit checking is only done on the TO_REG 
-   variants. */
 
-/* IN: mV, (0V to 4.08V)
-   REG: 16mV/bit */
+
+
 static inline u8 IN_TO_REG(unsigned long val)
 {
 	unsigned long nval = SENSORS_LIMIT(val, 0, 4080);
@@ -99,8 +78,7 @@ static inline int FAN_FROM_REG(u8 val, int div)
 	return val==0 ? -1 : val==255 ? 0 : 1350000/(val*div);
 }
 
-/* TEMP: mC (-128C to +127C)
-   REG: 1C/bit, two's complement */
+
 static inline s8 TEMP_TO_REG(int val)
 {
 	int nval = SENSORS_LIMIT(val, -128000, 127000) ;
@@ -120,25 +98,25 @@ struct lm78_data {
 	struct mutex lock;
 	enum chips type;
 
-	/* For ISA device only */
+	
 	const char *name;
 	int isa_addr;
 
 	struct mutex update_lock;
-	char valid;		/* !=0 if following fields are valid */
-	unsigned long last_updated;	/* In jiffies */
+	char valid;		
+	unsigned long last_updated;	
 
-	u8 in[7];		/* Register value */
-	u8 in_max[7];		/* Register value */
-	u8 in_min[7];		/* Register value */
-	u8 fan[3];		/* Register value */
-	u8 fan_min[3];		/* Register value */
-	s8 temp;		/* Register value */
-	s8 temp_over;		/* Register value */
-	s8 temp_hyst;		/* Register value */
-	u8 fan_div[3];		/* Register encoding, shifted right */
-	u8 vid;			/* Register encoding, combined */
-	u16 alarms;		/* Register encoding, combined */
+	u8 in[7];		
+	u8 in_max[7];		
+	u8 in_min[7];		
+	u8 fan[3];		
+	u8 fan_min[3];		
+	s8 temp;		
+	s8 temp_over;		
+	s8 temp_hyst;		
+	u8 fan_div[3];		
+	u8 vid;			
+	u16 alarms;		
 };
 
 
@@ -186,7 +164,7 @@ static struct platform_driver lm78_isa_driver = {
 };
 
 
-/* 7 Voltages */
+
 static ssize_t show_in(struct device *dev, struct device_attribute *da,
 		       char *buf)
 {
@@ -257,7 +235,7 @@ show_in_offset(4);
 show_in_offset(5);
 show_in_offset(6);
 
-/* Temperature */
+
 static ssize_t show_temp(struct device *dev, struct device_attribute *da,
 			 char *buf)
 {
@@ -311,7 +289,7 @@ static DEVICE_ATTR(temp1_max, S_IRUGO | S_IWUSR,
 static DEVICE_ATTR(temp1_max_hyst, S_IRUGO | S_IWUSR,
 		show_temp_hyst, set_temp_hyst);
 
-/* 3 Fans */
+
 static ssize_t show_fan(struct device *dev, struct device_attribute *da,
 			char *buf)
 {
@@ -355,10 +333,7 @@ static ssize_t show_fan_div(struct device *dev, struct device_attribute *da,
 	return sprintf(buf, "%d\n", DIV_FROM_REG(data->fan_div[attr->index]));
 }
 
-/* Note: we save and restore the fan minimum here, because its value is
-   determined in part by the fan divisor.  This follows the principle of
-   least surprise; the user doesn't expect the fan minimum to change just
-   because the divisor changed. */
+
 static ssize_t set_fan_div(struct device *dev, struct device_attribute *da,
 			   const char *buf, size_t count)
 {
@@ -414,14 +389,14 @@ show_fan_offset(1);
 show_fan_offset(2);
 show_fan_offset(3);
 
-/* Fan 3 divisor is locked in H/W */
+
 static SENSOR_DEVICE_ATTR(fan1_div, S_IRUGO | S_IWUSR,
 		show_fan_div, set_fan_div, 0);
 static SENSOR_DEVICE_ATTR(fan2_div, S_IRUGO | S_IWUSR,
 		show_fan_div, set_fan_div, 1);
 static SENSOR_DEVICE_ATTR(fan3_div, S_IRUGO, show_fan_div, NULL, 2);
 
-/* VID */
+
 static ssize_t show_vid(struct device *dev, struct device_attribute *da,
 			char *buf)
 {
@@ -430,7 +405,7 @@ static ssize_t show_vid(struct device *dev, struct device_attribute *da,
 }
 static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid, NULL);
 
-/* Alarms */
+
 static ssize_t show_alarms(struct device *dev, struct device_attribute *da,
 			   char *buf)
 {
@@ -513,8 +488,7 @@ static const struct attribute_group lm78_group = {
 	.attrs = lm78_attributes,
 };
 
-/* I2C devices get this name attribute automatically, but for ISA devices
-   we must create it by ourselves. */
+
 static ssize_t show_name(struct device *dev, struct device_attribute
 			 *devattr, char *buf)
 {
@@ -524,23 +498,22 @@ static ssize_t show_name(struct device *dev, struct device_attribute
 }
 static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
 
-/* Returns 1 if the I2C chip appears to be an alias of the ISA chip */
+
 static int lm78_alias_detect(struct i2c_client *client, u8 chipid)
 {
 	struct lm78_data *isa;
 	int i;
 
-	if (!pdev)	/* No ISA chip */
+	if (!pdev)	
 		return 0;
 	isa = platform_get_drvdata(pdev);
 
 	if (lm78_read_value(isa, LM78_REG_I2C_ADDR) != client->addr)
-		return 0;	/* Address doesn't match */
+		return 0;	
 	if ((lm78_read_value(isa, LM78_REG_CHIPID) & 0xfe) != (chipid & 0xfe))
-		return 0;	/* Chip type doesn't match */
+		return 0;	
 
-	/* We compare all the limit registers, the config register and the
-	 * interrupt mask registers */
+	
 	for (i = 0x2b; i <= 0x3d; i++) {
 		if (lm78_read_value(isa, i) !=
 		    i2c_smbus_read_byte_data(client, i))
@@ -570,9 +543,7 @@ static int lm78_i2c_detect(struct i2c_client *client, int kind,
 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
 		return -ENODEV;
 
-	/* We block updates of the ISA device to minimize the risk of
-	   concurrent access to the same LM78 chip through different
-	   interfaces. */
+	
 	if (isa)
 		mutex_lock(&isa->update_lock);
 
@@ -582,17 +553,17 @@ static int lm78_i2c_detect(struct i2c_client *client, int kind,
 		    != address)
 			goto err_nodev;
 
-		/* Explicitly prevent the misdetection of Winbond chips */
+		
 		i = i2c_smbus_read_byte_data(client, 0x4f);
 		if (i == 0xa3 || i == 0x5c)
 			goto err_nodev;
 	}
 
-	/* Determine the chip type. */
+	
 	if (kind <= 0) {
 		i = i2c_smbus_read_byte_data(client, LM78_REG_CHIPID);
-		if (i == 0x00 || i == 0x20	/* LM78 */
-		 || i == 0x40)			/* LM78-J */
+		if (i == 0x00 || i == 0x20	
+		 || i == 0x40)			
 			kind = lm78;
 		else if ((i & 0xfe) == 0xc0)
 			kind = lm79;
@@ -646,10 +617,10 @@ static int lm78_i2c_probe(struct i2c_client *client,
 	data->client = client;
 	data->type = id->driver_data;
 
-	/* Initialize the LM78 chip */
+	
 	lm78_init_device(data);
 
-	/* Register sysfs hooks */
+	
 	err = sysfs_create_group(&client->dev.kobj, &lm78_group);
 	if (err)
 		goto ERROR3;
@@ -686,7 +657,7 @@ static int __devinit lm78_isa_probe(struct platform_device *pdev)
 	struct lm78_data *data;
 	struct resource *res;
 
-	/* Reserve the ISA region */
+	
 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
 	if (!request_region(res->start + LM78_ADDR_REG_OFFSET, 2, "lm78")) {
 		err = -EBUSY;
@@ -709,10 +680,10 @@ static int __devinit lm78_isa_probe(struct platform_device *pdev)
 		data->name = "lm78";
 	}
 
-	/* Initialize the LM78 chip */
+	
 	lm78_init_device(data);
 
-	/* Register sysfs hooks */
+	
 	if ((err = sysfs_create_group(&pdev->dev.kobj, &lm78_group))
 	 || (err = device_create_file(&pdev->dev, &dev_attr_name)))
 		goto exit_remove_files;
@@ -751,16 +722,12 @@ static int __devexit lm78_isa_remove(struct platform_device *pdev)
 	return 0;
 }
 
-/* The SMBus locks itself, but ISA access must be locked explicitly! 
-   We don't want to lock the whole ISA bus, so we lock each client
-   separately.
-   We ignore the LM78 BUSY flag at this moment - it could lead to deadlocks,
-   would slow down the LM78 access and should not be necessary.  */
+
 static int lm78_read_value(struct lm78_data *data, u8 reg)
 {
 	struct i2c_client *client = data->client;
 
-	if (!client) { /* ISA device */
+	if (!client) { 
 		int res;
 		mutex_lock(&data->lock);
 		outb_p(reg, data->isa_addr + LM78_ADDR_REG_OFFSET);
@@ -771,18 +738,12 @@ static int lm78_read_value(struct lm78_data *data, u8 reg)
 		return i2c_smbus_read_byte_data(client, reg);
 }
 
-/* The SMBus locks itself, but ISA access muse be locked explicitly! 
-   We don't want to lock the whole ISA bus, so we lock each client
-   separately.
-   We ignore the LM78 BUSY flag at this moment - it could lead to deadlocks,
-   would slow down the LM78 access and should not be necessary. 
-   There are some ugly typecasts here, but the good new is - they should
-   nowhere else be necessary! */
+
 static int lm78_write_value(struct lm78_data *data, u8 reg, u8 value)
 {
 	struct i2c_client *client = data->client;
 
-	if (!client) { /* ISA device */
+	if (!client) { 
 		mutex_lock(&data->lock);
 		outb_p(reg, data->isa_addr + LM78_ADDR_REG_OFFSET);
 		outb_p(value, data->isa_addr + LM78_DATA_REG_OFFSET);
@@ -797,13 +758,13 @@ static void lm78_init_device(struct lm78_data *data)
 	u8 config;
 	int i;
 
-	/* Start monitoring */
+	
 	config = lm78_read_value(data, LM78_REG_CONFIG);
 	if ((config & 0x09) != 0x01)
 		lm78_write_value(data, LM78_REG_CONFIG,
 				 (config & 0xf7) | 0x01);
 
-	/* A few vars need to be filled upon startup */
+	
 	for (i = 0; i < 3; i++) {
 		data->fan_min[i] = lm78_read_value(data,
 					LM78_REG_FAN_MIN(i));
@@ -866,15 +827,13 @@ static struct lm78_data *lm78_update_device(struct device *dev)
 	return data;
 }
 
-/* return 1 if a supported chip is found, 0 otherwise */
+
 static int __init lm78_isa_found(unsigned short address)
 {
 	int val, save, found = 0;
 	int port;
 
-	/* Some boards declare base+0 to base+7 as a PNP device, some base+4
-	 * to base+7 and some base+5 to base+6. So we better request each port
-	 * individually for the probing phase. */
+	
 	for (port = address; port < address + LM78_EXTENT; port++) {
 		if (!request_region(port, 1, "lm78")) {
 			pr_debug("lm78: Failed to request port 0x%x\n", port);
@@ -883,8 +842,7 @@ static int __init lm78_isa_found(unsigned short address)
 	}
 
 #define REALLY_SLOW_IO
-	/* We need the timeouts for at least some LM78-like
-	   chips. But only if we read 'undefined' registers. */
+	
 	val = inb_p(address + 1);
 	if (inb_p(address + 2) != val
 	 || inb_p(address + 3) != val
@@ -892,8 +850,7 @@ static int __init lm78_isa_found(unsigned short address)
 		goto release;
 #undef REALLY_SLOW_IO
 
-	/* We should be able to change the 7 LSB of the address port. The
-	   MSB (busy flag) should be clear initially, set after the write. */
+	
 	save = inb_p(address + LM78_ADDR_REG_OFFSET);
 	if (save & 0x80)
 		goto release;
@@ -904,38 +861,38 @@ static int __init lm78_isa_found(unsigned short address)
 		goto release;
 	}
 
-	/* We found a device, now see if it could be an LM78 */
+	
 	outb_p(LM78_REG_CONFIG, address + LM78_ADDR_REG_OFFSET);
 	val = inb_p(address + LM78_DATA_REG_OFFSET);
 	if (val & 0x80)
 		goto release;
 	outb_p(LM78_REG_I2C_ADDR, address + LM78_ADDR_REG_OFFSET);
 	val = inb_p(address + LM78_DATA_REG_OFFSET);
-	if (val < 0x03 || val > 0x77)	/* Not a valid I2C address */
+	if (val < 0x03 || val > 0x77)	
 		goto release;
 
-	/* The busy flag should be clear again */
+	
 	if (inb_p(address + LM78_ADDR_REG_OFFSET) & 0x80)
 		goto release;
 
-	/* Explicitly prevent the misdetection of Winbond chips */
+	
 	outb_p(0x4f, address + LM78_ADDR_REG_OFFSET);
 	val = inb_p(address + LM78_DATA_REG_OFFSET);
 	if (val == 0xa3 || val == 0x5c)
 		goto release;
 
-	/* Explicitly prevent the misdetection of ITE chips */
+	
 	outb_p(0x58, address + LM78_ADDR_REG_OFFSET);
 	val = inb_p(address + LM78_DATA_REG_OFFSET);
 	if (val == 0x90)
 		goto release;
 
-	/* Determine the chip type */
+	
 	outb_p(LM78_REG_CHIPID, address + LM78_ADDR_REG_OFFSET);
 	val = inb_p(address + LM78_DATA_REG_OFFSET);
-	if (val == 0x00 || val == 0x20	/* LM78 */
-	 || val == 0x40			/* LM78-J */
-	 || (val & 0xfe) == 0xc0)	/* LM79 */
+	if (val == 0x00 || val == 0x20	
+	 || val == 0x40			
+	 || (val & 0xfe) == 0xc0)	
 		found = 1;
 
 	if (found)
@@ -992,14 +949,13 @@ static int __init sm_lm78_init(void)
 {
 	int res;
 
-	/* We register the ISA device first, so that we can skip the
-	 * registration of an I2C interface to the same device. */
+	
 	if (lm78_isa_found(isa_address)) {
 		res = platform_driver_register(&lm78_isa_driver);
 		if (res)
 			goto exit;
 
-		/* Sets global pdev as a side effect */
+		
 		res = lm78_isa_device_add(isa_address);
 		if (res)
 			goto exit_unreg_isa_driver;

@@ -1,25 +1,4 @@
-/*
-    gl520sm.c - Part of lm_sensors, Linux kernel modules for hardware
-                monitoring
-    Copyright (c) 1998, 1999  Frodo Looijaard <frodol@dds.nl>,
-                              Kyösti Mälkki <kmalkki@cc.hut.fi>
-    Copyright (c) 2005        Maarten Deprez <maartendeprez@users.sourceforge.net>
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-*/
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -33,23 +12,20 @@
 #include <linux/mutex.h>
 #include <linux/sysfs.h>
 
-/* Type of the extra sensor */
+
 static unsigned short extra_sensor_type;
 module_param(extra_sensor_type, ushort, 0);
 MODULE_PARM_DESC(extra_sensor_type, "Type of extra sensor (0=autodetect, 1=temperature, 2=voltage)");
 
-/* Addresses to scan */
+
 static const unsigned short normal_i2c[] = { 0x2c, 0x2d, I2C_CLIENT_END };
 
-/* Insmod parameters */
+
 I2C_CLIENT_INSMOD_1(gl520sm);
 
-/* Many GL520 constants specified below
-One of the inputs can be configured as either temp or voltage.
-That's why _TEMP2 and _IN4 access the same register
-*/
 
-/* The GL520 registers */
+
+
 #define GL520_REG_CHIP_ID		0x00
 #define GL520_REG_REVISION		0x01
 #define GL520_REG_CONF			0x03
@@ -75,9 +51,7 @@ static const u8 GL520_REG_TEMP_MAX_HYST[]	= { 0x06, 0x18 };
 #define GL520_REG_BEEP_MASK		0x10
 #define GL520_REG_BEEP_ENABLE		GL520_REG_CONF
 
-/*
- * Function declarations
- */
+
 
 static int gl520_probe(struct i2c_client *client,
 		       const struct i2c_device_id *id);
@@ -89,7 +63,7 @@ static int gl520_read_value(struct i2c_client *client, u8 reg);
 static int gl520_write_value(struct i2c_client *client, u8 reg, u16 value);
 static struct gl520_data *gl520_update_device(struct device *dev);
 
-/* Driver data */
+
 static const struct i2c_device_id gl520_id[] = {
 	{ "gl520sm", gl520sm },
 	{ }
@@ -108,18 +82,18 @@ static struct i2c_driver gl520_driver = {
 	.address_data	= &addr_data,
 };
 
-/* Client data */
+
 struct gl520_data {
 	struct device *hwmon_dev;
 	struct mutex update_lock;
-	char valid;		/* zero until the following fields are valid */
-	unsigned long last_updated;	/* in jiffies */
+	char valid;		
+	unsigned long last_updated;	
 
 	u8 vid;
 	u8 vrm;
-	u8 in_input[5];		/* [0] = VVD */
-	u8 in_min[5];		/* [0] = VDD */
-	u8 in_max[5];		/* [0] = VDD */
+	u8 in_input[5];		
+	u8 in_min[5];		
+	u8 in_max[5];		
 	u8 fan_input[2];
 	u8 fan_min[2];
 	u8 fan_div[2];
@@ -134,9 +108,7 @@ struct gl520_data {
 	u8 two_temps;
 };
 
-/*
- * Sysfs stuff
- */
+
 
 static ssize_t get_cpu_vid(struct device *dev, struct device_attribute *attr,
 			   char *buf)
@@ -676,11 +648,9 @@ static const struct attribute_group gl520_group_opt = {
 };
 
 
-/*
- * Real code
- */
 
-/* Return 0 if detection is successful, -ENODEV otherwise */
+
+
 static int gl520_detect(struct i2c_client *client, int kind,
 			struct i2c_board_info *info)
 {
@@ -690,7 +660,7 @@ static int gl520_detect(struct i2c_client *client, int kind,
 				     I2C_FUNC_SMBUS_WORD_DATA))
 		return -ENODEV;
 
-	/* Determine the chip type. */
+	
 	if (kind < 0) {
 		if ((gl520_read_value(client, GL520_REG_CHIP_ID) != 0x20) ||
 		    ((gl520_read_value(client, GL520_REG_REVISION) & 0x7f) != 0x00) ||
@@ -720,10 +690,10 @@ static int gl520_probe(struct i2c_client *client,
 	i2c_set_clientdata(client, data);
 	mutex_init(&data->update_lock);
 
-	/* Initialize the GL520SM chip */
+	
 	gl520_init_client(client);
 
-	/* Register sysfs hooks */
+	
 	if ((err = sysfs_create_group(&client->dev.kobj, &gl520_group)))
 		goto exit_free;
 
@@ -772,7 +742,7 @@ exit:
 }
 
 
-/* Called when we have found a new GL520SM. */
+
 static void gl520_init_client(struct i2c_client *client)
 {
 	struct gl520_data *data = i2c_get_clientdata(client);
@@ -789,11 +759,11 @@ static void gl520_init_client(struct i2c_client *client)
 		conf |= 0x10;
 	data->two_temps = !(conf & 0x10);
 
-	/* If IRQ# is disabled, we can safely force comparator mode */
+	
 	if (!(conf & 0x20))
 		conf &= 0xf7;
 
-	/* Enable monitoring if needed */
+	
 	conf |= 0x40;
 
 	if (conf != oldconf)
@@ -823,8 +793,7 @@ static int gl520_remove(struct i2c_client *client)
 }
 
 
-/* Registers 0x07 to 0x0c are word-sized, others are byte-sized
-   GL520 uses a high-byte first convention */
+
 static int gl520_read_value(struct i2c_client *client, u8 reg)
 {
 	if ((reg >= 0x07) && (reg <= 0x0c))
@@ -891,7 +860,7 @@ static struct gl520_data *gl520_update_device(struct device *dev)
 		val = gl520_read_value(client, GL520_REG_CONF);
 		data->beep_enable = !((val >> 2) & 1);
 
-		/* Temp1 and Vin4 are the same input */
+		
 		if (data->two_temps) {
 			data->temp_input[1] = gl520_read_value(client,
 						GL520_REG_TEMP_INPUT[1]);

@@ -1,70 +1,4 @@
-/*
- * lm90.c - Part of lm_sensors, Linux kernel modules for hardware
- *          monitoring
- * Copyright (C) 2003-2008  Jean Delvare <khali@linux-fr.org>
- *
- * Based on the lm83 driver. The LM90 is a sensor chip made by National
- * Semiconductor. It reports up to two temperatures (its own plus up to
- * one external one) with a 0.125 deg resolution (1 deg for local
- * temperature) and a 3-4 deg accuracy.
- *
- * This driver also supports the LM89 and LM99, two other sensor chips
- * made by National Semiconductor. Both have an increased remote
- * temperature measurement accuracy (1 degree), and the LM99
- * additionally shifts remote temperatures (measured and limits) by 16
- * degrees, which allows for higher temperatures measurement.
- * Note that there is no way to differentiate between both chips.
- * When device is auto-detected, the driver will assume an LM99.
- *
- * This driver also supports the LM86, another sensor chip made by
- * National Semiconductor. It is exactly similar to the LM90 except it
- * has a higher accuracy.
- *
- * This driver also supports the ADM1032, a sensor chip made by Analog
- * Devices. That chip is similar to the LM90, with a few differences
- * that are not handled by this driver. Among others, it has a higher
- * accuracy than the LM90, much like the LM86 does.
- *
- * This driver also supports the MAX6657, MAX6658 and MAX6659 sensor
- * chips made by Maxim. These chips are similar to the LM86.
- * Note that there is no easy way to differentiate between the three
- * variants. The extra address and features of the MAX6659 are not
- * supported by this driver. These chips lack the remote temperature
- * offset feature.
- *
- * This driver also supports the MAX6646, MAX6647, MAX6648, MAX6649 and
- * MAX6692 chips made by Maxim.  These are again similar to the LM86,
- * but they use unsigned temperature values and can report temperatures
- * from 0 to 145 degrees.
- *
- * This driver also supports the MAX6680 and MAX6681, two other sensor
- * chips made by Maxim. These are quite similar to the other Maxim
- * chips. The MAX6680 and MAX6681 only differ in the pinout so they can
- * be treated identically.
- *
- * This driver also supports the ADT7461 chip from Analog Devices.
- * It's supported in both compatibility and extended mode. It is mostly
- * compatible with LM90 except for a data format difference for the
- * temperature value registers.
- *
- * Since the LM90 was the first chipset supported by this driver, most
- * comments will refer to this chipset, but are actually general and
- * concern all supported chipsets, unless mentioned otherwise.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -77,32 +11,17 @@
 #include <linux/mutex.h>
 #include <linux/sysfs.h>
 
-/*
- * Addresses to scan
- * Address is fully defined internally and cannot be changed except for
- * MAX6659, MAX6680 and MAX6681.
- * LM86, LM89, LM90, LM99, ADM1032, ADM1032-1, ADT7461, MAX6649, MAX6657
- * and MAX6658 have address 0x4c.
- * ADM1032-2, ADT7461-2, LM89-1, LM99-1 and MAX6646 have address 0x4d.
- * MAX6647 has address 0x4e.
- * MAX6659 can have address 0x4c, 0x4d or 0x4e (unsupported).
- * MAX6680 and MAX6681 can have address 0x18, 0x19, 0x1a, 0x29, 0x2a, 0x2b,
- * 0x4c, 0x4d or 0x4e.
- */
+
 
 static const unsigned short normal_i2c[] = {
 	0x18, 0x19, 0x1a, 0x29, 0x2a, 0x2b, 0x4c, 0x4d, 0x4e, I2C_CLIENT_END };
 
-/*
- * Insmod parameters
- */
+
 
 I2C_CLIENT_INSMOD_8(lm90, adm1032, lm99, lm86, max6657, adt7461, max6680,
 		    max6646);
 
-/*
- * The LM90 registers
- */
+
 
 #define LM90_REG_R_MAN_ID		0xFE
 #define LM90_REG_R_CHIP_ID		0xFF
@@ -139,18 +58,14 @@ I2C_CLIENT_INSMOD_8(lm90, adm1032, lm99, lm86, max6657, adt7461, max6680,
 #define LM90_REG_R_TCRIT_HYST		0x21
 #define LM90_REG_W_TCRIT_HYST		0x21
 
-/* MAX6646/6647/6649/6657/6658/6659 registers */
+
 
 #define MAX6657_REG_R_LOCAL_TEMPL	0x11
 
-/*
- * Device flags
- */
-#define LM90_FLAG_ADT7461_EXT		0x01	/* ADT7461 extended mode */
 
-/*
- * Functions declaration
- */
+#define LM90_FLAG_ADT7461_EXT		0x01	
+
+
 
 static int lm90_detect(struct i2c_client *client, int kind,
 		       struct i2c_board_info *info);
@@ -160,9 +75,7 @@ static void lm90_init_client(struct i2c_client *client);
 static int lm90_remove(struct i2c_client *client);
 static struct lm90_data *lm90_update_device(struct device *dev);
 
-/*
- * Driver data (common to all clients)
- */
+
 
 static const struct i2c_device_id lm90_id[] = {
 	{ "adm1032", adm1032 },
@@ -195,40 +108,24 @@ static struct i2c_driver lm90_driver = {
 	.address_data	= &addr_data,
 };
 
-/*
- * Client data (each client gets its own)
- */
+
 
 struct lm90_data {
 	struct device *hwmon_dev;
 	struct mutex update_lock;
-	char valid; /* zero until following fields are valid */
-	unsigned long last_updated; /* in jiffies */
+	char valid; 
+	unsigned long last_updated; 
 	int kind;
 	int flags;
 
-	/* registers values */
-	s8 temp8[4];	/* 0: local low limit
-			   1: local high limit
-			   2: local critical limit
-			   3: remote critical limit */
-	s16 temp11[5];	/* 0: remote input
-			   1: remote low limit
-			   2: remote high limit
-			   3: remote offset (except max6646 and max6657)
-			   4: local input */
+	
+	s8 temp8[4];	
+	s16 temp11[5];	
 	u8 temp_hyst;
-	u8 alarms; /* bitvector */
+	u8 alarms; 
 };
 
-/*
- * Conversions
- * For local temperatures and limits, critical limits and the hysteresis
- * value, the LM90 uses signed 8-bit values with LSB = 1 degree Celsius.
- * For remote temperatures and limits, it uses signed 11-bit values with
- * LSB = 0.125 degree Celsius, left-justified in 16-bit registers.  Some
- * Maxim chips use unsigned values.
- */
+
 
 static inline int temp_from_s8(s8 val)
 {
@@ -290,14 +187,7 @@ static u8 hyst_to_reg(long val)
 	return (val + 500) / 1000;
 }
 
-/*
- * ADT7461 in compatibility mode is almost identical to LM90 except that
- * attempts to write values that are outside the range 0 < temp < 127 are
- * treated as the boundary value.
- *
- * ADT7461 in "extended mode" operation uses unsigned integers offset by
- * 64 (e.g., 0 -> -64 degC).  The range is restricted to -64..191 degC.
- */
+
 static inline int temp_from_u8_adt7461(struct lm90_data *data, u8 val)
 {
 	if (data->flags & LM90_FLAG_ADT7461_EXT)
@@ -348,9 +238,7 @@ static u16 temp_to_u16_adt7461(struct lm90_data *data, long val)
 	}
 }
 
-/*
- * Sysfs stuff
- */
+
 
 static ssize_t show_temp8(struct device *dev, struct device_attribute *devattr,
 			  char *buf)
@@ -366,7 +254,7 @@ static ssize_t show_temp8(struct device *dev, struct device_attribute *devattr,
 	else
 		temp = temp_from_s8(data->temp8[attr->index]);
 
-	/* +16 degrees offset for temp2 for the LM99 */
+	
 	if (data->kind == lm99 && attr->index == 3)
 		temp += 16000;
 
@@ -389,7 +277,7 @@ static ssize_t set_temp8(struct device *dev, struct device_attribute *devattr,
 	long val = simple_strtol(buf, NULL, 10);
 	int nr = attr->index;
 
-	/* +16 degrees offset for temp2 for the LM99 */
+	
 	if (data->kind == lm99 && attr->index == 3)
 		val -= 16000;
 
@@ -419,7 +307,7 @@ static ssize_t show_temp11(struct device *dev, struct device_attribute *devattr,
 	else
 		temp = temp_from_s16(data->temp11[attr->index]);
 
-	/* +16 degrees offset for temp2 for the LM99 */
+	
 	if (data->kind == lm99 &&  attr->index <= 2)
 		temp += 16000;
 
@@ -444,7 +332,7 @@ static ssize_t set_temp11(struct device *dev, struct device_attribute *devattr,
 	long val = simple_strtol(buf, NULL, 10);
 	int nr = attr->index;
 
-	/* +16 degrees offset for temp2 for the LM99 */
+	
 	if (data->kind == lm99 && attr->index <= 2)
 		val -= 16000;
 
@@ -482,7 +370,7 @@ static ssize_t show_temphyst(struct device *dev, struct device_attribute *devatt
 	else
 		temp = temp_from_s8(data->temp8[attr->index]);
 
-	/* +16 degrees offset for temp2 for the LM99 */
+	
 	if (data->kind == lm99 && attr->index == 3)
 		temp += 16000;
 
@@ -549,7 +437,7 @@ static SENSOR_DEVICE_ATTR(temp2_crit_hyst, S_IRUGO, show_temphyst, NULL, 3);
 static SENSOR_DEVICE_ATTR(temp2_offset, S_IWUSR | S_IRUGO, show_temp11,
 	set_temp11, 3);
 
-/* Individual alarm files */
+
 static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, show_alarm, NULL, 0);
 static SENSOR_DEVICE_ATTR(temp2_crit_alarm, S_IRUGO, show_alarm, NULL, 1);
 static SENSOR_DEVICE_ATTR(temp2_fault, S_IRUGO, show_alarm, NULL, 2);
@@ -557,7 +445,7 @@ static SENSOR_DEVICE_ATTR(temp2_min_alarm, S_IRUGO, show_alarm, NULL, 3);
 static SENSOR_DEVICE_ATTR(temp2_max_alarm, S_IRUGO, show_alarm, NULL, 4);
 static SENSOR_DEVICE_ATTR(temp1_min_alarm, S_IRUGO, show_alarm, NULL, 5);
 static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, show_alarm, NULL, 6);
-/* Raw alarm file for compatibility */
+
 static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
 
 static struct attribute *lm90_attributes[] = {
@@ -587,7 +475,7 @@ static const struct attribute_group lm90_group = {
 	.attrs = lm90_attributes,
 };
 
-/* pec used for ADM1032 only */
+
 static ssize_t show_pec(struct device *dev, struct device_attribute *dummy,
 			char *buf)
 {
@@ -617,12 +505,9 @@ static ssize_t set_pec(struct device *dev, struct device_attribute *dummy,
 
 static DEVICE_ATTR(pec, S_IWUSR | S_IRUGO, show_pec, set_pec);
 
-/*
- * Real code
- */
 
-/* The ADM1032 supports PEC but not on write byte transactions, so we need
-   to explicitly ask for a transaction without PEC. */
+
+
 static inline s32 adm1032_write_byte(struct i2c_client *client, u8 value)
 {
 	return i2c_smbus_xfer(client->adapter, client->addr,
@@ -630,10 +515,7 @@ static inline s32 adm1032_write_byte(struct i2c_client *client, u8 value)
 			      I2C_SMBUS_WRITE, value, I2C_SMBUS_BYTE, NULL);
 }
 
-/* It is assumed that client->update_lock is held (unless we are in
-   detection or initialization steps). This matters when PEC is enabled,
-   because we don't want the address pointer to change between the write
-   byte and the read byte transactions. */
+
 static int lm90_read_reg(struct i2c_client* client, u8 reg, u8 *value)
 {
 	int err;
@@ -655,7 +537,7 @@ static int lm90_read_reg(struct i2c_client* client, u8 reg, u8 *value)
 	return 0;
 }
 
-/* Return 0 if detection is successful, -ENODEV otherwise */
+
 static int lm90_detect(struct i2c_client *new_client, int kind,
 		       struct i2c_board_info *info)
 {
@@ -666,22 +548,13 @@ static int lm90_detect(struct i2c_client *new_client, int kind,
 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
 		return -ENODEV;
 
-	/*
-	 * Now we do the remaining detection. A negative kind means that
-	 * the driver was loaded with no force parameter (default), so we
-	 * must both detect and identify the chip. A zero kind means that
-	 * the driver was loaded with the force parameter, the detection
-	 * step shall be skipped. A positive kind means that the driver
-	 * was loaded with the force parameter and a given kind of chip is
-	 * requested, so both the detection and the identification steps
-	 * are skipped.
-	 */
+	
 
-	/* Default to an LM90 if forced */
+	
 	if (kind == 0)
 		kind = lm90;
 
-	if (kind < 0) { /* detection and identification */
+	if (kind < 0) { 
 		int man_id, chip_id, reg_config1, reg_convrate;
 
 		if ((man_id = i2c_smbus_read_byte_data(new_client,
@@ -695,7 +568,7 @@ static int lm90_detect(struct i2c_client *new_client, int kind,
 			return -ENODEV;
 		
 		if ((address == 0x4C || address == 0x4D)
-		 && man_id == 0x01) { /* National Semiconductor */
+		 && man_id == 0x01) { 
 			int reg_config2;
 
 			if ((reg_config2 = i2c_smbus_read_byte_data(new_client,
@@ -706,10 +579,10 @@ static int lm90_detect(struct i2c_client *new_client, int kind,
 			 && (reg_config2 & 0xF8) == 0x00
 			 && reg_convrate <= 0x09) {
 				if (address == 0x4C
-				 && (chip_id & 0xF0) == 0x20) { /* LM90 */
+				 && (chip_id & 0xF0) == 0x20) { 
 					kind = lm90;
 				} else
-				if ((chip_id & 0xF0) == 0x30) { /* LM89/LM99 */
+				if ((chip_id & 0xF0) == 0x30) { 
 					kind = lm99;
 					dev_info(&adapter->dev,
 						 "Assuming LM99 chip at "
@@ -722,56 +595,39 @@ static int lm90_detect(struct i2c_client *new_client, int kind,
 						 address);
 				} else
 				if (address == 0x4C
-				 && (chip_id & 0xF0) == 0x10) { /* LM86 */
+				 && (chip_id & 0xF0) == 0x10) { 
 					kind = lm86;
 				}
 			}
 		} else
 		if ((address == 0x4C || address == 0x4D)
-		 && man_id == 0x41) { /* Analog Devices */
-			if ((chip_id & 0xF0) == 0x40 /* ADM1032 */
+		 && man_id == 0x41) { 
+			if ((chip_id & 0xF0) == 0x40 
 			 && (reg_config1 & 0x3F) == 0x00
 			 && reg_convrate <= 0x0A) {
 				kind = adm1032;
 			} else
-			if (chip_id == 0x51 /* ADT7461 */
+			if (chip_id == 0x51 
 			 && (reg_config1 & 0x1B) == 0x00
 			 && reg_convrate <= 0x0A) {
 				kind = adt7461;
 			}
 		} else
-		if (man_id == 0x4D) { /* Maxim */
-			/*
-			 * The MAX6657, MAX6658 and MAX6659 do NOT have a
-			 * chip_id register. Reading from that address will
-			 * return the last read value, which in our case is
-			 * those of the man_id register. Likewise, the config1
-			 * register seems to lack a low nibble, so the value
-			 * will be those of the previous read, so in our case
-			 * those of the man_id register.
-			 */
+		if (man_id == 0x4D) { 
+			
 			if (chip_id == man_id
 			 && (address == 0x4C || address == 0x4D)
 			 && (reg_config1 & 0x1F) == (man_id & 0x0F)
 			 && reg_convrate <= 0x09) {
 			 	kind = max6657;
 			} else
-			/* The chip_id register of the MAX6680 and MAX6681
-			 * holds the revision of the chip.
-			 * the lowest bit of the config1 register is unused
-			 * and should return zero when read, so should the
-			 * second to last bit of config1 (software reset)
-			 */
+			
 			if (chip_id == 0x01
 			 && (reg_config1 & 0x03) == 0x00
 			 && reg_convrate <= 0x07) {
 			 	kind = max6680;
 			} else
-			/* The chip_id register of the MAX6646/6647/6649
-			 * holds the revision of the chip.
-			 * The lowest 6 bits of the config1 register are
-			 * unused and should return zero when read.
-			 */
+			
 			if (chip_id == 0x59
 			 && (reg_config1 & 0x3f) == 0x00
 			 && reg_convrate <= 0x07) {
@@ -779,7 +635,7 @@ static int lm90_detect(struct i2c_client *new_client, int kind,
 			}
 		}
 
-		if (kind <= 0) { /* identification failed */
+		if (kind <= 0) { 
 			dev_dbg(&adapter->dev,
 				"Unsupported chip at 0x%02x (man_id=0x%02X, "
 				"chip_id=0x%02X)\n", address, man_id, chip_id);
@@ -787,13 +643,12 @@ static int lm90_detect(struct i2c_client *new_client, int kind,
 		}
 	}
 
-	/* Fill the i2c board info */
+	
 	if (kind == lm90) {
 		name = "lm90";
 	} else if (kind == adm1032) {
 		name = "adm1032";
-		/* The ADM1032 supports PEC, but only if combined
-		   transactions are not used. */
+		
 		if (i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE))
 			info->flags |= I2C_CLIENT_PEC;
 	} else if (kind == lm99) {
@@ -829,17 +684,17 @@ static int lm90_probe(struct i2c_client *new_client,
 	i2c_set_clientdata(new_client, data);
 	mutex_init(&data->update_lock);
 
-	/* Set the device type */
+	
 	data->kind = id->driver_data;
 	if (data->kind == adm1032) {
 		if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE))
 			new_client->flags &= ~I2C_CLIENT_PEC;
 	}
 
-	/* Initialize the LM90 chip */
+	
 	lm90_init_client(new_client);
 
-	/* Register sysfs hooks */
+	
 	if ((err = sysfs_create_group(&new_client->dev.kobj, &lm90_group)))
 		goto exit_free;
 	if (new_client->flags & I2C_CLIENT_PEC) {
@@ -875,34 +730,28 @@ static void lm90_init_client(struct i2c_client *client)
 	u8 config, config_orig;
 	struct lm90_data *data = i2c_get_clientdata(client);
 
-	/*
-	 * Start the conversions.
-	 */
+	
 	i2c_smbus_write_byte_data(client, LM90_REG_W_CONVRATE,
-				  5); /* 2 Hz */
+				  5); 
 	if (lm90_read_reg(client, LM90_REG_R_CONFIG1, &config) < 0) {
 		dev_warn(&client->dev, "Initialization failed!\n");
 		return;
 	}
 	config_orig = config;
 
-	/* Check Temperature Range Select */
+	
 	if (data->kind == adt7461) {
 		if (config & 0x04)
 			data->flags |= LM90_FLAG_ADT7461_EXT;
 	}
 
-	/*
-	 * Put MAX6680/MAX8881 into extended resolution (bit 0x10,
-	 * 0.125 degree resolution) and range (0x08, extend range
-	 * to -64 degree) mode for the remote temperature sensor.
-	 */
+	
 	if (data->kind == max6680) {
 		config |= 0x18;
 	}
 
-	config &= 0xBF;	/* run */
-	if (config != config_orig) /* Only write if changed */
+	config &= 0xBF;	
+	if (config != config_orig) 
 		i2c_smbus_write_byte_data(client, LM90_REG_W_CONFIG1, config);
 }
 
@@ -926,19 +775,7 @@ static int lm90_read16(struct i2c_client *client, u8 regh, u8 regl, u16 *value)
 	int err;
 	u8 oldh, newh, l;
 
-	/*
-	 * There is a trick here. We have to read two registers to have the
-	 * sensor temperature, but we have to beware a conversion could occur
-	 * inbetween the readings. The datasheet says we should either use
-	 * the one-shot conversion register, which we don't want to do
-	 * (disables hardware monitoring) or monitor the busy bit, which is
-	 * impossible (we can't read the values and monitor that bit at the
-	 * exact same time). So the solution used here is to read the high
-	 * byte once, then the low byte, then the high byte again. If the new
-	 * high byte matches the old one, then we have a valid reading. Else
-	 * we have to read the low byte again, and now we believe we have a
-	 * correct reading.
-	 */
+	
 	if ((err = lm90_read_reg(client, regh, &oldh))
 	 || (err = lm90_read_reg(client, regl, &l))
 	 || (err = lm90_read_reg(client, regh, &newh)))

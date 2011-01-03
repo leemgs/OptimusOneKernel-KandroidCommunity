@@ -1,12 +1,4 @@
-/*
- * lis3lv02d_spi - SPI glue layer for lis3lv02d
- *
- * Copyright (c) 2009 Daniel Mack <daniel@caiaq.de>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  publishhed by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -45,7 +37,7 @@ static int lis3_spi_init(struct lis3lv02d *lis3)
 	u8 reg;
 	int ret;
 
-	/* power up the device */
+	
 	ret = lis3->read(lis3, CTRL_REG1, &reg);
 	if (ret < 0)
 		return ret;

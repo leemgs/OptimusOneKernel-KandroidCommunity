@@ -1,30 +1,4 @@
-/*
-    smsc47m1.c - Part of lm_sensors, Linux kernel modules
-                 for hardware monitoring
 
-    Supports the SMSC LPC47B27x, LPC47M10x, LPC47M112, LPC47M13x,
-    LPC47M14x, LPC47M15x, LPC47M192, LPC47M292 and LPC47M997
-    Super-I/O chips.
-
-    Copyright (C) 2002 Mark D. Studebaker <mdsxyz123@yahoo.com>
-    Copyright (C) 2004-2007 Jean Delvare <khali@linux-fr.org>
-    Ported to Linux 2.6 by Gabriele Gorla <gorlik@yahoo.com>
-                        and Jean Delvare
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/
 
 #include <linux/module.h>
 #include <linux/slab.h>
@@ -49,10 +23,10 @@ static struct platform_device *pdev;
 #define DRVNAME "smsc47m1"
 enum chips { smsc47m1, smsc47m2 };
 
-/* Super-I/0 registers and commands */
 
-#define	REG	0x2e	/* The register to read/write */
-#define	VAL	0x2f	/* The value to read/write */
+
+#define	REG	0x2e	
+#define	VAL	0x2f	
 
 static inline void
 superio_outb(int reg, int val)
@@ -68,7 +42,7 @@ superio_inb(int reg)
 	return inb(VAL);
 }
 
-/* logical device for fans is 0x0A */
+
 #define superio_select() superio_outb(0x07, 0x0A)
 
 static inline void
@@ -88,11 +62,11 @@ superio_exit(void)
 #define SUPERIO_REG_DEVID	0x20
 #define SUPERIO_REG_DEVREV	0x21
 
-/* Logical device registers */
+
 
 #define SMSC_EXTENT		0x80
 
-/* nr is 0 or 1 in the macros below */
+
 #define SMSC47M1_REG_ALARM		0x04
 #define SMSC47M1_REG_TPIN(nr)		(0x34 - (nr))
 #define SMSC47M1_REG_PPIN(nr)		(0x36 - (nr))
@@ -125,13 +99,13 @@ struct smsc47m1_data {
 	struct device *hwmon_dev;
 
 	struct mutex update_lock;
-	unsigned long last_updated;	/* In jiffies */
+	unsigned long last_updated;	
 
-	u8 fan[3];		/* Register value */
-	u8 fan_preload[3];	/* Register value */
-	u8 fan_div[3];		/* Register encoding, shifted right */
-	u8 alarms;		/* Register encoding */
-	u8 pwm[3];		/* Register value (bit 0 is disable) */
+	u8 fan[3];		
+	u8 fan_preload[3];	
+	u8 fan_div[3];		
+	u8 alarms;		
+	u8 pwm[3];		
 };
 
 struct smsc47m1_sio_data {
@@ -170,10 +144,7 @@ static ssize_t get_fan(struct device *dev, struct device_attribute
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
 	struct smsc47m1_data *data = smsc47m1_update_device(dev, 0);
 	int nr = attr->index;
-	/* This chip (stupidly) stops monitoring fan speed if PWM is
-	   enabled and duty cycle is 0%. This is fine if the monitoring
-	   and control concern the same fan, but troublesome if they are
-	   not (which could as well happen). */
+	
 	int rpm = (data->pwm[nr] & 0x7F) == 0x00 ? 0 :
 		  FAN_FROM_REG(data->fan[nr],
 			       DIV_FROM_REG(data->fan_div[nr]),
@@ -255,10 +226,7 @@ static ssize_t set_fan_min(struct device *dev, struct device_attribute
 	return count;
 }
 
-/* Note: we save and restore the fan minimum here, because its value is
-   determined in part by the fan clock divider.  This follows the principle
-   of least surprise; the user doesn't expect the fan minimum to change just
-   because the divider changed. */
+
 static ssize_t set_fan_div(struct device *dev, struct device_attribute
 			   *devattr, const char *buf, size_t count)
 {
@@ -268,7 +236,7 @@ static ssize_t set_fan_div(struct device *dev, struct device_attribute
 	long new_div = simple_strtol(buf, NULL, 10), tmp;
 	u8 old_div = DIV_FROM_REG(data->fan_div[nr]);
 
-	if (new_div == old_div) /* No change */
+	if (new_div == old_div) 
 		return count;
 
 	mutex_lock(&data->update_lock);
@@ -297,7 +265,7 @@ static ssize_t set_fan_div(struct device *dev, struct device_attribute
 		break;
 	}
 
-	/* Preserve fan min */
+	
 	tmp = 192 - (old_div * (192 - data->fan_preload[nr])
 		     + new_div / 2) / new_div;
 	data->fan_preload[nr] = SENSORS_LIMIT(tmp, 0, 191);
@@ -320,7 +288,7 @@ static ssize_t set_pwm(struct device *dev, struct device_attribute
 		return -EINVAL;
 
 	mutex_lock(&data->update_lock);
-	data->pwm[nr] &= 0x81; /* Preserve additional bits */
+	data->pwm[nr] &= 0x81; 
 	data->pwm[nr] |= PWM_TO_REG(val);
 	smsc47m1_write_value(data, SMSC47M1_REG_PWM[nr],
 			     data->pwm[nr]);
@@ -341,7 +309,7 @@ static ssize_t set_pwm_en(struct device *dev, struct device_attribute
 		return -EINVAL;
 
 	mutex_lock(&data->update_lock);
-	data->pwm[nr] &= 0xFE; /* preserve the other bits */
+	data->pwm[nr] &= 0xFE; 
 	data->pwm[nr] |= !val;
 	smsc47m1_write_value(data, SMSC47M1_REG_PWM[nr],
 			     data->pwm[nr]);
@@ -379,9 +347,7 @@ static ssize_t show_name(struct device *dev, struct device_attribute
 }
 static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
 
-/* Almost all sysfs files may or may not be created depending on the chip
-   setup so we create them individually. It is still convenient to define a
-   group to remove them all at once. */
+
 static struct attribute *smsc47m1_attributes[] = {
 	&sensor_dev_attr_fan1_input.dev_attr.attr,
 	&sensor_dev_attr_fan1_min.dev_attr.attr,
@@ -420,20 +386,7 @@ static int __init smsc47m1_find(unsigned short *addr,
 	superio_enter();
 	val = force_id ? force_id : superio_inb(SUPERIO_REG_DEVID);
 
-	/*
-	 * SMSC LPC47M10x/LPC47M112/LPC47M13x (device id 0x59), LPC47M14x
-	 * (device id 0x5F) and LPC47B27x (device id 0x51) have fan control.
-	 * The LPC47M15x and LPC47M192 chips "with hardware monitoring block"
-	 * can do much more besides (device id 0x60).
-	 * The LPC47M997 is undocumented, but seems to be compatible with
-	 * the LPC47M192, and has the same device id.
-	 * The LPC47M292 (device id 0x6B) is somewhat compatible, but it
-	 * supports a 3rd fan, and the pin configuration registers are
-	 * unfortunately different.
-	 * The LPC47M233 has the same device id (0x6B) but is not compatible.
-	 * We check the high bit of the device revision register to
-	 * differentiate them.
-	 */
+	
 	switch (val) {
 	case 0x51:
 		pr_info(DRVNAME ": Found SMSC LPC47B27x\n");
@@ -514,8 +467,7 @@ static int __devinit smsc47m1_probe(struct platform_device *pdev)
 	mutex_init(&data->update_lock);
 	platform_set_drvdata(pdev, data);
 
-	/* If no function is properly configured, there's no point in
-	   actually registering the chip. */
+	
 	pwm1 = (smsc47m1_read_value(data, SMSC47M1_REG_PPIN(0)) & 0x05)
 	       == 0x04;
 	pwm2 = (smsc47m1_read_value(data, SMSC47M1_REG_PPIN(1)) & 0x05)
@@ -543,15 +495,10 @@ static int __devinit smsc47m1_probe(struct platform_device *pdev)
 		goto error_free;
 	}
 
-	/* Some values (fan min, clock dividers, pwm registers) may be
-	   needed before any update is triggered, so we better read them
-	   at least once here. We don't usually do it that way, but in
-	   this particular case, manually reading 5 registers out of 8
-	   doesn't make much sense and we're better using the existing
-	   function. */
+	
 	smsc47m1_update_device(dev, 1);
 
-	/* Register sysfs hooks */
+	
 	if (fan1) {
 		if ((err = device_create_file(dev,
 				&sensor_dev_attr_fan1_input.dev_attr))
@@ -683,7 +630,7 @@ static struct smsc47m1_data *smsc47m1_update_device(struct device *dev,
 
 		data->alarms = smsc47m1_read_value(data,
 			       SMSC47M1_REG_ALARM) >> 6;
-		/* Clear alarms if needed */
+		
 		if (data->alarms)
 			smsc47m1_write_value(data, SMSC47M1_REG_ALARM, 0xC0);
 
@@ -692,7 +639,7 @@ static struct smsc47m1_data *smsc47m1_update_device(struct device *dev,
 					    SMSC47M2_REG_FANDIV3) >> 4) & 0x03;
 			data->alarms |= (smsc47m1_read_value(data,
 					 SMSC47M2_REG_ALARM6) & 0x40) >> 4;
-			/* Clear alarm if needed */
+			
 			if (data->alarms & 0x04)
 				smsc47m1_write_value(data,
 						     SMSC47M2_REG_ALARM6,
@@ -770,7 +717,7 @@ static int __init sm_smsc47m1_init(void)
 	if (err)
 		goto exit;
 
-	/* Sets global pdev as a side effect */
+	
 	err = smsc47m1_device_add(address, &sio_data);
 	if (err)
 		goto exit_driver;

@@ -1,25 +1,4 @@
-/*
-    ds1621.c - Part of lm_sensors, Linux kernel modules for hardware
-             monitoring
-    Christian W. Zuckschwerdt  <zany@triq.net>  2000-11-23
-    based on lm75.c by Frodo Looijaard <frodol@dds.nl>
-    Ported to Linux 2.6 by Aurelien Jarno <aurelien@aurel32.net> with 
-    the help of Jean Delvare <khali@linux-fr.org>
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -33,57 +12,55 @@
 #include <linux/sysfs.h>
 #include "lm75.h"
 
-/* Addresses to scan */
+
 static const unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4b, 0x4c,
 					0x4d, 0x4e, 0x4f, I2C_CLIENT_END };
 
-/* Insmod parameters */
+
 I2C_CLIENT_INSMOD_1(ds1621);
 static int polarity = -1;
 module_param(polarity, int, 0);
 MODULE_PARM_DESC(polarity, "Output's polarity: 0 = active high, 1 = active low");
 
-/* Many DS1621 constants specified below */
-/* Config register used for detection         */
-/*  7    6    5    4    3    2    1    0      */
-/* |Done|THF |TLF |NVB | X  | X  |POL |1SHOT| */
+
+
+
+
 #define DS1621_REG_CONFIG_NVB		0x10
 #define DS1621_REG_CONFIG_POLARITY	0x02
 #define DS1621_REG_CONFIG_1SHOT		0x01
 #define DS1621_REG_CONFIG_DONE		0x80
 
-/* The DS1621 registers */
-static const u8 DS1621_REG_TEMP[3] = {
-	0xAA,		/* input, word, RO */
-	0xA2,		/* min, word, RW */
-	0xA1,		/* max, word, RW */
-};
-#define DS1621_REG_CONF			0xAC /* byte, RW */
-#define DS1621_COM_START		0xEE /* no data */
-#define DS1621_COM_STOP			0x22 /* no data */
 
-/* The DS1621 configuration register */
+static const u8 DS1621_REG_TEMP[3] = {
+	0xAA,		
+	0xA2,		
+	0xA1,		
+};
+#define DS1621_REG_CONF			0xAC 
+#define DS1621_COM_START		0xEE 
+#define DS1621_COM_STOP			0x22 
+
+
 #define DS1621_ALARM_TEMP_HIGH		0x40
 #define DS1621_ALARM_TEMP_LOW		0x20
 
-/* Conversions */
+
 #define ALARMS_FROM_REG(val) ((val) & \
                               (DS1621_ALARM_TEMP_HIGH | DS1621_ALARM_TEMP_LOW))
 
-/* Each client has this additional data */
+
 struct ds1621_data {
 	struct device *hwmon_dev;
 	struct mutex update_lock;
-	char valid;			/* !=0 if following fields are valid */
-	unsigned long last_updated;	/* In jiffies */
+	char valid;			
+	unsigned long last_updated;	
 
-	u16 temp[3];			/* Register values, word */
-	u8 conf;			/* Register encoding, combined */
+	u16 temp[3];			
+	u8 conf;			
 };
 
-/* Temperature registers are word-sized.
-   DS1621 uses a high-byte first convention, which is exactly opposite to
-   the SMBus standard. */
+
 static int ds1621_read_temp(struct i2c_client *client, u8 reg)
 {
 	int ret;
@@ -104,10 +81,10 @@ static void ds1621_init_client(struct i2c_client *client)
 	u8 conf, new_conf;
 
 	new_conf = conf = i2c_smbus_read_byte_data(client, DS1621_REG_CONF);
-	/* switch to continuous conversion mode */
+	
 	new_conf &= ~DS1621_REG_CONFIG_1SHOT;
 
-	/* setup output polarity */
+	
 	if (polarity == 0)
 		new_conf &= ~DS1621_REG_CONFIG_POLARITY;
 	else if (polarity == 1)
@@ -116,7 +93,7 @@ static void ds1621_init_client(struct i2c_client *client)
 	if (conf != new_conf)
 		i2c_smbus_write_byte_data(client, DS1621_REG_CONF, new_conf);
 	
-	/* start conversion */
+	
 	i2c_smbus_write_byte(client, DS1621_COM_START);
 }
 
@@ -140,11 +117,11 @@ static struct ds1621_data *ds1621_update_client(struct device *dev)
 			data->temp[i] = ds1621_read_temp(client,
 							 DS1621_REG_TEMP[i]);
 
-		/* reset alarms if necessary */
+		
 		new_conf = data->conf;
-		if (data->temp[0] > data->temp[1])	/* input > min */
+		if (data->temp[0] > data->temp[1])	
 			new_conf &= ~DS1621_ALARM_TEMP_LOW;
-		if (data->temp[0] < data->temp[2])	/* input < max */
+		if (data->temp[0] < data->temp[2])	
 			new_conf &= ~DS1621_ALARM_TEMP_HIGH;
 		if (data->conf != new_conf)
 			i2c_smbus_write_byte_data(client, DS1621_REG_CONF,
@@ -223,7 +200,7 @@ static const struct attribute_group ds1621_group = {
 };
 
 
-/* Return 0 if detection is successful, -ENODEV otherwise */
+
 static int ds1621_detect(struct i2c_client *client, int kind,
 			 struct i2c_board_info *info)
 {
@@ -236,15 +213,13 @@ static int ds1621_detect(struct i2c_client *client, int kind,
 				     | I2C_FUNC_SMBUS_WRITE_BYTE))
 		return -ENODEV;
 
-	/* Now, we do the remaining detection. It is lousy. */
+	
 	if (kind < 0) {
-		/* The NVB bit should be low if no EEPROM write has been 
-		   requested during the latest 10ms, which is highly 
-		   improbable in our case. */
+		
 		conf = i2c_smbus_read_byte_data(client, DS1621_REG_CONF);
 		if (conf < 0 || conf & DS1621_REG_CONFIG_NVB)
 			return -ENODEV;
-		/* The 7 lowest bits of a temperature should always be 0. */
+		
 		for (i = 0; i < ARRAY_SIZE(DS1621_REG_TEMP); i++) {
 			temp = i2c_smbus_read_word_data(client,
 							DS1621_REG_TEMP[i]);
@@ -273,10 +248,10 @@ static int ds1621_probe(struct i2c_client *client,
 	i2c_set_clientdata(client, data);
 	mutex_init(&data->update_lock);
 
-	/* Initialize the DS1621 chip */
+	
 	ds1621_init_client(client);
 
-	/* Register sysfs hooks */
+	
 	if ((err = sysfs_create_group(&client->dev.kobj, &ds1621_group)))
 		goto exit_free;
 
@@ -315,7 +290,7 @@ static const struct i2c_device_id ds1621_id[] = {
 };
 MODULE_DEVICE_TABLE(i2c, ds1621_id);
 
-/* This is the driver that will be inserted */
+
 static struct i2c_driver ds1621_driver = {
 	.class		= I2C_CLASS_HWMON,
 	.driver = {

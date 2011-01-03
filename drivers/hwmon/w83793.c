@@ -1,30 +1,6 @@
-/*
-    w83793.c - Linux kernel driver for hardware monitoring
-    Copyright (C) 2006 Winbond Electronics Corp.
-                  Yuan Mu
-                  Rudolf Marek <r.marek@assembler.cz>
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation - version 2.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301 USA.
-*/
-
-/*
-    Supports following chips:
-
-    Chip	#vin	#fanin	#pwm	#temp	wchipid	vendid	i2c	ISA
-    w83793	10	12	8	6	0x7b	0x5ca3	yes	no
-*/
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -36,11 +12,11 @@
 #include <linux/err.h>
 #include <linux/mutex.h>
 
-/* Addresses to scan */
+
 static const unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, 0x2f,
 						I2C_CLIENT_END };
 
-/* Insmod parameters */
+
 I2C_CLIENT_INSMOD_1(w83793);
 
 static unsigned short force_subclients[4];
@@ -52,10 +28,7 @@ static int reset;
 module_param(reset, bool, 0);
 MODULE_PARM_DESC(reset, "Set to 1 to reset chip, not recommended");
 
-/*
-   Address 0x00, 0x0d, 0x0e, 0x0f in all three banks are reserved
-   as ID, Bank Select registers
-*/
+
 #define W83793_REG_BANKSEL		0x00
 #define W83793_REG_VENDORID		0x0d
 #define W83793_REG_CHIPID		0x0e
@@ -80,8 +53,7 @@ static u16 W83793_REG_TEMP_MODE[2] = { 0x5e, 0x5f };
 #define TEMP_CRIT_HYST	2
 #define TEMP_WARN	3
 #define TEMP_WARN_HYST	4
-/* only crit and crit_hyst affect real-time alarm status
-   current crit crit_hyst warn warn_hyst */
+
 static u16 W83793_REG_TEMP[][5] = {
 	{0x1c, 0x78, 0x79, 0x7a, 0x7b},
 	{0x1d, 0x7c, 0x7d, 0x7e, 0x7f},
@@ -96,7 +68,7 @@ static u16 W83793_REG_TEMP[][5] = {
 #define W83793_REG_BEEP(index)		(0x53 + (index))
 #define W83793_REG_ALARM(index)		(0x4b + (index))
 
-#define W83793_REG_CLR_CHASSIS		0x4a	/* SMI MASK4 */
+#define W83793_REG_CLR_CHASSIS		0x4a	
 #define W83793_REG_IRQ_CTRL		0x50
 #define W83793_REG_OVT_CTRL		0x51
 #define W83793_REG_OVT_BEEP		0x52
@@ -105,31 +77,31 @@ static u16 W83793_REG_TEMP[][5] = {
 #define IN_MAX				1
 #define IN_LOW				2
 static const u16 W83793_REG_IN[][3] = {
-	/* Current, High, Low */
-	{0x10, 0x60, 0x61},	/* Vcore A	*/
-	{0x11, 0x62, 0x63},	/* Vcore B	*/
-	{0x12, 0x64, 0x65},	/* Vtt		*/
-	{0x14, 0x6a, 0x6b},	/* VSEN1	*/
-	{0x15, 0x6c, 0x6d},	/* VSEN2	*/
-	{0x16, 0x6e, 0x6f},	/* +3VSEN	*/
-	{0x17, 0x70, 0x71},	/* +12VSEN	*/
-	{0x18, 0x72, 0x73},	/* 5VDD		*/
-	{0x19, 0x74, 0x75},	/* 5VSB		*/
-	{0x1a, 0x76, 0x77},	/* VBAT		*/
+	
+	{0x10, 0x60, 0x61},	
+	{0x11, 0x62, 0x63},	
+	{0x12, 0x64, 0x65},	
+	{0x14, 0x6a, 0x6b},	
+	{0x15, 0x6c, 0x6d},	
+	{0x16, 0x6e, 0x6f},	
+	{0x17, 0x70, 0x71},	
+	{0x18, 0x72, 0x73},	
+	{0x19, 0x74, 0x75},	
+	{0x1a, 0x76, 0x77},	
 };
 
-/* Low Bits of Vcore A/B Vtt Read/High/Low */
+
 static const u16 W83793_REG_IN_LOW_BITS[] = { 0x1b, 0x68, 0x69 };
 static u8 scale_in[] = { 2, 2, 2, 16, 16, 16, 8, 24, 24, 16 };
 static u8 scale_in_add[] = { 0, 0, 0, 0, 0, 0, 0, 150, 150, 0 };
 
-#define W83793_REG_FAN(index)		(0x23 + 2 * (index))	/* High byte */
-#define W83793_REG_FAN_MIN(index)	(0x90 + 2 * (index))	/* High byte */
+#define W83793_REG_FAN(index)		(0x23 + 2 * (index))	
+#define W83793_REG_FAN_MIN(index)	(0x90 + 2 * (index))	
 
 #define W83793_REG_PWM_DEFAULT		0xb2
 #define W83793_REG_PWM_ENABLE		0x207
-#define W83793_REG_PWM_UPTIME		0xc3	/* Unit in 0.1 second */
-#define W83793_REG_PWM_DOWNTIME		0xc4	/* Unit in 0.1 second */
+#define W83793_REG_PWM_UPTIME		0xc3	
+#define W83793_REG_PWM_DOWNTIME		0xc4	
 #define W83793_REG_TEMP_CRITICAL	0xc5
 
 #define PWM_DUTY			0
@@ -139,7 +111,7 @@ static u8 scale_in_add[] = { 0, 0, 0, 0, 0, 0, 0, 150, 150, 0 };
 #define W83793_REG_PWM(index, nr)	(((nr) == 0 ? 0xb3 : \
 					 (nr) == 1 ? 0x220 : 0x218) + (index))
 
-/* bit field, fan1 is bit0, fan2 is bit1 ... */
+
 #define W83793_REG_TEMP_FAN_MAP(index)	(0x201 + (index))
 #define W83793_REG_TEMP_TOL(index)	(0x208 + (index))
 #define W83793_REG_TEMP_CRUISE(index)	(0x210 + (index))
@@ -185,45 +157,43 @@ struct w83793_data {
 	struct i2c_client *lm75[2];
 	struct device *hwmon_dev;
 	struct mutex update_lock;
-	char valid;			/* !=0 if following fields are valid */
-	unsigned long last_updated;	/* In jiffies */
-	unsigned long last_nonvolatile;	/* In jiffies, last time we update the
-					   nonvolatile registers */
+	char valid;			
+	unsigned long last_updated;	
+	unsigned long last_nonvolatile;	
 
 	u8 bank;
 	u8 vrm;
 	u8 vid[2];
-	u8 in[10][3];		/* Register value, read/high/low */
-	u8 in_low_bits[3];	/* Additional resolution for VCore A/B Vtt */
+	u8 in[10][3];		
+	u8 in_low_bits[3];	
 
-	u16 has_fan;		/* Only fan1- fan5 has own pins */
-	u16 fan[12];		/* Register value combine */
-	u16 fan_min[12];	/* Register value combine */
+	u16 has_fan;		
+	u16 fan[12];		
+	u16 fan_min[12];	
 
-	s8 temp[6][5];		/* current, crit, crit_hyst,warn, warn_hyst */
-	u8 temp_low_bits;	/* Additional resolution TD1-TD4 */
-	u8 temp_mode[2];	/* byte 0: Temp D1-D4 mode each has 2 bits
-				   byte 1: Temp R1,R2 mode, each has 1 bit */
-	u8 temp_critical;	/* If reached all fan will be at full speed */
-	u8 temp_fan_map[6];	/* Temp controls which pwm fan, bit field */
+	s8 temp[6][5];		
+	u8 temp_low_bits;	
+	u8 temp_mode[2];	
+	u8 temp_critical;	
+	u8 temp_fan_map[6];	
 
 	u8 has_pwm;
 	u8 has_temp;
 	u8 has_vid;
-	u8 pwm_enable;		/* Register value, each Temp has 1 bit */
-	u8 pwm_uptime;		/* Register value */
-	u8 pwm_downtime;	/* Register value */
-	u8 pwm_default;		/* All fan default pwm, next poweron valid */
-	u8 pwm[8][3];		/* Register value */
+	u8 pwm_enable;		
+	u8 pwm_uptime;		
+	u8 pwm_downtime;	
+	u8 pwm_default;		
+	u8 pwm[8][3];		
 	u8 pwm_stop_time[8];
 	u8 temp_cruise[6];
 
-	u8 alarms[5];		/* realtime status registers */
+	u8 alarms[5];		
 	u8 beeps[5];
 	u8 beep_enable;
-	u8 tolerance[3];	/* Temp tolerance(Smart Fan I/II) */
-	u8 sf2_pwm[6][7];	/* Smart FanII: Fan duty cycle */
-	u8 sf2_temp[6][7];	/* Smart FanII: Temp level point */
+	u8 tolerance[3];	
+	u8 sf2_pwm[6][7];	
+	u8 sf2_temp[6][7];	
 };
 
 static u8 w83793_read_value(struct i2c_client *client, u16 reg);
@@ -297,7 +267,7 @@ show_alarm_beep(struct device *dev, struct device_attribute *attr, char *buf)
 
 	if (ALARM_STATUS == nr) {
 		val = (data->alarms[index] >> (bit)) & 1;
-	} else {		/* BEEP_ENABLE */
+	} else {		
 		val = (data->beeps[index] >> (bit)) & 1;
 	}
 
@@ -359,7 +329,7 @@ store_beep_enable(struct device *dev, struct device_attribute *attr,
 	return count;
 }
 
-/* Write any value to clear chassis alarm */
+
 static ssize_t
 store_chassis_clear(struct device *dev,
 		    struct device_attribute *attr, const char *buf,
@@ -479,7 +449,7 @@ show_temp(struct device *dev, struct device_attribute *attr, char *buf)
 	struct w83793_data *data = w83793_update_device(dev);
 	long temp = TEMP_FROM_REG(data->temp[index][nr]);
 
-	if (TEMP_READ == nr && index < 4) {	/* Only TD1-TD4 have low bits */
+	if (TEMP_READ == nr && index < 4) {	
 		int low = ((data->temp_low_bits >> (index * 2)) & 0x03) * 250;
 		temp += temp > 0 ? low : -low;
 	}
@@ -506,21 +476,9 @@ store_temp(struct device *dev, struct device_attribute *attr,
 	return count;
 }
 
-/*
-	TD1-TD4
-	each has 4 mode:(2 bits)
-	0:	Stop monitor
-	1:	Use internal temp sensor(default)
-	2:	Reserved
-	3:	Use sensor in Intel CPU and get result by PECI
 
-	TR1-TR2
-	each has 2 mode:(1 bit)
-	0:	Disable temp sensor monitor
-	1:	To enable temp sensors monitor
-*/
 
-/* 0 disable, 6 PECI */
+
 static u8 TO_TEMP_MODE[] = { 0, 0, 0, 6 };
 
 static ssize_t
@@ -537,7 +495,7 @@ show_temp_mode(struct device *dev, struct device_attribute *attr, char *buf)
 
 	tmp = (data->temp_mode[index] >> shift) & mask;
 
-	/* for the internal sensor, found out if diode or thermistor */
+	
 	if (tmp == 1) {
 		tmp = index == 0 ? 3 : 4;
 	} else {
@@ -560,12 +518,12 @@ store_temp_mode(struct device *dev, struct device_attribute *attr,
 	u8 shift = (index < 4) ? (2 * index) : (index - 4);
 	u8 val = simple_strtoul(buf, NULL, 10);
 
-	/* transform the sysfs interface values into table above */
+	
 	if ((val == 6) && (index < 4)) {
 		val -= 3;
 	} else if ((val == 3 && index < 4)
 		|| (val == 4 && index >= 4)) {
-		/* transform diode or thermistor into internal enable */
+		
 		val = !!val;
 	} else {
 		return -EINVAL;
@@ -585,8 +543,8 @@ store_temp_mode(struct device *dev, struct device_attribute *attr,
 }
 
 #define SETUP_PWM_DEFAULT		0
-#define SETUP_PWM_UPTIME		1	/* Unit in 0.1s */
-#define SETUP_PWM_DOWNTIME		2	/* Unit in 0.1s */
+#define SETUP_PWM_UPTIME		1	
+#define SETUP_PWM_DOWNTIME		2	
 #define SETUP_TEMP_CRITICAL		3
 static ssize_t
 show_sf_setup(struct device *dev, struct device_attribute *attr, char *buf)
@@ -639,7 +597,7 @@ store_sf_setup(struct device *dev, struct device_attribute *attr,
 		data->pwm_downtime += data->pwm_downtime == 0 ? 1 : 0;
 		w83793_write_value(client, W83793_REG_PWM_DOWNTIME,
 							data->pwm_downtime);
-	} else {		/* SETUP_TEMP_CRITICAL */
+	} else {		
 		data->temp_critical =
 		    w83793_read_value(client, W83793_REG_TEMP_CRITICAL) & 0x80;
 		data->temp_critical |= TEMP_TO_REG(simple_strtol(buf, NULL, 10),
@@ -652,32 +610,7 @@ store_sf_setup(struct device *dev, struct device_attribute *attr,
 	return count;
 }
 
-/*
-	Temp SmartFan control
-	TEMP_FAN_MAP
-	Temp channel control which pwm fan, bitfield, bit 0 indicate pwm1...
-	It's possible two or more temp channels control the same fan, w83793
-	always prefers to pick the most critical request and applies it to
-	the related Fan.
-	It's possible one fan is not in any mapping of 6 temp channels, this
-	means the fan is manual mode
 
-	TEMP_PWM_ENABLE
-	Each temp channel has its own SmartFan mode, and temp channel
-	control	fans that are set by TEMP_FAN_MAP
-	0:	SmartFanII mode
-	1:	Thermal Cruise Mode
-
-	TEMP_CRUISE
-	Target temperature in thermal cruise mode, w83793 will try to turn
-	fan speed to keep the temperature of target device around this
-	temperature.
-
-	TEMP_TOLERANCE
-	If Temp higher or lower than target with this tolerance, w83793
-	will take actions to speed up or slow down the fan to keep the
-	temperature within the tolerance range.
-*/
 
 #define TEMP_FAN_MAP			0
 #define TEMP_PWM_ENABLE			1
@@ -696,11 +629,11 @@ show_sf_ctrl(struct device *dev, struct device_attribute *attr, char *buf)
 	if (TEMP_FAN_MAP == nr) {
 		val = data->temp_fan_map[index];
 	} else if (TEMP_PWM_ENABLE == nr) {
-		/* +2 to transfrom into 2 and 3 to conform with sysfs intf */
+		
 		val = ((data->pwm_enable >> index) & 0x01) + 2;
 	} else if (TEMP_CRUISE == nr) {
 		val = TEMP_FROM_REG(data->temp_cruise[index] & 0x7f);
-	} else {		/* TEMP_TOLERANCE */
+	} else {		
 		val = data->tolerance[index >> 1] >> ((index & 0x01) ? 4 : 0);
 		val = TEMP_FROM_REG(val & 0x0f);
 	}
@@ -748,7 +681,7 @@ store_sf_ctrl(struct device *dev, struct device_attribute *attr,
 
 		w83793_write_value(client, W83793_REG_TEMP_CRUISE(index),
 						data->temp_cruise[index]);
-	} else {		/* TEMP_TOLERANCE */
+	} else {		
 		int i = index >> 1;
 		u8 shift = (index & 0x01) ? 4 : 0;
 		data->tolerance[i] =
@@ -834,7 +767,7 @@ store_sf2_temp(struct device *dev, struct device_attribute *attr,
 	return count;
 }
 
-/* only Vcore A/B and Vtt have additional 2 bits precision */
+
 static ssize_t
 show_in(struct device *dev, struct device_attribute *attr, char *buf)
 {
@@ -849,7 +782,7 @@ show_in(struct device *dev, struct device_attribute *attr, char *buf)
 		val <<= 2;
 		val += (data->in_low_bits[nr] >> (index * 2)) & 0x3;
 	}
-	/* voltage inputs 5VDD and 5VSB needs 150mV offset */
+	
 	val = val * scale_in[index] + scale_in_add[index];
 	return sprintf(buf, "%d\n", val);
 }
@@ -871,7 +804,7 @@ store_in(struct device *dev, struct device_attribute *attr,
 	     scale_in[index] / 2) / scale_in[index];
 	mutex_lock(&data->update_lock);
 	if (index > 2) {
-		/* fix the limit values of 5VDD and 5VSB to ALARM mechanism */
+		
 		if (1 == nr || 2 == nr) {
 			val -= scale_in_add[index] / scale_in[index];
 		}
@@ -1014,7 +947,7 @@ static struct sensor_device_attribute_2 w83793_temp[] = {
 	SENSOR_ATTR_TEMP(6),
 };
 
-/* Fan6-Fan12 */
+
 static struct sensor_device_attribute_2 w83793_left_fan[] = {
 	SENSOR_ATTR_FAN(6),
 	SENSOR_ATTR_FAN(7),
@@ -1025,7 +958,7 @@ static struct sensor_device_attribute_2 w83793_left_fan[] = {
 	SENSOR_ATTR_FAN(12),
 };
 
-/* Pwm4-Pwm8 */
+
 static struct sensor_device_attribute_2 w83793_left_pwm[] = {
 	SENSOR_ATTR_PWM(4),
 	SENSOR_ATTR_PWM(5),
@@ -1061,7 +994,7 @@ static void w83793_init_client(struct i2c_client *client)
 		w83793_write_value(client, W83793_REG_CONFIG, 0x80);
 	}
 
-	/* Start monitoring */
+	
 	w83793_write_value(client, W83793_REG_CONFIG,
 			   w83793_read_value(client, W83793_REG_CONFIG) | 0x01);
 
@@ -1151,7 +1084,7 @@ w83793_detect_subclients(struct i2c_client *client)
 
 	return 0;
 
-	/* Undo inits in case of errors */
+	
 
 ERROR_SC_1:
 	if (data->lm75[0] != NULL)
@@ -1160,7 +1093,7 @@ ERROR_SC_0:
 	return err;
 }
 
-/* Return 0 if detection is successful, -ENODEV otherwise */
+
 static int w83793_detect(struct i2c_client *client, int kind,
 			 struct i2c_board_info *info)
 {
@@ -1176,7 +1109,7 @@ static int w83793_detect(struct i2c_client *client, int kind,
 
 	if (kind < 0) {
 		tmp = bank & 0x80 ? 0x5c : 0xa3;
-		/* Check Winbond vendor ID */
+		
 		if (tmp != i2c_smbus_read_byte_data(client,
 							W83793_REG_VENDORID)) {
 			pr_debug("w83793: Detection failed at check "
@@ -1184,8 +1117,7 @@ static int w83793_detect(struct i2c_client *client, int kind,
 			return -ENODEV;
 		}
 
-		/* If Winbond chip, address of chip and W83793_REG_I2C_ADDR
-		   should match */
+		
 		if ((bank & 0x07) == 0
 		 && i2c_smbus_read_byte_data(client, W83793_REG_I2C_ADDR) !=
 		    (address << 1)) {
@@ -1196,8 +1128,7 @@ static int w83793_detect(struct i2c_client *client, int kind,
 
 	}
 
-	/* We have either had a force parameter, or we have already detected the
-	   Winbond. Determine the chip type now */
+	
 
 	if (kind <= 0) {
 		if (0x7b == i2c_smbus_read_byte_data(client,
@@ -1241,73 +1172,70 @@ static int w83793_probe(struct i2c_client *client,
 	if (err)
 		goto free_mem;
 
-	/* Initialize the chip */
+	
 	w83793_init_client(client);
 
-	/*
-	   Only fan 1-5 has their own input pins,
-	   Pwm 1-3 has their own pins
-	 */
+	
 	data->has_fan = 0x1f;
 	data->has_pwm = 0x07;
 	tmp = w83793_read_value(client, W83793_REG_MFC);
 	val = w83793_read_value(client, W83793_REG_FANIN_CTRL);
 
-	/* check the function of pins 49-56 */
+	
 	if (tmp & 0x80) {
-		data->has_vid |= 0x2;	/* has VIDB */
+		data->has_vid |= 0x2;	
 	} else {
-		data->has_pwm |= 0x18;	/* pwm 4,5 */
-		if (val & 0x01) {	/* fan 6 */
+		data->has_pwm |= 0x18;	
+		if (val & 0x01) {	
 			data->has_fan |= 0x20;
 			data->has_pwm |= 0x20;
 		}
-		if (val & 0x02) {	/* fan 7 */
+		if (val & 0x02) {	
 			data->has_fan |= 0x40;
 			data->has_pwm |= 0x40;
 		}
-		if (!(tmp & 0x40) && (val & 0x04)) {	/* fan 8 */
+		if (!(tmp & 0x40) && (val & 0x04)) {	
 			data->has_fan |= 0x80;
 			data->has_pwm |= 0x80;
 		}
 	}
 
-	/* check the function of pins 37-40 */
+	
 	if (!(tmp & 0x29))
-		data->has_vid |= 0x1;	/* has VIDA */
+		data->has_vid |= 0x1;	
 	if (0x08 == (tmp & 0x0c)) {
-		if (val & 0x08)	/* fan 9 */
+		if (val & 0x08)	
 			data->has_fan |= 0x100;
-		if (val & 0x10)	/* fan 10 */
+		if (val & 0x10)	
 			data->has_fan |= 0x200;
 	}
 	if (0x20 == (tmp & 0x30)) {
-		if (val & 0x20)	/* fan 11 */
+		if (val & 0x20)	
 			data->has_fan |= 0x400;
-		if (val & 0x40)	/* fan 12 */
+		if (val & 0x40)	
 			data->has_fan |= 0x800;
 	}
 
-	if ((tmp & 0x01) && (val & 0x04)) {	/* fan 8, second location */
+	if ((tmp & 0x01) && (val & 0x04)) {	
 		data->has_fan |= 0x80;
 		data->has_pwm |= 0x80;
 	}
 
 	tmp = w83793_read_value(client, W83793_REG_FANIN_SEL);
-	if ((tmp & 0x01) && (val & 0x08)) {	/* fan 9, second location */
+	if ((tmp & 0x01) && (val & 0x08)) {	
 		data->has_fan |= 0x100;
 	}
-	if ((tmp & 0x02) && (val & 0x10)) {	/* fan 10, second location */
+	if ((tmp & 0x02) && (val & 0x10)) {	
 		data->has_fan |= 0x200;
 	}
-	if ((tmp & 0x04) && (val & 0x20)) {	/* fan 11, second location */
+	if ((tmp & 0x04) && (val & 0x20)) {	
 		data->has_fan |= 0x400;
 	}
-	if ((tmp & 0x08) && (val & 0x40)) {	/* fan 12, second location */
+	if ((tmp & 0x08) && (val & 0x40)) {	
 		data->has_fan |= 0x800;
 	}
 
-	/* check the temp1-6 mode, ignore former AMDSI selected inputs */
+	
 	tmp = w83793_read_value(client,W83793_REG_TEMP_MODE[0]);
 	if (tmp & 0x01)
 		data->has_temp |= 0x01;
@@ -1324,7 +1252,7 @@ static int w83793_probe(struct i2c_client *client,
 	if (tmp & 0x02)
 		data->has_temp |= 0x20;
 
-	/* Register sysfs hooks */
+	
 	for (i = 0; i < ARRAY_SIZE(w83793_sensor_attr_2); i++) {
 		err = device_create_file(dev,
 					 &w83793_sensor_attr_2[i].dev_attr);
@@ -1400,7 +1328,7 @@ static int w83793_probe(struct i2c_client *client,
 
 	return 0;
 
-	/* Unregister sysfs hooks */
+	
 
 exit_remove:
 	for (i = 0; i < ARRAY_SIZE(w83793_sensor_attr_2); i++)
@@ -1436,15 +1364,11 @@ static void w83793_update_nonvolatile(struct device *dev)
 	struct i2c_client *client = to_i2c_client(dev);
 	struct w83793_data *data = i2c_get_clientdata(client);
 	int i, j;
-	/*
-	   They are somewhat "stable" registers, and to update them everytime
-	   takes so much time, it's just not worthy. Update them in a long
-	   interval to avoid exception.
-	 */
+	
 	if (!(time_after(jiffies, data->last_nonvolatile + HZ * 300)
 	      || !data->valid))
 		return;
-	/* update voltage limits */
+	
 	for (i = 1; i < 3; i++) {
 		for (j = 0; j < ARRAY_SIZE(data->in); j++) {
 			data->in[j][i] =
@@ -1455,7 +1379,7 @@ static void w83793_update_nonvolatile(struct device *dev)
 	}
 
 	for (i = 0; i < ARRAY_SIZE(data->fan_min); i++) {
-		/* Update the Fan measured value and limits */
+		
 		if (!(data->has_fan & (1 << i))) {
 			continue;
 		}
@@ -1532,7 +1456,7 @@ static struct w83793_data *w83793_update_device(struct device *dev)
 	      || !data->valid))
 		goto END;
 
-	/* Update the voltages measured value and limits */
+	
 	for (i = 0; i < ARRAY_SIZE(data->in); i++)
 		data->in[i][IN_READ] =
 		    w83793_read_value(client, W83793_REG_IN[i][IN_READ]);
@@ -1583,8 +1507,7 @@ END:
 	return data;
 }
 
-/* Ignore the possibility that somebody change bank outside the driver
-   Must be called with data->update_lock held, except during initialization */
+
 static u8 w83793_read_value(struct i2c_client *client, u16 reg)
 {
 	struct w83793_data *data = i2c_get_clientdata(client);
@@ -1601,7 +1524,7 @@ static u8 w83793_read_value(struct i2c_client *client, u16 reg)
 				"set bank to %d failed, fall back "
 				"to bank %d, read reg 0x%x error\n",
 				new_bank, data->bank, reg);
-			res = 0x0;	/* read 0x0 from the chip */
+			res = 0x0;	
 			goto END;
 		}
 	}
@@ -1610,7 +1533,7 @@ END:
 	return res;
 }
 
-/* Must be called with data->update_lock held, except during initialization */
+
 static int w83793_write_value(struct i2c_client *client, u16 reg, u8 value)
 {
 	struct w83793_data *data = i2c_get_clientdata(client);

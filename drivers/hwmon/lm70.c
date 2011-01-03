@@ -1,28 +1,4 @@
-/*
- * lm70.c
- *
- * The LM70 is a temperature sensor chip from National Semiconductor (NS).
- * Copyright (C) 2006 Kaiwan N Billimoria <kaiwan@designergraphix.com>
- *
- * The LM70 communicates with a host processor via an SPI/Microwire Bus
- * interface. The complete datasheet is available at National's website
- * here:
- * http://www.national.com/pf/LM/LM70.html
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -38,8 +14,8 @@
 
 #define DRVNAME		"lm70"
 
-#define LM70_CHIP_LM70		0	/* original NS LM70 */
-#define LM70_CHIP_TMP121	1	/* TI TMP121/TMP123 */
+#define LM70_CHIP_LM70		0	
+#define LM70_CHIP_TMP121	1	
 
 struct lm70 {
 	struct device *hwmon_dev;
@@ -47,7 +23,7 @@ struct lm70 {
 	unsigned int chip;
 };
 
-/* sysfs hook function */
+
 static ssize_t lm70_sense_temp(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
@@ -60,10 +36,7 @@ static ssize_t lm70_sense_temp(struct device *dev,
 	if (mutex_lock_interruptible(&p_lm70->lock))
 		return -ERESTARTSYS;
 
-	/*
-	 * spi_read() requires a DMA-safe buffer; so we use
-	 * spi_write_then_read(), transmitting 0 bytes.
-	 */
+	
 	status = spi_write_then_read(spi, NULL, 0, &rxbuf[0], 2);
 	if (status < 0) {
 		printk(KERN_WARNING
@@ -74,22 +47,7 @@ static ssize_t lm70_sense_temp(struct device *dev,
 	dev_dbg(dev, "rxbuf[0] : 0x%02x rxbuf[1] : 0x%02x raw=0x%04x\n",
 		rxbuf[0], rxbuf[1], raw);
 
-	/*
-	 * LM70:
-	 * The "raw" temperature read into rxbuf[] is a 16-bit signed 2's
-	 * complement value. Only the MSB 11 bits (1 sign + 10 temperature
-	 * bits) are meaningful; the LSB 5 bits are to be discarded.
-	 * See the datasheet.
-	 *
-	 * Further, each bit represents 0.25 degrees Celsius; so, multiply
-	 * by 0.25. Also multiply by 1000 to represent in millidegrees
-	 * Celsius.
-	 * So it's equivalent to multiplying by 0.25 * 1000 = 250.
-	 *
-	 * TMP121/TMP123:
-	 * 13 bits of 2's complement data, discard LSB 3 bits,
-	 * resolution 0.0625 degrees celsius.
-	 */
+	
 	switch (p_lm70->chip) {
 	case LM70_CHIP_LM70:
 		val = ((int)raw / 32) * 250;
@@ -100,7 +58,7 @@ static ssize_t lm70_sense_temp(struct device *dev,
 		break;
 	}
 
-	status = sprintf(buf, "%d\n", val); /* millidegrees Celsius */
+	status = sprintf(buf, "%d\n", val); 
 out:
 	mutex_unlock(&p_lm70->lock);
 	return status;
@@ -129,7 +87,7 @@ static ssize_t lm70_show_name(struct device *dev, struct device_attribute
 
 static DEVICE_ATTR(name, S_IRUGO, lm70_show_name, NULL);
 
-/*----------------------------------------------------------------------*/
+
 
 static int __devinit lm70_probe(struct spi_device *spi)
 {
@@ -137,15 +95,15 @@ static int __devinit lm70_probe(struct spi_device *spi)
 	struct lm70 *p_lm70;
 	int status;
 
-	/* signaling is SPI_MODE_0 for both LM70 and TMP121 */
+	
 	if (spi->mode & (SPI_CPOL | SPI_CPHA))
 		return -EINVAL;
 
-	/* 3-wire link (shared SI/SO) for LM70 */
+	
 	if (chip == LM70_CHIP_LM70 && !(spi->mode & SPI_3WIRE))
 		return -EINVAL;
 
-	/* NOTE:  we assume 8-bit words, and convert to 16 bits manually */
+	
 
 	p_lm70 = kzalloc(sizeof *p_lm70, GFP_KERNEL);
 	if (!p_lm70)
@@ -154,7 +112,7 @@ static int __devinit lm70_probe(struct spi_device *spi)
 	mutex_init(&p_lm70->lock);
 	p_lm70->chip = chip;
 
-	/* sysfs hook */
+	
 	p_lm70->hwmon_dev = hwmon_device_register(&spi->dev);
 	if (IS_ERR(p_lm70->hwmon_dev)) {
 		dev_dbg(&spi->dev, "hwmon_device_register failed.\n");

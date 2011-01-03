@@ -1,38 +1,4 @@
-/*
- * adcxx.c
- *
- * The adcxx4s is an AD converter family from National Semiconductor (NS).
- *
- * Copyright (c) 2008 Marc Pignat <marc.pignat@hevs.ch>
- *
- * The adcxx4s communicates with a host processor via an SPI/Microwire Bus
- * interface. This driver supports the whole family of devices with name
- * ADC<bb><c>S<sss>, where
- * * bb is the resolution in number of bits (8, 10, 12)
- * * c is the number of channels (1, 2, 4, 8)
- * * sss is the maximum conversion speed (021 for 200 kSPS, 051 for 500 kSPS
- *   and 101 for 1 MSPS)
- *
- * Complete datasheets are available at National's website here:
- * http://www.national.com/ds/DC/ADC<bb><c>S<sss>.pdf
- *
- * Handling of 8, 10 and 12 bits converters are the same, the
- * unavailable bits are 0 :)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -52,17 +18,17 @@ struct adcxx {
 	struct device *hwmon_dev;
 	struct mutex lock;
 	u32 channels;
-	u32 reference; /* in millivolts */
+	u32 reference; 
 };
 
-/* sysfs hook function */
+
 static ssize_t adcxx_read(struct device *dev,
 		struct device_attribute *devattr, char *buf)
 {
 	struct spi_device *spi = to_spi_device(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
 	struct adcxx *adc = dev_get_drvdata(&spi->dev);
-	u8 tx_buf[2] = { attr->index << 3 }; /* other bits are don't care */
+	u8 tx_buf[2] = { attr->index << 3 }; 
 	u8 rx_buf[2];
 	int status;
 	int value;
@@ -91,7 +57,7 @@ out:
 static ssize_t adcxx_show_min(struct device *dev,
 		struct device_attribute *devattr, char *buf)
 {
-	/* The minimum reference is 0 for this chip family */
+	
 	return sprintf(buf, "0\n");
 }
 
@@ -156,7 +122,7 @@ static struct sensor_device_attribute ad_input[] = {
 	SENSOR_ATTR(in7_input, S_IRUGO, adcxx_read, NULL, 7),
 };
 
-/*----------------------------------------------------------------------*/
+
 
 static int __devinit adcxx_probe(struct spi_device *spi)
 {
@@ -169,7 +135,7 @@ static int __devinit adcxx_probe(struct spi_device *spi)
 	if (!adc)
 		return -ENOMEM;
 
-	/* set a default value for the reference */
+	
 	adc->reference = 3300;
 	adc->channels = channels;
 	mutex_init(&adc->lock);
