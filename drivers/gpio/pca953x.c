@@ -1,15 +1,4 @@
-/*
- *  pca953x.c - 4/8/16 bit I/O ports
- *
- *  Copyright (C) 2005 Ben Gardner <bgardner@wabtec.com>
- *  Copyright (C) 2007 Marvell International Ltd.
- *
- *  Derived from drivers/i2c/chips/pca9539.c
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; version 2 of the License.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -43,7 +32,7 @@ static const struct i2c_device_id pca953x_id[] = {
 	{ "pca6107", 8, },
 	{ "tca6408", 8, },
 	{ "tca6416", 16, },
-	/* NYET:  { "tca6424", 24, }, */
+	
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, pca953x_id);
@@ -120,7 +109,7 @@ static int pca953x_gpio_direction_output(struct gpio_chip *gc,
 
 	chip = container_of(gc, struct pca953x_chip, gpio_chip);
 
-	/* set output level */
+	
 	if (val)
 		reg_val = chip->reg_output | (1u << off);
 	else
@@ -132,7 +121,7 @@ static int pca953x_gpio_direction_output(struct gpio_chip *gc,
 
 	chip->reg_output = reg_val;
 
-	/* then direction */
+	
 	reg_val = chip->reg_direction & ~(1u << off);
 	ret = pca953x_write_reg(chip, PCA953X_DIRECTION, reg_val);
 	if (ret)
@@ -152,10 +141,7 @@ static int pca953x_gpio_get_value(struct gpio_chip *gc, unsigned off)
 
 	ret = pca953x_read_reg(chip, PCA953X_INPUT, &reg_val);
 	if (ret < 0) {
-		/* NOTE:  diagnostic already emitted; that's all we should
-		 * do unless gpio_*_value_cansleep() calls become different
-		 * from their nonsleeping siblings (and report faults).
-		 */
+		
 		return 0;
 	}
 
@@ -202,13 +188,9 @@ static void pca953x_setup_gpio(struct pca953x_chip *chip, int gpios)
 	gc->names = chip->names;
 }
 
-/*
- * Handlers for alternative sources of platform_data
- */
+
 #ifdef CONFIG_OF_GPIO
-/*
- * Translate OpenFirmware node properties into platform_data
- */
+
 static struct pca953x_platform_data *
 pca953x_get_alt_pdata(struct i2c_client *client)
 {
@@ -264,10 +246,7 @@ static int __devinit pca953x_probe(struct i2c_client *client,
 	pdata = client->dev.platform_data;
 	if (pdata == NULL) {
 		pdata = pca953x_get_alt_pdata(client);
-		/*
-		 * Unlike normal platform_data, this is allocated
-		 * dynamically and must be freed in the driver
-		 */
+		
 		chip->dyn_pdata = pdata;
 	}
 
@@ -283,9 +262,7 @@ static int __devinit pca953x_probe(struct i2c_client *client,
 
 	chip->names = pdata->names;
 
-	/* initialize cached registers from their original values.
-	 * we can't share this chip with another i2c master.
-	 */
+	
 	pca953x_setup_gpio(chip, id->driver_data);
 
 	ret = pca953x_read_reg(chip, PCA953X_OUTPUT, &chip->reg_output);
@@ -296,7 +273,7 @@ static int __devinit pca953x_probe(struct i2c_client *client,
 	if (ret)
 		goto out_failed;
 
-	/* set platform specific polarity inversion */
+	
 	ret = pca953x_write_reg(chip, PCA953X_INVERT, pdata->invert);
 	if (ret)
 		goto out_failed;
@@ -363,9 +340,7 @@ static int __init pca953x_init(void)
 {
 	return i2c_add_driver(&pca953x_driver);
 }
-/* register after i2c postcore initcall and before
- * subsys initcalls that may rely on these GPIOs
- */
+
 subsys_initcall(pca953x_init);
 
 static void __exit pca953x_exit(void)

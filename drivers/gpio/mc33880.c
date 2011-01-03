@@ -1,24 +1,6 @@
-/*
- * mc33880.c MC33880 high-side/low-side switch GPIO driver
- * Copyright (c) 2009 Intel Corporation
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
 
-/* Supports:
- * Freescale MC33880 high-side/low-side switch
- */
+
+
 
 #include <linux/init.h>
 #include <linux/mutex.h>
@@ -28,9 +10,7 @@
 
 #define DRIVER_NAME "mc33880"
 
-/*
- * Pin configurations, see MAX7301 datasheet page 6
- */
+
 #define PIN_CONFIG_MASK 0x03
 #define PIN_CONFIG_IN_PULLUP 0x03
 #define PIN_CONFIG_IN_WO_PULLUP 0x02
@@ -39,12 +19,9 @@
 #define PIN_NUMBER 8
 
 
-/*
- * Some registers must be read back to modify.
- * To save time we cache them here in memory
- */
+
 struct mc33880 {
-	struct mutex	lock;	/* protect from simultanous accesses */
+	struct mutex	lock;	
 	u8		port_config;
 	struct gpio_chip chip;
 	struct spi_device *spi;
@@ -90,9 +67,7 @@ static int __devinit mc33880_probe(struct spi_device *spi)
 		return -EINVAL;
 	}
 
-	/*
-	 * bits_per_word cannot be configured in platform data
-	 */
+	
 	spi->bits_per_word = 8;
 
 	ret = spi_setup(spi);
@@ -118,10 +93,7 @@ static int __devinit mc33880_probe(struct spi_device *spi)
 	mc->chip.owner = THIS_MODULE;
 
 	mc->port_config = 0x00;
-	/* write twice, because during initialisation the first setting
-	 * is just for testing SPI communication, and the second is the
-	 * "real" configuration
-	 */
+	
 	ret = mc33880_write_config(mc);
 	mc->port_config = 0x00;
 	if (!ret)
@@ -180,9 +152,7 @@ static int __init mc33880_init(void)
 {
 	return spi_register_driver(&mc33880_driver);
 }
-/* register after spi postcore initcall and before
- * subsys initcalls that may rely on these GPIOs
- */
+
 subsys_initcall(mc33880_init);
 
 static void __exit mc33880_exit(void)

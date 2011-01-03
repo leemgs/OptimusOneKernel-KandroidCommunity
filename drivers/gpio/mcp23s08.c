@@ -1,6 +1,4 @@
-/*
- * mcp23s08.c - SPI gpio expander driver
- */
+
 
 #include <linux/kernel.h>
 #include <linux/device.h>
@@ -11,14 +9,8 @@
 #include <linux/spi/mcp23s08.h>
 
 
-/* Registers are all 8 bits wide.
- *
- * The mcp23s17 has twice as many bits, and can be configured to work
- * with either 16 bit registers or with two adjacent 8 bit banks.
- *
- * Also, there are I2C versions of both chips.
- */
-#define MCP_IODIR	0x00		/* init/reset:  all ones */
+
+#define MCP_IODIR	0x00		
 #define MCP_IPOL	0x01
 #define MCP_GPINTEN	0x02
 #define MCP_DEFVAL	0x03
@@ -39,7 +31,7 @@ struct mcp23s08 {
 	u8			addr;
 
 	u8			cache[11];
-	/* lock protects the cached values */
+	
 	struct mutex		lock;
 
 	struct gpio_chip	chip;
@@ -47,11 +39,7 @@ struct mcp23s08 {
 	struct work_struct	work;
 };
 
-/* A given spi_device can represent up to four mcp23s08 chips
- * sharing the same chipselect but using different addresses
- * (e.g. chips #0 and #3 might be populated, but not #1 or $2).
- * Driver data holds all the per-chip data.
- */
+
 struct mcp23s08_driver_data {
 	unsigned		ngpio;
 	struct mcp23s08		*mcp[4];
@@ -91,7 +79,7 @@ mcp23s08_read_regs(struct mcp23s08 *mcp, unsigned reg, u8 *vals, unsigned n)
 	return spi_write_then_read(mcp->spi, tx, sizeof tx, vals, n);
 }
 
-/*----------------------------------------------------------------------*/
+
 
 static int mcp23s08_direction_input(struct gpio_chip *chip, unsigned offset)
 {
@@ -112,7 +100,7 @@ static int mcp23s08_get(struct gpio_chip *chip, unsigned offset)
 
 	mutex_lock(&mcp->lock);
 
-	/* REVISIT reading this clears any IRQ ... */
+	
 	status = mcp23s08_read(mcp, MCP_GPIO);
 	if (status < 0)
 		status = 0;
@@ -163,16 +151,13 @@ mcp23s08_direction_output(struct gpio_chip *chip, unsigned offset, int value)
 	return status;
 }
 
-/*----------------------------------------------------------------------*/
+
 
 #ifdef CONFIG_DEBUG_FS
 
 #include <linux/seq_file.h>
 
-/*
- * This shows more info than the generic gpio dump code:
- * pullups, deglitching, open drain drive.
- */
+
 static void mcp23s08_dbg_show(struct seq_file *s, struct gpio_chip *chip)
 {
 	struct mcp23s08	*mcp;
@@ -182,7 +167,7 @@ static void mcp23s08_dbg_show(struct seq_file *s, struct gpio_chip *chip)
 
 	mcp = container_of(chip, struct mcp23s08, chip);
 
-	/* NOTE: we only handle one bank for now ... */
+	
 	bank = '0' + ((mcp->addr >> 1) & 0x3);
 
 	mutex_lock(&mcp->lock);
@@ -204,7 +189,7 @@ static void mcp23s08_dbg_show(struct seq_file *s, struct gpio_chip *chip)
 			(mcp->cache[MCP_IODIR] & mask) ? "in " : "out",
 			(mcp->cache[MCP_GPIO] & mask) ? "hi" : "lo",
 			(mcp->cache[MCP_GPPU] & mask) ? "  " : "up");
-		/* NOTE:  ignoring the irq-related registers */
+		
 		seq_printf(s, "\n");
 	}
 done:
@@ -215,7 +200,7 @@ done:
 #define mcp23s08_dbg_show	NULL
 #endif
 
-/*----------------------------------------------------------------------*/
+
 
 static int mcp23s08_probe_one(struct spi_device *spi, unsigned addr,
 		unsigned base, unsigned pullups)
@@ -244,9 +229,7 @@ static int mcp23s08_probe_one(struct spi_device *spi, unsigned addr,
 	mcp->chip.dev = &spi->dev;
 	mcp->chip.owner = THIS_MODULE;
 
-	/* verify MCP_IOCON.SEQOP = 0, so sequential reads work,
-	 * and MCP_IOCON.HAEN = 1, so we work with all chips.
-	 */
+	
 	status = mcp23s08_read(mcp, MCP_IOCON);
 	if (status < 0)
 		goto fail;
@@ -258,7 +241,7 @@ static int mcp23s08_probe_one(struct spi_device *spi, unsigned addr,
 			goto fail;
 	}
 
-	/* configure ~100K pullups */
+	
 	status = mcp23s08_write(mcp, MCP_GPPU, pullups);
 	if (status < 0)
 		goto fail;
@@ -267,13 +250,13 @@ static int mcp23s08_probe_one(struct spi_device *spi, unsigned addr,
 	if (status < 0)
 		goto fail;
 
-	/* disable inverter on input */
+	
 	if (mcp->cache[MCP_IPOL] != 0) {
 		mcp->cache[MCP_IPOL] = 0;
 		do_update = 1;
 	}
 
-	/* disable irqs */
+	
 	if (mcp->cache[MCP_GPINTEN] != 0) {
 		mcp->cache[MCP_GPINTEN] = 0;
 		do_update = 1;
@@ -341,10 +324,7 @@ static int mcp23s08_probe(struct spi_device *spi)
 	}
 	data->ngpio = base - pdata->base;
 
-	/* NOTE:  these chips have a relatively sane IRQ framework, with
-	 * per-signal masking and level/edge triggering.  It's not yet
-	 * handled here...
-	 */
+	
 
 	if (pdata->setup) {
 		status = pdata->setup(spi,
@@ -413,15 +393,13 @@ static struct spi_driver mcp23s08_driver = {
 	},
 };
 
-/*----------------------------------------------------------------------*/
+
 
 static int __init mcp23s08_init(void)
 {
 	return spi_register_driver(&mcp23s08_driver);
 }
-/* register after spi postcore initcall and before
- * subsys initcalls that may rely on these GPIOs
- */
+
 subsys_initcall(mcp23s08_init);
 
 static void __exit mcp23s08_exit(void)

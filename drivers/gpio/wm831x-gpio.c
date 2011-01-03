@@ -1,16 +1,4 @@
-/*
- * wm831x-gpio.c  --  gpiolib support for Wolfson WM831x PMICs
- *
- * Copyright 2009 Wolfson Microelectronics PLC.
- *
- * Author: Mark Brown <broonie@opensource.wolfsonmicro.com>
- *
- *  This program is free software; you can redistribute  it and/or modify it
- *  under  the terms of  the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the  License, or (at your
- *  option) any later version.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -92,11 +80,7 @@ static void wm831x_gpio_dbg_show(struct seq_file *s, struct gpio_chip *chip)
 		int reg;
 		const char *label, *pull, *powerdomain;
 
-		/* We report the GPIO even if it's not requested since
-		 * we're also reporting things like alternate
-		 * functions which apply even when the GPIO is not in
-		 * use as a GPIO.
-		 */
+		
 		label = gpiochip_is_requested(chip, i);
 		if (!label)
 			label = "Unrequested";

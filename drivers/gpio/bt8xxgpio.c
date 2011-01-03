@@ -1,58 +1,15 @@
-/*
 
-    bt8xx GPIO abuser
-
-    Copyright (C) 2008 Michael Buesch <mb@bu3sch.de>
-
-    Please do _only_ contact the people listed _above_ with issues related to this driver.
-    All the other people listed below are not related to this driver. Their names
-    are only here, because this driver is derived from the bt848 driver.
-
-
-    Derived from the bt848 driver:
-
-    Copyright (C) 1996,97,98 Ralph  Metzler
-			   & Marcus Metzler
-    (c) 1999-2002 Gerd Knorr
-
-    some v4l2 code lines are taken from Justin's bttv2 driver which is
-    (c) 2000 Justin Schoeman
-
-    V4L1 removal from:
-    (c) 2005-2006 Nickolay V. Shmyrev
-
-    Fixes to be fully V4L2 compliant by
-    (c) 2006 Mauro Carvalho Chehab
-
-    Cropping and overscan support
-    Copyright (C) 2005, 2006 Michael H. Schimek
-    Sponsored by OPQ Systems AB
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/
 
 #include <linux/module.h>
 #include <linux/pci.h>
 #include <linux/spinlock.h>
 #include <linux/gpio.h>
 
-/* Steal the hardware definitions from the bttv driver. */
+
 #include "../media/video/bt8xx/bt848.h"
 
 
-#define BT8XXGPIO_NR_GPIOS		24 /* We have 24 GPIO pins */
+#define BT8XXGPIO_NR_GPIOS		24 
 
 
 struct bt8xxgpio {
@@ -72,7 +29,7 @@ struct bt8xxgpio {
 #define bgread(adr)		readl(bg->mmio+(adr))
 
 
-static int modparam_gpiobase = -1/* dynamic */;
+static int modparam_gpiobase = -1;
 module_param_named(gpiobase, modparam_gpiobase, int, 0444);
 MODULE_PARM_DESC(gpiobase, "The GPIO number base. -1 means dynamic, which is the default.");
 
@@ -207,10 +164,10 @@ static int bt8xxgpio_probe(struct pci_dev *dev,
 		goto err_release_mem;
 	}
 
-	/* Disable interrupts */
+	
 	bgwrite(0, BT848_INT_MASK);
 
-	/* gpio init */
+	
 	bgwrite(0, BT848_GPIO_DMA_CTL);
 	bgwrite(0, BT848_GPIO_REG_INP);
 	bgwrite(0, BT848_GPIO_OUT_EN);
@@ -310,7 +267,7 @@ static int bt8xxgpio_resume(struct pci_dev *pdev)
 #else
 #define bt8xxgpio_suspend NULL
 #define bt8xxgpio_resume NULL
-#endif /* CONFIG_PM */
+#endif 
 
 static struct pci_device_id bt8xxgpio_pci_tbl[] = {
 	{ PCI_DEVICE(PCI_VENDOR_ID_BROOKTREE, PCI_DEVICE_ID_BT848) },

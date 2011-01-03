@@ -1,16 +1,4 @@
-/*
- *  linux/drivers/gpio/pl061.c
- *
- *  Copyright (C) 2008, 2009 Provigent Ltd.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * Driver for the ARM PrimeCell(tm) General Purpose Input/Output (PL061)
- *
- * Data sheet: ARM DDI 0190B, September 2000
- */
+
 #include <linux/spinlock.h>
 #include <linux/errno.h>
 #include <linux/module.h>
@@ -37,20 +25,12 @@
 #define PL061_GPIO_NR	8
 
 struct pl061_gpio {
-	/* We use a list of pl061_gpio structs for each trigger IRQ in the main
-	 * interrupts controller of the system. We need this to support systems
-	 * in which more that one PL061s are connected to the same IRQ. The ISR
-	 * interates through this list to find the source of the interrupt.
-	 */
+	
 	struct list_head	list;
 
-	/* Each of the two spinlocks protects a different set of hardware
-	 * regiters and data structurs. This decouples the code of the IRQ from
-	 * the GPIO code. This also makes the case of a GPIO routine call from
-	 * the IRQ code simpler.
-	 */
-	spinlock_t		lock;		/* GPIO registers */
-	spinlock_t		irq_lock;	/* IRQ registers */
+	
+	spinlock_t		lock;		
+	spinlock_t		irq_lock;	
 
 	void __iomem		*base;
 	unsigned		irq_base;
@@ -119,9 +99,7 @@ static int pl061_to_irq(struct gpio_chip *gc, unsigned offset)
 	return chip->irq_base + offset;
 }
 
-/*
- * PL061 GPIO IRQ
- */
+
 static void pl061_irq_disable(unsigned irq)
 {
 	struct pl061_gpio *chip = get_irq_chip_data(irq);
@@ -274,21 +252,19 @@ static int __init pl061_probe(struct amba_device *dev, struct amba_id *id)
 	if (ret)
 		goto iounmap;
 
-	/*
-	 * irq_chip support
-	 */
+	
 
 	if (chip->irq_base == (unsigned) -1)
 		return 0;
 
-	writeb(0, chip->base + GPIOIE); /* disable irqs */
+	writeb(0, chip->base + GPIOIE); 
 	irq = dev->irq[0];
 	if (irq < 0) {
 		ret = -ENODEV;
 		goto iounmap;
 	}
 	set_irq_chained_handler(irq, pl061_irq_handler);
-	if (!test_and_set_bit(irq, init_irq)) { /* list initialized? */
+	if (!test_and_set_bit(irq, init_irq)) { 
 		chip_list = kmalloc(sizeof(*chip_list), GFP_KERNEL);
 		if (chip_list == NULL) {
 			clear_bit(irq, init_irq);

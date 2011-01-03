@@ -1,23 +1,6 @@
-/* langwell_gpio.c Moorestown platform Langwell chip GPIO driver
- * Copyright (c) 2008 - 2009,  Intel Corporation.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
 
-/* Supports:
- * Moorestown platform Langwell chip.
- */
+
+
 
 #include <linux/module.h>
 #include <linux/pci.h>
@@ -170,7 +153,7 @@ static void lnw_irq_handler(unsigned irq, struct irq_desc *desc)
 	void __iomem *gedr;
 	u32 gedr_v;
 
-	/* check GPIO controller to check which pin triggered the interrupt */
+	
 	for (reg = 0; reg < lnw->chip.ngpio / 32; reg++) {
 		gedr = (void __iomem *)(&lnw->reg_base->GEDR[reg]);
 		gedr_v = readl(gedr);
@@ -181,7 +164,7 @@ static void lnw_irq_handler(unsigned irq, struct irq_desc *desc)
 				pr_debug("pin %d triggered\n", gpio);
 				generic_handle_irq(lnw->irq_base + gpio);
 			}
-		/* clear the edge detect status bit */
+		
 		writel(gedr_v, gedr);
 	}
 	desc->chip->eoi(irq);
@@ -207,7 +190,7 @@ static int __devinit lnw_gpio_probe(struct pci_dev *pdev,
 		dev_err(&pdev->dev, "error requesting resources\n");
 		goto err2;
 	}
-	/* get the irq_base from bar1 */
+	
 	start = pci_resource_start(pdev, 1);
 	len = pci_resource_len(pdev, 1);
 	base = ioremap_nocache(start, len);
@@ -217,9 +200,9 @@ static int __devinit lnw_gpio_probe(struct pci_dev *pdev,
 	}
 	irq_base = *(u32 *)base;
 	gpio_base = *((u32 *)base + 1);
-	/* release the IO mapping, since we already get the info from bar1 */
+	
 	iounmap(base);
-	/* get the register base from bar0 */
+	
 	start = pci_resource_start(pdev, 0);
 	len = pci_resource_len(pdev, 0);
 	base = ioremap_nocache(start, len);

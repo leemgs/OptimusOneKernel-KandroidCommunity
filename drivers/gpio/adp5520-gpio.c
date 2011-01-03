@@ -1,10 +1,4 @@
-/*
- * GPIO driver for Analog Devices ADP5520 MFD PMICs
- *
- * Copyright 2009 Analog Devices Inc.
- *
- * Licensed under the GPL-2 or later.
- */
+
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -28,10 +22,7 @@ static int adp5520_gpio_get_value(struct gpio_chip *chip, unsigned off)
 
 	dev = container_of(chip, struct adp5520_gpio, gpio_chip);
 
-	/*
-	 * There are dedicated registers for GPIO IN/OUT.
-	 * Make sure we return the right value, even when configured as output
-	 */
+	
 
 	if (test_bit(off, &dev->output))
 		adp5520_read(dev->master, GPIO_OUT, &reg_val);

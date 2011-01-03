@@ -1,16 +1,4 @@
-/*
- *  max732x.c - I2C Port Expander with 8/16 I/O
- *
- *  Copyright (C) 2007 Marvell International Ltd.
- *  Copyright (C) 2008 Jack Ren <jack.ren@marvell.com>
- *  Copyright (C) 2008 Eric Miao <eric.miao@marvell.com>
- *
- *  Derived from drivers/gpio/pca953x.c
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; version 2 of the License.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -22,51 +10,21 @@
 #include <linux/i2c/max732x.h>
 
 
-/*
- * Each port of MAX732x (including MAX7319) falls into one of the
- * following three types:
- *
- *   - Push Pull Output
- *   - Input
- *   - Open Drain I/O
- *
- * designated by 'O', 'I' and 'P' individually according to MAXIM's
- * datasheets.
- *
- * There are two groups of I/O ports, each group usually includes
- * up to 8 I/O ports, and is accessed by a specific I2C address:
- *
- *   - Group A : by I2C address 0b'110xxxx
- *   - Group B : by I2C address 0b'101xxxx
- *
- * where 'xxxx' is decided by the connections of pin AD2/AD0.  The
- * address used also affects the initial state of output signals.
- *
- * Within each group of ports, there are five known combinations of
- * I/O ports: 4I4O, 4P4O, 8I, 8P, 8O, see the definitions below for
- * the detailed organization of these ports.
- *
- * GPIO numbers start from 'gpio_base + 0' to 'gpio_base + 8/16',
- * and GPIOs from GROUP_A are numbered before those from GROUP_B
- * (if there are two groups).
- *
- * NOTE: MAX7328/MAX7329 are drop-in replacements for PCF8574/a, so
- * they are not supported by this driver.
- */
 
-#define PORT_NONE	0x0	/* '/' No Port */
-#define PORT_OUTPUT	0x1	/* 'O' Push-Pull, Output Only */
-#define PORT_INPUT	0x2	/* 'I' Input Only */
-#define PORT_OPENDRAIN	0x3	/* 'P' Open-Drain, I/O */
 
-#define IO_4I4O		0x5AA5	/* O7 O6 I5 I4 I3 I2 O1 O0 */
-#define IO_4P4O		0x5FF5	/* O7 O6 P5 P4 P3 P2 O1 O0 */
-#define IO_8I		0xAAAA	/* I7 I6 I5 I4 I3 I2 I1 I0 */
-#define IO_8P		0xFFFF	/* P7 P6 P5 P4 P3 P2 P1 P0 */
-#define IO_8O		0x5555	/* O7 O6 O5 O4 O3 O2 O1 O0 */
+#define PORT_NONE	0x0	
+#define PORT_OUTPUT	0x1	
+#define PORT_INPUT	0x2	
+#define PORT_OPENDRAIN	0x3	
 
-#define GROUP_A(x)	((x) & 0xffff)	/* I2C Addr: 0b'110xxxx */
-#define GROUP_B(x)	((x) << 16)	/* I2C Addr: 0b'101xxxx */
+#define IO_4I4O		0x5AA5	
+#define IO_4P4O		0x5FF5	
+#define IO_8I		0xAAAA	
+#define IO_8P		0xFFFF	
+#define IO_8O		0x5555	
+
+#define GROUP_A(x)	((x) & 0xffff)	
+#define GROUP_B(x)	((x) << 16)	
 
 static const struct i2c_device_id max732x_id[] = {
 	{ "max7319", GROUP_A(IO_8I) },
@@ -85,7 +43,7 @@ MODULE_DEVICE_TABLE(i2c, max732x_id);
 struct max732x_chip {
 	struct gpio_chip gpio_chip;
 
-	struct i2c_client *client;	/* "main" client */
+	struct i2c_client *client;	
 	struct i2c_client *client_dummy;
 	struct i2c_client *client_group_a;
 	struct i2c_client *client_group_b;
@@ -166,7 +124,7 @@ static void max732x_gpio_set_value(struct gpio_chip *gc, unsigned off, int val)
 	if (ret < 0)
 		goto out;
 
-	/* update the shadow register then */
+	
 	if (off > 7)
 		chip->reg_out[1] = reg_out;
 	else
@@ -352,7 +310,7 @@ static int __devexit max732x_remove(struct i2c_client *client)
 		return ret;
 	}
 
-	/* unregister any dummy i2c_client */
+	
 	if (chip->client_dummy)
 		i2c_unregister_device(chip->client_dummy);
 
@@ -374,9 +332,7 @@ static int __init max732x_init(void)
 {
 	return i2c_add_driver(&max732x_driver);
 }
-/* register after i2c postcore initcall and before
- * subsys initcalls that may rely on these GPIOs
- */
+
 subsys_initcall(max732x_init);
 
 static void __exit max732x_exit(void)
